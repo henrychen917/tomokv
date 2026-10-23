@@ -1,0 +1,12 @@
+multires: atomic=1
+  note key set spans 16 owners
+  ok   wide MSET then EXEC write (lost-write + stale-read): acked=60 lost=0 stale=0 holds+22322
+  ok   wide DEL then EXEC write (lost-write + stale-read): acked=60 lost=0 stale=0 holds+22627
+  ok   wide UNLINK then EXEC write: acked=60 lost=0 stale=0 holds+22596
+  FAIL MSETNX dispatch barrier never ordered the pair
+  ok   control: no predecessor at all: acked=60 lost=0 stale=0 holds+0
+  ok   control: single-key DEL is not a group: acked=60 lost=0 stale=0 holds+0
+  ok   control: transaction on a second connection: acked=60 lost=0 stale=0 holds+0
+  ok   ordering witnessed 67545x across the armed cases
+  ok   no install-time ordering violation (atomic_exec_order_late=0)
+multires: FAIL

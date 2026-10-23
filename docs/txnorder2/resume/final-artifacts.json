@@ -1,0 +1,25 @@
+{
+  "source_commit": "9d6e99d0da5753e078ec7e95a45bdedefeef6180",
+  "binaries": {
+    "build/tomokv": {
+      "sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f",
+      "bytes": 194766624
+    },
+    "build/txnorder2/pre-source/build/tomokv": {
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "bytes": 192601912
+    },
+    "build/txnorder2/post/tomokv": {
+      "sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "bytes": 194766184
+    },
+    "build/txnorder2/pad-a-size-final2c/tomokv": {
+      "sha256": "52a0b831841e5b0960b604069bfb190651ed23723d36fcdce19027da2a8aaaef",
+      "bytes": 192723008
+    },
+    "/home/user/Projects/redis74/src/redis-server": {
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "bytes": 17663696
+    }
+  }
+}

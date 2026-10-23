@@ -1,0 +1,136 @@
+compiled post db0/src/core/reorder.o 148936 113898
+compiled post db0/src/core/reorder.o 149032 113898
+compiled post db0/src/core/reorder.o 149064 113898
+compiled post db0/src/core/reorder.o 149016 113898
+compiled post db0/src/core/reorder.o 148984 113898
+compiled post db0/src/core/reorder.o 148968 113898
+compiled post src/core/rl2s.o 163004 111035
+compiled post src/core/rl2s.o 162908 111035
+compiled post src/core/rl2s.o 162988 111035
+compiled post src/core/rl2s.o 162956 111035
+compiled post src/core/rl2s.o 162940 111035
+compiled post src/core/rl2s.o 163036 111035
+scored src/core/rl2s.o 162956 [4, 12, 21]
+scored src/core/rl2s.o 162940 [6, 13, 22]
+scored src/core/rl2s.o 162988 [4, 13, 22]
+scored src/core/rl2s.o 162908 [6, 13, 22]
+scored src/core/rl2s.o 163036 [2, 6, 15]
+scored src/core/rl2s.o 163004 [4, 11, 20]
+scored db0/src/core/reorder.o 148968 [5, 11, 20]
+scored db0/src/core/reorder.o 148936 [5, 13, 22]
+scored db0/src/core/reorder.o 149016 [3, 9, 18]
+scored db0/src/core/reorder.o 149032 [2, 5, 14]
+scored db0/src/core/reorder.o 149064 [1, 7, 16]
+scored db0/src/core/reorder.o 148984 [3, 9, 18]
+[
+  {
+    "unit": "src/main.o",
+    "old": 147428,
+    "budget": 147428,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_main.o-post-147428.o"
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "old": 130241,
+    "budget": 130254,
+    "score": [
+      0,
+      5,
+      14
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_genthread.o-post-130254.o"
+  },
+  {
+    "unit": "src/core/rl2s.o",
+    "old": 162972,
+    "budget": 163036,
+    "score": [
+      2,
+      6,
+      15
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163036.o"
+  },
+  {
+    "unit": "src/core/reorder.o",
+    "old": 148006,
+    "budget": 148015,
+    "score": [
+      0,
+      3,
+      13
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_reorder.o-post-148015.o"
+  },
+  {
+    "unit": "src/cmd/xshard.o",
+    "old": 128705,
+    "budget": 128734,
+    "score": [
+      0,
+      12,
+      23
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_cmd_xshard.o-post-128734.o"
+  },
+  {
+    "unit": "db0/src/main.o",
+    "old": 147449,
+    "budget": 147449,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_main.o-post-147449.o"
+  },
+  {
+    "unit": "db0/src/core/genthread.o",
+    "old": 130360,
+    "budget": 130373,
+    "score": [
+      0,
+      6,
+      15
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_genthread.o-post-130373.o"
+  },
+  {
+    "unit": "db0/src/core/rl2s.o",
+    "old": 162334,
+    "budget": 162334,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_rl2s.o-post-162334.o"
+  },
+  {
+    "unit": "db0/src/core/reorder.o",
+    "old": 149000,
+    "budget": 149064,
+    "score": [
+      1,
+      7,
+      16
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149064.o"
+  },
+  {
+    "unit": "db0/src/cmd/xshard.o",
+    "old": 127713,
+    "budget": 127750,
+    "score": [
+      0,
+      11,
+      22
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_cmd_xshard.o-post-127750.o"
+  }
+]

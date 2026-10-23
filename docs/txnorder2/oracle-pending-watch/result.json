@@ -1,0 +1,35 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "84",
+    "/home/user/Projects/redis74/src/redis-server",
+    "--port",
+    "27892",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--databases",
+    "16",
+    "--dir",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/oracle-pending-watch"
+  ],
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "cases": [
+    {
+      "producer_end": "DISCARD",
+      "producer_reply": "b'OK'",
+      "watch_exec": "[b'old']",
+      "expected": "[b'old']"
+    },
+    {
+      "producer_end": "EXEC",
+      "producer_reply": "[b'OK']",
+      "watch_exec": "None",
+      "expected": "None"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "atomic": 1,
+  "outcome": "rollback",
+  "trial": 0,
+  "counts": {
+    "arrived": 256,
+    "served": 256
+  },
+  "errors": [],
+  "accepted_delta": 256,
+  "unique_ids": 256,
+  "positive_stale": [],
+  "witness": null,
+  "flips": [],
+  "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+}

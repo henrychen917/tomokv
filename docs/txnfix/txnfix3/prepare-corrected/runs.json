@@ -1,0 +1,490 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {}
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-2s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-2s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {}
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-1s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-1s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {}
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-2s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-2s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {}
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-1s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-1s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {}
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-2s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-2s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {}
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-1s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-1s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {}
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-2s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-2s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 1,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {}
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "INFO",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-1s-INFO.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "DBSIZE",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-1s-DBSIZE.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+    }
+  }
+]

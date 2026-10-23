@@ -1,0 +1,60 @@
+# 2026-10-23 02:00:42 NT4.8 follow-up: proto-max-bulk-len up to LONG_MAX vs 32-bit string values (2s, uring, CPUs 64-71, client 72-79)
+## probe script
+#!/bin/bash
+# Usage: setrange_repro.sh BINARY PORT OUTDIR  -- boots BINARY (2s/uring) on CPUs 64-71 and probes the >4 GiB SETRANGE path.
+BIN=$1; PORT=$2; OUT=$3; CLI=/home/user/Projects/redis74/src/redis-cli
+mkdir -p "$OUT"; cd "$OUT"
+taskset -c 64-71 "$BIN" --port "$PORT" --bind 127.0.0.1 --protected-mode no --save '' --appendonly no \
+  --dir "$OUT" --thread-mode 2s --ratio 6:2 --shards 16 --net-io uring > server.log 2>&1 &
+echo $! > server.pid
+for i in $(seq 100); do taskset -c 72-79 $CLI -p "$PORT" PING >/dev/null 2>&1 && break; sleep 0.1; done
+c(){ echo "> $*"; timeout 30 taskset -c 72-79 $CLI -p "$PORT" "$@" 2>&1; echo "  (rc=$?)"; }
+c CONFIG SET proto-max-bulk-len 9223372036854775807
+c SETRANGE k 4294967296 x
+c STRLEN k
+c PING
+PID=$(cat server.pid)
+if ps -p "$PID" -o args= | grep -q -- "--port $PORT"; then echo "server alive; stopping $PID"; kill "$PID"; wait "$PID"; echo "exit=$?"; else wait "$PID"; echo "server DEAD exit=$?"; fi
+tail -5 server.log
+
+## POST before the fix (sha256 7a57475b17cace7802421dcda856e61ccd993928c39971b1ef5f4c5e770c4421), run 01:57
+> CONFIG SET proto-max-bulk-len 9223372036854775807 -> OK
+> SETRANGE k 4294967296 x -> Error: Server closed the connection; server exit 134 (SIGABRT)
+server.log tail:
+listening on 127.0.0.1:20810
+*** buffer overflow detected ***: terminated
+
+## PRE dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb
+> CONFIG SET proto-max-bulk-len 9223372036854775807
+ERR Invalid argument '9223372036854775807' for CONFIG SET 'proto-max-bulk-len'
+
+  (rc=0)
+> SETRANGE k 4294967296 x
+ERR string exceeds maximum allowed size (proto-max-bulk-len)
+
+  (rc=0)
+> STRLEN k
+0
+  (rc=0)
+> PING
+PONG
+  (rc=0)
+server alive; stopping 483100
+exit=0
+
+## POST after the fix 9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47
+> CONFIG SET proto-max-bulk-len 9223372036854775807
+OK
+  (rc=0)
+> SETRANGE k 4294967296 x
+ERR string exceeds maximum allowed size (proto-max-bulk-len)
+
+  (rc=0)
+> STRLEN k
+0
+  (rc=0)
+> PING
+PONG
+  (rc=0)
+server alive; stopping 483190
+exit=0

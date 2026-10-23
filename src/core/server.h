@@ -13,6 +13,7 @@
 // the ownership edge. An IO may enqueue using an old route after that edge, so tasks and borrow
 // releases recheck ownership and forward before shard access instead of carrying routing epochs.
 #pragma once
+#include "../cmd/debug_sleep.h"
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -37,6 +38,7 @@
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/multi.h"
 #include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
 #include "climon_mask.h"
@@ -143,8 +145,15 @@ struct alignas(64) AtomicApplySlot {
 static_assert(sizeof(AtomicApplySlot) == 64);
 static_assert(alignof(AtomicApplySlot) == 64);
 
+struct FlipListenerState;
+bool fliplisten_reserve(Server&, std::string&);
+
 class Server {
+    friend class IoLoop;
+    friend struct FlipListenerState;
+    friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
+    friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
 public:
     // Done releases the ROB slot, but executor code may still be notifying its IO.
@@ -294,6 +303,8 @@ public:
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
         live_maxclients_.store(cfg.maxclients, std::memory_order_relaxed);
         live_timeout_.store(cfg.timeout, std::memory_order_relaxed);
+        client_hz_.configured.store(cfg.hz, std::memory_order_relaxed);
+        client_hz_.dynamic.store(cfg.dynamic_hz != 0, std::memory_order_relaxed);
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
@@ -1086,7 +1097,7 @@ public:
         // Cross-thread read of every IO's private client vector (IO4.4a). It is frozen here: each
         // IO acknowledged IoDrain (release; this coordinator acquired every ack) only after its own
         // closes, LB move and UNIX hand-offs settled, and from that ack its closes stop before
-        // remove_client (flip_close_pin_), accepts are refused and no transfer is posted. The next
+        // remove_client (flip_close_pin_), accepted fds are retained and no transfer is posted. The next
         // write to any vector follows this plan's IoPrepare publication.
         flip_dropped_client_transfers_.store(0, std::memory_order_relaxed);
         try {
@@ -1475,6 +1486,12 @@ public:
             lb_stage_.store(LbStage::Idle, std::memory_order_release);
             lb_deadline_ns_.store(0, std::memory_order_release);
         }
+        if (coordinator < nthreads() && thread(coordinator).role() == Role::Ifid &&
+            flip_stage() == FlipStage::Idle &&
+            !thread(coordinator).reserve_listener_handover()) {
+            error = "ERR FLIP could not reserve listener and descriptor state";
+            return false;
+        }
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {
@@ -1714,6 +1731,10 @@ public:
         flip_deadline_ns_.store(0, std::memory_order_release);
     }
     void flip_complete_active() {
+        flip_validate_active();
+        flip_finish_active();
+    }
+    void flip_validate_active() {
         flip_conservation_check();
         flip_conservation_check(true);
         if (!flip_shard_ownership_conserved()) std::abort();
@@ -1756,7 +1777,10 @@ public:
                                    flip_planned_client_transfers_)
             std::abort();
 
-        flip_last_transfers_.store(transfers, std::memory_order_relaxed);
+    }
+    void flip_finish_active() {
+        flip_last_transfers_.store(flip_active_transfers_.load(std::memory_order_relaxed),
+                                   std::memory_order_relaxed);
         flip_completed_.fetch_add(1, std::memory_order_relaxed);
         flip_stage_.store(FlipStage::Idle, std::memory_order_release);
         flip_deadline_ns_.store(0, std::memory_order_release);
@@ -1855,7 +1879,7 @@ public:
     }
     // Bound coordination, not filesystem IO: a failed/overdue save must leave the server alive.
     static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
-    // Signal-safe request. The existing one-second IO save cron owns all allocation and IO.
+    // Signal-safe request. The elected IO owns allocation and IO, woken by the signal doorbell.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
     bool request_signal_shutdown() {
         if (loading()) return false; // retain the existing interrupted-boot teardown
@@ -2199,6 +2223,39 @@ public:
         live_tcp_keepalive_.store(value, std::memory_order_relaxed);
     }
     uint32_t timeout() const { return live_timeout_.load(std::memory_order_relaxed); }
+    uint32_t configured_hz() const { return client_hz_.configured.load(std::memory_order_relaxed); }
+    using DebugSleepWorker = DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs>::Worker;
+    auto& debug_sleep_coordinator() { return debug_sleep_; }
+    void debug_sleep_poll(uint32_t tid) {
+        if (__builtin_expect(debug_sleep_.pending(), false)) debug_sleep_.park(tid);
+    }
+    uint64_t debug_sleep_start(uint64_t us, uint32_t tid) {
+        if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+            return 0;
+        const uint64_t ticket = debug_sleep_.start(us);
+        if (ticket) {
+            // The signal publishes its stop request before interrupting a sleeper. Recheck
+            // after start resets the old interrupt latch, closing the signal/start race.
+            if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+                debug_sleep_.interrupt();
+            if (Ring* source = thread(tid).ring()) {
+                for (uint32_t other = 0; other < nthreads(); ++other)
+                    if (other != tid)
+                        if (Ring* target = thread(other).ring())
+                            source->msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+                source->submit_and_reap();
+            }
+        }
+        return ticket;
+    }
+    bool debug_sleep_complete(uint64_t ticket) { return debug_sleep_.complete(ticket); }
+    uint32_t client_hz() const {
+        return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
+    }
+    void set_hz(uint32_t hz) { client_hz_.configured.store(hz, std::memory_order_relaxed); }
+    void set_dynamic_hz(bool dynamic) {
+        client_hz_.dynamic.store(dynamic, std::memory_order_relaxed);
+    }
     bool client_cron_armed() const {
         return client_cron_armed_.load(std::memory_order_relaxed);
     }
@@ -2539,7 +2596,8 @@ public:
         return true;
     }
     void set_snapshot_atomic_barrier(bool enabled) {
-        snapshot_atomic_barrier_.store(enabled, std::memory_order_release);
+        if (enabled) snapshot_atomic_barrier_.fetch_or(1, std::memory_order_acq_rel);
+        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_acq_rel);
     }
     void atomic_retire_group(uint32_t owner_io, uint64_t admission_token) {
         AtomicAdmissionState& local = thread(owner_io).atomic_admission_state();
@@ -2631,6 +2689,56 @@ public:
     }
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
         return atomic_commit_group(epoch, [](uint64_t) {});
+    }
+    template <typename PublishMembers>
+    uint64_t atomic_commit_group_cas(std::atomic<uint64_t>& epoch,
+                                     PublishMembers&& publish_members) {
+        const uint64_t ticket = atomic_commit_reserve();
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        uint64_t undecided = 0;
+        const bool won = epoch.compare_exchange_strong(
+            undecided, ticket, std::memory_order_acq_rel);
+        if (won) publish_members(ticket);
+        // A cancelled attempt still reserved a ticket and opened a bracket.
+        atomic_commit_publish();
+        return won ? ticket : 0;
+    }
+    // The ordinary publication bracket is conservative: A can sample `drawn`,
+    // B can reserve and publish, then A can decrement the last reference and
+    // publish its older sample. Rule-P waiters need an eventual watermark even
+    // when no further writer arrives. Sample the sequence BEFORE observing an
+    // empty bracket: every ticket in that sample has then finished publication.
+    // A subsequent reservation has a newer ticket and cannot ride this update.
+    // Only the cold transaction touch path calls this helper.
+    bool atomic_publish_quiescent() {
+        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+        if (atomic_commit_inflight_.load(std::memory_order_seq_cst)) return false;
+        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn && !atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+        return true;
+    }
+    void note_txn(uint32_t owner, TxnCounter counter, uint64_t count = 1) {
+        txn_counters_[owner].values[static_cast<unsigned>(counter)].fetch_add(
+            count, std::memory_order_relaxed);
+    }
+    uint64_t txn_counter(TxnCounter counter) const {
+        uint64_t total = 0;
+        for (uint32_t owner = 0; owner < nthreads(); ++owner)
+            total += txn_counters_[owner].values[static_cast<unsigned>(counter)].load(
+                std::memory_order_relaxed);
+        return total;
+    }
+    MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
+    bool txn_retry_held(const void* = nullptr) const {
+        return snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1;
+    }
+    uint32_t take_debug_txn_place_defer() {
+        return debug_txn_place_defer_.exchange(0, std::memory_order_relaxed);
+    }
+    void set_debug_txn_place_defer(uint32_t delay) {
+        debug_txn_place_defer_.store(delay, std::memory_order_relaxed);
     }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
@@ -3293,8 +3401,8 @@ private:
         const bool pubsub = live_obuf_pubsub_hard_.load(std::memory_order_relaxed) != 0 ||
                             live_obuf_pubsub_soft_.load(std::memory_order_relaxed) != 0;
         client_obuf_armed_.store(normal || pubsub, std::memory_order_release);
-        client_cron_armed_.store(live_timeout_.load(std::memory_order_relaxed) != 0 ||
-                                 normal || pubsub, std::memory_order_release);
+        // Buffer reclamation is unconditional, even when timeout and output limits are off.
+        client_cron_armed_.store(true, std::memory_order_release);
     }
 
     // Only boot or the serialized CONFIG writer reads these mutable fields as a group. Readers
@@ -3520,7 +3628,7 @@ private:
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
-    std::atomic<bool> snapshot_atomic_barrier_{false};
+    std::atomic<uint8_t> snapshot_atomic_barrier_{0}; // bit 0: snapshot
     AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
@@ -3649,6 +3757,16 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+    std::shared_ptr<FlipListenerState> flip_listeners_; // first real FLIP; never on an operation
+
+    // Transaction-only counters live after the established Server layout. Each
+    // slot has one physical owner writer; INFO reads them with relaxed loads.
+    TxnOwnerCounters txn_counters_[kMaxThreads];
+    MultiRetryLane multi_retry_lanes_[kMaxThreads];
+    std::atomic<uint32_t> debug_txn_place_defer_{0};
+    // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
+    ClientHz client_hz_;
+    DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
 
 };
 

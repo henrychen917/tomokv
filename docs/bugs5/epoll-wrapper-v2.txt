@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+import os,sys
+args=sys.argv[1:]
+first=[]
+if args and not args[0].startswith("-"):
+ first=[args.pop(0)]
+server='/home/user/Projects/cx-bugs5/build/tomokv'
+os.execv(server,[server,*first,"--net-io","epoll",*args])

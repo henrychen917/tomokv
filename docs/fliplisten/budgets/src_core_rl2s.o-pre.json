@@ -1,0 +1,29 @@
+{
+  "object": "src/core/rl2s.o",
+  "arm": "pre",
+  "budget": null,
+  "initial": 111026,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=162972",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/src_core_rl2s.o-pre.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/src_core_rl2s.o-pre"
+  ]
+}

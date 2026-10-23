@@ -1,0 +1,19 @@
+{
+  "arm": "post",
+  "namespace": "db0",
+  "mode": "1s",
+  "values": "XREADGROUP",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0-1s-XREADGROUP.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-db0/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "3578c621db1b82ff3ef94d581031c929f954d2ed8ef4c9f118f2f53098503f0f",
+  "counts": {}
+}

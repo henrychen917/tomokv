@@ -139,12 +139,14 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
             SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_read_local_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             bind_thread_arena();
+            multi_bind_retry_lane(srv, tid);
             bool ok = self.init_task_inbox_local(srv.placement().ifid_threads(),
                                                  srv.placement().ex_threads());
             if (ok) ok = executors[tid].init(&srv, &self, true);

@@ -1,0 +1,12 @@
+PASS BLPOP signalModifiedKey None
+PASS BRPOP signalModifiedKey None
+PASS BLMPOP signalModifiedKey None
+PASS BZPOPMIN signalModifiedKey None
+PASS BZPOPMAX signalModifiedKey None
+PASS BZMPOP signalModifiedKey None
+PASS BRPOPLPUSH signalModifiedKey None
+PASS BLMOVE signalModifiedKey None
+PASS XREADGROUP metadata preserves WATCH [b'PONG']
+PASS EXEC XREADGROUP metadata preserves WATCH [b'PONG']
+PASS EXEC XREADGROUP then XADD dirties WATCH None
+PASS EXEC XADD then XREADGROUP dirties WATCH None

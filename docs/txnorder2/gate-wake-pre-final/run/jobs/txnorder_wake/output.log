@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 busy owner inbox wake
+  txnorder2 busy owner inbox wake                      FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.I6ptba/jobs/txnorder_wake/wake.log)

@@ -1,0 +1,24 @@
+PASS FLUSHDB () absent [b'PONG']
+PASS FLUSHDB () present None
+PASS FLUSHDB ('SYNC',) absent [b'PONG']
+PASS FLUSHDB ('SYNC',) present None
+PASS FLUSHDB ('ASYNC',) absent [b'PONG']
+PASS FLUSHDB ('ASYNC',) present None
+PASS FLUSHALL () absent [b'PONG']
+PASS FLUSHALL () present None
+PASS FLUSHALL ('SYNC',) absent [b'PONG']
+PASS FLUSHALL ('SYNC',) present None
+PASS FLUSHALL ('ASYNC',) absent [b'PONG']
+PASS FLUSHALL ('ASYNC',) present None
+PASS FLUSHDB key expired before WATCH [b'PONG']
+PASS FLUSHDB key expires after WATCH None
+PASS FLUSHALL key expired before WATCH [b'PONG']
+PASS FLUSHALL key expires after WATCH None
+PASS FLUSHDB does not dirty another database [b'PONG']
+PASS FLUSHALL dirties another database None
+PASS SWAPDB existence (False, False) [b'PONG']
+PASS SWAPDB existence (True, False) None
+PASS SWAPDB existence (False, True) None
+PASS SWAPDB existence (True, True) None
+PASS FLUSHDB after SWAPDB follows the new physical database None
+PASS FLUSHDB after absent SWAPDB stays clean [b'PONG']

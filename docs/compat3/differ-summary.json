@@ -1,0 +1,372 @@
+[
+  {
+    "engine": "uring",
+    "log": "bounded-differ-uring.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.1E9ADa",
+    "manifest": {
+      "schema": 1,
+      "manifest": {
+        "run": "iteration:gate-run.1E9ADa",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 25,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "history": "/home/user/Projects/cx-compat3/build/compat3/differ-history"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        25
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "comparisons": 235,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 235
+      },
+      {
+        "part": "split-1",
+        "comparisons": 239,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 239
+      },
+      {
+        "part": "armed-0",
+        "comparisons": 230,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 230
+      },
+      {
+        "part": "armed-1",
+        "comparisons": 234,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 234
+      }
+    ],
+    "complete": true,
+    "equivalence_comparisons": 16,
+    "comparisons": 954,
+    "declared_skips": [
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 7,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 19,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 20,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 23,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 25,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 7,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 19,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 20,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 23,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 25,
+        "reason": "standard gate requires split 6:2 for this suite"
+      }
+    ]
+  },
+  {
+    "engine": "epoll",
+    "log": "bounded-differ-epoll.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.ffGnzU",
+    "manifest": {
+      "schema": 1,
+      "manifest": {
+        "run": "iteration:gate-run.ffGnzU",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 26,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          26
+        ],
+        "history": "/home/user/Projects/cx-compat3/build/compat3/differ-history"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        26
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "comparisons": 235,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 235
+      },
+      {
+        "part": "split-1",
+        "comparisons": 239,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 239
+      },
+      {
+        "part": "armed-0",
+        "comparisons": 230,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 230
+      },
+      {
+        "part": "armed-1",
+        "comparisons": 234,
+        "complete": true,
+        "failed_legs": [],
+        "passed_legs": 234
+      }
+    ],
+    "complete": true,
+    "equivalence_comparisons": 16,
+    "comparisons": 954,
+    "declared_skips": [
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 7,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 19,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 20,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 23,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 0,
+        "seed": 26,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 7,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 19,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 20,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 23,
+        "reason": "standard gate requires split 6:2 for this suite"
+      },
+      {
+        "suite": "sort",
+        "mode": "armed",
+        "atomic": 1,
+        "seed": 26,
+        "reason": "standard gate requires split 6:2 for this suite"
+      }
+    ]
+  }
+]

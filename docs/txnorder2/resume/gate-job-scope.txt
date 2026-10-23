@@ -1,0 +1,22 @@
+1549:job_exbatch_units(){
+1564:job_exbatch_live(){
+1658:job_core_units(){
+1811:job_storage_units(){
+1842:job_atomic_units(){
+1869:    && python3 tests/multidb_serial.py --self-test >>"$TMPDIR/multidb-boundary-unit.log" 2>&1 \
+2216:job_release_batteries(){
+2273:        py tests/txn_movers.py 127.0.0.1 "$PORT" --only "$family" \
+2312:  py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+2320:      && py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" --only V4 >>"$log" 2>&1 \
+2329:  py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+2335:      && py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" --only AOF >>"$log" 2>&1 \
+2341:job_fused(){
+2377:      && py tests/txn_nx.py 127.0.0.1 "$PORT" >"$TMPDIR/gate-fused-txn-nx-$AT.txt" 2>&1 \
+2510:job_debug(){
+2612:      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+2621:      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" --only d >>"$log" 2>&1 || passed=0
+2689:          py tests/txnorder_watch.py 127.0.0.1 "$PORT" --databases "$databases" --only "$case_name" >>"$log" 2>&1 || passed=0
+2691:          py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" --only W1,W2,S5 >>"$log" 2>&1 || passed=0
+3132:py tests/multi_exec.py 127.0.0.1 $PORT >$TMPDIR/gate-multi.txt 2>&1 \
+4171:      py tests/multidb.py 127.0.0.1 "$PORT" --read-local "$read_local" --persistence \
+4178:  if [ "$booted" = 1 ] && py tests/multidb_serial.py 127.0.0.1 "$PORT" \

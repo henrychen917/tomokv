@@ -1,0 +1,2 @@
+  row budget: 900s; median=24.725s; correctness-plan-fallback; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            ok

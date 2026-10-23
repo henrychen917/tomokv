@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "all_post_bytes_equal_except_two_predicate_bytes": true,
+  "post_sections_symbols_addresses_sizes_identical": true,
+  "disassembly": [
+    "\n/home/user/Projects/cx-trackfix/build/tomokv-PAD-A:     file format elf64-x86-64\n\n\nDisassembly of section .text:\n\n00000000004e0380 <_ZN4tomo25notify_retire_batch_entryERNS_6IoLoopEPNS_11NotifyBatchEm+0xb70>:\n  4e0380:\t8b 50 08             \tmov    0x8(%rax),%edx\n  4e0383:\t83 ca 03             \tor     $0x3,%edx\n  4e0386:\t83 fa 01             \tcmp    $0x1,%edx\n  4e0389:\t48 83 d9 ff          \tsbb    $0xffffffffffffffff,%rcx\n  4e038d:\t48 83 c0 20          \tadd    $0x20,%rax\n  4e0391:\t48 39 f0             \tcmp    %rsi,%rax\n  4e0394:\t75 ea                \tjne    4e0380 <_ZN4tomo25notify_retire_batch_entryERNS_6IoLoopEPNS_11NotifyBatchEm+0xb70>\n  4e0396:\t85 c9                \ttest   %ecx,%ecx\n",
+    "\n/home/user/Projects/cx-trackfix/build/tomokv-PAD-A:     file format elf64-x86-64\n\n\nDisassembly of section .text:\n\n0000000000155040 <_ZN8tomo_db025notify_retire_batch_entryERNS_6IoLoopEPNS_11NotifyBatchEm+0xb70>:\n  155040:\t8b 50 08             \tmov    0x8(%rax),%edx\n  155043:\t83 ca 03             \tor     $0x3,%edx\n  155046:\t83 fa 01             \tcmp    $0x1,%edx\n  155049:\t48 83 d9 ff          \tsbb    $0xffffffffffffffff,%rcx\n  15504d:\t48 83 c0 20          \tadd    $0x20,%rax\n  155051:\t48 39 f0             \tcmp    %rsi,%rax\n  155054:\t75 ea                \tjne    155040 <_ZN8tomo_db025notify_retire_batch_entryERNS_6IoLoopEPNS_11NotifyBatchEm+0xb70>\n  155056:\t85 c9                \ttest   %ecx,%ecx\n"
+  ]
+}

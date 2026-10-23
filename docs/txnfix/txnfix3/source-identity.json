@@ -1,0 +1,25 @@
+[
+  {
+    "path": "src/core/ex_loop.h",
+    "equal": true
+  },
+  {
+    "path": "src/core/io_loop.h",
+    "equal": true
+  },
+  {
+    "path": "src/store/flatstore_atomic.inc",
+    "function": "atomic_has_records",
+    "equal": true
+  },
+  {
+    "path": "src/store/flatstore_atomic.inc",
+    "function": "atomic_needs_version",
+    "equal": true
+  },
+  {
+    "path": "src/store/flatstore_atomic.inc",
+    "function": "atomic_has_script_intent",
+    "equal": true
+  }
+]

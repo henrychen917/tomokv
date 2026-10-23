@@ -1,0 +1,465 @@
+[
+  {
+    "arm": "pre",
+    "fixture": "episodes",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O0",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I/home/user/Projects/cx-txnfix/build/txnorder2/control-pre",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/txnorder_episodes.cc",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/net/tls.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/commands.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/glob.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/acl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hll.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_server.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_list.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_set.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/scripting.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/functions.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/serialize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/climon.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/tracking.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lcs.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/flipctl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/genthread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/rl2s.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbstall.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbplanner.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multidb.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/storesize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/reorder.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/autharity.o",
+      "-o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/txnorder-episodes",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm",
+      "-DTXN_EPISODE_PRE"
+    ],
+    "compile_exit": 0,
+    "sha256": "142eb954826b6ac560d44a20fdb9c6d4754166f732472d12fc465f6707fe358d",
+    "runs": [
+      {
+        "args": [
+          "R1"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R1.log"
+      },
+      {
+        "args": [
+          "R2"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R2.log"
+      },
+      {
+        "args": [
+          "R3"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R3.log"
+      },
+      {
+        "args": [
+          "R4"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R4.log"
+      },
+      {
+        "args": [
+          "R5"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R5.log"
+      },
+      {
+        "args": [
+          "R6"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R6.log"
+      },
+      {
+        "args": [
+          "R7"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R7.log"
+      },
+      {
+        "args": [
+          "R8"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R8.log"
+      },
+      {
+        "args": [
+          "R9"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-episodes-R9.log"
+      },
+      {
+        "args": [
+          "R10"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R10.log"
+      },
+      {
+        "args": [
+          "R11"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-episodes-R11.log"
+      },
+      {
+        "args": [
+          "R12"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-episodes-R12.log"
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "fixture": "watch",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O0",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I/home/user/Projects/cx-txnfix/build/txnorder2/control-pre",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/txnorder_watch_unit.cc",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/net/tls.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/commands.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/glob.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/acl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hll.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_server.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_list.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_set.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/scripting.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/functions.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/serialize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/climon.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/tracking.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lcs.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/flipctl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/genthread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/rl2s.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbstall.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbplanner.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multidb.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/storesize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/reorder.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/autharity.o",
+      "-o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/txnorder-watch-unit",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "compile_exit": 0,
+    "sha256": "528690c927a07393063df213fc0e1c7ef2af8d6c1457db90296d40536548b264",
+    "runs": [
+      {
+        "args": [
+          "serve",
+          "1s"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-watch-serve-1s.log"
+      },
+      {
+        "args": [
+          "serve",
+          "2s"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-watch-serve-2s.log"
+      },
+      {
+        "args": [
+          "readonly",
+          "1s"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-watch-readonly-1s.log"
+      },
+      {
+        "args": [
+          "readonly",
+          "2s"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-watch-readonly-2s.log"
+      },
+      {
+        "args": [
+          "handshake",
+          "1s"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-watch-handshake-1s.log"
+      },
+      {
+        "args": [
+          "handshake",
+          "2s"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/pre-watch-handshake-2s.log"
+      },
+      {
+        "args": [
+          "rename",
+          "2s"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/pre-watch-rename-2s.log"
+      }
+    ]
+  },
+  {
+    "arm": "rank-only",
+    "fixture": "episodes",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O0",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I/home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only/tests/txnorder_episodes.cc",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/net/tls.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/commands.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/glob.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/acl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hll.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_server.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_string_notify.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_hash_ttl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_list.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_set.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_zset_ops.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_stream_groups.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/scripting.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/functions.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/serialize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/snapshot/snapshot.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/climon.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/tracking.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/server_tail.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/slowlog.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lcs.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/info_stats.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/lbsignals.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/flipctl.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/genthread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/rl2s.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbstall.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/lbplanner.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/l4prebuild.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdgap.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/pfdebug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/cmdmeta.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/t_sort.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multidb.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/storesize.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/multi_admin.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/core/reorder.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/geo_store.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/persist/aof_frame_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/aclkeys.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/blocking_debug.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/objectpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/hexpread.o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/episode-pre-source/build/src/cmd/autharity.o",
+      "-o",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only/txnorder-episodes",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm",
+      "-DTXN_EPISODE_RANK_ONLY"
+    ],
+    "compile_exit": 0,
+    "sha256": "54f458b23cf43f529880aeaaceb228fbf42abcee4b483e8ae1bef6db87aa7b02",
+    "runs": [
+      {
+        "args": [
+          "R1"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R1.log"
+      },
+      {
+        "args": [
+          "R2"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R2.log"
+      },
+      {
+        "args": [
+          "R3"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R3.log"
+      },
+      {
+        "args": [
+          "R4"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R4.log"
+      },
+      {
+        "args": [
+          "R5"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R5.log"
+      },
+      {
+        "args": [
+          "R6"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R6.log"
+      },
+      {
+        "args": [
+          "R7"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R7.log"
+      },
+      {
+        "args": [
+          "R8"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R8.log"
+      },
+      {
+        "args": [
+          "R9"
+        ],
+        "exit_code": 1,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R9.log"
+      },
+      {
+        "args": [
+          "R10"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R10.log"
+      },
+      {
+        "args": [
+          "R11"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R11.log"
+      },
+      {
+        "args": [
+          "R12"
+        ],
+        "exit_code": 0,
+        "log": "docs/txnorder2/controls/rank-only-episodes-R12.log"
+      }
+    ]
+  }
+]

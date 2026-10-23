@@ -137,6 +137,7 @@ struct NotifyOut {
     NotifyEventId event = NotifyEventId::Expired;
     uint8_t db = 0;
     std::string key;
+    uint64_t tracking_stamp = 0;
 };
 
 struct NotifyShardState {
@@ -216,6 +217,13 @@ void notify_handler(Shard& shard, Op& op) {
 // Lane B: one bounded executor pass, using a non-blocking marker post to the nearest/home IO.
 uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                               ThreadCtx& thread, Ring& ring, LoopSignals& signals);
+
+// Tracking-only certificates. No locked structure carries this state.
+uint64_t tracking_clock_observe();
+uint64_t tracking_clock_commit();
+void tracking_observe_read(Shard& shard, Op& op);
+void tracking_observe_local(Server& server, Op& op);
+void notify_tracking_commit(Op& op);
 
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);

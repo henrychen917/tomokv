@@ -1,0 +1,23 @@
+{
+  "arm": "post",
+  "namespace": "db0",
+  "mode": "1s",
+  "values": "MSET",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final/session/post-db0-1s-MSET.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final/session/post-db0/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "323347495ce18a5135a2e7e7d4baab058b16bea5a4da086e0bfd11254a22401e",
+  "counts": {
+    "tomo_db0::multi_handle_io(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::MultiExecState*&)": 67,
+    "tomo_db0::(anonymous namespace)::multi_name(tomo_db0::Op const&, char const*)": 147
+  }
+}

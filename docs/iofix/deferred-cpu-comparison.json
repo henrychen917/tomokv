@@ -1,0 +1,874 @@
+[
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00053059,
+        "io_owner": 4,
+        "io_tid": 1993106,
+        "list_cpu_seconds": 0.42629462,
+        "list_owner": 6,
+        "list_tid": 1993100,
+        "second_busy_cpu_seconds": 0.00238187,
+        "top_cpu_seconds": [
+          [
+            0.42629462,
+            1993100
+          ],
+          [
+            0.00238187,
+            1993101
+          ],
+          [
+            0.00053059,
+            1993106
+          ]
+        ],
+        "wall_seconds": 0.4262621458619833
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.425999382,
+        "io_owner": 1,
+        "io_tid": 1993250,
+        "list_cpu_seconds": 0.426755342,
+        "list_owner": 6,
+        "list_tid": 1993247,
+        "second_busy_cpu_seconds": 0.425999382,
+        "top_cpu_seconds": [
+          [
+            0.426755342,
+            1993247
+          ],
+          [
+            0.425999382,
+            1993250
+          ],
+          [
+            0.002133698,
+            1993248
+          ]
+        ],
+        "wall_seconds": 0.4266388788819313
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42570089,
+        "io_owner": 5,
+        "io_tid": 1995136,
+        "list_cpu_seconds": 0.42632493,
+        "list_owner": 7,
+        "list_tid": 1995130,
+        "second_busy_cpu_seconds": 0.42570089,
+        "top_cpu_seconds": [
+          [
+            0.42632493,
+            1995130
+          ],
+          [
+            0.42570089,
+            1995136
+          ],
+          [
+            0.00212641,
+            1995129
+          ]
+        ],
+        "wall_seconds": 0.42617383040487766
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.42550971,
+        "io_owner": 1,
+        "io_tid": 1995145,
+        "list_cpu_seconds": 0.42611215,
+        "list_owner": 7,
+        "list_tid": 1995143,
+        "second_busy_cpu_seconds": 0.42550971,
+        "top_cpu_seconds": [
+          [
+            0.42611215,
+            1995143
+          ],
+          [
+            0.42550971,
+            1995145
+          ],
+          [
+            0.0024004,
+            1995142
+          ]
+        ],
+        "wall_seconds": 0.4259852133691311
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00054093,
+        "io_owner": 2,
+        "io_tid": 2984191,
+        "list_cpu_seconds": 0.42827173,
+        "list_owner": 7,
+        "list_tid": 2984188,
+        "second_busy_cpu_seconds": 0.00218767,
+        "top_cpu_seconds": [
+          [
+            0.42827173,
+            2984188
+          ],
+          [
+            0.00218767,
+            2984187
+          ],
+          [
+            0.00054093,
+            2984191
+          ]
+        ],
+        "wall_seconds": 0.4281764794141054
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00044977,
+        "io_owner": 0,
+        "io_tid": 2984216,
+        "list_cpu_seconds": 0.42764433,
+        "list_owner": 7,
+        "list_tid": 2984215,
+        "second_busy_cpu_seconds": 0.00218371,
+        "top_cpu_seconds": [
+          [
+            0.42764433,
+            2984215
+          ],
+          [
+            0.00218371,
+            2984214
+          ],
+          [
+            0.00044977,
+            2984216
+          ]
+        ],
+        "wall_seconds": 0.42758374847471714
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00045916,
+        "io_owner": 2,
+        "io_tid": 2984231,
+        "list_cpu_seconds": 0.42758424,
+        "list_owner": 6,
+        "list_tid": 2984227,
+        "second_busy_cpu_seconds": 0.0021865,
+        "top_cpu_seconds": [
+          [
+            0.42758424,
+            2984227
+          ],
+          [
+            0.0021865,
+            2984228
+          ],
+          [
+            0.00045916,
+            2984231
+          ]
+        ],
+        "wall_seconds": 0.42751747742295265
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00047439,
+        "io_owner": 5,
+        "io_tid": 2984252,
+        "list_cpu_seconds": 0.42823959,
+        "list_owner": 7,
+        "list_tid": 2984246,
+        "second_busy_cpu_seconds": 0.00256088,
+        "top_cpu_seconds": [
+          [
+            0.42823959,
+            2984246
+          ],
+          [
+            0.00256088,
+            2984245
+          ],
+          [
+            0.00047439,
+            2984252
+          ]
+        ],
+        "wall_seconds": 0.4282025098800659
+      }
+    },
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-deferred/deferred-2s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.0005393,
+        "io_owner": 4,
+        "io_tid": 1995169,
+        "list_cpu_seconds": 0.42661142,
+        "list_owner": 7,
+        "list_tid": 1995164,
+        "second_busy_cpu_seconds": 0.00225349,
+        "top_cpu_seconds": [
+          [
+            0.42661142,
+            1995164
+          ],
+          [
+            0.00225349,
+            1995163
+          ],
+          [
+            0.0005393,
+            1995169
+          ]
+        ],
+        "wall_seconds": 0.42648542765527964
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42579487,
+        "io_owner": 4,
+        "io_tid": 1995180,
+        "list_cpu_seconds": 0.42631836,
+        "list_owner": 7,
+        "list_tid": 1995175,
+        "second_busy_cpu_seconds": 0.42579487,
+        "top_cpu_seconds": [
+          [
+            0.42631836,
+            1995175
+          ],
+          [
+            0.42579487,
+            1995180
+          ],
+          [
+            0.00226697,
+            1995174
+          ]
+        ],
+        "wall_seconds": 0.42627087235450745
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.425790303,
+        "io_owner": 3,
+        "io_tid": 1995192,
+        "list_cpu_seconds": 0.426424382,
+        "list_owner": 7,
+        "list_tid": 1995188,
+        "second_busy_cpu_seconds": 0.425790303,
+        "top_cpu_seconds": [
+          [
+            0.426424382,
+            1995188
+          ],
+          [
+            0.425790303,
+            1995192
+          ],
+          [
+            0.002248073,
+            1995187
+          ]
+        ],
+        "wall_seconds": 0.4262822736054659
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.425774221,
+        "io_owner": 4,
+        "io_tid": 1995207,
+        "list_cpu_seconds": 0.426370401,
+        "list_owner": 7,
+        "list_tid": 1995202,
+        "second_busy_cpu_seconds": 0.425774221,
+        "top_cpu_seconds": [
+          [
+            0.426370401,
+            1995202
+          ],
+          [
+            0.425774221,
+            1995207
+          ],
+          [
+            0.002266051,
+            1995201
+          ]
+        ],
+        "wall_seconds": 0.4262341260910034
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.000549065,
+        "io_owner": 5,
+        "io_tid": 2984277,
+        "list_cpu_seconds": 0.42751646,
+        "list_owner": 6,
+        "list_tid": 2984270,
+        "second_busy_cpu_seconds": 0.002305602,
+        "top_cpu_seconds": [
+          [
+            0.42751646,
+            2984270
+          ],
+          [
+            0.002305602,
+            2984271
+          ],
+          [
+            0.000549065,
+            2984277
+          ]
+        ],
+        "wall_seconds": 0.42762154061347246
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00047178,
+        "io_owner": 1,
+        "io_tid": 2984286,
+        "list_cpu_seconds": 0.42747903,
+        "list_owner": 7,
+        "list_tid": 2984284,
+        "second_busy_cpu_seconds": 0.00231344,
+        "top_cpu_seconds": [
+          [
+            0.42747903,
+            2984284
+          ],
+          [
+            0.00231344,
+            2984283
+          ],
+          [
+            0.00047178,
+            2984286
+          ]
+        ],
+        "wall_seconds": 0.42739793565124273
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00047351,
+        "io_owner": 1,
+        "io_tid": 2984297,
+        "list_cpu_seconds": 0.42786428,
+        "list_owner": 6,
+        "list_tid": 2984294,
+        "second_busy_cpu_seconds": 0.00231055,
+        "top_cpu_seconds": [
+          [
+            0.42786428,
+            2984294
+          ],
+          [
+            0.00231055,
+            2984295
+          ],
+          [
+            0.00047351,
+            2984297
+          ]
+        ],
+        "wall_seconds": 0.42787683475762606
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00047348,
+        "io_owner": 5,
+        "io_tid": 2984312,
+        "list_cpu_seconds": 0.42781314,
+        "list_owner": 6,
+        "list_tid": 2984305,
+        "second_busy_cpu_seconds": 0.00230771,
+        "top_cpu_seconds": [
+          [
+            0.42781314,
+            2984305
+          ],
+          [
+            0.00230771,
+            2984306
+          ],
+          [
+            0.00047348,
+            2984312
+          ]
+        ],
+        "wall_seconds": 0.4279386745765805
+      }
+    },
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-deferred/deferred-2s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00065738,
+        "io_owner": 1,
+        "io_tid": 1995228,
+        "list_cpu_seconds": 0.43836187,
+        "list_owner": 0,
+        "list_tid": 1995227,
+        "second_busy_cpu_seconds": 0.00065738,
+        "top_cpu_seconds": [
+          [
+            0.43836187,
+            1995227
+          ],
+          [
+            0.00065738,
+            1995228
+          ],
+          [
+            0.0001014,
+            1995232
+          ]
+        ],
+        "wall_seconds": 0.43929531518369913
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.43841677,
+        "io_owner": 1,
+        "io_tid": 1995278,
+        "list_cpu_seconds": 0.438133,
+        "list_owner": 0,
+        "list_tid": 1995277,
+        "second_busy_cpu_seconds": 0.438133,
+        "top_cpu_seconds": [
+          [
+            0.43841677,
+            1995278
+          ],
+          [
+            0.438133,
+            1995277
+          ],
+          [
+            8.689e-05,
+            1995280
+          ]
+        ],
+        "wall_seconds": 0.4389103567227721
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.43896697,
+        "io_owner": 4,
+        "io_tid": 1995292,
+        "list_cpu_seconds": 0.43867752,
+        "list_owner": 5,
+        "list_tid": 1995293,
+        "second_busy_cpu_seconds": 0.43867752,
+        "top_cpu_seconds": [
+          [
+            0.43896697,
+            1995292
+          ],
+          [
+            0.43867752,
+            1995293
+          ],
+          [
+            8.264e-05,
+            1995294
+          ]
+        ],
+        "wall_seconds": 0.4394363211467862
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.438165598,
+        "io_owner": 2,
+        "io_tid": 1995301,
+        "list_cpu_seconds": 0.43790202,
+        "list_owner": 3,
+        "list_tid": 1995302,
+        "second_busy_cpu_seconds": 0.43790202,
+        "top_cpu_seconds": [
+          [
+            0.438165598,
+            1995301
+          ],
+          [
+            0.43790202,
+            1995302
+          ],
+          [
+            8.9051e-05,
+            1995304
+          ]
+        ],
+        "wall_seconds": 0.4386452715843916
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00057009,
+        "io_owner": 6,
+        "io_tid": 2984333,
+        "list_cpu_seconds": 0.42571836,
+        "list_owner": 5,
+        "list_tid": 2984332,
+        "second_busy_cpu_seconds": 0.00057009,
+        "top_cpu_seconds": [
+          [
+            0.42571836,
+            2984332
+          ],
+          [
+            0.00057009,
+            2984333
+          ],
+          [
+            8.724e-05,
+            2984328
+          ]
+        ],
+        "wall_seconds": 0.42660408932715654
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000501854,
+        "io_owner": 1,
+        "io_tid": 2984341,
+        "list_cpu_seconds": 0.425674576,
+        "list_owner": 4,
+        "list_tid": 2984344,
+        "second_busy_cpu_seconds": 0.000501854,
+        "top_cpu_seconds": [
+          [
+            0.425674576,
+            2984344
+          ],
+          [
+            0.000501854,
+            2984341
+          ],
+          [
+            8.2849e-05,
+            2984345
+          ]
+        ],
+        "wall_seconds": 0.4266040176153183
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000504386,
+        "io_owner": 1,
+        "io_tid": 2984363,
+        "list_cpu_seconds": 0.425649523,
+        "list_owner": 4,
+        "list_tid": 2984366,
+        "second_busy_cpu_seconds": 0.000504386,
+        "top_cpu_seconds": [
+          [
+            0.425649523,
+            2984366
+          ],
+          [
+            0.000504386,
+            2984363
+          ],
+          [
+            7.5201e-05,
+            2984369
+          ]
+        ],
+        "wall_seconds": 0.4264860274270177
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00049269,
+        "io_owner": 3,
+        "io_tid": 2984376,
+        "list_cpu_seconds": 0.42621265,
+        "list_owner": 2,
+        "list_tid": 2984375,
+        "second_busy_cpu_seconds": 0.00049269,
+        "top_cpu_seconds": [
+          [
+            0.42621265,
+            2984375
+          ],
+          [
+            0.00049269,
+            2984376
+          ],
+          [
+            8.727e-05,
+            2984378
+          ]
+        ],
+        "wall_seconds": 0.4270828180015087
+      }
+    },
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-deferred/deferred-1s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00060365,
+        "io_owner": 6,
+        "io_tid": 1995338,
+        "list_cpu_seconds": 0.42568163,
+        "list_owner": 1,
+        "list_tid": 1995333,
+        "second_busy_cpu_seconds": 0.00060365,
+        "top_cpu_seconds": [
+          [
+            0.42568163,
+            1995333
+          ],
+          [
+            0.00060365,
+            1995338
+          ],
+          [
+            8.089e-05,
+            1995339
+          ]
+        ],
+        "wall_seconds": 0.42662403266876936
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42573144,
+        "io_owner": 4,
+        "io_tid": 1995347,
+        "list_cpu_seconds": 0.42546011,
+        "list_owner": 7,
+        "list_tid": 1995350,
+        "second_busy_cpu_seconds": 0.42546011,
+        "top_cpu_seconds": [
+          [
+            0.42573144,
+            1995347
+          ],
+          [
+            0.42546011,
+            1995350
+          ],
+          [
+            8.129e-05,
+            1995343
+          ]
+        ],
+        "wall_seconds": 0.42639588471502066
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42621715,
+        "io_owner": 0,
+        "io_tid": 1995867,
+        "list_cpu_seconds": 0.42597234,
+        "list_owner": 7,
+        "list_tid": 1995876,
+        "second_busy_cpu_seconds": 0.42597234,
+        "top_cpu_seconds": [
+          [
+            0.42621715,
+            1995867
+          ],
+          [
+            0.42597234,
+            1995876
+          ],
+          [
+            8.473e-05,
+            1995873
+          ]
+        ],
+        "wall_seconds": 0.42666031792759895
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.42506803,
+        "io_owner": 0,
+        "io_tid": 1997234,
+        "list_cpu_seconds": 0.42478871,
+        "list_owner": 6,
+        "list_tid": 1997240,
+        "second_busy_cpu_seconds": 0.42478871,
+        "top_cpu_seconds": [
+          [
+            0.42506803,
+            1997234
+          ],
+          [
+            0.42478871,
+            1997240
+          ],
+          [
+            7.918e-05,
+            1997241
+          ]
+        ],
+        "wall_seconds": 0.4255394693464041
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00057069,
+        "io_owner": 4,
+        "io_tid": 2985281,
+        "list_cpu_seconds": 0.438896,
+        "list_owner": 7,
+        "list_tid": 2985284,
+        "second_busy_cpu_seconds": 0.00057069,
+        "top_cpu_seconds": [
+          [
+            0.438896,
+            2985284
+          ],
+          [
+            0.00057069,
+            2985281
+          ],
+          [
+            9.083e-05,
+            2985277
+          ]
+        ],
+        "wall_seconds": 0.43978964537382126
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00052273,
+        "io_owner": 2,
+        "io_tid": 2985290,
+        "list_cpu_seconds": 0.43862655,
+        "list_owner": 7,
+        "list_tid": 2985295,
+        "second_busy_cpu_seconds": 0.00052273,
+        "top_cpu_seconds": [
+          [
+            0.43862655,
+            2985295
+          ],
+          [
+            0.00052273,
+            2985290
+          ],
+          [
+            9.427e-05,
+            2985288
+          ]
+        ],
+        "wall_seconds": 0.439533481374383
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000561909,
+        "io_owner": 7,
+        "io_tid": 2985308,
+        "list_cpu_seconds": 0.43888376,
+        "list_owner": 6,
+        "list_tid": 2985307,
+        "second_busy_cpu_seconds": 0.000561909,
+        "top_cpu_seconds": [
+          [
+            0.43888376,
+            2985307
+          ],
+          [
+            0.000561909,
+            2985308
+          ],
+          [
+            9.3519e-05,
+            2985302
+          ]
+        ],
+        "wall_seconds": 0.43987551610916853
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.000514218,
+        "io_owner": 3,
+        "io_tid": 2985315,
+        "list_cpu_seconds": 0.438495154,
+        "list_owner": 1,
+        "list_tid": 2985313,
+        "second_busy_cpu_seconds": 0.000514218,
+        "top_cpu_seconds": [
+          [
+            0.438495154,
+            2985313
+          ],
+          [
+            0.000514218,
+            2985315
+          ],
+          [
+            8.4922e-05,
+            2985316
+          ]
+        ],
+        "wall_seconds": 0.4394031101837754
+      }
+    },
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-deferred/deferred-1s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  }
+]

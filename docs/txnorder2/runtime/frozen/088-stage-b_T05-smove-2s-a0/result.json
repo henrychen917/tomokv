@@ -1,0 +1,36 @@
+{
+  "index": 88,
+  "name": "stage-b/T05-smove-2s-a0",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "stage-b/T05-smove-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "27801",
+      "tomo",
+      "0",
+      "2s",
+      "smove",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-proof/stage-b/T05-smove-2s-a0",
+      "--cores",
+      "64-71"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792673824.0907378,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "ff624f2797214e1cf79afc0a5da619a2baf3066c8f1333e1f08b9e9abdd84db7",
+  "returncode": 0,
+  "finished": 1792673824.5638313
+}

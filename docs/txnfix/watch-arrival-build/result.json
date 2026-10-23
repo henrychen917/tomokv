@@ -1,0 +1,13 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "make",
+    "-j16",
+    "all",
+    "build/atomic-survivors-unit"
+  ],
+  "exit_code": 0,
+  "seconds": 88.95634094579145
+}

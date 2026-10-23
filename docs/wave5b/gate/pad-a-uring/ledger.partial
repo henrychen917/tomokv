@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=wb_policy; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	5.980000	writeback policies 0/1: 22 standard fixtures

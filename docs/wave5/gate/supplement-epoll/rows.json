@@ -1,0 +1,1202 @@
+[
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad protected-mode"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad enable-debug-command"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.150000",
+    "label": "AUTH/HELLO/protected state machine"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic off)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic on)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "2.480000",
+    "label": "DEBUG toggle/reload battery"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "typed snapshot round-trip incl stream"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.260000",
+    "label": "fused+armed boot line (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "fused+armed s6 battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "2.070000",
+    "label": "fused+armed multi_exec battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "1.500000",
+    "label": "fused+armed blocking battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "fused+armed blockmulti battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.480000",
+    "label": "fused+armed stream battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed streamgroups battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.880000",
+    "label": "fused+armed pubsub battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed lua_scripting battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "fused+armed scriptsurf battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "14.860000",
+    "label": "fused+armed limits battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed resp3 battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed bitfield battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "fused+armed dumprestore battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "fused+armed zsetops battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "fused+armed geo battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "fused+armed climon battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "3.330000",
+    "label": "fused+armed climon2 battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "13.260000",
+    "label": "fused+armed tracking battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "3.050000",
+    "label": "fused+armed hexpire battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "fused+armed servertail battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "fused+armed lcs battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "2.840000",
+    "label": "fused+armed concur battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.740000",
+    "label": "fused+armed edgeproto battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.380000",
+    "label": "fused+armed edgeenc battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "3.830000",
+    "label": "fused+armed edgetime battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "fused+armed arity battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed contarity battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "fused+armed cmdgap battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed aclsel battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "65.070000",
+    "label": "fused+armed expwide battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "4.180000",
+    "label": "fused+armed infofix battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "2.960000",
+    "label": "fused+armed pushtear battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed netcmd battery (atomic 0)"
+  },
+  {
+    "job": "feature-armed-0",
+    "verdict": "ok",
+    "elapsed": "1.180000",
+    "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.260000",
+    "label": "fused+armed boot line (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "fused+armed s6 battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "2.080000",
+    "label": "fused+armed multi_exec battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "1.540000",
+    "label": "fused+armed blocking battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "fused+armed blockmulti battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.520000",
+    "label": "fused+armed stream battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "fused+armed streamgroups battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.880000",
+    "label": "fused+armed pubsub battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed lua_scripting battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "fused+armed scriptsurf battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "15.140000",
+    "label": "fused+armed limits battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed resp3 battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed bitfield battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "fused+armed dumprestore battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "fused+armed zsetops battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed geo battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "1.120000",
+    "label": "fused+armed climon battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "3.380000",
+    "label": "fused+armed climon2 battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "13.250000",
+    "label": "fused+armed tracking battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "3.050000",
+    "label": "fused+armed hexpire battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "fused+armed servertail battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "fused+armed lcs battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "2.870000",
+    "label": "fused+armed concur battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.710000",
+    "label": "fused+armed edgeproto battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.380000",
+    "label": "fused+armed edgeenc battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "3.820000",
+    "label": "fused+armed edgetime battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed arity battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed contarity battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "fused+armed cmdgap battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "fused+armed aclsel battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "59.780000",
+    "label": "fused+armed expwide battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "4.200000",
+    "label": "fused+armed infofix battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "2.950000",
+    "label": "fused+armed pushtear battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "fused+armed netcmd battery (atomic 1)"
+  },
+  {
+    "job": "feature-armed-1",
+    "verdict": "ok",
+    "elapsed": "1.170000",
+    "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "2.410000",
+    "label": "s6 battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "2.080000",
+    "label": "multi_exec battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "1.550000",
+    "label": "blocking battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "blockmulti battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.520000",
+    "label": "stream battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "streamgroups battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.880000",
+    "label": "pubsub battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "lua_scripting battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "scriptsurf battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "14.600000",
+    "label": "limits battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "resp3 battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "bitfield battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "dumprestore battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "zsetops battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "geo battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "climon battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "3.370000",
+    "label": "climon2 battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "13.260000",
+    "label": "tracking battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "3.300000",
+    "label": "hexpire battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.440000",
+    "label": "servertail battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "lcs battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "2.780000",
+    "label": "concur battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.570000",
+    "label": "edgeproto battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.360000",
+    "label": "edgeenc battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "3.830000",
+    "label": "edgetime battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "arity battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "contarity battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "cmdgap battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "aclsel battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "53.810000",
+    "label": "expwide battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "4.200000",
+    "label": "infofix battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "5.430000",
+    "label": "pushtear battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "netcmd battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "feature shutdown invariants (atomic 0)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "2.420000",
+    "label": "s6 battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "2.080000",
+    "label": "multi_exec battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "1.560000",
+    "label": "blocking battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "blockmulti battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.510000",
+    "label": "stream battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "streamgroups battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.890000",
+    "label": "pubsub battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "lua_scripting battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "scriptsurf battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "14.820000",
+    "label": "limits battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "resp3 battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "bitfield battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "dumprestore battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "zsetops battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "geo battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "climon battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "3.320000",
+    "label": "climon2 battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "13.320000",
+    "label": "tracking battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "3.050000",
+    "label": "hexpire battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.440000",
+    "label": "servertail battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "lcs battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "2.800000",
+    "label": "concur battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.580000",
+    "label": "edgeproto battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.360000",
+    "label": "edgeenc battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "3.600000",
+    "label": "edgetime battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "arity battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "contarity battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "cmdgap battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "aclsel battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "58.370000",
+    "label": "expwide battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "4.200000",
+    "label": "infofix battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "7.940000",
+    "label": "pushtear battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "netcmd battery (atomic 1)"
+  },
+  {
+    "job": "feature-split-1",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "feature shutdown invariants (atomic 1)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "0.260000",
+    "label": "fused boot line (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "1.140000",
+    "label": "fused s6 battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "2.080000",
+    "label": "fused multi_exec battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "0.720000",
+    "label": "fused edgeproto battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "fused atomfix battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "2.240000",
+    "label": "fused spinprobe battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "1.170000",
+    "label": "fused shutdown report (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "1.490000",
+    "label": "fused txn_nx battery (atomic 0)"
+  },
+  {
+    "job": "fused-0",
+    "verdict": "ok",
+    "elapsed": "9.350000",
+    "label": "fused txniso battery (atomic 0)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "0.260000",
+    "label": "fused boot line (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "fused s6 battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "2.080000",
+    "label": "fused multi_exec battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "0.710000",
+    "label": "fused edgeproto battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "fused atomfix battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "2.230000",
+    "label": "fused spinprobe battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "1.170000",
+    "label": "fused shutdown report (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "2.680000",
+    "label": "fused txn_nx battery (atomic 1)"
+  },
+  {
+    "job": "fused-1",
+    "verdict": "ok",
+    "elapsed": "8.640000",
+    "label": "fused txniso battery (atomic 1)"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "2.070000",
+    "label": "MULTI feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "1.540000",
+    "label": "blocking feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.880000",
+    "label": "pubsub feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "Lua feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "22.760000",
+    "label": "keyspace notification battery (atomic 0/1)"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "feature battery shutdown invariants"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "script_bounds",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "xscript limit control"
+  },
+  {
+    "job": "script_bounds",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "xscript window control"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "scriptfix sandbox (1s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.140000",
+    "label": "scriptfix functions (1s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.730000",
+    "label": "scriptfix replies (1s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.840000",
+    "label": "scriptfix dump (1s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "scriptfix sandbox (2s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.140000",
+    "label": "scriptfix functions (2s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.720000",
+    "label": "scriptfix replies (2s)"
+  },
+  {
+    "job": "scriptfix",
+    "verdict": "ok",
+    "elapsed": "0.840000",
+    "label": "scriptfix dump (2s)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "1.340000",
+    "label": "TLS ephemeral CA/server/client certificates"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "NET2 serverless RX policy and KeyUpdate controls"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject TLS listener without certificate"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "reject invalid tls-protocols"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject invalid tls-ciphers"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS client-auth yes matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS yes shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS client-auth optional matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "kTLS TLS 1.2 engaged live (default boot)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "TLS 1.3 KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "1.000000",
+    "label": "TLS 1.3 userspace KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "TLS optional shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "14.450000",
+    "label": "TLS pipeline/torn-record/coexistence battery"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "TLS shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS application send path error-free"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS connection slots all freed (N/N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "TLS zc borrow gates fired (suppressed=N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "5.890000",
+    "label": "TLS silent-peer close after reply (ntfix N2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "10.690000",
+    "label": "RESP pre-AUTH limit errors (ntfix N3)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "15.090000",
+    "label": "RESP query-buffer frontier (ntfix N4)"
+  }
+]

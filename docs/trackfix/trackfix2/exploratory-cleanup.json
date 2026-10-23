@@ -1,0 +1,9 @@
+[
+  {
+    "pid": 309741,
+    "exe": "/home/user/Projects/cx-trackfix/build/tomokv (deleted)",
+    "sha256": "a269524c7e31869684705ed3f91a28ccfd81dd13891f5f42eaf0533949b0c6ad",
+    "command": "/home/user/Projects/cx-trackfix/build/tomokv --bind 127.0.0.1 --port 22802 --dir /home/user/Projects/cx-trackfix/build/trackfix/tracking-controls/POST-trackfix2/POST-trackfix2-11-target --save  --appendonly no --protected-mode no --enable-debug-command yes --shards 16 --thread-mode fused --read-local 1 --net-io epoll --databases 16 --atomic 0 ",
+    "action": "SIGTERM after replacing superseded binary invalidated the old helper pathname check"
+  }
+]

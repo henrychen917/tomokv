@@ -1,0 +1,12 @@
+  row budget: 900s; median=2.07s; correctness-plan-fallback; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=1.53s; correctness-plan-fallback; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=0.875s; correctness-plan-fallback; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=22.675s; correctness-plan-fallback; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok

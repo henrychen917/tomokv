@@ -1,0 +1,551 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-iofix/build/gate-run.RvueS0
+PARTIAL jobs (including prerequisites): release core_tsan_build config_unit flip_unit production_units flipctl aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy reorder_sync reorder_engagement reorder_identity flipfix_units climonfix persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar auth notify flip flip_saturated
+PARTIAL jobs (including prerequisites): release core_tsan_build config_unit flip_unit production_units flipctl aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy reorder_sync reorder_engagement reorder_identity flipfix_units climonfix persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar auth notify flip flip_saturated
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0.42s; correctness-plan-fallback; configuration docs match parser
+  configuration docs match parser                      ok
+  row budget: 900s; median=5.55s; correctness-plan-fallback; Redis config quoting + mid-value #
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok
+  row budget: 900s; median=5.08s; correctness-plan-fallback; flip controller model unit
+  flip controller model unit                           ok
+  row budget: 900s; median=130.9s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; configuration reduction + actual geometry (epoll, atomic 0)
+  configuration reduction + actual geometry (epoll, atomic 0) ok
+  row budget: 900s; median=0.41s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0) ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=1025)                      ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (epoll, atomic 0)
+  AOF process-restart script replay (epoll, atomic 0)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=1025 skipped=0)            ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; configuration reduction + actual geometry (epoll, atomic 1)
+  configuration reduction + actual geometry (epoll, atomic 1) ok
+  row budget: 900s; median=0.44s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1) ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=1026)                      ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (epoll, atomic 1)
+  AOF process-restart script replay (epoll, atomic 1)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=1026 skipped=0)            ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 900s; median=0.035s; correctness-plan-fallback; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF always recovery after quiescent SIGKILL
+  AOF always recovery after quiescent SIGKILL          ok
+  row budget: 900s; median=0.88s; correctness-plan-fallback; AOF in-window kill recovery (2s, epoll)
+  AOF in-window kill recovery (2s, epoll)              ok
+  row budget: 900s; median=2.76s; correctness-plan-fallback; AOF in-window term recovery (2s, epoll)
+  AOF in-window term recovery (2s, epoll)              ok
+  row budget: 900s; median=0.89s; correctness-plan-fallback; AOF in-window kill recovery (1s, epoll)
+  AOF in-window kill recovery (1s, epoll)              ok
+  row budget: 900s; median=2.34s; correctness-plan-fallback; AOF in-window term recovery (1s, epoll)
+  AOF in-window term recovery (1s, epoll)              ok
+  row budget: 900s; median=1.79s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+  shutdown cancels AOF rewrite capture (1s, atomic 0, epoll) ok
+  row budget: 900s; median=1.8s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+  shutdown cancels AOF rewrite capture (1s, atomic 1, epoll) ok
+  row budget: 900s; median=1.93s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+  shutdown cancels AOF rewrite capture (2s, atomic 0, epoll) ok
+  row budget: 900s; median=2.05s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+  shutdown cancels AOF rewrite capture (2s, atomic 1, epoll) ok
+  row budget: 900s; median=1.295s; correctness-plan-fallback; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 900s; median=0.025s; correctness-plan-fallback; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 900s; median=5.355s; correctness-plan-fallback; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 900s; median=5.575s; correctness-plan-fallback; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 900s; median=0.46s; correctness-plan-fallback; aoffix2 snapshot (1s, epoll)
+  aoffix2 snapshot (1s, epoll)                         ok
+  row budget: 900s; median=1.61s; correctness-plan-fallback; aoffix2 filename (1s, epoll)
+  aoffix2 filename (1s, epoll)                         ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; aoffix2 error (1s, epoll)
+  aoffix2 error (1s, epoll)                            ok
+  row budget: 900s; median=0.59s; correctness-plan-fallback; aoffix2 tickets (1s, epoll)
+  aoffix2 tickets (1s, epoll)                          ok
+  row budget: 900s; median=0.6s; correctness-plan-fallback; aoffix2 exec_tickets (1s, epoll)
+  aoffix2 exec_tickets (1s, epoll)                     ok
+  row budget: 900s; median=0.59s; correctness-plan-fallback; aoffix2 resurrection (1s, epoll)
+  aoffix2 resurrection (1s, epoll)                     ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; aoffix2 rewrite_fail2 (1s, epoll)
+  aoffix2 rewrite_fail2 (1s, epoll)                    ok
+  row budget: 900s; median=0.33s; correctness-plan-fallback; aoffix2 manifest_missing (1s, epoll)
+  aoffix2 manifest_missing (1s, epoll)                 ok
+  row budget: 900s; median=0.32s; correctness-plan-fallback; aoffix2 off-writer acknowledgement everysec (1s, epoll)
+  aoffix2 off-writer acknowledgement everysec (1s, epoll) ok
+  row budget: 900s; median=0.32s; correctness-plan-fallback; aoffix2 off-writer acknowledgement always (1s, epoll)
+  aoffix2 off-writer acknowledgement always (1s, epoll) ok
+  row budget: 900s; median=0.46s; correctness-plan-fallback; aoffix2 snapshot (2s, epoll)
+  aoffix2 snapshot (2s, epoll)                         ok
+  row budget: 900s; median=1.65s; correctness-plan-fallback; aoffix2 filename (2s, epoll)
+  aoffix2 filename (2s, epoll)                         ok
+  row budget: 900s; median=0.21s; correctness-plan-fallback; aoffix2 error (2s, epoll)
+  aoffix2 error (2s, epoll)                            ok
+  row budget: 900s; median=0.64s; correctness-plan-fallback; aoffix2 tickets (2s, epoll)
+  aoffix2 tickets (2s, epoll)                          ok
+  row budget: 900s; median=0.66s; correctness-plan-fallback; aoffix2 exec_tickets (2s, epoll)
+  aoffix2 exec_tickets (2s, epoll)                     ok
+  row budget: 900s; median=0.63s; correctness-plan-fallback; aoffix2 resurrection (2s, epoll)
+  aoffix2 resurrection (2s, epoll)                     ok
+  row budget: 900s; median=0.46s; correctness-plan-fallback; aoffix2 rewrite_fail2 (2s, epoll)
+  aoffix2 rewrite_fail2 (2s, epoll)                    ok
+  row budget: 900s; median=0.36s; correctness-plan-fallback; aoffix2 manifest_missing (2s, epoll)
+  aoffix2 manifest_missing (2s, epoll)                 ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; aoffix2 off-writer acknowledgement everysec (2s, epoll)
+  aoffix2 off-writer acknowledgement everysec (2s, epoll) ok
+  row budget: 900s; median=0.33s; correctness-plan-fallback; aoffix2 off-writer acknowledgement always (2s, epoll)
+  aoffix2 off-writer acknowledgement always (2s, epoll) ok
+  row budget: 900s; median=0.41s; correctness-plan-fallback; aoffix2 large (1s, epoll)
+  aoffix2 large (1s, epoll)                            ok
+  row budget: 900s; median=0.23s; correctness-plan-fallback; aoffix2 large_placed (1s, epoll)
+  aoffix2 large_placed (1s, epoll)                     ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; configuration reduction + actual geometry (uring, atomic 0)
+  configuration reduction + actual geometry (uring, atomic 0) ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0) ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=1025)                      ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (uring, atomic 0)
+  AOF process-restart script replay (uring, atomic 0)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=1025 skipped=0)            ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; configuration reduction + actual geometry (uring, atomic 1)
+  configuration reduction + actual geometry (uring, atomic 1) ok
+  row budget: 900s; median=0.45s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1) ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=1026)                      ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF process-restart script replay (uring, atomic 1)
+  AOF process-restart script replay (uring, atomic 1)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=1026 skipped=0)            ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 900s; median=0.035s; correctness-plan-fallback; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF always recovery after quiescent SIGKILL
+  AOF always recovery after quiescent SIGKILL          ok
+  row budget: 900s; median=0.9s; correctness-plan-fallback; AOF in-window kill recovery (2s, uring)
+  AOF in-window kill recovery (2s, uring)              ok
+  row budget: 900s; median=3.73s; correctness-plan-fallback; AOF in-window term recovery (2s, uring)
+  AOF in-window term recovery (2s, uring)              ok
+  row budget: 900s; median=0.9s; correctness-plan-fallback; AOF in-window kill recovery (1s, uring)
+  AOF in-window kill recovery (1s, uring)              ok
+  row budget: 900s; median=2.62s; correctness-plan-fallback; AOF in-window term recovery (1s, uring)
+  AOF in-window term recovery (1s, uring)              ok
+  row budget: 900s; median=1.88s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (1s, atomic 0, uring)
+  shutdown cancels AOF rewrite capture (1s, atomic 0, uring) ok
+  row budget: 900s; median=1.89s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (1s, atomic 1, uring)
+  shutdown cancels AOF rewrite capture (1s, atomic 1, uring) ok
+  row budget: 900s; median=1.92s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (2s, atomic 0, uring)
+  shutdown cancels AOF rewrite capture (2s, atomic 0, uring) ok
+  row budget: 900s; median=2.05s; correctness-plan-fallback; shutdown cancels AOF rewrite capture (2s, atomic 1, uring)
+  shutdown cancels AOF rewrite capture (2s, atomic 1, uring) ok
+  row budget: 900s; median=1.295s; correctness-plan-fallback; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 900s; median=0.025s; correctness-plan-fallback; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 900s; median=5.355s; correctness-plan-fallback; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 900s; median=5.575s; correctness-plan-fallback; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 900s; median=0.44s; correctness-plan-fallback; aoffix2 snapshot (1s, uring)
+  aoffix2 snapshot (1s, uring)                         ok
+  row budget: 900s; median=1.58s; correctness-plan-fallback; aoffix2 filename (1s, uring)
+  aoffix2 filename (1s, uring)                         ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; aoffix2 error (1s, uring)
+  aoffix2 error (1s, uring)                            ok
+  row budget: 900s; median=0.58s; correctness-plan-fallback; aoffix2 tickets (1s, uring)
+  aoffix2 tickets (1s, uring)                          ok
+  row budget: 900s; median=0.57s; correctness-plan-fallback; aoffix2 exec_tickets (1s, uring)
+  aoffix2 exec_tickets (1s, uring)                     ok
+  row budget: 900s; median=0.6s; correctness-plan-fallback; aoffix2 resurrection (1s, uring)
+  aoffix2 resurrection (1s, uring)                     ok
+  row budget: 900s; median=0.42s; correctness-plan-fallback; aoffix2 rewrite_fail2 (1s, uring)
+  aoffix2 rewrite_fail2 (1s, uring)                    ok
+  row budget: 900s; median=0.32s; correctness-plan-fallback; aoffix2 manifest_missing (1s, uring)
+  aoffix2 manifest_missing (1s, uring)                 ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; aoffix2 off-writer acknowledgement everysec (1s, uring)
+  aoffix2 off-writer acknowledgement everysec (1s, uring) ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; aoffix2 off-writer acknowledgement always (1s, uring)
+  aoffix2 off-writer acknowledgement always (1s, uring) ok
+  row budget: 900s; median=0.47s; correctness-plan-fallback; aoffix2 snapshot (2s, uring)
+  aoffix2 snapshot (2s, uring)                         ok
+  row budget: 900s; median=1.57s; correctness-plan-fallback; aoffix2 filename (2s, uring)
+  aoffix2 filename (2s, uring)                         ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; aoffix2 error (2s, uring)
+  aoffix2 error (2s, uring)                            ok
+  row budget: 900s; median=0.6s; correctness-plan-fallback; aoffix2 tickets (2s, uring)
+  aoffix2 tickets (2s, uring)                          ok
+  row budget: 900s; median=0.6s; correctness-plan-fallback; aoffix2 exec_tickets (2s, uring)
+  aoffix2 exec_tickets (2s, uring)                     ok
+  row budget: 900s; median=0.63s; correctness-plan-fallback; aoffix2 resurrection (2s, uring)
+  aoffix2 resurrection (2s, uring)                     ok
+  row budget: 900s; median=0.45s; correctness-plan-fallback; aoffix2 rewrite_fail2 (2s, uring)
+  aoffix2 rewrite_fail2 (2s, uring)                    ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; aoffix2 manifest_missing (2s, uring)
+  aoffix2 manifest_missing (2s, uring)                 ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; aoffix2 off-writer acknowledgement everysec (2s, uring)
+  aoffix2 off-writer acknowledgement everysec (2s, uring) ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; aoffix2 off-writer acknowledgement always (2s, uring)
+  aoffix2 off-writer acknowledgement always (2s, uring) ok
+  row budget: 900s; median=0.35s; correctness-plan-fallback; aoffix2 large (1s, uring)
+  aoffix2 large (1s, uring)                            ok
+  row budget: 900s; median=0.2s; correctness-plan-fallback; aoffix2 large_placed (1s, uring)
+  aoffix2 large_placed (1s, uring)                     ok
+  row budget: 900s; median=0.64s; correctness-plan-fallback; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 900s; median=2.76s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 900s; median=5.37s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok
+  row budget: 900s; median=0.79s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, sigterm, epoll)
+  shutdown keeps acknowledged writes (1s, sigterm, epoll) ok
+  row budget: 900s; median=0.76s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, command, epoll)
+  shutdown keeps acknowledged writes (1s, command, epoll) ok
+  row budget: 900s; median=0.94s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 0, epoll) ok
+  row budget: 900s; median=0.92s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 1, epoll) ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, sigterm, epoll)
+  shutdown keeps acknowledged writes (2s, sigterm, epoll) ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, command, epoll)
+  shutdown keeps acknowledged writes (2s, command, epoll) ok
+  row budget: 900s; median=1.05s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 0, epoll) ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 1, epoll) ok
+  row budget: 900s; median=0.62s; correctness-plan-fallback; snapshot concurrent cut (uring)
+  snapshot concurrent cut (uring)                      ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; snapshot cut reload (uring)
+  snapshot cut reload (uring)                          ok
+  row budget: 900s; median=2.71s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (uring, atomic 1)
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  row budget: 900s; median=5.4s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (uring)
+  typed snapshot save (uring)                          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot reload (uring)
+  typed snapshot reload (uring)                        ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; typed snapshot preimage race (uring)
+  typed snapshot preimage race (uring)                 ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; typed snapshot race reload (uring)
+  typed snapshot race reload (uring)                   ok
+  row budget: 900s; median=0.91s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, sigterm, uring)
+  shutdown keeps acknowledged writes (1s, sigterm, uring) ok
+  row budget: 900s; median=0.89s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, command, uring)
+  shutdown keeps acknowledged writes (1s, command, uring) ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+  shutdown cancels BGSAVE capture (1s, atomic 0, uring) ok
+  row budget: 900s; median=1.06s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+  shutdown cancels BGSAVE capture (1s, atomic 1, uring) ok
+  row budget: 900s; median=0.85s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, sigterm, uring)
+  shutdown keeps acknowledged writes (2s, sigterm, uring) ok
+  row budget: 900s; median=0.89s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, command, uring)
+  shutdown keeps acknowledged writes (2s, command, uring) ok
+  row budget: 900s; median=1.12s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+  shutdown cancels BGSAVE capture (2s, atomic 0, uring) ok
+  row budget: 900s; median=1.14s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+  shutdown cancels BGSAVE capture (2s, atomic 1, uring) ok
+  row budget: 900s; median=9.18s; correctness-plan-fallback; plain-write lost updates (atomic 0)
+  plain-write lost updates (atomic 0)                  ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 900s; median=14.48s; correctness-plan-fallback; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 900s; median=11.86s; correctness-plan-fallback; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 900s; median=0.63s; correctness-plan-fallback; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 900s; median=30.47s; correctness-plan-fallback; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 900s; median=1.86s; correctness-plan-fallback; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 900s; median=6.16s; correctness-plan-fallback; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=1.48s; correctness-plan-fallback; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=14.46s; correctness-plan-fallback; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=11.86s; correctness-plan-fallback; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=0.64s; correctness-plan-fallback; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=30.47s; correctness-plan-fallback; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=1.86s; correctness-plan-fallback; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=26.685s; correctness-plan-fallback; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok
+  row budget: 900s; median=24.1s; correctness-plan-fallback; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            ok
+  row budget: 900s; median=31.05s; correctness-plan-fallback; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      ok
+  row budget: 900s; median=18.91s; correctness-plan-fallback; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok
+  row budget: 900s; median=5.98s; correctness-plan-fallback; writeback policies 0/1: 22 standard fixtures
+  writeback policies 0/1: 22 standard fixtures         ok
+  row budget: 900s; median=0.87s; correctness-plan-fallback; R7 generated envelope parity
+  R7 generated envelope parity                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 production engagement (both database runtimes)
+  R7 production engagement (both database runtimes)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; FLIP planned-connection close lifetime (ASAN+TSAN)
+  FLIP planned-connection close lifetime (ASAN+TSAN)   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; FLIP fingerprint publication (ASAN+TSAN)
+  FLIP fingerprint publication (ASAN+TSAN)             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=0.33s; correctness-plan-fallback; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF publication/shutdown witnesses + negative controls
+  AOF publication/shutdown witnesses + negative controls ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=4.54s; correctness-plan-fallback; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=1.79s; correctness-plan-fallback; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=4.93s; correctness-plan-fallback; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=5.56s; correctness-plan-fallback; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=1.85s; correctness-plan-fallback; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=0.87s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd wb-small-pipe regression
+  netcmd wb-small-pipe regression                      ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd wb-complete-visits regression
+  netcmd wb-complete-visits regression                 ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; encodingfix knob
+  encodingfix knob                                     ok
+  row budget: 900s; median=0s; correctness-plan-fallback; encodingfix precedence
+  encodingfix precedence                               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject --mode (flag deleted)
+  reject --mode (flag deleted)                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject --spread
+  reject --spread                                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject --nodes
+  reject --nodes                                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject 3-part ratio
+  reject 3-part ratio                                  ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject missing conf
+  reject missing conf                                  ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad conf key
+  reject bad conf key                                  ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject aclfile + conf user lines
+  reject aclfile + conf user lines                     ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=2.47s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.035s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=1.025s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=1.035s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=0.5s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=0.525s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=11.69s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=6.06s; correctness-plan-fallback; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok
+GATE(PARTIAL): 272 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-iofix/build/gate-run.RvueS0/ledger.partial

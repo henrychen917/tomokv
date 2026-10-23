@@ -1,0 +1,5 @@
+FAIL D1 AssertionError(('D1', [1, [b'1', b'0'], 1], 1))
+FAIL D2 AssertionError(('D2', [1, [b'1', b'0'], 1], 1))
+FAIL D3 AssertionError(('read changed inside EXEC', [1, [b'0', b'0'], b'new']))
+FAIL D4a AssertionError(('D4a', [1, [b'1', b'0'], 1], 1))
+FAIL D4b AssertionError(('changed WATCH must yield null', [1, [b'1', b'0'], 1]))

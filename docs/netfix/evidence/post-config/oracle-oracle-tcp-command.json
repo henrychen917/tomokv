@@ -1,0 +1,1 @@
+["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--port", "20800", "--bind", "127.0.0.1", "--protected-mode", "no", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-netfix/build/gate-run.tcq9Cf/jobs/netfix_config/proof/oracle-oracle-tcp", "--maxclients", "20032"]

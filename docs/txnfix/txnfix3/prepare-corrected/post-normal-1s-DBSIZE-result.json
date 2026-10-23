@@ -1,0 +1,21 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "1s",
+  "values": "DBSIZE",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-1s-DBSIZE.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+  "counts": {
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+  }
+}

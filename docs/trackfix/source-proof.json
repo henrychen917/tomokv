@@ -1,0 +1,82 @@
+{
+  "unchanged_inputs": [
+    {
+      "path": "tests/differ.py",
+      "unchanged": true,
+      "sha256": "824c67cd050dea2254b0e8633ad342f8a2988b77d16f135f82403cb8533551fc"
+    },
+    {
+      "path": "tests/differ_gate.sh",
+      "unchanged": true,
+      "sha256": "be92a28d3628d7a1a14cbf966dff1fc8e2dff25d7df801f7cedaf97eb791679d"
+    },
+    {
+      "path": "tests/gates_test.py",
+      "unchanged": true,
+      "sha256": "84cb96476c2eb47a6a165692914cfefcdf98d3aebb9e7e1d875f239932003432"
+    },
+    {
+      "path": "tests/tracking.py",
+      "unchanged": true,
+      "sha256": "28b8350d180c96d0be0c53a2a9608ec0cd06f80312c0c9863ddd7cce355c090a"
+    },
+    {
+      "path": "tests/climon.py",
+      "unchanged": true,
+      "sha256": "ce75cff38dd42e1800398b2cf980d9715547c8d5be705eb5fba6ab099a0ae791"
+    },
+    {
+      "path": "tests/climon2.py",
+      "unchanged": true,
+      "sha256": "82cf976d48101f0f9ed8659c33a17a4a6bda21f99b11c8cb908a0c9c18f926cf"
+    },
+    {
+      "path": "tests/pushtear.py",
+      "unchanged": true,
+      "sha256": "56b785134d121cee837ab0fe9fa8f48c8fba58a1ae89af0c36db935a4467c43b"
+    },
+    {
+      "path": "tests/notify.py",
+      "unchanged": true,
+      "sha256": "2733921cd055c93ac94d537ddd4bc10ecd1411dcddcd91e5c62f58ee43fd62c1"
+    },
+    {
+      "path": "tests/notify_order.py",
+      "unchanged": true,
+      "sha256": "930b9776547188d1c5350e02d2e997b1b74d28756a2a62b2dbf26f49b90d5ecd"
+    },
+    {
+      "path": "tests/clientfix.py",
+      "unchanged": true,
+      "sha256": "af707ba6616bdaa1ce5e8b250e1f6981d651a80f8371bfb6ecba5ce184eff2f6"
+    },
+    {
+      "path": "tests/netcmd_unit.cc",
+      "unchanged": true,
+      "sha256": "544a96b66b840d27daee90eac7c4272ef9bf33f460e251c8673cdf2e403015a8"
+    },
+    {
+      "path": "Makefile",
+      "unchanged": true,
+      "sha256": "751c0270c114265ea9a5184e813c508d565b8300f0305ea5f030980c4c1e9ff4"
+    },
+    {
+      "path": "tests/replyschema.py",
+      "unchanged": true,
+      "sha256": "088d181e1df67c1a8be6d4a3c8e4f3f664e4c0095b7185240b2b9822a98ea495"
+    }
+  ],
+  "owner_counts_unchanged": [
+    [
+      345,
+      "EXPECT_QUICK=685"
+    ],
+    [
+      346,
+      "EXPECT_FULL=702                 # ABBA reports only; self-test remains counted."
+    ]
+  ],
+  "production_changed": [
+    "src/cmd/notify.inc"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "kind": "A: behaviour twin",
+  "scope": "PAD-A: restore PRE drop accounting within the exact POST text layout.",
+  "padding_bytes": 0,
+  "construction": "Two one-byte predicate changes in POST; every address and size retained.",
+  "patches": [
+    {
+      "namespace": "tomo",
+      "file_offset": 5112708,
+      "address": "0x4e0384",
+      "before": "e2",
+      "after": "ca",
+      "effect": "count every record, as PRE"
+    },
+    {
+      "namespace": "tomo_db0",
+      "file_offset": 1396804,
+      "address": "0x155044",
+      "before": "e2",
+      "after": "ca",
+      "effect": "count every record, as PRE"
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-trackfix/build/tomokv-PRE",
+      "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+      "text_bytes": 7747526
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-trackfix/build/tomokv",
+      "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+      "text_bytes": 7747478
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-trackfix/build/tomokv-PAD-A",
+      "sha256": "dc3df705455f1bf07011e00d5e8b516e6089c1df33fee4eb34751646f44b9337",
+      "text_bytes": 7747478
+    }
+  }
+}

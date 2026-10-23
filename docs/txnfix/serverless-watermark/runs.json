@@ -1,0 +1,40 @@
+[
+  {
+    "name": "gates",
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 103.68564624572173
+  },
+  {
+    "name": "ledger",
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "exit_code": 1,
+    "seconds": 0.08626150107011199
+  },
+  {
+    "name": "ledger-self-test",
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py",
+      "--self-test"
+    ],
+    "exit_code": 1,
+    "seconds": 0.4175177989527583
+  },
+  {
+    "name": "syntax",
+    "command": [
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.006920869927853346
+  }
+]

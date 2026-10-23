@@ -1,0 +1,8 @@
+{
+  "applied": false,
+  "check_exit": 0,
+  "output": "",
+  "patch_sha256": "978357528a011d356425a04bb7c8ecbd369d423ff684061f41d944caa463ec20",
+  "production_multi_sha256": "3a231fb847d3824005f4976c7c9cce7aabebe61aa93fd345641eabf44e866e05",
+  "status": "Owner amendment required: design section 2.4 requires unconditional waits on writer marks."
+}

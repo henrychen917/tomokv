@@ -24,6 +24,7 @@
 #include <mutex>
 #include <new>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "../core/server.h"
@@ -47,9 +48,9 @@ constexpr const char* kRegistryGeneration = "tomo_fn_generation";
 constexpr const char* kRegistryRevisions = "tomo_fn_revisions";
 constexpr char kDumpMagic[8] = {'T', 'O', 'M', 'O', 'F', 'U', 'N', '1'};
 
-// Redis 7 function flags. Only no-writes has behaviour here (it makes every activation of the
-// function read-only, exactly as Redis does); the rest are parsed, stored and echoed by
-// FUNCTION LIST so a library written for Redis loads unchanged.
+// Redis 7 function flags. no-writes implies OOM admission; allow-oom permits writes
+// over the cap. Replica/cluster-specific flags have no additional effect on this
+// single-node server (there is no stale-replica or cluster state).
 constexpr uint32_t kFlagNoWrites       = 1u << 0;
 constexpr uint32_t kFlagAllowOom       = 1u << 1;
 constexpr uint32_t kFlagAllowStale     = 1u << 2;
@@ -179,13 +180,12 @@ public:
         try {
             std::lock_guard<std::mutex> lock(mu_);
             out.clear();
-            if (by_name) {
-                const auto it = libraries_.find(std::string(library_name.p, library_name.n));
-                if (it != libraries_.end()) out.push_back(it->second);
-                return true;
-            }
             out.reserve(libraries_.size());
-            for (const auto& entry : libraries_) out.push_back(entry.second);
+            for (const auto& entry : libraries_) {
+                if (!by_name || command_glob_match(library_name,
+                        Slice(entry.first.data(), entry.first.size()), true))
+                    out.push_back(entry.second);
+            }
             return true;
         } catch (const std::bad_alloc&) {
             return false;
@@ -660,17 +660,17 @@ bool function_thread_sync(lua_State* state, std::string& error) {
 
 // ---- FCALL --------------------------------------------------------------------------------------
 
-template <bool kNotify, bool kReadonly>
-void cmd_fcall(Shard& shard, Op& op) {
+template <bool kNotify, bool kReadonly, typename Prepare>
+bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     uint32_t key_first = 0, key_count = 0;
     if (!command_script_key_range(op, key_first, key_count)) {
         reply_text_error(op, "ERR", "invalid function key declaration");
-        return;
+        return true;
     }
     lua_State* state = script_thread_state();
-    if (!state) { reply_text_error(op, "ERR", "out of memory"); return; }
+    if (!state) { reply_text_error(op, "ERR", "out of memory"); return true; }
     std::string error;
-    if (!function_thread_sync(state, error)) { reply_err_string(op, error); return; }
+    if (!function_thread_sync(state, error)) { reply_err_string(op, error); return true; }
 
     const Slice name = op.arg(1);
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
@@ -679,7 +679,7 @@ void cmd_fcall(Shard& shard, Op& op) {
     if (!lua_istable(state, -1)) {
         lua_settop(state, 0);
         reply_text_error(op, "ERR", "Function not found");
-        return;
+        return true;
     }
     lua_getfield(state, -1, "flags");
     const uint32_t flags = static_cast<uint32_t>(lua_tonumber(state, -1));
@@ -688,25 +688,50 @@ void cmd_fcall(Shard& shard, Op& op) {
     lua_replace(state, -3);      // callback takes the function-table slot
     lua_pop(state, 1);           // drop the entry table; the callback is now on top
 
+    if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
+        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
+        lua_settop(state, 0);
+        reply_maxmemory_oom(op);
+        return true;
+    }
+
     if (kReadonly && !(flags & kFlagNoWrites)) {
         lua_settop(state, 0);
         g_ro_rejections.fetch_add(1, std::memory_order_relaxed);
         reply_text_error(op, "ERR",
                          "Can not execute a script with write flag using *_ro command.");
-        return;
+        return true;
     }
 
-    ScriptInvocation call;
-    call.key_first = key_first;
-    call.key_count = key_count;
-    call.style = ScriptArgStyle::Params;
-    // no-writes makes the function read-only for EVERY caller, not only FCALL_RO (Redis 7).
-    call.readonly = kReadonly || (flags & kFlagNoWrites) != 0;
-    call.notify = kNotify;
-    call.chunk = "user_function";
-    call.tag = name;
-    g_calls.fetch_add(1, std::memory_order_relaxed);
-    script_execute(shard, op, call);
+    auto invoke = [&] {
+        ScriptInvocation call;
+        call.key_first = key_first;
+        call.key_count = key_count;
+        call.style = ScriptArgStyle::Params;
+        // no-writes makes the function read-only for EVERY caller, not only FCALL_RO (Redis 7).
+        call.readonly = kReadonly || (flags & kFlagNoWrites) != 0;
+        call.notify = kNotify;
+        call.chunk = "user_function";
+        call.tag = name;
+        g_calls.fetch_add(1, std::memory_order_relaxed);
+        script_execute(shard, op, call);
+    };
+    if constexpr (std::is_same_v<Prepare, std::nullptr_t>) {
+        invoke();
+    } else {
+        // EXEC must prepare its private version under the same admission that
+        // governs the callback. Keep this lookup/callback pair intact: a second
+        // lookup could see different flags after a concurrent library update.
+        FunctionMemoryScope memory_scope(shard.store(), true);
+        if (!prepare()) { lua_settop(state, 0); return false; }
+        invoke();
+    }
+    return true;
+}
+
+template <bool kNotify, bool kReadonly>
+void cmd_fcall(Shard& shard, Op& op) {
+    (void)invoke_fcall<kNotify, kReadonly>(shard, op, nullptr);
 }
 
 // ---- FUNCTION -------------------------------------------------------------------------------------
@@ -1033,6 +1058,19 @@ FunctionStats function_stats() {
 
 bool function_is_fcall(const Op& op) {
     return op.spec && std::strncmp(op.spec->name, "FCALL", 5) == 0;
+}
+
+bool function_execute_exec(Shard& shard, Op& op, void* context,
+                           bool (*prepare)(void*)) {
+    auto before_callback = [&] { return prepare(context); };
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
+    const bool readonly = op.cmd_name().eq_icase("fcall_ro");
+    if (readonly) return notify
+        ? invoke_fcall<true, true>(shard, op, before_callback)
+        : invoke_fcall<false, true>(shard, op, before_callback);
+    return notify
+        ? invoke_fcall<true, false>(shard, op, before_callback)
+        : invoke_fcall<false, false>(shard, op, before_callback);
 }
 
 CommandTable functions_command_table() {

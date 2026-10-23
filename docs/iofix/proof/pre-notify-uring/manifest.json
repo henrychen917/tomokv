@@ -1,0 +1,112 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.QQeSkf",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pre",
+  "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+  "note": "pre-notify-uring: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 103,
+      "sha256": "30b7fd8b569f846a70ea8027af7f965360fc10bcb5e55f2adf385683fa7fb612"
+    },
+    {
+      "path": "jobs/notify/family.tsv",
+      "bytes": 51,
+      "sha256": "8d814892fa3c2bda3aef846507f0807d6c3a7d64b92a74931f3ea97064815420"
+    },
+    {
+      "path": "jobs/notify/gate-blocking.txt",
+      "bytes": 1207,
+      "sha256": "5dd3046867c3a0da834e5f2336bd12e5322e41185e000a8539ba7e7e75407d3a"
+    },
+    {
+      "path": "jobs/notify/gate-lua.txt",
+      "bytes": 1333,
+      "sha256": "7ea33275a648cfb7d1e34f78561c77368cd29ba9df9a60936a5f5f1657df4710"
+    },
+    {
+      "path": "jobs/notify/gate-multi.txt",
+      "bytes": 1476,
+      "sha256": "e8dd4e8a9e2c9dd9063ed519cee4134755da10ea18437234ea94bdb751960e2a"
+    },
+    {
+      "path": "jobs/notify/gate-notify.txt",
+      "bytes": 38,
+      "sha256": "1bb4be01ec405d8d38793f39b660c488ade149892a036e24e49936ed010b8340"
+    },
+    {
+      "path": "jobs/notify/gate-pubsub.txt",
+      "bytes": 143,
+      "sha256": "8f0181724393d0f23dbcf19075f80431de016dec32e1332e8bb3b79c3bf6db2e"
+    },
+    {
+      "path": "jobs/notify/gate-srv-main.5znAa6",
+      "bytes": 6994,
+      "sha256": "6d73ff89fd1d4f7686576831cf10054f7a0f591e0fc77867de4dbe6a52fcb92c"
+    },
+    {
+      "path": "jobs/notify/ledger",
+      "bytes": 242,
+      "sha256": "9367a2ff19643245592413019b404a3026a46d56d32ee198f5fa7a1097853f04"
+    },
+    {
+      "path": "jobs/notify/output.log",
+      "bytes": 884,
+      "sha256": "daddd2e0049ee2bb05b7b271331af2ed9ca439fbdc41087b75733803bac281c4"
+    },
+    {
+      "path": "jobs/notify/timings",
+      "bytes": 242,
+      "sha256": "9367a2ff19643245592413019b404a3026a46d56d32ee198f5fa7a1097853f04"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "69e9a4ae30f407ebae011d6ed858d669a1749f6dbaad0eeb66e9ca704dcc16be"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 334,
+      "sha256": "8a3dba9359fde59aaed13e4616e9e3f5c785b5d9b3bc25f7f55eb6f8551decc9"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 287,
+      "sha256": "2f56f33c490a515024aa894366a52a31713574e75521d36fc7db041df34f2927"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "4759aca2a8262e6895e61b92b580c1b7e60cf9831ecda4c47a4d6ba330c59843"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1230,
+      "sha256": "179aa3667bf49f414ea794cd1325672a4f6396b2b4c3fe398d9e6c7f3f7033d9"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 14761,
+      "sha256": "06770b22aa331cfebda33c15e629173b32cb8c7280d2cc1e2228ea90092ad5d1"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "ab9a17574021ed3ba67c05cee47e05af39c2bb22f96d5397583181a64e062287"
+  }
+}

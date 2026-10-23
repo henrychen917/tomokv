@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22840-22849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-trackfix2-netcmd-fixture-final"
+  ],
+  "jobs": [
+    "netcmd_units"
+  ],
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv",
+  "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+}

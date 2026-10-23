@@ -1,0 +1,58 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-111",
+    "/home/user/Projects/cx-wave5/tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26820-26828",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave5/docs/wave5/server_adapter.py"
+  ],
+  "jobs": [
+    "wb_policy",
+    "flip",
+    "flip_saturated",
+    "flipctl",
+    "auth",
+    "debug-0",
+    "debug-1",
+    "differ-split-1",
+    "differ-armed-1",
+    "differ-equivalence"
+  ],
+  "started": 1792763902.8872685,
+  "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+  "snapshot_binary": "/home/user/Projects/cx-wave5/build/wave5b/gate-binaries/2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc/tomokv",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "95",
+    "GATE_GLOBCASE_ORACLE_CORES": "95",
+    "GATE_TEST_PORT": "26899",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-wave5/build/wave5b/differ-history",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave5/build/wave5b/gate-history",
+    "PYTHONPATH": "/home/user/Projects/cx-wave5/docs/wave5/port_guard:",
+    "WAVE5_PORT_RECEIPT": "/home/user/Projects/cx-wave5/docs/wave5b/fixture-ports.jsonl",
+    "GATE_ONLY_JOBS": "wb_policy flip flip_saturated flipctl auth debug-0 debug-1 differ-split-1 differ-armed-1 differ-equivalence",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave5/docs/wave5b/gate/final-epoll/ledger",
+    "NETFIX_TLS_ORACLE": "/home/user/Projects/cx-wave5/build/wave5/redis74-tls/src/redis-server",
+    "WAVE5_BINARY": "/home/user/Projects/cx-wave5/build/wave5b/gate-binaries/2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc/tomokv",
+    "WAVE5_ENGINE": "epoll",
+    "WAVE5_LAUNCH_DIR": "/home/user/Projects/cx-wave5/docs/wave5b/gate/final-epoll/launches"
+  },
+  "returncode": 0,
+  "elapsed": 534.6792531013489,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.znTcUb"
+  ],
+  "binary_stable": true
+}

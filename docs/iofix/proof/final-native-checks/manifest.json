@@ -1,0 +1,1292 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.RgiM3K",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv",
+  "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "note": "final-native-checks: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 167,
+      "sha256": "cce7f652633a22c1b3d1b7df7ca1a92c822800c0469a2d099890bc31b5d13744"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-1s-uring/events.jsonl",
+      "bytes": 3143,
+      "sha256": "2d9c9d863fdf832d6cc2ded4a096bd289aaf7cfca452fea77ab29c978ec5078c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-1s-uring/server-1.log",
+      "bytes": 846,
+      "sha256": "7149a21cac23efbc3e325a158b472c5eb8dba441289a8aa906839bdab108a30a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-1s-uring.log",
+      "bytes": 3143,
+      "sha256": "2d9c9d863fdf832d6cc2ded4a096bd289aaf7cfca452fea77ab29c978ec5078c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-2s-uring/events.jsonl",
+      "bytes": 3037,
+      "sha256": "53fb93d8c159a20e4318919b7c2e8762a95e7aaf948edce552842b9780c79c4b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-2s-uring/server-1.log",
+      "bytes": 722,
+      "sha256": "db714543282df71314476ce6241bff5e74f6e70cd701b0c8aecd5f733524568f"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-error-2s-uring.log",
+      "bytes": 3037,
+      "sha256": "53fb93d8c159a20e4318919b7c2e8762a95e7aaf948edce552842b9780c79c4b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring/events.jsonl",
+      "bytes": 13345,
+      "sha256": "1932d97512f43604354cbbe4cfa889ee145a142576333e4c44f5769cf270415b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring/server-1.log",
+      "bytes": 7502,
+      "sha256": "e7a864935abc80f7930565996b2c6a517fee3c352b0ddab8441870be862113be"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring/server-2.log",
+      "bytes": 7500,
+      "sha256": "4d239fd703cd69c42caff10686bcc810a207a88a5a0cde562641a3734ee5f398"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring/server-3.log",
+      "bytes": 7503,
+      "sha256": "4173d5fa6488b9654d76a8089c0a60e5a01f6dbfc7fb561dae5c69d2fd0e79f2"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring/server-4.log",
+      "bytes": 7458,
+      "sha256": "f35c9c9a8beba177cfca766897269fa0f46bcfae7b44e56914e952ca808f6ebd"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-1s-uring.log",
+      "bytes": 13345,
+      "sha256": "1932d97512f43604354cbbe4cfa889ee145a142576333e4c44f5769cf270415b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring/events.jsonl",
+      "bytes": 13417,
+      "sha256": "4ade8afe2676114cc974ea7870f68ae816f4b1e7ef68933f0aa99d0cb52de3e6"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring/server-1.log",
+      "bytes": 6575,
+      "sha256": "fab07bc1a01e10fc79a1b3003886f0247529b1736a0f4ef5080f8481b4ade337"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring/server-2.log",
+      "bytes": 6575,
+      "sha256": "f678f7fc224dc1801bb2af6f0db209018ec69784b7b72e27c3dc06e0998f522a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring/server-3.log",
+      "bytes": 6587,
+      "sha256": "4f60afb7f25cf2b9a725b66faefb0f52916e6d0e8ec060bb30ad995ed5c4adbe"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring/server-4.log",
+      "bytes": 6551,
+      "sha256": "b3ae78e5129db0489d712a51695388b9d4caa477ba0074d461cbbe18a57d5fa6"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-exec_tickets-2s-uring.log",
+      "bytes": 13417,
+      "sha256": "4ade8afe2676114cc974ea7870f68ae816f4b1e7ef68933f0aa99d0cb52de3e6"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/events.jsonl",
+      "bytes": 23586,
+      "sha256": "38dacab25df79054d60f12991531f7d35607f659eedcf06782872b61acbc80a6"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-1.log",
+      "bytes": 7527,
+      "sha256": "b878aef7f50b025216b3077f17d065049e9de8c3b2d4d09eebbf7a9d5111ff6d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-10.log",
+      "bytes": 7451,
+      "sha256": "a665780a895b3389d5758bd982e1429597b41b5555d1489661c5edb430bf6320"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-2.log",
+      "bytes": 7452,
+      "sha256": "e180214cf226c026941b1f97b7c9a5de70804ba2fce5406a3235fdcd8e409d20"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-3.log",
+      "bytes": 7528,
+      "sha256": "2b49de65583a903bdf3c94143e3fcaf5d745a9f7e9a1e9f087bb3243da7d850d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-4.log",
+      "bytes": 7449,
+      "sha256": "abcaf236b532ccc1dde30ecaf3f761b18641d0baf1342fedcee051ce1f541a32"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-5.log",
+      "bytes": 7445,
+      "sha256": "1192f50a2eeff352261af3a0865cf4ad1a46e3b07b2242eaf36bfff8713bb7a3"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-6.log",
+      "bytes": 7527,
+      "sha256": "c1e8a02fcfb9aa5a491a85594460f12ff5643be94231becea74d25fbe6a53532"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-7.log",
+      "bytes": 7448,
+      "sha256": "00293e29c9f2e8907bf29f6b9619e4e599e01dc806e1cddba1d6fae988bb15d9"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-8.log",
+      "bytes": 7451,
+      "sha256": "a17d2513f487c0a1401bd950d5fe7f15904b520d44dca4a1d8352cf13a013fc5"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring/server-9.log",
+      "bytes": 7495,
+      "sha256": "1c0a906a92ad12c093623d7c5d1c2612194e5e3638b1d3a09df5feb27fed8125"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-1s-uring.log",
+      "bytes": 23586,
+      "sha256": "38dacab25df79054d60f12991531f7d35607f659eedcf06782872b61acbc80a6"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/events.jsonl",
+      "bytes": 23775,
+      "sha256": "0ef86f7f73aa8348ee570247430cd893a14d3f04991643a301fae21115d1a2a0"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-1.log",
+      "bytes": 6599,
+      "sha256": "35d7bba348d5e0f2b8d017b83ca2bd9c7c5ec7dbee32917293cca5addd976d53"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-10.log",
+      "bytes": 6538,
+      "sha256": "46d291de5f4804a3c5db2cadc11f1c236e841969261cf03375cddaeff9560efe"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-2.log",
+      "bytes": 6538,
+      "sha256": "5468f83b60be47393dd456aeb620a5a5f653e663ddc8bf35b283e53ae4bfc21b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-3.log",
+      "bytes": 6563,
+      "sha256": "c0bfffa21fb2f988603fd786724ad5c6c76f3a2ae204fa25a7b0f98b146c9144"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-4.log",
+      "bytes": 6538,
+      "sha256": "7fa01998dbb374ca01f09fe60f2bfeaf5a31c1923920d4ff15be7735170b3454"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-5.log",
+      "bytes": 6550,
+      "sha256": "e06f0210df240aadb3379cf731c2c56431baa83e9a059ba9fd7994a9ace2036f"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-6.log",
+      "bytes": 6563,
+      "sha256": "795d7553f32fdf97eed79f612e155a2141a3d3eec67092c6fb6c26b584b7527e"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-7.log",
+      "bytes": 6538,
+      "sha256": "e036d2984fa23226671e3d71d66bc0344c1fd192e8d10c7b6002a966590aef90"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-8.log",
+      "bytes": 6551,
+      "sha256": "02cd0ef74ff972f6e9523940f227fc0c4c85aeedecaa01dc213064272df1cfed"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring/server-9.log",
+      "bytes": 6604,
+      "sha256": "37a0eb5cc3435eae1510ea8fea5ca5a100344180f311da58ddb2a4169a900175"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-filename-2s-uring.log",
+      "bytes": 23775,
+      "sha256": "0ef86f7f73aa8348ee570247430cd893a14d3f04991643a301fae21115d1a2a0"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large-uring/events.jsonl",
+      "bytes": 4567,
+      "sha256": "39f02598b75e53f04b4b19cf58c7d52b26f4848fc7509235ccdea78c7220dbc8"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large-uring/server-1.log",
+      "bytes": 2815,
+      "sha256": "c5a580838f0432d5fa2f57e8711476df56e05532ac58d86fd97c054eae96f892"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large-uring/server-2.log",
+      "bytes": 2768,
+      "sha256": "5b51c6d5ed374264f1ad4bfeb6e37eebe654e3507638d40d68b63353fff26c17"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large-uring.log",
+      "bytes": 4567,
+      "sha256": "39f02598b75e53f04b4b19cf58c7d52b26f4848fc7509235ccdea78c7220dbc8"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large_placed-uring/events.jsonl",
+      "bytes": 2304,
+      "sha256": "2062ebe64ce5fb6aa8a9d3474b61ff6f0dd28ce425d9316969226791c8c4bb39"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large_placed-uring/server-1.log",
+      "bytes": 7477,
+      "sha256": "694ff2dc8e12f32e8113be26f8825fc43a0fcfe1d164a8962e4ceb72f1428f1f"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-large_placed-uring.log",
+      "bytes": 2304,
+      "sha256": "2062ebe64ce5fb6aa8a9d3474b61ff6f0dd28ce425d9316969226791c8c4bb39"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-1s-uring/events.jsonl",
+      "bytes": 5181,
+      "sha256": "82bf0aeed8ebf9212149b01f25985aec3f0e8756c2e7f0898033610e38f89e87"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-1s-uring/server-1.log",
+      "bytes": 7502,
+      "sha256": "089b42150ec01021b9921230a862a520e51ce766e921d50326c3c9012d283a3a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-1s-uring.log",
+      "bytes": 5181,
+      "sha256": "82bf0aeed8ebf9212149b01f25985aec3f0e8756c2e7f0898033610e38f89e87"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-2s-uring/events.jsonl",
+      "bytes": 5185,
+      "sha256": "673b7dfbc44755439524a0e5f001025673d79d63b096a778435c3570dd2416bd"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-2s-uring/server-1.log",
+      "bytes": 6590,
+      "sha256": "4ceb49804bcdfc9fb4ec8a33bb6ec685ec5b5f4cc57a52378b3e668f05240d36"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-always-2s-uring.log",
+      "bytes": 5185,
+      "sha256": "673b7dfbc44755439524a0e5f001025673d79d63b096a778435c3570dd2416bd"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-1s-uring/events.jsonl",
+      "bytes": 5180,
+      "sha256": "9dc22edc4115d4cc364cafcadcb26b570b589c647b7f1e8afda8c63dea0a8d9d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-1s-uring/server-1.log",
+      "bytes": 7493,
+      "sha256": "ec212619becfa432d72337146e70eacbe16f428a487fe15dc542db58e689429d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-1s-uring.log",
+      "bytes": 5180,
+      "sha256": "9dc22edc4115d4cc364cafcadcb26b570b589c647b7f1e8afda8c63dea0a8d9d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-2s-uring/events.jsonl",
+      "bytes": 5203,
+      "sha256": "aaa66626e9a459fececa2bd3af141cb36278cfe4c15493a42fe026b8244818a7"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-2s-uring/server-1.log",
+      "bytes": 6595,
+      "sha256": "6377b920883d1f38e1b3549ad3dc682d30f424574f9c59171918460674d0b45e"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-latency-everysec-2s-uring.log",
+      "bytes": 5203,
+      "sha256": "aaa66626e9a459fececa2bd3af141cb36278cfe4c15493a42fe026b8244818a7"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-1s-uring/events.jsonl",
+      "bytes": 4939,
+      "sha256": "927b450cf7046e7ea8c14ddbef22709de09e43d34d6a9f0080d4fc593fe0a455"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-1s-uring/server-1.log",
+      "bytes": 7495,
+      "sha256": "c48b0b4d48d72fd96f5e440747ba698920aa7fdbebd0b175a339c22ea5c5f514"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-1s-uring/server-2.log",
+      "bytes": 128,
+      "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-1s-uring.log",
+      "bytes": 4939,
+      "sha256": "927b450cf7046e7ea8c14ddbef22709de09e43d34d6a9f0080d4fc593fe0a455"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-2s-uring/events.jsonl",
+      "bytes": 4966,
+      "sha256": "bc37bd39e628db1e2b850281e9bc318b20a457a9fc3d526ac6993494551ff83c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-2s-uring/server-1.log",
+      "bytes": 6579,
+      "sha256": "7121b98ee66f86d5dc2464fbd43b3046f3eabbaeb17271d9b686aaf151fde7c8"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-2s-uring/server-2.log",
+      "bytes": 128,
+      "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-manifest_missing-2s-uring.log",
+      "bytes": 4966,
+      "sha256": "bc37bd39e628db1e2b850281e9bc318b20a457a9fc3d526ac6993494551ff83c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring/events.jsonl",
+      "bytes": 12926,
+      "sha256": "a7f29ae9f57721f107c814be9e407de05105ccffd4e02ddfbced1437a8dd2d5c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring/server-1.log",
+      "bytes": 729,
+      "sha256": "c71f5e9655ab00ab49db537e033b78dea3b2c28fd771c9729afda7e3bfcd7f77"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring/server-2.log",
+      "bytes": 7493,
+      "sha256": "068e910cc824186f69f68d1988d3aea34add62337367632e37acc1526a039cc9"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring/server-3.log",
+      "bytes": 7461,
+      "sha256": "094bfc086b85898ed17175755ff2c831b4675b6cdc6e6bb53dbbe2f2f5fec632"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring/server-4.log",
+      "bytes": 7461,
+      "sha256": "ccf6af4da7fb3e7a25403fec4e81c66e109f1cccad90b46321d09eaa8225834f"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-1s-uring.log",
+      "bytes": 12926,
+      "sha256": "a7f29ae9f57721f107c814be9e407de05105ccffd4e02ddfbced1437a8dd2d5c"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring/events.jsonl",
+      "bytes": 12998,
+      "sha256": "25360700deb22c6a4f2174a8032f1a94076c66b7c28834f284a4a37629e5844b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring/server-1.log",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring/server-2.log",
+      "bytes": 6568,
+      "sha256": "2d27aba2e7b23013aedf2996e889464ffb4ed8b9ff911cfc2fe8ca9c370eec1b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring/server-3.log",
+      "bytes": 6556,
+      "sha256": "af77b6082d02338a6f0460dc1994e8c6e61600d24f43976a8528fac1cc15a362"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring/server-4.log",
+      "bytes": 6562,
+      "sha256": "fef7b781c30eabed4a0de1abaf891255efa96cb5cd0bef1eeeef7d639b2b52fb"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-resurrection-2s-uring.log",
+      "bytes": 12998,
+      "sha256": "25360700deb22c6a4f2174a8032f1a94076c66b7c28834f284a4a37629e5844b"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/events.jsonl",
+      "bytes": 5212,
+      "sha256": "0d28b50e3efbb1db6baf1aa50887941f9ba5f23b041cb5ecb898c48ff205e1ae"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/server-1.log",
+      "bytes": 7519,
+      "sha256": "96b780064563c4b3b9f05c860e6b2cbe84854de491e91402582d0a2464650450"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring/server-2.log",
+      "bytes": 7451,
+      "sha256": "5cffa939409355953ce874a5a36866e805d70b13bdabdb5c3cbcabe92acab658"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-1s-uring.log",
+      "bytes": 5212,
+      "sha256": "0d28b50e3efbb1db6baf1aa50887941f9ba5f23b041cb5ecb898c48ff205e1ae"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-2s-uring/events.jsonl",
+      "bytes": 5257,
+      "sha256": "d7d3ff8b31c866233302f8ec3d1515f756a4398fb65918c88de05c59f8336723"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-2s-uring/server-1.log",
+      "bytes": 6614,
+      "sha256": "79a897f5ed80f5d4c5c84e87b30b34e5d079ddd208fc5171f1e4417b501fb55f"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-2s-uring/server-2.log",
+      "bytes": 6556,
+      "sha256": "c2088f4fa83cee00d8723cde8b2bf68afd9a3a00e61686472ea37995cf00cab8"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-rewrite_fail2-2s-uring.log",
+      "bytes": 5257,
+      "sha256": "d7d3ff8b31c866233302f8ec3d1515f756a4398fb65918c88de05c59f8336723"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-1s-uring/events.jsonl",
+      "bytes": 6632,
+      "sha256": "09fa507ae69a068f79463e182a5b6f871ec10e404697492f5fdb256898a80bd1"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-1s-uring/server-1.log",
+      "bytes": 7487,
+      "sha256": "032ffe9b5d2da5aa72a149eae7c7df309f728217bbf2ea5d418385bdb06773d9"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-1s-uring/server-2.log",
+      "bytes": 7446,
+      "sha256": "6e5f01d2d2eaf4375abfd80c9eceb64bb1a5e1666761404cd048c8c498f104ee"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-1s-uring/server-3.log",
+      "bytes": 7449,
+      "sha256": "4d3c8227745521da28b498cba9061325a4a038b9ed26c7c4aa7dbfff3498d03a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-1s-uring.log",
+      "bytes": 6632,
+      "sha256": "09fa507ae69a068f79463e182a5b6f871ec10e404697492f5fdb256898a80bd1"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-2s-uring/events.jsonl",
+      "bytes": 6700,
+      "sha256": "f52d6e08e7d81c5220b6dca284051d6cbf4f11195ef1d6a63074a205bf083b3a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-2s-uring/server-1.log",
+      "bytes": 6554,
+      "sha256": "ea21fe795049749597104877cef3a7e34c1ffb68f47e76b2d4c2d660171b9c66"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-2s-uring/server-2.log",
+      "bytes": 6556,
+      "sha256": "8ab8ab91709dd4c034a28260be034168a37b6fffd40cb2e5ac4e55542f0a54e0"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-2s-uring/server-3.log",
+      "bytes": 6539,
+      "sha256": "717b75ecf991025328e0e74d941fb8a706526b2b2bb121550ae8c4280f2a790d"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-snapshot-2s-uring.log",
+      "bytes": 6700,
+      "sha256": "f52d6e08e7d81c5220b6dca284051d6cbf4f11195ef1d6a63074a205bf083b3a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring/events.jsonl",
+      "bytes": 13309,
+      "sha256": "6dfc6b792a77aea4bf2d441e09c414fa9b13531d17a7f78030e77c1686c4eec7"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring/server-1.log",
+      "bytes": 7493,
+      "sha256": "20ba00aa8f3ecdfe070a72eb254b3040d047165683a53e7f811923164946c443"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring/server-2.log",
+      "bytes": 7478,
+      "sha256": "e88b045df7941c16572880c4cd23c73b0001b90c28d18868d07c9d412d862b5a"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring/server-3.log",
+      "bytes": 7481,
+      "sha256": "d633765f488889c9953ba877219f236e72d0dc0723d79240ffcfc2b3fa72a014"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring/server-4.log",
+      "bytes": 7458,
+      "sha256": "35e321742e9c2d69b5fff2481a1c6fc61f8808fa4482ec50648f053636f586fb"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-1s-uring.log",
+      "bytes": 13309,
+      "sha256": "6dfc6b792a77aea4bf2d441e09c414fa9b13531d17a7f78030e77c1686c4eec7"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring/events.jsonl",
+      "bytes": 13381,
+      "sha256": "b0fd7c6a5f87e7b1d5906181315748586cb5bbf7ffbe21a45c4e285dedeb8583"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring/server-1.log",
+      "bytes": 6574,
+      "sha256": "61bc39a60827a6e0edb53b6d7dfbfbdbe28886891769defece0427620bde8e66"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring/server-2.log",
+      "bytes": 6571,
+      "sha256": "9fa35985c03eaea8a4e7dbb21d73226a4cf3dfaf026ed8c495717b435153d629"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring/server-3.log",
+      "bytes": 6577,
+      "sha256": "41a5cddd207cd2fd7d445ca0401ed373ad83645903e5778237744392aa3ac89e"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring/server-4.log",
+      "bytes": 6551,
+      "sha256": "beb1d4e433f069d118a797dd163bdafbf8bcf7e27d45fc2ce72cdaade3c1cf38"
+    },
+    {
+      "path": "jobs/aof-uring/aoffix2-tickets-2s-uring.log",
+      "bytes": 13381,
+      "sha256": "b0fd7c6a5f87e7b1d5906181315748586cb5bbf7ffbe21a45c4e285dedeb8583"
+    },
+    {
+      "path": "jobs/aof-uring/family.tsv",
+      "bytes": 54,
+      "sha256": "8494603cfece97175db52433399d727f9f8adce777bb0d0d5be7b6848ade05d4"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-always-uring.WyFu9c/state.json",
+      "bytes": 57,
+      "sha256": "f43b93bd254f8a80bf5d4df5eb261cbb057585611ad2ed347959a5a667364cef"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-always.txt",
+      "bytes": 125,
+      "sha256": "f4df503882ea91dd38d05168a6531ba334a03995479f052491fa0b2177efe13f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-everysec-uring.0HENDL/state.json",
+      "bytes": 58,
+      "sha256": "fd425131061d0981770a6d3c58777f456819b681f59b6f75caf8296fa2f98107"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-everysec.txt",
+      "bytes": 128,
+      "sha256": "55e5a4d732d6a99b4014a06338f908bf246513c407759ceaf77a88f964e9f271"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-group-uring.HFri56/state.json",
+      "bytes": 1112,
+      "sha256": "3d6f514ec4a756012b37fb3d3e178aa2d763b5f075d800d3fb515d78eff11302"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-group.txt",
+      "bytes": 391,
+      "sha256": "5ac87b59ffd6d1ed0db7b08a785817561b83f6b85a61803f84aac113d30821da"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-no-sync-uring.Ot7GMb/state.json",
+      "bytes": 53,
+      "sha256": "22621bf9f003cc7f5d0b5009e5fc9dd096780036532687d26f4f07dfbf747b51"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-no-sync.txt",
+      "bytes": 59,
+      "sha256": "a204b086ceb8debf70f5b1ac0b6b26147eeac8da23c293927df8e94811c7bec4"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-0.Dvb2ai/server-1.log",
+      "bytes": 5910,
+      "sha256": "38b8d647c0376fdd74d380d7d7844a611db0e82e44f497f129b86bfa06c70baa"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-0.Dvb2ai/server-2.log",
+      "bytes": 5877,
+      "sha256": "005fdbcc3112bec9034a1e8b71fb1492f8be39b7874748452c22775c56b01cc8"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-0.Dvb2ai/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-1.BSBmuk/server-1.log",
+      "bytes": 5906,
+      "sha256": "21e9a3002b4c04441007c70f85335f6f8a30e2e4000997116905b2094e6bfaeb"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-1.BSBmuk/server-2.log",
+      "bytes": 5919,
+      "sha256": "392455ea1c8d27211ab669d5b9026832e00f964380dae5bc4ef7fe771bccc514"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-1.BSBmuk/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-after-manifest.upJlFZ/server-1.log",
+      "bytes": 601,
+      "sha256": "57a2387b12e9c843917edf5b9d780f5634b53a0aa5b1bee4269aaaade69f6d65"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-after-manifest.upJlFZ/server-2.log",
+      "bytes": 5841,
+      "sha256": "88fff791c63531a974327d5042f6a9df37ac7e6c0621555c38b825e5036d5b89"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-after-manifest.upJlFZ/state.json",
+      "bytes": 50,
+      "sha256": "c3d2b1fa5fa81e4e8954200233d1168a6b8713739523cdaa8d6b66d1e7be4615"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-manifest.l3RSTk/server-1.log",
+      "bytes": 601,
+      "sha256": "57a2387b12e9c843917edf5b9d780f5634b53a0aa5b1bee4269aaaade69f6d65"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-manifest.l3RSTk/server-2.log",
+      "bytes": 5842,
+      "sha256": "93ebedb8b843f4d24417dfdd38e9523822129fba067ae50148a89bc0fcd5d2e1"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-manifest.l3RSTk/state.json",
+      "bytes": 50,
+      "sha256": "c3d2b1fa5fa81e4e8954200233d1168a6b8713739523cdaa8d6b66d1e7be4615"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-mark.Ukg2Gp/server-1.log",
+      "bytes": 601,
+      "sha256": "57a2387b12e9c843917edf5b9d780f5634b53a0aa5b1bee4269aaaade69f6d65"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-mark.Ukg2Gp/server-2.log",
+      "bytes": 5838,
+      "sha256": "37ec2358bcb9b89f891f87aa04062060c365611486fbb102fd4a7ffe8385cdd0"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-before-mark.Ukg2Gp/state.json",
+      "bytes": 50,
+      "sha256": "c3d2b1fa5fa81e4e8954200233d1168a6b8713739523cdaa8d6b66d1e7be4615"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-base.lci7L1/refusal.log",
+      "bytes": 87,
+      "sha256": "d50167b5a72f811c8e06b2483d6a255ba42afc8015ae062f5198ee440ae83f65"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-base.lci7L1/server-1.log",
+      "bytes": 5906,
+      "sha256": "21e9a3002b4c04441007c70f85335f6f8a30e2e4000997116905b2094e6bfaeb"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-base.lci7L1/server-2.log",
+      "bytes": 5919,
+      "sha256": "392455ea1c8d27211ab669d5b9026832e00f964380dae5bc4ef7fe771bccc514"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-base.lci7L1/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.kOhrII/refusal.log",
+      "bytes": 99,
+      "sha256": "a656376f24d5a3ee5f1d7faa7d6665413a9b1b97851720bb40b4224dabfd413c"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.kOhrII/server-1.log",
+      "bytes": 5906,
+      "sha256": "21e9a3002b4c04441007c70f85335f6f8a30e2e4000997116905b2094e6bfaeb"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.kOhrII/server-2.log",
+      "bytes": 5919,
+      "sha256": "392455ea1c8d27211ab669d5b9026832e00f964380dae5bc4ef7fe771bccc514"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-group-vector.kOhrII/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-interior.s6dYMU/refusal.log",
+      "bytes": 82,
+      "sha256": "c7c01bbee4510bcbf7d883aec222b86056b4fcf73feaf11f2a64fc47ac266569"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-interior.s6dYMU/server-1.log",
+      "bytes": 601,
+      "sha256": "57a2387b12e9c843917edf5b9d780f5634b53a0aa5b1bee4269aaaade69f6d65"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-interior.s6dYMU/server-2.log",
+      "bytes": 5842,
+      "sha256": "93ebedb8b843f4d24417dfdd38e9523822129fba067ae50148a89bc0fcd5d2e1"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-interior.s6dYMU/state.json",
+      "bytes": 50,
+      "sha256": "c3d2b1fa5fa81e4e8954200233d1168a6b8713739523cdaa8d6b66d1e7be4615"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.MNEosd/refusal.log",
+      "bytes": 90,
+      "sha256": "6d5acb077bfe8d64bc6ae6cc3ce340d5637969147b00a179bc16c321d2d41449"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.MNEosd/server-1.log",
+      "bytes": 5906,
+      "sha256": "21e9a3002b4c04441007c70f85335f6f8a30e2e4000997116905b2094e6bfaeb"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.MNEosd/server-2.log",
+      "bytes": 5919,
+      "sha256": "392455ea1c8d27211ab669d5b9026832e00f964380dae5bc4ef7fe771bccc514"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-manifest.MNEosd/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.uEOV5R/refusal.log",
+      "bytes": 90,
+      "sha256": "e07085537f1a07834ea435aa2b7209e45df8e5f669292906f9de0ccc858a19b3"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.uEOV5R/server-1.log",
+      "bytes": 5906,
+      "sha256": "21e9a3002b4c04441007c70f85335f6f8a30e2e4000997116905b2094e6bfaeb"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.uEOV5R/server-2.log",
+      "bytes": 5919,
+      "sha256": "392455ea1c8d27211ab669d5b9026832e00f964380dae5bc4ef7fe771bccc514"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-corrupt-record-length.uEOV5R/state.json",
+      "bytes": 52,
+      "sha256": "1bb4ddfd0eb72d1ce62835f8930d0f1dcbf3fe1b0f9367d9ed4cc571eec54c9f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite-trigger.txt",
+      "bytes": 82,
+      "sha256": "065e769edc7cd38ffc2b5898eb24c93c468908807aa36f45294ce095b90ed1bc"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-rewrite.txt",
+      "bytes": 65,
+      "sha256": "2e9ed64d739fb74c52b019b05a8d26c3dfbce858683730483a5ad84c27912014"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-0.xTcCUv/server-1.log",
+      "bytes": 6150,
+      "sha256": "2111700e5a4672c689cc0660729a36960f9c302771c2f6d59cae6ec188ab461e"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-0.xTcCUv/server-2.log",
+      "bytes": 5843,
+      "sha256": "7fa77e761069d38d981d267770c4ec6e19a585dbb347dad95052223a77d34174"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-0.xTcCUv/state.json",
+      "bytes": 277548,
+      "sha256": "7eb6f38fe9bf9b718d7288934e4613ddd68b738cb943a341e5ecfab62f9d4d83"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-0.xTcCUv/trigger.log",
+      "bytes": 144,
+      "sha256": "882ae1d8d4d354a20bb0cc2eedfe99af046bdb6161d8810369fb6e531e213d4a"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-1.6ylM1v/server-1.log",
+      "bytes": 6144,
+      "sha256": "ddf4be45b26c08a8403808f0063a6bc202f040fed3214330707c40febe0c6346"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-1.6ylM1v/server-2.log",
+      "bytes": 5833,
+      "sha256": "e2341fa13a5d4f0402c5db801858307edab91e1636f4c550d4be5c907fc698c9"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-1.6ylM1v/state.json",
+      "bytes": 277548,
+      "sha256": "7eb6f38fe9bf9b718d7288934e4613ddd68b738cb943a341e5ecfab62f9d4d83"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-trigger-1.6ylM1v/trigger.log",
+      "bytes": 144,
+      "sha256": "5922ceb69da30d4730cda5bee343c261e99e8b0c44aa7dad13a0c258ff5bb325"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-uring-0.txt",
+      "bytes": 510,
+      "sha256": "2787ea0befcb7d51d6f1e0062065e5708e24686ef4cd467005b4e8a158b992d8"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-uring-1.txt",
+      "bytes": 510,
+      "sha256": "bb0ae1a9046a78fcb15cf95e21852d49dc2bdaeec92b5f806513bc430a177c9e"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-uring-atomic0.11WBHR/state.json",
+      "bytes": 421693,
+      "sha256": "8298a67e318f4ba0b13dec661497f64ed8157b8dbb6de13704c21dbc2eac6ec9"
+    },
+    {
+      "path": "jobs/aof-uring/gate-aof-uring-atomic1.Z7P1SK/state.json",
+      "bytes": 421693,
+      "sha256": "7613efff3c59b943f224a2349652c8bcf5a661423389f9544b9ef7beed645e19"
+    },
+    {
+      "path": "jobs/aof-uring/gate-knobs-uring-0.txt",
+      "bytes": 75,
+      "sha256": "538a9da1ed9ae6b43095a3c2cc2046c26a02c43c88e8f8042df4dc887f43ce42"
+    },
+    {
+      "path": "jobs/aof-uring/gate-knobs-uring-1.txt",
+      "bytes": 75,
+      "sha256": "538a9da1ed9ae6b43095a3c2cc2046c26a02c43c88e8f8042df4dc887f43ce42"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.6xS1yi",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.91Dm17",
+      "bytes": 6623,
+      "sha256": "4c0bf227860bf66bc2207e1b3a612275f7a664d4434b7e9af90a159fb2ebc9ce"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.9Yh1sa",
+      "bytes": 6646,
+      "sha256": "896173e0ff33ef3479e64932b0b4144cfa0e94001e53072f7f15edb1842ea425"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.9apdFO",
+      "bytes": 6651,
+      "sha256": "a06979d8f2d935ab9994071de8b97ad4b6043c5a5c4338fa8c226ad052097d6f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.Ax8gVm",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.aCU4tB",
+      "bytes": 6613,
+      "sha256": "17d233fc210a5900d8ac817536612f8cd37f919142a9f1696d14652ebf0de11b"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.aGiSl8",
+      "bytes": 6601,
+      "sha256": "92f472be893bb846adf123fa386c53edaf654b283f0c4308877cc02a683ee48a"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.gbPVJj",
+      "bytes": 6669,
+      "sha256": "73f8eb5b9c74137769ad37bf0c35a1e93d2b4d70ffbd1cb1c4f58b9e86734735"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.gc40r6",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.hFKpJ2",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.n2Fu4e",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.uFPrAC",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.vTT8cz",
+      "bytes": 6575,
+      "sha256": "83626473a7c13def8d49399637c62581da239ba4691623bc4bae6cfeeb9a7316"
+    },
+    {
+      "path": "jobs/aof-uring/ledger",
+      "bytes": 2863,
+      "sha256": "c048f73f41165b9403e9a5a21cc20004c31105f86afd58fa35f3f813dbb00274"
+    },
+    {
+      "path": "jobs/aof-uring/output.log",
+      "bytes": 8716,
+      "sha256": "ad07a9f194f2bbb552dda4ea89518d5d2781022ec3c68ef6e38a15b0f0f5183a"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/acknowledged.json",
+      "bytes": 89,
+      "sha256": "a4b23a229ee5748204b4cf3564be957c2c571c7096443026514500526b921bf8"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/processes.jsonl",
+      "bytes": 1936,
+      "sha256": "da1f09483859b24d85d14e00a5428e422eafdba472ca6b7f037c97ee09b88b4c"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/server-1.json",
+      "bytes": 2210,
+      "sha256": "9168292c68d99ad026363d008a7cd9a6869959ef347947786f21bdf8241c6a41"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/server-1.log",
+      "bytes": 729,
+      "sha256": "c71f5e9655ab00ab49db537e033b78dea3b2c28fd771c9729afda7e3bfcd7f77"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/server-2.json",
+      "bytes": 2209,
+      "sha256": "ede2805a84b420f9f65777d3f1a93697d9fb28243151a06ec3bca3852a9cc5cd"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-kill-p3sn_t6q/server-2.log",
+      "bytes": 7451,
+      "sha256": "4cee65384dd94e1a657164ad3c8cdebe467cf22b57b5dc92e686e9c2fb40a99a"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/acknowledged.json",
+      "bytes": 1856321,
+      "sha256": "f9f9a5796b4638135b6ac2654df2fab1ba0f16b0b3c71279ea2325ffd189b1c1"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/processes.jsonl",
+      "bytes": 2419,
+      "sha256": "0404bf137ebc8f7b32e194422424d076fb51b56f1471c39ac821e78912879398"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/server-1.json",
+      "bytes": 2209,
+      "sha256": "19c995493d62984b5b44ed106ec22ca717256be42a5dcf59bc8cfd517282df26"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/server-1.log",
+      "bytes": 7758,
+      "sha256": "26e7f324276da228403adc26f3fe23399a3aa4f89940c933dcb0c1d2be7ea46b"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/server-2.json",
+      "bytes": 2209,
+      "sha256": "a631b1fb1483fb4ee082ae1a4c30f87d69a80e5d2237bd004e107547ade08453"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/1s-term-uwilmv89/server-2.log",
+      "bytes": 7764,
+      "sha256": "262e1aaa5f163b9d4ee3bc74c12d96c17a78bb9ca566d639c6783fe1c3b6f911"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/acknowledged.json",
+      "bytes": 89,
+      "sha256": "a4b23a229ee5748204b4cf3564be957c2c571c7096443026514500526b921bf8"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/processes.jsonl",
+      "bytes": 1972,
+      "sha256": "f75c976e239ede4a06b1e59aecf071d7996800b66be23ec12f4e0448ed3d6e93"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/server-1.json",
+      "bytes": 2381,
+      "sha256": "2687f11bac31b7352d82da65f596f4c2ce3924ec5ca77f5ea3ca6aace57ed369"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/server-1.log",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/server-2.json",
+      "bytes": 2380,
+      "sha256": "2ec11d928baa7178ffed15b71e32230598a5ffa6ac94f12a942dc85c96502a93"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-kill-9o2maxkj/server-2.log",
+      "bytes": 6545,
+      "sha256": "7aef7587bde01e8d24560b9fcd1890f59e735259aa28dc530ecc0f657bbea944"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/acknowledged.json",
+      "bytes": 2902881,
+      "sha256": "9d68bc7b0426f1c15f58875c460f0d326da5c10c3d672615773f9f488974ea91"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/processes.jsonl",
+      "bytes": 2455,
+      "sha256": "ec02016045a7d86a579054fdf9f77310d604da78c10018735b2d30263a4d4764"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/server-1.json",
+      "bytes": 2380,
+      "sha256": "7142d511ec7a8f35ed8d696baaf3b56240b691e7a71766eb574ecd9d4edf1763"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/server-1.log",
+      "bytes": 6804,
+      "sha256": "7e66ab1f0769202dafc85a64e2f2f4e880c69ebcd9e2548e2c275b1e325574b6"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/server-2.json",
+      "bytes": 2380,
+      "sha256": "7801185a4bb24e5a9798f9eaeaf5f6f3dd3d55c09f7e1e03ca1c8dbff53b16a8"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix/2s-term-2_g0939y/server-2.log",
+      "bytes": 6734,
+      "sha256": "f7962d995f0964e2f7f130680d6f886e603768f68a2190503603540d943748d1"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix-1s-kill.log",
+      "bytes": 197,
+      "sha256": "d654db65baa477ced2dfd7d5814d37ce4bf036bf22599b818bf14903c3f14228"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix-1s-term.log",
+      "bytes": 201,
+      "sha256": "16d744114dc5c1de42080087d9cb2388a24be102b96dbe1ac650cd4cff3276ce"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix-2s-kill.log",
+      "bytes": 197,
+      "sha256": "c51526f28d9b5e02c3d5f4e3f4776a27ec53f1dec544e5144c4594bd2205c87b"
+    },
+    {
+      "path": "jobs/aof-uring/persistfix-2s-term.log",
+      "bytes": 201,
+      "sha256": "38c81de1ae3318e54628480d165436a6ec214dafa49f5afd123f3c772920303c"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/replay.argv.json",
+      "bytes": 537,
+      "sha256": "d0588004cfe37db2af4172fcbdd8a3d1e4955a5a071bc42397449ab6fad6a2c4"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/replay.log",
+      "bytes": 7491,
+      "sha256": "ea5e626e7fc32f51b034dce531649b09281142289850ba085458d845d27fcc22"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/result.json",
+      "bytes": 2353,
+      "sha256": "308d885705209326d29eb385b318dd49bd6269ac72294ee680a23e0ec5991165"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/write.argv.json",
+      "bytes": 537,
+      "sha256": "d0588004cfe37db2af4172fcbdd8a3d1e4955a5a071bc42397449ab6fad6a2c4"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/write.log",
+      "bytes": 7702,
+      "sha256": "2d51e5859a64c007978981fdc5f7c052ac4f717425f83cabfdd91b9aa24a7306"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-0.log",
+      "bytes": 7959,
+      "sha256": "4649d38f111312a71ecee28124dfd879d2a933dfdab851b7ebf7ecd6ef9bb5bd"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/replay.argv.json",
+      "bytes": 537,
+      "sha256": "dd410188b6c87e3ddd5668c6add5adb389b6c251851169140f9b591c4eb1b090"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/replay.log",
+      "bytes": 7491,
+      "sha256": "dbee84d1ec2e8b8484161edef61a4be8cb8e8e66197019f12feda802aac790d6"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/result.json",
+      "bytes": 2331,
+      "sha256": "2026397594fc3097176c9f0d0d577b8dc1b9714e4400466684688c72769dbef5"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/write.argv.json",
+      "bytes": 537,
+      "sha256": "dd410188b6c87e3ddd5668c6add5adb389b6c251851169140f9b591c4eb1b090"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/write.log",
+      "bytes": 7709,
+      "sha256": "11583f0649c91e8778e6d82b5e37b0c3e89dd89afb01b5ad3cce159dec9e83e4"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-1s-1.log",
+      "bytes": 7911,
+      "sha256": "b22f0569250cb6c6598ffb38d50b56df4822b3c20a10ecbe706a884eeb5915b7"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/replay.argv.json",
+      "bytes": 555,
+      "sha256": "a469df7295b7830b45faf512a996969822ecde9c71f47a34e6eb396d16c207e4"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/replay.log",
+      "bytes": 6572,
+      "sha256": "596de9dd89356422ee98c103327868949e74c169c55eb81cb72a7406969754ec"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/result.json",
+      "bytes": 2353,
+      "sha256": "a101514a70a0abb70cc5b80d6617b5a1d7aa4270f8957ae55db44bc02b8a6e65"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/write.argv.json",
+      "bytes": 555,
+      "sha256": "a469df7295b7830b45faf512a996969822ecde9c71f47a34e6eb396d16c207e4"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/write.log",
+      "bytes": 6733,
+      "sha256": "aaaeb8934378b8231fd22970d081bf8f1cea1c1ea47fe9d9429991c54ef0e195"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-0.log",
+      "bytes": 7995,
+      "sha256": "7aa9b890bcbc9cc91656459826fbf79585a1b2cc2734244016349f3b8ed5f43f"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/replay.argv.json",
+      "bytes": 555,
+      "sha256": "52e371d12e4c08ae72acf159221b8d74ea8b009acd5a35f29aec41a6df43f3e2"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/replay.log",
+      "bytes": 6581,
+      "sha256": "fbbf395ed3dba42cb726f875b692ed383d4906acb48ba3ac5f6f78e8d1dace9c"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/result.json",
+      "bytes": 2328,
+      "sha256": "2179c3b8612a702082131cc2346b1a8189385a3458d269962f8bcd1cfced28d3"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/write.argv.json",
+      "bytes": 555,
+      "sha256": "52e371d12e4c08ae72acf159221b8d74ea8b009acd5a35f29aec41a6df43f3e2"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/write.log",
+      "bytes": 6736,
+      "sha256": "92af1344f7ddefea4f3a89c4210dbe584403779b000ed78c2220ab3757ac4612"
+    },
+    {
+      "path": "jobs/aof-uring/savefix-rewrite-2s-1.log",
+      "bytes": 7939,
+      "sha256": "74499dc70a9dbaac5a783c3eb6c0101fb3291eaf61bb02fab8467e9740d63caa"
+    },
+    {
+      "path": "jobs/aof-uring/timings",
+      "bytes": 2875,
+      "sha256": "2261dab6a5d39636df1ff4a8da9e3732e5d57209dfcda80e084bb12d84e5c72a"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "842f1e8035fb87bf10708ad7b050b980b8ee4a5bc6c51734a56f1f68a50cec97"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/reorder_identity/family.tsv",
+      "bytes": 61,
+      "sha256": "795f152f9e4ff06dd64265ff6d4dce3bf247e8dc75cb791e0392f4878d8dcc3e"
+    },
+    {
+      "path": "jobs/reorder_identity/ledger",
+      "bytes": 64,
+      "sha256": "a69600bd754b73ebdb9a954d199a328b9f8be54677b0434c3f2ed9e860fa27c1"
+    },
+    {
+      "path": "jobs/reorder_identity/output.log",
+      "bytes": 172,
+      "sha256": "8f165e8065bd438a77309d798e743a96387b9f8d5995c25e3c18a286c63e0d3d"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt/identity/audit.json",
+      "bytes": 323680,
+      "sha256": "7a545330974baa3ce8443558156f6854e71ea6934e388f0115973ff8d39cf231"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt/twin.json",
+      "bytes": 777,
+      "sha256": "96f4406b209e292447a990a79fe39c703546e111d1a2ce141af9506506f6fe04"
+    },
+    {
+      "path": "jobs/reorder_identity/receipt.log",
+      "bytes": 166,
+      "sha256": "3261b3ad0e1358ff1eb6138fc314865649617126902bd67c6285290ff4aef52f"
+    },
+    {
+      "path": "jobs/reorder_identity/timings",
+      "bytes": 64,
+      "sha256": "a69600bd754b73ebdb9a954d199a328b9f8be54677b0434c3f2ed9e860fa27c1"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 3039,
+      "sha256": "117a9d067c3d5a3591471b1348af09ad77102f69fa08ba351c7779157a64f697"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 2984,
+      "sha256": "48a455dc38d1f4965838f08e5bf3c57971a525f840e57fb969d9eb1f75fa5f7c"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "ab135e8beedd9581f81e28400694ee877d0aef583b5335acfbd075d30520129d"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1198,
+      "sha256": "f09ac761f8ab803b7071e1ed0cc666b8a102924ab1ab8577cc66498e7159cd6d"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 68903,
+      "sha256": "4b840b19eed8220f76532b4bbf5180a089e04d6619cb95bb64ab4224c7a308c0"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "d4aadcced228576471357e52d3a2c9cf29ca2beb6d0659561951df35544a1e40"
+  }
+}

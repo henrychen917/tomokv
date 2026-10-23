@@ -1,0 +1,178 @@
+void tomo_db0::IoLoop::r7_on_cqe<true, true, true>(io_uring_cqe*)
+0000 [ 4] endbr64
+0004 [ 1] push %rbp
+0005 [ 1] push %rbx
+0006 [ 3] mov %rdi,%rbx
+0009 [ 4] sub $0x8,%rsp
+000d [ 3] mov (%rsi),%rcx
+0010 [ 3] mov %rcx,%rax
+0013 [ 4] shr $0x38,%rax
+0017 [ 2] cmp $0x11,%al
+0019 [ 6] ja <+0x2cb>
+001f [ 7] lea <rip>(%rip),%rdx # <local-switch-0x2cb,0x1c0,0x1d0,0x1f0,0x3e,0x30,0x50,0x70,0x3e,0x90,0xa0,0xc0,0x150,0x290,0x240,0x270,0x3e,0x190>
+0026 [ 4] movslq (%rdx,%rax,4),%rax
+002a [ 3] add %rdx,%rax
+002d [ 3] notrack jmp *%rax
+0030 [ 7] mov 0x190(%rdi),%rax
+0037 [ 7] incq 0x440(%rax)
+003e [ 4] add $0x8,%rsp
+0042 [ 1] pop %rbx
+0043 [ 1] pop %rbp
+0044 [ 1] ret
+0045 [11] data16 cs nopw 0x0(%rax,%rax,1)
+0050 [ 5] mov $0x6,%edx
+0055 [ 4] add $0x8,%rsp
+0059 [ 3] mov %rbx,%rdi
+005c [ 1] pop %rbx
+005d [ 1] pop %rbp
+005e [ 5] jmp <void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)>
+0063 [11] data16 cs nopw 0x0(%rax,%rax,1)
+006e [ 2] xchg %ax,%ax
+0070 [ 7] mov 0x1ba0(%rdi),%rdi
+0077 [ 4] add $0x8,%rsp
+007b [10] movabs $0xffffffffffff,%rsi
+0085 [ 1] pop %rbx
+0086 [ 1] pop %rbp
+0087 [ 3] and %rcx,%rsi
+008a [ 5] jmp <tomo_db0::ExLoopT<true>::begin_snapshot(tomo_db0::SnapshotManager*)>
+008f [ 1] nop
+0090 [ 5] mov $0x9,%edx
+0095 [ 2] jmp <+0x55>
+0097 [ 9] nopw 0x0(%rax,%rax,1)
+00a0 [ 3] mov 0x8(%rsi),%edx
+00a3 [ 4] add $0x8,%rsp
+00a7 [10] movabs $0xffffffffffff,%rsi
+00b1 [ 1] pop %rbx
+00b2 [ 1] pop %rbp
+00b3 [ 3] and %rcx,%rsi
+00b6 [ 5] jmp <void tomo_db0::IoLoop::r7_on_tls_recv<true, true>(tomo_db0::Client*, int)>
+00bb [ 5] nopl 0x0(%rax,%rax,1)
+00c0 [10] movabs $0xffffffffffff,%rbp
+00ca [ 3] and %rcx,%rbp
+00cd [ 6] je <+0x221>
+00d3 [ 6] mov 0x7bc(%rbp),%eax
+00d9 [ 3] cmp $0xffffffff,%eax
+00dc [ 6] je <+0x221>
+00e2 [ 7] mov 0x1a68(%rdi),%rcx
+00e9 [ 7] mov 0x1a70(%rdi),%rdx
+00f0 [ 3] sub %rcx,%rdx
+00f3 [ 4] sar $0x3,%rdx
+00f7 [ 3] cmp %rdx,%rax
+00fa [ 6] jae <+0x221>
+0100 [ 4] mov (%rcx,%rax,8),%rdx
+0104 [ 3] test %rdx,%rdx
+0107 [ 6] je <+0x221>
+010d [ 4] cmpb $0x3,0x10(%rdx)
+0111 [ 6] je <+0x221>
+0117 [ 4] cmpb $0x0,0x33(%rbp)
+011b [ 3] mov 0x8(%rsi),%ecx
+011e [ 7] lea 0x1838(%rdi),%rdi
+0125 [ 3] mov %rbp,%rsi
+0128 [ 6] jne <+0x2f0>
+012e [ 5] call <bool tomo_db0::WbEngine::on_tls_send_complete<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&, int)>
+0133 [ 2] test %al,%al
+0135 [ 6] je <+0x221>
+013b [ 4] add $0x8,%rsp
+013f [ 3] mov %rbp,%rsi
+0142 [ 3] mov %rbx,%rdi
+0145 [ 1] pop %rbx
+0146 [ 1] pop %rbp
+0147 [ 5] jmp <tomo_db0::IoLoop::mark_active(tomo_db0::Client*)>
+014c [ 4] nopl 0x0(%rax)
+0150 [10] movabs $0xffffffffffff,%rax
+015a [ 7] lea 0xac8(%rdi),%rdx
+0161 [ 4] mov 0x8(%rsi),%r8d
+0165 [ 3] and %rax,%rcx
+0168 [ 7] mov 0x190(%rdi),%rax
+016f [ 7] mov 0x188(%rdi),%rdi
+0176 [ 4] add $0x8,%rsp
+017a [ 1] pop %rbx
+017b [ 1] pop %rbp
+017c [ 7] add $0x10380,%rdi
+0183 [ 3] mov %rax,%rsi
+0186 [ 5] jmp <tomo_db0::AofManager::on_io_complete(tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, int)>
+018b [ 5] nopl 0x0(%rax,%rax,1)
+0190 [ 7] mov 0x190(%rdi),%rax
+0197 [ 7] lea 0xac8(%rdi),%rdx
+019e [ 7] lea <rip>(%rip),%rdi # <tomo_db0::Server::databases_>
+01a5 [ 2] mov (%rax),%esi
+01a7 [ 4] add $0x8,%rsp
+01ab [ 1] pop %rbx
+01ac [ 1] pop %rbp
+01ad [ 5] jmp <tomo_db0::DatabaseMap::consume_wake(unsigned int, tomo_db0::Ring&)>
+01b2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+01bd [ 3] nopl (%rax)
+01c0 [ 5] mov $0x1,%edx
+01c5 [ 5] jmp <+0x55>
+01ca [ 6] nopw 0x0(%rax,%rax,1)
+01d0 [ 3] mov 0x8(%rsi),%edx
+01d3 [ 4] add $0x8,%rsp
+01d7 [10] movabs $0xffffffffffff,%rsi
+01e1 [ 1] pop %rbx
+01e2 [ 1] pop %rbp
+01e3 [ 3] and %rcx,%rsi
+01e6 [ 5] jmp <void tomo_db0::IoLoop::r7_on_recv<true, true, true>(tomo_db0::Client*, int)>
+01eb [ 5] nopl 0x0(%rax,%rax,1)
+01f0 [10] movabs $0xffffffffffff,%rbp
+01fa [ 3] mov 0x8(%rsi),%edx
+01fd [ 7] lea 0x1838(%rdi),%rdi
+0204 [ 3] and %rcx,%rbp
+0207 [ 4] cmpb $0x0,0x33(%rbp)
+020b [ 3] mov %rbp,%rsi
+020e [ 6] jne <+0x2e0>
+0214 [ 5] call <bool tomo_db0::WbEngine::on_send_complete<true, false>(tomo_db0::Client&, int)>
+0219 [ 2] test %al,%al
+021b [ 6] jne <+0x3e>
+0221 [ 4] add $0x8,%rsp
+0225 [ 3] mov %rbp,%rsi
+0228 [ 3] mov %rbx,%rdi
+022b [ 2] xor %edx,%edx
+022d [ 1] pop %rbx
+022e [ 1] pop %rbp
+022f [ 5] jmp <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)>
+0234 [11] data16 cs nopw 0x0(%rax,%rax,1)
+023f [ 1] nop
+0240 [ 3] mov 0x8(%rsi),%edx
+0243 [10] movabs $0xffffffffffff,%rsi
+024d [ 3] and %rcx,%rsi
+0250 [ 5] mov $0xffffffff,%ecx
+0255 [ 4] add $0x8,%rsp
+0259 [ 3] mov %rbx,%rdi
+025c [ 1] pop %rbx
+025d [ 1] pop %rbp
+025e [ 5] jmp <void tomo_db0::IoLoop::r7_on_tls_socket_poll<true, true>(tomo_db0::Client*, int, tomo_db0::TlsOp)>
+0263 [11] data16 cs nopw 0x0(%rax,%rax,1)
+026e [ 2] xchg %ax,%ax
+0270 [ 3] mov 0x8(%rsi),%edx
+0273 [10] movabs $0xffffffffffff,%rsi
+027d [ 3] and %rcx,%rsi
+0280 [ 5] mov $0xfffffffe,%ecx
+0285 [ 2] jmp <+0x255>
+0287 [ 9] nopw 0x0(%rax,%rax,1)
+0290 [10] movabs $0xffffffffffff,%rax
+029a [ 7] lea 0xac8(%rdi),%rdx
+02a1 [ 4] mov 0x8(%rsi),%r8d
+02a5 [ 3] and %rax,%rcx
+02a8 [ 7] mov 0x190(%rdi),%rax
+02af [ 7] mov 0x188(%rdi),%rdi
+02b6 [ 4] add $0x8,%rsp
+02ba [ 1] pop %rbx
+02bb [ 1] pop %rbp
+02bc [ 7] add $0x10750,%rdi
+02c3 [ 3] mov %rax,%rsi
+02c6 [ 5] jmp <tomo_db0::SnapshotManager::on_io_complete(tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, int)>
+02cb [ 4] add $0x8,%rsp
+02cf [ 3] mov %rbx,%rdi
+02d2 [ 1] pop %rbx
+02d3 [ 1] pop %rbp
+02d4 [ 5] jmp <tomo_db0::IoLoop::fliplisten_cqe(io_uring_cqe*)>
+02d9 [ 7] nopl 0x0(%rax)
+02e0 [ 4] add $0x8,%rsp
+02e4 [ 1] pop %rbx
+02e5 [ 1] pop %rbp
+02e6 [ 5] jmp <tomo_db0::WbEngine::on_dead_send_complete(tomo_db0::Client&, int)>
+02eb [ 5] nopl 0x0(%rax,%rax,1)
+02f0 [ 4] add $0x8,%rsp
+02f4 [ 1] pop %rbx
+02f5 [ 1] pop %rbp
+02f6 [ 5] jmp <tomo_db0::WbEngine::on_dead_tls_send_complete(tomo_db0::Client&, tomo_db0::TlsConn&, int)>

@@ -1,0 +1,194 @@
+[
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+    "symbol": "_ZN4tomo9FlatStore9scan_homeIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEjijRT_b",
+    "pre": 1345,
+    "post": 1345,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+    "symbol": "_ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0",
+    "pre": 2394,
+    "post": 2394,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+    "symbol": "_ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0.cold",
+    "pre": 5,
+    "post": 5,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int) [clone .cold]",
+    "symbol": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj.cold",
+    "pre": 5,
+    "post": 5,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+    "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+    "pre": 594,
+    "post": 587,
+    "equal": false
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+    "pre": 400,
+    "post": 382,
+    "equal": false
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+    "symbol": "_ZN4tomo21xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+    "pre": 54,
+    "post": 54,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::ScatterState::~ScatterState()",
+    "symbol": "_ZN4tomo12ScatterStateD2Ev",
+    "pre": 751,
+    "post": 751,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::ScatterState::~ScatterState()",
+    "symbol": "_ZN4tomo12ScatterStateD1Ev",
+    "pre": 751,
+    "post": 751,
+    "equal": true
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+    "symbol": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+    "pre": 758,
+    "post": 1159,
+    "equal": false
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+    "pre": 18276,
+    "post": 18432,
+    "equal": false
+  },
+  {
+    "object": "build/src/cmd/xshard.o",
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "pre": 21176,
+    "post": 20980,
+    "equal": false
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEjijRT_b",
+    "pre": 1422,
+    "post": 1422,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+    "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0",
+    "pre": 2219,
+    "post": 2219,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+    "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0.cold",
+    "pre": 5,
+    "post": 5,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]",
+    "symbol": "_ZN8tomo_db014xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj.cold",
+    "pre": 5,
+    "post": 5,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+    "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+    "pre": 574,
+    "post": 560,
+    "equal": false
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+    "pre": 408,
+    "post": 405,
+    "equal": false
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+    "symbol": "_ZN8tomo_db021xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+    "pre": 54,
+    "post": 54,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::ScatterState::~ScatterState()",
+    "symbol": "_ZN8tomo_db012ScatterStateD2Ev",
+    "pre": 751,
+    "post": 751,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::ScatterState::~ScatterState()",
+    "symbol": "_ZN8tomo_db012ScatterStateD1Ev",
+    "pre": 751,
+    "post": 751,
+    "equal": true
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+    "symbol": "_ZN8tomo_db014xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+    "pre": 774,
+    "post": 1257,
+    "equal": false
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+    "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+    "pre": 19208,
+    "post": 18694,
+    "equal": false
+  },
+  {
+    "object": "build/db0/src/cmd/xshard.o",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "pre": 23329,
+    "post": 23452,
+    "equal": false
+  }
+]

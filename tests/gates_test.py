@@ -1564,7 +1564,7 @@ bad(){ printf 'FAIL\t%s\n' "$1"; }
 
 
 class TSANWiring(unittest.TestCase):
-    def run_rows(self, kind='core', failure='', ready=True, topology_failure=''):
+    def run_rows(self, kind='core', failure='', ready=True, topology_failure='', slowlog_failure=''):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         helpers = gate[gate.index('tsan_unit(){'):gate.index('\njob_production_units(){')]
@@ -1583,6 +1583,12 @@ bad(){ printf 'FAIL\t%s\n' "$1" >> "$RUN_DIR/rows"; }
 timeout(){
   local argv="$*" selected=${@: -1}
   case "$argv" in
+    *slowlog-completion-negative*)
+      printf 'negative\t%s\n' "$selected" >> "$RUN_DIR/calls"
+      [ "$SLOWLOG_FAILURE" != status ] || return 0
+      [ "$SLOWLOG_FAILURE" != witness ] || return 1
+      echo 'FAIL core concurrency: slowlog threshold decision and identity capture precede Done'
+      return 1;;
     *"$CORE_TSAN"*|*"$WAITS_TSAN"*)
       printf 'tsan\t%s\n' "$selected" >> "$RUN_DIR/calls"
       [ "$TSAN_OPTIONS" = halt_on_error=1:exitcode=66 ] || return 89
@@ -1618,7 +1624,8 @@ timeout(){
                     (directory / 'unit-ready' / name).touch()
             result = subprocess.run(['bash', '-c', stub + helpers + body + '\n' + first.split('(')[0]],
                 cwd=directory, env=dict(os.environ, RUN_DIR=temporary, TMPDIR=temporary,
-                                       FAILURE=failure, TOPOLOGY_FAILURE=topology_failure),
+                                       FAILURE=failure, TOPOLOGY_FAILURE=topology_failure,
+                                       SLOWLOG_FAILURE=slowlog_failure),
                 capture_output=True, text=True, timeout=5)
             self.assertEqual(result.returncode, 0, result.stderr)
             return [line.split('\t') for line in (directory / 'rows').read_text().splitlines()], \
@@ -1631,6 +1638,14 @@ timeout(){
                          [['ok', f'read-local topology demotion ({mode})'] for mode in ('1s', '2s')])
         self.assertEqual([case for mode, case in calls if mode == 'tsan'], selections)
         self.assertEqual([case for mode, case in calls if mode == 'control'], selections + ['1s', '2s'])
+        self.assertEqual([case for mode, case in calls if mode == 'negative'],
+                         ['slowlog-completion-negative'])
+
+    def test_slowlog_negative_requires_failure_and_exact_witness(self):
+        for failure in ('status', 'witness'):
+            with self.subTest(failure=failure):
+                rows, _ = self.run_rows(slowlog_failure=failure)
+                self.assertEqual([row[0] for row in rows], ['ok', 'FAIL'] + ['ok'] * 7)
 
     def test_core_runtime_report_unavailability_and_missing_witness_all_fail(self):
         for failure in ('runtime', 'report', 'unavailable', 'witness', 'control'):
@@ -1642,7 +1657,7 @@ timeout(){
                     self.assertTrue(all(mode == 'control' for mode, _ in calls))
         rows, calls = self.run_rows(ready=False, topology_failure='witness')
         self.assertEqual([row[0] for row in rows], ['FAIL'] * 9)
-        self.assertTrue(all(mode == 'control' for mode, _ in calls))
+        self.assertTrue(all(mode in ('control', 'negative') for mode, _ in calls))
 
     def test_topology_rows_require_ready_success_and_exact_witness(self):
         for failure in ('build', 'runtime', 'witness', 'wrong-mode', 'suffix'):
@@ -1978,6 +1993,26 @@ class EarlyGateDispatch(unittest.TestCase):
                                         cwd=root, text=True, capture_output=True, timeout=5)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(result.stdout.strip(), expected)
+
+
+class NetfixOracleWiringTests(unittest.TestCase):
+    def test_every_netfix_job_passes_explicit_tls_oracle(self):
+        gate = Path('tests/gate.sh').read_text()
+        for name in ('query_stats', 'unix', 'config', 'tls', 'idle_buffers'):
+            body = gate.split('job_netfix_' + name + '(){', 1)[1].split('\n}', 1)[0]
+            self.assertIn('--tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}"', body)
+        self.assertIn('REDIS74_TLS_ROOT:-/home/user/Projects/redis74-tls', gate)
+
+    def test_missing_tls_oracle_names_path_without_tcp_fallback(self):
+        import _netfix
+        with tempfile.TemporaryDirectory() as directory:
+            path = str(Path(directory) / 'missing-redis-server')
+            args = SimpleNamespace(tls_oracle=path, oracle=sys.executable, output=Path(directory))
+            with self.assertRaisesRegex(AssertionError, path):
+                _netfix.certificates(args)
+            args.tls_oracle = ''
+            with self.assertRaisesRegex(AssertionError, '--tls-oracle'):
+                _netfix.certificates(args)
 
 
 if __name__ == '__main__':

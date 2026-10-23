@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "phase": "tls-fused",
+  "engine": "uring",
+  "jobs": "tls",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20872-20874",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-pre-uring-fused"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nfor option in (\"--ratio\", \"--thread-mode\"):\n    while option in args:\n        i = args.index(option)\n        del args[i:i+2]\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pre-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pre-netfix'] + config + [\"--net-io\", 'uring', \"--thread-mode\", \"1s\"] + args)\n",
+  "make_q_all_before": null,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv-pre-netfix",
+  "sha256_before": "dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb",
+  "sha256_after": "dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb",
+  "returncode": 0
+}

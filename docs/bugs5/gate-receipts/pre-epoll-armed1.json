@@ -1,0 +1,18 @@
+{
+  "label": "pre-epoll-armed1",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.qTeHj3",
+  "gate_summary": [
+    "GATE(PARTIAL): 36 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/pre-epoll-armed1/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "feature-armed-1",
+      "done": "0\t35\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "1cda7afd76dc227e280cbedccbd63a10ef90079542b66a0a3c0ad1cc24175886"
+}

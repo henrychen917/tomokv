@@ -1,0 +1,17 @@
+{
+  "baseline": "a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e",
+  "purpose": "Run the unchanged positive-expectation wake fixture through the actual gate job against origin headers; fused failure is expected, split pass is retained.",
+  "files": [
+    {
+      "source": "build/txnorder2/pre-source/build/tomokv",
+      "copy": "build/txnorder2/gate-wake-pre/tomokv",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+    },
+    {
+      "source": "build/txnorder2/wake-control/pre",
+      "copy": "build/txnorder2/gate-wake-pre/txnorder-wake-unit",
+      "sha256": "062236b5b4f9a14d8b395e01350641293136b07f0c336bc6183fffe026882cf1"
+    }
+  ],
+  "fixture_sha256": "024bff1e1841c65eb70fba0dde031db6756431f2a3fa2cd0febea976e1a9d504"
+}

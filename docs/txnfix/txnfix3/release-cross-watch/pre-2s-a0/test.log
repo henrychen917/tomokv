@@ -1,0 +1,7 @@
+geometry txnfix:cross-watch:0 [2, 6] txnfix:cross-watch:2 [11, 7]
+crossed WATCH ['TIMEOUT', 'TIMEOUT']
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t19_crossed_watch.py", line 37, in <module>
+    assert "TIMEOUT" not in replies, "crossed WATCH did not decide within 20 s"
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: crossed WATCH did not decide within 20 s

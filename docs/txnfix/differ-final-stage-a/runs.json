@@ -1,0 +1,54 @@
+[
+  {
+    "geometry": "split",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "22601",
+      "22602",
+      "112-119",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-seeds.txt",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-final-stage-a/split"
+    },
+    "exit_code": 0,
+    "seconds": 32.35892738495022,
+    "sha256": "6ba655a3786f72ea2311cfd0d9486ce80239b67cf95835fa5730e3e55b07469a"
+  },
+  {
+    "geometry": "armed-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "22601",
+      "22602",
+      "112-119",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-seeds.txt",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-final-stage-a/armed-fused"
+    },
+    "exit_code": 0,
+    "seconds": 43.077220171224326,
+    "sha256": "6ba655a3786f72ea2311cfd0d9486ce80239b67cf95835fa5730e3e55b07469a"
+  }
+]

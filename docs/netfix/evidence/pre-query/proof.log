@@ -1,0 +1,105 @@
+PASS oracle-oracle-tcp [0, 1, 2, 3, 0]
+PASS oracle-oracle-tls [0, 1, 2, 3, 0]
+FAIL 1s-epoll-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 1s-epoll-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 1s-uring-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 1s-uring-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 2s-epoll-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 2s-epoll-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 2s-uring-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+FAIL 2s-uring-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 24, in test
+    observed = [counter(admin)]
+                ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 14, in counter
+    assert keys.count(FIELD) == 1, 'missing/duplicate ' + FIELD.decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/duplicate client_query_buffer_limit_disconnections
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_query_stats.py", line 54, in <module>
+    n.matrix(n.arguments(), test)
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 128, in matrix
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: ['1s-epoll-tcp', '1s-epoll-tls', '1s-uring-tcp', '1s-uring-tls', '2s-epoll-tcp', '2s-epoll-tls', '2s-uring-tcp', '2s-uring-tls']

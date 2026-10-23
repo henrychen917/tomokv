@@ -1,0 +1,12 @@
+  ok   force atomic contract with --atomic/CONFIG off
+  ok   queue invisibility plus inside/after EXEC RYOW reply=[b'OK', b'inside']
+  ok   pre-MULTI pipeline error does not dirty the new transaction before=RespError("ERR unknown command 'NO_SUCH_PRE_MULTI_COMMAND', with args beginning with: ") exec=[b'OK']
+  ok   unknown-command queue error aborts EXEC unknown=RespError("ERR unknown command 'NO_SUCH_MULTI_COMMAND', with args beginning with: ") exec=RespError('EXECABORT Transaction discarded because of previous errors.') value=None
+  ok   wrong-arity queue error aborts EXEC arity=RespError("ERR wrong number of arguments for 'set' command") exec=RespError('EXECABORT Transaction discarded because of previous errors.')
+  ok   runtime syntax error remains an EXEC array element reply=[RespError('ERR syntax error')]
+  ok   DISCARD/UNWATCH/nested-MULTI/reset-on-EXEC semantics queued_unwatch=[b'OK', b'changed-after-unwatch']
+  ok   script WATCH declared-key detector owner=4 quiet=[None] fired=None
+  ok   heterogeneous MSET/MGET and lowered RENAME RYOW mset=[b'OK', [b'v0', b'v1', b'v2', b'v3', b'v4', b'v5', b'v6', b'v7', b'v8', b'v9', b'v10', b'v11']] rename=[b'OK', b'payload'] lmpop=[[b'multi:lmpop:7', [b'tail']], 0]
+  ok   EXEC one-ticket torn-read arm reads=83185 commits=2187 torn=0 fanout_cuts=+81402 pending_fallbacks=+0 errors=[] alive=[]
+  ok   WATCH CAS race has exactly one EXEC winner per round wins=100/100 errors=[]
+MULTI/WATCH directed battery passed

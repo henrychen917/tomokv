@@ -1,0 +1,31 @@
+{
+  "boots": 16,
+  "protocols": [
+    2,
+    3
+  ],
+  "mismatches_per_boot": 17,
+  "failing_endpoints": [
+    "inventory",
+    "move",
+    "swapdb",
+    "bgsave",
+    "bgsave",
+    "replicaof",
+    "replicaof",
+    "slaveof",
+    "slaveof",
+    "acl|dryrun",
+    "acl|dryrun",
+    "acl|dryrun",
+    "acl|dryrun",
+    "latency|histogram",
+    "latency|histogram",
+    "memory|stats",
+    "memory|stats"
+  ],
+  "same_endpoint_failures_on_all_pre_post_legs": true,
+  "tracking_schema_mismatches": 0,
+  "canonical_invocations_per_boot": 423,
+  "protocol_variants_per_boot": 846
+}

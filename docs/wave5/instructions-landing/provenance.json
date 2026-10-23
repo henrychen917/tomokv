@@ -1,0 +1,3903 @@
+{
+  "pre": [
+    {
+      "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
+      "mangled": "_ZN4tomo10reply_bulkINS_2Op4SinkEEEvOT_NS_5SliceE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 477,
+          "address": "0x4974c0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x507360",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x53a150",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x545940",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x5500d0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x56a870",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x57dcc0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 267,
+          "address": "0x591fd0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5ac8a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x5d86a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x61a180",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x66f120",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x69aac0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x728cc0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x77c740",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "production": [
+        {
+          "size": 477,
+          "address": "0x4970f0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x506f90",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x539d80",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x545570",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x54fd00",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x56a4a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x57d8f0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 267,
+          "address": "0x591c00",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5ac4d0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x5d82d0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x619db0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x66ed50",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x69a6f0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7288f0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x77c370",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterState::ScatterState()",
+      "mangled": "_ZN4tomo12ScatterStateC2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 773,
+          "address": "0x4e71a0",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "production": [
+        {
+          "size": 773,
+          "address": "0x4e6dd0",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterState::~ScatterState()",
+      "mangled": "_ZN4tomo12ScatterStateD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 751,
+          "address": "0x4ea3c0",
+          "digest": "13a63b264d280e2ed5bb308faa2707da18a7bbaebfc7ec4ea402e43c1d78470b"
+        }
+      ],
+      "production": [
+        {
+          "size": 751,
+          "address": "0x4e9ff0",
+          "digest": "13a63b264d280e2ed5bb308faa2707da18a7bbaebfc7ec4ea402e43c1d78470b"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_110has_statusENS0_4KindEb",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 83,
+          "address": "0x48ae20",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "production": [
+        {
+          "size": 83,
+          "address": "0x48aa50",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_111first_errorERKNS_12ScatterStateERNS0_9WorkErrorE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 192,
+          "address": "0x48ad60",
+          "digest": "73c34e7295697a62c9e417ab6db072e34ac4ddd4f9f52825c2395b216cb08946"
+        }
+      ],
+      "production": [
+        {
+          "size": 192,
+          "address": "0x48a990",
+          "digest": "73c34e7295697a62c9e417ab6db072e34ac4ddd4f9f52825c2395b216cb08946"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_112store_stringERNS_5ShardENS_5SliceEmS3_lbb.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2824,
+          "address": "0x53dd00",
+          "digest": "215d46214205ca79632c37de236b8da93617346e1958a55954952fd90ed3e2ba"
+        }
+      ],
+      "production": [
+        {
+          "size": 2824,
+          "address": "0x53d930",
+          "digest": "215d46214205ca79632c37de236b8da93617346e1958a55954952fd90ed3e2ba"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 947,
+          "address": "0x48afd0",
+          "digest": "540c43f46e0cd9fd7e689da6f536e3db56c3ae7ce25cbd4a8f502b21ca4d199a"
+        }
+      ],
+      "production": [
+        {
+          "size": 947,
+          "address": "0x48ac00",
+          "digest": "540c43f46e0cd9fd7e689da6f536e3db56c3ae7ce25cbd4a8f502b21ca4d199a"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "mangled": "_ZN4tomo12_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 7107,
+          "address": "0x4afb20",
+          "digest": "240f185c9d79014ff753ca40a4a2bb24afbdff2ae9aae33e07a7f404bc832efb"
+        }
+      ],
+      "production": [
+        {
+          "size": 7107,
+          "address": "0x4af750",
+          "digest": "240f185c9d79014ff753ca40a4a2bb24afbdff2ae9aae33e07a7f404bc832efb"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::slowlog_finish(unsigned int, tomo::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo::SlowlogArm const&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_114slowlog_finishEjRNS0_12SlowlogEntryEmlRKNS_10SlowlogArmE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 4121,
+          "address": "0x67cec0",
+          "digest": "fc3ecf624daaf5ace8ae7ec6db0cd031251abf1fe40822817a6fc1acafcdee8c"
+        }
+      ],
+      "production": [
+        {
+          "size": 4121,
+          "address": "0x67caf0",
+          "digest": "fc3ecf624daaf5ace8ae7ec6db0cd031251abf1fe40822817a6fc1acafcdee8c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_115append_key_spanERKNS_2OpERNS0_13XshardKeyPlanEjjjNS0_12XshardKeyUseE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 122,
+          "address": "0x48af50",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "production": [
+        {
+          "size": 122,
+          "address": "0x48ab80",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1000,
+          "address": "0x4a0180",
+          "digest": "7e145ac09e0972d00c7be50f1c95b38d40129ef0e81974210d47c2c07e6f2872"
+        }
+      ],
+      "production": [
+        {
+          "size": 1000,
+          "address": "0x49fdb0",
+          "digest": "7e145ac09e0972d00c7be50f1c95b38d40129ef0e81974210d47c2c07e6f2872"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_120build_initial_groupsERNS_12ScatterStateE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 734,
+          "address": "0x48c760",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "production": [
+        {
+          "size": 734,
+          "address": "0x48c390",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_122free_state_key_anchorsERNS_12ScatterStateE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 465,
+          "address": "0x4a9450",
+          "digest": "dda7911734eb1af16e65949b40c2f7f72b662918fe4d1628f15af38b08114b65"
+        }
+      ],
+      "production": [
+        {
+          "size": 465,
+          "address": "0x4a9080",
+          "digest": "dda7911734eb1af16e65949b40c2f7f72b662918fe4d1628f15af38b08114b65"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 507,
+          "address": "0x497b00",
+          "digest": "31197069fe9d3add6b34a367b50f65ed4f15037d73e401f6a3ae22d9b4e73b91"
+        }
+      ],
+      "production": [
+        {
+          "size": 507,
+          "address": "0x497730",
+          "digest": "31197069fe9d3add6b34a367b50f65ed4f15037d73e401f6a3ae22d9b4e73b91"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_127xshard_owner_mutation_phaseERKNS_12ScatterStateERKNS_2OpE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 89,
+          "address": "0x48d6f0",
+          "digest": "a90dddf231efd2e3766901e0158a854875b14e957cd2447c2eecc48cf85190cf"
+        }
+      ],
+      "production": [
+        {
+          "size": 89,
+          "address": "0x48d320",
+          "digest": "a90dddf231efd2e3766901e0158a854875b14e957cd2447c2eecc48cf85190cf"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1072,
+          "address": "0x53c880",
+          "digest": "46d8bbacb08a71038f7c55008f46d15d496bef58114c6c8e1314fca834dfcba0"
+        }
+      ],
+      "production": [
+        {
+          "size": 1072,
+          "address": "0x53c4b0",
+          "digest": "46d8bbacb08a71038f7c55008f46d15d496bef58114c6c8e1314fca834dfcba0"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2201,
+          "address": "0x53e810",
+          "digest": "9b37f9212eb798979f5735b37ba97292da179cf2083a76926c382fbb6eb4b2fb"
+        }
+      ],
+      "production": [
+        {
+          "size": 2201,
+          "address": "0x53e440",
+          "digest": "9b37f9212eb798979f5735b37ba97292da179cf2083a76926c382fbb6eb4b2fb"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_18classifyERKNS_2OpERNS0_4KindE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 93,
+          "address": "0x48d570",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "production": [
+        {
+          "size": 93,
+          "address": "0x48d1a0",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::eq_icase(tomo::Slice, char const*) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_18eq_icaseENS_5SliceEPKc.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 124,
+          "address": "0x51d510",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x539a30",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x5453f0",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x66ea40",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x678530",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x723db0",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x728c20",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        }
+      ],
+      "production": [
+        {
+          "size": 124,
+          "address": "0x51d140",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x539660",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x545020",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x66e670",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x678160",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x7239e0",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        },
+        {
+          "size": 124,
+          "address": "0x728850",
+          "digest": "aec52b1f90212d83da45092a8965d6fc5aa78a8d6b907bfea95c2a5764ffa25c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_19group_forERNS_12ScatterStateEi",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 145,
+          "address": "0x48c6c0",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "production": [
+        {
+          "size": 145,
+          "address": "0x48c2f0",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_19parse_i64ENS_5SliceERl.constprop.0.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 285,
+          "address": "0x539910",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 285,
+          "address": "0x545240",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 327,
+          "address": "0x54f020",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 327,
+          "address": "0x5634e0",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 282,
+          "address": "0x66e920",
+          "digest": "d38bbafd9857cb0e54e419560aa37246dbfaca0ec34d2a328ed0db1fe8c322ff"
+        }
+      ],
+      "production": [
+        {
+          "size": 285,
+          "address": "0x539540",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 285,
+          "address": "0x544e70",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 327,
+          "address": "0x54ec50",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 327,
+          "address": "0x563110",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 282,
+          "address": "0x66e550",
+          "digest": "d38bbafd9857cb0e54e419560aa37246dbfaca0ec34d2a328ed0db1fe8c322ff"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "mangled": "_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 483,
+          "address": "0x4bda60",
+          "digest": "1946f1949c24f141d743f73f13bac4f5f73d62363719ebd4e378218399e938b2"
+        }
+      ],
+      "production": [
+        {
+          "size": 483,
+          "address": "0x4bd690",
+          "digest": "1946f1949c24f141d743f73f13bac4f5f73d62363719ebd4e378218399e938b2"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+      "mangled": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 774,
+          "address": "0x4bd750",
+          "digest": "4ba2c7089084d6e9068190fdcb0d32e9d02fd512d8c468273da7c3535466919a"
+        }
+      ],
+      "production": [
+        {
+          "size": 774,
+          "address": "0x4bd380",
+          "digest": "4ba2c7089084d6e9068190fdcb0d32e9d02fd512d8c468273da7c3535466919a"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "mangled": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 20731,
+          "address": "0x4d4570",
+          "digest": "ed0a9271363c6d8ffcf9f16b136c8576e12ca75f68b0a6584653aa59a3fbf6b3"
+        }
+      ],
+      "production": [
+        {
+          "size": 20731,
+          "address": "0x4d41a0",
+          "digest": "ed0a9271363c6d8ffcf9f16b136c8576e12ca75f68b0a6584653aa59a3fbf6b3"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "mangled": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 18276,
+          "address": "0x4bdc90",
+          "digest": "7fa1e1fe5dd74bcee573f6e84407d056b885db7f8a7f40b3c53e15935e73fe08"
+        }
+      ],
+      "production": [
+        {
+          "size": 18276,
+          "address": "0x4bd8c0",
+          "digest": "7fa1e1fe5dd74bcee573f6e84407d056b885db7f8a7f40b3c53e15935e73fe08"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::slowlog_capture(tomo::Op const&, tomo::SlowlogCapture&)",
+      "mangled": "_ZN4tomo15slowlog_captureERKNS_2OpERNS_14SlowlogCaptureE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 328,
+          "address": "0x67a6c0",
+          "digest": "90dc3c28a1f3c76847e2bc58e2907a9ef4f9d4dea65b9c0b5a4d4cdc39118bf4"
+        }
+      ],
+      "production": [
+        {
+          "size": 328,
+          "address": "0x67a2f0",
+          "digest": "90dc3c28a1f3c76847e2bc58e2907a9ef4f9d4dea65b9c0b5a4d4cdc39118bf4"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo15xshard_completeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 9,
+          "address": "0x4dbaa0",
+          "digest": "0d7b3d40c06c8c3c6ec14ec15182e3c31574c4f5a4a4eb5908015ba67ae4c40f"
+        }
+      ],
+      "production": [
+        {
+          "size": 9,
+          "address": "0x4db6d0",
+          "digest": "0d7b3d40c06c8c3c6ec14ec15182e3c31574c4f5a4a4eb5908015ba67ae4c40f"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "mangled": "_ZN4tomo16ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 962,
+          "address": "0x49cc40",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ],
+      "production": [
+        {
+          "size": 962,
+          "address": "0x49c870",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]",
+      "mangled": "_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 331,
+          "address": "0x490cc0",
+          "digest": "f2f12172093e482a2e1255e559d45ffe71e5fe666f5f097f8dabde56a74b55c0"
+        }
+      ],
+      "production": [
+        {
+          "size": 331,
+          "address": "0x4908f0",
+          "digest": "f2f12172093e482a2e1255e559d45ffe71e5fe666f5f097f8dabde56a74b55c0"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "mangled": "_ZN4tomo16ScatterArenaPool7acquireEmRb",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 153,
+          "address": "0x49b070",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "production": [
+        {
+          "size": 153,
+          "address": "0x49aca0",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::multi_task_tagged(tomo::Task const&)",
+      "mangled": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 12,
+          "address": "0x49dc80",
+          "digest": "00680a7907d2fb8cfc53266d65cc155d9af0af70577a0f36ca689fc37dc66afa"
+        }
+      ],
+      "production": [
+        {
+          "size": 12,
+          "address": "0x49d8b0",
+          "digest": "00680a7907d2fb8cfc53266d65cc155d9af0af70577a0f36ca689fc37dc66afa"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::reply_array_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long)",
+      "mangled": "_ZN4tomo18reply_array_headerINS_2Op4SinkEEEvOT_m",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 444,
+          "address": "0x4e96c0",
+          "digest": "cfa16df2540bbdf60175b17de2d3ce6878bc92b39af8eb03b5a0df6b446b681c"
+        }
+      ],
+      "production": [
+        {
+          "size": 444,
+          "address": "0x4e92f0",
+          "digest": "cfa16df2540bbdf60175b17de2d3ce6878bc92b39af8eb03b5a0df6b446b681c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::NotifyExecutionScope::~NotifyExecutionScope()",
+      "mangled": "_ZN4tomo20NotifyExecutionScopeD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 97,
+          "address": "0x49e250",
+          "digest": "5f978d5db1d594ad1b36bfe4d652814d54e81a6aff0a3ec1a4c8906bb90685a6"
+        }
+      ],
+      "production": [
+        {
+          "size": 97,
+          "address": "0x49de80",
+          "digest": "5f978d5db1d594ad1b36bfe4d652814d54e81a6aff0a3ec1a4c8906bb90685a6"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1575,
+          "address": "0x4f9160",
+          "digest": "ad35f822021e910c93485f0b34b43c8a95c169dba9424fddd7d7463b3994490d"
+        }
+      ],
+      "production": [
+        {
+          "size": 1575,
+          "address": "0x4f8d90",
+          "digest": "ad35f822021e910c93485f0b34b43c8a95c169dba9424fddd7d7463b3994490d"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1575,
+          "address": "0x4f9790",
+          "digest": "2a56375305b5fafc75517bac3d7665cea1fa1598b5426e7c65a17cfc3fea2252"
+        }
+      ],
+      "production": [
+        {
+          "size": 1575,
+          "address": "0x4f93c0",
+          "digest": "2a56375305b5fafc75517bac3d7665cea1fa1598b5426e7c65a17cfc3fea2252"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+      "mangled": "_ZN4tomo21xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 54,
+          "address": "0x49b150",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "production": [
+        {
+          "size": 54,
+          "address": "0x49ad80",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::atomic_tripwire_enabled()",
+      "mangled": "_ZN4tomo23atomic_tripwire_enabledEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 29,
+          "address": "0x3f2da0",
+          "digest": "946eb3eeeee251fe50874898ea877c08c85e08a9cc2ed2e0d15b6eebf6df6f6c"
+        }
+      ],
+      "production": [
+        {
+          "size": 29,
+          "address": "0x3f29d0",
+          "digest": "946eb3eeeee251fe50874898ea877c08c85e08a9cc2ed2e0d15b6eebf6df6f6c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::slowlog_record_captured(unsigned int, unsigned long, tomo::SlowlogCapture const&, unsigned long, long, tomo::SlowlogArm const&)",
+      "mangled": "_ZN4tomo23slowlog_record_capturedEjmRKNS_14SlowlogCaptureEmlRKNS_10SlowlogArmE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 448,
+          "address": "0x67efe0",
+          "digest": "709dbfedeb13f3877732ac5c93dd819889e4aa92acf909eabbc442652d5688c5"
+        }
+      ],
+      "production": [
+        {
+          "size": 448,
+          "address": "0x67ec10",
+          "digest": "709dbfedeb13f3877732ac5c93dd819889e4aa92acf909eabbc442652d5688c5"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo23xshard_complete_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 9,
+          "address": "0x4dbab0",
+          "digest": "745171b45fc8131e5594fb99196ce7190128ad2a0031e2897abda1c1b252dd78"
+        }
+      ],
+      "production": [
+        {
+          "size": 9,
+          "address": "0x4db6e0",
+          "digest": "745171b45fc8131e5594fb99196ce7190128ad2a0031e2897abda1c1b252dd78"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::multidb_display_argument(tomo::Op const&, unsigned int)",
+      "mangled": "_ZN4tomo24multidb_display_argumentERKNS_2OpEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 263,
+          "address": "0x73d2e0",
+          "digest": "ba5f617f498e6d79482b1a69e0bd240b1804f10cfe148c9e6f78d4f5f58c1514"
+        }
+      ],
+      "production": [
+        {
+          "size": 263,
+          "address": "0x73cf10",
+          "digest": "ba5f617f498e6d79482b1a69e0bd240b1804f10cfe148c9e6f78d4f5f58c1514"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::slowlog_note_batch_timed()",
+      "mangled": "_ZN4tomo24slowlog_note_batch_timedEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 13,
+          "address": "0x67a820",
+          "digest": "6664a3eee18e09a7a49d804d847d49fe164e99529ac59d33d5ddca0d5c638aa1"
+        }
+      ],
+      "production": [
+        {
+          "size": 13,
+          "address": "0x67a450",
+          "digest": "6664a3eee18e09a7a49d804d847d49fe164e99529ac59d33d5ddca0d5c638aa1"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3694,
+          "address": "0x4a27d0",
+          "digest": "7b33c9f4ba0bb24ceb6194e90f86e3533c11e298cdb07ceb9353ae39d8215b4c"
+        }
+      ],
+      "production": [
+        {
+          "size": 3694,
+          "address": "0x4a2400",
+          "digest": "7b33c9f4ba0bb24ceb6194e90f86e3533c11e298cdb07ceb9353ae39d8215b4c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Op::Sink::reserve(unsigned long)",
+      "mangled": "_ZN4tomo2Op4Sink7reserveEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 205,
+          "address": "0x4e1960",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "production": [
+        {
+          "size": 205,
+          "address": "0x4e1590",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::KvObj::val_ptr()",
+      "mangled": "_ZN4tomo5KvObj7val_ptrEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 76,
+          "address": "0x543680",
+          "digest": "5d00a26d891fbd233f1f594943e1be76a7f359cb332ce41d541d87cad1abcfab"
+        }
+      ],
+      "production": [
+        {
+          "size": 76,
+          "address": "0x5432b0",
+          "digest": "5d00a26d891fbd233f1f594943e1be76a7f359cb332ce41d541d87cad1abcfab"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Shard::publish_size()",
+      "mangled": "_ZN4tomo5Shard12publish_sizeEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 232,
+          "address": "0x73f520",
+          "digest": "aff5dd5b914e1e142cfadd06ce367eb0eb981f3e40047993bca6554601eee80b"
+        }
+      ],
+      "production": [
+        {
+          "size": 232,
+          "address": "0x73f150",
+          "digest": "aff5dd5b914e1e142cfadd06ce367eb0eb981f3e40047993bca6554601eee80b"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Server::ClientWorkScope::~ClientWorkScope()",
+      "mangled": "_ZN4tomo6Server15ClientWorkScopeD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 27,
+          "address": "0x4032c0",
+          "digest": "6acded6cc7b217441c61676ce3eee7885ea670da7602beea5c6661197ae81f3c"
+        }
+      ],
+      "production": [
+        {
+          "size": 27,
+          "address": "0x402ef0",
+          "digest": "6acded6cc7b217441c61676ce3eee7885ea670da7602beea5c6661197ae81f3c"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::now_ns()",
+      "mangled": "_ZN4tomo6now_nsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 76,
+          "address": "0x3f45f0",
+          "digest": "fda7e6775a87283186ae9587e4df1d18eae4c3375c37e4bd32c7ed778ece9a08"
+        }
+      ],
+      "production": [
+        {
+          "size": 76,
+          "address": "0x3f4220",
+          "digest": "fda7e6775a87283186ae9587e4df1d18eae4c3375c37e4bd32c7ed778ece9a08"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<false>::notify_sender(tomo::Client*)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE13notify_senderEPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 625,
+          "address": "0x43a070",
+          "digest": "b75c19358641c559282ee8350a9094194a32882c2c186c825ed29644c7d8c923"
+        }
+      ],
+      "production": [
+        {
+          "size": 625,
+          "address": "0x439ca0",
+          "digest": "b75c19358641c559282ee8350a9094194a32882c2c186c825ed29644c7d8c923"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 837,
+          "address": "0x37ca6",
+          "digest": "3ae3ce488efa3e36ae4a83b29c4f162ad8607dcfec770d6963086cc1e7f5c605"
+        }
+      ],
+      "production": [
+        {
+          "size": 837,
+          "address": "0x37c66",
+          "digest": "3ae3ce488efa3e36ae4a83b29c4f162ad8607dcfec770d6963086cc1e7f5c605"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<false>::flush_notify_batch()",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE18flush_notify_batchEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 393,
+          "address": "0x439ee0",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "production": [
+        {
+          "size": 393,
+          "address": "0x439b10",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<false>::flush_xshard_commits()",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE20flush_xshard_commitsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 281,
+          "address": "0x41d880",
+          "digest": "3f0a24a92cb41a57db86fd39da1131d467b05ea3e5615107a5fcf5fb7422aa52"
+        }
+      ],
+      "production": [
+        {
+          "size": 281,
+          "address": "0x41d4b0",
+          "digest": "3f0a24a92cb41a57db86fd39da1131d467b05ea3e5615107a5fcf5fb7422aa52"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1180,
+          "address": "0x446db0",
+          "digest": "251e3c4bf09d49e6c896fa52c534eca3e95db6142959d10b2d8b58edd1efefa8"
+        }
+      ],
+      "production": [
+        {
+          "size": 1180,
+          "address": "0x4469e0",
+          "digest": "251e3c4bf09d49e6c896fa52c534eca3e95db6142959d10b2d8b58edd1efefa8"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3701,
+          "address": "0x43a310",
+          "digest": "25962a350ce98db3160c31b61b7f43defa5cb7859c27cd12f6b1ccea338ba18b"
+        }
+      ],
+      "production": [
+        {
+          "size": 3701,
+          "address": "0x439f40",
+          "digest": "25962a350ce98db3160c31b61b7f43defa5cb7859c27cd12f6b1ccea338ba18b"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 94,
+          "address": "0x6a7940",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ],
+      "production": [
+        {
+          "size": 94,
+          "address": "0x6a7570",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 698,
+          "address": "0x6a7da0",
+          "digest": "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+        }
+      ],
+      "production": [
+        {
+          "size": 698,
+          "address": "0x6a79d0",
+          "digest": "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 837,
+          "address": "0x4843e",
+          "digest": "59aff26265377d748317c45477f07587e1c51059e8d8dfe634a9dadecfb10fb7"
+        }
+      ],
+      "production": [
+        {
+          "size": 837,
+          "address": "0x483fe",
+          "digest": "59aff26265377d748317c45477f07587e1c51059e8d8dfe634a9dadecfb10fb7"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<true>::flush_notify_batch()",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 393,
+          "address": "0x6a7c10",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "production": [
+        {
+          "size": 393,
+          "address": "0x6a7840",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ExLoopT<true>::flush_xshard_commits()",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE20flush_xshard_commitsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 281,
+          "address": "0x6a0dd0",
+          "digest": "820600b255d29e66312f5359bf571c6f77dc2bcee4e3a5f1c10219935e8913d4"
+        }
+      ],
+      "production": [
+        {
+          "size": 281,
+          "address": "0x6a0a00",
+          "digest": "820600b255d29e66312f5359bf571c6f77dc2bcee4e3a5f1c10219935e8913d4"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 880,
+          "address": "0x6acdb0",
+          "digest": "25935480a01a7e6cc8d8112a214756bf043bff52623ef2504f4fb2cb1b0c14de"
+        }
+      ],
+      "production": [
+        {
+          "size": 880,
+          "address": "0x6ac9e0",
+          "digest": "25935480a01a7e6cc8d8112a214756bf043bff52623ef2504f4fb2cb1b0c14de"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3488,
+          "address": "0x6a8ee0",
+          "digest": "794f22682fab0ce8f1a476270f27645bebec50086de40243625315468b82b254"
+        }
+      ],
+      "production": [
+        {
+          "size": 3488,
+          "address": "0x6a8b10",
+          "digest": "794f22682fab0ce8f1a476270f27645bebec50086de40243625315468b82b254"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::FlatStore::budget_admit(tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore12budget_admitENS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1283,
+          "address": "0x3ff6e0",
+          "digest": "8db041d7234478a51d9354f6166aec10a0dd525ac97394b75861124d0906d827"
+        }
+      ],
+      "production": [
+        {
+          "size": 1283,
+          "address": "0x3ff310",
+          "digest": "8db041d7234478a51d9354f6166aec10a0dd525ac97394b75861124d0906d827"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)",
+      "mangled": "_ZN4tomo9FlatStore14live_or_expireEimNS_5SliceEPNS_5KvObjE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 300,
+          "address": "0x4e88d0",
+          "digest": "067c61b4830119aeeb3e440e9758c1d09da8ad45ce71b1f69d22af3825f17e88"
+        }
+      ],
+      "production": [
+        {
+          "size": 300,
+          "address": "0x4e8500",
+          "digest": "067c61b4830119aeeb3e440e9758c1d09da8ad45ce71b1f69d22af3825f17e88"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore4findEmNS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 806,
+          "address": "0x4e8a00",
+          "digest": "d44a57978d3669f581faf7419aea52e52270f2ae8bc0d3d3947184bf98a7b306"
+        }
+      ],
+      "production": [
+        {
+          "size": 806,
+          "address": "0x4e8630",
+          "digest": "d44a57978d3669f581faf7419aea52e52270f2ae8bc0d3d3947184bf98a7b306"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::FlatStore::hash_key(tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore8hash_keyENS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 808,
+          "address": "0x3f7260",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "production": [
+        {
+          "size": 808,
+          "address": "0x3f6e90",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::ThreadCtx::note_command(unsigned short)",
+      "mangled": "_ZN4tomo9ThreadCtx12note_commandEt",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 54,
+          "address": "0x69bf70",
+          "digest": "ae93137e40db03218f73ad33d0fc938d18364fcbd2664857d1340da1b3e31cce"
+        }
+      ],
+      "production": [
+        {
+          "size": 54,
+          "address": "0x69bba0",
+          "digest": "ae93137e40db03218f73ad33d0fc938d18364fcbd2664857d1340da1b3e31cce"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::good_size(unsigned long)",
+      "mangled": "_ZN4tomo9good_sizeEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 89,
+          "address": "0x543470",
+          "digest": "a67dc6d12cee64afe79d6b4ca17d6f4f02bf0503a5bfa3fdd6c2794f75b07e3d"
+        }
+      ],
+      "production": [
+        {
+          "size": 89,
+          "address": "0x5430a0",
+          "digest": "a67dc6d12cee64afe79d6b4ca17d6f4f02bf0503a5bfa3fdd6c2794f75b07e3d"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::slowlog_redactions(tomo::Op const&)",
+      "mangled": "_ZN4tomoL18slowlog_redactionsERKNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 946,
+          "address": "0x678890",
+          "digest": "2a5b094306790c60672706447af528231dc6752e048121010b14de14b50b985f"
+        }
+      ],
+      "production": [
+        {
+          "size": 946,
+          "address": "0x6784c0",
+          "digest": "2a5b094306790c60672706447af528231dc6752e048121010b14de14b50b985f"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Op::key() const",
+      "mangled": "_ZNK4tomo2Op3keyEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 53,
+          "address": "0x543640",
+          "digest": "b8e6d7d866dd13b184d7ead5e20002495a35719531a495d7116cbd7cb26ca8eb"
+        }
+      ],
+      "production": [
+        {
+          "size": 53,
+          "address": "0x543270",
+          "digest": "b8e6d7d866dd13b184d7ead5e20002495a35719531a495d7116cbd7cb26ca8eb"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Op::cmd_name() const",
+      "mangled": "_ZNK4tomo2Op8cmd_nameEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 56,
+          "address": "0x4e1920",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "production": [
+        {
+          "size": 56,
+          "address": "0x4e1550",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::KvObj::key() const",
+      "mangled": "_ZNK4tomo5KvObj3keyEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 149,
+          "address": "0x4e1e00",
+          "digest": "a18cda5450aeb9768d9169e59a81708244516bd971b3341adf36f0c6991fb998"
+        }
+      ],
+      "production": [
+        {
+          "size": 149,
+          "address": "0x4e1a30",
+          "digest": "a18cda5450aeb9768d9169e59a81708244516bd971b3341adf36f0c6991fb998"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Slice::key_eq(tomo::Slice const&) const",
+      "mangled": "_ZNK4tomo5Slice6key_eqERKS0_",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 235,
+          "address": "0x4e0ff0",
+          "digest": "49552d7775f9f58ecfaa5c0c4e591b51ae832e68c8aeba92aafddd561a4ed9bf"
+        }
+      ],
+      "production": [
+        {
+          "size": 235,
+          "address": "0x4e0c20",
+          "digest": "49552d7775f9f58ecfaa5c0c4e591b51ae832e68c8aeba92aafddd561a4ed9bf"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "mangled": "_ZNK4tomo5Slice8eq_icaseESt17basic_string_viewIcSt11char_traitsIcEE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 86,
+          "address": "0x48d900",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x502580",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x54f5c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x58eec0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5ac0c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5beb80",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5d7bf0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5eedd0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x619a30",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x655c20",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x68f4c0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6dbde0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x741010",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "production": [
+        {
+          "size": 86,
+          "address": "0x48d530",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5021b0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x54f1f0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x58eaf0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5abcf0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5be7b0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5d7820",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5eea00",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x619660",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x655850",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x68f0f0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6dba10",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x740c40",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::FlatStore::publish_database_counts() const",
+      "mangled": "_ZNK4tomo9FlatStore23publish_database_countsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 243,
+          "address": "0x73f420",
+          "digest": "38d02da4b336aa46300762c9f3d0a085101352978d9c0c7a43a9fc6355f137ca"
+        }
+      ],
+      "production": [
+        {
+          "size": 243,
+          "address": "0x73f050",
+          "digest": "38d02da4b336aa46300762c9f3d0a085101352978d9c0c7a43a9fc6355f137ca"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "std::_Vector_base<double, std::allocator<double> >::~_Vector_base()",
+      "mangled": "_ZNSt12_Vector_baseIdSaIdEED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 33,
+          "address": "0x871d0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "production": [
+        {
+          "size": 33,
+          "address": "0x86e00",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()",
+      "mangled": "_ZNSt6vectorISt10unique_ptrIN4tomo13AofReplayPlanESt14default_deleteIS2_EESaIS5_EED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 383,
+          "address": "0x415a40",
+          "digest": "5f0495a8cbcd3f28d0361eea421f600e0445ca615693aaa46c175d4f43813f73"
+        }
+      ],
+      "production": [
+        {
+          "size": 383,
+          "address": "0x415670",
+          "digest": "5f0495a8cbcd3f28d0361eea421f600e0445ca615693aaa46c175d4f43813f73"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "std::vector<unsigned int, std::allocator<unsigned int> >::~vector()",
+      "mangled": "_ZNSt6vectorIjSaIjEED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 33,
+          "address": "0x7c5b0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "production": [
+        {
+          "size": 33,
+          "address": "0x7c1e0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "mangled": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb0EEEDav",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1078,
+          "address": "0x4a8960",
+          "digest": "67cccbb4c36c5bea8649789f7da8f05dee2c10ee34f0ee4179bfbc8654349985"
+        }
+      ],
+      "production": [
+        {
+          "size": 1078,
+          "address": "0x4a8590",
+          "digest": "67cccbb4c36c5bea8649789f7da8f05dee2c10ee34f0ee4179bfbc8654349985"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "mangled": "_ZZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 158,
+          "address": "0x4ee2f0",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "production": [
+        {
+          "size": 158,
+          "address": "0x4edf20",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "headline_equal": true
+    },
+    {
+      "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "mangled": "_ZZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 158,
+          "address": "0x4ee390",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "production": [
+        {
+          "size": 158,
+          "address": "0x4edfc0",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "headline_equal": true
+    }
+  ],
+  "post": [
+    {
+      "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
+      "mangled": "_ZN4tomo10reply_bulkINS_2Op4SinkEEEvOT_NS_5SliceE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 477,
+          "address": "0x4c64c0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x543ee0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x577600",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x582df0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x58d370",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5a7ae0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x5baf30",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 267,
+          "address": "0x5cf240",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5e9b10",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x615910",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x657630",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6abef0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6d93a0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x767f70",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7bcad0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ],
+      "production": [
+        {
+          "size": 477,
+          "address": "0x4c60f0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x543b10",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x577230",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x582a20",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x58cfa0",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5a7710",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 267,
+          "address": "0x5bab60",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 267,
+          "address": "0x5cee70",
+          "digest": "c1ce463d4954cc183c46d505d1d17434e0494cf01655caeff6919d94c633342d"
+        },
+        {
+          "size": 477,
+          "address": "0x5e9740",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x615540",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x657260",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6abb20",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x6d8fd0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x767ba0",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        },
+        {
+          "size": 477,
+          "address": "0x7bc700",
+          "digest": "39af3db0c63108060e8d1427b0eb100bcbc2b2b004f09e8f86ad7ddad8b4fc2d"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterState::ScatterState()",
+      "mangled": "_ZN4tomo12ScatterStateC2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 773,
+          "address": "0x51efd0",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ],
+      "production": [
+        {
+          "size": 773,
+          "address": "0x51ec00",
+          "digest": "8907d1f7b8bb9ec220532b6d62416ce5c856174fbf3a57bc4881b9b17d27a701"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterState::~ScatterState()",
+      "mangled": "_ZN4tomo12ScatterStateD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 751,
+          "address": "0x522450",
+          "digest": "ab1af4faf670b820e8178af87c493b07ac29067f525352c50a337cc5eb9dbd59"
+        }
+      ],
+      "production": [
+        {
+          "size": 751,
+          "address": "0x522080",
+          "digest": "ab1af4faf670b820e8178af87c493b07ac29067f525352c50a337cc5eb9dbd59"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::has_status(tomo::(anonymous namespace)::Kind, bool)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_110has_statusENS0_4KindEb",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 83,
+          "address": "0x4b9aa0",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ],
+      "production": [
+        {
+          "size": 83,
+          "address": "0x4b96d0",
+          "digest": "43019189ffda5d72c04fc16116005cab43e22650ed319ab5dfece93d8b474b19"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_111first_errorERKNS_12ScatterStateERNS0_9WorkErrorE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 192,
+          "address": "0x4b99e0",
+          "digest": "73c34e7295697a62c9e417ab6db072e34ac4ddd4f9f52825c2395b216cb08946"
+        }
+      ],
+      "production": [
+        {
+          "size": 192,
+          "address": "0x4b9610",
+          "digest": "73c34e7295697a62c9e417ab6db072e34ac4ddd4f9f52825c2395b216cb08946"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_112store_stringERNS_5ShardENS_5SliceEmS3_lbb.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2824,
+          "address": "0x57b1b0",
+          "digest": "215d46214205ca79632c37de236b8da93617346e1958a55954952fd90ed3e2ba"
+        }
+      ],
+      "production": [
+        {
+          "size": 2824,
+          "address": "0x57ade0",
+          "digest": "215d46214205ca79632c37de236b8da93617346e1958a55954952fd90ed3e2ba"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 947,
+          "address": "0x4b9c50",
+          "digest": "540c43f46e0cd9fd7e689da6f536e3db56c3ae7ce25cbd4a8f502b21ca4d199a"
+        }
+      ],
+      "production": [
+        {
+          "size": 947,
+          "address": "0x4b9880",
+          "digest": "540c43f46e0cd9fd7e689da6f536e3db56c3ae7ce25cbd4a8f502b21ca4d199a"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "mangled": "_ZN4tomo12_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 7109,
+          "address": "0x4e01a0",
+          "digest": "69ef3803a0273e836a3a47e5a804f4a95a9c5fa57beb65635122fb5162f4ec7a"
+        }
+      ],
+      "production": [
+        {
+          "size": 7109,
+          "address": "0x4dfdd0",
+          "digest": "69ef3803a0273e836a3a47e5a804f4a95a9c5fa57beb65635122fb5162f4ec7a"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::slowlog_finish(unsigned int, tomo::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo::SlowlogArm const&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_114slowlog_finishEjRNS0_12SlowlogEntryEmlRKNS_10SlowlogArmE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 4447,
+          "address": "0x6bb0a0",
+          "digest": "2057937a8aa2887625d073b0cafb3a56741c519475c6248925396cdf8931cef5"
+        }
+      ],
+      "production": [
+        {
+          "size": 4447,
+          "address": "0x6bacd0",
+          "digest": "2057937a8aa2887625d073b0cafb3a56741c519475c6248925396cdf8931cef5"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::append_key_span(tomo::Op const&, tomo::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo::(anonymous namespace)::XshardKeyUse)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_115append_key_spanERKNS_2OpERNS0_13XshardKeyPlanEjjjNS0_12XshardKeyUseE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 122,
+          "address": "0x4b9bd0",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ],
+      "production": [
+        {
+          "size": 122,
+          "address": "0x4b9800",
+          "digest": "8abb152a6033beb0f3a12a7405c93b69cc30293e0c35bd5611f4039846764111"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1000,
+          "address": "0x4d0ea0",
+          "digest": "7e145ac09e0972d00c7be50f1c95b38d40129ef0e81974210d47c2c07e6f2872"
+        }
+      ],
+      "production": [
+        {
+          "size": 1000,
+          "address": "0x4d0ad0",
+          "digest": "7e145ac09e0972d00c7be50f1c95b38d40129ef0e81974210d47c2c07e6f2872"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_120build_initial_groupsERNS_12ScatterStateE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 734,
+          "address": "0x4bb600",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ],
+      "production": [
+        {
+          "size": 734,
+          "address": "0x4bb230",
+          "digest": "7da75b524bdc0e10744e59817839e1bf91e82f5e057852cf8019d506c1f40139"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_122free_state_key_anchorsERNS_12ScatterStateE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 465,
+          "address": "0x4d9480",
+          "digest": "dda7911734eb1af16e65949b40c2f7f72b662918fe4d1628f15af38b08114b65"
+        }
+      ],
+      "production": [
+        {
+          "size": 465,
+          "address": "0x4d90b0",
+          "digest": "dda7911734eb1af16e65949b40c2f7f72b662918fe4d1628f15af38b08114b65"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 431,
+          "address": "0x4c9ac0",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ],
+      "production": [
+        {
+          "size": 431,
+          "address": "0x4c96f0",
+          "digest": "ba05aa039ee93928ff4029b205b649391b945321a109cde5bf3a416b80bc2635"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_127xshard_owner_mutation_phaseERKNS_12ScatterStateERKNS_2OpE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 89,
+          "address": "0x4bc5e0",
+          "digest": "a90dddf231efd2e3766901e0158a854875b14e957cd2447c2eecc48cf85190cf"
+        }
+      ],
+      "production": [
+        {
+          "size": 89,
+          "address": "0x4bc210",
+          "digest": "a90dddf231efd2e3766901e0158a854875b14e957cd2447c2eecc48cf85190cf"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1072,
+          "address": "0x579d30",
+          "digest": "46d8bbacb08a71038f7c55008f46d15d496bef58114c6c8e1314fca834dfcba0"
+        }
+      ],
+      "production": [
+        {
+          "size": 1072,
+          "address": "0x579960",
+          "digest": "46d8bbacb08a71038f7c55008f46d15d496bef58114c6c8e1314fca834dfcba0"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2201,
+          "address": "0x57bcc0",
+          "digest": "9b37f9212eb798979f5735b37ba97292da179cf2083a76926c382fbb6eb4b2fb"
+        }
+      ],
+      "production": [
+        {
+          "size": 2201,
+          "address": "0x57b8f0",
+          "digest": "9b37f9212eb798979f5735b37ba97292da179cf2083a76926c382fbb6eb4b2fb"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::classify(tomo::Op const&, tomo::(anonymous namespace)::Kind&) [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_18classifyERKNS_2OpERNS0_4KindE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 93,
+          "address": "0x4bc460",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ],
+      "production": [
+        {
+          "size": 93,
+          "address": "0x4bc090",
+          "digest": "8d3dc847bff32e51155aee70cc9500b44a849e8359bba592c7025527a18ce1a2"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+      "mangled": "_ZN4tomo12_GLOBAL__N_19group_forERNS_12ScatterStateEi",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 145,
+          "address": "0x4bb560",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ],
+      "production": [
+        {
+          "size": 145,
+          "address": "0x4bb190",
+          "digest": "59434b7e86233864c381380306df9c9341c7e9a0a4940faecdf09301cbd01dc8"
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::parse_i64(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]",
+      "mangled": "_ZN4tomo12_GLOBAL__N_19parse_i64ENS_5SliceERl.constprop.0.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 285,
+          "address": "0x576dc0",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 285,
+          "address": "0x5826f0",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 327,
+          "address": "0x58c4d0",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 327,
+          "address": "0x5a0750",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 282,
+          "address": "0x6ab6f0",
+          "digest": "d38bbafd9857cb0e54e419560aa37246dbfaca0ec34d2a328ed0db1fe8c322ff"
+        }
+      ],
+      "production": [
+        {
+          "size": 285,
+          "address": "0x5769f0",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 285,
+          "address": "0x582320",
+          "digest": "d85fd58f17fcd4e0bf8b5649872084fb2b68aa988806510eb0453b76f3cff7a2"
+        },
+        {
+          "size": 327,
+          "address": "0x58c100",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 327,
+          "address": "0x5a0380",
+          "digest": "1e91e3eb6cf831f37f4f88888165eb9f05ad4680fc74d4f9f144c4551e02ebf1"
+        },
+        {
+          "size": 282,
+          "address": "0x6ab320",
+          "digest": "d38bbafd9857cb0e54e419560aa37246dbfaca0ec34d2a328ed0db1fe8c322ff"
+        }
+      ]
+    },
+    {
+      "name": "tomo::SlowlogTiming::SlowlogTiming(tomo::Op const*, unsigned long, unsigned int, unsigned long, long, tomo::SlowlogArm const&)",
+      "mangled": "_ZN4tomo13SlowlogTimingC2EPKNS_2OpEmjmlRKNS_10SlowlogArmE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 76,
+          "address": "0x6b63b0",
+          "digest": "34bb179e312733c6193d580dc959edb70fa37a34921756a9c50418b4e0a1f210"
+        }
+      ],
+      "production": [
+        {
+          "size": 76,
+          "address": "0x6b5fe0",
+          "digest": "34bb179e312733c6193d580dc959edb70fa37a34921756a9c50418b4e0a1f210"
+        }
+      ]
+    },
+    {
+      "name": "tomo::SlowlogTiming::~SlowlogTiming()",
+      "mangled": "_ZN4tomo13SlowlogTimingD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 24,
+          "address": "0x6b52c0",
+          "digest": "9dc127e8355e166a260fd8cba6b2e7947d69ee1c691d3f687005fa512dd5eb08"
+        }
+      ],
+      "production": [
+        {
+          "size": 24,
+          "address": "0x6b4ef0",
+          "digest": "9dc127e8355e166a260fd8cba6b2e7947d69ee1c691d3f687005fa512dd5eb08"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "mangled": "_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 543,
+          "address": "0x4ea910",
+          "digest": "598604072be2f1f759760c4f0bec8f908df09fb8d9dae542d2a7f75af79a03b7"
+        }
+      ],
+      "production": [
+        {
+          "size": 543,
+          "address": "0x4ea540",
+          "digest": "598604072be2f1f759760c4f0bec8f908df09fb8d9dae542d2a7f75af79a03b7"
+        }
+      ]
+    },
+    {
+      "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)",
+      "mangled": "_ZN4tomo14slowlog_recordEjmRKNS_2OpEmlRKNS_10SlowlogArmEb",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 811,
+          "address": "0x6bd090",
+          "digest": "a4854ffec47d6e817ad492b794beb116afc69ffc9e12a3427dffb0cc20f7eff6"
+        }
+      ],
+      "production": [
+        {
+          "size": 811,
+          "address": "0x6bccc0",
+          "digest": "a4854ffec47d6e817ad492b794beb116afc69ffc9e12a3427dffb0cc20f7eff6"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+      "mangled": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 774,
+          "address": "0x4ea600",
+          "digest": "4ba2c7089084d6e9068190fdcb0d32e9d02fd512d8c468273da7c3535466919a"
+        }
+      ],
+      "production": [
+        {
+          "size": 774,
+          "address": "0x4ea230",
+          "digest": "4ba2c7089084d6e9068190fdcb0d32e9d02fd512d8c468273da7c3535466919a"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "mangled": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 20700,
+          "address": "0x50b930",
+          "digest": "72f7f91c1668736d983caa03f83ee213431067295f9a613538238c559df8732e"
+        }
+      ],
+      "production": [
+        {
+          "size": 20700,
+          "address": "0x50b560",
+          "digest": "72f7f91c1668736d983caa03f83ee213431067295f9a613538238c559df8732e"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "mangled": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 18231,
+          "address": "0x4eab70",
+          "digest": "b847dcf15760e8b6452b9e4a1a85bdd0a7d3a5822d34ab531aa33637e0e05298"
+        }
+      ],
+      "production": [
+        {
+          "size": 18231,
+          "address": "0x4ea7a0",
+          "digest": "b847dcf15760e8b6452b9e4a1a85bdd0a7d3a5822d34ab531aa33637e0e05298"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo15xshard_completeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 9,
+          "address": "0x513c60",
+          "digest": "0d7b3d40c06c8c3c6ec14ec15182e3c31574c4f5a4a4eb5908015ba67ae4c40f"
+        }
+      ],
+      "production": [
+        {
+          "size": 9,
+          "address": "0x513890",
+          "digest": "0d7b3d40c06c8c3c6ec14ec15182e3c31574c4f5a4a4eb5908015ba67ae4c40f"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "mangled": "_ZN4tomo16ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 962,
+          "address": "0x4cc470",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ],
+      "production": [
+        {
+          "size": 962,
+          "address": "0x4cc0a0",
+          "digest": "26144589f1480a28e6be5ed5972f45ed9f5333971a3e9b86854ee284b1007587"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]",
+      "mangled": "_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 331,
+          "address": "0x4bfde0",
+          "digest": "f2f12172093e482a2e1255e559d45ffe71e5fe666f5f097f8dabde56a74b55c0"
+        }
+      ],
+      "production": [
+        {
+          "size": 331,
+          "address": "0x4bfa10",
+          "digest": "f2f12172093e482a2e1255e559d45ffe71e5fe666f5f097f8dabde56a74b55c0"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "mangled": "_ZN4tomo16ScatterArenaPool7acquireEmRb",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 153,
+          "address": "0x4ca660",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ],
+      "production": [
+        {
+          "size": 153,
+          "address": "0x4ca290",
+          "digest": "c5b37c879bd31ba61857f7934aeeacc1cf3a7d4b78d52e41679f8adb4b739c7c"
+        }
+      ]
+    },
+    {
+      "name": "tomo::slowlog_complete(tomo::Op const&)",
+      "mangled": "_ZN4tomo16slowlog_completeERKNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 142,
+          "address": "0x4cad7",
+          "digest": "d2490ff3248bf1066993818d7d9774b36beea18d30d958bf3f8c8a3a379e96c4"
+        }
+      ],
+      "production": [
+        {
+          "size": 142,
+          "address": "0x4ca97",
+          "digest": "d2490ff3248bf1066993818d7d9774b36beea18d30d958bf3f8c8a3a379e96c4"
+        }
+      ]
+    },
+    {
+      "name": "tomo::multi_task_tagged(tomo::Task const&)",
+      "mangled": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 12,
+          "address": "0x4ce7a0",
+          "digest": "00680a7907d2fb8cfc53266d65cc155d9af0af70577a0f36ca689fc37dc66afa"
+        }
+      ],
+      "production": [
+        {
+          "size": 12,
+          "address": "0x4ce3d0",
+          "digest": "00680a7907d2fb8cfc53266d65cc155d9af0af70577a0f36ca689fc37dc66afa"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::reply_array_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long)",
+      "mangled": "_ZN4tomo18reply_array_headerINS_2Op4SinkEEEvOT_m",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 444,
+          "address": "0x5216b0",
+          "digest": "cfa16df2540bbdf60175b17de2d3ce6878bc92b39af8eb03b5a0df6b446b681c"
+        }
+      ],
+      "production": [
+        {
+          "size": 444,
+          "address": "0x5212e0",
+          "digest": "cfa16df2540bbdf60175b17de2d3ce6878bc92b39af8eb03b5a0df6b446b681c"
+        }
+      ]
+    },
+    {
+      "name": "tomo::NotifyExecutionScope::~NotifyExecutionScope()",
+      "mangled": "_ZN4tomo20NotifyExecutionScopeD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 97,
+          "address": "0x4cee60",
+          "digest": "5f978d5db1d594ad1b36bfe4d652814d54e81a6aff0a3ec1a4c8906bb90685a6"
+        }
+      ],
+      "production": [
+        {
+          "size": 97,
+          "address": "0x4cea90",
+          "digest": "5f978d5db1d594ad1b36bfe4d652814d54e81a6aff0a3ec1a4c8906bb90685a6"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1727,
+          "address": "0x5354c0",
+          "digest": "1c062f4173365b9bfccd8492a865e2cbfcfa32d6f4545f470d6166ceb480dd69"
+        }
+      ],
+      "production": [
+        {
+          "size": 1727,
+          "address": "0x5350f0",
+          "digest": "1c062f4173365b9bfccd8492a865e2cbfcfa32d6f4545f470d6166ceb480dd69"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1727,
+          "address": "0x536290",
+          "digest": "9ec2e2e1d885da63130757511abc9e5549ed2f41de89cb17c2d575019a32e90f"
+        }
+      ],
+      "production": [
+        {
+          "size": 1727,
+          "address": "0x535ec0",
+          "digest": "9ec2e2e1d885da63130757511abc9e5549ed2f41de89cb17c2d575019a32e90f"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+      "mangled": "_ZN4tomo21xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 54,
+          "address": "0x4ca740",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ],
+      "production": [
+        {
+          "size": 54,
+          "address": "0x4ca370",
+          "digest": "5c8013556a13f277c90ce590b9ab9ea1259aa5614f2a1756e56adeea6df4771b"
+        }
+      ]
+    },
+    {
+      "name": "tomo::atomic_tripwire_enabled()",
+      "mangled": "_ZN4tomo23atomic_tripwire_enabledEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 29,
+          "address": "0x41f830",
+          "digest": "946eb3eeeee251fe50874898ea877c08c85e08a9cc2ed2e0d15b6eebf6df6f6c"
+        }
+      ],
+      "production": [
+        {
+          "size": 29,
+          "address": "0x41f460",
+          "digest": "946eb3eeeee251fe50874898ea877c08c85e08a9cc2ed2e0d15b6eebf6df6f6c"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo23xshard_complete_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 9,
+          "address": "0x513c70",
+          "digest": "745171b45fc8131e5594fb99196ce7190128ad2a0031e2897abda1c1b252dd78"
+        }
+      ],
+      "production": [
+        {
+          "size": 9,
+          "address": "0x5138a0",
+          "digest": "745171b45fc8131e5594fb99196ce7190128ad2a0031e2897abda1c1b252dd78"
+        }
+      ]
+    },
+    {
+      "name": "tomo::slowlog_note_batch_timed()",
+      "mangled": "_ZN4tomo24slowlog_note_batch_timedEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 13,
+          "address": "0x6b6410",
+          "digest": "6664a3eee18e09a7a49d804d847d49fe164e99529ac59d33d5ddca0d5c638aa1"
+        }
+      ],
+      "production": [
+        {
+          "size": 13,
+          "address": "0x6b6040",
+          "digest": "6664a3eee18e09a7a49d804d847d49fe164e99529ac59d33d5ddca0d5c638aa1"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+      "mangled": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3864,
+          "address": "0x50a390",
+          "digest": "9d5b1b5d421e8cea41bb084a69e2783a56a44a30645fbaa9f6145bc529ca69df"
+        }
+      ],
+      "production": [
+        {
+          "size": 3864,
+          "address": "0x509fc0",
+          "digest": "9d5b1b5d421e8cea41bb084a69e2783a56a44a30645fbaa9f6145bc529ca69df"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Op::Sink::reserve(unsigned long)",
+      "mangled": "_ZN4tomo2Op4Sink7reserveEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 205,
+          "address": "0x5196d0",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ],
+      "production": [
+        {
+          "size": 205,
+          "address": "0x519300",
+          "digest": "d29a952406fa60657717395090fade6e08ebb8994abcd1dc96f73d43615be134"
+        }
+      ]
+    },
+    {
+      "name": "tomo::KvObj::val_ptr()",
+      "mangled": "_ZN4tomo5KvObj7val_ptrEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 76,
+          "address": "0x580b30",
+          "digest": "5d00a26d891fbd233f1f594943e1be76a7f359cb332ce41d541d87cad1abcfab"
+        }
+      ],
+      "production": [
+        {
+          "size": 76,
+          "address": "0x580760",
+          "digest": "5d00a26d891fbd233f1f594943e1be76a7f359cb332ce41d541d87cad1abcfab"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Shard::publish_size()",
+      "mangled": "_ZN4tomo5Shard12publish_sizeEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 232,
+          "address": "0x77e7d0",
+          "digest": "aff5dd5b914e1e142cfadd06ce367eb0eb981f3e40047993bca6554601eee80b"
+        }
+      ],
+      "production": [
+        {
+          "size": 232,
+          "address": "0x77e400",
+          "digest": "aff5dd5b914e1e142cfadd06ce367eb0eb981f3e40047993bca6554601eee80b"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Server::ClientWorkScope::ClientWorkScope(tomo::Server&, unsigned int)",
+      "mangled": "_ZN4tomo6Server15ClientWorkScopeC2ERS0_j",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 79,
+          "address": "0x430240",
+          "digest": "a67c118058cd8daef47e15bb04be11b41c27345c89074646e942b11af09fa959"
+        }
+      ],
+      "production": [
+        {
+          "size": 79,
+          "address": "0x42fe70",
+          "digest": "a67c118058cd8daef47e15bb04be11b41c27345c89074646e942b11af09fa959"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Server::ClientWorkScope::~ClientWorkScope()",
+      "mangled": "_ZN4tomo6Server15ClientWorkScopeD2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 27,
+          "address": "0x430290",
+          "digest": "6acded6cc7b217441c61676ce3eee7885ea670da7602beea5c6661197ae81f3c"
+        }
+      ],
+      "production": [
+        {
+          "size": 27,
+          "address": "0x42fec0",
+          "digest": "6acded6cc7b217441c61676ce3eee7885ea670da7602beea5c6661197ae81f3c"
+        }
+      ]
+    },
+    {
+      "name": "tomo::now_ns()",
+      "mangled": "_ZN4tomo6now_nsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 76,
+          "address": "0x421330",
+          "digest": "fda7e6775a87283186ae9587e4df1d18eae4c3375c37e4bd32c7ed778ece9a08"
+        }
+      ],
+      "production": [
+        {
+          "size": 76,
+          "address": "0x420f60",
+          "digest": "fda7e6775a87283186ae9587e4df1d18eae4c3375c37e4bd32c7ed778ece9a08"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<false>::note_lb_hash(tomo::Shard&, unsigned long)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE12note_lb_hashERNS_5ShardEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 94,
+          "address": "0x4671e0",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ],
+      "production": [
+        {
+          "size": 94,
+          "address": "0x466e10",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2634,
+          "address": "0x3caa0",
+          "digest": "0bb704a50cb663a0611d81010b0564a2825d03e336646942783644cc66c5875c"
+        }
+      ],
+      "production": [
+        {
+          "size": 2634,
+          "address": "0x3ca60",
+          "digest": "0bb704a50cb663a0611d81010b0564a2825d03e336646942783644cc66c5875c"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<false>::notify_sender(tomo::Client*)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE13notify_senderEPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 625,
+          "address": "0x4677c0",
+          "digest": "b75c19358641c559282ee8350a9094194a32882c2c186c825ed29644c7d8c923"
+        }
+      ],
+      "production": [
+        {
+          "size": 625,
+          "address": "0x4673f0",
+          "digest": "b75c19358641c559282ee8350a9094194a32882c2c186c825ed29644c7d8c923"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_exact<false>(tomo::Task const*, unsigned int, tomo::SlowlogArm const&, long)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE16exec_batch_exactILb0EEEvPKNS_4TaskEjRKNS_10SlowlogArmEl",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 515,
+          "address": "0x3d4ea",
+          "digest": "73c9aa1d97ed22396bc920eeca56a1d959150cae47e86c32db7e3a83c894a89b"
+        }
+      ],
+      "production": [
+        {
+          "size": 515,
+          "address": "0x3d4aa",
+          "digest": "73c9aa1d97ed22396bc920eeca56a1d959150cae47e86c32db7e3a83c894a89b"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 491,
+          "address": "0x3d6ee",
+          "digest": "13769b989ee324336a51d9582e0e4ce2b148ecacf4ee37e3b2d5f35d26658197"
+        }
+      ],
+      "production": [
+        {
+          "size": 491,
+          "address": "0x3d6ae",
+          "digest": "13769b989ee324336a51d9582e0e4ce2b148ecacf4ee37e3b2d5f35d26658197"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<false>::flush_notify_batch()",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE18flush_notify_batchEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 393,
+          "address": "0x467630",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "production": [
+        {
+          "size": 393,
+          "address": "0x467260",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<false>::flush_xshard_commits()",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE20flush_xshard_commitsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 281,
+          "address": "0x449ad0",
+          "digest": "18005f3e3e6a025a393f396529aebfde32d5c20a108a1417948676496d746e5e"
+        }
+      ],
+      "production": [
+        {
+          "size": 281,
+          "address": "0x449700",
+          "digest": "18005f3e3e6a025a393f396529aebfde32d5c20a108a1417948676496d746e5e"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1180,
+          "address": "0x47d910",
+          "digest": "251e3c4bf09d49e6c896fa52c534eca3e95db6142959d10b2d8b58edd1efefa8"
+        }
+      ],
+      "production": [
+        {
+          "size": 1180,
+          "address": "0x47d540",
+          "digest": "251e3c4bf09d49e6c896fa52c534eca3e95db6142959d10b2d8b58edd1efefa8"
+        }
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3807,
+          "address": "0x467a70",
+          "digest": "8b10966eed69ec87c3b3906c96d9d35d34dab4bab53274fa83eceac339a9cf1a"
+        }
+      ],
+      "production": [
+        {
+          "size": 3807,
+          "address": "0x4676a0",
+          "digest": "8b10966eed69ec87c3b3906c96d9d35d34dab4bab53274fa83eceac339a9cf1a"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 94,
+          "address": "0x6e6330",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ],
+      "production": [
+        {
+          "size": 94,
+          "address": "0x6e5f60",
+          "digest": "9dcdf01bd1b933e51c9d61f7e6fa3178447ef4e5d2449bd0a400ec52fb112d8a"
+        }
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 2780,
+          "address": "0x4f422",
+          "digest": "4ec1ba6a961be5c2a020be64c34b1cf3820c47d7a285a0c4e0003fb64cb898bf"
+        }
+      ],
+      "production": [
+        {
+          "size": 2780,
+          "address": "0x4f3e2",
+          "digest": "4ec1ba6a961be5c2a020be64c34b1cf3820c47d7a285a0c4e0003fb64cb898bf"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::notify_sender(tomo::Client*)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 698,
+          "address": "0x6e6850",
+          "digest": "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+        }
+      ],
+      "production": [
+        {
+          "size": 698,
+          "address": "0x6e6480",
+          "digest": "100a1eea42755dafd999cd98defce4a92a309c466582b376f33ca187051bf33e"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_exact<false>(tomo::Task const*, unsigned int, tomo::SlowlogArm const&, long)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE16exec_batch_exactILb0EEEvPKNS_4TaskEjRKNS_10SlowlogArmEl",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 515,
+          "address": "0x4fefe",
+          "digest": "c2a9bab70c649d49007b904bc47621c3137788fc30e281c3351968e84293d626"
+        }
+      ],
+      "production": [
+        {
+          "size": 515,
+          "address": "0x4febe",
+          "digest": "c2a9bab70c649d49007b904bc47621c3137788fc30e281c3351968e84293d626"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 491,
+          "address": "0x50102",
+          "digest": "ff6d0ff6415c23cadc956741811cbbccd9f61de104ae13632326746d053a7e53"
+        }
+      ],
+      "production": [
+        {
+          "size": 491,
+          "address": "0x500c2",
+          "digest": "ff6d0ff6415c23cadc956741811cbbccd9f61de104ae13632326746d053a7e53"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::flush_notify_batch()",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 393,
+          "address": "0x6e66c0",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ],
+      "production": [
+        {
+          "size": 393,
+          "address": "0x6e62f0",
+          "digest": "815727da25ca10bf8d7a15ff20003303de75cc099ced938e0fa161417bad035e"
+        }
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::forward_stale_task<false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE18forward_stale_taskILb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 226,
+          "address": "0x6e6390",
+          "digest": "df9056eb0c16a05a62b2e0831545eb0e23b9c746b863959ec3ef690de795df8e"
+        }
+      ],
+      "production": [
+        {
+          "size": 226,
+          "address": "0x6e5fc0",
+          "digest": "df9056eb0c16a05a62b2e0831545eb0e23b9c746b863959ec3ef690de795df8e"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::flush_xshard_commits()",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE20flush_xshard_commitsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 281,
+          "address": "0x6df7c0",
+          "digest": "46f988d285220725fa2fbe1f50a97e01ec00c5582c86d239f6164ac082913186"
+        }
+      ],
+      "production": [
+        {
+          "size": 281,
+          "address": "0x6df3f0",
+          "digest": "46f988d285220725fa2fbe1f50a97e01ec00c5582c86d239f6164ac082913186"
+        }
+      ]
+    },
+    {
+      "name": "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 880,
+          "address": "0x6fec30",
+          "digest": "25935480a01a7e6cc8d8112a214756bf043bff52623ef2504f4fb2cb1b0c14de"
+        }
+      ],
+      "production": [
+        {
+          "size": 880,
+          "address": "0x6fe860",
+          "digest": "25935480a01a7e6cc8d8112a214756bf043bff52623ef2504f4fb2cb1b0c14de"
+        }
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "mangled": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 3560,
+          "address": "0x6e79e0",
+          "digest": "becda5dd4856fbc398f754fde42dc0cda50dea22e854c6a3250239ed66c9b7a4"
+        }
+      ],
+      "production": [
+        {
+          "size": 3560,
+          "address": "0x6e7610",
+          "digest": "becda5dd4856fbc398f754fde42dc0cda50dea22e854c6a3250239ed66c9b7a4"
+        }
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::budget_admit(tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore12budget_admitENS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1283,
+          "address": "0x42c610",
+          "digest": "8db041d7234478a51d9354f6166aec10a0dd525ac97394b75861124d0906d827"
+        }
+      ],
+      "production": [
+        {
+          "size": 1283,
+          "address": "0x42c240",
+          "digest": "8db041d7234478a51d9354f6166aec10a0dd525ac97394b75861124d0906d827"
+        }
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)",
+      "mangled": "_ZN4tomo9FlatStore14live_or_expireEimNS_5SliceEPNS_5KvObjE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 300,
+          "address": "0x5208c0",
+          "digest": "067c61b4830119aeeb3e440e9758c1d09da8ad45ce71b1f69d22af3825f17e88"
+        }
+      ],
+      "production": [
+        {
+          "size": 300,
+          "address": "0x5204f0",
+          "digest": "067c61b4830119aeeb3e440e9758c1d09da8ad45ce71b1f69d22af3825f17e88"
+        }
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore4findEmNS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 806,
+          "address": "0x5209f0",
+          "digest": "d44a57978d3669f581faf7419aea52e52270f2ae8bc0d3d3947184bf98a7b306"
+        }
+      ],
+      "production": [
+        {
+          "size": 806,
+          "address": "0x520620",
+          "digest": "d44a57978d3669f581faf7419aea52e52270f2ae8bc0d3d3947184bf98a7b306"
+        }
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::hash_key(tomo::Slice)",
+      "mangled": "_ZN4tomo9FlatStore8hash_keyENS_5SliceE",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 808,
+          "address": "0x424190",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ],
+      "production": [
+        {
+          "size": 808,
+          "address": "0x423dc0",
+          "digest": "0e54ad08ce2f496c0adfd23826c66f9c61ea3195c48ba5c0b18d4137d71fdc00"
+        }
+      ]
+    },
+    {
+      "name": "tomo::ThreadCtx::note_command(unsigned short)",
+      "mangled": "_ZN4tomo9ThreadCtx12note_commandEt",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 54,
+          "address": "0x6da760",
+          "digest": "ae93137e40db03218f73ad33d0fc938d18364fcbd2664857d1340da1b3e31cce"
+        }
+      ],
+      "production": [
+        {
+          "size": 54,
+          "address": "0x6da390",
+          "digest": "ae93137e40db03218f73ad33d0fc938d18364fcbd2664857d1340da1b3e31cce"
+        }
+      ]
+    },
+    {
+      "name": "tomo::good_size(unsigned long)",
+      "mangled": "_ZN4tomo9good_sizeEm",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 89,
+          "address": "0x580920",
+          "digest": "a67dc6d12cee64afe79d6b4ca17d6f4f02bf0503a5bfa3fdd6c2794f75b07e3d"
+        }
+      ],
+      "production": [
+        {
+          "size": 89,
+          "address": "0x580550",
+          "digest": "a67dc6d12cee64afe79d6b4ca17d6f4f02bf0503a5bfa3fdd6c2794f75b07e3d"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Op::key() const",
+      "mangled": "_ZNK4tomo2Op3keyEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 53,
+          "address": "0x580af0",
+          "digest": "b8e6d7d866dd13b184d7ead5e20002495a35719531a495d7116cbd7cb26ca8eb"
+        }
+      ],
+      "production": [
+        {
+          "size": 53,
+          "address": "0x580720",
+          "digest": "b8e6d7d866dd13b184d7ead5e20002495a35719531a495d7116cbd7cb26ca8eb"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Op::cmd_name() const",
+      "mangled": "_ZNK4tomo2Op8cmd_nameEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 56,
+          "address": "0x519690",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ],
+      "production": [
+        {
+          "size": 56,
+          "address": "0x5192c0",
+          "digest": "127b11c28dc9f34bd4e049f9ea88043e9bb329dd7eab9ed62ced2dd14bc43586"
+        }
+      ]
+    },
+    {
+      "name": "tomo::KvObj::key() const",
+      "mangled": "_ZNK4tomo5KvObj3keyEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 149,
+          "address": "0x519b70",
+          "digest": "a18cda5450aeb9768d9169e59a81708244516bd971b3341adf36f0c6991fb998"
+        }
+      ],
+      "production": [
+        {
+          "size": 149,
+          "address": "0x5197a0",
+          "digest": "a18cda5450aeb9768d9169e59a81708244516bd971b3341adf36f0c6991fb998"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Slice::key_eq(tomo::Slice const&) const",
+      "mangled": "_ZNK4tomo5Slice6key_eqERKS0_",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 235,
+          "address": "0x518d60",
+          "digest": "49552d7775f9f58ecfaa5c0c4e591b51ae832e68c8aeba92aafddd561a4ed9bf"
+        }
+      ],
+      "production": [
+        {
+          "size": 235,
+          "address": "0x518990",
+          "digest": "49552d7775f9f58ecfaa5c0c4e591b51ae832e68c8aeba92aafddd561a4ed9bf"
+        }
+      ]
+    },
+    {
+      "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
+      "mangled": "_ZNK4tomo5Slice8eq_icaseESt17basic_string_viewIcSt11char_traitsIcEE.isra.0",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 86,
+          "address": "0x4bc940",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x53f100",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x58c860",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5cc130",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5e9330",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5fbdf0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x614df0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x62c190",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x656df0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x692ac0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x69f410",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6cdd10",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x71b510",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x780370",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x7c1740",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ],
+      "production": [
+        {
+          "size": 86,
+          "address": "0x4bc570",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x53ed30",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x58c490",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5cbd60",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5e8f60",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x5fba20",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x614a20",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x62bdc0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x656a20",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6926f0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x69f040",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x6cd940",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x71b140",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x77ffa0",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        },
+        {
+          "size": 86,
+          "address": "0x7c1370",
+          "digest": "80dab6661697ef5ce2587e26584541a653945468c9d354213c691674c4606613"
+        }
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::publish_database_counts() const",
+      "mangled": "_ZNK4tomo9FlatStore23publish_database_countsEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 243,
+          "address": "0x77e6d0",
+          "digest": "38d02da4b336aa46300762c9f3d0a085101352978d9c0c7a43a9fc6355f137ca"
+        }
+      ],
+      "production": [
+        {
+          "size": 243,
+          "address": "0x77e300",
+          "digest": "38d02da4b336aa46300762c9f3d0a085101352978d9c0c7a43a9fc6355f137ca"
+        }
+      ]
+    },
+    {
+      "name": "std::_Vector_base<double, std::allocator<double> >::~_Vector_base()",
+      "mangled": "_ZNSt12_Vector_baseIdSaIdEED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 33,
+          "address": "0x8f6f0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "production": [
+        {
+          "size": 33,
+          "address": "0x8f320",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ]
+    },
+    {
+      "name": "std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()",
+      "mangled": "_ZNSt6vectorISt10unique_ptrIN4tomo13AofReplayPlanESt14default_deleteIS2_EESaIS5_EED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 383,
+          "address": "0x441bc0",
+          "digest": "5f0495a8cbcd3f28d0361eea421f600e0445ca615693aaa46c175d4f43813f73"
+        }
+      ],
+      "production": [
+        {
+          "size": 383,
+          "address": "0x4417f0",
+          "digest": "5f0495a8cbcd3f28d0361eea421f600e0445ca615693aaa46c175d4f43813f73"
+        }
+      ]
+    },
+    {
+      "name": "std::vector<unsigned int, std::allocator<unsigned int> >::~vector()",
+      "mangled": "_ZNSt6vectorIjSaIjEED2Ev",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 33,
+          "address": "0x854b0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ],
+      "production": [
+        {
+          "size": 33,
+          "address": "0x850e0",
+          "digest": "2d5fe4b7e9824275abe5b6311cf671742fe1a1645e348b63392cf5906ebf1e28"
+        }
+      ]
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "mangled": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb0EEEDav",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 1078,
+          "address": "0x4d8980",
+          "digest": "67cccbb4c36c5bea8649789f7da8f05dee2c10ee34f0ee4179bfbc8654349985"
+        }
+      ],
+      "production": [
+        {
+          "size": 1078,
+          "address": "0x4d85b0",
+          "digest": "67cccbb4c36c5bea8649789f7da8f05dee2c10ee34f0ee4179bfbc8654349985"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "mangled": "_ZZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 158,
+          "address": "0x524fc0",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "production": [
+        {
+          "size": 158,
+          "address": "0x524bf0",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ]
+    },
+    {
+      "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "mangled": "_ZZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "production_equal": true,
+      "harness": [
+        {
+          "size": 158,
+          "address": "0x525100",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ],
+      "production": [
+        {
+          "size": 158,
+          "address": "0x524d30",
+          "digest": "6af5af0144231f9baeac76a23adb516463a0f310675e1d0cd02113abef17a255"
+        }
+      ]
+    }
+  ],
+  "links": {
+    "pre-harness": {
+      "path": "/home/user/Projects/cx-wave5/build/wave5/commands-landing/pre/probe",
+      "sha256": "d59b0a577f945cd09fcd0d3a2248462585ae49d4da82eec7273a68f0d020365a"
+    },
+    "post-harness": {
+      "path": "/home/user/Projects/cx-wave5/build/wave5/commands-landing/post/probe",
+      "sha256": "8b4c577d3425ca6870bfa6e6ff2095685116fd10031b822a57878be97e1de697"
+    },
+    "pre-production": {
+      "path": "/home/user/Projects/cx-wave5/build/wave5/pre-source/build/tomokv",
+      "sha256": "986f0426776565d3d2e46dec1b381c05b9884f05933f185752677e964d95cc7f"
+    },
+    "post-production": {
+      "path": "/home/user/Projects/cx-wave5/build/tomokv",
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    "headline": {
+      "path": "/home/user/Projects/bins/txnorder2-pre-97ea4e06",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+    }
+  }
+}

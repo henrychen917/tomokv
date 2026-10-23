@@ -1,0 +1,157 @@
+{
+  "value": 127725,
+  "unit": "db0/src/cmd/xshard.o",
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=127725",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-isolation/db0_src_cmd_xshard.o/127725.o",
+    "-fdump-ipa-inline=/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-isolation/db0_src_cmd_xshard.o/127725.inline"
+  ],
+  "source_root": "/home/user/Projects/cx-iofix/build/iofix/sleep-isolation-source",
+  "seconds": 23.557823327369988,
+  "total": 890,
+  "hot": 12,
+  "changed": 13,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "hot": false,
+      "pre_size": 947,
+      "post_size": 945,
+      "differing_bytes": 765,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase2ERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::finish_phase2(tomo_db0::ScatterState&)",
+      "hot": false,
+      "pre_size": 494,
+      "post_size": 494,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+      "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+      "hot": false,
+      "pre_size": 1072,
+      "post_size": 1072,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+      "hot": false,
+      "pre_size": 3368,
+      "post_size": 3529,
+      "differing_bytes": 3152,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "differing_bytes": 2,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE",
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*)",
+      "hot": false,
+      "pre_size": 12238,
+      "post_size": 12144,
+      "differing_bytes": 8426,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE.cold",
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*) [clone .cold]",
+      "hot": false,
+      "pre_size": 254,
+      "post_size": 254,
+      "differing_bytes": 228,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop12close_clientEPNS_6ClientEb",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "hot": false,
+      "pre_size": 7864,
+      "post_size": 7896,
+      "differing_bytes": 6758,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore15atomic_collapseEmm",
+      "name": "tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 6055,
+      "post_size": 6023,
+      "differing_bytes": 5445,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore17atomic_free_entryEPNS_11AtomicEntryE.isra.0",
+      "name": "tomo_db0::FlatStore::atomic_free_entry(tomo_db0::AtomicEntry*) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 225,
+      "post_size": 222,
+      "differing_bytes": 5,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+      "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 352,
+      "post_size": 371,
+      "differing_bytes": 88,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+      "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 5840,
+      "post_size": 5851,
+      "differing_bytes": 615,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "hot": false,
+      "pre_size": 1190,
+      "post_size": 1190,
+      "differing_bytes": 43,
+      "targets_equal": true
+    }
+  ],
+  "initial_inline_unit": 99847
+}

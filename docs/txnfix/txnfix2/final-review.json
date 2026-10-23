@@ -1,0 +1,9 @@
+{
+  "protected_expect": [
+    "EXPECT_QUICK=625",
+    "EXPECT_FULL=642"
+  ],
+  "executor_and_io_source_equal": true,
+  "missing_report_links": [],
+  "live_worktree_binaries": []
+}

@@ -1,0 +1,41 @@
+{
+  "engine": "epoll",
+  "run": "build/gate-run.ffGnzU",
+  "groups": {
+    "split": {
+      "schema": 1,
+      "group": "split",
+      "parts": [
+        "split-0",
+        "split-1",
+        "equivalence"
+      ],
+      "start": 1792681249.6801512,
+      "end": 1792683344.142616,
+      "seconds": 2094.4624648094177,
+      "comparisons": 490,
+      "complete": true
+    },
+    "armed": {
+      "schema": 1,
+      "group": "armed",
+      "parts": [
+        "armed-0",
+        "armed-1"
+      ],
+      "start": 1792682292.432684,
+      "end": 1792683322.6180258,
+      "seconds": 1030.185341835022,
+      "comparisons": 464,
+      "complete": true
+    }
+  },
+  "comparisons": 954,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    26
+  ]
+}

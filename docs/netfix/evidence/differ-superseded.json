@@ -1,0 +1,11 @@
+{
+  "pids": [
+    2967425,
+    2967517,
+    3050794,
+    3050974,
+    3131047,
+    3914030
+  ],
+  "reason": "Cold output retention corrected to peak+1. Superseded partial differential runs stopped before final binary freeze; full standard-seed matrices will be rerun."
+}

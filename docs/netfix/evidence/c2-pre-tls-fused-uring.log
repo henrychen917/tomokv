@@ -1,0 +1,47 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-netfix/build/gate-run.omY61E
+PARTIAL jobs (including prerequisites): release production_units tls
+PARTIAL jobs (including prerequisites): release production_units tls
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=1.24s; correctness-plan-fallback; TLS ephemeral CA/server/client certificates
+  TLS ephemeral CA/server/client certificates          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; NET2 serverless RX policy and KeyUpdate controls
+  NET2 serverless RX policy and KeyUpdate controls     ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; reject TLS listener without certificate
+  reject TLS listener without certificate              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; reject invalid tls-protocols
+  reject invalid tls-protocols                         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; reject invalid tls-ciphers
+  reject invalid tls-ciphers                           ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth yes matrix
+  TLS client-auth yes matrix                           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS yes shutdown invariants
+  TLS yes shutdown invariants                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth optional matrix
+  TLS client-auth optional matrix                      ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; kTLS TLS 1.2 engaged live (default boot)
+  kTLS TLS 1.2 engaged live (default boot)             ok
+  row budget: 900s; median=0.18s; correctness-plan-fallback; TLS 1.3 KeyUpdate survives (NET2)
+  TLS 1.3 KeyUpdate survives (NET2)                    ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; TLS 1.3 userspace KeyUpdate survives (NET2)
+  TLS 1.3 userspace KeyUpdate survives (NET2)          ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS optional shutdown invariants
+  TLS optional shutdown invariants                     ok
+  row budget: 900s; median=14.57s; correctness-plan-fallback; TLS pipeline/torn-record/coexistence battery
+  TLS pipeline/torn-record/coexistence battery         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS shutdown invariants
+  TLS shutdown invariants                              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS application send path error-free
+  TLS application send path error-free                 ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS connection slots all freed (N/N)
+  TLS connection slots all freed (33/33)               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; TLS zc borrow gates fired (suppressed=N)
+  TLS zc borrow gates fired (suppressed=21)            ok
+  row budget: 900s; median=5.98s; correctness-plan-fallback; TLS silent-peer close after reply (ntfix N2)
+  TLS silent-peer close after reply (ntfix N2)         ok
+  row budget: 900s; median=10.8s; correctness-plan-fallback; RESP pre-AUTH limit errors (ntfix N3)
+  RESP pre-AUTH limit errors (ntfix N3)                ok
+  row budget: 900s; median=15.21s; correctness-plan-fallback; RESP query-buffer frontier (ntfix N4)
+  RESP query-buffer frontier (ntfix N4)                ok
+GATE(PARTIAL): 21 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-netfix/build/gate-run.omY61E/ledger.partial

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-bugs5/docs/bugs5/verify_pad_relocations.py", line 13, in <module>
+    names={r['name'] for r in report['pad_a']['changed']};assert len(names)==4
+                                                                 ^^^^^^^^^^^^^
+AssertionError

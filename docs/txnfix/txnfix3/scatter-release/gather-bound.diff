@@ -1,0 +1,86 @@
+--- PRE
+
++++ POST
+
+@@ -10,7 +10,7 @@
+
+ mov    (%rdi),%rax
+ mov    0x8(%rax),%edx
+ test   %edx,%edx
+-je ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1b4>
++je ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1b8>
+ mov    %rdi,%rbp
+ xor    %r14d,%r14d
+ jmp ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x13d>
+@@ -23,7 +23,7 @@
+
+ mov    $0x1,%r9d
+ mov    0xa0(%r15),%r8
+ mov    %r13,%rdi
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x66>	14122: R_X86_64_PLT32	_ZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmb-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x66>	159a2: R_X86_64_PLT32	_ZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmb-0x4
+ cmpb   $0x0,0x12a(%r15)
+ mov    %rax,%rbx
+ jne ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x190>
+@@ -72,7 +72,7 @@
+
+ mov    0x0(%rbp),%rax
+ inc    %r14d
+ cmp    0x8(%rax),%r14d
+-jae ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1b4>
++jae ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1b8>
+ mov    0x8(%rbp),%rcx
+ mov    %r14d,%edx
+ add    0x4(%rax),%edx
+@@ -112,20 +112,20 @@
+
+ pop    %r14
+ pop    %r15
+ ret
+-nopw   0x0(%rax,%rax,1)
++nopl   0x0(%rax,%rax,1)
+ cmp    $0xffffffff,%eax
+ jne ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x3e0>
+ cmp    $0x400,%edx
+ jbe ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x11b>
+ mov    %edx,%ebx
+ mov    %rbx,%rdi
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1ff>	142bb: R_X86_64_PLT32	_Znam-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x1ff>	15b3b: R_X86_64_PLT32	_Znam-0x4
+ movb   $0x3,0x10(%r12)
+ mov    %rax,%rdi
+ mov    %rax,(%r12)
+ mov    %rbx,%rdx
+ mov    %r15,%rsi
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x217>	142d3: R_X86_64_PLT32	memcpy-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x217>	15b53: R_X86_64_PLT32	memcpy-0x4
+ jmp ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x130>
+ nopl   0x0(%rax)
+ movzbl 0x2(%rbx),%eax
+@@ -206,7 +206,7 @@
+
+ lea    0x38(%r13),%rdi
+ mov    %r15,%rsi
+ mov    %rdi,0x8(%rsp)
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x371>	1442d: R_X86_64_PLT32	_ZNK4tomo9FlatStore11borrow_findEPKc-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x371>	15cad: R_X86_64_PLT32	_ZNK4tomo9FlatStore11borrow_findEPKc-0x4
+ mov    0x8(%rsp),%rdi
+ cmp    $0xffffffff,%eax
+ je ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x490>
+@@ -223,7 +223,7 @@
+
+ nopl   (%rax)
+ mov    %r13,%rdi
+ mov    %rax,%rsi
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x3bb>	14477: R_X86_64_PLT32	_ZN4tomo9FlatStore5touchEPNS_5KvObjE-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x3bb>	15cf7: R_X86_64_PLT32	_ZN4tomo9FlatStore5touchEPNS_5KvObjE-0x4
+ mov    0x10(%rbp),%r13
+ jmp ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x87>
+ data16 cs nopw 0x0(%rax,%rax,1)
+@@ -278,4 +278,4 @@
+
+ call ADDR <_ZN4tomo9FlatStore6borrowEPKc.part.0>
+ mov    0x10(%rbp),%rbx
+ jmp ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x397>
+-call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x4a6>	14562: R_X86_64_PLT32	__stack_chk_fail-0x4
++call ADDR <_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav+0x4a6>	15de2: R_X86_64_PLT32	__stack_chk_fail-0x4

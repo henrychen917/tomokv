@@ -1,0 +1,36 @@
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-SIGTERM", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--save", "3600 1", "--dbfilename", "saved.rdb"], "pid": 3088776}
+{"exit": 0, "kind": "oracle", "seconds": 0.11342453770339489, "signal": "SIGTERM"}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-SIGTERM", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--dbfilename", "saved.rdb"], "pid": 3088783}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-SIGINT", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--save", "3600 1", "--dbfilename", "saved.rdb"], "pid": 3088790}
+{"exit": 0, "kind": "oracle", "seconds": 0.11340077873319387, "signal": "SIGINT"}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-SIGINT", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--dbfilename", "saved.rdb"], "pid": 3088797}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-failed-save", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--save", "3600 1", "--dbfilename", "saved.rdb"], "pid": 3088804}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/tests/iofix_signal.py", line 60, in run
+    raise AssertionError('failed save never reached the shutdown error')
+AssertionError: failed save never reached the shutdown error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/tests/_iofix.py", line 81, in close
+    self.process.wait(timeout=15)
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['taskset', '-c', '80-87', '/home/user/Projects/redis74/src/redis-server', '--bind', '127.0.0.1', '--port', '19801', '--dir', '/home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-failed-save', '--save', '', '--appendonly', 'no', '--enable-debug-command', 'yes', '--save', '3600 1', '--dbfilename', 'saved.rdb']' timed out after 15 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/tests/iofix_signal.py", line 96, in <module>
+    run(args)
+  File "/home/user/Projects/cx-iofix/tests/iofix_signal.py", line 46, in run
+    with Listener(args, kind + '-failed-save', oracle=oracle,
+  File "/home/user/Projects/cx-iofix/tests/_iofix.py", line 92, in __exit__
+    self.close()
+  File "/home/user/Projects/cx-iofix/tests/_iofix.py", line 85, in close
+    raise AssertionError(f'owned server did not stop: {self.log.name}')
+AssertionError: owned server did not stop: /home/user/Projects/cx-iofix/build/gate-run.HXjTY1/jobs/iofix-signal/signal-2s-uring/oracle-failed-save.log

@@ -49,42 +49,9 @@ public:
         }
         std::memcpy(address.sun_path, path_, path_length + 1);
 
-        struct stat state{};
-        if (::lstat(path_, &state) == 0) {
-            if (!S_ISSOCK(state.st_mode)) {
-                error = "refusing to replace non-socket unix path '";
-                error += path_;
-                error += "'";
-                return false;
-            }
-            const int probe = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-            if (probe < 0) {
-                error = std::string("socket unixsocket probe: ") + std::strerror(errno);
-                return false;
-            }
-            const int connected = ::connect(
-                probe, reinterpret_cast<const sockaddr*>(&address), sizeof(address));
-            const int connect_error = errno;
-            ::close(probe);
-            if (connected == 0) {
-                error = "unixsocket path '";
-                error += path_;
-                error += "' is already accepting connections";
-                return false;
-            }
-            if (connect_error != ECONNREFUSED && connect_error != ENOENT) {
-                error = std::string("connect unixsocket probe: ") +
-                        std::strerror(connect_error);
-                return false;
-            }
-            if (::unlink(path_) != 0) {
-                error = std::string("unlink unixsocket: ") + std::strerror(errno);
-                return false;
-            }
-        } else if (errno != ENOENT) {
-            error = std::string("stat unixsocket: ") + std::strerror(errno);
-            return false;
-        }
+        // Redis 7.4 unix.c unconditionally removes the pathname before binding. This
+        // includes regular files, symlinks and live listeners; unlink errors surface at bind.
+        (void)::unlink(path_);
 
         fd_ = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
         if (fd_ < 0) {

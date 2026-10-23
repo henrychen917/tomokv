@@ -62,8 +62,9 @@ def emit(root, output):
                 code.append('static_assert(' + name + '<' + str(fused).lower() + ',' + str(local).lower() +
                             '>(), "' + ('r7: ' if prefix else 'fifo: ') + name + ' preserves SplitLocal and prebuild policy");')
         loop = method(source, prefix + 'run_loop')
-        polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|Ring::kWaitTimeoutMs)\)', loop)
-        assert len(polls) == 3 and [p[1] for p in polls] == ['0', 'Ring::kWaitTimeoutMs', 'Ring::kWaitTimeoutMs'], 'epoll callback inventory'
+        polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|wait_ms)\)', loop)
+        assert len(polls) == 3 and [p[1] for p in polls] == ['0', 'wait_ms', 'wait_ms'], 'epoll callback inventory'
+        assert loop.count('const unsigned wait_ms = idle_timeout_ms();') == 1, 'both parks share the cron deadline'
         code.append('template<bool U, bool T, bool F> consteval bool ' + prefix +
                     'epoll_pass(int) { return F; }\n'
                     'template<bool HasUnix, bool HasTls, bool Fused, bool SplitLocal>\n'
@@ -91,8 +92,8 @@ def check(binary, output):
     for name, old, new, marker in [
         ('old-forwarding', 'Fused ? kGenthreadIfidBatchOps : 0, SplitLocal',
          'Fused ? kGenthreadIfidBatchOps : 0', 'flush_ready preserves SplitLocal and prebuild policy'),
-        ('old-park', 'epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs)',
-         'epoll_pass<HasUnix, HasTls, !SplitLocal>(Ring::kWaitTimeoutMs)', 'park/hot callback Fused policy mismatch')]:
+        ('old-park', 'epoll_pass<HasUnix, HasTls, Fused>(wait_ms)',
+         'epoll_pass<HasUnix, HasTls, !SplitLocal>(wait_ms)', 'park/hot callback Fused policy mismatch')]:
         dest = output / name
         for relative in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/core/genthread_pipeline.h'):
             text = (ROOT / relative).read_text()
@@ -107,7 +108,8 @@ def check(binary, output):
         emit(dest, unit)
         makefile = dest / 'Makefile'
         makefile.write_text('unit: unit.cc\n\t$(CXX) -std=c++20 -O2 -Wall -Wextra unit.cc -o unit\n')
-        result = subprocess.run(['taskset', '-c', '112-127', 'make', '-j16', '-C', str(dest.resolve())],
+        # The gate owns CPU placement; a unit must not escape its caller's affinity.
+        result = subprocess.run(['make', '-j16', '-C', str(dest.resolve())],
                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         (dest / 'compile.log').write_text(result.stdout)
         assert result.returncode != 0 and marker in result.stdout, (name, result.stdout)

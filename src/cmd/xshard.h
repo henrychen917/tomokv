@@ -211,6 +211,8 @@ void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task);
 using XshardCommitNotify = void (*)(void*, Client*);
 void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
                           void* notify_context, XshardCommitNotify notify);
+void xshard_flush_commits_timed(Server& server, ThreadCtx& self, Ring& ring,
+                               void* notify_context, XshardCommitNotify notify);
 
 // Ordinary one-key operations only enter this path when their key already has an MVCC record.
 // Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed

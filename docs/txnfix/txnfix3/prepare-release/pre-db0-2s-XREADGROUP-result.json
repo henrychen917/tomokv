@@ -1,0 +1,19 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "mode": "2s",
+  "values": "XREADGROUP",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-db0-2s-XREADGROUP.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-db0/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "bceeb3c2569744559778bc78a8f48618135062901b44d7e64a66005d327a71af",
+  "counts": {}
+}

@@ -1,0 +1,33 @@
+{
+  "index": 103,
+  "name": "stage-b/T10-1s-a1",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "stage-b/T10-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "tests/txnfix_audit/t10_msetnx_hold.py",
+      "27801",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-last/post-armed-server",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-proof/stage-b/T10-1s-a1",
+      "--cores",
+      "64-71"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792672087.0269175,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+  "returncode": 0,
+  "finished": 1792672087.547311
+}

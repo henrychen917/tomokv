@@ -1,0 +1,31 @@
+{
+  "label": "pre-reorder-sync",
+  "run": "/home/user/Projects/cx-fliplisten/build/gate-run.aubX94",
+  "summaries": [
+    "GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-fliplisten/docs/fliplisten/proof/pre-reorder-sync/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "reorder_sync",
+      "done": "0\t1\t0"
+    }
+  ],
+  "legs": [],
+  "included": [
+    "families.tsv",
+    "jobs/reorder_sync/done",
+    "jobs/reorder_sync/family.tsv",
+    "jobs/reorder_sync/ledger",
+    "jobs/reorder_sync/output.log",
+    "jobs/reorder_sync/sync.log",
+    "jobs/reorder_sync/timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "omitted": [
+    "jobs/reorder_sync/row-timeout-3342693.3342693.434554291.1.cancel",
+    "queue.lock"
+  ],
+  "archive_sha256": "617687d8f655967cb6dba16ba54a8431e0afedb016ae09d6575697039177cf93"
+}

@@ -1,0 +1,18 @@
+{
+  "PRE": {
+    "path": "build/txnorder/pre/tomokv",
+    "sha256": "1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc"
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "sha256": "b27bcd7085403577e46efcddb89e80d2a07fc4b1b28245b6913fb369b07138a0"
+  },
+  "PAD_A_SIZE": {
+    "path": "build/txnorder/pad-a-size/tomokv",
+    "sha256": "80f08455cfad2a06eb0cb78b7fd22c23c28bdd9ebb187d58dc42225c6d72ccd8"
+  },
+  "BARRIER_REMOVED": {
+    "path": "build/txnorder/barrier-off/tomokv",
+    "sha256": "bde16bee2598ad12587713df8efbf19249db00f40d9a5fb214ffdec70d3db3d2"
+  }
+}

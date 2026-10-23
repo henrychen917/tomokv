@@ -1,0 +1,34 @@
+{
+  "object": "db0/src/cmd/xshard.o",
+  "budget": 140643,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=140643",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/db0_src_cmd_xshard.o-140643.o",
+    "-g0"
+  ],
+  "compile_exit": 0,
+  "output": "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/db0_src_cmd_xshard.o-140643.o",
+  "total": 12,
+  "changed": [
+    "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+    "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)"
+  ]
+}

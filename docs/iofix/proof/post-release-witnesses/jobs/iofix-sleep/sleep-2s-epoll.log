@@ -1,0 +1,39 @@
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.6SXO6t/jobs/iofix-sleep/sleep-2s-epoll/oracle", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"], "pid": 1923436}
+{"reply": "b'OK'", "seconds": 9.156111627817154e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.754945307970047e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.688067853450775e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 2.0469538867473602e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.9249506294727325e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.626041769981384e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.0020806360989809036, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.002056324854493141, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.010313430801034, "sleep": "1.01"}
+{"oracle": ["b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", ["b'OK'", "b'OK'", "b'OK'", "b'after'"], "b'PONG'"]}
+{"oracle": true, "signal_during_sleep_seconds": 0.1134739900007844}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.6SXO6t/jobs/iofix-sleep/sleep-2s-epoll/target-0", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "2s", "--net-io", "epoll", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "pid": 1923456}
+{"reply": "b'OK'", "seconds": 0.00013474002480506897, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 8.413940668106079e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 8.029956370592117e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 5.163997411727905e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 7.690116763114929e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.602013647556305e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.002121284604072571, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.002106885425746441, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0101681109517813, "sleep": "1.01"}
+{"owners": [2, 1, 5, 4, 0, 3], "tids": [1923457, 1923458, 1923459, 1923460, 1923461, 1923462, 1923463, 1923464], "transaction": false, "witness": "all workers paused"}
+{"owners": [5, 2, 1, 3, 0, 4], "tids": [1923457, 1923458, 1923459, 1923460, 1923461, 1923462, 1923463, 1923464], "transaction": true, "witness": "all workers paused"}
+{"oracle": false, "signal_during_sleep_seconds": 0.06338959280401468}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.6SXO6t/jobs/iofix-sleep/sleep-2s-epoll/target-1", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "2s", "--net-io", "epoll", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--read-local", "1"], "pid": 1923472}
+{"reply": "b'OK'", "seconds": 0.0001361500471830368, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 8.05296003818512e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.512979209423065e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 7.424037903547287e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 7.38995149731636e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.474981248378754e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.0021159956231713295, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.0021006260067224503, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0101898619905114, "sleep": "1.01"}
+{"owners": [5, 0, 2, 1, 3, 4], "tids": [1923473, 1923474, 1923475, 1923476, 1923477, 1923478, 1923479, 1923480], "transaction": false, "witness": "all workers paused"}
+{"owners": [3, 5, 0, 4, 1, 2], "tids": [1923473, 1923474, 1923475, 1923476, 1923477, 1923478, 1923479, 1923480], "transaction": true, "witness": "all workers paused"}
+{"oracle": false, "signal_during_sleep_seconds": 0.06339366175234318}
+{"engine": "epoll", "mode": "2s", "result": "PASS IO4.10"}

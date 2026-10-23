@@ -1,0 +1,201 @@
+[
+  {
+    "name": "flip",
+    "command": [
+      "python3",
+      "tests/flip_multikey_hold.py",
+      "127.0.0.1",
+      "22601"
+    ],
+    "exit_code": 0,
+    "seconds": 94.67042185692117,
+    "sha256": "2a0eefaafa8eb2ce4e249c0e812140baf77d206f21e0b6b7f89fe8843552d07c",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--thread-mode",
+      "2s",
+      "--ratio",
+      "6:2",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--atomic",
+      "1",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "1",
+      "--enable-debug-command",
+      "yes"
+    ]
+  },
+  {
+    "name": "watchlive-2s",
+    "command": [
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-2s"
+    ],
+    "exit_code": 0,
+    "seconds": 76.95225514471531,
+    "sha256": "2a0eefaafa8eb2ce4e249c0e812140baf77d206f21e0b6b7f89fe8843552d07c"
+  },
+  {
+    "name": "watchlive-1s",
+    "command": [
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-1s"
+    ],
+    "exit_code": 0,
+    "seconds": 78.58704332401976,
+    "sha256": "2a0eefaafa8eb2ce4e249c0e812140baf77d206f21e0b6b7f89fe8843552d07c"
+  },
+  {
+    "name": "conditional-pre",
+    "command": [
+      "python3",
+      "build/txnfix/probe-conditionals.py",
+      "127.0.0.1",
+      "22601"
+    ],
+    "exit_code": 0,
+    "seconds": 0.5146082360297441,
+    "sha256": "34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "anomalies": 0,
+    "semantic_pass": true
+  },
+  {
+    "name": "conditional-post",
+    "command": [
+      "python3",
+      "build/txnfix/probe-conditionals.py",
+      "127.0.0.1",
+      "22601"
+    ],
+    "exit_code": 0,
+    "seconds": 0.1640206309966743,
+    "sha256": "2a0eefaafa8eb2ce4e249c0e812140baf77d206f21e0b6b7f89fe8843552d07c",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "anomalies": 1,
+    "semantic_pass": false
+  },
+  {
+    "name": "gates",
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 275.15426912810653
+  },
+  {
+    "name": "ledger",
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "exit_code": 1,
+    "seconds": 0.16619176091626287
+  },
+  {
+    "name": "infofields",
+    "command": [
+      "python3",
+      "tests/infofields_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.21487303590402007
+  },
+  {
+    "name": "syntax",
+    "command": [
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.01771927485242486
+  }
+]

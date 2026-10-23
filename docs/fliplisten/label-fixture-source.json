@@ -1,0 +1,11 @@
+{
+  "fixture": 706,
+  "source": 706,
+  "equal": true,
+  "DQ": 4,
+  "DF": 4,
+  "expect_quick_owner_update": "685 -> 689",
+  "expect_full_owner_update": "702 -> 706",
+  "collection_line": 4280,
+  "quick_exit_line": 4343
+}

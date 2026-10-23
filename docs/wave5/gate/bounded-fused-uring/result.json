@@ -1,0 +1,51 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "/home/user/Projects/cx-wave5/tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26802",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave5/docs/wave5/server_adapter.py"
+  ],
+  "jobs": [
+    "atomic_batteries"
+  ],
+  "started": 1792741247.56921,
+  "binary_sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+  "snapshot_binary": "/home/user/Projects/cx-wave5/build/wave5/gate-binaries/201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5/tomokv",
+  "environment": {
+    "WAVE5_ORACLE_CORE": "79",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "79",
+    "GATE_GLOBCASE_ORACLE_CORES": "79",
+    "GATE_TEST_PORT": "26899",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-wave5/build/wave5/differ-history",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave5/build/wave5/gate-history",
+    "PYTHONPATH": "/home/user/Projects/cx-wave5/docs/wave5/port_guard:",
+    "WAVE5_PORT_RECEIPT": "/home/user/Projects/cx-wave5/docs/wave5/fixture-ports.jsonl",
+    "GATE_ONLY_JOBS": "atomic_batteries",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave5/docs/wave5/gate/bounded-fused-uring/ledger",
+    "NETFIX_TLS_ORACLE": "/home/user/Projects/cx-wave5/build/wave5/redis74-tls/src/redis-server",
+    "WAVE5_BINARY": "/home/user/Projects/cx-wave5/build/wave5/gate-binaries/201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5/tomokv",
+    "WAVE5_ENGINE": "uring",
+    "WAVE5_MODE": "1s",
+    "WAVE5_LAUNCH_DIR": "/home/user/Projects/cx-wave5/docs/wave5/gate/bounded-fused-uring/launches"
+  },
+  "returncode": 0,
+  "elapsed": 37.080148220062256,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.bMXcKQ"
+  ],
+  "binary_stable": true
+}

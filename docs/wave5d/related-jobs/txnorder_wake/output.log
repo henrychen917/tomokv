@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.005s; correctness-plan-fallback; txnorder2 busy owner inbox wake
+  txnorder2 busy owner inbox wake                      ok

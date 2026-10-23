@@ -1,0 +1,2 @@
+  row budget: 900s; median=31.71s; correctness-plan-fallback; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      FAIL (see /home/user/Projects/cx-iofix/build/gate-run.0wEBDU/jobs/iofix-sleep/sleep-*.log)

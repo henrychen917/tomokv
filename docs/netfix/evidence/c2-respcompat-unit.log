@@ -1,0 +1,7 @@
+# 2026-10-23 05:16:59 standalone tests/respcompat_unit.cc (not a gate row), g++ -std=c++20 -O2 -I<tree>, taskset 64-79
+## POST tree (HEAD 3f1d3f1a8)
+respcompat: 204263 checks, 0 failures
+rc=0
+## PRE tree (a7dfb9d23, unit from PRE)
+respcompat: 204263 checks, 0 failures
+rc=0

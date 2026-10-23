@@ -10,6 +10,7 @@
 // Unlike redis's per-command timing, a one-off slow op in that first multi-op batch is not logged.
 #pragma once
 #include <cstdint>
+#include <memory>
 
 namespace tomo {
 
@@ -31,14 +32,16 @@ struct SlowlogArm {
 inline constexpr uint32_t kSlowlogMaxArgs = 32;
 inline constexpr uint32_t kSlowlogMaxArgBytes = 128;
 
-// A snapshot of one command's arguments, taken BEFORE it executes.
+// A snapshot of one command's arguments, taken BEFORE completion publication.
 //
 // THIS IS A LIFETIME FIX, NOT AN OPTIMISATION. Op::argv are Slices into the connection's read
 // buffer, which is pinned only until the op retires. execute() publishes OpState::Done, and the
 // owning IO thread may then retire the op and call reset_rbuf_at_quiescence(), which memmoves and
 // can even realloc that buffer. Reading argv from the executor after execute() returns is
-// therefore a use-after-retire race -- so the bytes are copied while they are provably alive, into
-// a per-executor scratch that is reused for every op and never allocates.
+// therefore a use-after-retire race. Exact timing now tests the threshold at completion,
+// then copies only a slow operation's arguments while they are still pinned.
+struct SlowlogIdentity;
+
 struct SlowlogCapture {
     uint32_t total_argc = 0;                 // argc before truncation
     uint32_t captured = 0;                   // arguments actually stored
@@ -53,15 +56,43 @@ struct SlowlogCapture {
 struct SlowlogExState {
     // Batches remaining in per-op (exact attribution) mode. Set when a multi-op batch overruns.
     uint32_t escalate_batches = 0;
-    SlowlogCapture capture;
+    SlowlogCapture capture; // retained footprint; exact completion uses a cold stack capture
 };
 
-// Copies the argument bytes out of the op while they are still pinned. Cheap: bounded by 32
-// arguments of 128 bytes, and for an ordinary GET/SET it is two short memcpys.
-void slowlog_capture(const Op& op, SlowlogCapture& out);
+// Exact timing owns this stack frame only until execution returns. Completion
+// records before Done/AofWait can release argv or let a younger SETNAME run.
+// Ordinary, untimed executor specializations never create or consult it.
+struct SlowlogTiming {
+    const Op* op = nullptr;
+    uint64_t client_id = 0;
+    uint64_t started = 0;
+    int64_t now_ms = 0;
+    SlowlogArm arm{};
+    uint32_t thread_id = 0;
+    bool completed = false;
+    SlowlogTiming* previous = nullptr;
+
+    SlowlogTiming() = default;
+    SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
+                  uint64_t start, int64_t now, const SlowlogArm& setting);
+    ~SlowlogTiming();
+    SlowlogTiming(const SlowlogTiming&) = delete;
+    SlowlogTiming& operator=(const SlowlogTiming&) = delete;
+};
+
+// Cold completion paths may finish a different client's blocked operation.
+// Match the active operation, and record it at most once before publication.
+void slowlog_complete(const Op& op);
+
+// Copies pinned arguments (at most 32 of 128 bytes) and snapshots the identity under the
+// directory shard lock. The returned shared reference keeps that version alive across Done;
+// the caller retains it until recording finishes. Used only by armed per-op timing.
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(
+    const Op& op, SlowlogCapture& out, uint64_t client_id);
 
 // The executor-side recorder, fed from a capture rather than from the (possibly retired) op.
-void slowlog_record_captured(uint32_t thread_id, uint64_t client_id, const SlowlogCapture& capture,
+void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture,
                              uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm);
 
 // Records one completed operation. `duration_ns` is the measured span; `exact` says whether it is
@@ -86,8 +117,8 @@ uint64_t slowlog_escalations();
 uint64_t slowlog_batches_timed();
 uint64_t latency_events_recorded();
 
-// Addr/name directory. Connection lifecycle is cold; commands are not, so the slowlog entry
-// carries a client id and the address is resolved from this sharded directory at GET time.
+// Addr/name directory. Connection lifecycle publishes immutable versions; armed recording
+// retains a version in each entry, so later rename/disconnect cannot change SLOWLOG GET.
 void slowlog_note_client(uint64_t client_id, const char* addr);
 void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t name_len);
 void slowlog_forget_client(uint64_t client_id);

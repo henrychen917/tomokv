@@ -288,11 +288,14 @@ void Server::finish_shutdown() {
 }
 
 uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
+    // This is a request, not the terminal edge. In particular a failed save leaves no readable
+    // eventfd that could spin every epoll worker. finish_shutdown rings a new, sticky stop edge.
+    signal_doorbell_consume_request();
     std::string error;
     auto result = shutdown(ShutdownSave::Configured, &writer, &ring, error);
     if (result == SnapshotManager::StartResult::Busy) {
         if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
-            return 0; // yield to the old snapshot/FLIP, then retry on the next cron beat
+            return 0; // yield to the old snapshot/FLIP, retry at the next ordinary IO pass
         error = "shutdown timed out waiting for snapshot/placement; retry SHUTDOWN";
         result = SnapshotManager::StartResult::Failed;
     }

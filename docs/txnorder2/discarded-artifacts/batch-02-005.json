@@ -1,0 +1,2042 @@
+[
+  {
+    "path": "paths-final2c/read/post-db0-2s-DEL.log",
+    "bytes": 159904,
+    "sha256": "b4bfb3a77f2c3e811c7ed8dd80ccac57abe5aab24496953f9be8965acebe2e25",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5f70: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f80: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c0a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffda1b0) at src/cmd/xshard.cc:1588",
+      "0x00005555555eaccc in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x00005555555eaccd\t0x00005555555eacce\t0x00005555555eacd0\t0x00005555555eacd2\t0x00005555555eacd4\t0x00005555555a6dac in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6db7\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6dbe\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4189005) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-db0-2s-MGET.log",
+    "bytes": 185070,
+    "sha256": "2b44ddf69ea69fceb6d1e916c25dde7049b0be45aa79afe5165992b62a614a07",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5f70: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f80: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c0a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x00005555555eaccd\t0x00005555555eacce\t0x00005555555eacd0\t0x00005555555eacd2\t0x00005555555eacd4\t0x0TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "0005555555a6dac in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6db7\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6dbe\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188999) exited normally]",
+      "TRACE_INSTRUCTIONS 3023"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-db0-2s-MSET.log",
+    "bytes": 161992,
+    "sha256": "154eefce12f23d32b45001b704025129a2a75e280600a97ba8ee2cb797638cfb",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5f70: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f80: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c0a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d9780, this=0x7ffffffda1b0) at src/cmd/xshard.cc:1588",
+      "0x00005555555eaccc in tomo_db0::xshard_destroy (state=0x7ffff61d9780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x00005555555eaccd\t0x00005555555eacce\t0x00005555555eacd0\t0x00005555555eacd2\t0x00005555555eacd4\t0x00005555555a6dac in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6db7\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6dbe\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4189002) exited normally]",
+      "TRACE_INSTRUCTIONS 2843"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-db0-2s-UNLINK.log",
+    "bytes": 159916,
+    "sha256": "a975c7abf00179009306f07a379d619b8a1c7cf96e40132f1a711c49f51ba46a",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5f70: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f80: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c0a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x00005555555eaccd\t0x00005555555eacce\t0x00005555555eacd0\t0x00005555555eacd2\t0x00005555555eacd4\t0x00005555555a6dac in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6db7\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6dbe\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"meTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "mory\"); }",
+      "[Inferior 1 (process 4189008) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-1s-DEL.log",
+    "bytes": 155878,
+    "sha256": "3392da25bff89bd57cfd4e590cd9d24b080c6f260137a6f123055f0fc328ede2",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noiTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "nline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188945) exited normally]",
+      "TRACE_INSTRUCTIONS 2768"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-1s-MGET.log",
+    "bytes": 179795,
+    "sha256": "de8c67d7c5ca7e08e8f0cc15c2310ab3f9e446446ff32090c218d8c548561217",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6219780, this=0x7ffffffda030) at src/cmd/xshard.cc:1588",
+      "0x000055555594207c in tomo::xshard_destroy (state=0x7ffff6219780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188942) exited normally]",
+      "TRACE_INSTRUCTIONS 2997"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-1s-MSET.log",
+    "bytes": 161649,
+    "sha256": "b1b672a5e44984e0115f1cf87aa994e3c488214d834a31b6a697d36f9a05892a",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff621e780, this=0x7ffffffda030) at src/cmd/xshard.cc:1588",
+      "0x000055555594207c in tomo::xshard_destroy (state=0x7ffff621e780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188939) exited normally]",
+      "TRACE_INSTRUCTIONS 2846"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-1s-UNLINK.log",
+    "bytes": 155890,
+    "sha256": "a404a90ea57f8163993981d6ca9c2e199909c854e5d8e765aed22af741c92f5d",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "1TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "4\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188948) exited normally]",
+      "TRACE_INSTRUCTIONS 2768"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-2s-DEL.log",
+    "bytes": 155918,
+    "sha256": "72a98f657709f516d5c8e50a677374825152b0f534fc06be63004781c764ff52",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "ter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188885) exited normally]",
+      "TRACE_INSTRUCTIONS 2768"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-2s-MGET.log",
+    "bytes": 179837,
+    "sha256": "818fcb37221789dba227bd1cfc6940112435f863f8ad55b7bcf826f6b4ec1fe7",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6219780, this=0x7ffffffda030) at src/cmd/xshard.cc:1588",
+      "0x000055555594207c in tomo::xshard_destroy (state=0x7ffff6219780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188879) exited normally]",
+      "TRACE_INSTRUCTIONS 2997"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-2s-MSET.log",
+    "bytes": 158524,
+    "sha256": "20ffe9ea8f8cc57934fd36fc452a34b5dbaa97dfea010d095fb29e5bfc5f54fe",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff621e780, this=0x7ffffffda030) at src/cmd/xshard.cc:1588",
+      "0x000055555594207c in tomo::xshard_destroy (state=0x7ffff621e780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2309",
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188880) exited normally]",
+      "TRACE_INSTRUCTIONS 2806"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/post-normal-2s-UNLINK.log",
+    "bytes": 155930,
+    "sha256": "f4187de3eb47b6da02823b81ffab1ee9d748c1efa91581d1b09926250625197a",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ea0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x3a5eb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6ca9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x000055555594207d\t0x000055555594207e\t0x0000555555942080\t0x0000555555942082\t0x0000555555942084\t0x00005555555a6e50 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a6e5b\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a6e62\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188888) exited normally]",
+      "TRACE_INSTRUCTIONS 2768"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-1s-DEL.log",
+    "bytes": 162555,
+    "sha256": "b1854a260d10cdb9026a94a995eb1baed8282b0e12663d74c19586b0c7458c5b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188125) exited normally]",
+      "TRACE_INSTRUCTIONS 2850"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-1s-MGET.log",
+    "bytes": 187485,
+    "sha256": "380dbb6c0567ac46a640a49d2436bcf93bc8913211d248feb2c8f514412d5b7a",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4187884) exited normally]",
+      "TRACE_INSTRUCTIONS 3087"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-1s-MSET.log",
+    "bytes": 167151,
+    "sha256": "1115c1b185de9f978e2d4f1d51e88e065e6ba8ab73d32fab4883756e0f84bbdd",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d9780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d9780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188007) exited normally]",
+      "TRACE_INSTRUCTIONS 2933"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-1s-UNLINK.log",
+    "bytes": 162567,
+    "sha256": "3409e3c4f57f4bb72cde109e9af0f39761b249376996fdb4b14213e6fcd98b48",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4188088) exited normally]",
+      "TRACE_INSTRUCTIONS 2850"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-2s-DEL.log",
+    "bytes": 162595,
+    "sha256": "e4335e40823e15de4b30483d9434b70f0ddab1012181a623d866465f7f1d4bb8",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186340) exited normally]",
+      "TRACE_INSTRUCTIONS 2850"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-2s-MGET.log",
+    "bytes": 187527,
+    "sha256": "f7899152f4ee40571e1f25e8c5384168535165ea976d19e3474858cf69fb364c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186334) exited normally]",
+      "TRACE_INSTRUCTIONS 3087"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-2s-MSET.log",
+    "bytes": 164285,
+    "sha256": "0cd8c4ee08741c38428a59af4adf7b696a0a3ea76286f7eb849288337afb26b7",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\tTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186337) exited normally]",
+      "TRACE_INSTRUCTIONS 2898"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-db0-2s-UNLINK.log",
+    "bytes": 162607,
+    "sha256": "fcad960cc2eb5791c84a1811c018dd1936f4374ddc58aea6bb1b0decb5a14d4b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x397010: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x397020: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a5a\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffe21f0) at src/cmd/xshard.cc:1532",
+      "0x00005555555e6b9c in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x00005555555e6b9d\t0x00005555555e6b9e\t0x00005555555e6ba0\t0x00005555555e6ba2\t0x00005555555e6ba4\t0x00005555555a5bfc in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5c07\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5c0e\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186343) exited normally]",
+      "TRACE_INSTRUCTIONS 2850"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-1s-DEL.log",
+    "bytes": 160030,
+    "sha256": "658dfe247c0af110bb2a272d579b7f409d014db66b44eb2e13c1bdba57bdec9b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "fix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186274) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-1s-MGET.log",
+    "bytes": 184157,
+    "sha256": "56965477a69c6679c95c216de13744a23d6cd0f4517c6473510a1b47cca523ba",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6219780, this=0x7ffffffe2070) at src/cmd/xshard.cc:1532",
+      "0x0000555555930b9c in tomo::xshard_destroy (state=0x7ffff6219780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186280) exited normally]",
+      "TRACE_INSTRUCTIONS 3027"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-1s-MSET.log",
+    "bytes": 165594,
+    "sha256": "3997e726b638a114800ec50b1e94c15888a8576426ce3b39bdff99d8cdc8aa9c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff621e780, this=0x7ffffffe2070) at src/cmd/xshard.cc:1532",
+      "0x0000555555930b9c in tomo::xshard_destroy (state=0x7ffff621e780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186281) exited normally]",
+      "TRACE_INSTRUCTIONS 2866"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-1s-UNLINK.log",
+    "bytes": 160042,
+    "sha256": "f1c62f19c93b20f942f332ff5356a24560e3097a355d33be50cab26b910def76",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "fix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186276) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-2s-DEL.log",
+    "bytes": 160070,
+    "sha256": "b80bd1a70952be34202f61046031976edef7f9026841e2aedeff67ae6748b63c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () aTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "t /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186218) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-2s-MGET.log",
+    "bytes": 184199,
+    "sha256": "b97213b3062eec59bbbcf5e596bf9b4fbdf7bf4fbbda7b8bd52cf3ec019cf217",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff6219780, this=0x7ffffffe2070) at src/cmd/xshard.cc:1532",
+      "0x0000555555930b9c in tomo::xshard_destroy (state=0x7ffff6219780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186217) exited normally]",
+      "TRACE_INSTRUCTIONS 3027"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-2s-MSET.log",
+    "bytes": 162676,
+    "sha256": "b39dd42a7c58fd43e793f615fd5970c18ef386278a6de9acb81212c9be02fb73",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "tomo::ScatterArenaPool::release (pooled=true, ptr=0x7ffff621e780, this=0x7ffffffe2070) at src/cmd/xshard.cc:1532",
+      "0x0000555555930b9c in tomo::xshard_destroy (state=0x7ffff621e780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2244",
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186211) exited normally]",
+      "TRACE_INSTRUCTIONS 2831"
+    ]
+  },
+  {
+    "path": "paths-final2c/read/pre-normal-2s-UNLINK.log",
+    "bytes": 160082,
+    "sha256": "6ce374927aa22df996bdc0ebc09e2e11e23ea2b6acb773a070c5e2c685ab55cc",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396f40: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 13.",
+      "Breakpoint 2 at 0x396f50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5af9\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "0x0000555555930b9d\t0x0000555555930b9e\t0x0000555555930ba0\t0x0000555555930ba2\t0x0000555555930ba4\t0x00005555555a5ca0 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:86",
+      "86\t    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);",
+      "87\t    scatter_trace_end();",
+      "0x00005555555a5cab\t95\t            ? \":0\\r\\n\" : \"*0\\r\\n\";",
+      "0x00005555555a5cb2\t87\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production ordinary scatter execution",
+      "ace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-read.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186214) exited normally]",
+      "TRACE_INSTRUCTIONS 2793"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-1s-GET.log",
+    "bytes": 23314,
+    "sha256": "340b8b9ca7ef2c5e8b98f544a2ac609557550dde4e80bec7ab791c7c59b5dbeb",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192553) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-1s-MGET.log",
+    "bytes": 24378,
+    "sha256": "3e78904ff4a94a037c50309ecdf6bfb0eca2b175e0f0e414538cdcb2f22d7e89",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192594) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-1s-MSET.log",
+    "bytes": 24378,
+    "sha256": "1ccc985ac28d12ea18886eb3bfe48862623d580eac9844c1521b2994d314f67e",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192593) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-1s-SET.log",
+    "bytes": 23314,
+    "sha256": "1b49b0bfd58b9229a528caa6c2ac345d933514f51e18d3eceeea25155c8b19d4",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192590) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-2s-GET.log",
+    "bytes": 23314,
+    "sha256": "aad6b30f24b8569afac0a243ec17a47044ad1dd24d822f0595981abd81e1f346",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192449) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-2s-MGET.log",
+    "bytes": 24378,
+    "sha256": "881acfc2e29c4011a615d0be66035776f78ff7e28df79d23d1a8aaae2fed706c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192476) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-2s-MSET.log",
+    "bytes": 24378,
+    "sha256": "367c388e08b2528632dec75b9c04188ed461b2a2dea30170c4ced6f8560cd151",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192479) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-db0-2s-SET.log",
+    "bytes": 23314,
+    "sha256": "68a08fa4a03b04d0dc49d62152ef82ac120930b23feccd6a23b8fa27f1898db6",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5d47\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f8a5e\t2114\t}",
+      "0x00005555555f8a60\t2114\t}",
+      "0x00005555555f8a62\t2114\t}",
+      "0x00005555555f8a64\t2114\t}",
+      "0x00005555555f8a65\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192473) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-1s-GET.log",
+    "bytes": 23150,
+    "sha256": "a8b105ad421b408760dc5dcc99ee52a3e0cbef6f0e98ab822b283acfe27f8caa",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192390) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-1s-MGET.log",
+    "bytes": 24206,
+    "sha256": "22ebccf25ab2a2c90fb21013202dde5193dd93d1e2dd8655b27429e65341d108",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192416) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-1s-MSET.log",
+    "bytes": 24296,
+    "sha256": "e69b0c7dbb98ebb8b9c313bf329afee27b6c43dbc35cfa10df3a4cd9f459c07a",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192419) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-1s-SET.log",
+    "bytes": 23150,
+    "sha256": "f2ac28ec73fc879c561056171dacc0e05823489da47a946763c92cab5fe1245b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4192413) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-2s-GET.log",
+    "bytes": 23150,
+    "sha256": "a856cefddfb2a896923561ba25bb311aac0c7b98600901342da1a0727833ba41",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189846) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-2s-MGET.log",
+    "bytes": 24206,
+    "sha256": "9a3c9d55e213114d20f67d405f626155be82fa343ffa0f48c6ffa265f7072fb7",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189979) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-2s-MSET.log",
+    "bytes": 24296,
+    "sha256": "2b783b460a60e904d6614a7843847508549fc9322109e451b5c39d138d73d16e",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189878) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/post-normal-2s-SET.log",
+    "bytes": 23150,
+    "sha256": "85733f3c2c13407f0c22dd91821121f505e11c6e36e1330a8d7404ca1de725ac",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a3ac0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x3a3ad0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a5e15\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x000055555595035e\t2114\t}",
+      "0x0000555555950360\t2114\t}",
+      "0x0000555555950362\t2114\t}",
+      "0x0000555555950364\t2114\t}",
+      "0x0000555555950365\t2114\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189860) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-1s-GET.log",
+    "bytes": 23314,
+    "sha256": "26e411fbfa9b26a91cfd3f5403cbf64216b77adf1390867167e017a3d14eaf1e",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189706) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-1s-MGET.log",
+    "bytes": 24378,
+    "sha256": "33ddc9f8b027fc570f28d962c1b5746796a237e45db0288d845e649498696d9c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189739) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-1s-MSET.log",
+    "bytes": 24378,
+    "sha256": "c61e328e880ce0f711cffc0babb5a26d090e2c2ad823ec9f67731044a3f9979b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189736) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-1s-SET.log",
+    "bytes": 23314,
+    "sha256": "6bede84606e9f7775d3ea7ec814ac64303292b700f186496355c66c0aa06f9bb",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189733) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-2s-GET.log",
+    "bytes": 23314,
+    "sha256": "46cc661ac65e029141e02688d310f72c59e359c18ec5827b4e0c3828580eca36",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189590) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-2s-MGET.log",
+    "bytes": 24378,
+    "sha256": "3212f350cc67b2f767e43b0bcbf9d56bbf9f0b4714f9151605a3c94ce4923739",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189596) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-2s-MSET.log",
+    "bytes": 24378,
+    "sha256": "d5044241d0fece687ce68c5292e97c84b789964d0d692ea47dceeca90451283c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189599) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-db0-2s-SET.log",
+    "bytes": 23314,
+    "sha256": "98420ba26b621e2d5243aa0485b63066f8c8fba36cc9addd62a61b0d6570609b",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394bf0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394c00: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4b97\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x00005555555f6e1e\t1737\t}",
+      "0x00005555555f6e20\t1737\t}",
+      "0x00005555555f6e22\t1737\t}",
+      "0x00005555555f6e24\t1737\t}",
+      "0x00005555555f6e25\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189593) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-1s-GET.log",
+    "bytes": 23150,
+    "sha256": "5e6544c056ec83f005c617cf068fc22edae72ba04c8b247d270ab2616b6d44b9",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189446) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-1s-MGET.log",
+    "bytes": 24206,
+    "sha256": "3a5adaa347252466bfb7d1567eed8874c413252c318c38caec582ebee2f786ea",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189455) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-1s-MSET.log",
+    "bytes": 24296,
+    "sha256": "8ea96b03db662079c732e15eff141e1b4e342ec7ca861c26c884d5c982eebd1c",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189452) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-1s-SET.log",
+    "bytes": 23150,
+    "sha256": "5451242caa6566398e28998badacd2a6eaed2e99847a08a8c8f53a557abd586f",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189449) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-2s-GET.log",
+    "bytes": 23150,
+    "sha256": "12737a998c7d6fdd2daaef06b297e8ef8633f619917a69b5e26943e087c5c8d4",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189257) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-2s-MGET.log",
+    "bytes": 24206,
+    "sha256": "b3d705f5fab126c1f027de23789c919a00f94251b0c08c04e5dbf5c529edbbe6",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189263) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-2s-MSET.log",
+    "bytes": 24296,
+    "sha256": "aef3f50dc63e8a0134293671ece2118910996bae915ad4cbea14e9cfc524cc9d",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189266) exited normally]",
+      "TRACE_INSTRUCTIONS 214"
+    ]
+  },
+  {
+    "path": "paths-final2c/session/pre-normal-2s-SET.log",
+    "bytes": 23150,
+    "sha256": "c02ae8922555d4f183ec571095dfa935543773e78b137acba29ab714f3e72bf7",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x394b50: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 11.",
+      "Breakpoint 2 at 0x394b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc, line 12.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:11",
+      "11\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:28",
+      "28\t auto result=multi_handle_io(server,client,op,0,state);",
+      "0x00005555555a4c55\t28\t auto result=multi_handle_io(server,client,op,0,state);"
+    ],
+    "tail": [
+      "0x0000555555940b9e\t1737\t}",
+      "0x0000555555940ba0\t1737\t}",
+      "0x0000555555940ba2\t1737\t}",
+      "0x0000555555940ba4\t1737\t}",
+      "0x0000555555940ba5\t1737\t}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:29",
+      "29\t scatter_trace_end();require(result==MultiIoAction::NotHandled&&!state);",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-session.cc:12",
+      "12\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 4189258) exited normally]",
+      "TRACE_INSTRUCTIONS 202"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/post-db0-1s-XREADGROUP.log",
+    "bytes": 80819,
+    "sha256": "1d3fffdb3f49675b4f93f843f6676b64510481fb15a648fe4c2f94ed7dd0cbe0",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ab0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x3a5ac0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6bcf\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a6c17 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c1e\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c23\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c25 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186122) exited normally]",
+      "TRACE_INSTRUCTIONS 1636"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/post-db0-2s-XREADGROUP.log",
+    "bytes": 80819,
+    "sha256": "ace822c53b3ed419f75da71e544d61c453ee65bf71423b9788cf07c0e1eb06a4",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5ab0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x3a5ac0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6bcf\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a6c17 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c1e\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c23\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6c25 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186121) exited normally]",
+      "TRACE_INSTRUCTIONS 1636"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/post-normal-1s-XREADGROUP.log",
+    "bytes": 77444,
+    "sha256": "152716c60884b4a2803677c882f60f7b489ef81510cf7a06fb589ec545c21e3f",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5a00: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x3a5a10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c8e\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a6cd6 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6cdd\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6ce2\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6ce4 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186120) exited normally]",
+      "TRACE_INSTRUCTIONS 1622"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/post-normal-2s-XREADGROUP.log",
+    "bytes": 77444,
+    "sha256": "7de09872c619fc1608208a525c63c3fd0ac1ed9d5af3f6459679b19711d109eb",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x3a5a00: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x3a5a10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a6c8e\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a6cd6 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6cdd\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6ce2\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a6ce4 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186124) exited normally]",
+      "TRACE_INSTRUCTIONS 1622"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/pre-db0-1s-XREADGROUP.log",
+    "bytes": 83110,
+    "sha256": "5bdec7aeee07c3ec6e4f82f3d076509b86eefe0bbe801db4b9a99cc9efc913d3",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396b50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x396b60: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a1f\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a5a67 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a6e\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a73\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a75 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186053) exited normally]",
+      "TRACE_INSTRUCTIONS 1690"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/pre-db0-2s-XREADGROUP.log",
+    "bytes": 83110,
+    "sha256": "e5398ec7f6e48805fcae457d33e341b282fb15947a687f2ae796963cd2623d89",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396b50: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x396b60: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5a1f\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a5a67 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a6e\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a73\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5a75 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186050) exited normally]",
+      "TRACE_INSTRUCTIONS 1690"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/pre-normal-1s-XREADGROUP.log",
+    "bytes": 80660,
+    "sha256": "d9aea196df2af094ab91402cd67c611942488a6afa41484f2a24a1a427dde73f",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396aa0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x396ab0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5ade\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a5b26 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b2d\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b32\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b34 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186055) exited normally]",
+      "TRACE_INSTRUCTIONS 1643"
+    ]
+  },
+  {
+    "path": "paths-final2c/stream/pre-normal-2s-XREADGROUP.log",
+    "bytes": 80660,
+    "sha256": "b819e1fcc5197b2ea4f652c40a0d26ed5a36b21ed4f253433be02b6f826834b3",
+    "reason": "raw debugger instruction trace; named counts retained separately",
+    "head": [
+      "Breakpoint 1 at 0x396aa0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 13.",
+      "Breakpoint 2 at 0x396ab0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/../net/conn.h:631",
+      "631\t    uint64_t id() const { return id_; }",
+      "0x00005555555a5ade\t631\t    uint64_t id() const { return id_; }"
+    ],
+    "tail": [
+      "77\t    scatter_trace_end();",
+      "0x00005555555a5b26 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86",
+      "86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b2d\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b32\t86\t  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());",
+      "0x00005555555a5b34 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:77",
+      "77\t    scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-stream.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 4186054) exited normally]",
+      "TRACE_INSTRUCTIONS 1643"
+    ]
+  }
+]

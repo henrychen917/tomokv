@@ -1,0 +1,39 @@
+{
+  "name": "final-directed",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-87",
+    "--load-cores",
+    "88-95",
+    "--ports",
+    "19800-19899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix/docs/iofix/gate_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-iofix",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv",
+  "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "jobs": [
+    "iofix-deferred",
+    "iofix-hz",
+    "iofix-sleep",
+    "iofix-signal",
+    "wb_rule_units",
+    "wbland_units",
+    "splitlocal_units",
+    "netcmd_units",
+    "config_unit",
+    "boot_grammar",
+    "auth",
+    "atomic_units",
+    "reorder_sync"
+  ],
+  "engine": "",
+  "mode": "",
+  "force_engine": false,
+  "expected_exit": 0,
+  "actual_exit": 0,
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.PHoa8J"
+}

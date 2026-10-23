@@ -1,0 +1,198 @@
+{
+  "source_sha256": "2312c8f85c0dea5b5ba6e3ad2a3342b0f94482771a6c4f16cc2fb6c6e432c1a8",
+  "object": "db0/src/cmd/xshard.o",
+  "pre_sha256": "ba764655225d131edcc1d5e2935b0d227a821d50d20c849777e6239fb20a9a93",
+  "budget": 136800,
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=132900",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnfix2/budgets/db0_src_cmd_xshard.o/136800.o",
+    "-g0",
+    "--param",
+    "large-unit-insns=136800"
+  ],
+  "rows": [
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD2Ev",
+      "pre_size": 209,
+      "post_size": 209,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD1Ev",
+      "pre_size": 209,
+      "post_size": 209,
+      "equal": true
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+      "pre_size": 1190,
+      "post_size": 1190,
+      "equal": true
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEjijRT_b",
+      "pre_size": 1422,
+      "post_size": 1422,
+      "equal": true
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb1EEEDav",
+      "pre_size": 1094,
+      "post_size": 1094,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlmNS_5SliceEbE_clEmS7_b",
+      "pre_size": 228,
+      "post_size": 228,
+      "equal": true
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb0EEEDav",
+      "pre_size": 1133,
+      "post_size": 1133,
+      "equal": true
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0",
+      "pre_size": 2219,
+      "post_size": 2219,
+      "equal": true
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0.cold",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+      "pre_size": 408,
+      "post_size": 370,
+      "equal": false
+    },
+    {
+      "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+      "symbol": "_ZNK8tomo_db09FlatStore7find_inEimNS_5SliceE",
+      "pre_size": 554,
+      "post_size": 554,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+      "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
+      "pre_size": 732,
+      "post_size": 732,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+      "pre_size": 1602,
+      "post_size": 1602,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore11insert_intoEimPNS_5KvObjEb",
+      "pre_size": 975,
+      "post_size": 975,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
+      "symbol": "_ZN8tomo_db09FlatStore8erase_inEimNS_5SliceEPb",
+      "pre_size": 692,
+      "post_size": 692,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+      "symbol": "_ZN8tomo_db09FlatStore5eraseEmNS_5SliceE",
+      "pre_size": 543,
+      "post_size": 543,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)",
+      "symbol": "_ZN8tomo_db09FlatStore17insert_read_localEmPNS_5KvObjE",
+      "pre_size": 1287,
+      "post_size": 1287,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+      "symbol": "_ZN8tomo_db09FlatStore12erase_notifyEmNS_5SliceEPNS_14FlatNotifySinkENS0_10EraseEventE",
+      "pre_size": 933,
+      "post_size": 933,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)",
+      "symbol": "_ZN8tomo_db09FlatStore6insertEmPNS_5KvObjE",
+      "pre_size": 1033,
+      "post_size": 1033,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)",
+      "symbol": "_ZN8tomo_db09FlatStore13insert_notifyEmPNS_5KvObjEPNS_14FlatNotifySinkE",
+      "pre_size": 941,
+      "post_size": 941,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+      "symbol": "_ZN8tomo_db09FlatStore4findEmNS_5SliceE",
+      "pre_size": 1017,
+      "post_size": 1017,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+      "symbol": "_ZN8tomo_db09FlatStore11find_notifyEmNS_5SliceEPNS_14FlatNotifySinkE",
+      "pre_size": 942,
+      "post_size": 942,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+      "pre_size": 23329,
+      "post_size": 23006,
+      "equal": false
+    }
+  ],
+  "changed": 2
+}

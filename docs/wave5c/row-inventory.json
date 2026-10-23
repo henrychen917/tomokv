@@ -1,0 +1,12 @@
+{
+  "required_quick": 739,
+  "required_full": 756,
+  "fixture_count": 756,
+  "protected_constants": [
+    "EXPECT_QUICK=685",
+    "EXPECT_FULL=702                 # ABBA reports only; self-test remains counted."
+  ],
+  "constants_unchanged": true,
+  "labels_match": true,
+  "new_rows": 0
+}

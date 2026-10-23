@@ -1,0 +1,39 @@
+{
+  "index": 175,
+  "name": "post-2s-a0",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "post-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "tests/txnfix_audit/t19_crossed_watch.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+      "--port",
+      "27801",
+      "--cores",
+      "64-71",
+      "--mode",
+      "2s",
+      "--atomic",
+      "0",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-cross-watch/post-2s-a0"
+    ],
+    "family": "final4-cross-watch",
+    "source_parameters": "docs/txnfix/txnfix3/final4-cross-watch/runs.json",
+    "status": "PENDING owner run on final SHA",
+    "arm": "post"
+  },
+  "started": 1792670459.076872,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "d2c95f883c66e049ed87823afc31d7b7c833ab34f85acb7c12b38a61254aad33",
+  "returncode": 0,
+  "finished": 1792670459.7542722
+}

@@ -1,0 +1,47 @@
+PARTIAL	0	GATE_ONLY_JOBS=auth snapshot-uring snapshot-epoll notify; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	0.650000	snapshot concurrent cut (epoll)
+ok	0.220000	snapshot cut reload (epoll)
+ok	2.650000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.310000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.150000	typed snapshot preimage race (epoll)
+ok	0.070000	typed snapshot race reload (epoll)
+ok	0.610000	shutdown keeps acknowledged writes (1s, sigterm, epoll)
+ok	0.610000	shutdown keeps acknowledged writes (1s, command, epoll)
+ok	0.760000	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+ok	0.740000	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+ok	0.630000	shutdown keeps acknowledged writes (2s, sigterm, epoll)
+ok	0.630000	shutdown keeps acknowledged writes (2s, command, epoll)
+ok	0.810000	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+ok	0.840000	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+ok	0.640000	snapshot concurrent cut (uring)
+ok	0.210000	snapshot cut reload (uring)
+ok	2.650000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.290000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.040000	typed snapshot save (uring)
+ok	0.040000	typed snapshot reload (uring)
+ok	0.150000	typed snapshot preimage race (uring)
+ok	0.060000	typed snapshot race reload (uring)
+ok	0.600000	shutdown keeps acknowledged writes (1s, sigterm, uring)
+ok	0.590000	shutdown keeps acknowledged writes (1s, command, uring)
+ok	0.740000	shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+ok	0.740000	shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+ok	0.620000	shutdown keeps acknowledged writes (2s, sigterm, uring)
+ok	0.600000	shutdown keeps acknowledged writes (2s, command, uring)
+ok	0.860000	shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+ok	0.830000	shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+ok	0.030000	reject bad protected-mode
+ok	0.030000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.040000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	2.450000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream
+ok	2.070000	MULTI feature battery
+ok	1.610000	blocking feature battery
+ok	0.890000	pubsub feature battery
+ok	0.020000	Lua feature battery
+ok	22.680000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants

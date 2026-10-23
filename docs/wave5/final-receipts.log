@@ -1,0 +1,456 @@
+{
+  "binary_sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+  "cohorts": [
+    {
+      "name": "correctness-landing",
+      "rows": 741,
+      "jobs": [
+        "acl_metadata",
+        "acl_recheck",
+        "aclfix",
+        "aof-epoll",
+        "aof-uring",
+        "aof_frame",
+        "aoforder",
+        "asan",
+        "asan_batteries",
+        "atomic_units",
+        "auth",
+        "authfix",
+        "boot_grammar",
+        "bplus",
+        "bugs5",
+        "clientfix",
+        "climonfix",
+        "cmd_metadata",
+        "compat2",
+        "compat3",
+        "config_unit",
+        "core_units",
+        "dbdefault",
+        "debug-0",
+        "debug-1",
+        "dump_restore",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "exbatch_live",
+        "exbatch_units",
+        "feature-armed-0",
+        "feature-armed-1",
+        "feature-cell-1s-0-0-0-0",
+        "feature-cell-1s-0-0-0-1",
+        "feature-cell-1s-0-0-1-0",
+        "feature-cell-1s-0-0-1-1",
+        "feature-cell-1s-0-1-0-0",
+        "feature-cell-1s-0-1-0-1",
+        "feature-cell-1s-0-1-1-0",
+        "feature-cell-1s-0-1-1-1",
+        "feature-cell-1s-1-0-0-0",
+        "feature-cell-1s-1-0-0-1",
+        "feature-cell-1s-1-0-1-0",
+        "feature-cell-1s-1-0-1-1",
+        "feature-cell-1s-1-1-0-0",
+        "feature-cell-1s-1-1-0-1",
+        "feature-cell-1s-1-1-1-0",
+        "feature-cell-1s-1-1-1-1",
+        "feature-cell-2s-0-0-0-0",
+        "feature-cell-2s-0-0-0-1",
+        "feature-cell-2s-0-0-1-0",
+        "feature-cell-2s-0-0-1-1",
+        "feature-cell-2s-0-1-0-0",
+        "feature-cell-2s-0-1-0-1",
+        "feature-cell-2s-0-1-1-0",
+        "feature-cell-2s-0-1-1-1",
+        "feature-cell-2s-1-0-0-0",
+        "feature-cell-2s-1-0-0-1",
+        "feature-cell-2s-1-0-1-0",
+        "feature-cell-2s-1-0-1-1",
+        "feature-cell-2s-1-1-0-0",
+        "feature-cell-2s-1-1-0-1",
+        "feature-cell-2s-1-1-1-0",
+        "feature-cell-2s-1-1-1-1",
+        "feature-cell-fused-home-max-nopin",
+        "feature-cell-split-home-min",
+        "feature-cell-split-shards-auto",
+        "feature-split-0",
+        "feature-split-1",
+        "filter_unit",
+        "flip",
+        "flip_saturated",
+        "flip_unit",
+        "flipctl",
+        "flipfix_units",
+        "fliplisten",
+        "fused-0",
+        "fused-1",
+        "globcase",
+        "hexpread",
+        "iofix-deferred",
+        "iofix-hz",
+        "iofix-signal",
+        "iofix-sleep",
+        "lb-stationary-1s",
+        "lb-stationary-2s",
+        "lbplanner_units",
+        "moverfix",
+        "multidb-1s-0-0",
+        "multidb-1s-0-1",
+        "multidb-1s-1-0",
+        "multidb-1s-1-1",
+        "multidb-2s-0-0",
+        "multidb-2s-0-1",
+        "multidb-2s-1-0",
+        "multidb-2s-1-1",
+        "netcap",
+        "netcmd_units",
+        "netfix_config",
+        "netfix_idle_buffers",
+        "netfix_query_stats",
+        "netfix_tls",
+        "netfix_unix",
+        "netio-1s",
+        "netio-2s",
+        "notify",
+        "notify_aof",
+        "notify_order",
+        "ntfix_input",
+        "ntnew4_live",
+        "perfex_live",
+        "perfex_units",
+        "persistfix_units",
+        "racefix_climon",
+        "racefix_counters",
+        "readonly",
+        "release",
+        "release_batteries",
+        "reorder_engagement",
+        "reorder_identity",
+        "reorder_sync",
+        "replyoff",
+        "respcompat",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-2s-epoll",
+        "respresume-neighbour-2s-uring",
+        "ring_unit",
+        "rlcache",
+        "rldbg",
+        "script_bounds",
+        "scriptfix",
+        "snapshot-epoll",
+        "snapshot-uring",
+        "sort",
+        "splitlocal_units",
+        "storage_units",
+        "tls",
+        "trackfix_accounting",
+        "trackfix_order",
+        "txn_group_fused",
+        "txn_group_split",
+        "txnorder-fused-0",
+        "txnorder-fused-1",
+        "txnorder-split-0",
+        "txnorder-split-1",
+        "txnorder2",
+        "txnorder_wake",
+        "wait_units",
+        "wb_policy",
+        "wb_rule_units",
+        "wbland_units",
+        "zc"
+      ],
+      "elapsed": 2324.561780691147,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "differ-uring",
+      "rows": 6,
+      "jobs": [
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence",
+        "differ-split-0",
+        "differ-split-1",
+        "release"
+      ],
+      "elapsed": 2289.6554584503174,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "differ-epoll",
+      "rows": 6,
+      "jobs": [
+        "differ-armed-0",
+        "differ-armed-1",
+        "differ-equivalence",
+        "differ-split-0",
+        "differ-split-1",
+        "release"
+      ],
+      "elapsed": 2168.0654838085175,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "supplement-epoll",
+      "rows": 200,
+      "jobs": [
+        "auth",
+        "feature-armed-0",
+        "feature-armed-1",
+        "feature-split-0",
+        "feature-split-1",
+        "fused-0",
+        "fused-1",
+        "notify",
+        "release",
+        "script_bounds",
+        "scriptfix",
+        "tls"
+      ],
+      "elapsed": 664.9229645729065,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "supplement-fused-uring",
+      "rows": 72,
+      "jobs": [
+        "auth",
+        "dump_restore",
+        "globcase",
+        "notify",
+        "release",
+        "script_bounds",
+        "snapshot-epoll",
+        "snapshot-uring",
+        "tls"
+      ],
+      "elapsed": 168.6500849723816,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "supplement-fused-epoll",
+      "rows": 40,
+      "jobs": [
+        "auth",
+        "dump_restore",
+        "globcase",
+        "notify",
+        "release",
+        "script_bounds",
+        "tls"
+      ],
+      "elapsed": 110.16270804405212,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "bounded-uring",
+      "rows": 7,
+      "jobs": [
+        "atomic_batteries",
+        "perfio_stream",
+        "release"
+      ],
+      "elapsed": 45.81815457344055,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "bounded-epoll",
+      "rows": 5,
+      "jobs": [
+        "atomic_batteries",
+        "release"
+      ],
+      "elapsed": 44.39764642715454,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "bounded-fused-uring",
+      "rows": 5,
+      "jobs": [
+        "atomic_batteries",
+        "release"
+      ],
+      "elapsed": 37.080148220062256,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "bounded-fused-epoll",
+      "rows": 5,
+      "jobs": [
+        "atomic_batteries",
+        "release"
+      ],
+      "elapsed": 37.14812707901001,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    },
+    {
+      "name": "abba-quiet",
+      "rows": 1,
+      "jobs": [
+        "abba_selftest"
+      ],
+      "elapsed": 893.2584085464478,
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+    }
+  ],
+  "passed_observations": 1088,
+  "distinct_jobs": 175,
+  "declared_fixture_rows": 757,
+  "covered_fixture_rows": 748,
+  "fixture_labels_without_literal_row": {
+    "expire-index growth bound": 1,
+    "borrow-registry growth bound": 1,
+    "cross-shard dispatch scaling": 1,
+    "atomic MGET/MSET floor (N/s >= 120k)": 1,
+    "tripwire arm/disarm round-trip": 1,
+    "pipelined same-conn program order (400 rolls)": 1,
+    "tailgen client-lb outstanding bound": 1,
+    "Redis 7.4 differential matrix": 1,
+    "Redis 7.4 differential matrix (armed fused + read-local)": 1
+  },
+  "aggregate_labels_represented_by_parts": {
+    "Redis 7.4 differential matrix": {
+      "parts": [
+        "differ-split-0",
+        "differ-split-1"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ]
+    },
+    "Redis 7.4 differential matrix (armed fused + read-local)": {
+      "parts": [
+        "differ-armed-0",
+        "differ-armed-1"
+      ],
+      "engines": [
+        "uring",
+        "epoll"
+      ]
+    }
+  },
+  "not_run_fixture_labels": {
+    "expire-index growth bound": 1,
+    "borrow-registry growth bound": 1,
+    "cross-shard dispatch scaling": 1,
+    "atomic MGET/MSET floor (N/s >= 120k)": 1,
+    "tripwire arm/disarm round-trip": 1,
+    "pipelined same-conn program order (400 rolls)": 1,
+    "tailgen client-lb outstanding bound": 1
+  },
+  "lane_added_rows": [
+    {
+      "lane": "txnfix",
+      "added_rows": 31,
+      "passing_labels": {
+        "fused txn_nx battery (atomic 0)": 1,
+        "fused txniso battery (atomic 0)": 1,
+        "fused txn_nx battery (atomic 1)": 1,
+        "fused txniso battery (atomic 1)": 1,
+        "fused txngroup battery (atomic 1)": 1,
+        "txn_nx battery (atomic 0)": 1,
+        "txniso battery (atomic 0)": 1,
+        "txn_nx battery (atomic 1)": 1,
+        "txniso battery (atomic 1)": 1,
+        "txngroup battery (atomic 1)": 1,
+        "txnorder2 writer episode R1": 1,
+        "txnorder2 writer episode R2": 1,
+        "txnorder2 writer episode R3": 1,
+        "txnorder2 writer episode R4": 1,
+        "txnorder2 writer episode R5": 1,
+        "txnorder2 writer episode R6": 1,
+        "txnorder2 writer episode R7": 1,
+        "txnorder2 writer episode R8": 1,
+        "txnorder2 writer episode R9": 1,
+        "txnorder2 writer episode R10": 1,
+        "txnorder2 writer episode R11": 1,
+        "txnorder2 writer episode R12": 1,
+        "txnorder2 direct RENAME owner join": 1,
+        "txnorder2 WATCH serve": 1,
+        "txnorder2 WATCH flush": 1,
+        "txnorder2 WATCH readonly": 1,
+        "txnorder2 busy owner inbox wake": 1,
+        "txnorder battery (fused, atomic 0)": 1,
+        "txnorder battery (fused, atomic 1)": 1,
+        "txnorder battery (split, atomic 0)": 1,
+        "txnorder battery (split, atomic 1)": 1
+      }
+    },
+    {
+      "lane": "bugs5",
+      "added_rows": 3,
+      "passing_labels": {
+        "bugs5 scancompact (both modes, both engines, atomic 0/1)": 1,
+        "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)": 1,
+        "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)": 1
+      }
+    },
+    {
+      "lane": "compat3",
+      "added_rows": 6,
+      "passing_labels": {
+        "compat3 CC4.12 pubsub vs Redis 7.4": 1,
+        "compat3 CC4.13 pending vs Redis 7.4": 1,
+        "compat3 CC4.14 history vs Redis 7.4": 1,
+        "compat3 CC4.16 grammar vs Redis 7.4": 1,
+        "compat3 CC4.5 glob vs Redis 7.4": 1,
+        "compat3 CC4.17 flags vs Redis 7.4": 1
+      }
+    },
+    {
+      "lane": "trackfix",
+      "added_rows": 2,
+      "passing_labels": {
+        "tracking delayed-write order vs Redis 7.4": 1,
+        "tracking-only delivery/drop accounting vs Redis 7.4": 1
+      }
+    },
+    {
+      "lane": "fliplisten",
+      "added_rows": 4,
+      "passing_labels": {
+        "FLIP listener conservation (io-ex, complete)": 1,
+        "FLIP listener conservation (io-ex, rollback)": 1,
+        "FLIP listener conservation (ex-io, complete)": 1,
+        "FLIP listener conservation (ex-io, rollback)": 1
+      }
+    },
+    {
+      "lane": "netfix",
+      "added_rows": 5,
+      "passing_labels": {
+        "netfix NT4.6 query-limit INFO parity": 1,
+        "netfix NT4.11 Unix pathname parity": 1,
+        "netfix NT4.8 network CONFIG error parity": 1,
+        "netfix NT4.7 TLS default cipher parity": 1,
+        "netfix NT4.19 idle buffer reclamation": 1
+      }
+    },
+    {
+      "lane": "iofix",
+      "added_rows": 4,
+      "passing_labels": {
+        "iofix WB4.1 deferred IO parks": 1,
+        "iofix IO4.9 Redis hz cron": 1,
+        "iofix IO4.10 global DEBUG SLEEP": 1,
+        "iofix IO4.17 immediate signal shutdown": 1
+      }
+    }
+  ],
+  "note": "Repeated mode/engine cohorts are observations, not new gate rows. Per-job label multiplicity uses the maximum observed in one cohort. Performance rows remain with the maintainer."
+}

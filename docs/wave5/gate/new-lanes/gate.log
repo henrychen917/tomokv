@@ -1,0 +1,56 @@
+GATE(full): 32 physical cores; 2 correctness slots = min(16/8 server, 16/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 16 server + 16 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave5/build/gate-run.breXug
+PARTIAL jobs (including prerequisites): release bugs5 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers compat3 trackfix_accounting trackfix_order fliplisten
+PARTIAL jobs (including prerequisites): release bugs5 iofix-deferred iofix-hz iofix-sleep iofix-signal netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers compat3 trackfix_accounting trackfix_order fliplisten
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; bugs5 scancompact (both modes, both engines, atomic 0/1)
+  bugs5 scancompact (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+  bugs5 slowlog_identity (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+  bugs5 read_local_lfu (both modes, both engines, atomic 0/1) ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/netfix_query_stats/proof.log)
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/netfix_config/proof.log)
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/netfix_tls/proof.log)
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/netfix_idle_buffers/proof.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.12 pubsub vs Redis 7.4
+  compat3 CC4.12 pubsub vs Redis 7.4                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.13 pending vs Redis 7.4
+  compat3 CC4.13 pending vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.14 history vs Redis 7.4
+  compat3 CC4.14 history vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.16 grammar vs Redis 7.4
+  compat3 CC4.16 grammar vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.5 glob vs Redis 7.4
+  compat3 CC4.5 glob vs Redis 7.4                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.17 flags vs Redis 7.4
+  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/compat3/flags-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; tracking-only delivery/drop accounting vs Redis 7.4
+  boot (fused)                                         FAIL (/home/user/Projects/cx-wave5/build/tomokv is not an executable)
+  tracking-only delivery/drop accounting vs Redis 7.4  FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/trackfix_accounting/order-*.log and /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/trackfix_accounting/oracle.log)
+  row budget: 900s; median=-s; no-history-conservative-default; tracking delayed-write order vs Redis 7.4
+  tracking delayed-write order vs Redis 7.4            ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, complete)
+  FLIP listener conservation (io-ex, complete)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, rollback)
+  FLIP listener conservation (io-ex, rollback)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, complete)
+  FLIP listener conservation (ex-io, complete)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, rollback)
+  FLIP listener conservation (ex-io, rollback)         FAIL (see /home/user/Projects/cx-wave5/build/gate-run.breXug/jobs/fliplisten/gate-fliplisten-ex-io-rollback.txt)
+GATE(PARTIAL): 18 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave5/docs/wave5/gate/new-lanes/ledger.partial

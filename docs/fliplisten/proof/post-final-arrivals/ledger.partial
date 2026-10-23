@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=fliplisten; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	27.360000	FLIP listener conservation (io-ex, complete)
+ok	26.710000	FLIP listener conservation (io-ex, rollback)
+ok	28.020000	FLIP listener conservation (ex-io, complete)
+ok	28.070000	FLIP listener conservation (ex-io, rollback)

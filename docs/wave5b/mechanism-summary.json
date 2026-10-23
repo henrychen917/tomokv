@@ -1,0 +1,434 @@
+[
+  {
+    "cohort": "attribution",
+    "arm": "post",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      98,
+      77,
+      106
+    ],
+    "median_per_request": {
+      "parks": 0.0048065185546875,
+      "parks_pending": 0.0007476806640625,
+      "resumes": 0.0048065185546875,
+      "resumes_pending": 0.0007476806640625,
+      "wakes": 0.02245330810546875,
+      "visits": 0.15032958984375,
+      "deferrals": 0.0191650390625,
+      "sends": 0.12714385986328125,
+      "completions": 0.1324005126953125
+    },
+    "sha256": "5cbf4b89da3a54b3f1a42eb4aed4c4335836f44be8615e55c3ffd3587f74ecb9"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "post",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      98,
+      81,
+      76
+    ],
+    "median_per_request": {
+      "parks": 0.00533294677734375,
+      "parks_pending": 0.00061798095703125,
+      "resumes": 0.00533294677734375,
+      "resumes_pending": 0.00061798095703125,
+      "wakes": 0.0234375,
+      "visits": 0.146484375,
+      "deferrals": 0.01634979248046875,
+      "sends": 0.12709808349609375,
+      "completions": 0.13159942626953125
+    },
+    "sha256": "5cbf4b89da3a54b3f1a42eb4aed4c4335836f44be8615e55c3ffd3587f74ecb9"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "post",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      114617,
+      114916,
+      112501
+    ],
+    "median_per_request": {
+      "parks": 0.8760604858398438,
+      "parks_pending": 0.8744583129882812,
+      "resumes": 0.8760604858398438,
+      "resumes_pending": 0.8744583129882812,
+      "wakes": 0.8224105834960938,
+      "visits": 29.85607147216797,
+      "deferrals": 29.08642578125,
+      "sends": 0.5955276489257812,
+      "completions": 0.9977264404296875
+    },
+    "sha256": "5cbf4b89da3a54b3f1a42eb4aed4c4335836f44be8615e55c3ffd3587f74ecb9"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "pre",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.003875732421875,
+      "parks_pending": 0.0,
+      "resumes": 0.003875732421875,
+      "resumes_pending": 0.0,
+      "wakes": 0.0118408203125,
+      "visits": 0.76971435546875,
+      "deferrals": 0.637481689453125,
+      "sends": 0.12767791748046875,
+      "completions": 0.13199615478515625
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "pre",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.003448486328125,
+      "parks_pending": 0.0,
+      "resumes": 0.003448486328125,
+      "resumes_pending": 0.0,
+      "wakes": 0.0163726806640625,
+      "visits": 1.3240966796875,
+      "deferrals": 1.190460205078125,
+      "sends": 0.12757110595703125,
+      "completions": 0.1329345703125
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "pre",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.0009002685546875,
+      "parks_pending": 0.0,
+      "resumes": 0.0009002685546875,
+      "resumes_pending": 0.0,
+      "wakes": 0.00067901611328125,
+      "visits": 1008.4259796142578,
+      "deferrals": 1003.057975769043,
+      "sends": 0.7332611083984375,
+      "completions": 0.9996795654296875
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "revert",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.00366973876953125,
+      "parks_pending": 0.0,
+      "resumes": 0.00366973876953125,
+      "resumes_pending": 0.0,
+      "wakes": 0.0164337158203125,
+      "visits": 0.9220733642578125,
+      "deferrals": 0.7886428833007812,
+      "sends": 0.12810516357421875,
+      "completions": 0.13329315185546875
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "revert",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.0040283203125,
+      "parks_pending": 0.0,
+      "resumes": 0.0040283203125,
+      "resumes_pending": 0.0,
+      "wakes": 0.0170135498046875,
+      "visits": 1.0808029174804688,
+      "deferrals": 0.94744873046875,
+      "sends": 0.1280670166015625,
+      "completions": 0.1331329345703125
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  },
+  {
+    "cohort": "attribution",
+    "arm": "revert",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.00208282470703125,
+      "parks_pending": 0.0,
+      "resumes": 0.00208282470703125,
+      "resumes_pending": 0.0,
+      "wakes": 0.00142669677734375,
+      "visits": 770.3010940551758,
+      "deferrals": 766.0379486083984,
+      "sends": 0.68292236328125,
+      "completions": 0.9913101196289062
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "adaptive",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      1,
+      0,
+      4
+    ],
+    "median_per_request": {
+      "parks": 0.0037994384765625,
+      "parks_pending": 7.62939453125e-06,
+      "resumes": 0.0037994384765625,
+      "resumes_pending": 7.62939453125e-06,
+      "wakes": 0.01915740966796875,
+      "visits": 1.0234451293945312,
+      "deferrals": 0.8904571533203125,
+      "sends": 0.127777099609375,
+      "completions": 0.13288116455078125
+    },
+    "sha256": "143a5de1ff133560f23e3c5ea8b06054df38f3ae2dd064a5ac3378495d14a5d9"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "adaptive",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      2,
+      1,
+      3
+    ],
+    "median_per_request": {
+      "parks": 0.00400543212890625,
+      "parks_pending": 1.52587890625e-05,
+      "resumes": 0.00400543212890625,
+      "resumes_pending": 1.52587890625e-05,
+      "wakes": 0.0178070068359375,
+      "visits": 0.71563720703125,
+      "deferrals": 0.5824508666992188,
+      "sends": 0.12812042236328125,
+      "completions": 0.133575439453125
+    },
+    "sha256": "143a5de1ff133560f23e3c5ea8b06054df38f3ae2dd064a5ac3378495d14a5d9"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "adaptive",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      135,
+      81,
+      32
+    ],
+    "median_per_request": {
+      "parks": 0.002197265625,
+      "parks_pending": 0.00061798095703125,
+      "resumes": 0.002197265625,
+      "resumes_pending": 0.00061798095703125,
+      "wakes": 0.0018157958984375,
+      "visits": 811.93115234375,
+      "deferrals": 807.451057434082,
+      "sends": 0.694915771484375,
+      "completions": 0.994964599609375
+    },
+    "sha256": "143a5de1ff133560f23e3c5ea8b06054df38f3ae2dd064a5ac3378495d14a5d9"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "pre",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.0034332275390625,
+      "parks_pending": 0.0,
+      "resumes": 0.0034332275390625,
+      "resumes_pending": 0.0,
+      "wakes": 0.015289306640625,
+      "visits": 0.773162841796875,
+      "deferrals": 0.6399078369140625,
+      "sends": 0.1279754638671875,
+      "completions": 0.1335906982421875
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "pre",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.0037384033203125,
+      "parks_pending": 0.0,
+      "resumes": 0.0037384033203125,
+      "resumes_pending": 0.0,
+      "wakes": 0.01119232177734375,
+      "visits": 0.6749801635742188,
+      "deferrals": 0.5427398681640625,
+      "sends": 0.12770843505859375,
+      "completions": 0.13243865966796875
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "pre",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.00174713134765625,
+      "parks_pending": 0.0,
+      "resumes": 0.00174713134765625,
+      "resumes_pending": 0.0,
+      "wakes": 0.00127410888671875,
+      "visits": 967.3573226928711,
+      "deferrals": 962.2921600341797,
+      "sends": 0.7341156005859375,
+      "completions": 0.9995269775390625
+    },
+    "sha256": "a5daf99658299bec9c364b0d69cd309788e0ab85e676f62d6fe45d23c4e2051c"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "revert",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.0035552978515625,
+      "parks_pending": 0.0,
+      "resumes": 0.0035552978515625,
+      "resumes_pending": 0.0,
+      "wakes": 0.0157928466796875,
+      "visits": 1.0939559936523438,
+      "deferrals": 0.960693359375,
+      "sends": 0.12769317626953125,
+      "completions": 0.1332855224609375
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "revert",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.00330352783203125,
+      "parks_pending": 0.0,
+      "resumes": 0.00330352783203125,
+      "resumes_pending": 0.0,
+      "wakes": 0.0151519775390625,
+      "visits": 0.8064727783203125,
+      "deferrals": 0.6727523803710938,
+      "sends": 0.128173828125,
+      "completions": 0.13381195068359375
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  },
+  {
+    "cohort": "adaptive-quiet",
+    "arm": "revert",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_per_repeat": 131072,
+    "raw_pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "median_per_request": {
+      "parks": 0.00112152099609375,
+      "parks_pending": 0.0,
+      "resumes": 0.00112152099609375,
+      "resumes_pending": 0.0,
+      "wakes": 0.0008697509765625,
+      "visits": 940.1247100830078,
+      "deferrals": 935.1127319335938,
+      "sends": 0.7391128540039062,
+      "completions": 0.9997329711914062
+    },
+    "sha256": "3d55db6e1c9688fd705a384c70c8ebafb775be7eb5b6420b806982ea284d5b97"
+  }
+]

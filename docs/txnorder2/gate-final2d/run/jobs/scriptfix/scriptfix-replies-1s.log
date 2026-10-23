@@ -1,0 +1,55 @@
+{"start": ["taskset", "-c", "64-71", "/home/user/Projects/cx-txnfix/build/tomokv", "--bind", "127.0.0.1", "--port", "27820", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-txnfix/build/gate-run.fkxL5a/jobs/scriptfix/scriptfix/replies-1s-trabh0sk", "--databases", "1", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--flip-auto", "0", "--atomic", "0", "--enable-debug-command", "yes"], "pid": 406180}
+{"actual": 10000, "check": "RESP2 array depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 array depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 21110, "check": "RESP2 map depth 4", "expected": 21110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 map depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP2 set depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 set depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 FCALL map bound", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 array budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 array budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 map budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 map budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 set budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP2 set budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP3 array depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 array depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 21110, "check": "RESP3 map depth 4", "expected": 21110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 map depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP3 set depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 set depth 5", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 FCALL map bound", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP3 array budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 array budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP3 map budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 map budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP3 set budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": {"error": "ERR Error running script: script reply has too many elements"}, "check": "RESP3 set budget 100001", "expected": {"error": "ERR Error running script: script reply has too many elements"}, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"stop": 406180, "exit": 0, "port_closed": true}
+{"case": "replies", "mode": "1s", "checks": 52, "failures": 0, "seconds": 0.666}

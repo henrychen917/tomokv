@@ -1,0 +1,112 @@
+[
+  {
+    "unit": "src/main.o",
+    "old": 147428,
+    "budget": 147428,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_main.o-post-147428.o"
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "old": 130241,
+    "budget": 130254,
+    "score": [
+      0,
+      5,
+      14
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_genthread.o-post-130254.o"
+  },
+  {
+    "unit": "src/core/rl2s.o",
+    "old": 162972,
+    "budget": 162972,
+    "score": [
+      4,
+      10,
+      19
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162972.o"
+  },
+  {
+    "unit": "src/core/reorder.o",
+    "old": 148006,
+    "budget": 148015,
+    "score": [
+      0,
+      3,
+      13
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_reorder.o-post-148015.o"
+  },
+  {
+    "unit": "src/cmd/xshard.o",
+    "old": 128705,
+    "budget": 128734,
+    "score": [
+      0,
+      12,
+      23
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_cmd_xshard.o-post-128734.o"
+  },
+  {
+    "unit": "db0/src/main.o",
+    "old": 147449,
+    "budget": 147449,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_main.o-post-147449.o"
+  },
+  {
+    "unit": "db0/src/core/genthread.o",
+    "old": 130360,
+    "budget": 130373,
+    "score": [
+      0,
+      6,
+      15
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_genthread.o-post-130373.o"
+  },
+  {
+    "unit": "db0/src/core/rl2s.o",
+    "old": 162334,
+    "budget": 162334,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_rl2s.o-post-162334.o"
+  },
+  {
+    "unit": "db0/src/core/reorder.o",
+    "old": 149000,
+    "budget": 149005,
+    "score": [
+      1,
+      8,
+      17
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149005.o"
+  },
+  {
+    "unit": "db0/src/cmd/xshard.o",
+    "old": 127713,
+    "budget": 127750,
+    "score": [
+      0,
+      11,
+      22
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_cmd_xshard.o-post-127750.o"
+  }
+]

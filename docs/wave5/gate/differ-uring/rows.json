@@ -1,0 +1,38 @@
+[
+  {
+    "job": "differ-armed-0",
+    "verdict": "ok",
+    "elapsed": "536.880000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+  },
+  {
+    "job": "differ-armed-1",
+    "verdict": "ok",
+    "elapsed": "528.940000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+  },
+  {
+    "job": "differ-equivalence",
+    "verdict": "ok",
+    "elapsed": "22.180000",
+    "label": "mode equivalence part (all execution modes and knobs)"
+  },
+  {
+    "job": "differ-split-0",
+    "verdict": "ok",
+    "elapsed": "658.080000",
+    "label": "Redis 7.4 differential part (split, atomic 0)"
+  },
+  {
+    "job": "differ-split-1",
+    "verdict": "ok",
+    "elapsed": "539.700000",
+    "label": "Redis 7.4 differential part (split, atomic 1)"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

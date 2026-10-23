@@ -1,0 +1,9 @@
+PARTIAL	0	GATE_ONLY_JOBS=auth; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.020000	reject bad protected-mode
+ok	0.020000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.030000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	0.970000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream

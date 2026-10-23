@@ -1,0 +1,415 @@
+{
+  "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+  "checks": [
+    {
+      "command": [
+        "make",
+        "-q",
+        "all"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+        "all"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+        "all"
+      ],
+      "returncode": 0,
+      "output": ""
+    }
+  ],
+  "rechecked_after_gate_cleanup": true
+}

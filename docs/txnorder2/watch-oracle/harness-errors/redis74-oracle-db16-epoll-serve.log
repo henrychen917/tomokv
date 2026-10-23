@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnorder_watch.py", line 70, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/txnorder_watch.py", line 58, in main
+    run(command[0]+' signalModifiedKey',
+  File "/home/user/Projects/cx-txnfix/tests/txnorder_watch.py", line 18, in run
+    with _lib.Conn(a.host,a.port) as watch:
+TypeError: 'Conn' object does not support the context manager protocol

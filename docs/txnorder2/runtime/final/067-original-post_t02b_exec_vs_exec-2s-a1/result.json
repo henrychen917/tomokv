@@ -1,0 +1,42 @@
+{
+  "index": 67,
+  "name": "original-post/t02b_exec_vs_exec-2s-a1",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "original-post/t02b_exec_vs_exec-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t02b_exec_vs_exec.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+      "--cores",
+      "64-71",
+      "--port",
+      "27801",
+      "--mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-proof/original-post/t02b_exec_vs_exec-2s-a1",
+      "1",
+      "2s",
+      "10"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792669802.1600466,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "d2c95f883c66e049ed87823afc31d7b7c833ab34f85acb7c12b38a61254aad33",
+  "returncode": 0,
+  "finished": 1792669808.5896275
+}

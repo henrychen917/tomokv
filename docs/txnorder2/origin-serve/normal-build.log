@@ -1,0 +1,8 @@
+In file included from /home/user/Projects/cx-txnfix/build/txnorder2/origin-serve/probe.cc:2:
+/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/tests/atomic_survivors_unit.cc: In function ‘int atomic_survivors_unused_main(int, char**)’:
+/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/tests/atomic_survivors_unit.cc:506:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  506 | }
+      | ^
+/usr/bin/ld: /home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/db0/src/core/version.o: in function `__wrap_main':
+/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/src/core/version.cc:21:(.text.unlikely+0x7a): undefined reference to `__real_main'
+collect2: error: ld returned 1 exit status

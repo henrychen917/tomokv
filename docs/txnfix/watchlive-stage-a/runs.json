@@ -1,0 +1,34 @@
+[
+  {
+    "mode": "2s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-2s"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-txnfix/build/tomokv --thread-mode 2s --ratio 6:2 --shards 16 --databases 16 --key-lb 0 --client-lb 0 --flip-auto 0 --save \"\" \"$@\"\n",
+    "exit_code": 3,
+    "seconds": 97.86255446076393
+  },
+  {
+    "mode": "1s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-1s"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-txnfix/build/tomokv --thread-mode 1s  --shards 16 --databases 16 --key-lb 0 --client-lb 0 --flip-auto 0 --save \"\" \"$@\"\n",
+    "exit_code": 2,
+    "seconds": 85.15341637190431
+  }
+]

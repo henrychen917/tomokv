@@ -1,0 +1,24 @@
+--- a/src/cmd/multi.inc
++++ b/src/cmd/multi.inc
+@@ -3145,7 +3145,11 @@
+                 if (found == watch_reservations_.end()) continue;
+                 for (const auto& holder : found->second) {
+                     if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
+-                    if (holder.entry_kind == 2) { ready = false; continue; }
++                    if (holder.entry_kind == 2) {
++                        // Existing older placements may finish; newer arrivals wait.
++                        if (own.age_ns > holder.writer_generation) ready = false;
++                        continue;
++                    }
+                     if (!holder.blocking && holder.entry_kind != 3) continue;
+                     if (key.mode == TxnClaimMode::Read &&
+                         holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
+@@ -3201,6 +3205,8 @@
+     WatchReservation mark;
+     mark.token = token;
+     mark.entry_kind = 2;
++    // Writer priority is stamped once and retained until the writer passes.
++    mark.writer_generation = now_ns();
+     if (!watch_append_reservation(owned, mark)) return false;
+     server_->note_txn(server_->worker_of_shard(id()), TxnCounter::WriterMarks);
+     return true;

@@ -1,0 +1,39 @@
+{
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "tools/lbstall_artifacts.py",
+        "compare",
+        "build/txnfix2/pre",
+        "build",
+        "docs/txnfix/txnfix3/identity-release/hot.json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "tools/ccfix_audit.py",
+        "build/txnfix2/pre",
+        "build",
+        "docs/txnfix/txnfix3/identity-release/full"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "python3",
+        "docs/deadswitch/linked_bytes.py",
+        "build/txnfix2/pre/tomokv",
+        "build/tomokv",
+        "docs/txnfix/txnfix3/identity-release/linked.json"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "sha256": {
+    "build/txnfix2/pre/tomokv": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20",
+    "build/tomokv": "a5b043c71974f4bda4472af265b036cd9f9345be071237df4bfc0777551dfe3f"
+  }
+}

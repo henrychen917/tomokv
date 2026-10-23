@@ -1,0 +1,30 @@
+[
+  {
+    "name": "infofields",
+    "command": [
+      "python3",
+      "tests/infofields_test.py"
+    ],
+    "exit": 0,
+    "seconds": 0.07935738563537598
+  },
+  {
+    "name": "ledger-source",
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "exit": 1,
+    "seconds": 0.09976458549499512
+  },
+  {
+    "name": "ledger-selftest",
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py",
+      "--self-test"
+    ],
+    "exit": 1,
+    "seconds": 0.558953046798706
+  }
+]

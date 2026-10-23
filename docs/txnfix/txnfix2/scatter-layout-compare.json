@@ -1,0 +1,42 @@
+{
+  "tomo::ScatterState": {
+    "pre_size": 896,
+    "post_size": 896,
+    "existing_fields_equal": true
+  },
+  "tomo::Shard::WatchReservation": {
+    "pre_size": 88,
+    "post_size": 88,
+    "existing_fields_equal": true
+  },
+  "tomo::MultiRetryNode": {
+    "pre_size": null,
+    "post_size": 32,
+    "existing_fields_equal": true
+  },
+  "tomo::MultiRetryLane": {
+    "pre_size": null,
+    "post_size": 64,
+    "existing_fields_equal": true
+  },
+  "tomo_db0::ScatterState": {
+    "pre_size": 896,
+    "post_size": 896,
+    "existing_fields_equal": true
+  },
+  "tomo_db0::Shard::WatchReservation": {
+    "pre_size": 88,
+    "post_size": 88,
+    "existing_fields_equal": true
+  },
+  "tomo_db0::MultiRetryNode": {
+    "pre_size": null,
+    "post_size": 32,
+    "existing_fields_equal": true
+  },
+  "tomo_db0::MultiRetryLane": {
+    "pre_size": null,
+    "post_size": 64,
+    "existing_fields_equal": true
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0
+  },
+  {
+    "arm": "PRE",
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0
+  },
+  {
+    "arm": "PRE",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 1
+  },
+  {
+    "arm": "PRE",
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0
+  }
+]

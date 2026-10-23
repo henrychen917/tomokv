@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=iofix-deferred; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	26.760000	iofix WB4.1 deferred IO parks

@@ -1,0 +1,39 @@
+  ok   geometry source-shard=0 destination-shard=1 owners=6/7
+xmove directed battery atomic=1
+  ok   clean slate
+  ok   LMOVE empty setup
+  ok   LMOVE empty source outranks wrong destination
+  ok   LMOVE single setup
+  ok   LMOVE single cross-owner reply
+  ok   LMOVE single deletes source
+  ok   LMOVE single creates destination
+  ok   LMOVE selected element
+  ok   LMOVE source mutation
+  ok   LMOVE destination mutation
+  ok   LMOVE wrong destination
+  ok   LMOVE wrong destination leaves source
+  ok   RPOPLPUSH empty source
+  ok   RPOPLPUSH single cross-owner reply
+  ok   RPOPLPUSH single deletes source
+  ok   RPOPLPUSH pushes destination left
+  ok   SMOVE wrong destination
+  ok   SMOVE wrong destination leaves source
+  ok   SMOVE empty source
+  ok   SMOVE single cross-owner reply
+  ok   SMOVE single deletes source
+  ok   SMOVE destination contains both members
+  ok   LMOVE same-key reply
+  ok   LMOVE same-key rotation
+  ok   RPOPLPUSH same-key reply
+  ok   RPOPLPUSH same-key rotation
+  ok   SMOVE same-key hit
+  ok   SMOVE same-key miss
+  ok   correctness mechanisms fired {'lmove': 3, 'rpoplpush': 2, 'smove': 2, 'errors': 2, 'same': 4}
+  ok   timing source size N=100
+  ok   timing destination size N=100
+  ok   timing source size N=10000
+  ok   timing destination size N=10000
+  info LMOVE N=100 35.8 us N=10000 1514.8 us ratio=42.28
+  skip atomic-on ratio bound: MVCC deep-candidate stage two is documented scope
+  skip concurrent inter-hop preservation: atomic-on mover stage two is documented scope
+PASS xmove atomic=1

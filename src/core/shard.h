@@ -42,6 +42,8 @@ namespace tomo {
 class Client;
 class Op;
 class Server;
+struct MultiExecState;
+struct TxnClaim;
 struct ShardLayoutLock;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
@@ -275,12 +277,15 @@ public:
         // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
         // now coexist on a key (the map holds a list) and block nobody.
         bool blocking = false;
+        uint8_t unit_kind = 0; // 1 EXEC, 2 read-dependent group
+        uint8_t unit_mode = 0; // TxnClaimMode
+        uint8_t entry_kind = 0; // 0 validation/dirty deferral, 1 claim, 2 writer, 3 waiter
         // A swap-containing EXEC can write the same physical key while it names
         // different logical databases. Keep the identities at each write, not
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
         std::array<uint64_t, 4> dirty_databases{};
     };
-    bool has_watches() const {
+    __attribute__((always_inline)) bool has_watches() const {
         TOMO_EXBATCH_TWIN(legacy, 3);
         return has_watches_;
     legacy:
@@ -295,15 +300,27 @@ public:
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,
                                     std::atomic<bool>* aborted,
-                                    std::atomic<uint32_t>* refs, bool mutates);
+                                    std::atomic<uint32_t>* refs, bool mutates,
+                                    MultiExecState* unit = nullptr, bool reserve = true);
     bool watch_write_ready(Slice key, const void* token = nullptr);
+    bool watch_group_write_ready(Slice key, const void* token = nullptr);
+    bool watch_key_ready(const std::string& key, const void* token, bool all_units);
+    bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
+                          WatchReservation unit);
+    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);
+    bool watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp);
+    uint64_t watch_writer_stamp(Slice key, const void* token, bool whole = false) const;
+    void watch_writer_forget(const void* token);
+    void watch_writer_check(Slice key, bool whole, uint64_t stamp);
+    void watch_writer_unmark(Slice key, const void* token, bool whole = false);
+    bool watch_txn_write_ready(Slice key, MultiExecState& state);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
     void watch_write_committed(Slice key, Client* writer = nullptr,
                                uint64_t writer_generation = 0);
-    bool watch_all_write_ready();
-    void watch_all_write_committed(int physical_db = -1);
+    bool watch_all_write_ready(const void* token = nullptr);
+    bool watch_flush(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
     void watch_prune_stale(const std::string& key);

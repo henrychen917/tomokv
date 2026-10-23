@@ -1,0 +1,39 @@
+set pagination off
+set confirm off
+set auto-load off
+set debuginfod enabled off
+set print thread-events off
+set disable-randomization on
+python
+import gdb,json,bisect,collections,struct,time
+ranges=json.load(open(RANGES_FILE));ranges.sort();anchor=ANCHOR
+begin=gdb.Breakpoint('scope_begin');end=gdb.Breakpoint('scope_end')
+gdb.execute(RUN_COMMAND,to_string=True)
+delta=int(gdb.parse_and_eval('(void*)&scope_begin'))-anchor
+for r in ranges:r[0]+=delta;r[1]+=delta
+starts=[r[0] for r in ranges]
+end_addr=int(gdb.parse_and_eval('(void*)&scope_end'))
+clock=int(gdb.parse_and_eval('(void*)clock_gettime'))
+begin.delete();gdb.execute('finish',to_string=True)
+pcs=collections.Counter();counts=collections.Counter();clocks=0
+start=time.time()
+for step in range(1000000):
+ pc=int(gdb.parse_and_eval('$pc'))
+ if pc==end_addr:break
+ if pc==clock:
+  # Single stepping must not turn a fast operation into a 10ms slowlog entry.
+  # Both arms get a 1us increment; call-site instructions are counted, the
+  # substituted clock body is not. No other helper or library is skipped.
+  ptr=int(gdb.parse_and_eval('$rsi'));clocks+=1
+  gdb.selected_inferior().write_memory(ptr,struct.pack('qq',1000,clocks*1000))
+  gdb.execute('return (int)0',to_string=True);continue
+ i=bisect.bisect_right(starts,pc)-1
+ f=ranges[i] if i>=0 and pc<ranges[i][1] else None
+ key=(f[2],pc-f[0]) if f else ('external',pc)
+ pcs[key]+=1;counts[f[2] if f else 'external']+=1
+ gdb.execute('stepi',to_string=True)
+else:raise RuntimeError('instruction trace bound exceeded')
+json.dump(dict(total=sum(counts.values()),counts=dict(counts),clock_calls=clocks,elapsed=time.time()-start,pcs=[[a,b,n] for (a,b),n in pcs.items()]),open(TRACE_FILE,'w'))
+end.delete();gdb.execute('continue',to_string=True)
+print('TRACE_INSTRUCTIONS',sum(counts.values()))
+end

@@ -1,0 +1,29 @@
+{
+  "removed": [
+    {
+      "path": "build/wave5b/pre/source/build",
+      "bytes": 743230928
+    },
+    {
+      "path": "build/wave5b/post/source/build",
+      "bytes": 794478856
+    },
+    {
+      "path": "build/wave5b/revert/source/build",
+      "bytes": 794585168
+    },
+    {
+      "path": "build/wave5b/adaptive/source/build",
+      "bytes": 794623072
+    },
+    {
+      "path": "build/wave5b/base-source/build",
+      "bytes": 794169712
+    },
+    {
+      "path": "build/wave5b/base-source/build-align",
+      "bytes": 794079344
+    }
+  ],
+  "retained": "release and trace ELFs, copied sources, production units/dependencies, indexed evidence; no other lane artifacts removed"
+}

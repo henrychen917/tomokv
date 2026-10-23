@@ -1,0 +1,4 @@
+anchored at 6:2 after 1 trigger(s) (0 of them fingerprint), 0 completed flip(s), 0 client transfer(s)
+negative: 45s of constant mix with sweeping parse-pass occupancy -- fingerprint_triggers=0 completed=0 transferred=0, anchor 6:2 (unmoved); worst mix distance = 0.0271 of its band; total triggers 1 -> 1
+positive: multi-key -> single-key GET drove the mix distance to 1.42x its band and the controller re-maneuvered and re-anchored at 6:2 (triggers 1 -> 2)
+ok: flip multi-key hold (183 checks)

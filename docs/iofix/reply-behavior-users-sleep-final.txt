@@ -1,0 +1,41 @@
+tests/differ.py:1960:            ["DEBUG", "SLEEP", "0"], ["EXEC"],
+tests/at15.py:91:    out.append(('sleep', transaction(connection, [['DEBUG', 'SLEEP', '0']])))
+tests/at15.py:110:                                      ['CONFIG', 'RESETSTAT'], ['DEBUG', 'SLEEP', '0']])
+tests/at15.py:141:    print('  AT15: INFO sections, DEBUG SLEEP, controls and admin replies agree (RESP%d)' % (3 if resp3 else 2))
+tests/pubsub.py:439:    # There is no applicable deterministic DEBUG hook: SLEEP pauses every IO/executor worker,
+tests/gate.sh:1763:  row_begin "iofix IO4.10 global DEBUG SLEEP"
+tests/gate.sh:1764:  iofix_legs sleep "iofix IO4.10 global DEBUG SLEEP"
+tests/iofix_sleep.py:25:        reply = c.cmd('DEBUG', 'SLEEP', value)
+tests/iofix_sleep.py:35:    for command in (('SET', 'iofix:order', 'before'), ('DEBUG', 'SLEEP', '.03'),
+tests/iofix_sleep.py:41:    # A disconnect does not cancel Redis's sleep, and DEBUG SLEEP isn't a blocked-client command.
+tests/iofix_sleep.py:44:    sleeper.send('DEBUG', 'SLEEP', '.35')
+tests/iofix_sleep.py:61:    c.send('DEBUG', 'SLEEP', '5')
+tests/iofix_sleep.py:76:    assert elapsed < .4, 'signal waited for DEBUG SLEEP to finish'
+tests/iofix_sleep.py:98:        assert c.cmd('DEBUG', 'SLEEP', '.5') == b'QUEUED'
+tests/iofix_sleep.py:100:    c.send(*(('EXEC',) if transaction else ('DEBUG', 'SLEEP', '.5')))
+tests/debug.py:79:expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
+tests/debug.py:81:# Redis 7.4 blocks every connection for DEBUG SLEEP, including another client on this IO.
+tests/debug.py:86:sleep_client.sock.sendall(frame("DEBUG", "SLEEP", ".5") + frame("PING"))
+tests/debug.py:89:expect(client.command("PING"), b"PONG", "other connection resumes after DEBUG SLEEP")
+tests/debug.py:91:    raise AssertionError("DEBUG SLEEP did not pause the other connection")
+tests/debug.py:92:expect(sleep_client.read(), b"OK", "DEBUG SLEEP reply")
+tests/debug.py:94:    raise AssertionError("DEBUG SLEEP deadline fired too early")
+tests/debug.py:95:expect(sleep_client.read(), b"PONG", "pipelined PING stayed behind DEBUG SLEEP")
+tests/debug.py:97:    raise AssertionError("DEBUG SLEEP changed blocked_clients")
+tests/debug.py:100:cancel_client.sock.sendall(frame("DEBUG", "SLEEP", ".5"))
+tests/debug.py:107:    raise AssertionError("disconnect cancelled DEBUG SLEEP")
+tests/debug.py:110:expect(client.command("DEBUG", "SLEEP", "1.01"), b"OK", "DEBUG SLEEP has no timeout ceiling")
+tests/debug.py:112:    raise AssertionError("DEBUG SLEEP above one second did not sleep")
+tests/debug.py:113:expect(client.command("MULTI"), b"OK", "MULTI before DEBUG SLEEP")
+tests/debug.py:114:expect(client.command("DEBUG", "SLEEP", ".01"), b"QUEUED", "queue DEBUG SLEEP")
+tests/debug.py:115:# Redis queues DEBUG SLEEP and returns its OK as an EXEC array element. The
+tests/debug.py:117:expect(client.command("EXEC"), [b"OK"], "DEBUG SLEEP inside EXEC")
+tests/debug.py:197:print("debug: PASS (process-wide sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
+tests/at15_unit.cc:252:        begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
+tests/at15_unit.cc:253:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
+tests/at15_unit.cc:254:        begin(f); queue(f, {"DEBUG", "SLEEP", "0.01"});
+tests/at15_unit.cc:256:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP positive EXEC element");
+tests/lottery_calibration.py:33:    'debug': 'W7 DEBUG SLEEP entered/release latch',
+tests/slowlog.py:118:    return c.cmd("DEBUG", "SLEEP", "0.05")
+tests/slowlog.py:134:    # Real work through BOTH paths: keyspace commands reach the executor arm, DEBUG SLEEP the
+tests/slowlog.py:166:    check("entry argv is the command", [a.upper() for a in entry[3][:2]], ["DEBUG", "SLEEP"])

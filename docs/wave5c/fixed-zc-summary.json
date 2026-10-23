@@ -1,0 +1,20 @@
+[
+  {
+    "arm": "fixed",
+    "engine": "uring",
+    "runs": 50,
+    "failures": 1,
+    "lsan_failures": 0,
+    "asan_clean_passes": 50,
+    "asan_clean_failures": 0
+  },
+  {
+    "arm": "fixed",
+    "engine": "epoll",
+    "runs": 50,
+    "failures": 0,
+    "lsan_failures": 0,
+    "asan_clean_passes": 50,
+    "asan_clean_failures": 0
+  }
+]

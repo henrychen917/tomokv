@@ -1,0 +1,4 @@
+{'arm': 'POST', 'engine': 'uring', 'geometry': 'split', 'returncode': 0}
+{'arm': 'POST', 'engine': 'epoll', 'geometry': 'armed-fused', 'returncode': 1}
+{'arm': 'POST', 'engine': 'uring', 'geometry': 'armed-fused', 'returncode': 0}
+{'arm': 'POST', 'engine': 'epoll', 'geometry': 'split', 'returncode': 0}

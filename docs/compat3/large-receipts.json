@@ -1,0 +1,21 @@
+[
+  {
+    "source": "build/gate-run.vUdsCA/jobs/aof-uring/persistfix/1s-term-ss7twusd/acknowledged.json",
+    "bytes": 1314472,
+    "sha256": "fab109f308c54897c621d7a400f181c074838c275caf56163f8700b4b2ebcbdf",
+    "reason": "individual receipt exceeds 1 MB"
+  },
+  {
+    "source": "build/gate-run.vUdsCA/jobs/aof-uring/persistfix/2s-term-e9k8d2pb/acknowledged.json",
+    "bytes": 2680673,
+    "sha256": "ae2a6150c076cdf90e3a783263838f460a96da53acc49a2e0bb79de091ad2231",
+    "reason": "individual receipt exceeds 1 MB"
+  },
+  {
+    "source": "docs/compat3/receipts/POST-complete.tar.gz",
+    "retained": "build/compat3/large-receipts/63b70429fbc32291/POST-complete.tar.gz",
+    "bytes": 1180467,
+    "sha256": "63b70429fbc322911bb07d788b933fd3f07d80b30bea82983def7b5bcb49add6",
+    "reason": "archive exceeds 1 MB"
+  }
+]

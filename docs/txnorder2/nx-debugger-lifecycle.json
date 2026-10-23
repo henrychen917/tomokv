@@ -1,0 +1,7 @@
+{
+  "stopped_owned_pids": [
+    2566312,
+    2566509
+  ],
+  "invalid_control": "Debugger detachment left inferior process groups alive; records from detached runs with shared listeners are invalid. The original gate timeout and direct progress-driver timeout predate detachment and remain valid."
+}

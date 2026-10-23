@@ -1,0 +1,1 @@
+pid 431513 idle 1s target tid=3 role=fused: baseline {tid=3 role=fused iterations=20 spins=0 wakes=0/0}; partial {tid=3 role=fused iterations=30 spins=0 wakes=0/0}; extra iterations=+10 spins=+0 wakes=+0/+0; frame completion -> b'OK'; owner after=3 (stable)

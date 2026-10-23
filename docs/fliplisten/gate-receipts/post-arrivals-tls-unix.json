@@ -1,0 +1,1020 @@
+{
+  "label": "post-arrivals-tls-unix",
+  "run": "/home/user/Projects/cx-fliplisten/build/gate-run.5bGX6T",
+  "summaries": [
+    "GATE(PARTIAL): 5 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-fliplisten/docs/fliplisten/proof/post-arrivals-tls-unix/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "fliplisten",
+      "done": "0\t4\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "legs": [
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266664": 0,
+        "357267700": 0,
+        "356929068": 0,
+        "357159407": 0
+      },
+      "listeners_during": {
+        "357267706": 2,
+        "357267704": 9,
+        "357266664": 2,
+        "357267700": 2,
+        "356929068": 4,
+        "357159407": 5
+      },
+      "witness": {
+        "pid": 2180184,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266665": 0,
+        "357267701": 0,
+        "356929069": 0,
+        "357159408": 0
+      },
+      "tls_listeners_during": {
+        "357267707": 2,
+        "357267705": 3,
+        "357266665": 5,
+        "357267701": 4,
+        "356929069": 2,
+        "357159408": 8
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.02418633457273245,
+      "established_after_flip_s": 8.150003850460052e-06,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 69,
+      "served": 69,
+      "errors": [],
+      "accepted_delta": 69,
+      "listeners_before": {
+        "357266677": 0,
+        "357267716": 0,
+        "356929080": 0,
+        "357159436": 0
+      },
+      "listeners_during": {
+        "357159442": 4,
+        "357159440": 5,
+        "357266677": 1,
+        "357267716": 14,
+        "356929080": 6,
+        "357159436": 7
+      },
+      "witness": {
+        "pid": 2184883,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266678": 0,
+        "357267717": 0,
+        "356929081": 0,
+        "357159437": 0
+      },
+      "tls_listeners_during": {
+        "357159443": 3,
+        "357159441": 5,
+        "357266678": 7,
+        "357267717": 5,
+        "356929081": 1,
+        "357159437": 3
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.018201186321675777,
+      "established_after_flip_s": 8.449889719486237e-06,
+      "unique_ids": 69,
+      "executions": "69",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266591": 0,
+        "356929035": 0,
+        "357267642": 0,
+        "357159361": 0
+      },
+      "listeners_during": {
+        "357266599": 2,
+        "357266597": 7,
+        "357266591": 4,
+        "356929035": 9,
+        "357267642": 1,
+        "357159361": 1
+      },
+      "witness": {
+        "pid": 2179989,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266592": 0,
+        "356929036": 0,
+        "357267643": 0,
+        "357159362": 0
+      },
+      "tls_listeners_during": {
+        "357266600": 2,
+        "357266598": 4,
+        "357266592": 2,
+        "356929036": 6,
+        "357267643": 6,
+        "357159362": 4
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.020258032716810703,
+      "established_after_flip_s": 0.0011446336284279823,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266628": 0,
+        "357267682": 0,
+        "356929058": 0,
+        "357159382": 0
+      },
+      "listeners_during": {
+        "357267689": 3,
+        "357267687": 6,
+        "357266628": 2,
+        "357267682": 6,
+        "356929058": 4,
+        "357159382": 3
+      },
+      "witness": {
+        "pid": 2180094,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266629": 0,
+        "357267683": 0,
+        "356929059": 0,
+        "357159383": 0
+      },
+      "tls_listeners_during": {
+        "357267690": 6,
+        "357267688": 4,
+        "357266629": 5,
+        "357267683": 3,
+        "356929059": 2,
+        "357159383": 4
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.016087978146970272,
+      "established_after_flip_s": 0.0005548819899559021,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266741": 0,
+        "357267801": 0,
+        "356929154": 0,
+        "357159523": 0
+      },
+      "listeners_during": {
+        "356929162": 4,
+        "356929160": 5,
+        "357266741": 2,
+        "357267801": 4,
+        "356929154": 6,
+        "357159523": 3
+      },
+      "witness": {
+        "pid": 2190116,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266742": 0,
+        "357267802": 0,
+        "356929155": 0,
+        "357159524": 0
+      },
+      "tls_listeners_during": {
+        "356929163": 4,
+        "356929161": 5,
+        "357266742": 7,
+        "357267802": 1,
+        "356929155": 2,
+        "357159524": 5
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.032639279961586,
+      "established_after_flip_s": 1.159030944108963e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266783": 0,
+        "357267812": 0,
+        "357159544": 0,
+        "356929196": 0
+      },
+      "listeners_during": {
+        "357159550": 4,
+        "357159548": 4,
+        "357266783": 4,
+        "357267812": 4,
+        "357159544": 4,
+        "356929196": 4
+      },
+      "witness": {
+        "pid": 2190222,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266784": 0,
+        "357267813": 0,
+        "357159545": 0,
+        "356929197": 0
+      },
+      "tls_listeners_during": {
+        "357159551": 2,
+        "357159549": 5,
+        "357266784": 4,
+        "357267813": 3,
+        "357159545": 4,
+        "356929197": 6
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.04064142517745495,
+      "established_after_flip_s": 1.2930482625961304e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266708": 0,
+        "357267756": 0,
+        "356929108": 0,
+        "357159471": 0
+      },
+      "listeners_during": {
+        "356929116": 4,
+        "356929114": 2,
+        "357266708": 6,
+        "357267756": 4,
+        "356929108": 5,
+        "357159471": 3
+      },
+      "witness": {
+        "pid": 2185056,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266709": 0,
+        "357267757": 0,
+        "356929109": 0,
+        "357159472": 0
+      },
+      "tls_listeners_during": {
+        "356929117": 1,
+        "356929115": 1,
+        "357266709": 6,
+        "357267757": 2,
+        "356929109": 6,
+        "357159472": 8
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.04772327747195959,
+      "established_after_flip_s": 3.5480596125125885e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357266726": 0,
+        "357267768": 0,
+        "356929141": 0,
+        "357159501": 0
+      },
+      "listeners_during": {
+        "357267775": 2,
+        "357267773": 6,
+        "357266726": 5,
+        "357267768": 5,
+        "356929141": 5,
+        "357159501": 1
+      },
+      "witness": {
+        "pid": 2185235,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357266727": 0,
+        "357267769": 0,
+        "356929142": 0,
+        "357159502": 0
+      },
+      "tls_listeners_during": {
+        "357267776": 1,
+        "357267774": 7,
+        "357266727": 6,
+        "357267769": 3,
+        "356929142": 4,
+        "357159502": 3
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.05614281352609396,
+      "established_after_flip_s": 1.3459473848342896e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257401": 0,
+        "357266491": 0,
+        "356881092": 0,
+        "357267474": 0,
+        "356928820": 0,
+        "357159140": 0
+      },
+      "listeners_during": {
+        "357257401": 6,
+        "357266491": 2,
+        "356881092": 6,
+        "357267474": 4,
+        "356928820": 3,
+        "357159140": 3
+      },
+      "witness": {
+        "pid": 2169650,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257402": 0,
+        "357266492": 0,
+        "356881093": 0,
+        "357267475": 0,
+        "356928821": 0,
+        "357159141": 0
+      },
+      "tls_listeners_during": {
+        "357257402": 5,
+        "357266492": 5,
+        "356881093": 4,
+        "357267475": 2,
+        "356928821": 7,
+        "357159141": 1
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.030155072920024395,
+      "established_after_flip_s": 1.014024019241333e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257403": 0,
+        "356881094": 0,
+        "357266502": 0,
+        "357267488": 0,
+        "357159195": 0,
+        "356928869": 0
+      },
+      "listeners_during": {
+        "357257403": 6,
+        "356881094": 4,
+        "357266502": 6,
+        "357267488": 4,
+        "357159195": 3,
+        "356928869": 1
+      },
+      "witness": {
+        "pid": 2169833,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257404": 0,
+        "356881095": 0,
+        "357266503": 0,
+        "357267489": 0,
+        "357159196": 0,
+        "356928870": 0
+      },
+      "tls_listeners_during": {
+        "357257404": 4,
+        "356881095": 5,
+        "357266503": 3,
+        "357267489": 7,
+        "357159196": 4,
+        "356928870": 1
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.02232338860630989,
+      "established_after_flip_s": 1.01504847407341e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "356881066": 0,
+        "357257311": 0,
+        "356819958": 0,
+        "356919265": 0,
+        "356928775": 0,
+        "357159076": 0
+      },
+      "listeners_during": {
+        "356881066": 4,
+        "357257311": 5,
+        "356819958": 1,
+        "356919265": 4,
+        "356928775": 5,
+        "357159076": 5
+      },
+      "witness": {
+        "pid": 2164464,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "356881067": 0,
+        "357257312": 0,
+        "356819959": 0,
+        "356919266": 0,
+        "356928776": 0,
+        "357159077": 0
+      },
+      "tls_listeners_during": {
+        "356881067": 7,
+        "357257312": 2,
+        "356819959": 2,
+        "356919266": 5,
+        "356928776": 5,
+        "357159077": 3
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.016318430192768574,
+      "established_after_flip_s": 0.0005258116871118546,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257328": 0,
+        "356881072": 0,
+        "357266451": 0,
+        "357267463": 0,
+        "356928791": 0,
+        "357159111": 0
+      },
+      "listeners_during": {
+        "357257328": 5,
+        "356881072": 2,
+        "357266451": 5,
+        "357267463": 2,
+        "356928791": 6,
+        "357159111": 4
+      },
+      "witness": {
+        "pid": 2169496,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257329": 0,
+        "356881073": 0,
+        "357266452": 0,
+        "357267464": 0,
+        "356928792": 0,
+        "357159112": 0
+      },
+      "tls_listeners_during": {
+        "357257329": 1,
+        "356881073": 6,
+        "357266452": 3,
+        "357267464": 2,
+        "356928792": 10,
+        "357159112": 2
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.02433149516582489,
+      "established_after_flip_s": 9.950250387191772e-06,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257441": 0,
+        "356881126": 0,
+        "357266543": 0,
+        "356928982": 0,
+        "357267576": 0,
+        "357159309": 0
+      },
+      "listeners_during": {
+        "357257441": 5,
+        "356881126": 3,
+        "357266543": 5,
+        "356928982": 5,
+        "357267576": 2,
+        "357159309": 4
+      },
+      "witness": {
+        "pid": 2175082,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257442": 0,
+        "356881127": 0,
+        "357266544": 0,
+        "356928983": 0,
+        "357267577": 0,
+        "357159310": 0
+      },
+      "tls_listeners_during": {
+        "357257442": 4,
+        "356881127": 4,
+        "357266544": 3,
+        "356928983": 5,
+        "357267577": 2,
+        "357159310": 6
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.026684382930397987,
+      "established_after_flip_s": 1.1479482054710388e-05,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257463": 0,
+        "356881139": 0,
+        "357266575": 0,
+        "357267606": 0,
+        "356928996": 0,
+        "357159332": 0
+      },
+      "listeners_during": {
+        "357257463": 2,
+        "356881139": 5,
+        "357266575": 4,
+        "357267606": 5,
+        "356928996": 4,
+        "357159332": 4
+      },
+      "witness": {
+        "pid": 2176282,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257464": 0,
+        "356881140": 0,
+        "357266576": 0,
+        "357267607": 0,
+        "356928997": 0,
+        "357159333": 0
+      },
+      "tls_listeners_during": {
+        "357257464": 4,
+        "356881140": 4,
+        "357266576": 5,
+        "357267607": 2,
+        "356928997": 3,
+        "357159333": 6
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.029300170950591564,
+      "established_after_flip_s": 0.0012677237391471863,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257408": 0,
+        "356881100": 0,
+        "357266517": 0,
+        "357267525": 0,
+        "356928904": 0,
+        "357159242": 0
+      },
+      "listeners_during": {
+        "357257408": 4,
+        "356881100": 4,
+        "357266517": 5,
+        "357267525": 4,
+        "356928904": 5,
+        "357159242": 2
+      },
+      "witness": {
+        "pid": 2174748,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257409": 0,
+        "356881101": 0,
+        "357266518": 0,
+        "357267526": 0,
+        "356928905": 0,
+        "357159243": 0
+      },
+      "tls_listeners_during": {
+        "357257409": 6,
+        "356881101": 3,
+        "357266518": 3,
+        "357267526": 5,
+        "356928905": 4,
+        "357159243": 3
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.029520741663873196,
+      "established_after_flip_s": 0.0010882038623094559,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "errors": [],
+      "accepted_delta": 56,
+      "listeners_before": {
+        "357257430": 0,
+        "356881113": 0,
+        "357266531": 0,
+        "357267540": 0,
+        "357159288": 0,
+        "356928943": 0
+      },
+      "listeners_during": {
+        "357257430": 4,
+        "356881113": 4,
+        "357266531": 2,
+        "357267540": 8,
+        "357159288": 2,
+        "356928943": 4
+      },
+      "witness": {
+        "pid": 2174950,
+        "stage": "tomo_db0::FlipStage::ExDrain"
+      },
+      "tls_listeners_before": {
+        "357257431": 0,
+        "356881114": 0,
+        "357266532": 0,
+        "357267541": 0,
+        "357159289": 0,
+        "356928944": 0
+      },
+      "tls_listeners_during": {
+        "357257431": 2,
+        "356881114": 4,
+        "357266532": 6,
+        "357267541": 4,
+        "357159289": 5,
+        "356928944": 3
+      },
+      "tls_arrived": 24,
+      "unix_arrived": 8,
+      "remaining_quiesce_s": 0.02922125067561865,
+      "established_after_flip_s": 0.00114535354077816,
+      "unique_ids": 56,
+      "executions": "56",
+      "passed": true
+    }
+  ],
+  "included": [
+    "families.tsv",
+    "jobs/fliplisten/done",
+    "jobs/fliplisten/family.tsv",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/release",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a0/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/release",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/epoll-a1/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/release",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a0/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/release",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-complete/uring-a1/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/release",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a0/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/release",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/epoll-a1/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/release",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a0/server.log",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/command.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/held.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/release",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/result.json",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/uring-a1/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/release",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a0/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/release",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/epoll-a1/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/release",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a0/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/release",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-complete/uring-a1/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/release",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a0/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/release",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/epoll-a1/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/release",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a0/server.log",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/command.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/held.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/hold.gdb",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/release",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/result.json",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/uring-a1/server.log",
+    "jobs/fliplisten/gate-fliplisten-ex-io-complete.txt",
+    "jobs/fliplisten/gate-fliplisten-ex-io-rollback.txt",
+    "jobs/fliplisten/gate-fliplisten-io-ex-complete.txt",
+    "jobs/fliplisten/gate-fliplisten-io-ex-rollback.txt",
+    "jobs/fliplisten/ledger",
+    "jobs/fliplisten/output.log",
+    "jobs/fliplisten/timings",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "jobs/release/timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "omitted": [
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-ca.crt",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-ca.key",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-ca.srl",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-client.crt",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-client.csr",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/bad-client.key",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/ca.crt",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/ca.key",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/ca.srl",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/client.crt",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/client.csr",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/client.key",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/server.crt",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/server.csr",
+    "jobs/fliplisten/fliplisten-ex-io-complete/certs/server.key",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-ca.crt",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-ca.key",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-ca.srl",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-client.crt",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-client.csr",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/bad-client.key",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/ca.crt",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/ca.key",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/ca.srl",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/client.crt",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/client.csr",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/client.key",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/server.crt",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/server.csr",
+    "jobs/fliplisten/fliplisten-ex-io-rollback/certs/server.key",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-ca.crt",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-ca.key",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-ca.srl",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-client.crt",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-client.csr",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/bad-client.key",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/ca.crt",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/ca.key",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/ca.srl",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/client.crt",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/client.csr",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/client.key",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/server.crt",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/server.csr",
+    "jobs/fliplisten/fliplisten-io-ex-complete/certs/server.key",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-ca.crt",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-ca.key",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-ca.srl",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-client.crt",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-client.csr",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/bad-client.key",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/ca.crt",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/ca.key",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/ca.srl",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/client.crt",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/client.csr",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/client.key",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/server.crt",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/server.csr",
+    "jobs/fliplisten/fliplisten-io-ex-rollback/certs/server.key",
+    "jobs/fliplisten/row-timeout-2164279.2164279.434303672.1.cancel",
+    "jobs/fliplisten/row-timeout-2164279.2164279.434303672.2.cancel",
+    "jobs/fliplisten/row-timeout-2164279.2164279.434303672.3.cancel",
+    "jobs/fliplisten/row-timeout-2164279.2164279.434303672.4.cancel",
+    "jobs/release/row-timeout-2164245.2164245.434303630.1.cancel",
+    "queue.lock"
+  ],
+  "archive_sha256": "8594eafe7ffabb450e2f89b0b744283fb777abc2b4f681f3d56eee0710353c14"
+}

@@ -1,0 +1,600 @@
+tests/lottery_runner.py:158:                os.killpg(child.pid, signal.SIGTERM)
+tests/connreset_harness_test.py:63:                        # Model the actual failure: shutdown while polling sets
+tests/_gate_process.py:112:    # Closing the load sockets only sends FIN; SIGTERM can stop an owner before it consumes
+tests/_gate_process.py:113:    # that EOF, leaving otherwise completed work in shutdown_report.live_conns. Require the
+tests/_gate_process.py:118:    # shutdown report or let an already failed row become green through cleanup.
+tests/_gate_process.py:192:        require(process.returncode == 0, f'server shutdown rc={process.returncode}; see {directory}')
+tests/_gate_process.py:194:        require(lines and lines[-1].startswith('shutdown_report '), 'missing final shutdown report')
+tests/_gate_process.py:195:        reports = [line.split('shutdown_report ', 1)[1] for line in lines if 'shutdown_report {' in line]
+tests/_gate_process.py:196:        require(len(reports) == 1, 'missing/duplicate final shutdown report')
+tests/_gate_process.py:200:                f'unclean shutdown report: {report}')
+tests/_gate_process.py:206:    signal.signal(signal.SIGTERM, interrupted)
+tests/_gate_process.py:207:    signal.signal(signal.SIGINT, interrupted)
+tests/signalacct_core_checks.inc:123:        auto report = collect_shutdown_report(f.server, ios);
+tests/signalacct_core_checks.inc:124:        print_shutdown_report_human(report);
+tests/signalacct_core_checks.inc:125:        print_shutdown_report_json(report);
+tests/lottery_attempt.py:254:    signal.signal(signal.SIGTERM, interrupted)
+tests/servertail.py:7:SHUTDOWN), scope B (CONFIG REWRITE/RESETSTAT/HELP, COMMAND COUNT/LIST/INFO/DOCS/GETKEYS/
+tests/servertail.py:10:Every check asserts a MECHANISM, not merely the absence of a crash: SHUTDOWN asserts the process
+tests/servertail.py:38:# These directed shutdown/rewrite boots have always used four threads. Move that same shape
+tests/servertail.py:57:# The gate's timeout sends SIGTERM. Exit through Python so our purpose-booted servers are
+tests/servertail.py:59:signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(128 + signum))
+tests/servertail.py:202:                     "memory", "object", "substr", "sort_ro", "shutdown"} <= v)
+tests/servertail.py:345:# ------------------------------------------------------------------- SHUTDOWN + REWRITE round-trip
+tests/servertail.py:385:    # the SIGTERM path that predates SHUTDOWN (verified). Turning off the LEAK accounting keeps the
+tests/servertail.py:406:def scope_shutdown(workdir):
+tests/servertail.py:407:    print("scope A: SHUTDOWN (throwaway server)")
+tests/servertail.py:412:    check("SHUTDOWN rejects both save modes", c.cmd("SHUTDOWN", "NOSAVE", "SAVE"),
+tests/servertail.py:414:    check("SHUTDOWN rejects junk", c.cmd("SHUTDOWN", "BOGUS"), err("ERR syntax error"))
+tests/servertail.py:415:    check("SHUTDOWN ABORT", c.cmd("SHUTDOWN", "ABORT"), err("ERR No shutdown in progress."))
+tests/servertail.py:418:    c.sock.sendall(encode("SHUTDOWN", "NOSAVE"))
+tests/servertail.py:424:    check("SHUTDOWN sends no reply", trailing, b"")
+tests/servertail.py:430:    check("SHUTDOWN exit code is clean", code, 0)
+tests/servertail.py:431:    check("SHUTDOWN released the port", port_free(SPARE_PORT), True)
+tests/servertail.py:503:    # not become input to these independent shutdown/configuration tests. Keep files for diagnosis.
+tests/servertail.py:511:    scope_shutdown(workdir)
+tests/flipfix_abort_probe.py:50:        'handle SIGTERM nostop noprint pass', 'handle SIGINT nostop noprint pass',
+tests/atomic_survivors_unit.cc:86:        server.shard(s).store().atomic_shutdown_release_records();
+tests/matrix.sh:126:  cli shutdown nosave >/dev/null 2>&1
+tests/reorder_flip.py:86:    signal.signal(signal.SIGTERM, interrupted)
+tests/ktls_lifetime.py:29:            # live control requires real graceful shutdown and eventual teardown.
+tests/legacy_reorder_witness.py:679:    signal.signal(signal.SIGTERM, interrupted)
+tests/legacy_reorder_witness.py:680:    signal.signal(signal.SIGINT, interrupted)
+tests/mutants.py:266:    for sig in (signal.SIGTERM, signal.SIGKILL):
+tests/mutants.py:280:        if sig == signal.SIGTERM:
+tests/mutants.py:307:    mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGINT})
+tests/mutants.py:323:        # the child before exec: an inherited blocked SIGTERM would defeat its cleanup handlers.
+tests/mutants.py:324:        mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGINT})
+tests/mutants.py:354:    mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGINT})
+tests/mutants.py:364:        signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGINT})
+tests/mutants.py:455:    # shutdown parser too: accepting a log that merely contains an old dump weakens this row.
+tests/mutants.py:458:    helpers = re.findall(r'^shutdown_present\(\)\{[^\n]*\}\s*$', gate, re.M)
+tests/mutants.py:498:    # The violation branch has its own pinned diagnostic. Missing shutdown data or a broken
+tests/mutants.py:526:        if live.get('arming_passed') is True and live.get('clean_shutdown') is True:
+tests/mutants.py:528:        return True, False, '', 'invariant predicate stayed green but churn/clean shutdown failed'
+tests/mutants.py:612:                  clean_shutdown=False, cleanup_complete=False)
+tests/mutants.py:638:        report['clean_shutdown'] = True
+tests/mutants.py:693:    clean_log = 'shutdown_report ' + json.dumps(dict(schema=1, stuck=dict(
+tests/mutants.py:708:        ('broken-shutdown-helper', gate.replace(helper, 'shutdown_present(){ return 99; }'),
+tests/mutants.py:719:        (tests / 'shutdown_report.py').write_text((ROOT / 'tests/shutdown_report.py').read_text())
+tests/mutants.py:751:        if name == 'broken-shutdown-helper' and predicate['verdict'] != 'FAIL':
+tests/mutants.py:752:            raise AssertionError('selected-tree shutdown_present helper was bypassed')
+tests/mutants.py:813:        child = ('import os,signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); '
+tests/mutants.py:837:        previous = signal.signal(signal.SIGTERM, interrupted)
+tests/mutants.py:842:                    child = ('import os,signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); '
+tests/mutants.py:844:                             'os.kill(os.getppid(),signal.SIGTERM); time.sleep(90)')
+tests/mutants.py:851:            signal.signal(signal.SIGTERM, previous)
+tests/mutants.py:914:    # worktree behind on SIGTERM, and never stop another user's process to make the port available.
+tests/mutants.py:917:    signal.signal(signal.SIGTERM, interrupted)
+tests/mutants.py:918:    signal.signal(signal.SIGINT, interrupted)
+tests/authfix.py:126:            self.process.send_signal(signal.SIGTERM)
+tests/gate_history.py:611:            signal_identity(child, born, signal.SIGTERM)
+tests/gate_history.py:713:    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+tests/gate_history.py:718:        signal_identity(child, born, signal.SIGTERM)
+tests/gate_history.py:1077:            body = 'python3 -c "import os,signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print(os.getpid(),flush=True); time.sleep(30)" & wait "$!"'
+tests/gate_history.py:1147:            for sig, grace in ((signal.SIGTERM, 1.0), (signal.SIGKILL, 1.0)):
+tests/gate_history.py:1307:    exec /usr/bin/python3 -c 'import os,signal,time; from pathlib import Path; signal.signal(signal.SIGTERM,signal.SIG_IGN); Path(os.environ["FIXTURE"]+"/stalled-ready").touch(); time.sleep(60)'
+tests/gate_history.py:1434:    python3 -c 'import os,signal,time; from pathlib import Path; signal.signal(signal.SIGTERM,signal.SIG_IGN); Path(os.environ["RUN_DIR"]+"/child").write_text(str(os.getpid())); time.sleep(60)' &
+tests/iofix_signal.py:2:"""IO4.17: signal starts the shutdown save immediately; failure/retry remains live."""
+tests/iofix_signal.py:9:    before = int(info(c, 'persistence')[b'rdb_save_cron_checks'])
+tests/iofix_signal.py:12:        after = int(info(c, 'persistence')[b'rdb_save_cron_checks'])
+tests/iofix_signal.py:16:    raise AssertionError('save-cron beat never opened')
+tests/iofix_signal.py:23:        for sig in (signal.SIGTERM, signal.SIGINT):
+tests/iofix_signal.py:28:                expected = c.cmd('SET', 'iofix:shutdown', sig.name)
+tests/iofix_signal.py:41:                    failures.append((sig.name, 'waited for save cron', elapsed))
+tests/iofix_signal.py:44:                assert server.connect().cmd('GET', 'iofix:shutdown') == sig.name.encode()
+tests/iofix_signal.py:45:        # A failed shutdown save must keep serving; a second signal must still wake the loop.
+tests/iofix_signal.py:52:            server.process.send_signal(signal.SIGTERM)
+tests/iofix_signal.py:57:                              else b'Errors trying to SHUTDOWN:')
+tests/iofix_signal.py:62:                raise AssertionError('failed save never reached the shutdown error')
+tests/iofix_signal.py:75:            server.process.send_signal(signal.SIGTERM)
+tests/iofix_signal.py:81:                failures.append(('retry SIGTERM', elapsed))
+tests/iofix_signal.py:87:            c.send('SHUTDOWN', 'NOSAVE')
+tests/aoffix2.py:177:    def stop(self, sig=signal.SIGTERM):
+tests/aoffix2.py:198:        assert not escalated, 'owned server did not respond to SIGTERM'
+tests/climonfix_artifacts.py:21:    replace(path, '''    const bool must_save = save == ShutdownSave::Save ||
+tests/climonfix_artifacts.py:22:        (save == ShutdownSave::Configured && save_schedule_armed());''',
+tests/climonfix_artifacts.py:23:        '    const bool must_save = save == ShutdownSave::Save;')
+tests/climonfix_artifacts.py:28:    begin = data.index('    bool request_signal_shutdown() {')
+tests/climonfix_artifacts.py:30:    path.write_text(data[:begin] + '''    bool request_signal_shutdown() {
+tests/climonfix_artifacts.py:43:    assert objects and (build / 'shutdown-unit').exists()
+tests/climonfix_artifacts.py:46:            ('command', 'default SHUTDOWN saves before stop'),
+tests/climonfix_artifacts.py:51:            ('busy-bound', 'busy shutdown retry is bounded and preserves the running snapshot'),
+tests/climonfix_artifacts.py:52:            ('owner-bound', 'shutdown snapshot yields on stalled saving owner')):
+tests/climonfix_artifacts.py:56:        shutil.copyfile(ROOT / 'tests/shutdown_unit.cc', directory / 'test.cc')
+tests/climonfix_artifacts.py:63:            obj.insert(0, build / 'tests/shutdown_unit.o')
+tests/climonfix_artifacts.py:67:                replace(target, '    if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();\n', '')
+tests/climonfix_artifacts.py:69:                replace(target, '        if (!shutdown_deadline || now_ns() < shutdown_deadline) return false;',
+tests/climonfix_artifacts.py:70:                        '        return false; // throwaway unbounded shutdown wait')
+tests/climonfix_artifacts.py:73:            obj.insert(0, build / 'tests/shutdown_unit.o')
+tests/climonfix_artifacts.py:81:            replace(target, '''        if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
+tests/climonfix_artifacts.py:86:            obj.insert(0, build / 'tests/shutdown_unit.o')
+tests/climonfix_artifacts.py:88:            replace(directory / 'src/core/ex_loop.h', '''            if (!snapshot_was_cancelled_ && srv_->shutdown_snapshot_active()) {
+tests/climonfix_artifacts.py:89:                snapshot_owner_state_ = SnapshotOwnerState::ShutdownHeld;
+tests/climonfix_artifacts.py:90:                srv_->shutdown_snapshot_hold();
+tests/climonfix_artifacts.py:126:            '''        finish_shutdown(); // PRE explicit-SAVE shutdown
+tests/lanefull_checks.inc:119:        lane.deferred.drain_shutdown();
+tests/read_local_ring_unit.cc:57:// Basic FIFO, stamp boundary, unsealed protection, shutdown drain.
+tests/atomiccollapse_checks.inc:224:    f.store.reset(); // Actual FlatStore destructor disarms before shutdown collapse.
+tests/signalacct_live_test.py:58:                proc.send_signal.assert_called_once_with(live.signal.SIGTERM)
+tests/core_concurrency_unit.cc:22:#include "src/core/shutdown_report.h"
+tests/aclkeys_unit.cc:216:    acl_shutdown();
+tests/rltopo_unit.cc:150:            owner.read_local_impl().deferred.drain_shutdown();
+tests/mdbqsbr_live_test.py:121:                proc.wait.assert_called_once_with(timeout=live.SHUTDOWN)
+tests/mdbqsbr_live_test.py:135:                                      timeout=live.WORKERS * live.SHUTDOWN, process=proc,
+tests/mdbqsbr_live_test.py:138:        proc.wait.assert_called_once_with(timeout=live.SHUTDOWN)
+tests/mdbqsbr_live_test.py:150:    def test_disconnect_timeout_is_a_failure_before_shutdown(self):
+tests/mdbqsbr_live_test.py:152:                self.assertRaisesRegex(AssertionError, 'disconnect serial battery timed out before shutdown'):
+tests/mdbqsbr_live_test.py:170:        self.assertEqual(run.call_args.kwargs['timeout'], live.WORKERS * live.SHUTDOWN)
+tests/mdbqsbr_live_test.py:175:                patch.object(live.time, 'monotonic', side_effect=[0, live.SHUTDOWN]), \
+tests/atomicwindow.py:294:                            client.sock.shutdown(socket.SHUT_RDWR)
+tests/reorder_engagement_unit.cc:92:                loop.read_local_impl().deferred.drain_shutdown();
+tests/moverfix_unit.cc:84:            server.shard(s).store().atomic_shutdown_release_records();
+tests/gateprod.py:175:    old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/gateprod.py:181:            # private session avoids an extra terminal SIGINT during cleanup.
+tests/gateprod.py:223:    old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/gateprod.py:427:                monitor.start.side_effect = lambda: signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+tests/gateprod.py:428:                original = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/atomiccollapse_controls.py:71:     'read_local_enabled_ = false;  // shutdown promotion/free is direct; no callback may outlive us',
+tests/atomiccollapse_controls.py:117:        end = source.index('    void atomic_promote_all_for_shutdown()', start) if file == ATOMIC else len(source)
+tests/abba_experiments.py:969:    old_handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/shutdown_unit.cc:1:// Serverless shutdown control/owner-hold witness. Only snapshot disk IO is link-wrapped.
+tests/shutdown_unit.cc:24:        std::fprintf(stderr, "FAIL shutdown: %s\n", assertion);
+tests/shutdown_unit.cc:34:    AofManager*, const char*, const char*, bool shutdown)
+tests/shutdown_unit.cc:39:    const char* directory, const char* filename, bool shutdown) {
+tests/shutdown_unit.cc:42:                                   rewrite, directory, filename, shutdown);
+tests/shutdown_unit.cc:44:    require(blocking && shutdown, "final save is blocking and holds post-cut writes");
+tests/shutdown_unit.cc:48:    if (next_result == SnapshotManager::StartResult::Started) server.finish_shutdown();
+tests/shutdown_unit.cc:69:        server.set_shutdown_snapshot_active(false);
+tests/shutdown_unit.cc:76:        require(op.spec != nullptr, "SHUTDOWN is registered");
+tests/shutdown_unit.cc:82:        if (!server.request_signal_shutdown()) server.finish_shutdown();
+tests/shutdown_unit.cc:86:        require(server.save_cron_writer(io), "signal arms cron even with save disabled");
+tests/shutdown_unit.cc:87:        server.save_cron_pass(server.thread(io), ring);
+tests/shutdown_unit.cc:100:        require(f.command({"SHUTDOWN"}).starts_with("-ERR Errors trying to SHUTDOWN."),
+tests/shutdown_unit.cc:101:                "saving owner refuses recursive shutdown during BGSAVE");
+tests/shutdown_unit.cc:103:                "busy shutdown preserves the in-flight BGSAVE");
+tests/shutdown_unit.cc:106:        require(saves == 0 && (server.live_save_armed_.load() & Server::kSignalShutdown),
+tests/shutdown_unit.cc:108:        test_clock_ns += Server::kShutdownSaveWaitNs;
+tests/shutdown_unit.cc:110:        require(!(server.live_save_armed_.load() & Server::kSignalShutdown) &&
+tests/shutdown_unit.cc:112:                "busy shutdown retry is bounded and preserves the running snapshot");
+tests/shutdown_unit.cc:128:        char path[] = "build/shutdown-owner-XXXXXX";
+tests/shutdown_unit.cc:146:                            "shutdown snapshot yields on stalled saving owner");
+tests/shutdown_unit.cc:147:                    test_clock_ns += Server::kShutdownSaveWaitNs;
+tests/shutdown_unit.cc:175:                    "real BGSAVE enters capture on the future shutdown owner");
+tests/shutdown_unit.cc:177:                    "BGSAVE window is open before shutdown request");
+tests/shutdown_unit.cc:180:                    "shutdown yields without stealing the BGSAVE writer");
+tests/shutdown_unit.cc:185:                    "pre-request BGSAVE completion does not authorize shutdown");
+tests/shutdown_unit.cc:190:        else reply = f->command({"SHUTDOWN"});
+tests/shutdown_unit.cc:201:                    server.shutdown_snapshot_holds()); ++pass) {
+tests/shutdown_unit.cc:205:                    !server.shutdown_snapshot_holds(),
+tests/shutdown_unit.cc:213:            const auto retry = f->command({"SHUTDOWN"});
+tests/shutdown_unit.cc:214:            if (!retry.empty()) std::fprintf(stderr, "shutdown retry reply: %s\n", retry.c_str());
+tests/shutdown_unit.cc:215:            require(retry.empty(), "shutdown retry completes after owner resumes");
+tests/shutdown_unit.cc:217:        } else require(reply.empty(), "real snapshot shutdown succeeds on saving owner");
+tests/shutdown_unit.cc:228:        std::printf("shutdown saving owner %s phase=%u %s: PASS\n", Fused ? "1s" : "2s",
+tests/shutdown_unit.cc:235:        server.set_shutdown_snapshot_active(true);
+tests/shutdown_unit.cc:246:        const Slice key("shutdown:live-record");
+tests/shutdown_unit.cc:249:        require(store.atomic_prepare_plain(key, hash, 42, entry), "shutdown MVCC entry allocated");
+tests/shutdown_unit.cc:251:        require(value != nullptr, "shutdown MVCC value allocated");
+tests/shutdown_unit.cc:254:        require(store.atomic_has_records(), "shutdown has live MVCC records");
+tests/shutdown_unit.cc:256:                store.snapshot_mark(0, 1000), "shutdown has an active store capture");
+tests/shutdown_unit.cc:258:        char path[] = "build/shutdown-capture-XXXXXX";
+tests/shutdown_unit.cc:260:        require(snapshot.fd_ >= 0, "shutdown has a real temporary snapshot file");
+tests/shutdown_unit.cc:264:        server.finish_shutdown();
+tests/shutdown_unit.cc:268:        store.atomic_shutdown_release_records();
+tests/shutdown_unit.cc:274:    static void shutdown_hold(Server& server) {
+tests/shutdown_unit.cc:281:        server.set_shutdown_snapshot_active(true);
+tests/shutdown_unit.cc:286:        require(server.shutdown_snapshot_holds() == 1, "held owner prevents admission of another snapshot");
+tests/shutdown_unit.cc:292:        require(loop->snapshot_owner_state_ == State::ShutdownHeld && loop->snapshot_blocks_tasks(),
+tests/shutdown_unit.cc:295:                "shutdown hold persists before fsync");
+tests/shutdown_unit.cc:296:        server.set_shutdown_snapshot_active(false); // failed save must resume ordinary service
+tests/shutdown_unit.cc:298:        require(server.shutdown_snapshot_holds() == 0, "released owner permits a new snapshot");
+tests/shutdown_unit.cc:311:    require(f->command({"SHUTDOWN"}).empty(), "successful SHUTDOWN has no reply");
+tests/shutdown_unit.cc:312:    require(saves == 1 && f->server.shutting_down(), "default SHUTDOWN saves before stop");
+tests/shutdown_unit.cc:314:    f->command({"SHUTDOWN", "NOSAVE"});
+tests/shutdown_unit.cc:317:    f->command({"SHUTDOWN"});
+tests/shutdown_unit.cc:319:    f->reset(); f->command({"SHUTDOWN", "SAVE"});
+tests/shutdown_unit.cc:340:        require(f->command({"SHUTDOWN"}).starts_with("-ERR Errors trying to SHUTDOWN."),
+tests/shutdown_unit.cc:341:                "snapshot refusal replies with shutdown error");
+tests/shutdown_unit.cc:350:    CoreConcurrencyTest::shutdown_hold<false>(f->server);
+tests/shutdown_unit.cc:351:    CoreConcurrencyTest::shutdown_hold<true>(f->server);
+tests/shutdown_unit.cc:362:    std::puts("shutdown policy, signal handoff, failure and owner hold: PASS");
+tests/shutdown_persist.py:58:    if action in ('sigterm', 'sigint'):
+tests/shutdown_persist.py:59:        process.send_signal(signal.SIGTERM if action == 'sigterm' else signal.SIGINT)
+tests/shutdown_persist.py:61:        conn.send('SHUTDOWN', *action)
+tests/shutdown_persist.py:67:        raise AssertionError(f'shutdown must close without a reply, got {reply!r}')
+tests/shutdown_persist.py:68:    require(process.wait(timeout=30) == 0, 'shutdown exits successfully')
+tests/shutdown_persist.py:91:                'snapshot did not capture the witness before shutdown')
+tests/shutdown_persist.py:102:            f'{name}: shutdown snapshot choice')
+tests/shutdown_persist.py:115:        reply = conn.cmd('SHUTDOWN')
+tests/shutdown_persist.py:116:        require(isinstance(reply, RespError) and b'Errors trying to SHUTDOWN' in reply.message,
+tests/shutdown_persist.py:117:                'failed final save refuses shutdown')
+tests/shutdown_persist.py:133:    parser.add_argument('--case', choices=('command', 'sigterm', 'sigint', 'all'), default='all')
+tests/shutdown_persist.py:148:    for action in ('sigterm', 'sigint'):
+tests/signalacct_live.py:5:three attempts, then FAIL. Endpoint tolerance is fixed in shutdown_report.py.
+tests/signalacct_live.py:20:from shutdown_report import load_report, require_io_conservation
+tests/signalacct_live.py:162:            proc.send_signal(signal.SIGTERM)
+tests/signalacct_live.py:163:            phase = 'shutdown'
+tests/signalacct_live.py:165:            assert proc.returncode == 0, 'shutdown failed'
+tests/iopass_checks.inc:18:    if constexpr (requires { io.refresh_save_cron_writer(); }) {
+tests/iopass_checks.inc:19:        io.refresh_save_cron_writer();
+tests/iopass_checks.inc:20:        require(io.save_cron_writer_, "boot elects first IO even when save is disabled");
+tests/iopass_checks.inc:23:        require(io.save_cron_writer_, "CONFIG enable preserves elected writer");
+tests/iopass_checks.inc:24:        require(server.request_signal_shutdown(), "signal arms on enabled save");
+tests/iopass_checks.inc:27:        require(io.save_cron_writer_ && server.save_cron_writer(io.self_->id()),
+tests/iopass_checks.inc:28:                "CONFIG disable cannot hide a pending shutdown from the elected looker");
+tests/iopass_checks.inc:30:        io.refresh_save_cron_writer();
+tests/iopass_checks.inc:31:        require(io.save_cron_writer_, "election avoids mutating placement during conversion");
+tests/iopass_checks.inc:34:        io.refresh_save_cron_writer();
+tests/iopass_checks.inc:35:        require(!io.save_cron_writer_, "RoleReady removes former elected writer");
+tests/iopass_checks.inc:37:        io.refresh_save_cron_writer();
+tests/iopass_checks.inc:38:        require(io.save_cron_writer_, "RoleReady elects surviving IO");
+tests/shutdown_report.py:2:"""Read the final schema-1 shutdown report; clean also requires IO tenure conservation.
+tests/shutdown_report.py:13:    raise SystemExit("shutdown report: " + message)
+tests/shutdown_report.py:21:    prefix = b"shutdown_report "
+tests/shutdown_report.py:23:        fail("last line is not shutdown_report: %r" % lines[-1][:160])
+tests/shutdown_report.py:62:                fail(label + ": neither role exit nor shutdown fired")
+tests/shutdown_report.py:106:        fail('persistence shutdown must drain: %r' % evidence)
+tests/shutdown_report.py:130:                fail("dirty shutdown: %r" % dirty)
+tests/shutsave_test.py:15:class ShutdownWitness(unittest.TestCase):
+tests/shutsave_test.py:38:        args = SimpleNamespace(operation='SAVE', action='sigterm', keys=64,
+tests/shutsave_test.py:52:    def test_pre_requires_the_specific_worker_shutdown_fatal(self):
+tests/shutsave_test.py:59:        args, directory, process = self.fixture('fatal: database worker shutdown timeout elapsed_ms=2703')
+tests/shutsave_test.py:66:        args, directory, _ = self.fixture('fatal: database worker shutdown timeout', status=0)
+tests/shutsave_test.py:73:                                       '--action', 'sigterm']), \
+tests/at_recycle_checks.inc:344:    for (const std::string action : {"empty", "flush", "pressure", "oom", "shutdown"}) {
+tests/at_recycle_checks.inc:356:            else if (action == "shutdown") {
+tests/at_recycle_checks.inc:358:                require(detached, "shutdown pending object allocated");
+tests/at_recycle_checks.inc:361:                require(f.queues[f.source].size() == 1 && f.queues[f.source].drain_shutdown() == 1,
+tests/at_recycle_checks.inc:362:                        "shutdown drains pending retirements and the occupied cache");
+tests/connreset_repro.py:314:        os.killpg(proc.pid, signal.SIGTERM)
+tests/connreset_repro.py:405:    signal.signal(signal.SIGTERM, interrupted)
+tests/owner_arena_unit.cc:214:                // cleanup: the shutdown-only helper destroys the armed sidecar itself.
+tests/owner_arena_unit.cc:223:                // Request completion is a live owner pass. Shutdown draining would bypass QSBR
+tests/owner_arena_unit.cc:264:            workers[tid]->call([&] { queues[tid].drain_shutdown(); });
+tests/mdbqsbr_live.py:2:"""Real boots: parked SWAPDB, load, BLPOP, disconnects, and bounded shutdown.
+tests/mdbqsbr_live.py:32:SHUTDOWN = 3 * GRACE
+tests/mdbqsbr_live.py:78:    deadline = time.monotonic() + SHUTDOWN
+tests/mdbqsbr_live.py:133:    conn = wait_ready('127.0.0.1', port, timeout=WORKERS * SHUTDOWN, process=proc,
+tests/mdbqsbr_live.py:140:    require(proc.poll() is None, 'server crashed before shutdown')
+tests/mdbqsbr_live.py:142:    proc.send_signal(signal.SIGTERM)
+tests/mdbqsbr_live.py:144:        result = proc.wait(timeout=SHUTDOWN)
+tests/mdbqsbr_live.py:146:        raise AssertionError('clean shutdown deadline expired') from exc
+tests/mdbqsbr_live.py:147:    require(result == 0, f'unclean shutdown exit={result}')
+tests/mdbqsbr_live.py:154:    proc.wait(timeout=SHUTDOWN)  # owned PID only; never pkill/killall/port killing
+tests/mdbqsbr_live.py:158:    # The original proof kept every connection open until SIGTERM. It could not
+tests/mdbqsbr_live.py:161:    # disconnects, before testing shutdown. The serverless lifetime row forces
+tests/mdbqsbr_live.py:169:                                    timeout=WORKERS * SHUTDOWN)
+tests/mdbqsbr_live.py:171:            raise AssertionError('disconnect serial battery timed out before shutdown') from error
+tests/mdbqsbr_live.py:173:    deadline = time.monotonic() + SHUTDOWN
+tests/mdbqsbr_live.py:190:                  atomic=args.atomic, grace_seconds=GRACE, shutdown_seconds=SHUTDOWN)
+tests/mdbqsbr_live.py:242:            require(loaded.wait(SHUTDOWN) and counts[0] >= WORKERS and not failures,
+tests/mdbqsbr_live.py:295:        # worker may be needed to finish this shutdown.
+tests/mdbqsbr_live.py:296:        result['shutdown_elapsed_seconds'] = stop(proc)
+tests/mdbqsbr_live.py:298:        require('shutdown_report {' in output, 'missing clean final shutdown report')
+tests/mdbqsbr_live.py:318:            writer.join(SHUTDOWN)
+tests/mdbqsbr_live.py:319:            require(not writer.is_alive(), 'load thread did not finish within shutdown bound')
+tests/mdbqsbr_live.py:329:    signal.signal(signal.SIGTERM, interrupted)
+tests/mdbqsbr_live.py:330:    signal.signal(signal.SIGINT, interrupted)
+tests/netcmd_unit.cc:574:        acl_shutdown();
+tests/netcmd_unit.cc:604:        acl_shutdown();
+tests/netcmd_unit.cc:612:            acl_shutdown();
+tests/netcmd_unit.cc:617:            acl_shutdown();
+tests/persistfix.py:24:from shutdown_report import load_report, require_persistence
+tests/persistfix.py:344:                    if not stopped.is_set(): errors.append('writer disconnected before SIGTERM')
+tests/persistfix.py:387:            assert all(t.is_alive() for t in workers), 'SIGTERM must interrupt active writers'
+tests/persistfix.py:389:            os.kill(run.process.pid, signal.SIGTERM)
+tests/persistfix.py:390:            wait_for(lambda: run.marker('stopping').exists(), 'writer never entered shutdown')
+tests/persistfix.py:406:            # prevented acknowledging the held marker before SIGTERM.
+tests/persistfix.py:417:        os.kill(run.process.pid, signal.SIGTERM)
+tests/persistfix.py:644:            message = self.run.failure(SystemExit('persistence shutdown must drain'))
+tests/persistfix.py:646:            self.assertIn('persistence shutdown must drain', message)
+tests/persistfix.py:687:                                'persistence shutdown must drain')):
+tests/persistfix.py:696:                                      else 'persistence shutdown must drain', message)
+tests/mdbqsbr_checks.py:49:    ("shutdown", 11, "fatal: database retire acknowledgement timeout"),
+tests/mdbqsbr_checks.py:55:# shutdown selection in `all` instead and retains its maps for destruction.
+tests/rehash_waits_unit.cc:71:        queue.drain_shutdown();
+tests/rehash_waits_unit.cc:350:    f.queue.drain_shutdown(); // the callbacks name this shard, which dies before Fixture
+tests/gate.sh:13:#                         shutdown invariants, counter-fired feature matrix, idle-loop ceiling. Runs on
+tests/gate.sh:231:# read_local:1), the same 32 feature batteries as the split loop, and one shutdown row (clean
+tests/gate.sh:309:# epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
+tests/gate.sh:827:      bad 'server shutdown' "TIMEOUT after 30s waiting for owned PID $SRV"
+tests/gate.sh:833:shutdown_clean(){ python3 tests/shutdown_report.py "$SRVLOG" clean; }
+tests/gate.sh:834:shutdown_present(){ python3 tests/shutdown_report.py "$SRVLOG" present; }
+tests/gate.sh:835:shutdown_value(){ python3 tests/shutdown_report.py "$SRVLOG" get "$1"; }
+tests/gate.sh:861:  row_begin "feature shutdown invariants (atomic $AT)"
+tests/gate.sh:862:  shutdown_clean \
+tests/gate.sh:863:      && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
+tests/gate.sh:870:# boot banner must agree with that resolved state. The shutdown row is the
+tests/gate.sh:916:  row_begin "fused+armed shutdown report + lane fired (hits=N, atomic $AT)"
+tests/gate.sh:919:  ARMED_REPORT_MODE=$(shutdown_value thread_mode)
+tests/gate.sh:920:  ARMED_REPORT_KIND=$(shutdown_value work.kind)
+tests/gate.sh:921:  shutdown_clean && [ "$ARMED_REPORT_MODE" = 1s ] && [ "$ARMED_REPORT_KIND" = fused ] \
+tests/gate.sh:923:      && ok "fused+armed shutdown report + lane fired (hits=$ARMED_HITS, atomic $AT)" \
+tests/gate.sh:924:      || bad "fused+armed shutdown report + lane fired (atomic $AT)" \
+tests/gate.sh:1430:  row_begin "shutdown policy + signal handoff serverless"
+tests/gate.sh:1431:  unit_ready shutdown-unit && taskset -c "$CORES" ./build/shutdown-unit \
+tests/gate.sh:1432:      >"$TMPDIR/shutdown-unit.log" 2>&1 \
+tests/gate.sh:1433:      && ok "shutdown policy + signal handoff serverless" \
+tests/gate.sh:1434:      || bad "shutdown policy + signal handoff serverless" "see $TMPDIR/shutdown-unit.log"
+tests/gate.sh:1437:    for stop_case in command sigterm sigint; do
+tests/gate.sh:1438:      label="shutdown persistence ($mode, $stop_case)"
+tests/gate.sh:1440:      py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+tests/gate.sh:1442:          --output "$TMPDIR/shutdown-$mode-$stop_case" >"$TMPDIR/shutdown-$mode-$stop_case.log" 2>&1 \
+tests/gate.sh:1443:          && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
+tests/gate.sh:1534:row_begin "AOF publication/shutdown witnesses + negative controls"
+tests/gate.sh:1537:  ok "AOF publication/shutdown witnesses + negative controls"
+tests/gate.sh:1539:  bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
+tests/gate.sh:1768:  row_begin "iofix IO4.17 immediate signal shutdown"
+tests/gate.sh:1769:  iofix_legs signal "iofix IO4.17 immediate signal shutdown"
+tests/gate.sh:2232:    if [ "$WAIT_OK" = 1 ] && shutdown_clean >>"$WAIT_LOG" 2>&1; then
+tests/gate.sh:2263:# shutdown invariants + fired counters, from the TERM dump
+tests/gate.sh:2264:row_begin "shutdown invariants (nothing stuck)"
+tests/gate.sh:2265:shutdown_clean && py tests/lbsignals.py --shutdown "$SRVLOG" \
+tests/gate.sh:2266:    && ok "shutdown invariants (nothing stuck)" || bad "shutdown invariants"
+tests/gate.sh:2268:D=$(shutdown_value wb.direct)
+tests/gate.sh:2271:R=$(shutdown_value work.dispatched)
+tests/gate.sh:2272:E=$(shutdown_value work.executed)
+tests/gate.sh:2309:    shutdown_clean || rc=1
+tests/gate.sh:2329:row_begin "atomic shutdown invariants"
+tests/gate.sh:2330:shutdown_clean \
+tests/gate.sh:2331:    && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
+tests/gate.sh:2359:  row_begin "fused shutdown report (atomic $AT)"
+tests/gate.sh:2361:  FUSED_REPORT_MODE=$(shutdown_value thread_mode)
+tests/gate.sh:2362:  FUSED_REPORT_KIND=$(shutdown_value work.kind)
+tests/gate.sh:2363:  shutdown_clean && [ "$FUSED_REPORT_MODE" = 1s ] && [ "$FUSED_REPORT_KIND" = fused ] \
+tests/gate.sh:2364:      && ok "fused shutdown report (atomic $AT)" \
+tests/gate.sh:2365:      || bad "fused shutdown report (atomic $AT)" \
+tests/gate.sh:2632:row_begin "DUMP/RESTORE restart shutdown invariants"
+tests/gate.sh:2633:shutdown_clean \
+tests/gate.sh:2634:    && ok "DUMP/RESTORE restart shutdown invariants" \
+tests/gate.sh:2635:    || bad "DUMP/RESTORE restart shutdown invariants"
+tests/gate.sh:2817:    for SAVEFIX_ACTION in sigterm command; do
+tests/gate.sh:2818:      row_begin "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)"
+tests/gate.sh:2824:          && ok "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+tests/gate.sh:2825:          || bad "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+tests/gate.sh:2829:      row_begin "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+tests/gate.sh:2835:          && ok "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+tests/gate.sh:2836:          || bad "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+tests/gate.sh:2996:row_begin "feature battery shutdown invariants"
+tests/gate.sh:2997:shutdown_clean \
+tests/gate.sh:2998:    && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
+tests/gate.sh:3026:# armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
+tests/gate.sh:3035:row_begin "FLIP signal stop during FLIP + second SIGINT"
+tests/gate.sh:3036:{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+tests/gate.sh:3037:      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
+tests/gate.sh:3038:  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+tests/gate.sh:3039:      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+tests/gate.sh:3040:    && ok "FLIP signal stop during FLIP + second SIGINT" \
+tests/gate.sh:3041:    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+tests/gate.sh:3071:  # The 256 SIGKILLed connections must REAP before shutdown or the drain line reports them as
+tests/gate.sh:3073:  # at the moment of the kill). Waiting for reaping keeps the shutdown invariant meaningful: dead
+tests/gate.sh:3084:# The saturation row kill -9s its memtier, so 256 aborted connections drain at shutdown -- the
+tests/gate.sh:3086:row_begin "flip battery shutdown invariants"
+tests/gate.sh:3089:  shutdown_clean \
+tests/gate.sh:3093:[ "$FLIPSHUT" = 1 ] && ok "flip battery shutdown invariants" \
+tests/gate.sh:3094:    || bad "flip battery shutdown invariants"
+tests/gate.sh:3218:row_begin "AOF group shutdown invariants"
+tests/gate.sh:3219:shutdown_clean \
+tests/gate.sh:3220:    && ok "AOF group shutdown invariants" || bad "AOF group shutdown invariants"
+tests/gate.sh:3271:    row_begin "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+tests/gate.sh:3277:        && ok "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+tests/gate.sh:3278:        || bad "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+tests/gate.sh:3549:row_begin "TLS yes shutdown invariants"
+tests/gate.sh:3550:shutdown_clean \
+tests/gate.sh:3551:    && ok "TLS yes shutdown invariants" || bad "TLS yes shutdown invariants"
+tests/gate.sh:3552:# (tls_ktls_active is a GAUGE — 0 at clean shutdown by design — so kTLS engagement is asserted
+tests/gate.sh:3553:# live below, on the optional-mode boot, not from this shutdown dump.)
+tests/gate.sh:3600:row_begin "TLS optional shutdown invariants"
+tests/gate.sh:3601:shutdown_clean \
+tests/gate.sh:3602:    && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
+tests/gate.sh:3615:row_begin "TLS shutdown invariants"
+tests/gate.sh:3616:shutdown_clean \
+tests/gate.sh:3617:    && ok "TLS shutdown invariants" || bad "TLS shutdown invariants"
+tests/gate.sh:3619:[ "$(shutdown_value wb.send_errors)" = 0 ] \
+tests/gate.sh:3622:TLS_ACCEPTS=$(shutdown_value tls.accepts)
+tests/gate.sh:3623:TLS_FREED=$(shutdown_value tls.connections_freed)
+tests/gate.sh:3624:TLS_ZC=$(shutdown_value tls.zc_suppressed)
+tests/gate.sh:3747:# "No ASAN report" is a finding only if the ASAN server actually ran to its shutdown dump; an
+tests/gate.sh:3751:elif shutdown_present; then ok "ASAN clean"
+tests/gate.sh:3752:else bad "ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
+tests/gate.sh:3793:ZS=$(shutdown_value wb.zc_sends)
+tests/gate.sh:3801:elif shutdown_present; then ok "zc ASAN clean"
+tests/gate.sh:3802:else bad "zc ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
+tests/gate.sh:3844:  elif shutdown_present; then
+tests/gate.sh:3847:    bad "read-local ownership invariants" "server never reached its shutdown dump; see $SRVLOG"
+tests/gate.sh:3991:      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
+tests/gate.sh:3996:  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+tests/gate.sh:4158:# SV2: collect all seven shutdown rows before the quick-tier exit.
+tests/persistfix_checks.py:7:from shutdown_report import require_persistence
+tests/persistfix_checks.py:15:                 for case in ('ack', 'remote', 'shutdown', 'refusal')]
+tests/persistfix_checks.py:19:                      ('old-close', 'shutdown', 'writer cannot close before producers stop posting'),
+tests/persistfix_checks.py:47:    print('PASS persistfix schema: missing evidence and five dirty shutdowns rejected')
+tests/gates_test.py:628:signal.signal(signal.SIGTERM, interrupted)
+tests/gates_test.py:687:                        os.kill(pids['driver'], signal.SIGTERM)
+tests/gates_test.py:889:        cls.addClassCleanup(pool.shutdown, wait=True, cancel_futures=True)
+tests/gates_test.py:1562:                    verdict + '\tAOF publication/shutdown witnesses + negative controls'])
+tests/gates_test.py:1780:                                     'climonfix shutdown rows must be collected in every correctness tier')
+tests/gates_test.py:1865:class ShutdownBootWiring(unittest.TestCase):
+tests/gates_test.py:1866:    def test_shutdown_live_geometry_and_explicit_save_overrides(self):
+tests/gates_test.py:1867:        from shutdown_persist import boot_argv
+tests/gates_test.py:1873:                             'shutdown proof must omit --ratio in 1s')
+tests/gates_test.py:1875:            self.assertNotIn('--save', argv, 'shutdown proof must exercise the default save schedule')
+tests/gates_test.py:1909:            self.assertIn("--save ''", body, name + ' must also disable shutdown snapshots')
+tests/gates_test.py:1912:            self.assertIn("--save ''", body, 'AOF recovery proof must disable shutdown snapshots')
+tests/at15_unit.cc:277:        Request shutdown({"SHUTDOWN", "NOSAVE"});
+tests/at15_unit.cc:278:        require(!(shutdown.op.spec->flags & CmdFlags::NoMulti), "SHUTDOWN has no dispatch NoMulti bit");
+tests/at15_unit.cc:280:        require(f.multi(shutdown.args) == "-ERR Command not allowed inside a transaction\r\n",
+tests/at15_unit.cc:281:                "SHUTDOWN refused by generated metadata");
+tests/shutsave_unit.cc:55:        server.finish_shutdown();
+tests/shutsave_unit.cc:157:                if (action == "sigterm") {
+tests/shutsave_unit.cc:158:                    if (!server.request_signal_shutdown()) server.finish_shutdown();
+tests/shutsave_unit.cc:161:                    require(op.push_arg(Slice("SHUTDOWN", 8)), "shutdown argv");
+tests/shutsave_unit.cc:164:                    require(op.spec != nullptr, "registered shutdown handler");
+tests/shutsave_unit.cc:166:                    require(op.reply.size() == 0, "shutdown command has no error reply");
+tests/shutsave_unit.cc:266:                    error == "snapshot cancelled by shutdown", "SAVE yields to terminal shutdown");
+tests/shutsave_unit.cc:268:                    "shutdown never demands cancellation acknowledgements from stopped owners");
+tests/shutsave_unit.cc:285:        require(snapshot_read_plan(path.c_str(), 16, error) != nullptr, "post-shutdown file validates");
+tests/writer_atomic_campaign.py:188:                os.kill(self.process.pid, signal.SIGTERM)
+tests/writer_atomic_campaign.py:220:            os.kill(process.pid, signal.SIGTERM)
+tests/gate_process_test.py:2:"""Serverless controls for the owned server's connection/shutdown fence."""
+tests/gate_process_test.py:83:            self.log.write('shutdown_report ' + json.dumps(dict(schema=1, stuck=dict(
+tests/gate_process_test.py:187:    def test_deleted_fence_mutation_keeps_shutdown_red(self):
+tests/gate_process_test.py:190:            with self.assertRaisesRegex(AssertionError, 'unclean shutdown report'):
+tests/gate_process_test.py:194:    def test_dirty_shutdown_still_fails_after_successful_fence(self):
+tests/gate_process_test.py:197:            with self.assertRaisesRegex(AssertionError, 'unclean shutdown report'):
+tests/autharity.py:4:Right-arity authenticated probes use a command-denied user, so even SHUTDOWN,
+tests/fixtures/nullrefresh-ledger-labels.json:4:  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); perfio adds two migration and two stream mode rows before the quick exit (+4/+4); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full); dbdefault adds one default-config row covering both modes before the quick exit (+1 quick/+1 full); respresume adds twelve resumable-RESP rows (fragment, cpu and neighbour x 1s/2s x epoll/uring) collected after respcompat, before the quick exit (+12 quick/+12 full); aoforder declares three commit-order regressions before the quick-tier exit (+3 quick/+3 full); EXPECT constants remain maintainer-owned; hexpread adds three parked-hash expiry rows and one OBJECT expiry row per mode before the quick exit (+8 quick/+8 full), with EXPECT constants left to the maintainer; ntfix adds four directed N1-N4 rows before the quick exit (+4 quick/+4 full), retaining the wave3 labels; EXPECT constants remain maintainer-owned; moverfix adds eight deterministic/live atomic-0 conservation rows before quick exit (+8/+8); notifyorder adds the exact lazy-expiry ordering row before the quick exit (+1 quick/+1 full); notifyorder A5 adds the local script notification AOF row there (+1 quick/+1 full); EXPECT constants remain maintainer-owned; clockcut adds three NT-new-4 command-clock rows (2s, 1s, 2s epoll; with the NT-new-7 exact-deadline assertions) before the quick exit (+3 quick/+3 full)",
+tests/fixtures/nullrefresh-ledger-labels.json:15:    "shutdown policy + signal handoff serverless",
+tests/fixtures/nullrefresh-ledger-labels.json:16:    "shutdown persistence (1s, command)",
+tests/fixtures/nullrefresh-ledger-labels.json:17:    "shutdown persistence (1s, sigterm)",
+tests/fixtures/nullrefresh-ledger-labels.json:18:    "shutdown persistence (1s, sigint)",
+tests/fixtures/nullrefresh-ledger-labels.json:19:    "shutdown persistence (2s, command)",
+tests/fixtures/nullrefresh-ledger-labels.json:20:    "shutdown persistence (2s, sigterm)",
+tests/fixtures/nullrefresh-ledger-labels.json:21:    "shutdown persistence (2s, sigint)",
+tests/fixtures/nullrefresh-ledger-labels.json:29:    "AOF publication/shutdown witnesses + negative controls",
+tests/fixtures/nullrefresh-ledger-labels.json:171:    "shutdown invariants (nothing stuck)",
+tests/fixtures/nullrefresh-ledger-labels.json:177:    "atomic shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:222:    "feature shutdown invariants (atomic 0)",
+tests/fixtures/nullrefresh-ledger-labels.json:256:    "feature shutdown invariants (atomic 1)",
+tests/fixtures/nullrefresh-ledger-labels.json:263:    "fused shutdown report (atomic 0)",
+tests/fixtures/nullrefresh-ledger-labels.json:270:    "fused shutdown report (atomic 1)",
+tests/fixtures/nullrefresh-ledger-labels.json:305:    "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+tests/fixtures/nullrefresh-ledger-labels.json:340:    "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+tests/fixtures/nullrefresh-ledger-labels.json:416:    "DUMP/RESTORE restart shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:445:    "feature battery shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:452:    "FLIP signal stop during FLIP + second SIGINT",
+tests/fixtures/nullrefresh-ledger-labels.json:455:    "flip battery shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:473:    "AOF group shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:501:    "AOF group shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:523:    "TLS yes shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:528:    "TLS optional shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:530:    "TLS shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:656:    "shutdown keeps acknowledged writes (1s, sigterm, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:657:    "shutdown keeps acknowledged writes (1s, command, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:658:    "shutdown cancels BGSAVE capture (1s, atomic 0, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:659:    "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:660:    "shutdown cancels BGSAVE capture (1s, atomic 1, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:661:    "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:662:    "shutdown keeps acknowledged writes (2s, sigterm, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:663:    "shutdown keeps acknowledged writes (2s, command, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:664:    "shutdown cancels BGSAVE capture (2s, atomic 0, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:665:    "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:666:    "shutdown cancels BGSAVE capture (2s, atomic 1, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:667:    "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:668:    "shutdown keeps acknowledged writes (1s, sigterm, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:669:    "shutdown keeps acknowledged writes (1s, command, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:670:    "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:671:    "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:672:    "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:673:    "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:674:    "shutdown keeps acknowledged writes (2s, sigterm, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:675:    "shutdown keeps acknowledged writes (2s, command, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:676:    "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:677:    "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:678:    "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:679:    "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:711:    "iofix IO4.17 immediate signal shutdown"
+tests/fixtures/nullrefresh-ledger-labels.json:797:        "AOF publication/shutdown witnesses + negative controls"
+tests/fixtures/nullrefresh-ledger-labels.json:834:        "shutdown persistence (1s, command)",
+tests/fixtures/nullrefresh-ledger-labels.json:835:        "shutdown persistence (1s, sigint)",
+tests/fixtures/nullrefresh-ledger-labels.json:836:        "shutdown persistence (1s, sigterm)",
+tests/fixtures/nullrefresh-ledger-labels.json:837:        "shutdown persistence (2s, command)",
+tests/fixtures/nullrefresh-ledger-labels.json:838:        "shutdown persistence (2s, sigint)",
+tests/fixtures/nullrefresh-ledger-labels.json:839:        "shutdown persistence (2s, sigterm)",
+tests/fixtures/nullrefresh-ledger-labels.json:840:        "shutdown policy + signal handoff serverless"
+tests/fixtures/nullrefresh-ledger-labels.json:993:      "FLIP signal stop during FLIP + second SIGINT",
+tests/replyschema.py:719:# Success needs a cluster-enabled server, an active rewrite/failover/shutdown, or a configured
+tests/replyschema.py:721:UNREACHABLE = {"asking", "bgrewriteaof", "failover", "readonly", "readwrite", "shutdown"}
+tests/flipfix.py:14:  sigterm      IO4.2: save clauses armed, 1000 acknowledged SETs, a FLIP held live by a blocked
+tests/flipfix.py:15:               client, SIGTERM: the server must save and exit 0 promptly; restart sees 1000 keys.
+tests/flipfix.py:16:  sigint       IO4.2: same live FLIP, SIGINT twice (the second only after the first was
+tests/flipfix.py:126:    assert process.returncode in (0, 1, -signal.SIGTERM), \
+tests/flipfix.py:331:            first = signal.SIGTERM if args.case == 'sigterm' else signal.SIGINT
+tests/flipfix.py:333:            if args.case == 'sigint':
+tests/flipfix.py:337:                         not signal_pending(process.pid, signal.SIGINT), 2,
+tests/flipfix.py:338:                         'the first SIGINT to be delivered', interval=.0005)
+tests/flipfix.py:339:                assert process.poll() is None, 'first SIGINT already completed the stop'
+tests/flipfix.py:341:                process.send_signal(signal.SIGINT)
+tests/flipfix.py:346:                        f'second SIGINT absorbed: still running {args.second_bound}s later') \
+tests/flipfix.py:348:                emit(event='second-sigint-exit', elapsed=round(time.monotonic() - second, 4),
+tests/flipfix.py:350:                assert status == 1, f'second SIGINT exit status {status}, expected 1'
+tests/flipfix.py:356:                        f'SIGTERM not served: still running {args.stop_bound}s later') from error
+tests/flipfix.py:357:                emit(event='sigterm-exit', elapsed=round(time.monotonic() - start, 4),
+tests/flipfix.py:359:                assert status == 0, f'SIGTERM exit status {status}, expected 0'
+tests/flipfix.py:369:    if args.case == 'sigint':
+tests/flipfix.py:426:    parser.add_argument('case', choices=('close', 'churn', 'late', 'sigterm', 'sigint',
+tests/blockmulti.py:62:            self.sock.shutdown(socket.SHUT_RDWR)
+tests/resizefix.py:238:            clean = execute(['taskset', '-c', '24-31', 'python3', 'tests/shutdown_report.py',
+tests/resizefix.py:239:                             str(log), 'clean'], output / ('shutdown-' + tag + '.log'), 10)
+tests/resizefix.py:241:                                rc=rc, shutdown=clean, server_exit=srv.returncode))
+tests/resizefix.py:244:    return int(any(row['rc'] or row.get('shutdown', 0) or row.get('server_exit', 0)
+tests/lbsignals.py:22:# Existing battery's post-shutdown leg; the caller owns TERM and the final log.
+tests/lbsignals.py:23:# It uses the same independent endpoint checker as the shutdown invariants row.
+tests/lbsignals.py:24:if len(sys.argv) >= 3 and sys.argv[1] == "--shutdown":
+tests/lbsignals.py:25:    from shutdown_report import load_report, require_io_conservation
+tests/savefix.py:2:"""PS4.10/PS4.11: acknowledged shutdown writes and cancelled live captures.
+tests/savefix.py:22:from shutdown_report import load_report, require_io_conservation, require_persistence
+tests/savefix.py:90:    # 1 MiB; seed traffic must not turn a shutdown row into an AOF throughput run.
+tests/savefix.py:145:            pass  # terminal shutdown closes the one outstanding request
+tests/savefix.py:211:                emit('shutdown_request', acked=writers.acked[:], load=load())
+tests/savefix.py:212:                if args.action == 'sigterm':
+tests/savefix.py:213:                    process.send_signal(signal.SIGTERM)
+tests/savefix.py:215:                    conn.send('SHUTDOWN')
+tests/savefix.py:254:                    # shutdown also hangs on PRE with no capture at all; keep
+tests/savefix.py:268:                emit('shutdown_request', witness=witness, load=load())
+tests/savefix.py:269:                process.send_signal(signal.SIGTERM)
+tests/savefix.py:283:                      temporary=temporary, shutdown_report='shutdown_report {' in log.read_text(),
+tests/savefix.py:285:        emit('shutdown_result', **result)
+tests/savefix.py:304:            conn.send('SHUTDOWN', 'NOSAVE')
+tests/savefix.py:307:    assert status == 0, ('shutdown must exit cleanly', result)
+tests/savefix.py:308:    assert result['shutdown_report'] or args.oracle, ('missing normal shutdown report', result)
+tests/savefix.py:327:    parser.add_argument('--action', choices=('sigterm', 'command'), default='sigterm')
+tests/savefix.py:338:                        help='T27c: request a configured shutdown during an older BGSAVE')
+tests/savefix.py:340:                        help='also exercise the independent undecided EXEC/AOF shutdown path')
+tests/savefix.py:350:    assert not args.bgsave_first or (args.case == 'acks' and args.action == 'sigterm')
+tests/differ_fanout.py:130:    require(failures == 0, f'{part}: boot, identity, lane, comparison or shutdown failure')
+tests/aclfix.py:235:    # creation's second advance and the shutdown array overrun under ASAN.
+tests/aclfix.py:239:    # the original high-water/shutdown overrun. Redis has no 65536 live-slot cap.
+tests/aclfix.py:385:                raise AssertionError(f"SIGTERM did not finish in {args.stop_seconds} seconds")
+tests/aclfix.py:386:            # A reaped exit status of 0 after SIGTERM is the clean stop (CC4.24's PRE dies with
+tests/aclfix.py:389:            print("SIGTERM exit", process.returncode, flush=True)
+tests/aclfix.py:403:                        help="SIGTERM-to-exit bound (raise only for sanitizer builds)")
+tests/aof_frame_order.py:8:path -- the writer's short-write rollback, its shutdown ftruncate, and the loader's rewind -- drops
+tests/gateprod-evidence/changed-text-audit.json:278:    "tests/shutdown_persist.py",
+tests/gateprod-evidence/changed-text-audit.json:279:    "tests/shutdown_report.py",
+tests/gateprod-evidence/changed-text-audit.json:280:    "tests/shutdown_unit.cc",
+tests/netio.py:251:        c.sock.shutdown(socket.SHUT_WR)
+tests/persistfix_unit.cc:88:    void shutdown_window() {
+tests/persistfix_unit.cc:89:        char path[] = "build/persistfix/shutdown-XXXXXX";
+tests/persistfix_unit.cc:91:        require(aof.fd_ >= 0, "create disposable shutdown file");
+tests/persistfix_unit.cc:97:        PersistFixHooks::shutdown_wait = [] { waited.store(true, std::memory_order_release); };
+tests/persistfix_unit.cc:98:        std::thread closer([&] { aof.writer_shutdown(writer, ring); });
+tests/persistfix_unit.cc:105:        PersistFixHooks::shutdown_wait = nullptr;
+tests/persistfix_unit.cc:110:                "shutdown persistence witness is clean after barrier");
+tests/persistfix_unit.cc:111:        std::puts("PASS persistfix shutdown-window: writer waited, all producers stopped, file closed");
+tests/persistfix_unit.cc:246:    require(argc == 2, "usage: persistfix-unit ack|remote|shutdown|refusal|frameorder|frameorder-no-guard");
+tests/persistfix_unit.cc:260:    else if (mode == "shutdown") test.shutdown_window();
+tests/signalacct_controls.py:15:from shutdown_report import require_io_conservation
+tests/shutsave.py:2:"""Maintainer-only wire proof: terminal shutdown during an observed large save."""
+tests/shutsave.py:58:    raise AssertionError('different shutdown IO owner never armed in 64 connections')
+tests/shutsave.py:96:            if args.action == 'sigterm':
+tests/shutsave.py:97:                process.send_signal(signal.SIGTERM)
+tests/shutsave.py:99:                peer.send('SHUTDOWN', *(['NOSAVE'] if args.action == 'nosave' else []))
+tests/shutsave.py:104:                assert status != 0 and 'fatal: database worker shutdown timeout' in text, text
+tests/shutsave.py:106:                            result='PRE worker-shutdown fatal reproduced')
+tests/shutsave.py:124:        conn.send('SHUTDOWN', 'NOSAVE')
+tests/shutsave.py:139:    parser.add_argument('--action', choices=('sigterm', 'nosave', 'shutdown'), required=True)
+tests/shutsave.py:158:    raise AssertionError('partial-save shutdown window never armed in three fresh datasets')
+tests/abbagate.py:2339:    old_handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/abbagate.py:2730:        for sig in (signal.SIGINT, signal.SIGTERM):
+tests/load_calibration.py:135:    handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+tests/ktls_lifetime_unit.cc:28:        tls->shutdown_started_ = true;
+tests/owner_prefetch_unit.cc:79:                loop.read_local_impl().deferred.drain_shutdown();
+tests/multidb_unit.cc:208:        server.shard(s).store().atomic_shutdown_release_records();
+tests/mdbqsbr_unit.cc:220:void shutdown_or_deadline(bool stop) {
+tests/mdbqsbr_unit.cc:233:            "shutdown retains map for destruction without demanding stopped t1 ack");
+tests/mdbqsbr_unit.cc:435:    run("shutdown", [] { shutdown_or_deadline(true); });
+tests/mdbqsbr_unit.cc:436:    if (selection == "deadline") shutdown_or_deadline(false);
+tests/aclkeys_wake_unit.cc:171:        acl_shutdown();
+tests/aclkeys_wake_unit.cc:261:    acl_shutdown();

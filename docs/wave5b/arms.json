@@ -1,0 +1,32 @@
+[
+  {
+    "path": "build/tomokv-wave5-PRE",
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "text_bytes": 7747526
+  },
+  {
+    "path": "build/tomokv-wave5b-BASE",
+    "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+    "text_bytes": 8076601
+  },
+  {
+    "path": "build/tomokv",
+    "sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+    "text_bytes": 8073113
+  },
+  {
+    "path": "build/tomokv-wave5b-POST-REVERT",
+    "sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+    "text_bytes": 8073113
+  },
+  {
+    "path": "build/tomokv-wave5b-PAD-A",
+    "sha256": "6e81f38fa1ec61e6904231c8e121a546c9febca56d3bee8bf55abd0928907fae",
+    "text_bytes": 8073113
+  },
+  {
+    "path": "build/tomokv-wave5b-PAD-B",
+    "sha256": "b0c5b3ef96e1fd37bf5990c67e4c3693d76ca7bf80321881f86dc6cb60d7180a",
+    "text_bytes": 8076601
+  }
+]

@@ -1,0 +1,5602 @@
+{
+  "gate_scope": "Partial jobs only; no full-gate or performance receipt",
+  "gates": [
+    {
+      "label": "pre-scored-listeners",
+      "returncode": 1,
+      "ok": 1,
+      "failed": [
+        "FLIP listener conservation (io-ex, complete)",
+        "FLIP listener conservation (io-ex, rollback)",
+        "FLIP listener conservation (ex-io, complete)",
+        "FLIP listener conservation (ex-io, rollback)"
+      ],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv-PRE"
+        ],
+        "jobs": [
+          "fliplisten"
+        ],
+        "requested_jobs": [
+          "fliplisten"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c"
+      }
+    },
+    {
+      "label": "pre-all-flip-uring",
+      "returncode": 1,
+      "ok": 8,
+      "failed": [
+        "FLIP close during FLIP (uring)",
+        "FLIP close during FLIP (epoll)"
+      ],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv-PRE"
+        ],
+        "jobs": [
+          "flip"
+        ],
+        "requested_jobs": [
+          "flip"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c"
+      }
+    },
+    {
+      "label": "pre-all-flip-epoll",
+      "returncode": 1,
+      "ok": 8,
+      "failed": [
+        "FLIP close during FLIP (uring)",
+        "FLIP close during FLIP (epoll)"
+      ],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/fliplisten/tomokv-epoll-pre-all-flip-epoll"
+        ],
+        "jobs": [
+          "flip"
+        ],
+        "requested_jobs": [
+          "flip"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c"
+      }
+    },
+    {
+      "label": "post-all-flip-uring",
+      "returncode": 0,
+      "ok": 10,
+      "failed": [],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv"
+        ],
+        "jobs": [
+          "flip"
+        ],
+        "requested_jobs": [
+          "flip"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "test_sha256": {
+          "tests/gate.sh": "7209c1584be49a36519443fb7e6d44b2498184eaf57c8c2df9473375829d8296",
+          "tests/flipfix.py": "121e7cbf9f54b2d7e7da19c9dba7a5c72bccb382a54fee7b6b95d1381da8be88",
+          "tests/fliplisten.py": "21df315d11c18241dc1792aec9224cbe4a476ea64650064c7aa8ad59bbc43316",
+          "tests/r7shadow_sync.py": "8dcaa114a744edc8507bfb6a2feaed76b31b73c3a0b251930fc396e9c041968b"
+        }
+      }
+    },
+    {
+      "label": "pre-reorder-sync",
+      "returncode": 0,
+      "ok": 1,
+      "failed": [],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv-PRE"
+        ],
+        "jobs": [
+          "reorder_sync"
+        ],
+        "requested_jobs": [
+          "reorder_sync"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c"
+      }
+    },
+    {
+      "label": "post-epoch-uring",
+      "returncode": 0,
+      "ok": 375,
+      "failed": [],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21810-21839",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv"
+        ],
+        "jobs": [
+          "fliplisten",
+          "flip",
+          "flipctl",
+          "flip_saturated",
+          "flip_unit",
+          "flipfix_units",
+          "tls",
+          "compat2",
+          "climonfix",
+          "clientfix",
+          "feature-split-0",
+          "feature-split-1",
+          "feature-armed-0",
+          "feature-armed-1",
+          "netio-1s",
+          "netio-2s",
+          "reorder_sync",
+          "aof-epoll",
+          "aof-uring",
+          "snapshot-epoll",
+          "snapshot-uring",
+          "core_units",
+          "boot_grammar",
+          "bplus",
+          "netcap",
+          "lbplanner_units"
+        ],
+        "requested_jobs": [
+          "fliplisten",
+          "flip",
+          "flipctl",
+          "flip_saturated",
+          "flip_unit",
+          "flipfix_units",
+          "tls",
+          "compat2",
+          "climonfix",
+          "clientfix",
+          "feature-split-0",
+          "feature-split-1",
+          "feature-armed-0",
+          "feature-armed-1",
+          "netio-1s",
+          "netio-2s",
+          "reorder_sync",
+          "aof-epoll",
+          "aof-uring",
+          "snapshot-epoll",
+          "snapshot-uring",
+          "core_units",
+          "boot_grammar",
+          "bplus",
+          "netcap",
+          "lbplanner_units"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+      }
+    },
+    {
+      "label": "post-epoch-epoll",
+      "returncode": 0,
+      "ok": 205,
+      "failed": [],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21810-21839",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/fliplisten/tomokv-epoll-post-epoch-epoll"
+        ],
+        "jobs": [
+          "flip",
+          "flipctl",
+          "flip_saturated",
+          "tls",
+          "compat2",
+          "climonfix",
+          "clientfix",
+          "feature-split-0",
+          "feature-split-1",
+          "feature-armed-0",
+          "feature-armed-1",
+          "netio-1s",
+          "netio-2s",
+          "bplus"
+        ],
+        "requested_jobs": [
+          "flip",
+          "flipctl",
+          "flip_saturated",
+          "tls",
+          "compat2",
+          "climonfix",
+          "clientfix",
+          "feature-split-0",
+          "feature-split-1",
+          "feature-armed-0",
+          "feature-armed-1",
+          "netio-1s",
+          "netio-2s",
+          "bplus"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+      }
+    },
+    {
+      "label": "pre-final-diagnostics",
+      "returncode": 1,
+      "ok": 8,
+      "failed": [
+        "FLIP close during FLIP (uring)",
+        "FLIP close during FLIP (epoll)"
+      ],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv-PRE"
+        ],
+        "jobs": [
+          "flip"
+        ],
+        "requested_jobs": [
+          "flip"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "test_sha256": {
+          "tests/gate.sh": "a8be055b335645b964726e94673db7cdd435c628ad2adbf8d672b3315d7e366e",
+          "tests/flipfix.py": "121e7cbf9f54b2d7e7da19c9dba7a5c72bccb382a54fee7b6b95d1381da8be88",
+          "tests/fliplisten.py": "21df315d11c18241dc1792aec9224cbe4a476ea64650064c7aa8ad59bbc43316",
+          "tests/r7shadow_sync.py": "8dcaa114a744edc8507bfb6a2feaed76b31b73c3a0b251930fc396e9c041968b"
+        }
+      }
+    },
+    {
+      "label": "post-final-diagnostics",
+      "returncode": 0,
+      "ok": 10,
+      "failed": [],
+      "command": {
+        "argv": [
+          "taskset",
+          "-c",
+          "48-63",
+          "bash",
+          "tests/gate.sh",
+          "full",
+          "--server-cores",
+          "48-55",
+          "--load-cores",
+          "56-63",
+          "--server-smt",
+          "",
+          "--load-smt",
+          "",
+          "--ports",
+          "21840-21849",
+          "--candidate-binary",
+          "/home/user/Projects/cx-fliplisten/build/tomokv"
+        ],
+        "jobs": [
+          "flip"
+        ],
+        "requested_jobs": [
+          "flip"
+        ],
+        "binary": "/home/user/Projects/cx-fliplisten/build/tomokv",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "test_sha256": {
+          "tests/gate.sh": "a8be055b335645b964726e94673db7cdd435c628ad2adbf8d672b3315d7e366e",
+          "tests/flipfix.py": "121e7cbf9f54b2d7e7da19c9dba7a5c72bccb382a54fee7b6b95d1381da8be88",
+          "tests/fliplisten.py": "21df315d11c18241dc1792aec9224cbe4a476ea64650064c7aa8ad59bbc43316",
+          "tests/r7shadow_sync.py": "8dcaa114a744edc8507bfb6a2feaed76b31b73c3a0b251930fc396e9c041968b"
+        }
+      }
+    }
+  ],
+  "arrival_matrix": {
+    "pre-scored-listeners": [
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "358802235": 0,
+          "358891913": 0,
+          "358864399": 0,
+          "358950212": 0
+        },
+        "listeners_during": {
+          "358943850": 6,
+          "358729301": 2,
+          "358802235": 3,
+          "358891913": 3,
+          "358864399": 5,
+          "358950212": 5
+        },
+        "witness": {
+          "pid": 2917365,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802236": 0,
+          "358891914": 0,
+          "358864400": 0,
+          "358950213": 0
+        },
+        "tls_listeners_during": {
+          "358729302": 6,
+          "358943851": 2,
+          "358802236": 4,
+          "358891914": 5,
+          "358864400": 6,
+          "358950213": 1
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.03384058643132448,
+        "established_after_flip_s": 0.009542271494865417,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "358802249": 0,
+          "358891958": 0,
+          "358864426": 0,
+          "358950235": 0
+        },
+        "listeners_during": {
+          "358943862": 1,
+          "358729315": 4,
+          "358802249": 9,
+          "358891958": 5,
+          "358864426": 2,
+          "358950235": 3
+        },
+        "witness": {
+          "pid": 2922466,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802250": 0,
+          "358891959": 0,
+          "358864427": 0,
+          "358950236": 0
+        },
+        "tls_listeners_during": {
+          "358729316": 2,
+          "358943863": 3,
+          "358802250": 6,
+          "358891959": 6,
+          "358864427": 3,
+          "358950236": 4
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.024840676225721836,
+        "established_after_flip_s": 1.9589439034461975e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 11,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: EOFError: server closed the connection",
+          "3: EOFError: server closed the connection",
+          "4: EOFError: server closed the connection",
+          "5: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "6: EOFError: server closed the connection",
+          "7: EOFError: server closed the connection",
+          "8: EOFError: server closed the connection",
+          "10: EOFError: server closed the connection",
+          "13: EOFError: server closed the connection",
+          "14: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "16: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "17: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "19: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: EOFError: server closed the connection",
+          "21: EOFError: server closed the connection",
+          "22: EOFError: server closed the connection",
+          "23: EOFError: server closed the connection",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "49: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "50: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "51: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "52: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "53: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "54: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "55: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 11,
+        "listeners_before": {
+          "358950151": 0,
+          "358802211": 0,
+          "358891849": 0,
+          "358864336": 0
+        },
+        "listeners_during": {
+          "358943827": 4,
+          "358729282": 1,
+          "358950151": 6,
+          "358802211": 0,
+          "358891849": 0,
+          "358864336": 0
+        },
+        "witness": {
+          "pid": 2911656,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358950152": 0,
+          "358802212": 0,
+          "358891850": 0,
+          "358864337": 0
+        },
+        "tls_listeners_during": {
+          "358729283": 3,
+          "358943828": 4,
+          "358950152": 7,
+          "358802212": 0,
+          "358891850": 0,
+          "358864337": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.000998781993985176,
+        "established_after_flip_s": 2.0070001482963562e-05,
+        "unique_ids": 11,
+        "executions": "11"
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 15,
+        "errors": [
+          "1: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "3: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "4: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "5: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "6: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "8: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "10: EOFError: server closed the connection",
+          "11: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "12: EOFError: server closed the connection",
+          "13: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: EOFError: server closed the connection",
+          "19: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: EOFError: server closed the connection",
+          "21: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "22: EOFError: server closed the connection",
+          "23: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "49: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "50: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "51: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "52: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "53: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "54: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "55: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 15,
+        "listeners_before": {
+          "358802223": 0,
+          "358891885": 0,
+          "358950184": 0,
+          "358864367": 0
+        },
+        "listeners_during": {
+          "358729290": 3,
+          "358943842": 3,
+          "358802223": 3,
+          "358891885": 0,
+          "358950184": 6,
+          "358864367": 0
+        },
+        "witness": {
+          "pid": 2916701,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802224": 0,
+          "358891886": 0,
+          "358950185": 0,
+          "358864368": 0
+        },
+        "tls_listeners_during": {
+          "358729291": 6,
+          "358943843": 3,
+          "358802224": 0,
+          "358891886": 0,
+          "358950185": 5,
+          "358864368": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.013163769617676735,
+        "established_after_flip_s": 2.2559426724910736e-05,
+        "unique_ids": 15,
+        "executions": "15"
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 57,
+        "served": 36,
+        "errors": [
+          "0: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "3: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "5: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "6: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "10: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "11: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "21: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "23: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 36,
+        "listeners_before": {
+          "358802356": 0,
+          "358892040": 0,
+          "358864573": 0,
+          "358950406": 0
+        },
+        "listeners_during": {
+          "358943913": 7,
+          "358729384": 5,
+          "358802356": 5,
+          "358892040": 1,
+          "358864573": 3,
+          "358950406": 4
+        },
+        "witness": {
+          "pid": 2928301,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802357": 0,
+          "358892041": 0,
+          "358864574": 0,
+          "358950407": 0
+        },
+        "tls_listeners_during": {
+          "358943914": 3,
+          "358729385": 6,
+          "358802357": 5,
+          "358892041": 3,
+          "358864574": 3,
+          "358950407": 4
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.041960676200687885,
+        "established_after_flip_s": 2.34898179769516e-05,
+        "unique_ids": 36,
+        "executions": "36"
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 41,
+        "errors": [
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "6: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "11: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "12: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "23: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 41,
+        "listeners_before": {
+          "358892069": 0,
+          "358802381": 0,
+          "358864599": 0,
+          "358950447": 0
+        },
+        "listeners_during": {
+          "358729411": 3,
+          "358943921": 5,
+          "358892069": 2,
+          "358802381": 2,
+          "358864599": 8,
+          "358950447": 4
+        },
+        "witness": {
+          "pid": 2928995,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358892070": 0,
+          "358802382": 0,
+          "358864600": 0,
+          "358950448": 0
+        },
+        "tls_listeners_during": {
+          "358943922": 5,
+          "358729412": 2,
+          "358892070": 6,
+          "358802382": 5,
+          "358864600": 4,
+          "358950448": 2
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.027555682696402073,
+        "established_after_flip_s": 0.000566401518881321,
+        "unique_ids": 41,
+        "executions": "41"
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "2: EOFError: server closed the connection",
+          "3: EOFError: server closed the connection",
+          "4: EOFError: server closed the connection",
+          "5: EOFError: server closed the connection",
+          "6: EOFError: server closed the connection",
+          "7: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "8: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "9: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "10: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "11: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "12: EOFError: server closed the connection",
+          "13: EOFError: server closed the connection",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "17: EOFError: server closed the connection",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "19: EOFError: server closed the connection",
+          "20: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "21: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "22: EOFError: server closed the connection",
+          "23: EOFError: server closed the connection",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "49: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "50: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "51: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "52: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "53: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "54: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "55: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358802284": 0,
+          "358891978": 0,
+          "358864450": 0,
+          "358950289": 0
+        },
+        "listeners_during": {
+          "358943890": 3,
+          "358729361": 4,
+          "358802284": 0,
+          "358891978": 3,
+          "358864450": 0,
+          "358950289": 0
+        },
+        "witness": {
+          "pid": 2922734,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802285": 0,
+          "358891979": 0,
+          "358864451": 0,
+          "358950290": 0
+        },
+        "tls_listeners_during": {
+          "358943891": 4,
+          "358729362": 6,
+          "358802285": 0,
+          "358891979": 1,
+          "358864451": 0,
+          "358950290": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.011240765452384949,
+        "established_after_flip_s": 3.597047179937363e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: EOFError: server closed the connection",
+          "2: EOFError: server closed the connection",
+          "3: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "4: EOFError: server closed the connection",
+          "5: EOFError: server closed the connection",
+          "6: EOFError: server closed the connection",
+          "7: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "8: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "9: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "10: EOFError: server closed the connection",
+          "11: EOFError: server closed the connection",
+          "12: EOFError: server closed the connection",
+          "13: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: EOFError: server closed the connection",
+          "17: EOFError: server closed the connection",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "19: EOFError: server closed the connection",
+          "20: EOFError: server closed the connection",
+          "21: EOFError: server closed the connection",
+          "22: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "23: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "49: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "50: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "51: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "52: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "53: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "54: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "55: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358802312": 0,
+          "358892006": 0,
+          "358864471": 0,
+          "358950365": 0
+        },
+        "listeners_during": {
+          "358943897": 4,
+          "358729370": 0,
+          "358802312": 0,
+          "358892006": 4,
+          "358864471": 0,
+          "358950365": 0
+        },
+        "witness": {
+          "pid": 2924927,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358802313": 0,
+          "358892007": 0,
+          "358864472": 0,
+          "358950366": 0
+        },
+        "tls_listeners_during": {
+          "358729371": 6,
+          "358943898": 4,
+          "358802313": 0,
+          "358892007": 1,
+          "358864472": 0,
+          "358950366": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.013932501897215843,
+        "established_after_flip_s": 2.7460046112537384e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 41,
+        "errors": [
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "4: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "5: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "9: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "16: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "17: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "21: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "22: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 41,
+        "listeners_before": {
+          "358755841": 0,
+          "358941814": 0,
+          "358802074": 0,
+          "358949893": 0,
+          "358891739": 0,
+          "358864183": 0
+        },
+        "listeners_during": {
+          "358755841": 7,
+          "358941814": 3,
+          "358802074": 1,
+          "358949893": 5,
+          "358891739": 4,
+          "358864183": 4
+        },
+        "witness": {
+          "pid": 2899608,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755842": 0,
+          "358941815": 0,
+          "358802075": 0,
+          "358949894": 0,
+          "358891740": 0,
+          "358864184": 0
+        },
+        "tls_listeners_during": {
+          "358755842": 2,
+          "358941815": 3,
+          "358802075": 3,
+          "358949894": 5,
+          "358891740": 4,
+          "358864184": 7
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.02773217111825943,
+        "established_after_flip_s": 0.0029860567301511765,
+        "unique_ids": 41,
+        "executions": "41"
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 42,
+        "errors": [
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "6: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "12: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "13: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "15: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "16: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "23: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 42,
+        "listeners_before": {
+          "358755857": 0,
+          "358941828": 0,
+          "358802095": 0,
+          "358891765": 0,
+          "358864232": 0,
+          "358949950": 0
+        },
+        "listeners_during": {
+          "358755857": 3,
+          "358941828": 4,
+          "358802095": 5,
+          "358891765": 3,
+          "358864232": 7,
+          "358949950": 2
+        },
+        "witness": {
+          "pid": 2905055,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755858": 0,
+          "358941829": 0,
+          "358802096": 0,
+          "358891766": 0,
+          "358864233": 0,
+          "358949951": 0
+        },
+        "tls_listeners_during": {
+          "358755858": 2,
+          "358941829": 5,
+          "358802096": 4,
+          "358891766": 3,
+          "358864233": 1,
+          "358949951": 9
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.02815572265535593,
+        "established_after_flip_s": 1.9329600036144257e-05,
+        "unique_ids": 42,
+        "executions": "42"
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "1: EOFError: server closed the connection",
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "3: EOFError: server closed the connection",
+          "4: EOFError: server closed the connection",
+          "5: EOFError: server closed the connection",
+          "6: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "7: EOFError: server closed the connection",
+          "8: EOFError: server closed the connection",
+          "9: EOFError: server closed the connection",
+          "10: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "11: EOFError: server closed the connection",
+          "12: EOFError: server closed the connection",
+          "13: EOFError: server closed the connection",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: EOFError: server closed the connection",
+          "17: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: EOFError: server closed the connection",
+          "19: EOFError: server closed the connection",
+          "20: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "21: EOFError: server closed the connection",
+          "22: EOFError: server closed the connection",
+          "23: EOFError: server closed the connection",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "49: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "50: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "51: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "52: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "53: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "54: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "55: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358755785": 0,
+          "358941766": 0,
+          "358802021": 0,
+          "358891691": 0,
+          "358864106": 0,
+          "358743953": 0
+        },
+        "listeners_during": {
+          "358755785": 0,
+          "358941766": 0,
+          "358802021": 0,
+          "358891691": 0,
+          "358864106": 0,
+          "358743953": 6
+        },
+        "witness": {
+          "pid": 2898594,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755786": 0,
+          "358941767": 0,
+          "358802022": 0,
+          "358891692": 0,
+          "358864107": 0,
+          "358743954": 0
+        },
+        "tls_listeners_during": {
+          "358755786": 0,
+          "358941767": 0,
+          "358802022": 0,
+          "358891692": 0,
+          "358864107": 0,
+          "358743954": 5
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.003214697353541851,
+        "established_after_flip_s": 2.2630207240581512e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: EOFError: server closed the connection",
+          "2: EOFError: server closed the connection",
+          "3: EOFError: server closed the connection",
+          "4: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "5: EOFError: server closed the connection",
+          "6: EOFError: server closed the connection",
+          "7: EOFError: server closed the connection",
+          "8: EOFError: server closed the connection",
+          "9: EOFError: server closed the connection",
+          "10: EOFError: server closed the connection",
+          "11: EOFError: server closed the connection",
+          "12: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "13: EOFError: server closed the connection",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "17: EOFError: server closed the connection",
+          "18: EOFError: server closed the connection",
+          "19: EOFError: server closed the connection",
+          "20: EOFError: server closed the connection",
+          "21: EOFError: server closed the connection",
+          "22: EOFError: server closed the connection",
+          "23: EOFError: server closed the connection",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "49: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "50: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "51: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "52: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "53: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "54: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "55: ConnectionResetError: [Errno 104] Connection reset by peer"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358755826": 0,
+          "358941802": 0,
+          "358802060": 0,
+          "358891726": 0,
+          "358864155": 0,
+          "358744015": 0
+        },
+        "listeners_during": {
+          "358755826": 0,
+          "358941802": 0,
+          "358802060": 0,
+          "358891726": 0,
+          "358864155": 0,
+          "358744015": 3
+        },
+        "witness": {
+          "pid": 2899148,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755827": 0,
+          "358941803": 0,
+          "358802061": 0,
+          "358891727": 0,
+          "358864156": 0,
+          "358744016": 0
+        },
+        "tls_listeners_during": {
+          "358755827": 0,
+          "358941803": 0,
+          "358802061": 0,
+          "358891727": 0,
+          "358864156": 0,
+          "358744016": 5
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.003605138510465622,
+        "established_after_flip_s": 2.1959654986858368e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "358755958": 0,
+          "358941899": 0,
+          "358802145": 0,
+          "358891812": 0,
+          "358864275": 0,
+          "358950055": 0
+        },
+        "listeners_during": {
+          "358755958": 6,
+          "358941899": 3,
+          "358802145": 4,
+          "358891812": 3,
+          "358864275": 3,
+          "358950055": 5
+        },
+        "witness": {
+          "pid": 2909564,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755959": 0,
+          "358941900": 0,
+          "358802146": 0,
+          "358891813": 0,
+          "358864276": 0,
+          "358950056": 0
+        },
+        "tls_listeners_during": {
+          "358755959": 4,
+          "358941900": 10,
+          "358802146": 5,
+          "358891813": 2,
+          "358864276": 2,
+          "358950056": 1
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.03028968721628189,
+        "established_after_flip_s": 0.004540329799056053,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "358755989": 0,
+          "358941920": 0,
+          "358891831": 0,
+          "358802167": 0,
+          "358864305": 0,
+          "358950121": 0
+        },
+        "listeners_during": {
+          "358755989": 6,
+          "358941920": 5,
+          "358891831": 4,
+          "358802167": 2,
+          "358864305": 1,
+          "358950121": 6
+        },
+        "witness": {
+          "pid": 2911305,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755990": 0,
+          "358941921": 0,
+          "358891832": 0,
+          "358802168": 0,
+          "358864306": 0,
+          "358950122": 0
+        },
+        "tls_listeners_during": {
+          "358755990": 3,
+          "358941921": 6,
+          "358891832": 4,
+          "358802168": 4,
+          "358864306": 4,
+          "358950122": 3
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.028555644676089287,
+        "established_after_flip_s": 0.0011726226657629013,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: EOFError: server closed the connection",
+          "2: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "3: EOFError: server closed the connection",
+          "4: EOFError: server closed the connection",
+          "5: EOFError: server closed the connection",
+          "6: EOFError: server closed the connection",
+          "7: EOFError: server closed the connection",
+          "8: EOFError: server closed the connection",
+          "9: EOFError: server closed the connection",
+          "10: EOFError: server closed the connection",
+          "11: EOFError: server closed the connection",
+          "12: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "13: EOFError: server closed the connection",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: EOFError: server closed the connection",
+          "17: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "18: EOFError: server closed the connection",
+          "19: EOFError: server closed the connection",
+          "20: EOFError: server closed the connection",
+          "21: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "22: EOFError: server closed the connection",
+          "23: EOFError: server closed the connection",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "49: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "50: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "51: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "52: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "53: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "54: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "55: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358941850": 0,
+          "358755883": 0,
+          "358802122": 0,
+          "358891778": 0,
+          "358864249": 0,
+          "358949983": 0
+        },
+        "listeners_during": {
+          "358941850": 0,
+          "358755883": 4,
+          "358802122": 0,
+          "358891778": 0,
+          "358864249": 0,
+          "358949983": 0
+        },
+        "witness": {
+          "pid": 2905353,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358941851": 0,
+          "358755884": 0,
+          "358802123": 0,
+          "358891779": 0,
+          "358864250": 0,
+          "358949984": 0
+        },
+        "tls_listeners_during": {
+          "358941851": 0,
+          "358755884": 3,
+          "358802123": 0,
+          "358891779": 0,
+          "358864250": 0,
+          "358949984": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.012299577705562115,
+        "established_after_flip_s": 2.607051283121109e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+        "arrived": 56,
+        "served": 0,
+        "errors": [
+          "0: EOFError: server closed the connection",
+          "1: EOFError: server closed the connection",
+          "2: EOFError: server closed the connection",
+          "3: EOFError: server closed the connection",
+          "4: EOFError: server closed the connection",
+          "5: EOFError: server closed the connection",
+          "6: EOFError: server closed the connection",
+          "7: EOFError: server closed the connection",
+          "8: EOFError: server closed the connection",
+          "9: EOFError: server closed the connection",
+          "10: EOFError: server closed the connection",
+          "11: EOFError: server closed the connection",
+          "12: EOFError: server closed the connection",
+          "13: EOFError: server closed the connection",
+          "14: EOFError: server closed the connection",
+          "15: EOFError: server closed the connection",
+          "16: EOFError: server closed the connection",
+          "17: EOFError: server closed the connection",
+          "18: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "19: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "20: EOFError: server closed the connection",
+          "21: EOFError: server closed the connection",
+          "22: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "23: EOFError: server closed the connection",
+          "24: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "25: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "26: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "27: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "28: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "29: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "30: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "31: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "32: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "33: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "34: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "35: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "36: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "37: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "38: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "39: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "40: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "41: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "42: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "43: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "44: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "45: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "46: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "47: ConnectionResetError: [Errno 104] Connection reset by peer",
+          "48: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "49: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "50: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "51: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "52: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "53: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "54: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")",
+          "55: AssertionError: ('lost during arrival', \"BrokenPipeError(32, 'Broken pipe')\")"
+        ],
+        "accepted_delta": 0,
+        "listeners_before": {
+          "358755924": 0,
+          "358941866": 0,
+          "358802134": 0,
+          "358891797": 0,
+          "358864263": 0,
+          "358950022": 0
+        },
+        "listeners_during": {
+          "358755924": 3,
+          "358941866": 0,
+          "358802134": 0,
+          "358891797": 0,
+          "358864263": 0,
+          "358950022": 0
+        },
+        "witness": {
+          "pid": 2905580,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "358755925": 0,
+          "358941867": 0,
+          "358802135": 0,
+          "358891798": 0,
+          "358864264": 0,
+          "358950023": 0
+        },
+        "tls_listeners_during": {
+          "358755925": 4,
+          "358941867": 0,
+          "358802135": 0,
+          "358891798": 0,
+          "358864264": 0,
+          "358950023": 0
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.014761502854526043,
+        "established_after_flip_s": 1.8670223653316498e-05,
+        "unique_ids": 0,
+        "executions": "0"
+      }
+    ],
+    "post-epoch-uring": [
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762772": 0,
+          "365756698": 0,
+          "365754901": 0,
+          "365755901": 0
+        },
+        "listeners_during": {
+          "365755909": 3,
+          "365755907": 4,
+          "365762772": 6,
+          "365756698": 3,
+          "365754901": 3,
+          "365755901": 5
+        },
+        "witness": {
+          "pid": 237525,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762773": 0,
+          "365756699": 0,
+          "365754902": 0,
+          "365755902": 0
+        },
+        "tls_listeners_during": {
+          "365755910": 2,
+          "365755908": 5,
+          "365762773": 5,
+          "365756699": 5,
+          "365754902": 3,
+          "365755902": 4
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.020439243875443935,
+        "established_after_flip_s": 2.137012779712677e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762787": 0,
+          "365756710": 0,
+          "365754913": 0,
+          "365755936": 0
+        },
+        "listeners_during": {
+          "365756718": 2,
+          "365756716": 3,
+          "365762787": 2,
+          "365756710": 10,
+          "365754913": 4,
+          "365755936": 3
+        },
+        "witness": {
+          "pid": 238690,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762788": 0,
+          "365756711": 0,
+          "365754914": 0,
+          "365755937": 0
+        },
+        "tls_listeners_during": {
+          "365756719": 3,
+          "365756717": 1,
+          "365762788": 3,
+          "365756711": 7,
+          "365754914": 5,
+          "365755937": 5
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.023588981479406357,
+        "established_after_flip_s": 2.546049654483795e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762722": 0,
+          "365756653": 0,
+          "365754874": 0,
+          "365755853": 0
+        },
+        "listeners_during": {
+          "365756661": 5,
+          "365756659": 4,
+          "365762722": 1,
+          "365756653": 4,
+          "365754874": 6,
+          "365755853": 4
+        },
+        "witness": {
+          "pid": 232123,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762723": 0,
+          "365756654": 0,
+          "365754875": 0,
+          "365755854": 0
+        },
+        "tls_listeners_during": {
+          "365756662": 4,
+          "365756660": 2,
+          "365762723": 4,
+          "365756654": 6,
+          "365754875": 2,
+          "365755854": 6
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.01554856076836586,
+        "established_after_flip_s": 0.00014317035675048828,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762760": 0,
+          "365754888": 0,
+          "365756677": 0,
+          "365755881": 0
+        },
+        "listeners_during": {
+          "365756684": 3,
+          "365756682": 8,
+          "365762760": 5,
+          "365754888": 5,
+          "365756677": 2,
+          "365755881": 1
+        },
+        "witness": {
+          "pid": 232476,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762761": 0,
+          "365754889": 0,
+          "365756678": 0,
+          "365755882": 0
+        },
+        "tls_listeners_during": {
+          "365756685": 3,
+          "365756683": 7,
+          "365762761": 2,
+          "365754889": 1,
+          "365756678": 8,
+          "365755882": 3
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.027881283313035965,
+        "established_after_flip_s": 2.0830892026424408e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 72,
+        "served": 72,
+        "errors": [],
+        "accepted_delta": 72,
+        "listeners_before": {
+          "365762847": 0,
+          "365756771": 0,
+          "365754955": 0,
+          "365756066": 0
+        },
+        "listeners_during": {
+          "365762853": 4,
+          "365762851": 4,
+          "365762847": 5,
+          "365756771": 4,
+          "365754955": 4,
+          "365756066": 3
+        },
+        "witness": {
+          "pid": 245311,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762848": 0,
+          "365756772": 0,
+          "365754956": 0,
+          "365756067": 0
+        },
+        "tls_listeners_during": {
+          "365762854": 1,
+          "365762852": 6,
+          "365762848": 13,
+          "365756772": 8,
+          "365754956": 7,
+          "365756067": 5
+        },
+        "tls_arrived": 40,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.05355994030833244,
+        "established_after_flip_s": 3.4460797905921936e-05,
+        "unique_ids": 72,
+        "executions": "72",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762896": 0,
+          "365756787": 0,
+          "365754970": 0,
+          "365756094": 0
+        },
+        "listeners_during": {
+          "365754976": 1,
+          "365754974": 2,
+          "365762896": 9,
+          "365756787": 4,
+          "365754970": 4,
+          "365756094": 4
+        },
+        "witness": {
+          "pid": 249217,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762897": 0,
+          "365756788": 0,
+          "365754971": 0,
+          "365756095": 0
+        },
+        "tls_listeners_during": {
+          "365754977": 7,
+          "365754975": 4,
+          "365762897": 5,
+          "365756788": 3,
+          "365754971": 3,
+          "365756095": 2
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.04368266463279724,
+        "established_after_flip_s": 2.8990209102630615e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762798": 0,
+          "365756743": 0,
+          "365754931": 0,
+          "365755961": 0
+        },
+        "listeners_during": {
+          "365755971": 4,
+          "365755969": 4,
+          "365762798": 4,
+          "365756743": 3,
+          "365754931": 2,
+          "365755961": 7
+        },
+        "witness": {
+          "pid": 239388,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762799": 0,
+          "365756744": 0,
+          "365754932": 0,
+          "365755962": 0
+        },
+        "tls_listeners_during": {
+          "365755972": 7,
+          "365755970": 3,
+          "365762799": 5,
+          "365756744": 5,
+          "365754932": 2,
+          "365755962": 2
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.043537755496799946,
+        "established_after_flip_s": 0.00023797061294317245,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "ex-io",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365762836": 0,
+          "365756758": 0,
+          "365754942": 0,
+          "365756016": 0
+        },
+        "listeners_during": {
+          "365756026": 1,
+          "365756024": 4,
+          "365762836": 4,
+          "365756758": 4,
+          "365754942": 7,
+          "365756016": 4
+        },
+        "witness": {
+          "pid": 245117,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365762837": 0,
+          "365756759": 0,
+          "365754943": 0,
+          "365756017": 0
+        },
+        "tls_listeners_during": {
+          "365756027": 2,
+          "365756025": 6,
+          "365762837": 3,
+          "365756759": 4,
+          "365754943": 2,
+          "365756017": 7
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.02971825934946537,
+        "established_after_flip_s": 2.637971192598343e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748570": 0,
+          "365757552": 0,
+          "365756539": 0,
+          "365762599": 0,
+          "365754714": 0,
+          "365755654": 0
+        },
+        "listeners_during": {
+          "365748570": 6,
+          "365757552": 4,
+          "365756539": 3,
+          "365762599": 3,
+          "365754714": 6,
+          "365755654": 2
+        },
+        "witness": {
+          "pid": 217839,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748571": 0,
+          "365757553": 0,
+          "365756540": 0,
+          "365762600": 0,
+          "365754715": 0,
+          "365755655": 0
+        },
+        "tls_listeners_during": {
+          "365748571": 2,
+          "365757553": 5,
+          "365756540": 6,
+          "365762600": 3,
+          "365754715": 4,
+          "365755655": 4
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.016655074432492256,
+        "established_after_flip_s": 0.0011169333010911942,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748572": 0,
+          "365757554": 0,
+          "365762609": 0,
+          "365756552": 0,
+          "365754748": 0,
+          "365755702": 0
+        },
+        "listeners_during": {
+          "365748572": 5,
+          "365757554": 7,
+          "365762609": 2,
+          "365756552": 2,
+          "365754748": 5,
+          "365755702": 3
+        },
+        "witness": {
+          "pid": 218375,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748573": 0,
+          "365757555": 0,
+          "365762610": 0,
+          "365756553": 0,
+          "365754749": 0,
+          "365755703": 0
+        },
+        "tls_listeners_during": {
+          "365748573": 5,
+          "365757555": 2,
+          "365762610": 5,
+          "365756553": 6,
+          "365754749": 4,
+          "365755703": 2
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.027363101951777935,
+        "established_after_flip_s": 0.0012244833633303642,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748542": 0,
+          "365757520": 0,
+          "365762579": 0,
+          "365756509": 0,
+          "365754672": 0,
+          "365755598": 0
+        },
+        "listeners_during": {
+          "365748542": 7,
+          "365757520": 2,
+          "365762579": 5,
+          "365756509": 3,
+          "365754672": 5,
+          "365755598": 2
+        },
+        "witness": {
+          "pid": 211598,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748543": 0,
+          "365757521": 0,
+          "365762580": 0,
+          "365756510": 0,
+          "365754673": 0,
+          "365755599": 0
+        },
+        "tls_listeners_during": {
+          "365748543": 1,
+          "365757521": 4,
+          "365762580": 10,
+          "365756510": 5,
+          "365754673": 2,
+          "365755599": 2
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.020606054924428463,
+        "established_after_flip_s": 2.381950616836548e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "complete",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748563": 0,
+          "365757548": 0,
+          "365756523": 0,
+          "365762586": 0,
+          "365754697": 0,
+          "365755620": 0
+        },
+        "listeners_during": {
+          "365748563": 5,
+          "365757548": 3,
+          "365756523": 5,
+          "365762586": 5,
+          "365754697": 4,
+          "365755620": 2
+        },
+        "witness": {
+          "pid": 217320,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748564": 0,
+          "365757549": 0,
+          "365756524": 0,
+          "365762587": 0,
+          "365754698": 0,
+          "365755621": 0
+        },
+        "tls_listeners_during": {
+          "365748564": 3,
+          "365757549": 4,
+          "365756524": 7,
+          "365762587": 4,
+          "365754698": 1,
+          "365755621": 5
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.03240564465522766,
+        "established_after_flip_s": 2.581067383289337e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365757651": 0,
+          "365748604": 0,
+          "365762687": 0,
+          "365756601": 0,
+          "365754823": 0,
+          "365755800": 0
+        },
+        "listeners_during": {
+          "365757651": 3,
+          "365748604": 4,
+          "365762687": 4,
+          "365756601": 6,
+          "365754823": 3,
+          "365755800": 4
+        },
+        "witness": {
+          "pid": 226207,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365757652": 0,
+          "365748605": 0,
+          "365762688": 0,
+          "365756602": 0,
+          "365754824": 0,
+          "365755801": 0
+        },
+        "tls_listeners_during": {
+          "365757652": 5,
+          "365748605": 2,
+          "365762688": 5,
+          "365756602": 4,
+          "365754824": 2,
+          "365755801": 6
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.030487741343677044,
+        "established_after_flip_s": 0.0006682109087705612,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "epoll",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 58,
+        "served": 58,
+        "errors": [],
+        "accepted_delta": 58,
+        "listeners_before": {
+          "365748614": 0,
+          "365757667": 0,
+          "365762702": 0,
+          "365754855": 0,
+          "365756635": 0,
+          "365755825": 0
+        },
+        "listeners_during": {
+          "365748614": 8,
+          "365757667": 4,
+          "365762702": 7,
+          "365754855": 1,
+          "365756635": 3,
+          "365755825": 3
+        },
+        "witness": {
+          "pid": 231550,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748615": 0,
+          "365757668": 0,
+          "365762703": 0,
+          "365754856": 0,
+          "365756636": 0,
+          "365755826": 0
+        },
+        "tls_listeners_during": {
+          "365748615": 2,
+          "365757668": 2,
+          "365762703": 7,
+          "365754856": 2,
+          "365756636": 6,
+          "365755826": 5
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.03196961432695389,
+        "established_after_flip_s": 0.0023418860509991646,
+        "unique_ids": 58,
+        "executions": "58",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 0,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748576": 0,
+          "365757584": 0,
+          "365762613": 0,
+          "365756570": 0,
+          "365754793": 0,
+          "365755745": 0
+        },
+        "listeners_during": {
+          "365748576": 5,
+          "365757584": 4,
+          "365762613": 3,
+          "365756570": 3,
+          "365754793": 5,
+          "365755745": 4
+        },
+        "witness": {
+          "pid": 225181,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748577": 0,
+          "365757585": 0,
+          "365762614": 0,
+          "365756571": 0,
+          "365754794": 0,
+          "365755746": 0
+        },
+        "tls_listeners_during": {
+          "365748577": 4,
+          "365757585": 4,
+          "365762614": 5,
+          "365756571": 4,
+          "365754794": 3,
+          "365755746": 4
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.026362719014286995,
+        "established_after_flip_s": 2.2269785404205322e-05,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      },
+      {
+        "engine": "uring",
+        "atomic": 1,
+        "direction": "io-ex",
+        "outcome": "rollback",
+        "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+        "arrived": 56,
+        "served": 56,
+        "errors": [],
+        "accepted_delta": 56,
+        "listeners_before": {
+          "365748591": 0,
+          "365757618": 0,
+          "365762656": 0,
+          "365756583": 0,
+          "365754808": 0,
+          "365755771": 0
+        },
+        "listeners_during": {
+          "365748591": 2,
+          "365757618": 7,
+          "365762656": 0,
+          "365756583": 7,
+          "365754808": 4,
+          "365755771": 4
+        },
+        "witness": {
+          "pid": 225769,
+          "stage": "tomo_db0::FlipStage::ExDrain"
+        },
+        "tls_listeners_before": {
+          "365748592": 0,
+          "365757619": 0,
+          "365762657": 0,
+          "365756584": 0,
+          "365754809": 0,
+          "365755772": 0
+        },
+        "tls_listeners_during": {
+          "365748592": 2,
+          "365757619": 2,
+          "365762657": 3,
+          "365756584": 6,
+          "365754809": 5,
+          "365755772": 6
+        },
+        "tls_arrived": 24,
+        "unix_arrived": 8,
+        "remaining_quiesce_s": 0.031093882396817207,
+        "established_after_flip_s": 0.00012065097689628601,
+        "unique_ids": 56,
+        "executions": "56",
+        "passed": true
+      }
+    ]
+  },
+  "stale_accepts": [
+    {
+      "atomic": 0,
+      "outcome": "complete",
+      "trial": 0,
+      "counts": {
+        "arrived": 280,
+        "served": 280
+      },
+      "errors": [],
+      "accepted_delta": 280,
+      "unique_ids": 280,
+      "positive_stale": [
+        {
+          "fd": 119,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 135,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 35,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 122,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 139,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 36,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 124,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 143,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 38,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 126,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 146,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 39,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 128,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 150,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 40,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 154,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 130,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 42,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 133,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 158,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 45,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 136,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 162,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 47,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 166,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 138,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 49,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 170,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 142,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 51,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 148,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 174,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 53,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 178,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 152,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 55,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 182,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 157,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 57,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 186,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 161,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 59,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 190,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 165,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 60,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 193,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 176,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 61,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 180,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 198,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 62,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 183,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 202,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 63,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 205,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 187,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 191,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 210,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 195,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 214,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 200,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 218,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 204,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 221,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 208,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 224,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 212,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 226,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 216,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 228,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 220,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 231,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 222,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 234,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 229,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 237,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 230,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 240,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 233,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 243,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 236,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 246,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 238,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 250,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 241,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 253,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 244,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 255,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 247,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 257,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 249,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 258,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 252,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 254,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 256,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        }
+      ],
+      "witness": {
+        "pid": 2665041,
+        "thread": 7,
+        "tid": 3,
+        "server": 140737488235968,
+        "generation": 1,
+        "current_fd": 32,
+        "queued": [
+          {
+            "fd": 35,
+            "generation": 1
+          },
+          {
+            "fd": 36,
+            "generation": 1
+          },
+          {
+            "fd": 38,
+            "generation": 1
+          },
+          {
+            "fd": 39,
+            "generation": 1
+          },
+          {
+            "fd": 40,
+            "generation": 1
+          },
+          {
+            "fd": 42,
+            "generation": 1
+          },
+          {
+            "fd": 45,
+            "generation": 1
+          },
+          {
+            "fd": 47,
+            "generation": 1
+          },
+          {
+            "fd": 49,
+            "generation": 1
+          },
+          {
+            "fd": 51,
+            "generation": 1
+          },
+          {
+            "fd": 53,
+            "generation": 1
+          },
+          {
+            "fd": 55,
+            "generation": 1
+          },
+          {
+            "fd": 57,
+            "generation": 1
+          },
+          {
+            "fd": 59,
+            "generation": 1
+          },
+          {
+            "fd": 60,
+            "generation": 1
+          },
+          {
+            "fd": 61,
+            "generation": 1
+          },
+          {
+            "fd": 62,
+            "generation": 1
+          },
+          {
+            "fd": 63,
+            "generation": 1
+          }
+        ],
+        "held_stage": "tomo_db0::FlipStage::IoDrain"
+      },
+      "flips": [
+        {
+          "reply": "b'OK'",
+          "seconds": 1.2555632898584008
+        }
+      ],
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    {
+      "atomic": 0,
+      "outcome": "rollback",
+      "trial": 0,
+      "counts": {
+        "arrived": 280,
+        "served": 280
+      },
+      "errors": [],
+      "accepted_delta": 280,
+      "unique_ids": 280,
+      "positive_stale": [
+        {
+          "fd": 34,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 241,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 37,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 242,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 38,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 243,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 40,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 244,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 42,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 245,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 44,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 246,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 46,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 247,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 48,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 248,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 50,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 249,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 53,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 250,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 55,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 251,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 57,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 252,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 59,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 253,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 61,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 254,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 63,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 255,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 66,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 256,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 69,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 257,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 71,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 258,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 73,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 259,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 75,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 260,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 80,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 261,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 82,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 262,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 84,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 263,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 86,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 264,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 87,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 265,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 89,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 266,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 91,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 267,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 93,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 268,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 98,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 269,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 100,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 270,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 102,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 271,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 104,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 272,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 106,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 273,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 108,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 274,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 109,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 275,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 111,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 276,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 113,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 277,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 115,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 278,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 117,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 279,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 118,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 280,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 120,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 281,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 121,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 282,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 122,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 283,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 123,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 284,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 125,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 285,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 126,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 286,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 127,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 287,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 128,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 288,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 129,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 289,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        }
+      ],
+      "witness": {
+        "pid": 2665188,
+        "thread": 8,
+        "tid": 4,
+        "server": 140737488235968,
+        "generation": 1,
+        "current_fd": 32,
+        "queued": [
+          {
+            "fd": 34,
+            "generation": 1
+          },
+          {
+            "fd": 37,
+            "generation": 1
+          },
+          {
+            "fd": 38,
+            "generation": 1
+          },
+          {
+            "fd": 40,
+            "generation": 1
+          },
+          {
+            "fd": 42,
+            "generation": 1
+          },
+          {
+            "fd": 44,
+            "generation": 1
+          },
+          {
+            "fd": 46,
+            "generation": 1
+          },
+          {
+            "fd": 48,
+            "generation": 1
+          },
+          {
+            "fd": 50,
+            "generation": 1
+          },
+          {
+            "fd": 53,
+            "generation": 1
+          },
+          {
+            "fd": 55,
+            "generation": 1
+          },
+          {
+            "fd": 57,
+            "generation": 1
+          },
+          {
+            "fd": 59,
+            "generation": 1
+          },
+          {
+            "fd": 61,
+            "generation": 1
+          },
+          {
+            "fd": 63,
+            "generation": 1
+          },
+          {
+            "fd": 66,
+            "generation": 1
+          },
+          {
+            "fd": 69,
+            "generation": 1
+          },
+          {
+            "fd": 71,
+            "generation": 1
+          },
+          {
+            "fd": 73,
+            "generation": 1
+          },
+          {
+            "fd": 75,
+            "generation": 1
+          },
+          {
+            "fd": 80,
+            "generation": 1
+          },
+          {
+            "fd": 82,
+            "generation": 1
+          },
+          {
+            "fd": 84,
+            "generation": 1
+          },
+          {
+            "fd": 86,
+            "generation": 1
+          },
+          {
+            "fd": 87,
+            "generation": 1
+          },
+          {
+            "fd": 89,
+            "generation": 1
+          },
+          {
+            "fd": 91,
+            "generation": 1
+          },
+          {
+            "fd": 93,
+            "generation": 1
+          },
+          {
+            "fd": 98,
+            "generation": 1
+          },
+          {
+            "fd": 100,
+            "generation": 1
+          },
+          {
+            "fd": 102,
+            "generation": 1
+          },
+          {
+            "fd": 104,
+            "generation": 1
+          },
+          {
+            "fd": 106,
+            "generation": 1
+          },
+          {
+            "fd": 108,
+            "generation": 1
+          },
+          {
+            "fd": 109,
+            "generation": 1
+          },
+          {
+            "fd": 111,
+            "generation": 1
+          },
+          {
+            "fd": 113,
+            "generation": 1
+          },
+          {
+            "fd": 115,
+            "generation": 1
+          },
+          {
+            "fd": 117,
+            "generation": 1
+          },
+          {
+            "fd": 118,
+            "generation": 1
+          },
+          {
+            "fd": 120,
+            "generation": 1
+          },
+          {
+            "fd": 121,
+            "generation": 1
+          },
+          {
+            "fd": 122,
+            "generation": 1
+          },
+          {
+            "fd": 123,
+            "generation": 1
+          },
+          {
+            "fd": 125,
+            "generation": 1
+          },
+          {
+            "fd": 126,
+            "generation": 1
+          },
+          {
+            "fd": 127,
+            "generation": 1
+          },
+          {
+            "fd": 128,
+            "generation": 1
+          },
+          {
+            "fd": 129,
+            "generation": 1
+          }
+        ],
+        "held_stage": "tomo_db0::FlipStage::IoDrain"
+      },
+      "flips": [
+        {
+          "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+          "seconds": 1.444811336696148
+        }
+      ],
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    {
+      "atomic": 1,
+      "outcome": "complete",
+      "trial": 0,
+      "counts": {
+        "arrived": 280,
+        "served": 280
+      },
+      "errors": [],
+      "accepted_delta": 280,
+      "unique_ids": 280,
+      "positive_stale": [
+        {
+          "fd": 133,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 127,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 134,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 34,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 136,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 128,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 36,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 137,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 139,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 130,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 140,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 38,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 132,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 142,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 144,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 39,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 135,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 145,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 42,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 147,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 138,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 148,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 150,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 44,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 151,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 141,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 154,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 46,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 143,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 153,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 48,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 156,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 157,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 146,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 50,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 160,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 159,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 149,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 52,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 163,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 164,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 152,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 54,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 167,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 155,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 166,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 169,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 56,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 158,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 170,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 173,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 172,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 161,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 175,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 176,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 162,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 178,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 179,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 165,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 181,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 182,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 184,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 168,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 185,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 186,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 171,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 188,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 174,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 190,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 191,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 192,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 177,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 194,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 180,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 195,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 197,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 198,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 183,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 200,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 187,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 201,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 203,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 204,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 189,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 206,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 207,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 193,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 209,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 208,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 196,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 210,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 211,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 199,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 213,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 202,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 214,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 217,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 205,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 216,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 220,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 212,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 219,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 223,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 215,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 221,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 225,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 224,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 218,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 228,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 222,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 227,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 230,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 226,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 236,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 233,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 238,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 235,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 229,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 240,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 231,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 242,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 232,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 243,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 234,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 244,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 237,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 245,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 239,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 246,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 241,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 247,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 248,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 249,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 250,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 251,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 252,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 253,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 254,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        }
+      ],
+      "witness": {
+        "pid": 2665221,
+        "thread": 8,
+        "tid": 4,
+        "server": 140737488235968,
+        "generation": 1,
+        "current_fd": 32,
+        "queued": [
+          {
+            "fd": 34,
+            "generation": 1
+          },
+          {
+            "fd": 36,
+            "generation": 1
+          },
+          {
+            "fd": 38,
+            "generation": 1
+          },
+          {
+            "fd": 39,
+            "generation": 1
+          },
+          {
+            "fd": 42,
+            "generation": 1
+          },
+          {
+            "fd": 44,
+            "generation": 1
+          },
+          {
+            "fd": 46,
+            "generation": 1
+          },
+          {
+            "fd": 48,
+            "generation": 1
+          },
+          {
+            "fd": 50,
+            "generation": 1
+          },
+          {
+            "fd": 52,
+            "generation": 1
+          },
+          {
+            "fd": 54,
+            "generation": 1
+          },
+          {
+            "fd": 56,
+            "generation": 1
+          }
+        ],
+        "held_stage": "tomo_db0::FlipStage::IoDrain"
+      },
+      "flips": [
+        {
+          "reply": "b'OK'",
+          "seconds": 2.0660504596307874
+        }
+      ],
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    {
+      "atomic": 1,
+      "outcome": "rollback",
+      "trial": 0,
+      "counts": {
+        "arrived": 256,
+        "served": 256
+      },
+      "errors": [],
+      "accepted_delta": 256,
+      "unique_ids": 256,
+      "positive_stale": [],
+      "witness": null,
+      "flips": [],
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    {
+      "atomic": 1,
+      "outcome": "rollback",
+      "trial": 1,
+      "counts": {
+        "arrived": 280,
+        "served": 280
+      },
+      "errors": [],
+      "accepted_delta": 280,
+      "unique_ids": 280,
+      "positive_stale": [
+        {
+          "fd": 195,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 192,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 33,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 200,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 198,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 196,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 203,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 34,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 201,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 199,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 35,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 206,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 204,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 202,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 36,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 209,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 205,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 207,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 37,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 211,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 208,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 210,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 38,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 213,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 217,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 212,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 215,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 39,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 214,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 220,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 40,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 218,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 223,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 216,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 221,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 41,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 219,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 226,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 42,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 224,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 222,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 229,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 43,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 227,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 225,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 230,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 44,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 228,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 232,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 45,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 231,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 234,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 46,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 233,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 236,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 47,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 235,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 237,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 48,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 238,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 49,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 239,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 240,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 241,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 242,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 243,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 244,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 245,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 246,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 247,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 248,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        },
+        {
+          "fd": 249,
+          "old": 1,
+          "current": 2,
+          "stage": "tomo_db0::FlipStage::IoDrain"
+        }
+      ],
+      "witness": {
+        "pid": 2667092,
+        "thread": 9,
+        "tid": 5,
+        "server": 140737488235968,
+        "generation": 1,
+        "current_fd": 32,
+        "queued": [
+          {
+            "fd": 33,
+            "generation": 1
+          },
+          {
+            "fd": 34,
+            "generation": 1
+          },
+          {
+            "fd": 35,
+            "generation": 1
+          },
+          {
+            "fd": 36,
+            "generation": 1
+          },
+          {
+            "fd": 37,
+            "generation": 1
+          },
+          {
+            "fd": 38,
+            "generation": 1
+          },
+          {
+            "fd": 39,
+            "generation": 1
+          },
+          {
+            "fd": 40,
+            "generation": 1
+          },
+          {
+            "fd": 41,
+            "generation": 1
+          },
+          {
+            "fd": 42,
+            "generation": 1
+          },
+          {
+            "fd": 43,
+            "generation": 1
+          },
+          {
+            "fd": 44,
+            "generation": 1
+          },
+          {
+            "fd": 45,
+            "generation": 1
+          },
+          {
+            "fd": 46,
+            "generation": 1
+          },
+          {
+            "fd": 47,
+            "generation": 1
+          },
+          {
+            "fd": 48,
+            "generation": 1
+          },
+          {
+            "fd": 49,
+            "generation": 1
+          }
+        ],
+        "held_stage": "tomo_db0::FlipStage::IoDrain"
+      },
+      "flips": [
+        {
+          "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+          "seconds": 1.0046168053522706
+        }
+      ],
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    }
+  ],
+  "soak": [
+    {
+      "engine": "uring",
+      "server_returncode": 0,
+      "seconds": 120.1878226082772,
+      "arrived": 35709,
+      "completed_flips": 480,
+      "manual_completed_flips": 480
+    },
+    {
+      "engine": "epoll",
+      "server_returncode": 0,
+      "seconds": 120.19213125761598,
+      "arrived": 35682,
+      "completed_flips": 480,
+      "manual_completed_flips": 480
+    }
+  ],
+  "differential": [
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "returncode": 0
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "returncode": 0
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "returncode": 0
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "returncode": 0
+    }
+  ],
+  "gates_test_returncode": 0,
+  "fresh_targets": 40,
+  "post_reproduction_cases": 20,
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+      "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+      "text_bytes": 7747526
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-fliplisten/build/tomokv",
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+      "text_bytes": 7885353
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-fliplisten/build/tomokv-PAD-A",
+      "sha256": "49a12a2ec184348e84cc4856cd71f62bb6a3357280d0740e65fab66808631966",
+      "text_bytes": 7885353
+    }
+  }
+}

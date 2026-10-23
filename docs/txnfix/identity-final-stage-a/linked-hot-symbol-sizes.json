@@ -1,0 +1,170 @@
+[
+  {
+    "symbol": "_ZNK8tomo_db09FlatStore7find_inEimNS_5SliceE",
+    "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+    "pre_size": 554,
+    "post_size": 554,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
+    "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+    "pre_size": 1282,
+    "post_size": 1282,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+    "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+    "pre_size": 1378,
+    "post_size": 1378,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore11insert_intoEimPNS_5KvObjEb",
+    "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+    "pre_size": 1057,
+    "post_size": 1057,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore8erase_inEimNS_5SliceEPb",
+    "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
+    "pre_size": 849,
+    "post_size": 849,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore12erase_notifyEmNS_5SliceEPNS_14FlatNotifySinkENS0_10EraseEventE",
+    "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+    "pre_size": 933,
+    "post_size": 673,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore13insert_notifyEmPNS_5KvObjEPNS_14FlatNotifySinkE",
+    "name": "tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)",
+    "pre_size": 941,
+    "post_size": 737,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore4findEmNS_5SliceE",
+    "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+    "pre_size": 1017,
+    "post_size": 806,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN8tomo_db09FlatStore11find_notifyEmNS_5SliceEPNS_14FlatNotifySinkE",
+    "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+    "pre_size": 942,
+    "post_size": 782,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "pre_size": 9522,
+    "post_size": 9538,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+    "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 1016,
+    "post_size": 1016,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 984,
+    "post_size": 984,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 984,
+    "post_size": 984,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 3479,
+    "post_size": 3479,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZNK4tomo9FlatStore7find_inEimNS_5SliceE",
+    "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+    "pre_size": 630,
+    "post_size": 630,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore19erase_in_read_localEimNS_5SliceEPb",
+    "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+    "pre_size": 1314,
+    "post_size": 1314,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore11insert_intoEimPNS_5KvObjEb",
+    "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+    "pre_size": 1261,
+    "post_size": 1261,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb",
+    "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+    "pre_size": 971,
+    "post_size": 971,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore11find_notifyEmNS_5SliceEPNS_14FlatNotifySinkE",
+    "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+    "pre_size": 846,
+    "post_size": 782,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore5eraseEmNS_5SliceE",
+    "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+    "pre_size": 1375,
+    "post_size": 1375,
+    "size_equal": true
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+    "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+    "pre_size": 1590,
+    "post_size": 1287,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN4tomo9FlatStore12erase_notifyEmNS_5SliceEPNS_14FlatNotifySinkENS0_10EraseEventE",
+    "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+    "pre_size": 812,
+    "post_size": 673,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN4tomo7ExLoopTILb1EE8r7_sweepILj32ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+    "pre_size": 1536,
+    "post_size": 1338,
+    "size_equal": false
+  },
+  {
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "pre_size": 20932,
+    "post_size": 20939,
+    "size_equal": false
+  }
+]

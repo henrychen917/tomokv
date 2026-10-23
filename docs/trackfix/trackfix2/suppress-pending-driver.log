@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-trackfix/docs/trackfix/trackfix2/suppress_pending_control.py", line 25, in <module>
+    section,=[s for s in elf.sections if s[1]!=8 and s[3]<=address< s[3]+s[5]]
+    ^^^^^^^^
+ValueError: too many values to unpack (expected 1)

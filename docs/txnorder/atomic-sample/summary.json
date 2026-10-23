@@ -1,0 +1,757 @@
+{
+  "cases": 4,
+  "invalid": [],
+  "cases_with_increases": 0,
+  "cases_entering_group_helpers": 4,
+  "limits": "Sampled named-function counts; neither whole-operation counts nor a proof of identical sequences on every ordinary path.",
+  "rows": [
+    {
+      "receipt": "docs/txnorder/atomic-sample/atomic",
+      "namespace": "normal",
+      "mode": "1s",
+      "shape": "MSET",
+      "functions": [
+        {
+          "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&)",
+          "pre": 31,
+          "post": 31,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+          "pre": 20,
+          "post": 20,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 70,
+          "post": 70,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+          "pre": 237,
+          "post": 237,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+          "pre": 72,
+          "post": 72,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]",
+          "pre": 126,
+          "post": 126,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_barrier_witness(tomo::ScatterState&, tomo::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+          "pre": 36,
+          "post": 36,
+          "delta": 0
+        },
+        {
+          "name": "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+          "pre": 200,
+          "post": 200,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+          "pre": 27,
+          "post": 27,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterArenaPool::defer_destroy(tomo::ScatterState*)",
+          "pre": 50,
+          "post": 50,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+          "pre": 134,
+          "post": 134,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterState::ScatterState()",
+          "pre": 91,
+          "post": 91,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+          "pre": 4,
+          "post": 4,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+          "pre": 82,
+          "post": 82,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+          "pre": 22,
+          "post": 22,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+          "pre": 796,
+          "post": 788,
+          "delta": -8
+        },
+        {
+          "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+          "pre": 174,
+          "post": 174,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_make_atomic_string(tomo::Shard&, tomo::Slice, tomo::Slice, long, bool, bool)",
+          "pre": 256,
+          "post": 256,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+          "pre": 1278,
+          "post": 1278,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+          "pre": 42,
+          "post": 42,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+          "pre": 96,
+          "post": 96,
+          "delta": 0
+        }
+      ],
+      "pre": 4141,
+      "post": 4133,
+      "increases": [],
+      "group_calls": [
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_barrier_witness(tomo::ScatterState&, tomo::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "receipt": "docs/txnorder/atomic-sample/atomic",
+      "namespace": "normal",
+      "mode": "2s",
+      "shape": "MSET",
+      "functions": [
+        {
+          "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&)",
+          "pre": 31,
+          "post": 31,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+          "pre": 20,
+          "post": 20,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 70,
+          "post": 70,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+          "pre": 237,
+          "post": 237,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+          "pre": 72,
+          "post": 72,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]",
+          "pre": 126,
+          "post": 126,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_barrier_witness(tomo::ScatterState&, tomo::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+          "pre": 36,
+          "post": 36,
+          "delta": 0
+        },
+        {
+          "name": "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+          "pre": 200,
+          "post": 200,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+          "pre": 27,
+          "post": 27,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterArenaPool::defer_destroy(tomo::ScatterState*)",
+          "pre": 50,
+          "post": 50,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+          "pre": 134,
+          "post": 134,
+          "delta": 0
+        },
+        {
+          "name": "tomo::ScatterState::ScatterState()",
+          "pre": 91,
+          "post": 91,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+          "pre": 4,
+          "post": 4,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+          "pre": 82,
+          "post": 82,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+          "pre": 22,
+          "post": 22,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+          "pre": 796,
+          "post": 788,
+          "delta": -8
+        },
+        {
+          "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+          "pre": 174,
+          "post": 174,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_make_atomic_string(tomo::Shard&, tomo::Slice, tomo::Slice, long, bool, bool)",
+          "pre": 256,
+          "post": 256,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+          "pre": 1238,
+          "post": 1238,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+          "pre": 42,
+          "post": 42,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+          "pre": 96,
+          "post": 96,
+          "delta": 0
+        }
+      ],
+      "pre": 4101,
+      "post": 4093,
+      "increases": [],
+      "group_calls": [
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_barrier_witness(tomo::ScatterState&, tomo::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "receipt": "docs/txnorder/atomic-sample/atomic",
+      "namespace": "db0",
+      "mode": "1s",
+      "shape": "MSET",
+      "functions": [
+        {
+          "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)",
+          "pre": 31,
+          "post": 31,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+          "pre": 20,
+          "post": 20,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 71,
+          "post": 71,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)",
+          "pre": 237,
+          "post": 237,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int)",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)",
+          "pre": 72,
+          "post": 72,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]",
+          "pre": 126,
+          "post": 126,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_barrier_witness(tomo_db0::ScatterState&, tomo_db0::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase(tomo_db0::ScatterState const&, tomo_db0::Op const&) [clone .isra.0]",
+          "pre": 36,
+          "post": 36,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+          "pre": 200,
+          "post": 200,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)",
+          "pre": 27,
+          "post": 27,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)",
+          "pre": 50,
+          "post": 50,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 134,
+          "post": 134,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterState::ScatterState()",
+          "pre": 91,
+          "post": 91,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 4,
+          "post": 4,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+          "pre": 81,
+          "post": 81,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+          "pre": 22,
+          "post": 22,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+          "pre": 820,
+          "post": 820,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+          "pre": 174,
+          "post": 174,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)",
+          "pre": 274,
+          "post": 274,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "pre": 1283,
+          "post": 1283,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+          "pre": 42,
+          "post": 42,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 96,
+          "post": 96,
+          "delta": 0
+        }
+      ],
+      "pre": 4188,
+      "post": 4188,
+      "increases": [],
+      "group_calls": [
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_barrier_witness(tomo_db0::ScatterState&, tomo_db0::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        }
+      ]
+    },
+    {
+      "receipt": "docs/txnorder/atomic-sample/atomic",
+      "namespace": "db0",
+      "mode": "2s",
+      "shape": "MSET",
+      "functions": [
+        {
+          "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)",
+          "pre": 31,
+          "post": 31,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+          "pre": 20,
+          "post": 20,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 71,
+          "post": 71,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)",
+          "pre": 237,
+          "post": 237,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int)",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]",
+          "pre": 56,
+          "post": 56,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)",
+          "pre": 72,
+          "post": 72,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]",
+          "pre": 126,
+          "post": 126,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_barrier_witness(tomo_db0::ScatterState&, tomo_db0::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase(tomo_db0::ScatterState const&, tomo_db0::Op const&) [clone .isra.0]",
+          "pre": 36,
+          "post": 36,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+          "pre": 200,
+          "post": 200,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)",
+          "pre": 27,
+          "post": 27,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)",
+          "pre": 50,
+          "post": 50,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 134,
+          "post": 134,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::ScatterState::ScatterState()",
+          "pre": 91,
+          "post": 91,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 4,
+          "post": 4,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+          "pre": 81,
+          "post": 81,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+          "pre": 22,
+          "post": 22,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+          "pre": 820,
+          "post": 820,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+          "pre": 174,
+          "post": 174,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_make_atomic_string(tomo_db0::Shard&, tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)",
+          "pre": 274,
+          "post": 274,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+          "pre": 1248,
+          "post": 1248,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+          "pre": 42,
+          "post": 42,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+          "pre": 68,
+          "post": 68,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)",
+          "pre": 96,
+          "post": 96,
+          "delta": 0
+        }
+      ],
+      "pre": 4153,
+      "post": 4153,
+      "increases": [],
+      "group_calls": [
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_barrier_witness(tomo_db0::ScatterState&, tomo_db0::Client&)",
+          "pre": 12,
+          "post": 12,
+          "delta": 0
+        },
+        {
+          "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
+          "pre": 37,
+          "post": 37,
+          "delta": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "label": "epoll-features-v2",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.UfqFQe",
+  "gate_summary": [
+    "GATE(PARTIAL): 138 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/epoll-features-v2/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "feature-armed-0",
+      "done": "0\t35\t0"
+    },
+    {
+      "job": "feature-armed-1",
+      "done": "0\t34\t1"
+    },
+    {
+      "job": "feature-split-0",
+      "done": "0\t34\t0"
+    },
+    {
+      "job": "feature-split-1",
+      "done": "0\t34\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "334014c4b5bf648143842785f7774eff68e070a11289c0f5da5e20c01ab1928f"
+}

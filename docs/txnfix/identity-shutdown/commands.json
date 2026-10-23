@@ -1,0 +1,33 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "build/txnfix/pre",
+      "build",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/identity-shutdown/hot.json"
+    ],
+    "exit_code": 1
+  },
+  {
+    "command": [
+      "python3",
+      "tools/ccfix_audit.py",
+      "build/txnfix/pre",
+      "build",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/identity-shutdown/full"
+    ],
+    "exit_code": 1
+  },
+  {
+    "command": [
+      "python3",
+      "docs/deadswitch/linked_bytes.py",
+      "build/txnfix/pre/tomokv",
+      "build/tomokv",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/identity-shutdown/linked.json"
+    ],
+    "exit_code": 1
+  }
+]

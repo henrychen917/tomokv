@@ -1,0 +1,19 @@
+{
+  "initial": {
+    "command": "python3 tests/gates_test.py",
+    "cpus": "64-111",
+    "returncode": 1,
+    "tests": 68,
+    "failures": 4,
+    "reason": "Scheduler fixture timeouts during concurrent compiles; retained as failed diagnostic."
+  },
+  "final": {
+    "command": "python3 tests/gates_test.py",
+    "cpus": "88-95,104-111",
+    "returncode": 0,
+    "tests": 68,
+    "elapsed_seconds": 110.97,
+    "ports": "26800-26899 via fixture guard; GATE_TEST_PORT=26899",
+    "assertions_or_deadlines_changed": false
+  }
+}

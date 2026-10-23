@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22820-22829",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-post-broad-epoll"
+  ],
+  "jobs": [
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "notify",
+    "clientfix",
+    "fused-0",
+    "fused-1"
+  ]
+}

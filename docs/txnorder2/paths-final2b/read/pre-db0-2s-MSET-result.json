@@ -1,0 +1,41 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "mode": "2s",
+  "values": "MSET",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/read/pre-db0-2s-MSET.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/read/pre-db0/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "5e578162fb7cda6fac36ce88781e74a6fee60624632ea003b7c550d7cbb6a959",
+  "counts": {
+    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1211,
+    "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+    "tomo_db0::ScatterState::ScatterState()": 91,
+    "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 224,
+    "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 66,
+    "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 40,
+    "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)": 22,
+    "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)": 96,
+    "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 502,
+    "tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase(tomo_db0::ScatterState const&, tomo_db0::Op const&) [clone .isra.0]": 64,
+    "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 4,
+    "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)": 117,
+    "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const": 23,
+    "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 54,
+    "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))": 71,
+    "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)": 78,
+    "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 75,
+    "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 56,
+    "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 35,
+    "tomo_db0::ScatterState::~ScatterState()": 42
+  }
+}

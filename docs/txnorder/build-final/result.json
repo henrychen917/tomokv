@@ -1,0 +1,199 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "make",
+    "-j16",
+    "all",
+    "build/at15-unit",
+    "build/at15-db0-unit",
+    "build/execabort-watch-unit",
+    "build/execabort-watch-db0-unit",
+    "build/core-concurrency-unit",
+    "build/atomic-survivors-unit",
+    "build/netcmd-unit",
+    "build/encodingfix-unit",
+    "build/netcap-unit",
+    "build/waits-unit",
+    "build/rehash-waits-unit",
+    "build/multidb-unit",
+    "build/multidb-boundary-unit",
+    "build/storesize-unit",
+    "build/exbatch-unit",
+    "build/exbatch-db0-unit",
+    "build/wb-rule-units",
+    "build/wbland-units",
+    "build/rltopo-unit",
+    "build/lbplanner-units",
+    "build/shutdown-unit",
+    "build/persistfix-units",
+    "build/ktls-keyupdate",
+    "build/ktls-keyupdate-unit",
+    "build/flushfix-units",
+    "build/splitlocal-unit",
+    "build/reorder-engagement-unit",
+    "build/reorder-engagement-unit-db0",
+    "build/racefix-climon",
+    "mdbqsbr-live-arms"
+  ],
+  "exit_code": 0,
+  "seconds": 472.3024752140045,
+  "freshness": [
+    {
+      "target": "all",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr-live-arms",
+      "exit_code": 0,
+      "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-txnfix'\nmake[1]: Leaving directory '/home/user/Projects/cx-txnfix'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-txnfix'\nmake[1]: Leaving directory '/home/user/Projects/cx-txnfix'\n"
+    }
+  ]
+}

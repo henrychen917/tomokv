@@ -1,0 +1,5 @@
+PASS txnorder script: exact counts, only success recorded, 11 other errors rejected; PRE rejects BUSY and accepts unrelated TRYAGAIN
+PASS xscript worker: exact counts, 40 successes, 11 other errors rejected; PRE rejects BUSY and accepts unrelated TRYAGAIN
+PASS xscript script_racer: exact counts, 80 successes, 11 other errors rejected; PRE rejects BUSY and accepts unrelated TRYAGAIN
+PASS txnorder.py: all assertions/verdict predicates unchanged except txnorder refusal allowlist
+PASS xscript.py: all assertions/verdict predicates unchanged except txnorder refusal allowlist

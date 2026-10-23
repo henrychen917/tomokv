@@ -1,0 +1,23 @@
+[
+  {
+    "arm": "POST",
+    "boots": 5,
+    "passed": 4,
+    "failed": 1,
+    "boot_receipts_sha256": "ab27f22bb3f2b5f337606addfccc8ccd63b51374aaf10789c418089641adbbfb"
+  },
+  {
+    "arm": "PRE",
+    "boots": 5,
+    "passed": 2,
+    "failed": 3,
+    "boot_receipts_sha256": "bbcee76b135ee8d859da81625f0a08e579f6f1c8acad3fd6bae5f3e12e516d7b"
+  },
+  {
+    "arm": "TRACE",
+    "boots": 5,
+    "passed": 3,
+    "failed": 2,
+    "boot_receipts_sha256": "a54d9c9ed8a5eba527e5adaa40fc42c99aaa0e3eb2266f9b80b0612a988dbf7e"
+  }
+]

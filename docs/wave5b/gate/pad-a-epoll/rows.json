@@ -1,0 +1,14 @@
+[
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "wb_policy",
+    "verdict": "ok",
+    "elapsed": "5.970000",
+    "label": "writeback policies 0/1: 22 standard fixtures"
+  }
+]

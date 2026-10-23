@@ -1,0 +1,20 @@
+[
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "reorder_identity",
+    "verdict": "FAIL",
+    "elapsed": "70.970000",
+    "label": "R7 FIFO twin off-path identity + negative controls"
+  },
+  {
+    "job": "reorder_sync",
+    "verdict": "ok",
+    "elapsed": "1.520000",
+    "label": "R7 generated envelope parity"
+  }
+]

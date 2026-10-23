@@ -1,0 +1,9 @@
+  row budget: 900s; median=0.07s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); build dependency: make default
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-iofix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-iofix'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-iofix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-iofix'

@@ -14,6 +14,8 @@
 
 namespace tomo {
 
+class Op;
+
 enum class PubSubEventKind : uint8_t {
     ModifyRequest,
     ModifyResult,
@@ -88,12 +90,13 @@ struct PubSubBlob {
 };
 
 // One (blob, destination connection) pair queued for an owning IO thread.  Connections are named
-// by process-unique id, never by a cross-thread Client*.  A non-empty `pattern` selects the
-// `pmessage` shape.  Each item holds ONE reference on `blob`.
+// by process-unique id, never by a cross-thread Client*. `is_pattern` selects the
+// `pmessage` shape, including a valid empty pattern.  Each item holds ONE reference on `blob`.
 struct PubSubDelivery {
     PubSubBlob* blob = nullptr;
     uint64_t conn = 0;
     std::string pattern;
+    bool is_pattern = false;
 };
 
 // A finished PUBLISH/SPUBLISH, batched back to the publisher's own IO thread.
@@ -106,12 +109,16 @@ struct PubSubResult {
 struct PubSubNotificationItem {
     std::string channel;
     std::string message;
+    Op* reply = nullptr; // committed EXEC child, completed only on coordinator IO
+    bool shard = false;
 };
 
 struct PubSubNotificationChain {
     uint32_t coordinator_io = 0;
     uint32_t index = 0;
     std::vector<PubSubNotificationItem> items;
+    void (*completed)(void*) = nullptr;
+    void* completion = nullptr;
 };
 
 struct PubSubEvent {

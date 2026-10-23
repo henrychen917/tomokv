@@ -1,0 +1,55 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428 -DTOMO_JEMALLOC -I. -c src/main.cc -o build/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/net/tls.cc -o build/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/commands.cc -o build/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/glob.cc -o build/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=128705 -DTOMO_JEMALLOC -I. -c src/cmd/xshard.cc -o build/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35485 -DTOMO_JEMALLOC -I. -c src/cmd/acl.cc -o build/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hll.cc -o build/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=31388 -DTOMO_JEMALLOC -I. -c src/cmd/t_server.cc -o build/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -I. -c src/cmd/t_string.cc -o build/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_string_notify.cc -o build/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash.cc -o build/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash_ttl.cc -o build/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=25352 -DTOMO_JEMALLOC -I. -c src/cmd/t_list.cc -o build/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=23582 -DTOMO_JEMALLOC -I. -c src/cmd/t_set.cc -o build/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33409 -DTOMO_JEMALLOC -I. -c src/cmd/t_zset.cc -o build/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset_ops.cc -o build/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=14410 -DTOMO_JEMALLOC -I. -c src/cmd/geo.cc -o build/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream.cc -o build/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream_groups.cc -o build/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/scripting.cc -o build/src/cmd/scripting.o
+In file included from src/cmd/../core/io_loop.h:30,
+                 from src/cmd/acl.cc:33:
+src/cmd/../core/ex_loop.h:3076:30: error: static assertion failed
+ 3076 | static_assert(sizeof(ExLoop) == 5848);
+      |               ~~~~~~~~~~~~~~~^~~~~~~
+src/cmd/../core/ex_loop.h:3076:30: note: the comparison reduces to ‘(5872 == 5848)’
+src/cmd/../core/ex_loop.h:3077:35: error: static assertion failed
+ 3077 | static_assert(sizeof(FusedExLoop) == 5856);
+      |               ~~~~~~~~~~~~~~~~~~~~^~~~~~~
+src/cmd/../core/ex_loop.h:3077:35: note: the comparison reduces to ‘(5880 == 5856)’
+In file included from src/cmd/../core/io_loop.h:30,
+                 from src/cmd/xshard.cc:42:
+src/cmd/../core/ex_loop.h:3076:30: error: static assertion failed
+ 3076 | static_assert(sizeof(ExLoop) == 5848);
+      |               ~~~~~~~~~~~~~~~^~~~~~~
+src/cmd/../core/ex_loop.h:3076:30: note: the comparison reduces to ‘(5872 == 5848)’
+src/cmd/../core/ex_loop.h:3077:35: error: static assertion failed
+ 3077 | static_assert(sizeof(FusedExLoop) == 5856);
+      |               ~~~~~~~~~~~~~~~~~~~~^~~~~~~
+src/cmd/../core/ex_loop.h:3077:35: note: the comparison reduces to ‘(5880 == 5856)’
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/functions.cc -o build/src/cmd/functions.o
+In file included from src/core/io_loop.h:30,
+                 from src/main.cc:32:
+src/core/ex_loop.h:3076:30: error: static assertion failed
+ 3076 | static_assert(sizeof(ExLoop) == 5848);
+      |               ~~~~~~~~~~~~~~~^~~~~~~
+src/core/ex_loop.h:3076:30: note: the comparison reduces to ‘(5872 == 5848)’
+src/core/ex_loop.h:3077:35: error: static assertion failed
+ 3077 | static_assert(sizeof(FusedExLoop) == 5856);
+      |               ~~~~~~~~~~~~~~~~~~~~^~~~~~~
+src/core/ex_loop.h:3077:35: note: the comparison reduces to ‘(5880 == 5856)’
+make: *** [Makefile:358: build/src/cmd/acl.o] Error 1
+make: *** Waiting for unfinished jobs....
+make: *** [Makefile:357: build/src/main.o] Error 1
+make: *** [Makefile:357: build/src/cmd/xshard.o] Error 1

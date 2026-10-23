@@ -1,0 +1,17 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-netfix/build/gate-run.XGl3sI
+PARTIAL jobs (including prerequisites): release netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers
+PARTIAL jobs (including prerequisites): release netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=1.9s; correctness-plan-fallback; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 ok
+  row budget: 900s; median=1.15s; correctness-plan-fallback; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok
+  row budget: 900s; median=1.87s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             ok
+  row budget: 900s; median=9.14s; correctness-plan-fallback; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                FAIL (see /home/user/Projects/cx-netfix/build/gate-run.XGl3sI/jobs/netfix_idle_buffers/proof.log)
+GATE(PARTIAL): 5 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-netfix/build/gate-run.XGl3sI/ledger.partial

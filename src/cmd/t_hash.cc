@@ -1276,22 +1276,16 @@ void cmd_hscan(Shard& shard, Op& op) {
     std::vector<ScanItem> items;
     try {
         if (hash.encoding() == CollectionEncoding::Compact) {
-            const uint64_t start = cursor;
-            uint64_t position = 0;
-            uint64_t sampled = 0;
+            // A compact position cannot survive deletion or promotion to the
+            // hash table's cursor space. Like Redis, finish this representation
+            // in one call; COUNT remains a hint and MATCH still filters replies.
             for (auto it = hash.begin(); it != hash.end(); ++it) {
                 PairView pair;
                 if (!decode_pair(*it, pair)) continue;
-                if (position++ < start) continue;
-                if (sampled >= options.count) {
-                    position--;
-                    break;
-                }
-                sampled++;
                 if (!options.use_pattern || command_glob_match(options.pattern, pair.field))
                     items.push_back({pair.field, pair.value});
             }
-            cursor = position >= hash.entries() ? 0 : position;
+            cursor = 0;
         } else {
             uint64_t sampled = 0;
             uint64_t iterations = 0;

@@ -1,0 +1,54 @@
+{
+  "tests/multirace.py": {
+    "base": "b452303fd",
+    "unchanged_assertions": 0,
+    "removed": [],
+    "added": [
+      {
+        "function": "msetnx_witness",
+        "line": 189,
+        "source": "assert \"atomic_group_barriers\" in table, \"missing MSETNX barrier witness\""
+      },
+      {
+        "function": "run_mode",
+        "line": 455,
+        "source": "assert admin.command(\"DEBUG\", \"TXN-BARRIER-WITNESS\", \"1\") == b\"OK\""
+      }
+    ],
+    "scope": "This inventory covers Python assert statements; explicit raise/data conditions remain visible in the full source diff. Only MSETNX ordering-witness expressions and debug arming may differ. Reply/data/lost-write/stale-read/late-order checks retain their source. Full diffs remain in the commits."
+  },
+  "tests/multires.py": {
+    "base": "b452303fd",
+    "unchanged_assertions": 5,
+    "removed": [
+      {
+        "function": "round_trip",
+        "line": 216,
+        "source": "assert time.monotonic() < deadline, \"EXEC never met the held predecessor\""
+      }
+    ],
+    "added": [
+      {
+        "function": "round_trip",
+        "line": 243,
+        "source": "assert msetnx_witness(admin) > before, \"MSETNX dispatch barrier never ordered the pair\""
+      },
+      {
+        "function": "round_trip",
+        "line": 231,
+        "source": "assert time.monotonic() < deadline, \"held predecessor never armed ordering witness\""
+      },
+      {
+        "function": "main",
+        "line": 299,
+        "source": "assert admin.command(\"DEBUG\", \"TXN-BARRIER-WITNESS\", \"1\") == b\"OK\""
+      },
+      {
+        "function": "msetnx_witness",
+        "line": 157,
+        "source": "assert \"atomic_group_barriers\" in table, \"missing MSETNX barrier witness\""
+      }
+    ],
+    "scope": "This inventory covers Python assert statements; explicit raise/data conditions remain visible in the full source diff. Only MSETNX ordering-witness expressions and debug arming may differ. Reply/data/lost-write/stale-read/late-order checks retain their source. Full diffs remain in the commits."
+  }
+}

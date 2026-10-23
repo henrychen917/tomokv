@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eu
+root="$(cd "$(dirname "$0")/../../.." && pwd)"
+exec taskset -c 48-55 "$root/build/tomokv" --thread-mode 1s --read-local 1 --shards 16 --databases 16 --key-lb 0 --client-lb 0 --flip-auto 0 --save "" "$@"

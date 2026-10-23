@@ -423,8 +423,11 @@ void cmd_xgroup(Shard& shard, Op& op) {
                 mkstream = true; pos++; continue;
             }
             if (op.arg(pos).eq_icase("entriesread") && !entries_seen && pos + 1 < op.argc()) {
-                if (!parse_i64_exact(op.arg(pos + 1), entries_read) || entries_read < -1) {
+                if (!parse_i64_option(op.arg(pos + 1), entries_read)) {
                     reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+                }
+                if (entries_read < -1) {
+                    reply_err(op.sink(), "ERR value for ENTRIESREAD must be positive or -1"); return;
                 }
                 entries_seen = true; pos += 2; continue;
             }
@@ -544,8 +547,11 @@ void cmd_xgroup(Shard& shard, Op& op) {
         int64_t entries_read = -1;
         if (op.argc() == 7) {
             if (!op.arg(5).eq_icase("entriesread")) { reply_syntax(op.sink()); return; }
-            if (!parse_i64_exact(op.arg(6), entries_read) || entries_read < -1) {
+            if (!parse_i64_option(op.arg(6), entries_read)) {
                 reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+            }
+            if (entries_read < -1) {
+                reply_err(op.sink(), "ERR value for ENTRIESREAD must be positive or -1"); return;
             }
         }
         ObjectSizeTracker tracker(shard.store(), object);
@@ -651,7 +657,8 @@ void cmd_xpending(Shard& shard, Op& op) {
         reply_array_header(op.sink(), 0);
         return;
     }
-    const Slice consumer = op.argc() == pos + 4 ? op.arg(pos + 3) : Slice{};
+    const bool filter_consumer = op.argc() == pos + 4;
+    const Slice consumer = filter_consumer ? op.arg(pos + 3) : Slice{};
     const int64_t now = shard.now_ms();
     std::vector<std::pair<StreamID, const StreamPending*>> matches;
     try {
@@ -663,7 +670,7 @@ void cmd_xpending(Shard& shard, Op& op) {
             const uint64_t idle = now > it->second.delivery_time
                 ? static_cast<uint64_t>(now - it->second.delivery_time) : 0;
             if (idle < min_idle) continue;
-            if (consumer.n && (it->second.consumer.size() != consumer.n ||
+            if (filter_consumer && (it->second.consumer.size() != consumer.n ||
                 std::memcmp(it->second.consumer.data(), consumer.p, consumer.n))) continue;
             matches.emplace_back(it->first, &it->second);
         }
@@ -710,9 +717,11 @@ bool own_borrowed_entry(const StreamBorrowedEntry& source, StreamOwnedEntry& des
 template <bool kNotify>
 void cmd_xclaim(Shard& shard, Op& op) {
     ClaimOptions options;
-    if (!parse_u64_exact(op.arg(4), options.min_idle)) {
+    int64_t min_idle = 0;
+    if (!parse_i64_option(op.arg(4), min_idle)) {
         reply_err(op.sink(), "ERR Invalid min-idle-time argument for XCLAIM"); return;
     }
+    options.min_idle = min_idle > 0 ? static_cast<uint64_t>(min_idle) : 0;
     uint32_t options_at = 5;
     std::vector<StreamID> ids;
     try {
@@ -1359,7 +1368,7 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
     try {
         for (auto it = group->pending.upper_bound(cursor); it != group->pending.end(); ++it) {
             if (it->second.consumer != consumer_name) continue;
-            if (parsed.count != UINT64_MAX && entries.size() >= parsed.count) break;
+            if (parsed.count && entries.size() >= parsed.count) break;
             StreamOwnedEntry entry; bool found = false;
             if (!stream_object_find(object, it->first, entry, found)) {
                 reply_err(op.sink(), "ERR corrupt stream encoding"); return true;

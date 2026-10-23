@@ -1,0 +1,16 @@
+{
+  "pre_sha256": "986f0426776565d3d2e46dec1b381c05b9884f05933f185752677e964d95cc7f",
+  "pad_sha256": "9bbe8f2dc7b57c7016bc3e0ff6b8aacbf00e454352476377274a5ec45f3a2a6e",
+  "existing_groups_changed": [
+    "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const"
+  ],
+  "pre_rebuild_vs_frozen": [],
+  "added_groups": [
+    "wave5_pad_a"
+  ]
+}

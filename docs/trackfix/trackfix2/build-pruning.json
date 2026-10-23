@@ -1,0 +1,45 @@
+{
+  "reason": "Remove obsolete source copies, duplicate PRE objects, trial builds and disassembly caches; frozen PRE objects, final fixture, production targets and all three merit binaries retained.",
+  "removed": [
+    {
+      "path": "build/trackfix/gate-scheduled-POST",
+      "bytes": 215774053,
+      "files": 223
+    },
+    {
+      "path": "build/trackfix/gate-scheduled-POST2",
+      "bytes": 235315924,
+      "files": 227
+    },
+    {
+      "path": "build/trackfix/gate-scheduled-POST3",
+      "bytes": 235364394,
+      "files": 227
+    },
+    {
+      "path": "build/trackfix/scheduled-PRE",
+      "bytes": 213376906,
+      "files": 223
+    },
+    {
+      "path": "build/trackfix/body-details",
+      "bytes": 599516621,
+      "files": 5
+    },
+    {
+      "path": "build/trackfix/trackfix2-body-details",
+      "bytes": 359890067,
+      "files": 3
+    },
+    {
+      "path": "build/trackfix/pre-source",
+      "bytes": 1067676098,
+      "files": 40363
+    },
+    {
+      "path": "build/trackfix/budgets",
+      "bytes": 232399698,
+      "files": 30
+    }
+  ]
+}

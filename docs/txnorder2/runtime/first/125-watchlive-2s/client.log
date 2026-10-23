@@ -1,0 +1,8 @@
+watchlive gate (port 27805, cores 64-71, reps 10, fresh server per repetition)
+  ok   watch conns=4  --atomic 1   wedged 0/10  (reservation contention 10260797)
+  ok   watch conns=8  --atomic 1   wedged 0/10  (reservation contention 10368236)
+  ok   watch conns=16 --atomic 1   wedged 0/10  (reservation contention 10486992)
+  ok   no-watch control conns=16   wedged 0/10  (control; reservation waits 16764318)
+  ok   watch conns=16 --atomic 0   wedged 0/10  (reservation contention 5297389)
+tests/watchlive_gate.sh: line 139: syntax error near unexpected token `)'
+tests/watchlive_gate.sh: line 139: ` contention $entered)"'

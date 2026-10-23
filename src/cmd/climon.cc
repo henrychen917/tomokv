@@ -306,7 +306,7 @@ void IoLoop::client_routing_commit_extract(ClientMigration& migration,
             if (!climon_local_monitors_) std::abort();
             climon_local_monitors_--;
         }
-        if (state.tracking_on) {
+        if (state.tracking_on || state.tracking_draining) {
             if (!climon_local_trackers_) std::abort();
             climon_local_trackers_--;
         }
@@ -348,7 +348,7 @@ bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t sourc
         if (!inserted.inserted) return false;
         const ClimonConn& state = inserted.position->second;
         if (state.monitor) climon_local_monitors_++;
-        if (state.tracking_on) climon_local_trackers_++;
+        if (state.tracking_on || state.tracking_draining) climon_local_trackers_++;
         if (state.reply_mode != kClimonReplyOn) climon_local_reply_++;
     }
     if (routing->tracking &&
@@ -488,6 +488,9 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             // No frame was consumed on the previous attempt. Restore its mark
             // without consuming SKIP/CACHING or feeding MONITOR a second time.
             if (state->gate_reply_skip) op.mark_reply_skip();
+            auto read = state->tracking_reads.find(&op);
+            if (read != state->tracking_reads.end() && !multi_session_active(*client))
+                op.spec = read->second.get();
             return false;
         }
         state->gate_op_id = id;
@@ -563,7 +566,7 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
 bool IoLoop::climon_reply_suppressed(Client* client) {
     if (!climon_local_reply_ && !climon_local_trackers_) return false;
     const ClimonConn* state = climon_conn_find(client->id());
-    return state && (state->reply_mode != kClimonReplyOn || state->tracking_on);
+    return state && (state->reply_mode != kClimonReplyOn || state->tracking_on || state->tracking_draining);
 }
 
 // SkipNow is the DRAIN state: a marked op may still be un-retired, so the suppressing variant

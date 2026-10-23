@@ -1,0 +1,11 @@
+{
+  "exploratory_fixture_initial": "Invalid fixture continued after actual ROB retirement; final fixture holds writeback before retirement.",
+  "exploratory_fixture_v2": "Invalid fixture inspected argv after writeback consumed it; terminated with status 130, replaced with owned tracking keys.",
+  "initial_production_build": "Expected compile errors in old synthetic tracking call sites; adjusted test API and initialized routers, then all 39 production targets built and are fresh.",
+  "initial_seed19_POST_cohort": "Superseded after a binary relink invalidated the process-identity cleanup check; exact owned PID verified and stopped. Final frozen-binary cohort is 20/20 with zero duplicates.",
+  "suppress_control_first_attempt": "ELF patch builder selected nonallocated sections too; failed before creating/running a control. Added allocated-section filter; final control fails all 16 required pending-frame checks.",
+  "initial_netcmd": "Reproduced SIGSEGV: the suppressed-retire serverless fixture had zero shards. Initialized one shard/router without removing assertions; whole netcmd job passes 17 rows.",
+  "initial_notify_order": "Setup saw two accepted publishers rather than one. Full 16-leg whole-job rerun passed; no test edits.",
+  "initial_epoll_tracking": "Reproduced missing broken_redirect in isolated POST 1/5 and frozen PRE 3/5 batteries. Disposable trace: enrollment 45 is invalidated by write 46 and delivery is posted; remote target disappears before receipt, whose existing handler silently breaks without a failure acknowledgment. This baseline REDIRECT-close defect remains explicitly unresolved.",
+  "initial_gates_selftest": "Two scheduler fixture deadline failures during concurrent correctness jobs. Isolated rerun passes all 67 tests; no timeout changes."
+}

@@ -1,0 +1,602 @@
+[
+  {
+    "path": "r7-final/058.diff.pre",
+    "bytes": 285,
+    "sha256": "c0e06b8e7e2cffa5509619dab638160270e6434e3b820065255215810750a054",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/059.diff",
+    "bytes": 71,
+    "sha256": "ac82fd5aceb0da8576c48220b04d85fca882da97c0884bf7f1b9fe3cad821098",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/059.diff.post",
+    "bytes": 129,
+    "sha256": "abbdb3c5d1b52896ac4ebfba2fdeb876650a47902b55b349912e6a3eedbd3cc9",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/059.diff.pre",
+    "bytes": 129,
+    "sha256": "abbdb3c5d1b52896ac4ebfba2fdeb876650a47902b55b349912e6a3eedbd3cc9",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/060.diff",
+    "bytes": 420897,
+    "sha256": "6cb64931a21b067c55ad841c0b62fc4c328850098328297c9460b0c86f198ac1",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/060.diff.post",
+    "bytes": 206827,
+    "sha256": "5d9f11985c349ee38fba152a69da034fef010258a5c1dca7e5506a34b625ea59",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/060.diff.pre",
+    "bytes": 206488,
+    "sha256": "e0b3ce008a75bc9ec07559596324ea820d095d7e8dd0940d6be8d83162fdf52f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/061.diff",
+    "bytes": 9208,
+    "sha256": "f81dc1137ffe712cc77d1fc23c05a3a3a0b8e4c7200918bee6045a7da5ba1c75",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/061.diff.post",
+    "bytes": 4644,
+    "sha256": "aeb8c56c8a6d7886d56e7e8354ee4a3a577ec2faed9329fdd78ea086555fd799",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/061.diff.pre",
+    "bytes": 4233,
+    "sha256": "9e2a9822bec8bb2418690f952be38acc669e40eabf43e1bf1740f8e19f458b53",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/062.diff",
+    "bytes": 140,
+    "sha256": "ac8ec7112b886c0c54a913d06ecd52c9eb91f2785a01f44fd99eef568ff63682",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/062.diff.post",
+    "bytes": 2373,
+    "sha256": "04fe0d6a8d889a943a2243c4787945e2ea9c26a8772920893f4ff5a5036c8591",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/062.diff.pre",
+    "bytes": 2373,
+    "sha256": "04fe0d6a8d889a943a2243c4787945e2ea9c26a8772920893f4ff5a5036c8591",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/063.diff",
+    "bytes": 201,
+    "sha256": "79b81373296942c999a4f2ebebbcb7acfc198ba28790c0e240936b889678ffc1",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/063.diff.post",
+    "bytes": 2614,
+    "sha256": "6a59b475ec235428d5d68a3a3251a6a937ba8833bf917176c8cc69850366879d",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/063.diff.pre",
+    "bytes": 2614,
+    "sha256": "6a59b475ec235428d5d68a3a3251a6a937ba8833bf917176c8cc69850366879d",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/064.diff",
+    "bytes": 347778,
+    "sha256": "e6e660a37e577df37e4bb3ab40a71918459057bb6dfdcc16d4a7b4aeb41cdb3b",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/064.diff.post",
+    "bytes": 179497,
+    "sha256": "5675445a10ff77f5a08a4f3b57d816bde0e22e7ccbf1e4b3cef6d67dd45e5053",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/064.diff.pre",
+    "bytes": 179698,
+    "sha256": "81eda18e8e4b67676173aa0769a7389f8d8e5afdf68297467cd2e80410326429",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/065.diff",
+    "bytes": 11201,
+    "sha256": "2bfa561db26499a6664da46f0e7a11b2d3636ed48e06fef0ba3a33427bbd4c57",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/065.diff.post",
+    "bytes": 6324,
+    "sha256": "03ab0775add7ca803bc9007241c5224d369178c46e708b7e4b55cf774d6be2a5",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/065.diff.pre",
+    "bytes": 6428,
+    "sha256": "6a14a0198e44682347292cbf2d3a43d0d727ab3b7b37ca3b449e0d48e5d0c780",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/066.diff",
+    "bytes": 9657,
+    "sha256": "1dfadc898676ddd2ae12e3acdd3eaae61d57073e40882d6b92ecf2392a07284a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/066.diff.post",
+    "bytes": 6049,
+    "sha256": "09f661ed92775ce89fb9ed35a2603ae827d12cfeadc91603a9e7eb4df0a7bd23",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/066.diff.pre",
+    "bytes": 5463,
+    "sha256": "9d64e31b3e6dfce4647aded55732eab10c5c1f58f8510ecf6e9df17a624d608f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/067.diff",
+    "bytes": 228,
+    "sha256": "495ad9c71b17ee9187e560d0d5701ea4888bc9821d8e14df39bc85111e8ab9d5",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/067.diff.post",
+    "bytes": 44,
+    "sha256": "29360cf35439bdb06e6629c44baa9f528003a90b7112b41ea0ae152d9b31754f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/067.diff.pre",
+    "bytes": 44,
+    "sha256": "29360cf35439bdb06e6629c44baa9f528003a90b7112b41ea0ae152d9b31754f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/068.diff",
+    "bytes": 157,
+    "sha256": "bcf567d162f5cf355416b01794ca301925922aacce886e4952b3334e14eecc01",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/068.diff.post",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/068.diff.pre",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/069.diff",
+    "bytes": 56,
+    "sha256": "34c22093d05a086d64dfd1a52e7febbfe5da815f2a6af3b1718e47eb2dd86046",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/069.diff.post",
+    "bytes": 83432,
+    "sha256": "b219c2f9b8feaf1f1fd609332c2dbc8b4a8d24dadde8e8ec6a4e495c6c91f588",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/069.diff.pre",
+    "bytes": 83432,
+    "sha256": "b219c2f9b8feaf1f1fd609332c2dbc8b4a8d24dadde8e8ec6a4e495c6c91f588",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/070.diff",
+    "bytes": 156,
+    "sha256": "315ae29d1c0795e942fdbd5488a00f7241d6b71881acb1bcfcde7998aeeb9b5a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/070.diff.post",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/070.diff.pre",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/071.diff",
+    "bytes": 155,
+    "sha256": "4fd82817470dd8fb0a49fc9901ad7b3e069533b5bc29c062d961b2997d7f67a3",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/071.diff.post",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/071.diff.pre",
+    "bytes": 1132,
+    "sha256": "163ff440a67b9fcbd376515c3407bb97603a0cb1db265d7cfd61a281212d8210",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/072.diff",
+    "bytes": 88,
+    "sha256": "eac87420e93e1d555972ed1a6e643dd015fd96606c427c0c45e203ae2d06a9d1",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/072.diff.post",
+    "bytes": 6037,
+    "sha256": "b334b48265cc75181cac6feb068723826635df0fdd72b6e4f00d37e06a5855ef",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/072.diff.pre",
+    "bytes": 6037,
+    "sha256": "b334b48265cc75181cac6feb068723826635df0fdd72b6e4f00d37e06a5855ef",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/073.diff",
+    "bytes": 88,
+    "sha256": "f2dc1df265cfeda9043ad6b04697aed93e8657f306bd2ff8fa4d21b3cd7f0aba",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/073.diff.post",
+    "bytes": 10464,
+    "sha256": "386f717ba14af2dfc865a959e5fec16c5c9e795499d223c4762389b14980f403",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/073.diff.pre",
+    "bytes": 10464,
+    "sha256": "386f717ba14af2dfc865a959e5fec16c5c9e795499d223c4762389b14980f403",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/074.diff",
+    "bytes": 102,
+    "sha256": "c73b8e83075d85ad81590eb7a3b37f0153dfe6e3eb87a01673b2c69ae24736d2",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/074.diff.post",
+    "bytes": 756,
+    "sha256": "6d7afb70a3186bb556c0456f2dcbb9497653b8b652906604dfac484fb11194ba",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/074.diff.pre",
+    "bytes": 756,
+    "sha256": "6d7afb70a3186bb556c0456f2dcbb9497653b8b652906604dfac484fb11194ba",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/075.diff",
+    "bytes": 102,
+    "sha256": "202c810025b6c52510a8fe116be38f60052d51650a3ac94907261464b52a1c22",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/075.diff.post",
+    "bytes": 803,
+    "sha256": "9b9d3445b750fa6126db7a13788edc8414b31c24c15d650ac6018d88b926a5a8",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/075.diff.pre",
+    "bytes": 803,
+    "sha256": "9b9d3445b750fa6126db7a13788edc8414b31c24c15d650ac6018d88b926a5a8",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/076.diff",
+    "bytes": 107,
+    "sha256": "63315817bc1dd6d48292d30a6575582fc0d94642b2af08d01b48742f607d8f1f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/076.diff.post",
+    "bytes": 3391,
+    "sha256": "05d9f5d1791488dab7dec9d1d3b2c505fc32cc4423b52accb19bfe48ca52d926",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/076.diff.pre",
+    "bytes": 3391,
+    "sha256": "05d9f5d1791488dab7dec9d1d3b2c505fc32cc4423b52accb19bfe48ca52d926",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/077.diff",
+    "bytes": 92,
+    "sha256": "2812d558a0aa86a047762886c675a3d68c99aeb3ad20d4cdc5e37af8e8ed7196",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/077.diff.post",
+    "bytes": 47817,
+    "sha256": "2df399aa42fc47b53bee77b8547da7ec28b0042ff9481eb8ba4aed1c2d60a050",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/077.diff.pre",
+    "bytes": 47817,
+    "sha256": "2df399aa42fc47b53bee77b8547da7ec28b0042ff9481eb8ba4aed1c2d60a050",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/078.diff",
+    "bytes": 55,
+    "sha256": "22650a420b5e87d40a155be1597aa8c4724759086a721dd35aab707fb630c449",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/078.diff.post",
+    "bytes": 78001,
+    "sha256": "2a9355b6c4820090ad0e2c97e18e97c1a86b13732461c3f30ccae440c189aa10",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/078.diff.pre",
+    "bytes": 78001,
+    "sha256": "2a9355b6c4820090ad0e2c97e18e97c1a86b13732461c3f30ccae440c189aa10",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/079.diff",
+    "bytes": 131,
+    "sha256": "38e0a86dc72597f35e6ae9b3256c33f50032499e368ae21bd3ac7bc629eca618",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/079.diff.post",
+    "bytes": 121626,
+    "sha256": "1c99926e458bc7be15fef490c82fc9dca36320a60422ea5489602550fad93343",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/079.diff.pre",
+    "bytes": 121626,
+    "sha256": "1c99926e458bc7be15fef490c82fc9dca36320a60422ea5489602550fad93343",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/080.diff",
+    "bytes": 132,
+    "sha256": "6fbf5dedb200a921e6599b64df962c81fb3779955fc0251d20b6a90dfb88717a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/080.diff.post",
+    "bytes": 185458,
+    "sha256": "58600f1e24b3eba93c9f71d969770c125df510b8491588aba6db7b8b758f94e2",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/080.diff.pre",
+    "bytes": 185458,
+    "sha256": "58600f1e24b3eba93c9f71d969770c125df510b8491588aba6db7b8b758f94e2",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/081.diff",
+    "bytes": 148,
+    "sha256": "4f9b0b0e7d3a4f9dfac6f047bacc34f188f477e28a40df9a7a55aec4a3a4fc4a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/081.diff.post",
+    "bytes": 205494,
+    "sha256": "cdbe2b83226f77597e383f96b9e73088b18cc5c33c02df7a6c2dd662b7c617e8",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/081.diff.pre",
+    "bytes": 205494,
+    "sha256": "cdbe2b83226f77597e383f96b9e73088b18cc5c33c02df7a6c2dd662b7c617e8",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/082.diff",
+    "bytes": 162,
+    "sha256": "6ec1bc695c30d86c36c919fc06affde7d6c195ee2bfde37d4adcdf16aa7a0692",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/082.diff.post",
+    "bytes": 2358,
+    "sha256": "1a01e3289ac6e81bc5d73cee09efa01e2c9d6f98e6085cff126b872b2f076b91",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/082.diff.pre",
+    "bytes": 2358,
+    "sha256": "1a01e3289ac6e81bc5d73cee09efa01e2c9d6f98e6085cff126b872b2f076b91",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/083.diff",
+    "bytes": 131,
+    "sha256": "7992109bd3937742347243e90f9e962595a4103ce559880342452931acb4caeb",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/083.diff.post",
+    "bytes": 207173,
+    "sha256": "ff3a6d6ff809ba51fbf15b8f508d7b255256bc2b3e01b981d0edeab178588998",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/083.diff.pre",
+    "bytes": 207173,
+    "sha256": "ff3a6d6ff809ba51fbf15b8f508d7b255256bc2b3e01b981d0edeab178588998",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/084.diff",
+    "bytes": 130,
+    "sha256": "47b80d599faacb7f2e3d5c092c4e71c5995742433085233ef23d38e6fadd159e",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/084.diff.post",
+    "bytes": 122751,
+    "sha256": "030132ea18e5dea87cc1c29a6007ed5ea9d24c667ddbae95694ef837343f6803",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/084.diff.pre",
+    "bytes": 122751,
+    "sha256": "030132ea18e5dea87cc1c29a6007ed5ea9d24c667ddbae95694ef837343f6803",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/085.diff",
+    "bytes": 122973,
+    "sha256": "1d6c3bef1b34d9737c8ce345762e0ffc9f0870f4747aeceebdd41c449901b06d",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/085.diff.post",
+    "bytes": 101075,
+    "sha256": "8c945f8c9953bdf53aead379ac1e5d4282f8020c6136f6fe9d31b2ac9024199a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/085.diff.pre",
+    "bytes": 101496,
+    "sha256": "8847e510e46f8a2dc8c3588fcb5671a0b2cf486d6887b441aaeeea1facd80730",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/086.diff",
+    "bytes": 146,
+    "sha256": "89c9d95525625340703fa4147ee7e7744ec9f801d08eff9cf84be21e8801a3ff",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/086.diff.post",
+    "bytes": 121540,
+    "sha256": "13048e364181eb07317e79feca6b5ac81ddb4168f773ac4fde38498e7491cf0a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/086.diff.pre",
+    "bytes": 121540,
+    "sha256": "13048e364181eb07317e79feca6b5ac81ddb4168f773ac4fde38498e7491cf0a",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/087.diff",
+    "bytes": 3126,
+    "sha256": "9f0ef148f7c71918b49b1770abe656834d02bbd6c87ad40087147eb6c840d1cc",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/087.diff.post",
+    "bytes": 1970,
+    "sha256": "fa08feae724fa914f201c2b40d462ad99ce4ce831f40e3ad417506955ffaed7c",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/087.diff.pre",
+    "bytes": 1970,
+    "sha256": "b6e7841376575e4e880e3a377b975b2e097ad97f7f946963cf77704c5d38e9b8",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/088.diff",
+    "bytes": 160,
+    "sha256": "a52a016b8145859253c2c1e8e394722e0eefae6f7f5ad428121e0bd1666e04b0",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/088.diff.post",
+    "bytes": 1990,
+    "sha256": "3bb4aa7a04e99acda787155eefb691f4d9266e4465dab4edbb3172334ce4634c",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/088.diff.pre",
+    "bytes": 1990,
+    "sha256": "3bb4aa7a04e99acda787155eefb691f4d9266e4465dab4edbb3172334ce4634c",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/089.diff",
+    "bytes": 131,
+    "sha256": "c4e6fde83d7ef6fe45a05512e2e9c0b19b27f72c17c314f8fe76976d54d447df",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/089.diff.post",
+    "bytes": 184110,
+    "sha256": "60692e80cb5542181b8bf7a680ad380d14f46c221e4e95f61b32e1861989831e",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/089.diff.pre",
+    "bytes": 184110,
+    "sha256": "60692e80cb5542181b8bf7a680ad380d14f46c221e4e95f61b32e1861989831e",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/090.diff",
+    "bytes": 147,
+    "sha256": "52f63864180075e47ac00059a823b3802d08558c095fa627bc4a08162fb8844f",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/090.diff.post",
+    "bytes": 206045,
+    "sha256": "98fd1f01029974d6682bb6f4b1727e8da1aff3977bcf09038cb1cc4e28317089",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/090.diff.pre",
+    "bytes": 206045,
+    "sha256": "98fd1f01029974d6682bb6f4b1727e8da1aff3977bcf09038cb1cc4e28317089",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/091.diff",
+    "bytes": 161,
+    "sha256": "f06250edce753097a66988911eae168ff59c227ca0acc17b29f6653521b5b25e",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/091.diff.post",
+    "bytes": 2466,
+    "sha256": "4284f88cf0e301c5e5e7da133de429582b5435e63b78a1e59d79aab30b590549",
+    "reason": "raw disassembly or disassembly diff"
+  },
+  {
+    "path": "r7-final/091.diff.pre",
+    "bytes": 2466,
+    "sha256": "4284f88cf0e301c5e5e7da133de429582b5435e63b78a1e59d79aab30b590549",
+    "reason": "raw disassembly or disassembly diff"
+  }
+]

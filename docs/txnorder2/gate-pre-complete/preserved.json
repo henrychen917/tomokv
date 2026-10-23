@@ -1,0 +1,52 @@
+{
+  "source": "73e35f754 pre-amendment merged lane, with disclosed stamp-observation instrumentation; not a7dfb9d23",
+  "run_dir": "build/gate-run.qGpHV3",
+  "job_done": "0\t0\t16",
+  "fixtures": {
+    "txnorder_watch_unit.cc": {
+      "current_sha256": "23a81b9dbedb200e9a219ccabf9399d787791c3e6653b41fea58e9b58586b300",
+      "control_sha256": "23a81b9dbedb200e9a219ccabf9399d787791c3e6653b41fea58e9b58586b300",
+      "equal": true
+    },
+    "txnorder_episodes.cc": {
+      "current_sha256": "8f5641facc33932fcd17619ab3e8cc7f6cda12615133abfdc307d8338bfb3a8a",
+      "control_sha256": "8f5641facc33932fcd17619ab3e8cc7f6cda12615133abfdc307d8338bfb3a8a",
+      "equal": true
+    }
+  },
+  "binaries": {
+    "build/txnorder2/gate-pre/txnorder-watch-db0-unit": "15ed0b6cc5f51103c4fb0739250b8958eec784e97dc6be8fc7011103035b9277",
+    "build/txnorder2/gate-pre/tomokv": "907dfd53752af4b77f624fd4c439ffe22f39fd56f53ec9e62888aa2855751fd3",
+    "build/txnorder2/gate-pre/txnorder-watch-unit": "528690c927a07393063df213fc0e1c7ef2af8d6c1457db90296d40536548b264",
+    "build/txnorder2/gate-pre/txnorder-episodes-debug": "fb9e4f7376c3ee18e76d0977a02015964e0f494b9a766b2373e8804d113a1ee0",
+    "build/txnorder2/gate-pre/txnorder-episodes": "323200480d8b7e5260906add7a34763ef130db61cbaf7d7a16c9849693ac6964"
+  },
+  "expected_scored_failures": 16,
+  "all_watch_legs": [
+    "flush-1s-epoll-1.log",
+    "flush-1s-epoll-16.log",
+    "flush-1s-uring-1.log",
+    "flush-1s-uring-16.log",
+    "flush-2s-epoll-1.log",
+    "flush-2s-epoll-16.log",
+    "flush-2s-uring-1.log",
+    "flush-2s-uring-16.log",
+    "readonly-1s-epoll-1.log",
+    "readonly-1s-epoll-16.log",
+    "readonly-1s-uring-1.log",
+    "readonly-1s-uring-16.log",
+    "readonly-2s-epoll-1.log",
+    "readonly-2s-epoll-16.log",
+    "readonly-2s-uring-1.log",
+    "readonly-2s-uring-16.log",
+    "serve-1s-epoll-1.log",
+    "serve-1s-epoll-16.log",
+    "serve-1s-uring-1.log",
+    "serve-1s-uring-16.log",
+    "serve-2s-epoll-1.log",
+    "serve-2s-epoll-16.log",
+    "serve-2s-uring-1.log",
+    "serve-2s-uring-16.log"
+  ],
+  "excluded": []
+}

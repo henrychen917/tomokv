@@ -1,0 +1,7 @@
+  ok   WATCH ignores script ARGV on the same owner owner=3 reply=[None]
+  ok   WATCH detector fires for the script's declared key owner=3 reply=None
+  ok   zero control: unheld activations are never window-refused refusals=+0 bad=[]
+  ok   cut-slot window refusal fires and is counted busy=4 counted=+4
+  ok   refusal is a reply, not a stalled connection or a wrong answer ok=21 busy=4 other=[]
+  ok   a refused activation reserves nothing and leaks nothing armed=92 released=92
+XSCRIPT window directed battery passed

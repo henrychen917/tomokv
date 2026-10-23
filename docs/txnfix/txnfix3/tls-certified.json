@@ -1,0 +1,321 @@
+{
+  "pre": {
+    "symbols": {
+      "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": [
+        232,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": [
+        48,
+        40
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": [
+        256,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": [
+        248,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": [
+        240,
+        1
+      ],
+      "__tls_guard": [
+        624,
+        1
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": [
+        264,
+        16
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": [
+        288,
+        56
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_18g_clientE": [
+        360,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_18g_threadE": [
+        352,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": [
+        344,
+        8
+      ],
+      "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": [
+        368,
+        8
+      ],
+      "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": [
+        88,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": [
+        424,
+        24
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": [
+        400,
+        24
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": [
+        448,
+        16
+      ],
+      "_ZZN8tomo_db014multidb_randomEmE5state": [
+        96,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": [
+        472,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": [
+        160,
+        40
+      ],
+      "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": [
+        496,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": [
+        488,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": [
+        480,
+        1
+      ],
+      "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": [
+        504,
+        16
+      ],
+      "_ZN4tomo12_GLOBAL__N_113g_client_metaE": [
+        528,
+        56
+      ],
+      "_ZN4tomo12_GLOBAL__N_18g_clientE": [
+        600,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_18g_threadE": [
+        592,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_116g_database_statsE": [
+        584,
+        8
+      ],
+      "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": [
+        608,
+        8
+      ],
+      "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": [
+        200,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": [
+        664,
+        24
+      ],
+      "_ZN4tomo12_GLOBAL__N_114t_script_crossE": [
+        640,
+        24
+      ],
+      "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": [
+        688,
+        16
+      ],
+      "_ZZN4tomo14multidb_randomEmE5state": [
+        208,
+        8
+      ],
+      "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": [
+        0,
+        42
+      ],
+      "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": [
+        112,
+        42
+      ]
+    },
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20",
+    "command": [
+      "readelf",
+      "-sW",
+      "build/txnfix2/pre/tomokv"
+    ]
+  },
+  "post": {
+    "symbols": {
+      "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": [
+        232,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": [
+        48,
+        40
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": [
+        256,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": [
+        248,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": [
+        240,
+        1
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": [
+        241,
+        1
+      ],
+      "__tls_guard": [
+        624,
+        1
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": [
+        264,
+        16
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": [
+        288,
+        56
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_18g_clientE": [
+        360,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_18g_threadE": [
+        352,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": [
+        344,
+        8
+      ],
+      "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": [
+        368,
+        8
+      ],
+      "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": [
+        88,
+        8
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": [
+        424,
+        24
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": [
+        400,
+        24
+      ],
+      "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": [
+        448,
+        16
+      ],
+      "_ZZN8tomo_db014multidb_randomEmE5state": [
+        96,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": [
+        472,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": [
+        160,
+        40
+      ],
+      "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": [
+        496,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": [
+        488,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": [
+        480,
+        1
+      ],
+      "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": [
+        481,
+        1
+      ],
+      "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": [
+        504,
+        16
+      ],
+      "_ZN4tomo12_GLOBAL__N_113g_client_metaE": [
+        528,
+        56
+      ],
+      "_ZN4tomo12_GLOBAL__N_18g_clientE": [
+        600,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_18g_threadE": [
+        592,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_116g_database_statsE": [
+        584,
+        8
+      ],
+      "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": [
+        608,
+        8
+      ],
+      "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": [
+        200,
+        8
+      ],
+      "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": [
+        664,
+        24
+      ],
+      "_ZN4tomo12_GLOBAL__N_114t_script_crossE": [
+        640,
+        24
+      ],
+      "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": [
+        688,
+        16
+      ],
+      "_ZZN4tomo14multidb_randomEmE5state": [
+        208,
+        8
+      ],
+      "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": [
+        0,
+        42
+      ],
+      "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": [
+        112,
+        42
+      ]
+    },
+    "sha256": "c879e3f1e476b5f86232e47f863565d5b967905617b1dabf3ca1a961628e4916",
+    "command": [
+      "readelf",
+      "-sW",
+      "build/tomokv"
+    ]
+  },
+  "changed_existing": {},
+  "added": {
+    "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": [
+      481,
+      1
+    ],
+    "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": [
+      241,
+      1
+    ]
+  }
+}

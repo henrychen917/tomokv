@@ -1,0 +1,9 @@
+In file included from /home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/txnorder_watch_unit.cc:4:
+/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/atomic_survivors_unit.cc: In function ‘int atomic_survivors_unused_main(int, char**)’:
+/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/atomic_survivors_unit.cc:859:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  859 | }
+      | ^
+/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/txnorder_watch_unit.cc: In function ‘void {anonymous}::served_watch(tomo::Server&)’:
+/home/user/Projects/cx-txnfix/build/txnorder2/control-pre/tests/txnorder_watch_unit.cc:28:47: warning: missing initializer for member ‘tomo::BlockingKey::wake_payload’ [-Wmissing-field-initializers]
+   28 |         state.selected=0; state.keys.push_back({0,key,FlatStore::hash_key(slice(key)),0});
+      |                           ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

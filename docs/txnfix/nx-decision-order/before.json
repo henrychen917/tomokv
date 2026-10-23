@@ -1,0 +1,56 @@
+[
+  {
+    "name": "before-0",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/txnfix/nx-before/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "build/txnfix/probe-conditionals.py",
+      "127.0.0.1",
+      "22601"
+    ],
+    "exit_code": 1,
+    "result": [
+      [
+        2,
+        [],
+        false
+      ]
+    ],
+    "seconds": 1.4168956829234958,
+    "sha256": "2a0eefaafa8eb2ce4e249c0e812140baf77d206f21e0b6b7f89fe8843552d07c"
+  }
+]

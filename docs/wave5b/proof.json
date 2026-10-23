@@ -1,0 +1,559 @@
+{
+  "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+  "cohorts": [
+    {
+      "name": "final-uring",
+      "returncode": 1,
+      "passed": 80,
+      "failed": 4,
+      "elapsed_seconds": 1510.86408162117,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    },
+    {
+      "name": "differ-epoll-first",
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0,
+      "elapsed_seconds": 1052.453162908554,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    },
+    {
+      "name": "final-epoll",
+      "returncode": 0,
+      "passed": 56,
+      "failed": 0,
+      "elapsed_seconds": 534.6792531013489,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    },
+    {
+      "name": "uring-extra",
+      "returncode": 0,
+      "passed": 13,
+      "failed": 0,
+      "elapsed_seconds": 238.37909841537476,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    },
+    {
+      "name": "auth-fused-uring",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0,
+      "elapsed_seconds": 10.886953353881836,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    },
+    {
+      "name": "auth-fused-epoll",
+      "returncode": 0,
+      "passed": 8,
+      "failed": 0,
+      "elapsed_seconds": 10.888852596282959,
+      "binary_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc"
+    }
+  ],
+  "required_jobs": [
+    "iofix-hz",
+    "iofix-sleep",
+    "iofix-signal",
+    "wb_rule_units",
+    "wbland_units",
+    "wb_policy",
+    "netcmd_units",
+    "splitlocal_units",
+    "flip_unit",
+    "flipfix_units",
+    "flip",
+    "fliplisten",
+    "flip_saturated",
+    "flipctl",
+    "auth",
+    "debug-0",
+    "debug-1"
+  ],
+  "all_required_jobs_have_passing_receipts": true,
+  "iofix_legs": [
+    {
+      "feature": "IO4.9",
+      "mode": "2s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-hz/hz-2s-uring.log"
+    },
+    {
+      "feature": "IO4.9",
+      "mode": "2s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-hz/hz-2s-epoll.log"
+    },
+    {
+      "feature": "IO4.9",
+      "mode": "1s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-hz/hz-1s-uring.log"
+    },
+    {
+      "feature": "IO4.9",
+      "mode": "1s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-hz/hz-1s-epoll.log"
+    },
+    {
+      "feature": "IO4.10",
+      "mode": "2s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-sleep/sleep-2s-uring.log"
+    },
+    {
+      "feature": "IO4.10",
+      "mode": "2s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-sleep/sleep-2s-epoll.log"
+    },
+    {
+      "feature": "IO4.10",
+      "mode": "1s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-sleep/sleep-1s-uring.log"
+    },
+    {
+      "feature": "IO4.10",
+      "mode": "1s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-sleep/sleep-1s-epoll.log"
+    },
+    {
+      "feature": "IO4.17",
+      "mode": "2s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-signal/signal-2s-uring.log"
+    },
+    {
+      "feature": "IO4.17",
+      "mode": "2s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-signal/signal-2s-epoll.log"
+    },
+    {
+      "feature": "IO4.17",
+      "mode": "1s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-signal/signal-1s-uring.log"
+    },
+    {
+      "feature": "IO4.17",
+      "mode": "1s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-wave5/build/gate-run.qpKduq/jobs/iofix-signal/signal-1s-epoll.log"
+    }
+  ],
+  "listener_legs": [
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "rollback",
+      "arrived": 57,
+      "served": 57,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 61,
+      "served": 61,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "ex-io",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "rollback",
+      "arrived": 59,
+      "served": 59,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 57,
+      "served": 57,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 1,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "uring",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    },
+    {
+      "engine": "epoll",
+      "atomic": 0,
+      "direction": "io-ex",
+      "outcome": "complete",
+      "arrived": 56,
+      "served": 56,
+      "passed": true
+    }
+  ],
+  "differential": [
+    {
+      "engine": "uring",
+      "mode": "split",
+      "atomic": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "suite_legs": 235,
+      "passed_checks": 235,
+      "cohort": "final-uring"
+    },
+    {
+      "engine": "uring",
+      "mode": "split",
+      "atomic": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "suite_legs": 235,
+      "passed_checks": 239,
+      "cohort": "final-uring"
+    },
+    {
+      "engine": "uring",
+      "mode": "armed",
+      "atomic": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "suite_legs": 230,
+      "passed_checks": 231,
+      "cohort": "final-uring"
+    },
+    {
+      "engine": "uring",
+      "mode": "armed",
+      "atomic": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "suite_legs": 230,
+      "passed_checks": 235,
+      "cohort": "final-uring"
+    },
+    {
+      "engine": "epoll",
+      "mode": "split",
+      "atomic": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "suite_legs": 235,
+      "passed_checks": 235,
+      "cohort": "differ-epoll-first"
+    },
+    {
+      "engine": "epoll",
+      "mode": "split",
+      "atomic": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ],
+      "suite_legs": 235,
+      "passed_checks": 239,
+      "cohort": "final-epoll"
+    },
+    {
+      "engine": "epoll",
+      "mode": "armed",
+      "atomic": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "suite_legs": 230,
+      "passed_checks": 231,
+      "cohort": "differ-epoll-first"
+    },
+    {
+      "engine": "epoll",
+      "mode": "armed",
+      "atomic": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ],
+      "suite_legs": 230,
+      "passed_checks": 235,
+      "cohort": "final-epoll"
+    }
+  ],
+  "mode_equivalence_cells_per_engine": 16,
+  "control_checks": [
+    {
+      "cohort": "pad-a-uring",
+      "sha256": "6e81f38fa1ec61e6904231c8e121a546c9febca56d3bee8bf55abd0928907fae",
+      "passed": 2,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "policies": [
+        0,
+        1
+      ]
+    },
+    {
+      "cohort": "pad-a-epoll",
+      "sha256": "6e81f38fa1ec61e6904231c8e121a546c9febca56d3bee8bf55abd0928907fae",
+      "passed": 2,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "policies": [
+        0,
+        1
+      ]
+    },
+    {
+      "cohort": "pad-b-uring",
+      "sha256": "b0c5b3ef96e1fd37bf5990c67e4c3693d76ca7bf80321881f86dc6cb60d7180a",
+      "passed": 2,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "policies": [
+        0,
+        1
+      ]
+    },
+    {
+      "cohort": "pad-b-epoll",
+      "sha256": "b0c5b3ef96e1fd37bf5990c67e4c3693d76ca7bf80321881f86dc6cb60d7180a",
+      "passed": 2,
+      "modes": [
+        "1s",
+        "2s"
+      ],
+      "policies": [
+        0,
+        1
+      ]
+    }
+  ],
+  "resolved_failures": [
+    {
+      "cohort": "final-uring",
+      "job": "fliplisten",
+      "verdict": "FAIL",
+      "elapsed": "121.440000",
+      "label": "FLIP listener conservation (io-ex, complete)"
+    },
+    {
+      "cohort": "final-uring",
+      "job": "fliplisten",
+      "verdict": "FAIL",
+      "elapsed": "121.450000",
+      "label": "FLIP listener conservation (io-ex, rollback)"
+    },
+    {
+      "cohort": "final-uring",
+      "job": "fliplisten",
+      "verdict": "FAIL",
+      "elapsed": "121.190000",
+      "label": "FLIP listener conservation (ex-io, complete)"
+    },
+    {
+      "cohort": "final-uring",
+      "job": "fliplisten",
+      "verdict": "FAIL",
+      "elapsed": "121.250000",
+      "label": "FLIP listener conservation (ex-io, rollback)"
+    }
+  ],
+  "resolution": "The first fliplisten cohort passed an adapter script to GDB; all 16 legs passed on the same frozen ELF in uring-extra.",
+  "gates_test": {
+    "initial": {
+      "command": "python3 tests/gates_test.py",
+      "cpus": "64-111",
+      "returncode": 1,
+      "tests": 68,
+      "failures": 4,
+      "reason": "Scheduler fixture timeouts during concurrent compiles; retained as failed diagnostic."
+    },
+    "final": {
+      "command": "python3 tests/gates_test.py",
+      "cpus": "88-95,104-111",
+      "returncode": 0,
+      "tests": 68,
+      "elapsed_seconds": 110.97,
+      "ports": "26800-26899 via fixture guard; GATE_TEST_PORT=26899",
+      "assertions_or_deadlines_changed": false
+    }
+  },
+  "row_accounting": {
+    "quick": {
+      "before": 740,
+      "after": 739,
+      "delta": -1
+    },
+    "full": {
+      "before": 757,
+      "after": 756,
+      "delta": -1
+    },
+    "constants": [
+      "EXPECT_QUICK=685",
+      "EXPECT_FULL=702"
+    ],
+    "removed_collector_line": 4687,
+    "old_quick_exit_line": 4910,
+    "new_quick_exit_line": 4904,
+    "source_fixture_multisets_equal": true
+  },
+  "not_run": [
+    {
+      "item": "performance benchmarks / ABBA / PMU rate measurements",
+      "reason": "reserved to maintainer"
+    },
+    {
+      "item": "full tests/gate.sh iteration",
+      "reason": "reserved to maintainer; only selected correctness jobs ran"
+    },
+    {
+      "item": "fused SORT differential legs",
+      "reason": "standard differential plan declares SORT split-only"
+    },
+    {
+      "item": "fused FLIP",
+      "reason": "FLIP is a split-mode feature"
+    }
+  ],
+  "note": "Partial-job observations are not a full-gate receipt. Initial failed launch and self-test evidence is retained."
+}

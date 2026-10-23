@@ -1,0 +1,2 @@
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)

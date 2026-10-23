@@ -1,0 +1,348 @@
+[
+  {
+    "arm": "PRE",
+    "roll": 1,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 2,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 3,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 4,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 5,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 6,
+    "returncode": 1,
+    "duplicate_frames": 3,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a"
+      },
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a"
+      },
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 7,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 8,
+    "returncode": 1,
+    "duplicate_frames": 2,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a"
+      },
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a350d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 9,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 10,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 11,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 12,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 13,
+    "returncode": 1,
+    "duplicate_frames": 2,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a"
+      },
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 14,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 15,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 16,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24350d0a636b3a31300d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 17,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a330d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 18,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a"
+      }
+    ]
+  },
+  {
+    "arm": "PRE",
+    "roll": 19,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "PRE",
+    "roll": 20,
+    "returncode": 1,
+    "duplicate_frames": 1,
+    "frames": [
+      {
+        "target": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a",
+        "oracle": "3e320d0a2431300d0a696e76616c69646174650d0a2a310d0a24340d0a636b3a390d0a"
+      }
+    ]
+  },
+  {
+    "arm": "POST",
+    "roll": 1,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 2,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 3,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 4,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 5,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 6,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 7,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 8,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 9,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 10,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 11,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 12,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 13,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 14,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 15,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 16,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 17,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 18,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 19,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  },
+  {
+    "arm": "POST",
+    "roll": 20,
+    "returncode": 0,
+    "duplicate_frames": 0,
+    "frames": []
+  }
+]

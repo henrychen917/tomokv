@@ -1,0 +1,18 @@
+tests/gate.sh:2030:      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
+tests/gate.sh:2041:      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
+tests/gate.sh:2052:      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
+tests/gate.sh:2063:      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
+tests/gate.sh:2074:      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
+tests/gates_test.py:1999:    def test_every_netfix_job_passes_explicit_tls_oracle(self):
+tests/gates_test.py:2003:            self.assertIn('--tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}"', body)
+tests/gates_test.py:2006:    def test_missing_tls_oracle_names_path_without_tcp_fallback(self):
+tests/gates_test.py:2010:            args = SimpleNamespace(tls_oracle=path, oracle=sys.executable, output=Path(directory))
+tests/gates_test.py:2013:            args.tls_oracle = ''
+tests/gates_test.py:2014:            with self.assertRaisesRegex(AssertionError, '--tls-oracle'):
+tests/_netfix.py:22:    p.add_argument('--tls-oracle', default=os.getenv('NETFIX_TLS_ORACLE', ''))
+tests/_netfix.py:34:    if not a.tls_oracle:
+tests/_netfix.py:35:        raise AssertionError('TLS oracle path is required: pass --tls-oracle (or NETFIX_TLS_ORACLE)')
+tests/_netfix.py:36:    a.tls_oracle = str(Path(a.tls_oracle).resolve())
+tests/_netfix.py:37:    if not os.path.isfile(a.tls_oracle) or not os.access(a.tls_oracle, os.X_OK):
+tests/_netfix.py:38:        raise AssertionError(f'TLS oracle is missing or not executable: {a.tls_oracle}')
+tests/_netfix.py:72:    executable = (a.tls_oracle if certs else a.oracle) if oracle else a.binary

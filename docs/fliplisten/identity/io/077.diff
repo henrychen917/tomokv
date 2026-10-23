@@ -1,0 +1,15 @@
+void tomo::IoLoop::run_loop<false, false, false, false, false>()
+--- PRE
+
++++ POST
+
+@@ -140,7 +140,7 @@
+
+ 02ac [ 2] je <+0x2bb>
+ 02ae [ 5] mov $0x1,%esi
+ 02b3 [ 3] mov %rbx,%rdi
+-02b6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)>
++02b6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>
+ 02bb [ 7] mov 0xbc8(%rbx),%r10d
+ 02c2 [ 7] lea 0xac8(%rbx),%rax
+ 02c9 [ 4] mov %rax,(%rsp)

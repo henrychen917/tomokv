@@ -1,0 +1,20 @@
+{"atomic": 1, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 0, "atomic_group_wounds": 0, "atomic_txn_attempts": 2000, "atomic_txn_blind_restarts": 0, "atomic_txn_dooms": 0, "atomic_txn_executed": 2000, "atomic_txn_intents": 0, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 0, "atomic_txn_readonly": 0, "atomic_txn_retries": 0, "atomic_txn_waits": 0, "atomic_txn_wounds": 0, "atomic_txn_writer_marks": 14, "atomic_txn_writer_waits": 14}, "deliveries": [], "executions": 2000, "final": [42000, 42000], "mode": "2s", "plain": [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000], "row": "a1"}
+{"atomic": 1, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 0, "atomic_group_wounds": 0, "atomic_txn_attempts": 8000, "atomic_txn_blind_restarts": 0, "atomic_txn_dooms": 0, "atomic_txn_executed": 8000, "atomic_txn_intents": 0, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 4, "atomic_txn_readonly": 0, "atomic_txn_retries": 0, "atomic_txn_waits": 0, "atomic_txn_wounds": 0, "atomic_txn_writer_marks": 43, "atomic_txn_writer_waits": 88}, "deliveries": [], "executions": 8000, "final": [48000, 48000], "mode": "2s", "plain": [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000], "row": "a2"}
+PASS a
+{"atomic": 1, "bystander_max_seconds": 0.002100350335240364, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 0, "atomic_group_wounds": 0, "atomic_txn_attempts": 59, "atomic_txn_blind_restarts": 0, "atomic_txn_dooms": 0, "atomic_txn_executed": 59, "atomic_txn_intents": 0, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 0, "atomic_txn_readonly": 0, "atomic_txn_retries": 0, "atomic_txn_waits": 0, "atomic_txn_wounds": 0, "atomic_txn_writer_marks": 0, "atomic_txn_writer_waits": 0}, "mode": "2s", "owners": 4, "row": "b1", "victim_attempts": 1, "victim_seconds": 0.0040333885699510574}
+{"atomic": 1, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 0, "atomic_group_wounds": 0, "atomic_txn_attempts": 434, "atomic_txn_blind_restarts": 0, "atomic_txn_dooms": 0, "atomic_txn_executed": 434, "atomic_txn_intents": 0, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 121, "atomic_txn_readonly": 0, "atomic_txn_retries": 0, "atomic_txn_waits": 0, "atomic_txn_wounds": 0, "atomic_txn_writer_marks": 389, "atomic_txn_writer_waits": 2607}, "executions": [109, 108, 108, 109], "mode": "2s", "row": "b2", "writer_max_seconds": 0.004245289601385593}
+PASS b
+FAIL c AssertionError(RespError(b'BUSY Cross-shard script snapshot window is full'))
+PASS armed
+PASS txnorder_f1
+PASS txnorder_f2
+PASS txnorder_f4
+PASS txnorder_f5
+PASS txnorder_f6
+PASS txnorder_f8
+PASS txnorder_claims
+PASS txnorder_placement
+PASS txnorder_readonly
+{"atomic": 1, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 0, "atomic_group_wounds": 0, "atomic_txn_attempts": 20513, "atomic_txn_blind_restarts": 0, "atomic_txn_dooms": 0, "atomic_txn_executed": 20512, "atomic_txn_intents": 99918, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 45, "atomic_txn_readonly": 0, "atomic_txn_retries": 1, "atomic_txn_waits": 0, "atomic_txn_wounds": 1, "atomic_txn_writer_marks": 667, "atomic_txn_writer_waits": 732}, "deliveries": [25049, 24910], "executions": 20512, "final": [348716, 348472], "mode": "2s", "plain": [41088, 40948, 41044, 41028, 40984, 40968, 40796, 41348, 41060, 41172, 40352, 41196, 41044, 40964, 41208, 40964], "row": "d"}
+{"row": "d-reload", "keys": 4, "exact": true}
+PASS d

@@ -1,0 +1,59 @@
+{
+  "arm": "POST",
+  "atomic": 1,
+  "argv": [
+    "taskset",
+    "-c",
+    "48-55",
+    "gdb",
+    "-nx",
+    "-q",
+    "-x",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/retry-epoch/POST-a1/force.gdb",
+    "--args",
+    "/home/user/Projects/cx-fliplisten/build/tomokv",
+    "--port",
+    "21860",
+    "--bind",
+    "127.0.0.1",
+    "--dir",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/retry-epoch/POST-a1",
+    "--save",
+    "",
+    "--thread-mode",
+    "2s",
+    "--ratio",
+    "6:2",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--atomic",
+    "1",
+    "--net-io",
+    "uring",
+    "--flip-auto",
+    "0",
+    "--key-lb",
+    "0",
+    "--client-lb",
+    "0"
+  ],
+  "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+  "reply": "b'OK'",
+  "seconds": 0.7058435129001737,
+  "witness": {
+    "pid": 3841656,
+    "tid": 4,
+    "borrowed": [
+      9
+    ],
+    "old_cancel_fences": [
+      true
+    ]
+  },
+  "passed": true,
+  "served": 64,
+  "unique_ids": 64,
+  "accepted_delta": 64
+}

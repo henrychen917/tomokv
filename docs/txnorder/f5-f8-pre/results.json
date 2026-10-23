@@ -1,0 +1,14 @@
+[
+  {
+    "case": "txnorder_f5",
+    "exit_code": 1,
+    "output": "FAIL: F5 loader parks before replacing a claimed shard\n",
+    "expected": "PRE must fail its directed check"
+  },
+  {
+    "case": "txnorder_f8",
+    "exit_code": 1,
+    "output": "FAIL: F8 WATCH waits for a blind candidate even without an earlier watcher\n",
+    "expected": "PRE must fail its directed check"
+  }
+]

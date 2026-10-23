@@ -1,0 +1,139 @@
+[
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "fliplisten"
+    ],
+    "reason": "fliplisten changes this body; merged compiler propagation differs from isolated POST."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "fliplisten"
+    ],
+    "reason": "fliplisten changes this body; merged compiler propagation differs from isolated POST."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "fliplisten"
+    ],
+    "reason": "fliplisten changes this body; merged compiler propagation differs from isolated POST."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "fliplisten"
+    ],
+    "reason": "fliplisten changes this body; merged compiler propagation differs from isolated POST."
+  },
+  {
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1567
+    ],
+    "post_sizes": [
+      1567
+    ],
+    "matches": [
+      "txnfix",
+      "bugs5",
+      "compat3",
+      "trackfix",
+      "fliplisten"
+    ],
+    "changed_lanes": [
+      "txnfix",
+      "bugs5",
+      "compat3",
+      "trackfix",
+      "fliplisten",
+      "netfix",
+      "iofix"
+    ],
+    "reason": "Exact linked body from txnfix, bugs5, compat3, trackfix, fliplisten; lane change retained."
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      865
+    ],
+    "post_sizes": [
+      865
+    ],
+    "matches": [
+      "txnfix",
+      "trackfix",
+      "netfix"
+    ],
+    "changed_lanes": [
+      "txnfix",
+      "bugs5",
+      "compat3",
+      "trackfix",
+      "fliplisten",
+      "netfix",
+      "iofix"
+    ],
+    "reason": "Exact linked body from txnfix, trackfix, netfix; lane change retained."
+  },
+  {
+    "name": "wave5_pad_a",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      329075
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  }
+]

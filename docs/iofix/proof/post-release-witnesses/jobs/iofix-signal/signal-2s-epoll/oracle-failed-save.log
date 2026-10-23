@@ -1,0 +1,19 @@
+1925977:C 23 Oct 2026 02:57:17.891 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+1925977:C 23 Oct 2026 02:57:17.891 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1925977:C 23 Oct 2026 02:57:17.891 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=1925977, just started
+1925977:C 23 Oct 2026 02:57:17.891 * Configuration loaded
+1925977:M 23 Oct 2026 02:57:17.891 * monotonic clock: POSIX clock_gettime
+1925977:M 23 Oct 2026 02:57:17.892 * Running mode=standalone, port=19801.
+1925977:M 23 Oct 2026 02:57:17.892 * Server initialized
+1925977:M 23 Oct 2026 02:57:17.892 * Ready to accept connections tcp
+1925977:signal-handler (1792695437) Received SIGTERM scheduling shutdown...
+1925977:M 23 Oct 2026 02:57:17.994 * User requested shutdown...
+1925977:M 23 Oct 2026 02:57:17.994 * Saving the final RDB snapshot before exiting.
+1925977:M 23 Oct 2026 02:57:17.994 # Error moving temp DB file temp-1925977.rdb on the final destination saved.rdb (in server root dir /home/user/Projects/cx-iofix/build/gate-run.6SXO6t/jobs/iofix-signal/signal-2s-epoll/oracle-failed-save): Is a directory
+1925977:M 23 Oct 2026 02:57:17.994 # Error trying to save the DB, can't exit.
+1925977:M 23 Oct 2026 02:57:17.994 # Errors trying to shut down the server. Check the logs for more information.
+1925977:signal-handler (1792695438) Received SIGTERM scheduling shutdown...
+1925977:M 23 Oct 2026 02:57:18.296 * User requested shutdown...
+1925977:M 23 Oct 2026 02:57:18.296 * Saving the final RDB snapshot before exiting.
+1925977:M 23 Oct 2026 02:57:18.296 * DB saved on disk
+1925977:M 23 Oct 2026 02:57:18.296 # Redis is now ready to exit, bye bye...

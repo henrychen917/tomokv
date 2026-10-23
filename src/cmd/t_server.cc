@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "debug_sleep.h"
 #include "info_stats.h"
+#include "network_config.h"
 #include "hll.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -25,6 +26,7 @@
 #include "../exec/op.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
+#include "../net/query_limit_stats.h"
 #include "../store/kvobj.h"
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
@@ -290,7 +292,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes
+    Signed, Encoding, Uint32, Uint32Bytes, Hz
 };
 struct ConfigValue {
     const char* name;
@@ -365,6 +367,8 @@ void init_config(const Config& cfg) {
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
+    add_config("hz", ConfigKind::Hz, cfg.hz);
+    g_config.push_back({"dynamic-hz", ConfigKind::Bool, cfg.dynamic_hz ? "yes" : "no"});
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
     add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
     g_config.push_back({"tls-port", ConfigKind::Unsigned, std::to_string(cfg.tls_port), true});
@@ -483,6 +487,12 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                       const char*& error, bool legacy_compact = false) {
     switch (entry.kind) {
+        case ConfigKind::Hz: {
+            uint32_t value = 0;
+            if (!ClientHz::parse(input, value, error)) return false;
+            out = std::to_string(value);
+            return true;
+        }
         case ConfigKind::Uint32:
         case ConfigKind::Uint32Bytes: {
             uint32_t value = 0;
@@ -519,7 +529,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
-            if (!std::strcmp(entry.name, "aof-load-truncated")) {
+            if (!std::strcmp(entry.name, "aof-load-truncated") ||
+                !std::strcmp(entry.name, "dynamic-hz")) {
                 error = "argument must be 'yes' or 'no'";
                 return false;
             }
@@ -622,13 +633,15 @@ bool collect_config_updates(Op& op,
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
             !std::strcmp(item->name, "aof-load-truncated") ||
-            !std::strcmp(item->name, "client-query-buffer-limit")) {
+            network_config_name(item->name)) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
-                    encoding == EncodingConfig::SetIntsetEntries) {
+                    item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
+                    encoding == EncodingConfig::SetIntsetEntries || network_config_name(item->name)) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
                     msg += "') - duplicate parameter";
@@ -647,7 +660,13 @@ bool collect_config_updates(Op& op,
         }
         if (item->immutable || !std::strcmp(item->name, "dir") ||
             !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
-            reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
+            if (network_config_name(item->name)) {
+                std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                msg.append(op.arg(i).p, op.arg(i).n);
+                msg += "') - can't set immutable config";
+                reply_err(op.sink(), msg.c_str());
+            } else reply_err(op.sink(), "ERR parameter is immutable at runtime");
+            return false;
         }
         std::string value;
         bool normalized = false;
@@ -657,13 +676,16 @@ bool collect_config_updates(Op& op,
             const char* error = nullptr;
             normalized = parse_client_output_buffer_limit_slice(
                 op.arg(i + 1), obuf_scratch, parsed, error);
+            config_error = error;
             if (normalized) {
                 obuf_scratch = parsed;
                 value = cfg_client_output_buffer_limit_string(parsed);
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            normalized = normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
+            const int network = normalize_network_config(item->name, op.arg(i + 1), value, config_error);
+            normalized = network >= 0 ? network == 1 :
+                normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
             if (config_error) {
@@ -965,8 +987,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
-    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's owner join.
+    // Both routes request the same process-wide pass-boundary pause.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -1029,6 +1051,16 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // nothing would ever notice a clock expiring. Clear it from ANOTHER connection (the barred one
     // cannot be parsed, by construction) and then wake the io threads -- CLIENT LIST fans out to
     // every one of them and is the cheapest existing way to do it.
+    if (eq_icase(subcommand, "txn-barrier-witness") && op.argc() == 3) {
+        uint64_t armed = 0;
+        if (!parse_u64(op.arg(2), armed) || armed > 1) {
+            reply_err(op.sink(), "ERR expected 0 or 1");
+            return;
+        }
+        txn_barrier_witness(armed != 0);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "barrier-hold") && op.argc() == 3) {
         uint64_t armed = 0;
         if (!parse_u64(op.arg(2), armed) || armed > 1) {
@@ -1168,6 +1200,21 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // between the lead fragment's answer and the rest. That straddle is the shape of the defect:
     // a reader with no pinned cut reports one key from after the transaction and the others from
     // before it. Production 0.
+    if (eq_icase(subcommand, "txn-place-defer") && op.argc() == 3) {
+        uint64_t delay = 0;
+        if (!parse_u64(op.arg(2), delay) || delay > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_txn_place_defer(static_cast<uint32_t>(delay));
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "txn-last-attempts") && op.argc() == 2) {
+        reply_int(op.sink(), g_client ? multi_last_attempts(*g_client) : 0);
+        return;
+    }
     if (eq_icase(subcommand, "atomic-fanout-defer") && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
@@ -1595,6 +1642,10 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->aof().set_timestamp_enabled(update.second == "yes");
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "dynamic-hz")) {
+                    g_server->set_dynamic_hz(update.second == "yes");
+                    continue;
+                }
                 if (!std::strcmp(update.first->name, "appendfsync")) {
                     const AppendFsyncPolicy policy = update.second == "always"
                         ? AppendFsyncPolicy::Always
@@ -1616,6 +1667,8 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_maxclients(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "timeout"))
                     g_server->set_timeout(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "hz"))
+                    g_server->set_hz(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "tcp-keepalive"))
                     g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "acllog-max-len"))
@@ -2128,6 +2181,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 info_executable(), info_config_file());
+        appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
+                g_server ? g_server->client_hz() : ClientHz::kDefault,
+                g_server ? g_server->configured_hz() : ClientHz::kDefault);
         appendf(body, "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
                       "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
                       "pin_threads:%u\r\n",
@@ -2426,6 +2482,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
                       "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
+                      "client_query_buffer_limit_disconnections:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
@@ -2559,6 +2616,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
+                static_cast<unsigned long long>(query_limit_disconnections.load(std::memory_order_relaxed)),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
@@ -2624,6 +2682,18 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        static constexpr const char* txn_fields[] = {
+            "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
+            "atomic_txn_waits", "atomic_txn_intents", "atomic_txn_intents_live",
+            "atomic_group_dooms", "atomic_group_retries",
+            "atomic_group_barriers", "atomic_txn_executed", "atomic_txn_place_waits",
+            "atomic_txn_writer_waits", "atomic_txn_writer_marks", "atomic_txn_blind_restarts",
+            "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds"
+        };
+        static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
+        for (unsigned i = 0; i < std::size(txn_fields); ++i)
+            appendf(body, "%s:%llu\r\n", txn_fields[i], static_cast<unsigned long long>(
+                g_server ? g_server->txn_counter(static_cast<TxnCounter>(i)) : 0));
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
@@ -3006,8 +3076,20 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& state,
+                      uint32_t owner_thread_id) {
+    const int64_t value = state.load(std::memory_order_acquire);
+    if (value >= 0) {
+        if (shard.id() != 0) return false;
+        const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
+        if (ticket) state.store(-static_cast<int64_t>(ticket), std::memory_order_release);
+        return false;
+    }
+    return server.debug_sleep_complete(static_cast<uint64_t>(-value));
+}
+
 DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
-                                     uint64_t& delay_ms) {
+                                     uint64_t& delay_us) {
     if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
         return DebugSleepResult::NotSleep;
     if (!debug_command_allowed(server, &client)) {
@@ -3015,25 +3097,18 @@ DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
         return DebugSleepResult::Handled;
     }
 
-    // Preserve DEBUG SLEEP's deliberately lenient Redis-compatible parse: malformed, negative,
-    // NaN and infinity all spell zero. Only a finite positive value can become a timer.
-    double seconds = 0;
-    if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
-    if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
-    const double cap_seconds = static_cast<double>(std::max<uint32_t>(1, server.timeout()));
-    if (seconds > cap_seconds) {
-        reply_err(op.sink(), "ERR value is not a valid float");
-        return DebugSleepResult::Handled;
-    }
-    if (seconds == 0.0) {
+    // Redis uses bare strtod (including a numeric prefix), truncates to microseconds,
+    // then calls nanosleep once. Nonfinite/out-of-range casts produce an invalid negative
+    // timespec on the oracle's platform; return its OK without invoking C++ cast UB.
+    const Terminated text(op.arg(2));
+    const double micros = std::strtod(text.get(), nullptr) * 1000000.0;
+    if (!std::isfinite(micros) || micros < 1.0 || micros >= 0x1p63) {
+        const timespec zero{};
+        ::nanosleep(&zero, nullptr); // DEBUG SLEEP 0 is a yield, not an indefinite timer
         reply_ok(op.sink());
         return DebugSleepResult::Handled;
     }
-
-    // IoLoop deadlines are milliseconds. Round away from zero so every positive request parks at
-    // least once; the timeout-derived cap keeps this conversion far below uint64_t overflow.
-    delay_ms = static_cast<uint64_t>(std::ceil(seconds * 1000.0));
-    if (!delay_ms) delay_ms = 1;
+    delay_us = static_cast<uint64_t>(micros);
     return DebugSleepResult::Deferred;
 }
 
@@ -3115,7 +3190,9 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
 
 Server* command_server() { return g_server; }
 uint64_t command_proto_max_bulk_len() {
-    return g_proto_max_bulk_len.load(std::memory_order_relaxed);
+    // CONFIG accepts Redis's signed-long range; string growth keeps the 32-bit bound.
+    return std::min(g_proto_max_bulk_len.load(std::memory_order_relaxed),
+                    kProtoMaxBulkLenRepresentable);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
 Client* command_local_client() { return g_client; }
@@ -3134,6 +3211,7 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
+    query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
     // that only their owner may write. INFO subtracts this baseline. The reads here are the same
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.

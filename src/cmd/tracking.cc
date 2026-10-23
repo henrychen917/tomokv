@@ -44,6 +44,11 @@ std::atomic<uint64_t> g_track_filter[kTrackFilterWords];
 // Number of registered BCAST prefixes across the process. Non-zero forces every changed key to
 // broadcast, because prefix membership cannot be tested by the key filter.
 std::atomic<uint64_t> g_track_bcast_prefixes{0};
+// Release certificates follow actual publication, never speculative fire points.
+// A separate line avoids false sharing with the membership filter and prefix counter.
+alignas(64) std::atomic<uint64_t> g_tracking_clock{1};
+void tracking_read_marker(Shard&, Op&) { std::abort(); }
+
 
 inline void track_filter_add(uint64_t hash) {
     const uint32_t word = static_cast<uint32_t>((hash >> 6) % kTrackFilterWords);
@@ -53,11 +58,6 @@ inline void track_filter_add(uint64_t hash) {
 inline bool track_filter_may_contain(uint64_t hash) {
     const uint32_t word = static_cast<uint32_t>((hash >> 6) % kTrackFilterWords);
     return (g_track_filter[word].load(std::memory_order_relaxed) >> (hash & 63)) & 1;
-}
-
-void track_filter_clear() {
-    for (uint32_t i = 0; i < kTrackFilterWords; i++)
-        g_track_filter[i].store(0, std::memory_order_relaxed);
 }
 
 size_t track_prefix_match_count(const std::vector<std::string>& prefixes, Slice key) {
@@ -78,6 +78,38 @@ bool track_prefix_overlaps(const std::string& a, const std::string& b) {
 }
 
 }  // namespace
+
+uint64_t tracking_clock_observe() {
+    return g_tracking_clock.load(std::memory_order_acquire);
+}
+
+uint64_t tracking_clock_commit() {
+    const uint64_t stamp = g_tracking_clock.fetch_add(1, std::memory_order_acq_rel) + 1;
+    if (!stamp) std::abort();  // never reuse a certificate
+    return stamp;
+}
+
+void tracking_observe_read(Shard& shard, Op& op) {
+    if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
+    auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(op.spec));
+    uint64_t stamp = tracking_clock_observe();
+    const uint64_t epoch = shard.server()->atomic_snapshot();
+    if (op.has_read_cut() && op.read_cut(epoch) < epoch) {
+        // A pinned snapshot can precede execution. Certify only a world its cut includes.
+        stamp = op.read_cut(epoch) >= read.dispatch_epoch ? read.dispatch_stamp : 0;
+    }
+    uint64_t& observed = read.observed[shard.id()];
+    observed = std::min(observed, stamp); // each shard slot has exactly one writer
+}
+
+void tracking_observe_local(Server& server, Op& op) {
+    (void)server;
+    if (!op.spec || op.spec->handler_notify != tracking_read_marker) return;
+    auto& read = *static_cast<IoLoop::TrackingRead*>(const_cast<CommandSpec*>(op.spec));
+    const uint64_t stamp = tracking_clock_observe();
+    for (uint32_t shard : read.shards)
+        read.observed[shard] = std::min(read.observed[shard], stamp);
+}
 
 // ---- registration --------------------------------------------------------------------------
 
@@ -128,18 +160,27 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     if (!first) return;
     (void)client;
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
-    auto& keys = state.tracking_reads[&op];
+    const uint64_t stamp = tracking_clock_observe();
+    auto read = std::make_unique<TrackingRead>(op.spec, stamp, srv_->atomic_snapshot(), srv_->nshards());
+    auto& keys = read->keys;
     for (uint32_t i = first; i < end; i += static_cast<uint32_t>(step)) {
         const Slice key = op.arg(i);
-        keys.emplace_back(key.p, key.n);
-        state.tracking_pending[keys.back()] = &op;
+        const std::string name(key.p, key.n);
+        if (std::find(keys.begin(), keys.end(), name) != keys.end()) continue;
+        keys.push_back(name);
+        read->shards.push_back(srv_->router().shard_of(FlatStore::hash_key(key)));
+        state.tracking_pending[keys.back()].reads.push_back(&op);
         // Publish interest before execution. A foreign write cannot pass the
         // monotonic filter just because this read has not retired yet.
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
+    read->handler_notify = tracking_read_marker;
+    // QUEUED stores the registry spec beyond this ROB slot's lifetime.
+    if (!multi_session_active(*client)) op.spec = read.get();
+    state.tracking_reads[&op] = std::move(read);
 }
 
-void IoLoop::tracking_register_key(uint64_t id, const std::string& name) {
+void IoLoop::tracking_register_key(uint64_t id, const std::string& name, uint64_t stamp) {
     const Slice key(name.data(), static_cast<uint32_t>(name.size()));
     if (srv_->cfg().tracking_table_max_keys &&
         climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&
@@ -156,7 +197,10 @@ void IoLoop::tracking_register_key(uint64_t id, const std::string& name) {
             const Slice vkey(victim->first.data(), static_cast<uint32_t>(victim->first.size()));
             for (uint64_t owner : victim->second) {
                 ClimonConn* target = climon_conn_find(owner);
-                if (target) tracking_deliver_frame(*target, owner, vkey, false);
+                if (target) {
+                    tracking_deliver_frame(*target, owner, vkey, false);
+                    target->tracking_enrolled.erase(victim->first);
+                }
             }
             srv_->climon_note_tracking_item_delta(-static_cast<int64_t>(victim->second.size()));
             srv_->climon_note_tracking_key_delta(-1);
@@ -169,21 +213,48 @@ void IoLoop::tracking_register_key(uint64_t id, const std::string& name) {
         owners.push_back(id);
         srv_->climon_note_tracking_item_delta(1);
     }
+    if (auto* state = climon_conn_find(id)) state->tracking_enrolled[name] = stamp;
     track_filter_add(FlatStore::hash_key(key));
 }
 
 void IoLoop::tracking_retire_read(Client& client, Op& op) {
     ClimonConn* state = climon_conn_find(client.id());
-    if (!state || !state->tracking_on) return;
+    if (!state) return;
     auto read = state->tracking_reads.find(&op);
     if (read == state->tracking_reads.end()) return;
-    for (const std::string& key : read->second) {
+    auto& receipt = *read->second;
+    for (size_t i = 0; i < receipt.keys.size(); ++i) {
+        const std::string& key = receipt.keys[i];
+        if (receipt.canceled) continue;
+        uint64_t stamp = receipt.observed[receipt.shards[i]];
+        if (stamp == UINT64_MAX) stamp = 0; // no successful observation certificate
         auto pending = state->tracking_pending.find(key);
-        if (pending != state->tracking_pending.end() && pending->second == &op)
-            state->tracking_pending.erase(pending);
-        tracking_register_key(client.id(), key);
+        if (pending == state->tracking_pending.end()) std::abort();
+        auto& obligation = pending->second;
+        if (stamp < obligation.invalidated) {
+            if (obligation.delivered < obligation.invalidated) {
+                tracking_deliver_frame(*state, client.id(),
+                    Slice(key.data(), static_cast<uint32_t>(key.size())), false);
+                obligation.delivered = obligation.invalidated;
+            }
+        } else if (state->tracking_on) {
+            tracking_register_key(client.id(), key, stamp);
+        }
+        auto member = std::find(obligation.reads.begin(), obligation.reads.end(), &op);
+        if (member == obligation.reads.end()) std::abort();
+        obligation.reads.erase(member);
+        if (obligation.reads.empty()) state->tracking_pending.erase(pending);
     }
+    op.spec = receipt.original;
     state->tracking_reads.erase(read);
+    if (state->tracking_draining && state->tracking_reads.empty()) {
+        state->tracking_draining = false;
+        if (!climon_local_trackers_) std::abort();
+        --climon_local_trackers_;
+        if (!climon_local_trackers_) srv_->climon_set_tracking_io(self_->id(), false);
+        srv_->climon_tracking_removed();
+        climon_refresh_armed();
+    }
 }
 
 // The cold suppressing drain's retire hook stays SPECIAL-only (zc_ptr state, as in the hot serve)
@@ -192,12 +263,15 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
 bool IoLoop::tracking_retire_plain(Client* client) {
     if (!climon_local_trackers_) return false;
     const ClimonConn* state = climon_conn_find(client->id());
-    return state && state->tracking_on;
+    return state && (state->tracking_on || state->tracking_draining);
 }
 
 void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
-    state.tracking_reads.clear();
+    // OFF/RESET can run with older reads still executing. Their spec copies live until
+    // retirement; cancellation is IO-owned and never consulted by the executor.
+    for (auto& read : state.tracking_reads) read.second->canceled = true;
     state.tracking_pending.clear();
+    state.tracking_enrolled.clear();
     for (auto it = climon_track_keys_.begin(); it != climon_track_keys_.end();) {
         auto& owners = it->second;
         auto found = std::find(owners.begin(), owners.end(), id);
@@ -219,9 +293,12 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
         state.bcast = state.optin = state.optout = state.noloop = false;
         state.caching_armed = false;
         state.redirect = 0;
-        if (climon_local_trackers_) climon_local_trackers_--;
-        if (!climon_local_trackers_) srv_->climon_set_tracking_io(self_->id(), false);
-        srv_->climon_tracking_removed();
+        state.tracking_draining = !state.tracking_reads.empty();
+        if (!state.tracking_draining) {
+            if (climon_local_trackers_) climon_local_trackers_--;
+            if (!climon_local_trackers_) srv_->climon_set_tracking_io(self_->id(), false);
+            srv_->climon_tracking_removed();
+        }
         if (state.client) command_client_set_tracking_view(state.client, false, -1);
     }
 }
@@ -366,52 +443,47 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
 }
 
 // One owner's local pass over a changed key.
-void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id) {
+void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t stamp) {
+    if (!stamp) std::abort(); // every transport must carry its publication certificate
     const std::string name(key.p, key.n);
-    // 1. BCAST subscribers and pending reads. A foreign write between execution
-    // and retirement invalidates the pending result too; the OOB frontier puts
-    // that frame after the read's reply. Earlier same-connection writes must
-    // leave younger pending reads intact. This uses the existing subscriber
-    // walk, with one hash lookup per tracking client, never a per-key argv scan.
     for (auto& entry : climon_conn_) {
         ClimonConn& state = entry.second;
         if (!state.tracking_on) continue;
-        if (!state.bcast) {
-            if (entry.first != writer_id && state.tracking_pending.find(name) !=
-                                           state.tracking_pending.end())
-                tracking_deliver_frame(state, entry.first, key, false);
+        const bool suppressed = state.noloop && entry.first == writer_id;
+        if (state.bcast) {
+            if (!suppressed)
+                for (size_t matches = track_prefix_match_count(state.prefixes, key); matches; --matches)
+                    tracking_deliver_frame(state, entry.first, key, false);
             continue;
         }
-        if (state.noloop && entry.first == writer_id) continue;
-        // Re-enabling BCAST without PREFIX adds the implicit empty prefix even when an
-        // explicit prefix is held. Redis delivers once per matching subscription in that
-        // case; coalescing the two matches would silently change its invalidation stream.
-        for (size_t matches = track_prefix_match_count(state.prefixes, key); matches; matches--)
-            tracking_deliver_frame(state, entry.first, key, false);
-    }
-    // 2. Per-key remembering. Redis forgets the key once it has reported it.
-    if (climon_track_keys_.empty()) return;
-    auto found = climon_track_keys_.find(name);
-    if (found == climon_track_keys_.end()) return;
-    std::vector<uint64_t> owners;
-    owners.swap(found->second);
-    srv_->climon_note_tracking_item_delta(-static_cast<int64_t>(owners.size()));
-    srv_->climon_note_tracking_key_delta(-1);
-    climon_track_keys_.erase(found);
-    for (uint64_t owner : owners) {
-        ClimonConn* state = climon_conn_find(owner);
-        if (!state || !state->tracking_on) continue;
-        // A pending read above already received this key's invalidation.
-        if (owner != writer_id && state->tracking_pending.find(name) !=
-                                 state->tracking_pending.end()) continue;
-        if (owner == writer_id) {
-            if (state->noloop) continue;
+        auto pending = state.tracking_pending.find(name);
+        if (pending != state.tracking_pending.end()) {
+            pending->second.invalidated = std::max(pending->second.invalidated, stamp);
+            if (suppressed) pending->second.delivered = std::max(pending->second.delivered, stamp);
         }
-        tracking_deliver_frame(*state, owner, key, false);
+        auto enrolled = state.tracking_enrolled.find(name);
+        if (enrolled == state.tracking_enrolled.end() || enrolled->second >= stamp) continue;
+        state.tracking_enrolled.erase(enrolled);
+        auto found = climon_track_keys_.find(name);
+        if (found != climon_track_keys_.end()) {
+            auto& owners = found->second;
+            auto owner = std::find(owners.begin(), owners.end(), entry.first);
+            if (owner != owners.end()) {
+                owners.erase(owner);
+                srv_->climon_note_tracking_item_delta(-1);
+            }
+            if (owners.empty()) {
+                srv_->climon_note_tracking_key_delta(-1);
+                climon_track_keys_.erase(found);
+            }
+        }
+        if (!suppressed) tracking_deliver_frame(state, entry.first, key, false);
+        if (pending != state.tracking_pending.end())
+            pending->second.delivered = std::max(pending->second.delivered, stamp);
     }
 }
 
-void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id) {
+void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp) {
     if (keys.empty()) return;
     const ClimonIoMask mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
@@ -434,7 +506,7 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
     local.caller_id = writer_id;
     local.items.reserve(interesting.size());
     for (const std::string& key : interesting)
-        local.items.push_back(PubSubEventItem{0, false, 0, key});
+        local.items.push_back(PubSubEventItem{0, false, stamp, key});
     if (mask.contains(self_->id())) tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
@@ -450,7 +522,8 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
 }
 
 void IoLoop::tracking_broadcast_flush() {
-    track_filter_clear();
+    // Membership is monotonic for the process lifetime. Clearing here could erase
+    // a remote registration that races the asynchronous flush delivery.
     const ClimonIoMask mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
     PubSubEvent local;
@@ -474,7 +547,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
             for (const PubSubEventItem& item : event.items)
                 tracking_invalidate_local(
                     Slice(item.value.data(), static_cast<uint32_t>(item.value.size())),
-                    event.caller_id);
+                    event.caller_id, item.count);
             tracking_forward_stale(event);
             break;
         case PubSubEventKind::TrackingFlush: {
@@ -482,6 +555,9 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 ClimonConn& state = entry.second;
                 if (!state.tracking_on) continue;
                 tracking_deliver_frame(state, entry.first, Slice(), true);
+                state.tracking_enrolled.clear();
+                for (auto& read : state.tracking_reads) read.second->canceled = true;
+                state.tracking_pending.clear();
             }
             for (auto& entry : climon_track_keys_) {
                 srv_->climon_note_tracking_item_delta(
@@ -769,9 +845,12 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     ClimonConn& state = climon_conn_get(client);
     if (!state.tracking_on) {
         state.tracking_on = true;
-        climon_local_trackers_++;
-        srv_->climon_set_tracking_io(self_->id(), true);
-        srv_->climon_tracking_added();
+        if (!state.tracking_draining) {
+            climon_local_trackers_++;
+            srv_->climon_set_tracking_io(self_->id(), true);
+            srv_->climon_tracking_added();
+        }
+        state.tracking_draining = false;
     }
     // Redis REPLACES the per-call modifiers rather than accumulating them: a plain
     // `CLIENT TRACKING on` after `on OPTIN`/`on NOLOOP` clears optin/noloop (differ-pinned).

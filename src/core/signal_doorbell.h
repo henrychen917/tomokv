@@ -1,10 +1,12 @@
-// Process-wide sticky shutdown doorbell.
+// Process-wide shutdown doorbell: a save request wake, then a sticky terminal wake.
 //
 // eventfd accepts only an eight-byte counter write.  A signal contributes one logical event by
-// writing uint64_t{1}; workers deliberately never drain the shared fd, so readiness remains true
-// until every independently registered ring/epoll waiter has observed shutdown.
+// writing uint64_t{1}. Only the elected save owner consumes a nonterminal request before doing
+// the save, including a publisher's late write after a failed request ended. A separate terminal
+// latch restores any stop edge caught by that drain, so all workers still observe shutdown.
 #pragma once
 
+#include <atomic>
 #include <cerrno>
 #include <climits>
 #include <csignal>
@@ -16,6 +18,8 @@
 namespace tomo {
 
 inline volatile sig_atomic_t g_signal_doorbell_fd = -1;
+inline std::atomic<bool> g_signal_doorbell_terminal{false};
+static_assert(std::atomic<bool>::is_always_lock_free);
 
 class SignalDoorbell {
 public:
@@ -33,6 +37,7 @@ public:
         if (fd_ >= 0) return false;
         fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
         if (fd_ < 0) return false;
+        g_signal_doorbell_terminal.store(false, std::memory_order_relaxed);
         g_signal_doorbell_fd = fd_;
         return true;
     }
@@ -47,7 +52,7 @@ inline int signal_doorbell_fd() {
     return static_cast<int>(g_signal_doorbell_fd);
 }
 
-inline void signal_doorbell_notify() {
+inline void signal_doorbell_request_notify() {
     const int saved_errno = errno;
     const int fd = signal_doorbell_fd();
     if (fd >= 0) {
@@ -60,6 +65,22 @@ inline void signal_doorbell_notify() {
         // terminal notification. Other failures cannot be reported safely from a signal handler.
     }
     errno = saved_errno;
+}
+
+inline void signal_doorbell_notify() {
+    g_signal_doorbell_terminal.store(true, std::memory_order_release);
+    signal_doorbell_request_notify();
+}
+
+inline void signal_doorbell_consume_request() {
+    const int fd = signal_doorbell_fd();
+    if (fd < 0) return;
+    uint64_t count;
+    while (::read(fd, &count, sizeof(count)) == static_cast<ssize_t>(sizeof(count))) {}
+    // A terminal publisher before/during the drain is restored. A publisher after this load
+    // supplies its own write, closing the other side of the race without consuming a stop.
+    if (g_signal_doorbell_terminal.load(std::memory_order_acquire))
+        signal_doorbell_request_notify();
 }
 
 // Wait without consuming the sticky event. Every worker ring and the main controller therefore

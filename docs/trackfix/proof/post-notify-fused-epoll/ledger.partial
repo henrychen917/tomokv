@@ -1,0 +1,9 @@
+PARTIAL	0	GATE_ONLY_JOBS=notify; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	0	feature battery boot + notify CLI knob
+FAIL	0.030000	MULTI feature battery
+FAIL	0.030000	blocking feature battery
+FAIL	0.030000	pubsub feature battery
+FAIL	0.030000	Lua feature battery
+FAIL	0.030000	keyspace notification battery (atomic 0/1)
+FAIL	0.020000	feature battery shutdown invariants

@@ -1,0 +1,42 @@
+{
+  "index": 73,
+  "name": "original-post/t02_exec_directed-1s-a0",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "original-post/t02_exec_directed-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t02_exec_directed.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-wake/post-armed-server",
+      "--cores",
+      "64-71",
+      "--port",
+      "27801",
+      "--mode",
+      "1s",
+      "--atomic",
+      "0",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-wake-final4-proof/original-post/t02_exec_directed-1s-a0",
+      "0",
+      "1s",
+      "10"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792677231.411231,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "a31fe747f92e04f9e73cfe370fa8e567c8b0d4daf4a7d92563e2fdd5c05e8f9a",
+  "returncode": 0,
+  "finished": 1792677234.8361938
+}

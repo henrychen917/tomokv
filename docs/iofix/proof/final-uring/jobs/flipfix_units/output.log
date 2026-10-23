@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.12s; correctness-plan-fallback; FLIP planned-connection close lifetime (ASAN+TSAN)
+  FLIP planned-connection close lifetime (ASAN+TSAN)   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; FLIP fingerprint publication (ASAN+TSAN)
+  FLIP fingerprint publication (ASAN+TSAN)             ok

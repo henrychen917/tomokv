@@ -1,0 +1,9 @@
+FAIL: late request wakes drain without consuming terminal shutdown
+ok: atomic fingerprint boot=0, three runtime toggles with active work
+ok: atomic fingerprint boot=1, three runtime toggles with active work
+signal wake 2s uring tls=0: nonwriter=1 late-drained=0 terminal=1
+signal wake 2s uring tls=1: nonwriter=1 late-drained=0 terminal=1
+signal wake 2s epoll tls=0: nonwriter=1 late-drained=0 terminal=1
+signal wake 1s uring tls=0: nonwriter=1 late-drained=0 terminal=1
+signal wake 1s uring tls=1: nonwriter=1 late-drained=0 terminal=1
+signal wake 1s epoll tls=0: nonwriter=1 late-drained=0 terminal=1

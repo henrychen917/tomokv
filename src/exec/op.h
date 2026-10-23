@@ -21,6 +21,7 @@
 #include <cstring>
 #include <string_view>
 #include "../base/slice.h"
+#include "../cmd/txnorder_debug.h"
 
 namespace tomo {
 

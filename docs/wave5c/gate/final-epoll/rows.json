@@ -1,0 +1,332 @@
+[
+  {
+    "job": "aof_frame",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "AOF control frame never inside a large record (atomic 0)"
+  },
+  {
+    "job": "aof_frame",
+    "verdict": "ok",
+    "elapsed": "0.320000",
+    "label": "AOF control frame never inside a large record (atomic 1)"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "5.540000",
+    "label": "AOF commit order single"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "4.260000",
+    "label": "AOF commit order crossing"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "2.720000",
+    "label": "AOF commit order rewrite"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "shutdown policy + signal handoff serverless"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.600000",
+    "label": "shutdown persistence (1s, command)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.210000",
+    "label": "shutdown persistence (1s, sigterm)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.210000",
+    "label": "shutdown persistence (1s, sigint)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.600000",
+    "label": "shutdown persistence (2s, command)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.210000",
+    "label": "shutdown persistence (2s, sigterm)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.220000",
+    "label": "shutdown persistence (2s, sigint)"
+  },
+  {
+    "job": "differ-armed-0",
+    "verdict": "ok",
+    "elapsed": "527.940000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+  },
+  {
+    "job": "differ-armed-1",
+    "verdict": "ok",
+    "elapsed": "530.100000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+  },
+  {
+    "job": "differ-equivalence",
+    "verdict": "ok",
+    "elapsed": "22.040000",
+    "label": "mode equivalence part (all execution modes and knobs)"
+  },
+  {
+    "job": "differ-split-0",
+    "verdict": "ok",
+    "elapsed": "532.440000",
+    "label": "Redis 7.4 differential part (split, atomic 0)"
+  },
+  {
+    "job": "differ-split-1",
+    "verdict": "ok",
+    "elapsed": "534.840000",
+    "label": "Redis 7.4 differential part (split, atomic 1)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.140000",
+    "label": "FLIP state battery"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.040000",
+    "label": "FLIP under verified load"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.440000",
+    "label": "FLIP TTL + expiry events"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "4.430000",
+    "label": "partial-frame conn parks (no io spin)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.240000",
+    "label": "FLIP close during FLIP (uring)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.170000",
+    "label": "FLIP close during FLIP (epoll)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.200000",
+    "label": "FLIP signal stop during FLIP + second SIGINT"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.580000",
+    "label": "perfio stale epoll registration (epoll-flip)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "17.240000",
+    "label": "perfio stale epoll registration (epoll-lb)"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "6.100000",
+    "label": "FLIP applies under saturated load"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "flip battery shutdown invariants"
+  },
+  {
+    "job": "flipctl",
+    "verdict": "ok",
+    "elapsed": "131.890000",
+    "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+  },
+  {
+    "job": "netio-1s",
+    "verdict": "ok",
+    "elapsed": "2.930000",
+    "label": "epoll directed correctness (1s)"
+  },
+  {
+    "job": "netio-2s",
+    "verdict": "ok",
+    "elapsed": "2.920000",
+    "label": "epoll directed correctness (2s)"
+  },
+  {
+    "job": "notify_aof",
+    "verdict": "ok",
+    "elapsed": "11.950000",
+    "label": "local script notification AOF vs Redis 7.4"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "replyoff",
+    "verdict": "ok",
+    "elapsed": "1.230000",
+    "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+  },
+  {
+    "job": "replyoff",
+    "verdict": "ok",
+    "elapsed": "1.240000",
+    "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "1.070000",
+    "label": "TLS ephemeral CA/server/client certificates"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "NET2 serverless RX policy and KeyUpdate controls"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject TLS listener without certificate"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject invalid tls-protocols"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject invalid tls-ciphers"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "TLS client-auth yes matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "TLS yes shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "TLS client-auth optional matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "kTLS TLS 1.2 engaged live (default boot)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "TLS 1.3 KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "1.000000",
+    "label": "TLS 1.3 userspace KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS optional shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "15.050000",
+    "label": "TLS pipeline/torn-record/coexistence battery"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS application send path error-free"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "TLS connection slots all freed (N/N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "TLS zc borrow gates fired (suppressed=N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "5.790000",
+    "label": "TLS silent-peer close after reply (ntfix N2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "10.610000",
+    "label": "RESP pre-AUTH limit errors (ntfix N3)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "15.040000",
+    "label": "RESP query-buffer frontier (ntfix N4)"
+  }
+]

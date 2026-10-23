@@ -1,0 +1,11 @@
+PARTIAL	0	GATE_ONLY_JOBS=compat3 netfix_query_stats netfix_config netfix_tls; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	1.820000	netfix NT4.6 query-limit INFO parity
+ok	2.170000	netfix NT4.8 network CONFIG error parity
+ok	14.320000	netfix NT4.7 TLS default cipher parity
+ok	36.900000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	35.030000	compat3 CC4.13 pending vs Redis 7.4
+ok	35.590000	compat3 CC4.14 history vs Redis 7.4
+ok	33.660000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.730000	compat3 CC4.5 glob vs Redis 7.4
+FAIL	33.910000	compat3 CC4.17 flags vs Redis 7.4

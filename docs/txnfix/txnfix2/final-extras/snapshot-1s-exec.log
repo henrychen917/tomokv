@@ -1,0 +1,17 @@
+atomic_groups arm: writes=exec saves=3 [b'atomic', b'0']
+  ok   purpose boot exposes atomic knob
+  ok   EXEC arm runs at the DEFAULT atomic 0 (EXEC force-admits a group anyway)
+  ok   every group spans >1 shard (min=5 avg=6.63)
+    cut#0 0.007s keys=800 groups=100 torn=0 
+    cut#1 0.006s keys=800 groups=100 torn=0 
+    cut#2 0.007s keys=800 groups=100 torn=0 
+  storm: writes=93440 live_mget_reads=1307 live_torn_reads=0 errors=0 
+  counters: atomic_groups+=93440 cuts_armed+=3 cuts_waited+=3 groups_drained=11
+  ok   storm ran clean
+  ok   storm actually loaded the server (93440 group writes)
+  ok   the atomic group lane fired (93440 groups admitted)
+  ok   live reader actually read (1307 MGETs)
+  ok   CONTROL: live MGET never saw a torn group (0 torn)
+  ok   every cut armed the atomic barrier (3 of 3)
+  ok   NO half-applied group in any snapshot file (0 torn)
+ATOMIC_GROUP_CUT PASS

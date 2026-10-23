@@ -152,6 +152,24 @@ bool install_tx_key(int fd, uint16_t cipher, const EVP_MD* md,
 
 }  // namespace
 
+// Preserve the complete OpenSSL/system default set, but put AES-GCM first. Rebuilding
+// the list from this context also preserves distribution-level cipher policy; an explicit
+// Redis cipher knob still replaces the list verbatim.
+static std::string default_cipher_order(SSL_CTX* context, bool tls13) {
+    std::string aes, rest;
+    STACK_OF(SSL_CIPHER)* ciphers = SSL_CTX_get_ciphers(context);
+    for (int i = 0; i < sk_SSL_CIPHER_num(ciphers); ++i) {
+        const SSL_CIPHER* cipher = sk_SSL_CIPHER_value(ciphers, i);
+        if ((std::strcmp(SSL_CIPHER_get_version(cipher), "TLSv1.3") == 0) != tls13) continue;
+        const int nid = SSL_CIPHER_get_cipher_nid(cipher);
+        std::string& list = nid == NID_aes_128_gcm || nid == NID_aes_256_gcm ? aes : rest;
+        if (!list.empty()) list += ':';
+        list += SSL_CIPHER_get_name(cipher);
+    }
+    if (!aes.empty() && !rest.empty()) aes += ':';
+    return aes + rest;
+}
+
 uint64_t tls_ktls_rx_declined_13() { return rx_declined_13.load(std::memory_order_relaxed); }
 uint64_t tls_ktls_tx_rekeys() { return tx_rekeys.load(std::memory_order_relaxed); }
 
@@ -169,23 +187,25 @@ std::unique_ptr<TlsContext> TlsContext::create(const Config& cfg, std::string& e
                              SSL_OP_ENABLE_KTLS);
     if (cfg.tls_prefer_server_ciphers)
         SSL_CTX_set_options(raw, SSL_OP_CIPHER_SERVER_PREFERENCE);
-    SSL_CTX_set_session_cache_mode(raw, SSL_SESS_CACHE_OFF);
+    // Redis 7.4 defaults: enabled, 20480 sessions, 300 seconds.
+    SSL_CTX_set_session_cache_mode(raw, SSL_SESS_CACHE_SERVER);
+    SSL_CTX_sess_set_cache_size(raw, 20480);
+    SSL_CTX_set_timeout(raw, 300);
+    SSL_CTX_set_session_id_context(raw, reinterpret_cast<const unsigned char*>("redis"), 5);
     SSL_CTX_set_dh_auto(raw, 1);
     SSL_CTX_set_keylog_callback(raw, TlsConn::keylog_callback);
 
     if (!configure_protocols(raw, cfg.tls_protocols, error)) return nullptr;
-    // Prefer the kernel/AES-NI-fast choices by default. Explicit Redis cipher knobs replace these
-    // defaults exactly; they are also the compatibility escape hatch for other cipher suites.
+    const std::string defaults12 = default_cipher_order(raw, false);
+    const std::string defaults13 = default_cipher_order(raw, true);
     const char* tls12_ciphers = cfg.tls_ciphers && *cfg.tls_ciphers
-        ? cfg.tls_ciphers
-        : "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256";
+        ? cfg.tls_ciphers : defaults12.c_str();
     if (!SSL_CTX_set_cipher_list(raw, tls12_ciphers)) {
         error = openssl_error("Failed to configure tls-ciphers");
         return nullptr;
     }
     const char* tls13_ciphers = cfg.tls_ciphersuites && *cfg.tls_ciphersuites
-        ? cfg.tls_ciphersuites
-        : "TLS_AES_128_GCM_SHA256";
+        ? cfg.tls_ciphersuites : defaults13.c_str();
     if (!SSL_CTX_set_ciphersuites(raw, tls13_ciphers)) {
         error = openssl_error("Failed to configure tls-ciphersuites");
         return nullptr;

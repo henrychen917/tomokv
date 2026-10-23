@@ -1,0 +1,32 @@
+  row budget: 900s; median=0s; correctness-plan-fallback; txnorder2 writer episode R1
+  txnorder2 writer episode R1                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R2
+  txnorder2 writer episode R2                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R3
+  txnorder2 writer episode R3                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R4
+  txnorder2 writer episode R4                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R5
+  txnorder2 writer episode R5                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R6
+  txnorder2 writer episode R6                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R7
+  txnorder2 writer episode R7                          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder2 writer episode R8
+  txnorder2 writer episode R8                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R9
+  txnorder2 writer episode R9                          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R10
+  txnorder2 writer episode R10                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R11
+  txnorder2 writer episode R11                         ok
+  row budget: 900s; median=1.14s; correctness-plan-fallback; txnorder2 writer episode R12
+  txnorder2 writer episode R12                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 direct RENAME owner join
+  txnorder2 direct RENAME owner join                   ok
+  row budget: 900s; median=10.93s; correctness-plan-fallback; txnorder2 WATCH serve
+  txnorder2 WATCH serve                                ok
+  row budget: 900s; median=14.43s; correctness-plan-fallback; txnorder2 WATCH flush
+  txnorder2 WATCH flush                                ok
+  row budget: 900s; median=13.64s; correctness-plan-fallback; txnorder2 WATCH readonly
+  txnorder2 WATCH readonly                             ok

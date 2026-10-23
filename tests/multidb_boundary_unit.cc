@@ -113,8 +113,12 @@ struct CoreConcurrencyTest {
                 ++windows;
             }
         }
-        // Role conversion still rejects incoming descriptors, as do stale accept
-        // completions. A broad removal of the admission fence must fail here.
+        // FLIP now retains successful accepts, including old-generation CQEs.
+        // A frozen owner must still defer Client allocation until the admission
+        // epoch opens; Planning/Idle have no frozen client set and admit directly.
+        std::string listener_error;
+        require(fliplisten_reserve(server, listener_error), "reserve real FLIP descriptor state");
+        unsigned retained = 0;
         for (auto stage : {FlipStage::Planning, FlipStage::IoDrain, FlipStage::IoPrepare,
                            FlipStage::ExDrain, FlipStage::ClientPrepare, FlipStage::ClientCommit,
                            FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
@@ -122,17 +126,42 @@ struct CoreConcurrencyTest {
             server.flip_stage_.store(stage, std::memory_order_release);
             for (bool direct : {false, true}) {
                 if (stage == FlipStage::Idle && direct) continue;
+                const bool frozen = stage != FlipStage::Planning && stage != FlipStage::Idle;
+                if (frozen) server.flip_epoch_.fetch_add(1, std::memory_order_acq_rel);
                 int sockets[2];
                 require(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC,
                                      0, sockets) == 0, "role fence socketpair");
                 accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
                 char byte;
-                require(::recv(sockets[1], &byte, 1, MSG_DONTWAIT) == 0 && server.live_clients() == 0,
-                        "role-transition/stale accept still closes without admission");
+                require(::recv(sockets[1], &byte, 1, MSG_DONTWAIT) == -1 &&
+                            (errno == EAGAIN || errno == EWOULDBLOCK),
+                        "role-transition/stale accept preserves the descriptor");
+                if (frozen) {
+                    require(server.live_clients() == 0 && io.self_->clients().empty(),
+                            "frozen handover retains fd without allocating a Client");
+                    require(!io.fliplisten_finish(true), "new admission epoch opens before resume");
+                    io.fliplisten_resume();
+                    ++retained;
+                }
+                require(server.live_clients() == 1 && io.self_->clients().size() == 1,
+                        "open admission installs retained or immediate fd exactly once");
+                if (frozen) {
+                    io.fliplisten_resume();
+                    require(server.live_clients() == 1 && io.self_->clients().size() == 1,
+                            "second resume cannot admit the same retained fd twice");
+                }
+                server.flip_stage_.store(FlipStage::Idle, std::memory_order_release);
+                io.close_client(io.self_->clients().front());
+                io.reap_dead(); io.reap_dead();
+                require(::recv(sockets[1], &byte, 1, MSG_DONTWAIT) == 0 &&
+                            server.live_clients() == 0 && io.self_->clients().empty(),
+                        "accepted descriptor closes exactly once at ordinary teardown");
                 ::close(sockets[1]);
+                server.flip_stage_.store(stage, std::memory_order_release);
             }
         }
         require(windows == 6, "every database-stage/accept-entry window armed");
+        require(retained == 20, "every frozen stage and both accept entries retained an fd");
         command_bind_server(nullptr);
         std::printf("PASS multidb accept boundary %s read-local=%u atomic=1: %u forced windows\n",
                     Fused ? "1s" : "2s", ReadLocal, windows);

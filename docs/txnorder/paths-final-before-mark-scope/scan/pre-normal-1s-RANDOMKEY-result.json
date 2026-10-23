@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "1s",
+  "values": "RANDOMKEY",
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/scan/pre-normal-1s-RANDOMKEY.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/scan/pre-normal/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "4d37198d097af1f56b0cf2aeee84eee0ff17901e9feb063c1217886af4abc383",
+  "counts": {
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 192,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 85771,
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 56,
+    "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 48,
+    "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 2,
+    "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 44
+  }
+}

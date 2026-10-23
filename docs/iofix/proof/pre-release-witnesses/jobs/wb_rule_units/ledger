@@ -1,0 +1,4 @@
+ok	0.100000	writeback c12 policy witnesses + negative controls
+FAIL	4.550000	writeback c12 phase witnesses + negative controls
+ok	1.790000	writeback c12 stages witnesses + negative controls
+FAIL	4.960000	writeback c12 split-phase witnesses + negative controls

@@ -1,0 +1,51 @@
+ok	0.000000	release build (+footprint locks)
+ok	526.590000	Redis 7.4 differential part (split, atomic 0)
+ok	528.010000	Redis 7.4 differential part (split, atomic 1)
+ok	522.290000	Redis 7.4 differential part (armed fused, atomic 0)
+ok	524.030000	Redis 7.4 differential part (armed fused, atomic 1)
+ok	21.970000	mode equivalence part (all execution modes and knobs)
+ok	129.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	9.160000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.480000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.470000	execatomic battery (atomic 0)
+ok	11.860000	execiso battery (atomic 0)
+ok	0.440000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.630000	multirace battery (atomic 0)
+ok	30.510000	session_monotonic battery (atomic 0)
+ok	0.300000	xacct battery (atomic 0)
+ok	0.270000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	6.150000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.040000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.860000	execiso battery (atomic 1)
+ok	0.440000	execfix battery (atomic 1)
+ok	0.100000	multires battery (atomic 1)
+ok	0.620000	multirace battery (atomic 1)
+ok	30.510000	session_monotonic battery (atomic 1)
+ok	0.300000	xacct battery (atomic 1)
+ok	0.270000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	5.860000	writeback policies 0/1: 22 standard fixtures
+ok	0.020000	reject bad protected-mode
+ok	0.020000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.040000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	2.530000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	2.070000	MULTI feature battery
+ok	1.560000	blocking feature battery
+ok	0.880000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	22.650000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	6.060000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants

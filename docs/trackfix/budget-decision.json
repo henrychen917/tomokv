@@ -1,0 +1,10 @@
+{
+  "existing": {
+    "src": 128705,
+    "db0": 127713
+  },
+  "decision": "Retain baseline budgets: all 12 selected linked GET/SET/MGET/MSET groups match PRE. No further budget adjustment is needed for the final source.",
+  "earlier_source_trials": "budget-trials-CC4-v1.json",
+  "earlier_source_decision": "budget-decision-CC4-v1.json",
+  "final_sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+}

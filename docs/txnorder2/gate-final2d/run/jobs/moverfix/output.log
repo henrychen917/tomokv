@@ -1,0 +1,16 @@
+  row budget: 900s; median=2.59s; correctness-plan-fallback; moverfix conservation (1s, uring, databases 1, atomic 0)
+  moverfix conservation (1s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=2.52s; correctness-plan-fallback; moverfix conservation (1s, uring, databases 16, atomic 0)
+  moverfix conservation (1s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=2.73s; correctness-plan-fallback; moverfix conservation (1s, epoll, databases 1, atomic 0)
+  moverfix conservation (1s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=2.69s; correctness-plan-fallback; moverfix conservation (1s, epoll, databases 16, atomic 0)
+  moverfix conservation (1s, epoll, databases 16, atomic 0) ok
+  row budget: 900s; median=2.84s; correctness-plan-fallback; moverfix conservation (2s, uring, databases 1, atomic 0)
+  moverfix conservation (2s, uring, databases 1, atomic 0) ok
+  row budget: 900s; median=2.56s; correctness-plan-fallback; moverfix conservation (2s, uring, databases 16, atomic 0)
+  moverfix conservation (2s, uring, databases 16, atomic 0) ok
+  row budget: 900s; median=2.5s; correctness-plan-fallback; moverfix conservation (2s, epoll, databases 1, atomic 0)
+  moverfix conservation (2s, epoll, databases 1, atomic 0) ok
+  row budget: 900s; median=2.53s; correctness-plan-fallback; moverfix conservation (2s, epoll, databases 16, atomic 0)
+  moverfix conservation (2s, epoll, databases 16, atomic 0) ok

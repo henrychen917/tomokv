@@ -1,0 +1,36 @@
+START final-native-checks a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-native-checks", "files": 243, "bytes": 7686118}
+DONE final-native-checks exit 0
+START final-epoll a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-epoll", "files": 2193, "bytes": 3439638}
+DONE final-epoll exit 0
+START final-forced-epoll a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-forced-epoll", "files": 141, "bytes": 1201927}
+DONE final-forced-epoll exit 0
+START final-fused-uring a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-fused-uring", "files": 131, "bytes": 968306}
+DONE final-fused-uring exit 0
+START final-fused-epoll a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-fused-epoll", "files": 29, "bytes": 245784}
+DONE final-fused-epoll exit 0
+START pad-a-witnesses 409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pad-a-witnesses", "files": 156, "bytes": 667145}
+DONE pad-a-witnesses exit 1
+START pad-a-wb-deferred d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pad-a-wb-deferred", "files": 38, "bytes": 208589}
+DONE pad-a-wb-deferred exit 1
+START pre-late-wake 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pre-late-wake", "files": 35, "bytes": 29665}
+DONE pre-late-wake exit 1
+START pre-existing-epoll 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pre-existing-epoll", "files": 48, "bytes": 517568}
+DONE pre-existing-epoll exit 1
+START pre-notify-uring 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pre-notify-uring", "files": 19, "bytes": 22710}
+DONE pre-notify-uring exit 0
+START pre-fused-uring 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pre-fused-uring", "files": 29, "bytes": 192065}
+DONE pre-fused-uring exit 1
+START pre-fused-epoll 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/pre-fused-epoll", "files": 29, "bytes": 192028}
+DONE pre-fused-epoll exit 1

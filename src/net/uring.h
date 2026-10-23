@@ -164,6 +164,18 @@ public:
     int wake_fd() const { return wake_fd_; }
     int shutdown_fd() const { return shutdown_fd_; }
 
+    // A request may fail its save and leave the server live. Re-arm from the owning
+    // loop's request completion; a terminal completion needs no new subscription.
+    // A one-shot poll is already complete at terminal wake, so queue teardown does
+    // not leave a multishot subscription retaining ring/socket references at exit.
+    __attribute__((noinline)) void rearm_shutdown_poll() {
+        if (!inited_ || shutdown_fd_ < 0) return;
+        if (io_uring_sqe* poll = sqe()) {
+            io_uring_prep_poll_add(poll, shutdown_fd_, POLLIN);
+            poll->user_data = ur_tag(UrKind::Shutdown, nullptr);
+        }
+    }
+
     // Drain the doorbell counter. Level-triggered registration plus this read is deliberate: an
     // edge-triggered eventfd that we forgot to read would go quiet forever, and the price of
     // getting it wrong is a permanently parked io thread.

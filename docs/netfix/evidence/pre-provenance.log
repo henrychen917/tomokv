@@ -1,0 +1,9 @@
+# 2026-10-23 01:54:54 PRE provenance: build/tomokv-pre-netfix (in-tree build at a7dfb9d23, 00:21) vs clean 'git archive a7dfb9d23' rebuild (build/netfix-pre-src, make -j16 all, taskset 64-79)
+dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb  build/tomokv-pre-netfix
+6c483fc11e89311e98c45e3c77c88d12252bab4a8b92af1532c8a0eedf689b80  build/netfix-pre-src/build/tomokv
+DIFF .debug_info (False, 0, 108299976, 'd99ea50df6600bc0') (False, 0, 108299976, '412d6f8f356ce7a3')
+DIFF .debug_line (False, 0, 18888128, '62b33598055ef1d4') (False, 0, 18888128, '8f7a0b3e05e9a885')
+DIFF .debug_line_str (False, 0, 8689, 'ed169d63512f9e60') (False, 0, 8706, '61f59ad84d4f857f')
+DIFF .note.gnu.build-id (True, 928, 36, 'c6ecb881a0b9e651') (True, 928, 36, '7cbd82291bc2489c')
+identical sections: 42 different: 4
+Only DWARF path strings and the build-id differ; every loadable section is byte-identical.

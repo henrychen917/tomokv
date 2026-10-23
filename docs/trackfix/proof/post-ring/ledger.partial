@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=ring_unit; NOT A RECEIPT
+ok	1.140000	read-local write ring + arming transient unit
+ok	0.250000	climon 128-owner delivery mask
+ok	0.930000	read-local MGET fence symmetry unit

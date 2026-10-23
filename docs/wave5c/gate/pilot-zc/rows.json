@@ -1,0 +1,38 @@
+[
+  {
+    "job": "asan",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "ASAN build"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "1.380000",
+    "label": "zc borrow battery"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "zc fired (zc_sends=N)"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "1.400000",
+    "label": "zc borrow battery under ASAN"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "zc ASAN clean"
+  }
+]

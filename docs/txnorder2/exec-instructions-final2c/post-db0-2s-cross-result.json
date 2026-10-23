@@ -1,0 +1,23 @@
+{
+  "arm": "post",
+  "namespace": "db0",
+  "mode": "2s",
+  "shape": "cross",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-nx",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions-final2c/post-db0-2s-cross.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2c/exec/post-db0/probe"
+  ],
+  "sha256": "6b82545f1d0dda5054d26fd42c48f490c314988bf4278fb51547d86b4cfc0a47",
+  "returncode": 0,
+  "fixture_completed": true,
+  "steps_per_exec": 29948,
+  "excluded_vdso_calls": 1,
+  "rep_steps": 32
+}

@@ -1,0 +1,21 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "mode": "2s",
+  "values": "DBSIZE",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0-2s-DBSIZE.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-db0/probe"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "86a3b02ae4f1546f979681c8d7a0d19904b5377738c8782d3118a812049bd0a9",
+  "counts": {
+    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 53
+  }
+}

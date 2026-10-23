@@ -1,0 +1,16 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "environment": {
+    "GATE_TEST_PORT": "19898"
+  },
+  "exit_code": 0,
+  "tests": 67,
+  "seconds": 97.034,
+  "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+}

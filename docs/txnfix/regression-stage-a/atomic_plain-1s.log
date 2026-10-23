@@ -1,0 +1,4 @@
+usage: atomic_plain.py [-h] [--atomic {0,1}] [--case {movers,blocking}]
+                       [--self-test]
+                       [host] [port]
+atomic_plain.py: error: HOST PORT --atomic 0|1 are required for live checks

@@ -303,6 +303,7 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
 class ThreadCtx {
+    friend struct FlipListenerState;
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);
@@ -384,6 +385,11 @@ public:
     }
     void bind_client_capacity_hook(ClientCapacityPrepareFn prepare) {
         client_capacity_prepare_ = prepare;
+    }
+    // Request-side reservation uses the already-bound IO hook. Serverless role
+    // models have no network loop; a real worker always binds this before Ready.
+    bool reserve_listener_handover() {
+        return !io_role_prepare_ || io_role_prepare_(io_role_context_);
     }
     bool prepare_io_role() {
         return io_role_prepare_ && io_role_prepare_(io_role_context_);
@@ -821,7 +827,10 @@ public:
         uint64_t d = 0;
         uint64_t inbox_age_us = 0;
         bool inbox_age_observed = false;
-        const bool task_consumer = role() == Role::Ex;
+        // A fused IO also consumes tasks. A parked transaction can keep it
+        // busy forever, so its idle-only unmasked drain is not a liveness
+        // fallback. Include it in the existing periodic summary repair.
+        const bool task_consumer = role() == Role::Ex || fused_executor_context_;
         const bool sample_inbox_age = sig_.age_sample_rate && task_consumer;
         for (uint32_t i = 0; i < nchan_; i++) {
             const uint32_t task_depth = task_in_->sample_depth(i);

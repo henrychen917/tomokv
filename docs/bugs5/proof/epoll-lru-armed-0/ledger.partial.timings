@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+ok	54.910000	eviction lruclock battery (fused+armed, atomic 0)

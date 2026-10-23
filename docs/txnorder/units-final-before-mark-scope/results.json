@@ -1,0 +1,341 @@
+{
+  "sha256": "01d710254c1da88f072935ae03b4a098c9f59e71bae83d8a137afab10c8975c8",
+  "rows": [
+    {
+      "case": "txnorder_f1",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f1"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f1\n"
+    },
+    {
+      "case": "txnorder_f2",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f2"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f2\n"
+    },
+    {
+      "case": "txnorder_f4",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f4"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f4\n"
+    },
+    {
+      "case": "txnorder_f5",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f5"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f5\n"
+    },
+    {
+      "case": "txnorder_f6",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f6"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f6\n"
+    },
+    {
+      "case": "txnorder_f8",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_f8"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_f8\n"
+    },
+    {
+      "case": "txnorder_claims",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_claims"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_claims\n"
+    },
+    {
+      "case": "txnorder_placement",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_placement"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_placement\n"
+    },
+    {
+      "case": "txnorder_readonly",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txnorder_readonly"
+      ],
+      "exit_code": 0,
+      "output": "PASS txnorder_readonly\n"
+    },
+    {
+      "case": "txn_group",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txn_group"
+      ],
+      "exit_code": 0,
+      "output": "PASS txn_group\n"
+    },
+    {
+      "case": "txn_help",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txn_help"
+      ],
+      "exit_code": 0,
+      "output": "PASS txn_help\n"
+    },
+    {
+      "case": "txn_intents",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "txn_intents"
+      ],
+      "exit_code": 0,
+      "output": "PASS txn_intents\n"
+    },
+    {
+      "case": "rename_overlay",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "rename_overlay"
+      ],
+      "exit_code": 0,
+      "output": "PASS rename_overlay\n"
+    },
+    {
+      "case": "watch_parent",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "watch_parent"
+      ],
+      "exit_code": 0,
+      "output": "PASS watch_parent\n"
+    },
+    {
+      "case": "watch_cycle",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "watch_cycle"
+      ],
+      "exit_code": 0,
+      "output": "PASS watch_cycle\n"
+    },
+    {
+      "case": "script_apply",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "script_apply"
+      ],
+      "exit_code": 0,
+      "output": "PASS script_apply\n"
+    },
+    {
+      "case": "write_latest",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "write_latest"
+      ],
+      "exit_code": 0,
+      "output": "PASS write_latest\n"
+    },
+    {
+      "case": "admission",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "admission"
+      ],
+      "exit_code": 0,
+      "output": "PASS atomic collapse: all (both arms; mode/database variants exercised)\nPASS admission\n"
+    },
+    {
+      "case": "script_keys",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "script_keys"
+      ],
+      "exit_code": 0,
+      "output": "PASS script_keys\n"
+    },
+    {
+      "case": "post_apply_probe",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "post_apply_probe"
+      ],
+      "exit_code": 0,
+      "output": "PASS post_apply_probe\n"
+    },
+    {
+      "case": "mset_arity",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "mset_arity"
+      ],
+      "exit_code": 0,
+      "output": "PASS mset_arity\n"
+    },
+    {
+      "case": "watch_oom",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "watch_oom"
+      ],
+      "exit_code": 0,
+      "output": "PASS watch_oom\n"
+    },
+    {
+      "case": "stage_flag",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "stage_flag"
+      ],
+      "exit_code": 0,
+      "output": "PASS stage_flag\n"
+    },
+    {
+      "case": "closure",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "closure"
+      ],
+      "exit_code": 0,
+      "output": "PASS closure\n"
+    },
+    {
+      "case": "lua_conversion",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "lua_conversion"
+      ],
+      "exit_code": 0,
+      "output": "PASS lua_conversion\n"
+    },
+    {
+      "case": "lua_lines",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "lua_lines"
+      ],
+      "exit_code": 0,
+      "output": "PASS lua_lines\n"
+    },
+    {
+      "case": "library_limit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "library_limit"
+      ],
+      "exit_code": 0,
+      "output": "PASS library_limit\n"
+    },
+    {
+      "case": "instruction_limit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-55",
+        "build/atomic-survivors-unit",
+        "instruction_limit"
+      ],
+      "exit_code": 0,
+      "output": "PASS instruction_limit\n"
+    }
+  ]
+}

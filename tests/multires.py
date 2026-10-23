@@ -24,7 +24,9 @@ Both are RACES, so every case runs many rounds and reports a hit count rather th
 pre-fix rates on this box were roughly 22% of rounds for (1) and 37% for (2). A single clean
 round means nothing, which is why nothing here concludes from one.
 
-Every case also proves its mechanism FIRED: `atomic_exec_order_holds` counts a transaction
+Every case also proves its ordering mechanism FIRED. MSETNX uses a cold, debug-armed counter
+proving its dispatch barrier retained the following unparsed MULTI. Removing that barrier must
+fail its witness. The other groups retain `atomic_exec_order_holds`, which counts a transaction
 meeting an older same-connection unit that is still undecided on that owner, which is exactly the
 hazard window. It is raised at ONE site -- ExLoop::execute(), where the transaction fragment is
 parked behind that unit before it installs anything on the owner. A run in which it never advances
@@ -41,6 +43,10 @@ Boot requirement: --enable-debug-command yes for DEBUG SHARD, so the key set pro
 distinct owners. Runs under both --atomic 0 and --atomic 1; with atomics off there is no group
 to invert against, so the window never opens and the counter legitimately stays at 0.
 """
+
+# MSETNX now carries a Stage B dispatch barrier. Its armed leg uses the cold
+# barrier witness; MSET/DEL/UNLINK retain their original overlap witnesses.
+# Every reply, lost-write, stale-read and late-order assertion is unchanged.
 
 import socket
 import sys
@@ -146,6 +152,12 @@ def holds(conn):
     return int(table["atomic_exec_order_holds"])
 
 
+def msetnx_witness(conn):
+    table = stats(conn)
+    assert "atomic_group_barriers" in table, "missing MSETNX barrier witness"
+    return int(table["atomic_group_barriers"])
+
+
 def late(conn):
     """INFO atomic_exec_order_late -- install-time ordering violations. Must read zero: the park
     that closes this file's hazard window runs at dispatch, before the fragment installs."""
@@ -192,7 +204,9 @@ def round_trip(keys, witness, group, second_conn=False, probes=0, admin=None, fo
             if group[0] in ("DEL", "UNLINK"):
                 for key in keys:
                     assert conn.command("SET", key, "before") == b"OK"
-            before = holds(admin)
+            barrier = group[0] == "MSETNX"
+            before = msetnx_witness(admin) if barrier else holds(admin)
+            entries = int(stats(admin)["atomic_entries"])
             assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
             armed = True
         payload = b""
@@ -212,8 +226,9 @@ def round_trip(keys, witness, group, second_conn=False, probes=0, admin=None, fo
             conn.send_raw(payload)
             if armed:
                 deadline = time.monotonic() + 10
-                while holds(admin) == before:
-                    assert time.monotonic() < deadline, "EXEC never met the held predecessor"
+                while (int(stats(admin)["atomic_entries"]) < entries + len(keys)
+                       if barrier else holds(admin) == before):
+                    assert time.monotonic() < deadline, "held predecessor never armed ordering witness"
                     time.sleep(.005)
                 assert int(stats(admin)["atomic_pending_entries"]) > 0
                 assert not select.select([conn.sock], [], [], 0)[0], "predecessor escaped hold"
@@ -224,6 +239,8 @@ def round_trip(keys, witness, group, second_conn=False, probes=0, admin=None, fo
             conn.read()
             conn.read()
             exec_reply = conn.read()
+            if force and barrier:
+                assert msetnx_witness(admin) > before, "MSETNX dispatch barrier never ordered the pair"
         probe_values = [conn.read() for _ in range(probes)] if not second_conn else []
         settled = conn.command("GET", witness)
         return exec_reply, settled, probe_values
@@ -241,7 +258,9 @@ ACK = [b"OK"]
 def case(admin, label, keys, group, second_conn=False, probes=0, seen=None):
     """Runs ROUNDS rounds. Returns the hazard-counter delta, and also records it into `seen`
     BEFORE raising, so a genuine failure cannot masquerade as a vacuous run."""
-    before = holds(admin)
+    witness = (msetnx_witness if group and group[0] == "MSETNX" and
+               atomic_enabled(admin) else holds)
+    before = witness(admin)
     losses = stale = acked = 0
     sample = None
     for index in range(ROUNDS):
@@ -257,7 +276,7 @@ def case(admin, label, keys, group, second_conn=False, probes=0, seen=None):
                 sample = settled
         if any(v != b"hello" for v in probe_values):
             stale += 1
-    delta = holds(admin) - before
+    delta = witness(admin) - before
     if seen is not None:
         seen.append(delta)
     detail = f"acked={acked} lost={losses} stale={stale} holds+{delta}"
@@ -277,6 +296,7 @@ def main():
     failures = 0
     armed_deltas = []
     try:
+        assert admin.command("DEBUG", "TXN-BARRIER-WITNESS", "1") == b"OK"
         atomic_on = atomic_enabled(admin)
         print(f"multires: atomic={'1' if atomic_on else '0'}", flush=True)
         keys = owner_spread(admin)
@@ -321,11 +341,10 @@ def main():
         window_holds = sum(armed_deltas)
         if atomic_on and window_holds == 0:
             failures += 1
-            print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no EXEC write ever "
-                  "installed against an undecided same-connection group, so this run never "
-                  "entered the window it exists to close and its pass is vacuous", flush=True)
+            print("  FAIL the armed cases recorded no ordering witness: neither an owner hold "
+                  "nor the MSETNX dispatch barrier ordered the pair; this run is vacuous", flush=True)
         elif atomic_on:
-            ok(f"hazard window opened {window_holds}x across the armed cases")
+            ok(f"ordering witnessed {window_holds}x across the armed cases")
         else:
             ok("atomic 0: no cross-shard group exists to invert against, window stays shut")
 
@@ -345,6 +364,7 @@ def main():
         print(f"  FAIL {failure}", flush=True)
     finally:
         try:
+            admin.command("DEBUG", "TXN-BARRIER-WITNESS", "0")
             admin.command("FLUSHALL")
         except (EOFError, OSError, AssertionError):
             pass

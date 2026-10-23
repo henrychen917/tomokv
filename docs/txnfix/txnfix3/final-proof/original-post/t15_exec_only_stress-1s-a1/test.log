@@ -1,0 +1,2 @@
+tomo mode=1s C=16 N=2000 P=4: k1=32000 k2=32000 expected 32000 each; lost k1=0 k2=0; duplicated INCR k2 replies=0  1.0s
+server rc 0

@@ -1,0 +1,20 @@
+{
+  "base": "a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e",
+  "notes": [
+    "flip_begin holds shape_transition_mu_ while reserving the shared listener state before publishing Planning.",
+    "IoDrain ACK requires terminal accept and cancel completions before the frozen Client plan is built.",
+    "Listener destinations register kernel references before IoPrepare ACK; newly listening sockets already have a registered rollback owner.",
+    "Original quota checks run before the admission epoch; retained Client creation does not contaminate the frozen plan.",
+    "The cancellation epoch is separate from the reused borrowed-listener retry flag; the forced overlap fails the previous candidate and passes POST.",
+    "UNIX owner remains pinned. TLS identity is checked when resulting owners rearm; existing TLS client migration restrictions remain intact.",
+    "IoLoop objects live in the main-thread ios vector and are destroyed after workers join; shutdown descriptor metadata is not concurrently destroyed.",
+    "GET/SET/MGET/MSET body identity and all existing layout offsets are preserved; exceptional retries and transferred-listener dispatch are outside the ordinary-path cost proof."
+  ],
+  "runtime_limits": {
+    "cpus": "48-63",
+    "server_cores": "48-55",
+    "load_cores": "56-63",
+    "ports": "21800-21899",
+    "build_jobs": 16
+  }
+}

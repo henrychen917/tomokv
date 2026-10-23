@@ -1,0 +1,20 @@
+{
+  "delta_quick": 4,
+  "delta_full": 4,
+  "row_declaration": 2260,
+  "row_begin": 2268,
+  "collector": 3735,
+  "quick_exit": 3816,
+  "protected": {
+    "EXPECT_QUICK": 625,
+    "EXPECT_FULL": 642
+  },
+  "required": {
+    "EXPECT_QUICK": 639,
+    "EXPECT_FULL": 656
+  },
+  "cumulative_delta": 14,
+  "fixture_count": 656,
+  "source_sha256": "ebf8fc7a7c2c8ab635268daf47bed12fe9dc5586f23455ce5e46744851e82356",
+  "status": "Fixture/source labels match. Checker refuses the unchanged maintainer-owned count."
+}

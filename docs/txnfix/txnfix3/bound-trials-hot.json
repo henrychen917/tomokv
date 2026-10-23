@@ -1,0 +1,218 @@
+[
+  {
+    "namespace": "normal",
+    "variant": "ctor",
+    "rows": [
+      {
+        "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+        "equal": true
+      }
+    ]
+  },
+  {
+    "namespace": "normal",
+    "variant": "both",
+    "rows": [
+      {
+        "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+        "equal": true
+      }
+    ]
+  },
+  {
+    "namespace": "db0",
+    "variant": "ctor",
+    "rows": [
+      {
+        "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+        "equal": true
+      }
+    ]
+  },
+  {
+    "namespace": "db0",
+    "variant": "both",
+    "rows": [
+      {
+        "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+        "equal": true
+      },
+      {
+        "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+        "equal": true
+      }
+    ]
+  }
+]

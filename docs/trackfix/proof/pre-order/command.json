@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22810-22839",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-pre-order"
+  ],
+  "jobs": [
+    "trackfix_order"
+  ]
+}

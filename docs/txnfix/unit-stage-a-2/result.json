@@ -1,0 +1,25 @@
+{
+  "binary_sha256": "2b5d28dc28c9ff8b1ffb2a6b959c21e5fb4ba0a29dd054d74e1eced741715ab7",
+  "cases": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "build/atomic-survivors-unit",
+        "txn_intents"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "build/atomic-survivors-unit",
+        "txn_help"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

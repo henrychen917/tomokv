@@ -1,0 +1,26 @@
+[
+  {
+    "log": "gates-test.log",
+    "source": "/home/user/Projects/cx-compat3/build/scheduler-failure-a00v8rw7",
+    "archive": "receipts/scheduler-failure-a00v8rw7.tar.gz",
+    "sha256": "15d3af70c7c8258fe24062b187f45902e80cd74fe9ff75d271d18f83fe5c4a06"
+  },
+  {
+    "log": "gates-test.log",
+    "source": "/home/user/Projects/cx-compat3/build/scheduler-failure-c7x9a1_o",
+    "archive": "receipts/scheduler-failure-c7x9a1_o.tar.gz",
+    "sha256": "068aaf6e4d01bbe74aed85da700eecebca25bb696a2163f6eca0836d00613434"
+  },
+  {
+    "log": "gates-test.log",
+    "source": "/home/user/Projects/cx-compat3/build/scheduler-failure-dnw9o96w",
+    "archive": "receipts/scheduler-failure-dnw9o96w.tar.gz",
+    "sha256": "62d774ce519ee00077db1e90cfe70af73dfcff58a02cba4547fa6a9d23a09a07"
+  },
+  {
+    "log": "gates-test.log",
+    "source": "/home/user/Projects/cx-compat3/build/scheduler-failure-oiph8bf6",
+    "archive": "receipts/scheduler-failure-oiph8bf6.tar.gz",
+    "sha256": "b0ac552e8d9c06bdf11ea53142c0f7efd5f20262962104f0c12da357c560f5fd"
+  }
+]

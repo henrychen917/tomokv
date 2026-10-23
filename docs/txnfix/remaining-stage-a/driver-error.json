@@ -1,0 +1,12 @@
+{
+  "step": "flip setup",
+  "command": [
+    "CONFIG",
+    "SET",
+    "flip-auto",
+    "1"
+  ],
+  "error": "AssertionError: expected OK; flip-auto is boot-only (t_server.cc configuration registry)",
+  "server_stopped": true,
+  "correction": "Fresh explicit boot with --flip-auto 1 in final-stage-a-checks; no server behavior or test assertion changed."
+}

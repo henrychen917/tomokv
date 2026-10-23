@@ -1,0 +1,25 @@
+ok	0.000000	release build (+footprint locks)
+ok	44.540000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.890000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.500000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	27.240000	iofix WB4.1 deferred IO parks
+ok	40.000000	iofix IO4.9 Redis hz cron
+ok	31.760000	iofix IO4.10 global DEBUG SLEEP
+ok	18.510000	iofix IO4.17 immediate signal shutdown
+FAIL	1.590000	netfix NT4.6 query-limit INFO parity
+ok	1.150000	netfix NT4.11 Unix pathname parity
+FAIL	2.080000	netfix NT4.8 network CONFIG error parity
+FAIL	8.650000	netfix NT4.7 TLS default cipher parity
+FAIL	271.780000	netfix NT4.19 idle buffer reclamation
+ok	35.750000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	36.910000	compat3 CC4.13 pending vs Redis 7.4
+ok	35.900000	compat3 CC4.14 history vs Redis 7.4
+ok	35.640000	compat3 CC4.16 grammar vs Redis 7.4
+ok	35.640000	compat3 CC4.5 glob vs Redis 7.4
+FAIL	39.290000	compat3 CC4.17 flags vs Redis 7.4
+FAIL	54.430000	tracking-only delivery/drop accounting vs Redis 7.4
+ok	223.310000	tracking delayed-write order vs Redis 7.4
+ok	34.100000	FLIP listener conservation (io-ex, complete)
+ok	37.800000	FLIP listener conservation (io-ex, rollback)
+ok	41.140000	FLIP listener conservation (ex-io, complete)
+FAIL	61.690000	FLIP listener conservation (ex-io, rollback)

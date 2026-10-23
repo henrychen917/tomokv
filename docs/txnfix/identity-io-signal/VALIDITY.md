@@ -1,0 +1,1 @@
+This inventory was started before the fused startup repair, and the repair rebuilt core objects while the full inventory was still running. It is retained as diagnostic output only and is not a coherent final PRE/POST identity receipt. Use the subsequent final inventory.

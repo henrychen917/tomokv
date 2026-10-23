@@ -1,0 +1,69 @@
+[
+  {
+    "pid": 2945696,
+    "pgid": 2945696,
+    "command": "bash tests/gate.sh full --server-cores 72-79 --server-smt  --load-cores 64-71,80-95 --load-smt  --ports 27820-27889 --candidate-binary /home/user/Projects/cx-txnfix/build/tomokv ",
+    "cwd": "/home/user/Projects/cx-txnfix",
+    "affinity": [
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "reason": "Inherited from capacity-interrupted run; no live proof client. Superseded by resumed owned runs."
+  },
+  {
+    "pid": 2957738,
+    "pgid": 2957738,
+    "command": "/home/user/Projects/cx-txnfix/build/txnorder2/final-ready/tomokv --bind 127.0.0.1 --port 27890 --dir /home/user/Projects/cx-txnfix/build/txnorder2/nx-progress-repro-owned-attach/152 --save  --appendonly no --databases 1 --shards 16 --thread-mode 1s --read-local 0 --atomic 1 --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes ",
+    "cwd": "/home/user/Projects/cx-txnfix",
+    "affinity": [
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "reason": "Inherited from capacity-interrupted run; no live proof client. Superseded by resumed owned runs."
+  },
+  {
+    "pid": 2957751,
+    "pgid": 2957751,
+    "command": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv --bind 127.0.0.1 --port 27801 --save  --appendonly no --enable-debug-command yes --read-local 1 --thread-mode 1s --atomic 1 --shards 16 --databases 16 --key-lb 0 --client-lb 0 --flip-auto 0 --dir /home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-wake/141-broad-1s_atomic_hazards ",
+    "cwd": "/home/user/Projects/cx-txnfix",
+    "affinity": [
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71
+    ],
+    "reason": "Inherited from capacity-interrupted run; no live proof client. Superseded by resumed owned runs."
+  }
+]

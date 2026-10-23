@@ -1,0 +1,2 @@
+  row budget: 900s; median=131.9s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok

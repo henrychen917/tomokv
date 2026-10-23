@@ -1,0 +1,3380 @@
+[
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21072
+    ],
+    "post_sizes": [
+      21072
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 21072,
+        "address": "0x733b90",
+        "digest": "21dac64da0b6d4f7a5f31740e839d98da0ab8bbc1b11e3e3ca1dade2dc09f271"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 21072,
+        "address": "0x733210",
+        "digest": "cb52a7cb9c0d847344bc3d98a904ca338926604a9e881b33c85e3f637ff972fa"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      9949,
+      12232,
+      10045,
+      10767
+    ],
+    "post_sizes": [
+      9949,
+      12193,
+      10045,
+      10767
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 9949,
+        "address": "0x6d39e0",
+        "digest": "a4437b65921f8213b829192094f3c19798836e8148e646569f244f3675ad30c0"
+      },
+      {
+        "size": 12232,
+        "address": "0x721cd0",
+        "digest": "3950c96c7d73a727e9c6ad8a6c1092fdf2fc6fd01cc28ff39325abb2209bd5d3"
+      },
+      {
+        "size": 10045,
+        "address": "0x786560",
+        "digest": "93539e24b2a1af32ef011fbc16a6f8086329beba76c41f60a78260eaab865501"
+      },
+      {
+        "size": 10767,
+        "address": "0x7ccb40",
+        "digest": "f6a0f6d4e09205581287d968c9a6ad8eb042a33e29f0b72656e29e9a1c683172"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 9949,
+        "address": "0x6d3220",
+        "digest": "a4437b65921f8213b829192094f3c19798836e8148e646569f244f3675ad30c0"
+      },
+      {
+        "size": 12193,
+        "address": "0x721370",
+        "digest": "0688447880e7fbdf2f35c74dd6854a9abc657df9f921f966d19407a134932c7c"
+      },
+      {
+        "size": 10045,
+        "address": "0x785940",
+        "digest": "93539e24b2a1af32ef011fbc16a6f8086329beba76c41f60a78260eaab865501"
+      },
+      {
+        "size": 10767,
+        "address": "0x7cbda0",
+        "digest": "f6a0f6d4e09205581287d968c9a6ad8eb042a33e29f0b72656e29e9a1c683172"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "post_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 166,
+        "address": "0x4dbcc",
+        "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
+      },
+      {
+        "size": 244,
+        "address": "0x50e18",
+        "digest": "74d77d8631723635f2e9fc4f8211a31c541d4192543f532d99ec6a7d0aaf0f40"
+      },
+      {
+        "size": 166,
+        "address": "0x53592",
+        "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
+      },
+      {
+        "size": 244,
+        "address": "0x54e5c",
+        "digest": "52f864a92fda88ac2a7c94b1b0a1ffe361eb0972812042b4d3264a03a0bd7390"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 166,
+        "address": "0x4dbcc",
+        "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
+      },
+      {
+        "size": 244,
+        "address": "0x50e18",
+        "digest": "795f189d92eb91b23aa68c23612372159b68a4a2660bb6f2a5dc04e845f13e4c"
+      },
+      {
+        "size": 166,
+        "address": "0x53592",
+        "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
+      },
+      {
+        "size": 244,
+        "address": "0x54e5c",
+        "digest": "52f864a92fda88ac2a7c94b1b0a1ffe361eb0972812042b4d3264a03a0bd7390"
+      }
+    ]
+  },
+  {
+    "name": "tomo::Shard::watch_flush(int) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      89
+    ],
+    "post_sizes": [
+      89
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 89,
+        "address": "0x3f646",
+        "digest": "4db52c2a9562b1e89328ab5e8e315dc45392a248d3ea40c99b1dd5156715337c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 89,
+        "address": "0x3f646",
+        "digest": "9ede005351c7bd79b978229b263a4026e572a22d6d9e12d9f5a79f3fee27ccf9"
+      }
+    ]
+  },
+  {
+    "name": "tomo::multidb_flush(tomo::Shard&, unsigned char) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      33
+    ],
+    "post_sizes": [
+      33
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 33,
+        "address": "0x52a45",
+        "digest": "8817adab89b087c05892953091da74ac6240c6cc5139fb390124b95907fa9ddb"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 33,
+        "address": "0x52a45",
+        "digest": "5ed6c119a13c71fe34ba8571c2a6c264df199aec327d93fbe8cb41e7ca1080ab"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18524
+    ],
+    "post_sizes": [
+      18556
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body.",
+    "before_bodies": [
+      {
+        "size": 18524,
+        "address": "0x3cdc50",
+        "digest": "13695c1c94c33b73bc982a24c36d81d8100bb0149c94d503b38909acfd922397"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 18556,
+        "address": "0x3cd6e0",
+        "digest": "d97db468c245fb3de56ecc08f5ee813dea4ebcbbb6eee31b692970efaa9b6354"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2391
+    ],
+    "post_sizes": [
+      2391
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2391,
+        "address": "0x4a06e0",
+        "digest": "afffb3195e86da7196519479df25c002426fe32529fae82ce332425f0435292c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2391,
+        "address": "0x49ff20",
+        "digest": "4f7e6cf75601661a2a614239421c006745b7e5f681febf42dad4f6b61fa690b2"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2487
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2503,
+        "address": "0x74a9f0",
+        "digest": "22a8247d66d443fd642416b5c87fb06158c85b88b78103d4003ecf955dcdfc60"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2487,
+        "address": "0x749ee0",
+        "digest": "b80a3604f462a3772a12c5a1875f4b722eed63344b3b31d80bc5b2f913c23e7d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2350
+    ],
+    "post_sizes": [
+      2334
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2350,
+        "address": "0x70e3f0",
+        "digest": "56e2fc5590813a8af683917fd7dc536ca3e51e456a09abcd37bab27a7c03fe47"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2334,
+        "address": "0x70bb80",
+        "digest": "3e0f0a8a2bd18e84d5f5d5af2ff3395e8352f1974ff7ceb3b1ccd5d419c3f332"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2455
+    ],
+    "post_sizes": [
+      2471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2455,
+        "address": "0x741940",
+        "digest": "4c9d1e76546a4c3cefe47cec0432dde22d1eb9843db461c00ee7370d1439da79"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2471,
+        "address": "0x740f60",
+        "digest": "93ec8a4568aaa7a5c7b3fc09ab0b97f360ce4671bb23331cb9feb2e7646e5023"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2302
+    ],
+    "post_sizes": [
+      2318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2302,
+        "address": "0x704ad0",
+        "digest": "24b006066bfb0505940de8bfec1baf86a0a5061b8abf885b1557240bea2ba849"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2318,
+        "address": "0x7042e0",
+        "digest": "53f82ca23d7367641e6d0383d5cc8a56069bede320dd0ea556415654fc7f79c0"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2487
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2503,
+        "address": "0x7488a0",
+        "digest": "dac8a0710eb40aa7dbda21c48454dd3512839a6807c2e9ed804576ca954076c6"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2487,
+        "address": "0x747da0",
+        "digest": "e11be8e67b350382943070bde10f862deafeb710c34ee321f5d19c249776bb56"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2350
+    ],
+    "post_sizes": [
+      2334
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2350,
+        "address": "0x70c440",
+        "digest": "35d654f5393b356697d24382e24a0a1891ced6674ea4bb107fcfcd9b55279f29"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2334,
+        "address": "0x70da90",
+        "digest": "aef506b1789ff3a2064ed5d24a0432ffb73840fb9de492ccd3ed580c3573bbb7"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2455
+    ],
+    "post_sizes": [
+      2471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2455,
+        "address": "0x740fa0",
+        "digest": "c2863905e2a0a4fe97a2ff52dd975318c84397e1c78376df61489e96d25dbc76"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2471,
+        "address": "0x7405b0",
+        "digest": "b735711fa7ff0408e26bb3ded24eb3c04b16adb1fbe923a0a1f9d7300cc63a91"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2302
+    ],
+    "post_sizes": [
+      2318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2302,
+        "address": "0x7041d0",
+        "digest": "1f30dc1f6ba8ac59c4a345d78a6dd355457df588c95bf3458a72e849606d550b"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2318,
+        "address": "0x7039d0",
+        "digest": "9f564e6eff84eed99523e4ad3a737d889c3a4b0613f73b9808f26616afa332ed"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3119
+    ],
+    "post_sizes": [
+      3073
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3119,
+        "address": "0x49e880",
+        "digest": "d35ed1d51fa9b814f09c16e2e4ad15fe623df30b331205ea478544dc29f8e619"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3073,
+        "address": "0x49e100",
+        "digest": "2c0977d0c4d5043e6c329b853b9b364ba53e1113cfff325c35ffafd72bc7ec6d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2875
+    ],
+    "post_sizes": [
+      2816
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2875,
+        "address": "0x74cac0",
+        "digest": "ca5834ceff77dff07a15ec0de64b933c541df5adb1236658858e2024c5ba99ba"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2816,
+        "address": "0x74e1e0",
+        "digest": "5df82c9d4a650b36f01d8a69ee2ca444bb2a9423b64310e9eb40e7476b020b66"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2622
+    ],
+    "post_sizes": [
+      2608
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2622,
+        "address": "0x7123b0",
+        "digest": "74fa8f37bff8cd08ce42d120be22fafd1fd38dc3f94f9c2921cfca156323f4fc"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2608,
+        "address": "0x711ab0",
+        "digest": "9f7a1341afd428da78c1f2e7d5c295ee0369569ea64f358642b23d77c33f2d3a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2800
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2843,
+        "address": "0x742e00",
+        "digest": "f3c85f8608c05c0e5d99c94498bda53895496d930300dd9d7a2c11a7a2315268"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2800,
+        "address": "0x741910",
+        "digest": "f7717d0d3331feedfe6011c5bb5dbce07516cab5b326279557c0e8bd4629f8f8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2606
+    ],
+    "post_sizes": [
+      2576
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2606,
+        "address": "0x7053d0",
+        "digest": "0701a9a1f22a4aa57cbccdf0f91bb97170048084b2fafb23aff6503bdfa41d84"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2576,
+        "address": "0x704bf0",
+        "digest": "cfce2e813eaa5aab8c9328b96838732e8d8bee513d7df69ef708d8cf7c089954"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2875
+    ],
+    "post_sizes": [
+      2816
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2875,
+        "address": "0x74ed30",
+        "digest": "ff975ab826f3adb093323fb764e336d48ac4481f675ad3066d2a26a7b8352ca8"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2816,
+        "address": "0x74bfa0",
+        "digest": "df8532d8a3ea3457b4fe51c85da7b2e92bb101bf0073faa212c319997daa8298"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2622
+    ],
+    "post_sizes": [
+      2608
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2622,
+        "address": "0x710310",
+        "digest": "b20122b53689f2f6c1c45ce4f928c601bcfb29da6fd8bc73e1cbd46c86a911d0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2608,
+        "address": "0x70fa20",
+        "digest": "fd2ac0d48438efe107ca6d285be86f2768baf64ac51ea3ae7519533ab8982190"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2800
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2843,
+        "address": "0x7422e0",
+        "digest": "9349956160e90a12fb495c9a0f08b1a53ffdc50bfb11dc62ea9e39e24a7ca612"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2800,
+        "address": "0x742400",
+        "digest": "15058aad782b35b40fa35a28709645732c616210995cece4a69083140df87118"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2606
+    ],
+    "post_sizes": [
+      2576
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2606,
+        "address": "0x705e00",
+        "digest": "c8893abd2611f5c90b2aa1f53db5003cd2f3d5ff6c70468ce697d99439ad8c57"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2576,
+        "address": "0x705600",
+        "digest": "f9aabb05448154146ebbbeee219b5464eadfc1a38d1039584250e6a609f0f1a2"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4647
+    ],
+    "post_sizes": [
+      4623
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 4647,
+        "address": "0x49f4b0",
+        "digest": "9f45bbe3f44546a1cd05be677a175d2c62f7ab1f57019a5ae964c3b8164f6414"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 4623,
+        "address": "0x49ed10",
+        "digest": "325494cbad718efb2769fafcf2bf0fd11f8738a4bcaa1dfc7c0964b3030e6a14"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3226
+    ],
+    "post_sizes": [
+      3210
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3226,
+        "address": "0x750fb0",
+        "digest": "2f42ffc716550faa7f42e9afac0998eb15b190eb7d877a710be06387e44143d2"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3210,
+        "address": "0x750410",
+        "digest": "2d6835c24247aa39cdcc84ed7bcd86130428f2a3cc2471b55ddfc81180cd42e3"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x714430",
+        "digest": "b64779fe9e97fb97b93fe0a3d262c62695d3b391b4bb2c0afcc4434bae49034f"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3078,
+        "address": "0x713b20",
+        "digest": "0c636ec41796953e9abcfa2bc41135be42d90cb25a63aa409ca76d1e130c0005"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3194
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3194,
+        "address": "0x743920",
+        "digest": "4b0fd9f82751ea72a85260c96e90384b99f7bbfe7a1d1af98bd79ea30d2681a7"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3194,
+        "address": "0x742ef0",
+        "digest": "4995d5637b12efec8977fd6b482f3db5b322fc2ddb948de847934e4b9d1613e5"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3062
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3062,
+        "address": "0x707430",
+        "digest": "d603ee4abbb60019fd989f0ed8855070f00387bd0bfa185067a9a432d9961378"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3062,
+        "address": "0x706c10",
+        "digest": "2beab182b7c15f6f370cb80f59e119f3ae9f274e0d180fe7daee01d5cbbe521a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3226
+    ],
+    "post_sizes": [
+      3210
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3226,
+        "address": "0x753390",
+        "digest": "387f92032c7c0c6e71d9d505fcdced47e0698ff1b34bf78adaae4c211cba76ad"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3210,
+        "address": "0x7527e0",
+        "digest": "40bb664757f1ceb10a55dc6a9677dc1cfa9860526525c151784055581fdd653d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x716680",
+        "digest": "29535198cd1fb0aa3fb92e1aa433b95563d291d15fba5a45163bdd5aa5373b1e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3078,
+        "address": "0x715d60",
+        "digest": "f0ca2341255c58719b8d956293f201ec26e9b3ce11fc43530511ee57b0b43f6e"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3194
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3194,
+        "address": "0x7445a0",
+        "digest": "b20ade5f4f4b9ed92a6356cf907488b9cb364367b3533e4221d723108c6473c0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3194,
+        "address": "0x743b70",
+        "digest": "79ce7c3f6993dfb8e953100f87979be5d4a39126752698b009f10f9906245bb5"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3062
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3062,
+        "address": "0x706830",
+        "digest": "12b0c6a089cd516d3dd57e439864159613474ef710bebd8f79f650ef4097f96c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3062,
+        "address": "0x706010",
+        "digest": "0b475fb9a2e7ef41cc769a1296ccf5e42369a28d9927e90735e0724c3a73df7b"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6175
+    ],
+    "post_sizes": [
+      6093
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 6175,
+        "address": "0x49d060",
+        "digest": "d623200dd9b326e36cb3572f358541b92a63d23760b90d93fcb137d597a6a562"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 6093,
+        "address": "0x49c930",
+        "digest": "0f738b419d18838f8264ebe37f489242efadba78ff4fb684d7d9c2e474e8b67d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3986
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3986,
+        "address": "0x7461d0",
+        "digest": "df003ea22514178442267ee0b41c2d2027078961f11ad922aded4ec587168739"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3896,
+        "address": "0x745730",
+        "digest": "d6c6c412d9bb111787f65e74db415bf83d94c85211feecd267be6151809a107a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x718940",
+        "digest": "505be580a3f50fa67af6196b2aa6a31f8773ab7490dc2e20fdb9829db32472fc"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x709770",
+        "digest": "cef6c87e75dcbf8b6ac97cf72b7771230ea5a9b397130ab7e2a794a2ef0fceac"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4002
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 4002,
+        "address": "0x73fff0",
+        "digest": "f8844ec3301df61ce8532ce2c82ecbcc12a6acde4e162de86a41a74d5d776ef3"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3896,
+        "address": "0x7447f0",
+        "digest": "8caf873c3738bef3151ffbeedeaaa3391acdb98dd1f3354910f5d5205d5ae1c0"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3559,
+        "address": "0x708030",
+        "digest": "ead9e4accdb2b9eaec5c39a99884db8b28d790acf6553bae613428fb856d7cad"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3489,
+        "address": "0x702c20",
+        "digest": "79ce2705d0b2179fa0cbd3f2b7bdd3afa8366a91e838f38ebb428a1ebbbcf0da"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3986
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3986,
+        "address": "0x7557f0",
+        "digest": "6e66bc67672f0b403e86f5e3c038cc62b731bcd93c3632b59d45b256af74705e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3896,
+        "address": "0x754c30",
+        "digest": "098683c2bdbef1fde1e5f9bd1a419594ccea33d995127afdf5f0b89e6390603c"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x709fd0",
+        "digest": "e87729f21ad5a1a06209e0c71712c6a2f22f85059806cdae6bb505f13059818b"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x718000",
+        "digest": "0de6e34014ee8da562993ccac20690c4b0c7afe17eb4c03df106f2d3b6e7f1e6"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4002
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 4002,
+        "address": "0x745220",
+        "digest": "e0f7198a005aa0cea0537957a532e1778c57ef5a02df1bdcd1a9e230a3ee262b"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3896,
+        "address": "0x73f670",
+        "digest": "39e4b8d4eb2bd7be778c0a9416991930eba8a5cc192291515aaf629eeea93699"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3559,
+        "address": "0x7033e0",
+        "digest": "f7fce5377d84ecbcfbcd2a1375c18c4828f7d23464e3daba3d4039ebf0c95141"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3489,
+        "address": "0x707810",
+        "digest": "d06d833fc6004ea085dd613a9b380926602e09fb6600157ec92d90b23231bc76"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2388
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7ae650",
+        "digest": "d89744c21a7b370c4ca65df837bbea3fcb87feba5df148f192a5d01fc2b75047"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2388,
+        "address": "0x7ab9e0",
+        "digest": "26f50f0cf7e8c3e7e8b561a235caaa1778052419c048350dfb0271725809df51"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2404
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7a78b0",
+        "digest": "7cc7a2ae0415f03e66fe214ec6d253a6145a108a684441ea6246e62aec56b439"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7a6c00",
+        "digest": "c71b3ad25ca0ae203f80235b34dc32dc94ede8da6a833071c5c9f3b19b36e0ea"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2388
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7ac6e0",
+        "digest": "464417c10807ce9cc4db8893d3d8cf57c9fa4bdacedddb1771d1bc4324a6acaf"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2388,
+        "address": "0x7ad8d0",
+        "digest": "2af3ccff5ceca5ab4ec53dfd041ed636ad9404532d2ce0c9dc17b38f73562a55"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2404
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7a6e00",
+        "digest": "f8d12efd73d1aaa1305730e5fc4eb0b09a524cfb949983230ba16fe86179b101"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2404,
+        "address": "0x7a6150",
+        "digest": "9d687491eb19d36b9a0b004d8237d0e82cff2f4ec7d5c00357cc36e28006704d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2676,
+        "address": "0x7b0550",
+        "digest": "f13efa6ab5f23a6ffb9dacc8f95153d81fe3cd32bd0a564dc58de6d6b0fa5975"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x7b17e0",
+        "digest": "43bff233bc2a192834eebe7dc49dd2b483bd01a776cbca18da027547f113edad"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2676,
+        "address": "0x7a8360",
+        "digest": "39e38a929c297a0b6203b4160e01b52447df4a329de24fca4df5dd6e4428fd48"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x7a8310",
+        "digest": "87bc909e037d34fdc63abe75efa7f636efe90f3d785f98fcc9a6f1e1bd2c35cc"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2676,
+        "address": "0x7b2510",
+        "digest": "655e85cf76cb8dd2bec4ecca96b2865009993dfd9e8ebb64cdeb952ab7ed8ec2"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x7af830",
+        "digest": "66d3de9f6501f528aa6351dc3531dda060139d03b82093c6b6e8ae60dc2cc0f8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2676,
+        "address": "0x7a8fc0",
+        "digest": "75a887380e65b7476173d3b0d0917a13ec646c332e192f00978276d20d7b9b12"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x7a76b0",
+        "digest": "131d049551b7b72a28ecdbebde764239f9dd8f29a5546282e7b7529ef5431bcc"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7b44d0",
+        "digest": "f806adb7b18c8735bf745d898b5b0fe6701ac873070c358d7bf924ad00ef0e85"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3078,
+        "address": "0x7b3790",
+        "digest": "df016cc503177dad9ef770e27eb90947c0d529eed663c62ab72d45a1849657ce"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3094
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7aa990",
+        "digest": "39dfb8f44d38dd4315c58741885ef37dadea20b450a9da2b693964358f3bb763"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7a8f60",
+        "digest": "4bbf02211587903bb959991f2f8ea1ac1cfb040dc078af7eb6b6dad5c54d26eb"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7b66b0",
+        "digest": "ca692feaf329a9079cc4cab61e71e59fccc6546320c368dff0c74ff3e58d015a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3078,
+        "address": "0x7b5960",
+        "digest": "49b280822230497bc1722acae544b4315c5306ab8b7c51ac44f0e08ef8b86837"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3094
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7a9c30",
+        "digest": "4e8b512ed4dbf7dd76c0509c72bf6c6ac16a6c463c7a55675f70d6c06c3ec6d6"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3094,
+        "address": "0x7a9cc0",
+        "digest": "5df7094b818a2429e9b4ccd9201cdd28fd10cf431853ea9f1827a1e6e16f7ca7"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x7b8910",
+        "digest": "dced0580bc1347813145a71f0b17f6e8c63094125b781929bba59bdb149ad607"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x7a28d0",
+        "digest": "a5608fe976d71799c41d47430140b557a67af4d789fc1d855b7b44895519c457"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x7ab6f0",
+        "digest": "fcef6ac35eb96fe116484d64066df1ac0354988310e6c5d32b06931becc4fcef"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x7a3c60",
+        "digest": "9868a1c2a67a4c738ce15c9e6f2f8c9158a99fa226973e8f8821eb4b3d537f2d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x7a34f0",
+        "digest": "2043fa6dd660a22ee263d20a8c061573249a9a021da90813a719955bec476d13"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x7b7bb0",
+        "digest": "59fd1efeb0293e53e1b263f31211a3060e2ae2e6cbee2af84070340165b70b26"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3591,
+        "address": "0x7a48c0",
+        "digest": "5f1d4fda748c427b0bf864507e9b2486c25da9514c866935ec9cb0b588f8e962"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3521,
+        "address": "0x7aaa20",
+        "digest": "81a66e30d6551cda6261db7a7bf60bb7f95c8ec9647037e8ca22b7790d972447"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2359
+    ],
+    "post_sizes": [
+      2359
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2359,
+        "address": "0xf0140",
+        "digest": "3a61f2a2ac88723c377a0184cfaeb7013115596a004880deab4364eaea421a9c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2359,
+        "address": "0xf00b0",
+        "digest": "915b86dab8132a0cdee3bdf25918accdbe0e53da37e32620637d19253a23a53f"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2471
+    ],
+    "post_sizes": [
+      2455
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2471,
+        "address": "0x38b2d0",
+        "digest": "98dcaf86c0b3c9068e65c37f0687c5621628f15cd1a30ed652de2f9346cad2f5"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2455,
+        "address": "0x388e60",
+        "digest": "82af6d2883f070c44dc9ac1bf6ea94af8f78b6c5bdc333105eed092dfca0daec"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2318
+    ],
+    "post_sizes": [
+      2302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2318,
+        "address": "0x34ea50",
+        "digest": "023692ac0211387b53fcdfc22ef90083470393a5b7c79fbe8735538c7563bfcb"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2302,
+        "address": "0x34ca20",
+        "digest": "77a5901f932acc2abe62ff9f0fd849a3d7e3720100d88d0fc7efb897e69d0683"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2423
+    ],
+    "post_sizes": [
+      2439
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2423,
+        "address": "0x382550",
+        "digest": "afbd40592202142d553c5a59903a73cb37c654dd1694fd4c79b0c4df2cd08ec0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2439,
+        "address": "0x382220",
+        "digest": "ba8b8303f6ad15cfe64f663ff1e5f37bf3ef177b3d733511f8f13f18ea491e06"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2270
+    ],
+    "post_sizes": [
+      2286
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2270,
+        "address": "0x345200",
+        "digest": "81c664f25b98db62ee7dec5ce98c32de2b16d28f72a47f7a1b81cdfa1ee0721b"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2286,
+        "address": "0x345140",
+        "digest": "9bc7ec141a81fe58c684c43e84d8e5754fae6e461207a2fa2ef7e5add144216f"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2471
+    ],
+    "post_sizes": [
+      2455
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2471,
+        "address": "0x3892d0",
+        "digest": "6f4553736cbe8b506208afdaf248f5569411802e987addadde9cb0bbded7b10c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2455,
+        "address": "0x38add0",
+        "digest": "dac282d43a90e68507ebdce5e8889ddd2b7a132b56441547e9e6aad20aa6079a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2318
+    ],
+    "post_sizes": [
+      2302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2318,
+        "address": "0x34cbd0",
+        "digest": "2e8602a8783675eff299f48a39525f260232d9efa296d47ea13e6c5a57dc069e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2302,
+        "address": "0x34e820",
+        "digest": "2684241d9ea148c6a0ad21c88f85ef34949e9f80190a4dc68d1b043584a465c8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2423
+    ],
+    "post_sizes": [
+      2439
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2423,
+        "address": "0x381bd0",
+        "digest": "51b0e45b5bdedbebaaeca972dd5cc97c096b2603eb867561a03db70a2092e98a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2439,
+        "address": "0x381890",
+        "digest": "ca12d1290a1a4ebbb8162cb74aa4df43404a3f26606523f6f5d5b405c034ab5f"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2270
+    ],
+    "post_sizes": [
+      2286
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2270,
+        "address": "0x344920",
+        "digest": "e952279f858c05c7494e3c2529206ee8d241ac8e9aa78c1b408af3b97f8107b5"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2286,
+        "address": "0x344850",
+        "digest": "65881ae5b9f72c79b2a11e3f492d0a5a3bb65c1ae8f0e010ff77a45d2c5befda"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3087
+    ],
+    "post_sizes": [
+      3041
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3087,
+        "address": "0xee320",
+        "digest": "c9bf9e5a0f350b15103e6031c9b70dfff917482d32e21e5ba4701097df3ac200"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3041,
+        "address": "0xee2d0",
+        "digest": "2d5977e7f6d31592713b58fedfaa14f68b936dd5d6859d62bb06765b89b71784"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2784
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2843,
+        "address": "0x38f3a0",
+        "digest": "cf4f5981abaed0cf8c807967d30f7753421d97ff36dc606851631c8cf1e30e58"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2784,
+        "address": "0x38cdc0",
+        "digest": "a88439d0fc956301a57f100aa650378ae9a6893c939951a1b58da71447a309a2"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2740
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2740,
+        "address": "0x350860",
+        "digest": "f212c92e144a608c527cdc06f89da43946be83e662399a7d8d4b7b41155a7cb3"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x352660",
+        "digest": "b82e46cf5c37f453eeafc9fb5acbd74840d32c8331263e70b3924d93f0a0c1c5"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2811
+    ],
+    "post_sizes": [
+      2768
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2811,
+        "address": "0x382ed0",
+        "digest": "63277cb3778f24c743506a2719ae7823bffce3bc30192284cd7142066f10a7be"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2768,
+        "address": "0x383680",
+        "digest": "6871a1be2a831184644d89efb0f37ca937c18fc6a083385cc78b8c992535b3e1"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2708
+    ],
+    "post_sizes": [
+      2646
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2708,
+        "address": "0x345ae0",
+        "digest": "94883dd2c4a574f5c728b6fad65d868c31c94940fecce2102ac818f02b1a2cd1"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2646,
+        "address": "0x346490",
+        "digest": "9ed4648d85a968c893d9c5e570f297319011ed3538ae159545b9193d75ea8ad8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2784
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2843,
+        "address": "0x38d250",
+        "digest": "d0c0be8ab15c97c42cce0a53898c28f70f94e0bc59676cc337cb48ff5a6f2cdf"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2784,
+        "address": "0x38eeb0",
+        "digest": "c6d7d25d998eb2159cee6610982e96ec15d0a0e137a6bfffd9b4f624a41a8017"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2740
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2740,
+        "address": "0x352870",
+        "digest": "dd88453821622cb54c0eb3c9a748d1a3ec9610d0afa87e722d7e8d6e35b05d87"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2662,
+        "address": "0x350690",
+        "digest": "bf2e2dce6b9930ec036319ba7712f51cf506d8e1e182e66823ec0e8c957ee175"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2811
+    ],
+    "post_sizes": [
+      2768
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2811,
+        "address": "0x3839d0",
+        "digest": "9fb44a3e0672ac0652af274025ba8ed9521078bab76cc694c9b0809b55d26e17"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2768,
+        "address": "0x382bb0",
+        "digest": "8a27b347999e545b8e3ba52a7bfc18cf21243b5afb03695d2aba228f8a14cf02"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2708
+    ],
+    "post_sizes": [
+      2646
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2708,
+        "address": "0x346580",
+        "digest": "1421faf1295290dceb0c289c7a90e928c4acd3f255ffa67e3d39707e795db60a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2646,
+        "address": "0x345a30",
+        "digest": "aa5feb97b0c389b56ae7bed81615dfa996d3e9ff8d49cf289a9b750e04358b48"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4615
+    ],
+    "post_sizes": [
+      4591
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 4615,
+        "address": "0xeef30",
+        "digest": "82c2531e45e73dc594f3856b5fa6176a477182aa17fe663b0c78020fd26a2b79"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 4591,
+        "address": "0xeeec0",
+        "digest": "d4bf5dfcb205547b0fdd43f8842986ec2886f98e493868f5f21482c712f92cda"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3194,
+        "address": "0x3914d0",
+        "digest": "5e3fc45c7d2dea65b855410ad08b40d208da573bb179e72dde9b5811cc5e7996"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3178,
+        "address": "0x393290",
+        "digest": "12c370936c64c11c2ba6d4071b54a07d52c806addee75d06c96be42ead9ab43a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3062,
+        "address": "0x356a10",
+        "digest": "ac29ccbabf1ec454abf8baa9e6ba8d7fb503448b1182bcb6159b72301a303c20"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3046,
+        "address": "0x356790",
+        "digest": "b7941e42aadfdba20e2e321a0f21e293e4e5cb1e0a13ccc1ae885c8b6cd8eaa8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3162
+    ],
+    "post_sizes": [
+      3162
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3162,
+        "address": "0x385130",
+        "digest": "d989f1ae8d70846e526fb58e1c5747f8fc6f92abbed8ea3a733c45c3fdf42057"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3162,
+        "address": "0x384db0",
+        "digest": "4c4528585b3cdad851202f52d761d5524c0d5cc265e93bae6fab5b8df94b7067"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3030
+    ],
+    "post_sizes": [
+      3030
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3030,
+        "address": "0x347c00",
+        "digest": "a52cece9128d3eaf312e6b183329b8d9e6fe3d4b7ae8c232c4db70d4877ca633"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3030,
+        "address": "0x347ad0",
+        "digest": "24d59e2c8c27489e7ba53511dfc18de9ea069c7a0cda2ae1293d9061e3b2aca1"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3194,
+        "address": "0x393760",
+        "digest": "2af39cf0317c043a5153578a0579758459611f4e84ff6a59a9ca81fb70597eee"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3178,
+        "address": "0x390fc0",
+        "digest": "48f25e7542045761ccd3c83cf06fa5e49dd6dee66ca2fe5492b275890e91f1b7"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3062,
+        "address": "0x354890",
+        "digest": "74bec30db88b4b2bbbb8072b38c68495af2428eb67fa8a1812b1ed8e0a6b6de9"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3046,
+        "address": "0x354620",
+        "digest": "19d23c40c566ab468df7fd93b91b01011e7d9c56363fa2e77b3f49aa106d7443"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3162
+    ],
+    "post_sizes": [
+      3162
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3162,
+        "address": "0x3844d0",
+        "digest": "388f5c60e9102e29864eb1673d7e9276729a9e50954bca47eead57f463950934"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3162,
+        "address": "0x384150",
+        "digest": "25a39a7c6fd9d23af8bfb215325dae97425f69af6cfcb217749acf45be721756"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3030
+    ],
+    "post_sizes": [
+      3030
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3030,
+        "address": "0x347020",
+        "digest": "f5c84c708e3e09b367a5c118b263ba49a50188451797bdef339fc00c58bfa72e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3030,
+        "address": "0x346ef0",
+        "digest": "b995dfc3797af4572e5a36a37a651d0e31e97d34b1a6f6b09bd96fbf0d485bc4"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6143
+    ],
+    "post_sizes": [
+      6061
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 6143,
+        "address": "0xecb20",
+        "digest": "7d096355aaa7e1783ce41826e7502132af38bff55815fcf91bdc72c1b3d1b2cf"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 6061,
+        "address": "0xecb20",
+        "digest": "806e50660134ffc748baf2e1501032f9e52ff725a3e3d22e614c45789f87a19e"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3954
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3954,
+        "address": "0x395a40",
+        "digest": "b1d70d23db954fa7308bb52f1d2f8a247f308654096eeb4092e3c09a2fd3883c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3864,
+        "address": "0x386930",
+        "digest": "0f31f1ff51e1cfad55795d5cdb83066fd03920e62c6242718c5e213ffbcd2f37"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3559,
+        "address": "0x34a890",
+        "digest": "8dc4e9e49837f2096604a59c14ebd1310a59c99a41a7565e49cf973c679234ec"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3489,
+        "address": "0x34a720",
+        "digest": "54d1ff5d3fb25d901fa91ebc44aa93309321b06e41f169cf8a84caf69960297e"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3970
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3970,
+        "address": "0x380c40",
+        "digest": "127463794acc1eef63d93854794dda4d1bf4f389248a7a13cdaa6418be22992b"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3864,
+        "address": "0x385a10",
+        "digest": "a94e3ee07d31bcbc69c88c09928165959f6b5390bf3f1d85a1058d2a97683bdd"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3527
+    ],
+    "post_sizes": [
+      3457
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3527,
+        "address": "0x3487e0",
+        "digest": "dbff2b259814a68d933e95ac41fd275b04511c1d3d8ac1f9efb2e1d6627dbed0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3457,
+        "address": "0x3486b0",
+        "digest": "c222d1b6370a00275380c225cf0eb0612197f9358270332f1a2746dd30f50f26"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3954
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3954,
+        "address": "0x386d20",
+        "digest": "35a255c7d33c1c77f2273a18a07d18ef1ec234a0df282b7b0fc9fdadd7ce0bb1"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3864,
+        "address": "0x395510",
+        "digest": "ca3b444113315303d932663fb460d6483296ca5b6e0aa0dbf0467a25cca03f9d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3559,
+        "address": "0x358b40",
+        "digest": "1515a8327439bc4568323cc4af1e3ffb1593fcfa96599c4c1b96989f1315d79e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3489,
+        "address": "0x3588b0",
+        "digest": "8056e76fd0c801371f0b45a69bf73edebc682655876047202eab4253e703d30a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3970
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3970,
+        "address": "0x385d90",
+        "digest": "2db1453ff169858d9f7ac3086f59c13deb27dd83220e1178cade484b358e2862"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3864,
+        "address": "0x380970",
+        "digest": "903c94fb326b959390b9d19104b8397d3bdb5f9c00271c83752e40b07909ca70"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3527
+    ],
+    "post_sizes": [
+      3457
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3527,
+        "address": "0x343b50",
+        "digest": "933ddb809f78bde919a28ff2a5b408e1f7edbc7a4106cd344ad5159a8c0f3c7d"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3457,
+        "address": "0x343ac0",
+        "digest": "88d5a5d5f185727b17cc34f10ec91ca15e5e78eccbbce6157a706de923359b52"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2437
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3eac40",
+        "digest": "8f34707ae2feb137e8ccbf137f19525113363ff24c39a229da75ac8419d4eee9"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2437,
+        "address": "0x3ec450",
+        "digest": "e77f2ef172ca12ebab862dfe20493893bf1688bc8acc762bed107be08fb5b6a4"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2453
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3e4850",
+        "digest": "f9c720a265a21be66699fa2e0bf91f18bc889595cd230056ca44636ce1d44be6"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3e56b0",
+        "digest": "b1b32b69ca5d67f8df567ef475dfd838f2bea3e7d7469b2b613065aa7e41f48d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2437
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3eca50",
+        "digest": "d514a0456ad5c885869ebe3ec0d3b723f7c479971181442fdfc317f37326ccdb"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2437,
+        "address": "0x3ea5e0",
+        "digest": "cb56f5d393e3601201cf2ac859f27e50e970e1df550f2cd5ec48f9a9142d9884"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2453
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3e3d70",
+        "digest": "809261cac9516b04b42babf13038686a89edb57df75c9107e75411b110c14017"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2453,
+        "address": "0x3e4bd0",
+        "digest": "5ac96364e71a8c5ea4da5fed500cb16ff39d516aba3e9faabb6dc9b84af9d1c6"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2764
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2823,
+        "address": "0x3ee8d0",
+        "digest": "b71a9aff19c30cdb1b5659206ba402acd9cc1f5b3f9a2356bedc84d26be38401"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2764,
+        "address": "0x3ee250",
+        "digest": "2177796348de0d2691c701786cfa0ac0da5a5a28a80644324e0c36befab15503"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2780
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2823,
+        "address": "0x3e5330",
+        "digest": "c26af381ee906c9f048fd6b056fc82e0ffb41162d7398e20311f4036e616a32a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2780,
+        "address": "0x3e6190",
+        "digest": "5c79130614510b33c2a2a73f79960a9acca967a15764b2c96d36a941df108d8e"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2764
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2823,
+        "address": "0x3f0800",
+        "digest": "328d99b0ca9d6ee0cf24f71356c6cae8a490286a951512d424fc83492a23226a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2764,
+        "address": "0x3f0160",
+        "digest": "43512f3adcce64d02afd3ea4f7ecb2ebe5e05ab6f1cd8a369c49a507393da8aa"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2780
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 2823,
+        "address": "0x3e6020",
+        "digest": "a353c39c093ba24bbee691c45002b0cf877dabf3317feb9b0c7dd4e6941427a6"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2780,
+        "address": "0x3e6e50",
+        "digest": "a698387709b44c4d706364e5b8177903d8cd8c2693a9158f58305763908a149d"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3120
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3f2740",
+        "digest": "c4cecebdd0de8fed09ed16b284efc3b93a6a4e3d5fb8a8869cab38d9e9228739"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3120,
+        "address": "0x3f2060",
+        "digest": "8d30a4c82fff9c172526c85cd5238115ab4415b6d5703143cbe625236e4da37a"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3e6d20",
+        "digest": "19dea807ba14885f9d034466889689cf9fd2406456ca94b18e8a805d0ba0a01a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3e7b20",
+        "digest": "fe9dcbee898b0faf3a997f30f6eb01b5ef6646399ab82850f51a768d657e73bc"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3120
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3f4820",
+        "digest": "5283d916dbee059a923f586a0892e787c60aff23b1acb8e706933b9c16132a68"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3120,
+        "address": "0x3f4130",
+        "digest": "805587e4f5b65ee1bbabe08e2b8a71a259b0f3cf17ef0eef2ceb7481b7a883e0"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3e7aa0",
+        "digest": "d0c305599a8ccfdc792965a2d0adb3a37580b66d542dda6de048d32abea4189f"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3136,
+        "address": "0x3e88a0",
+        "digest": "d4b3b0cf87d1fca011e970adc7b11b1a0cd8880af72fca83905b1df2e85b34c3"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3613,
+        "address": "0x3e18a0",
+        "digest": "d01775d53d2d00d6221261055df9d7e6e1847133883e1cb6992e4bc0540427c3"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3547,
+        "address": "0x3f6240",
+        "digest": "e505627d93177b199f77b37cfb8f705a05114e8d53c81ba7c91a066e62c1c6f8"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3613,
+        "address": "0x3e8820",
+        "digest": "0370cf1fc73cf51015c60b43a34c7ce50889201d14010ac7d87fa21bd9d8d839"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3547,
+        "address": "0x3e9620",
+        "digest": "e64388fc209b947395bd31a3e6b6ddcd9d596a7997b80fcb2da19d0aad61392b"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3613,
+        "address": "0x3f6940",
+        "digest": "8fbfd39ff618df3c42af33e53951de62a274da4ac504e5dbdc0cf67ae725bece"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3547,
+        "address": "0x3e1350",
+        "digest": "ab6e846c541e79fd3085497cc558e771518217ed0c3ff6334b9b5b7ec71576a5"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison.",
+    "before_bodies": [
+      {
+        "size": 3613,
+        "address": "0x3e2d60",
+        "digest": "40f95115e3069ac9ee1a71ff7b1bca47746ab3aa3e3c47e9d565226ea62bf65c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3547,
+        "address": "0x3e27d0",
+        "digest": "f254a952c619718af6d970b098e2344a72d1d90300bb1000afd95d239fd884b4"
+      }
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5746
+    ],
+    "post_sizes": [
+      5738
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code.",
+    "before_bodies": [
+      {
+        "size": 5746,
+        "address": "0x70cd70",
+        "digest": "8646990a298750d6874f55cca40dd422e322200d4b00863fa3d8654f8ae776cf"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 5738,
+        "address": "0x70e3b0",
+        "digest": "d2b70fc1ab3e6cbb14b9a32e653f7c7692915ee349775dfd8f9639f3b9d15b45"
+      }
+    ]
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5783
+    ],
+    "post_sizes": [
+      5767
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code.",
+    "before_bodies": [
+      {
+        "size": 5783,
+        "address": "0x7172a0",
+        "digest": "cd899e939511c8b79bae6fa9857b72e23f11a11d3b3247ca5f13573311b2eca3"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 5767,
+        "address": "0x716970",
+        "digest": "fa7c0d2221a2e639cf7ba07834aecb3a74e458531b990f42b7b956d33bae44a8"
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5140
+    ],
+    "post_sizes": [
+      5175
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code.",
+    "before_bodies": [
+      {
+        "size": 5140,
+        "address": "0x3ef3e0",
+        "digest": "cbffa252f424ac948c0151cb138bff7358f65f1f24afc738878fff62625f43ab"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 5175,
+        "address": "0x3eed20",
+        "digest": "a2df16951047c228ce0a2bca0bced93d4fbd40f2fc6caab0adbc248b6dea2e61"
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5140
+    ],
+    "post_sizes": [
+      5175
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code.",
+    "before_bodies": [
+      {
+        "size": 5140,
+        "address": "0x3e9820",
+        "digest": "d92ec8758eb00698ee7ca468d6e65c7b8725234bca371cca6803ab9f1c83a177"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 5175,
+        "address": "0x3f7020",
+        "digest": "51eaeb3ce3ba2321aec4a11a88eed237d069ed7dd2858204b3d5c2278bfd592d"
+      }
+    ]
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "arm": "PRE",
+  "roll": 15,
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "python3",
+    "tests/differ.py",
+    "127.0.0.1",
+    "22874",
+    "127.0.0.1",
+    "22875",
+    "climon",
+    "19"
+  ],
+  "returncode": 0,
+  "duplicate_comparisons": 0,
+  "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+}

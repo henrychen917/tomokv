@@ -1,0 +1,8 @@
+[
+  {
+    "job": "abba_selftest",
+    "verdict": "FAIL",
+    "elapsed": "790.390000",
+    "label": "ABBA comparison + saturation negative controls"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "arm": "post",
+  "phase": "required",
+  "engine": "uring",
+  "jobs": "netfix_config",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20854-20856",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-post-uring"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/tomokv', ['/home/user/Projects/cx-netfix/build/tomokv'] + config + [\"--net-io\", 'uring'] + args)\n",
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv",
+  "sha256_before": "7a57475b17cace7802421dcda856e61ccd993928c39971b1ef5f4c5e770c4421",
+  "sha256_after": "7a57475b17cace7802421dcda856e61ccd993928c39971b1ef5f4c5e770c4421",
+  "returncode": 1
+}

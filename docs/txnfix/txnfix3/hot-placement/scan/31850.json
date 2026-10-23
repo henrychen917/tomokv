@@ -1,0 +1,312 @@
+{
+  "source_sha256": "6cb7a6d25fbe720b72bb99f46ea2369ba5d06e41edb9203a376f21fc72c3bc83",
+  "object": "db0/src/cmd/t_server.o",
+  "pre_sha256": "7494375f0e04f12b589b2895203cd120e3e6425d51fda4fe9731115996dc8c40",
+  "budget": 31850,
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=31800",
+    "--param",
+    "max-inline-insns-auto=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnfix2/budgets/db0_src_cmd_t_server.o/31850.o",
+    "-g0",
+    "--param",
+    "large-unit-insns=31850"
+  ],
+  "rows": [
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_select(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_selectERNS_5ShardERNS_2OpE",
+      "pre_size": 28,
+      "post_size": 28,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const [clone .part.0] [clone .isra.0]",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpEENKUlPNS_5KvObjEE_clES6_.part.0.isra.0",
+      "pre_size": 482,
+      "post_size": 482,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_echo(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_echoERNS_5ShardERNS_2OpE",
+      "pre_size": 507,
+      "post_size": 507,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_quitERNS_5ShardERNS_2OpE",
+      "pre_size": 297,
+      "post_size": 297,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_pingERNS_5ShardERNS_2OpE",
+      "pre_size": 494,
+      "post_size": 494,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_reset(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_resetERNS_5ShardERNS_2OpE",
+      "pre_size": 639,
+      "post_size": 639,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]",
+      "symbol": "_ZN8tomo_db09FlatStore8erase_inEimNS_5SliceEPb.isra.0",
+      "pre_size": 1125,
+      "post_size": 1125,
+      "equal": true
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool) [clone .isra.0]",
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b.isra.0",
+      "pre_size": 601,
+      "post_size": 601,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpE",
+      "pre_size": 1802,
+      "post_size": 1802,
+      "equal": true
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b",
+      "pre_size": 1567,
+      "post_size": 1567,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+      "pre_size": 663,
+      "post_size": 663,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_transaction_control(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_123cmd_transaction_controlERNS_5ShardERNS_2OpE",
+      "pre_size": 74,
+      "post_size": 74,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_monitor(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_111cmd_monitorERNS_5ShardERNS_2OpE",
+      "pre_size": 74,
+      "post_size": 74,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_pubsub_only(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115cmd_pubsub_onlyERNS_5ShardERNS_2OpE",
+      "pre_size": 74,
+      "post_size": 74,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_bgrewriteaof(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116cmd_bgrewriteaofERNS_5ShardERNS_2OpE",
+      "pre_size": 265,
+      "post_size": 265,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_authERNS_5ShardERNS_2OpE",
+      "pre_size": 563,
+      "post_size": 563,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_lastsave(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_lastsaveERNS_5ShardERNS_2OpE",
+      "pre_size": 89,
+      "post_size": 89,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_dbsizeERNS_5ShardERNS_2OpE",
+      "pre_size": 242,
+      "post_size": 242,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE",
+      "pre_size": 3007,
+      "post_size": 3007,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 69,
+      "post_size": 69,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_flipERNS_5ShardERNS_2OpE",
+      "pre_size": 846,
+      "post_size": 846,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_bgsave(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_bgsaveERNS_5ShardERNS_2OpE",
+      "pre_size": 14,
+      "post_size": 14,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_save(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saveERNS_5ShardERNS_2OpE",
+      "pre_size": 17,
+      "post_size": 17,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
+      "pre_size": 2459,
+      "post_size": 2459,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 43,
+      "post_size": 43,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "pre_size": 6500,
+      "post_size": 6859,
+      "equal": false
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 127,
+      "post_size": 127,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_clientERNS_5ShardERNS_2OpE",
+      "pre_size": 2539,
+      "post_size": 2539,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_clientERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 40,
+      "post_size": 40,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_111cmd_commandERNS_5ShardERNS_2OpE",
+      "pre_size": 2625,
+      "post_size": 2625,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_111cmd_commandERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 68,
+      "post_size": 68,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "pre_size": 16644,
+      "post_size": 16527,
+      "equal": false
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 340,
+      "post_size": 346,
+      "equal": false
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpEENKUlPKcE_clES6_",
+      "pre_size": 429,
+      "post_size": 429,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const [clone .cold]",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpEENKUlPKcE_clES6_.cold",
+      "pre_size": 19,
+      "post_size": 19,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "pre_size": 7347,
+      "post_size": 7347,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 123,
+      "post_size": 123,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::cmd_flip_unavailable(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db020cmd_flip_unavailableERNS_5ShardERNS_2OpE",
+      "pre_size": 74,
+      "post_size": 74,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::cmd_debug(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db09cmd_debugERNS_5ShardERNS_2OpE",
+      "pre_size": 150,
+      "post_size": 150,
+      "equal": true
+    }
+  ],
+  "changed": 3
+}

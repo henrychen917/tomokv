@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.1s; correctness-plan-fallback; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 ok

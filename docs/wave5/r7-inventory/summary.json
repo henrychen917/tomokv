@@ -1,0 +1,74 @@
+[
+  {
+    "arm": "headline",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+  },
+  {
+    "arm": "txnfix",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f"
+  },
+  {
+    "arm": "bugs5",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "e514a979201f2d748e947c007ce5f8411794bb2d007f2ad6a832c6c2b141c588"
+  },
+  {
+    "arm": "compat3",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35"
+  },
+  {
+    "arm": "trackfix",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+  },
+  {
+    "arm": "fliplisten",
+    "counts": {
+      "tomo": 152,
+      "tomo_db0": 153
+    },
+    "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+  },
+  {
+    "arm": "netfix",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47"
+  },
+  {
+    "arm": "iofix",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "arm": "merged",
+    "counts": {
+      "tomo": 152,
+      "tomo_db0": 153
+    },
+    "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+  }
+]

@@ -1,0 +1,658 @@
+--- 
+
++++ 
+
+@@ -11,75 +11,74 @@
+
+ push   %r10
+ push   %rbx
+-mov    %rdi,%r15
+-sub    $0x1e0,%rsp
++mov    %rdi,%r12
++sub    $0x1c0,%rsp
+ mov    (%rdx),%r8
+-mov    %rsi,-0x150(%rbp)
+-mov    %rdx,-0x158(%rbp)
+-mov    -0x150(%rbp),%rdi
+-mov    %ecx,-0x190(%rbp)
++mov    %rsi,-0x140(%rbp)
++mov    %rdx,-0x148(%rbp)
++mov    -0x140(%rbp),%rdi
+ mov    %rdx,%rsi
+ mov    %fs:0x28,%rax
+ mov    %rax,-0x38(%rbp)
+ xor    %eax,%eax
++mov    %ecx,-0x124(%rbp)
+ movq   $0x0,-0xd0(%rbp)
+ movq   $0x0,-0xc8(%rbp)
+ testb  $0x1,0x12(%r8)
+ mov    0x554(%rdi),%edx
+-setne  -0x139(%rbp)
++setne  -0x126(%rbp)
+ movq   $0x0,-0xc0(%rbp)
+ movl   $0x0,-0xb8(%rbp)
+ je TARGET
+-mov    0x18(%r15),%rax
+-mov    -0x150(%rbp),%rbx
+-mov    %rax,-0x148(%rbp)
+-mov    0x10(%rbx),%rcx
++mov    0x18(%r12),%rax
++mov    -0x140(%rbp),%rcx
++mov    %rax,-0x138(%rbp)
++mov    0x10(%rcx),%rsi
+ mov    0x118(%rax),%rax
+-mov    %rcx,-0x188(%rbp)
+-mov    %rax,-0x180(%rbp)
++mov    %rsi,-0x170(%rbp)
++mov    %rax,-0x168(%rbp)
+ test   %rax,%rax
+ je TARGET
+-mov    %rax,0x10(%rbx)
+-mov    %rax,0x1c0(%rbx)
+-mov    -0x148(%rbp),%rax
++mov    %rax,0x10(%rcx)
++mov    %rax,0x1c0(%rcx)
++mov    -0x138(%rbp),%rax
+ cmpb   $0x31,0x2e(%rax)
+ je TARGET
+-mov    -0x150(%rbp),%rbx
+-mov    -0x148(%rbp),%rdi
++mov    -0x140(%rbp),%rbx
++mov    -0x138(%rbp),%rdi
+ mov    (%rbx),%esi
+ call TARGET
+ mov    0x100(%rbx),%rdx
+ mov    %r8,%rsi
+-mov    %rax,-0x170(%rbp)
+-call TARGET
+-test   %rdx,%rdx
+-je TARGET
+-mov    -0x148(%rbp),%rdi
++mov    %rax,-0x160(%rbp)
++call TARGET
++test   %rdx,%rdx
++je TARGET
++mov    -0x138(%rbp),%rdi
+ mov    %r8,%rsi
+ call TARGET
+ test   %al,%al
+ jne TARGET
+-mov    -0x150(%rbp),%rdi
+-call TARGET
+-test   %al,%al
+-je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x140(%rbp),%rdi
++call TARGET
++test   %al,%al
++je TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x4f(%rax)
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ je TARGET
+ mov    0x100(%rax),%rdx
+ test   %rdx,%rdx
+ je TARGET
+-add    $0x38,%rax
+-mov    %rax,-0x160(%rbp)
+-mov    -0x148(%rbp),%rdi
++lea    0x38(%rax),%r15
++mov    -0x138(%rbp),%rdi
+ cmpb   $0x0,0x51(%rdi)
+-movzbl 0x53(%rdi),%edx
+ movzbl 0x3c(%rdi),%ecx
+ mov    0x70(%rdi),%rax
++movzbl 0x53(%rdi),%edx
+ je TARGET
+ test   %dl,%dl
+ jne TARGET
+-mov    -0x148(%rbp),%rbx
+-mov    (%rbx),%rbx
++mov    -0x138(%rbp),%rsi
++mov    (%rsi),%rbx
+ cmp    $0xffffffffffffffff,%rbx
+ setne  %dl
+@@ -87,32 +86,33 @@
+
+ je TARGET
+ mov    $0xffffffffffffffff,%rbx
+-movb   $0x0,-0x178(%rbp)
+-jmp TARGET
+-mov    -0x148(%rbp),%rax
++movb   $0x0,-0x150(%rbp)
++jmp TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x50(%rax)
+ je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x4f(%rax)
+ jne TARGET
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ mov    0x100(%rax),%rdx
+ xor    %eax,%eax
+ test   %rdx,%rdx
+ je TARGET
+-mov    %al,-0x130(%rbp)
+-call TARGET
+-test   %al,%al
+-jne TARGET
+-lea    -0x130(%rbp),%rax
+-mov    %rax,-0x110(%rbp)
+-mov    -0x150(%rbp),%rax
+-mov    %rax,-0x108(%rbp)
+-lea    -0x139(%rbp),%rax
+-mov    %rax,-0x100(%rbp)
+-mov    -0x148(%rbp),%rax
+-mov    0x2f0(%rax),%r12
+-test   %r12,%r12
+-je TARGET
+-mov    -0x148(%rbp),%rax
++mov    %al,-0x120(%rbp)
++call TARGET
++test   %al,%al
++jne TARGET
++lea    -0x120(%rbp),%rax
++mov    %rax,-0xf0(%rbp)
++mov    -0x140(%rbp),%rax
++mov    %rax,-0xe8(%rbp)
++lea    -0x126(%rbp),%rax
++mov    %rax,-0xe0(%rbp)
++mov    -0x138(%rbp),%rax
++mov    0x2f0(%rax),%rax
++mov    %rax,-0x180(%rbp)
++test   %rax,%rax
++je TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x2,0x31(%rax)
+ movzbl 0x2e(%rax),%ebx
+@@ -122,5 +122,5 @@
+
+ cmp    $0x10,%bl
+ je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x138(%rbp),%rax
+ movzbl 0x50(%rax),%edx
+ test   %dl,%dl
+@@ -131,32 +131,32 @@
+
+ cmp    $0x2b,%bl
+ ja TARGET
+-lea    0x314030(%rip),%rcx
++lea    0x312800(%rip),%rcx
+ movzbl %bl,%eax
+ movslq (%rcx,%rax,4),%rax
+ add    %rcx,%rax
+ notrack jmp *%rax
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ xor    %r12d,%r12d
+-lea    0x538(%rax),%r14
+-mov    -0x170(%rbp),%rax
+-mov    0x8(%rax),%r15d
+-test   %r15d,%r15d
+-jne TARGET
+-mov    -0x148(%rbp),%rbx
+-mov    -0x170(%rbp),%rax
++lea    0x538(%rax),%r13
++mov    -0x160(%rbp),%rax
++mov    0x8(%rax),%eax
++test   %eax,%eax
++jne TARGET
++mov    -0x160(%rbp),%rax
++mov    -0x138(%rbp),%rsi
+ mov    %r12d,%edx
+ add    0x4(%rax),%edx
+-mov    0x238(%rbx),%rax
+-mov    (%rax,%rdx,4),%r13d
+-mov    %r13,%rax
++mov    0x238(%rsi),%rax
++mov    (%rax,%rdx,4),%eax
++mov    %rax,-0x178(%rbp)
+ shl    $0x5,%rax
+-add    0x230(%rbx),%rax
++add    0x230(%rsi),%rax
+ mov    %rax,%rbx
+-mov    -0x158(%rbp),%rax
++mov    -0x148(%rbp),%rax
+ mov    0xc0(%rax),%rdx
+ mov    0x8(%rbx),%eax
+ test   %rdx,%rdx
+ jne TARGET
+-mov    -0x158(%rbp),%rdi
++mov    -0x148(%rbp),%rdi
+ add    $0xd,%rax
+ shl    $0x4,%rax
+@@ -166,49 +166,50 @@
+
+ mov    0x8(%rax),%rcx
+ mov    (%rbx),%rsi
+-mov    -0x160(%rbp),%rdi
+-call TARGET
+-mov    %eax,%r15d
++mov    %r15,%rdi
++call TARGET
++mov    %eax,%r14d
+ test   %al,%al
+ je TARGET
+ mov    0x18(%rbx),%rdx
+-movzbl -0x139(%rbp),%edi
++movzbl -0x126(%rbp),%edi
+ mov    (%rbx),%r8
+ test   %rdx,%rdx
+ je TARGET
+-mov    0x8(%rbx),%edx
+-mov    -0x158(%rbp),%rbx
+-mov    0xc0(%rbx),%r9
+-lea    0x1(%rdx),%eax
++mov    -0x148(%rbp),%rsi
++mov    0x8(%rbx),%eax
++mov    0xc0(%rsi),%r9
++lea    0x1(%rax),%edx
+ test   %r9,%r9
+ je TARGET
+-mov    -0x158(%rbp),%rbx
+-mov    %rax,%rcx
++mov    -0x148(%rbp),%rsi
++mov    %rdx,%rcx
++add    $0xd,%rax
++shl    $0x4,%rcx
++shl    $0x4,%rdx
+ shl    $0x4,%rax
+-shl    $0x4,%rcx
+-mov    0xd8(%rax,%rbx,1),%r10
+-lea    0xd(%rdx),%rax
+-mov    0xd0(%rbx,%rcx,1),%rcx
+-shl    $0x4,%rax
+-add    %rbx,%rax
+-jmp TARGET
++mov    0xd0(%rsi,%rcx,1),%rcx
++mov    0xd8(%rdx,%rsi,1),%rdx
++add    %rsi,%rax
++jmp TARGET
++mov    %rcx,-0x1e0(%rbp)
++mov    %rdx,-0x1d8(%rbp)
++mov    0x8(%rax),%rcx
+ mov    (%rax),%rdx
+-mov    %rcx,-0x1f0(%rbp)
+-mov    0x8(%rax),%rcx
+-mov    -0x148(%rbp),%rax
+-mov    %r10,-0x1e8(%rbp)
+-mov    -0x150(%rbp),%rsi
++mov    -0x138(%rbp),%rax
++mov    -0x178(%rbp),%rbx
++mov    -0x140(%rbp),%rsi
+ mov    $0xffffffffffffffff,%r9
+-add    0x248(%rax),%r13
++add    0x248(%rax),%rbx
+ push   $0x0
+ push   $0x1
+-push   -0x1e8(%rbp)
+-push   -0x1f0(%rbp)
++push   -0x1d8(%rbp)
++push   -0x1e0(%rbp)
+ call TARGET
+ add    $0x20,%rsp
+-mov    %al,0x0(%r13)
+-jmp TARGET
+-test   %r15b,%r15b
+-je TARGET
+-mov    -0x170(%rbp),%rax
++mov    %al,(%rbx)
++jmp TARGET
++test   %r14b,%r14b
++je TARGET
++mov    -0x160(%rbp),%rax
+ inc    %r12d
+ cmp    0x8(%rax),%r12d
+@@ -216,12 +217,12 @@
+
+ xor    %ebx,%ebx
+ jmp TARGET
+-cmpb   $0x0,-0x178(%rbp)
+-je TARGET
+-cmpq   $0x0,-0x180(%rbp)
+-je TARGET
+-mov    -0x150(%rbp),%rax
+-mov    -0x188(%rbp),%rdi
+-mov    %rdi,0x10(%rax)
+-mov    %rdi,0x1c0(%rax)
++cmpb   $0x0,-0x150(%rbp)
++je TARGET
++cmpq   $0x0,-0x168(%rbp)
++je TARGET
++mov    -0x140(%rbp),%rax
++mov    -0x170(%rbp),%rsi
++mov    %rsi,0x10(%rax)
++mov    %rsi,0x1c0(%rax)
+ lea    -0xd0(%rbp),%rdi
+ call TARGET
+@@ -252,75 +253,74 @@
+
+ push   %r10
+ push   %rbx
+-mov    %rdi,%r15
+-sub    $0x1e0,%rsp
++mov    %rdi,%r12
++sub    $0x1c0,%rsp
+ mov    (%rdx),%r8
+-mov    %rsi,-0x150(%rbp)
+-mov    %rdx,-0x158(%rbp)
+-mov    -0x150(%rbp),%rdi
+-mov    %ecx,-0x190(%rbp)
++mov    %rsi,-0x140(%rbp)
++mov    %rdx,-0x148(%rbp)
++mov    -0x140(%rbp),%rdi
+ mov    %rdx,%rsi
+ mov    %fs:0x28,%rax
+ mov    %rax,-0x38(%rbp)
+ xor    %eax,%eax
++mov    %ecx,-0x124(%rbp)
+ movq   $0x0,-0xd0(%rbp)
+ movq   $0x0,-0xc8(%rbp)
+ testb  $0x1,0x12(%r8)
+ mov    0x554(%rdi),%edx
+-setne  -0x139(%rbp)
++setne  -0x126(%rbp)
+ movq   $0x0,-0xc0(%rbp)
+ movl   $0x0,-0xb8(%rbp)
+ je TARGET
+-mov    0x18(%r15),%rax
+-mov    -0x150(%rbp),%rbx
+-mov    %rax,-0x148(%rbp)
+-mov    0x10(%rbx),%rcx
++mov    0x18(%r12),%rax
++mov    -0x140(%rbp),%rcx
++mov    %rax,-0x138(%rbp)
++mov    0x10(%rcx),%rsi
+ mov    0x118(%rax),%rax
+-mov    %rcx,-0x188(%rbp)
+-mov    %rax,-0x180(%rbp)
++mov    %rsi,-0x170(%rbp)
++mov    %rax,-0x168(%rbp)
+ test   %rax,%rax
+ je TARGET
+-mov    %rax,0x10(%rbx)
+-mov    %rax,0x1c0(%rbx)
+-mov    -0x148(%rbp),%rax
++mov    %rax,0x10(%rcx)
++mov    %rax,0x1c0(%rcx)
++mov    -0x138(%rbp),%rax
+ cmpb   $0x31,0x2e(%rax)
+ je TARGET
+-mov    -0x150(%rbp),%rbx
+-mov    -0x148(%rbp),%rdi
++mov    -0x140(%rbp),%rbx
++mov    -0x138(%rbp),%rdi
+ mov    (%rbx),%esi
+ call TARGET
+ mov    0x100(%rbx),%rdx
+ mov    %r8,%rsi
+-mov    %rax,-0x170(%rbp)
+-call TARGET
+-test   %rdx,%rdx
+-je TARGET
+-mov    -0x148(%rbp),%rdi
++mov    %rax,-0x160(%rbp)
++call TARGET
++test   %rdx,%rdx
++je TARGET
++mov    -0x138(%rbp),%rdi
+ mov    %r8,%rsi
+ call TARGET
+ test   %al,%al
+ jne TARGET
+-mov    -0x150(%rbp),%rdi
+-call TARGET
+-test   %al,%al
+-je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x140(%rbp),%rdi
++call TARGET
++test   %al,%al
++je TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x4f(%rax)
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ je TARGET
+ mov    0x100(%rax),%rdx
+ test   %rdx,%rdx
+ je TARGET
+-add    $0x38,%rax
+-mov    %rax,-0x160(%rbp)
+-mov    -0x148(%rbp),%rdi
++lea    0x38(%rax),%r15
++mov    -0x138(%rbp),%rdi
+ cmpb   $0x0,0x51(%rdi)
+-movzbl 0x53(%rdi),%edx
+ movzbl 0x3c(%rdi),%ecx
+ mov    0x70(%rdi),%rax
++movzbl 0x53(%rdi),%edx
+ je TARGET
+ test   %dl,%dl
+ jne TARGET
+-mov    -0x148(%rbp),%rbx
+-mov    (%rbx),%rbx
++mov    -0x138(%rbp),%rsi
++mov    (%rsi),%rbx
+ cmp    $0xffffffffffffffff,%rbx
+ setne  %dl
+@@ -328,32 +328,33 @@
+
+ je TARGET
+ mov    $0xffffffffffffffff,%rbx
+-movb   $0x0,-0x178(%rbp)
+-jmp TARGET
+-mov    -0x148(%rbp),%rax
++movb   $0x0,-0x150(%rbp)
++jmp TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x50(%rax)
+ je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x138(%rbp),%rax
+ cmpb   $0x0,0x4f(%rax)
+ jne TARGET
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ mov    0x100(%rax),%rdx
+ xor    %eax,%eax
+ test   %rdx,%rdx
+ je TARGET
+-mov    %al,-0x130(%rbp)
+-call TARGET
+-test   %al,%al
+-jne TARGET
+-lea    -0x130(%rbp),%rax
+-mov    %rax,-0x110(%rbp)
+-mov    -0x150(%rbp),%rax
+-mov    %rax,-0x108(%rbp)
+-lea    -0x139(%rbp),%rax
+-mov    %rax,-0x100(%rbp)
+-mov    -0x148(%rbp),%rax
+-mov    0x2f0(%rax),%r12
+-test   %r12,%r12
+-je TARGET
+-mov    -0x148(%rbp),%rax
++mov    %al,-0x120(%rbp)
++call TARGET
++test   %al,%al
++jne TARGET
++lea    -0x120(%rbp),%rax
++mov    %rax,-0xf0(%rbp)
++mov    -0x140(%rbp),%rax
++mov    %rax,-0xe8(%rbp)
++lea    -0x126(%rbp),%rax
++mov    %rax,-0xe0(%rbp)
++mov    -0x138(%rbp),%rax
++mov    0x2f0(%rax),%rax
++mov    %rax,-0x180(%rbp)
++test   %rax,%rax
++je TARGET
++mov    -0x138(%rbp),%rax
+ cmpb   $0x2,0x31(%rax)
+ movzbl 0x2e(%rax),%ebx
+@@ -363,5 +364,5 @@
+
+ cmp    $0x10,%bl
+ je TARGET
+-mov    -0x148(%rbp),%rax
++mov    -0x138(%rbp),%rax
+ movzbl 0x50(%rax),%edx
+ test   %dl,%dl
+@@ -372,32 +373,32 @@
+
+ cmp    $0x2b,%bl
+ ja TARGET
+-lea    0x314030(%rip),%rcx
++lea    0x312800(%rip),%rcx
+ movzbl %bl,%eax
+ movslq (%rcx,%rax,4),%rax
+ add    %rcx,%rax
+ notrack jmp *%rax
+-mov    -0x150(%rbp),%rax
++mov    -0x140(%rbp),%rax
+ xor    %r12d,%r12d
+-lea    0x538(%rax),%r14
+-mov    -0x170(%rbp),%rax
+-mov    0x8(%rax),%r15d
+-test   %r15d,%r15d
+-jne TARGET
+-mov    -0x148(%rbp),%rbx
+-mov    -0x170(%rbp),%rax
++lea    0x538(%rax),%r13
++mov    -0x160(%rbp),%rax
++mov    0x8(%rax),%eax
++test   %eax,%eax
++jne TARGET
++mov    -0x160(%rbp),%rax
++mov    -0x138(%rbp),%rsi
+ mov    %r12d,%edx
+ add    0x4(%rax),%edx
+-mov    0x238(%rbx),%rax
+-mov    (%rax,%rdx,4),%r13d
+-mov    %r13,%rax
++mov    0x238(%rsi),%rax
++mov    (%rax,%rdx,4),%eax
++mov    %rax,-0x178(%rbp)
+ shl    $0x5,%rax
+-add    0x230(%rbx),%rax
++add    0x230(%rsi),%rax
+ mov    %rax,%rbx
+-mov    -0x158(%rbp),%rax
++mov    -0x148(%rbp),%rax
+ mov    0xc0(%rax),%rdx
+ mov    0x8(%rbx),%eax
+ test   %rdx,%rdx
+ jne TARGET
+-mov    -0x158(%rbp),%rdi
++mov    -0x148(%rbp),%rdi
+ add    $0xd,%rax
+ shl    $0x4,%rax
+@@ -407,49 +408,50 @@
+
+ mov    0x8(%rax),%rcx
+ mov    (%rbx),%rsi
+-mov    -0x160(%rbp),%rdi
+-call TARGET
+-mov    %eax,%r15d
++mov    %r15,%rdi
++call TARGET
++mov    %eax,%r14d
+ test   %al,%al
+ je TARGET
+ mov    0x18(%rbx),%rdx
+-movzbl -0x139(%rbp),%edi
++movzbl -0x126(%rbp),%edi
+ mov    (%rbx),%r8
+ test   %rdx,%rdx
+ je TARGET
+-mov    0x8(%rbx),%edx
+-mov    -0x158(%rbp),%rbx
+-mov    0xc0(%rbx),%r9
+-lea    0x1(%rdx),%eax
++mov    -0x148(%rbp),%rsi
++mov    0x8(%rbx),%eax
++mov    0xc0(%rsi),%r9
++lea    0x1(%rax),%edx
+ test   %r9,%r9
+ je TARGET
+-mov    -0x158(%rbp),%rbx
+-mov    %rax,%rcx
++mov    -0x148(%rbp),%rsi
++mov    %rdx,%rcx
++add    $0xd,%rax
++shl    $0x4,%rcx
++shl    $0x4,%rdx
+ shl    $0x4,%rax
+-shl    $0x4,%rcx
+-mov    0xd8(%rax,%rbx,1),%r10
+-lea    0xd(%rdx),%rax
+-mov    0xd0(%rbx,%rcx,1),%rcx
+-shl    $0x4,%rax
+-add    %rbx,%rax
+-jmp TARGET
++mov    0xd0(%rsi,%rcx,1),%rcx
++mov    0xd8(%rdx,%rsi,1),%rdx
++add    %rsi,%rax
++jmp TARGET
++mov    %rcx,-0x1e0(%rbp)
++mov    %rdx,-0x1d8(%rbp)
++mov    0x8(%rax),%rcx
+ mov    (%rax),%rdx
+-mov    %rcx,-0x1f0(%rbp)
+-mov    0x8(%rax),%rcx
+-mov    -0x148(%rbp),%rax
+-mov    %r10,-0x1e8(%rbp)
+-mov    -0x150(%rbp),%rsi
++mov    -0x138(%rbp),%rax
++mov    -0x178(%rbp),%rbx
++mov    -0x140(%rbp),%rsi
+ mov    $0xffffffffffffffff,%r9
+-add    0x248(%rax),%r13
++add    0x248(%rax),%rbx
+ push   $0x0
+ push   $0x1
+-push   -0x1e8(%rbp)
+-push   -0x1f0(%rbp)
++push   -0x1d8(%rbp)
++push   -0x1e0(%rbp)
+ call TARGET
+ add    $0x20,%rsp
+-mov    %al,0x0(%r13)
+-jmp TARGET
+-test   %r15b,%r15b
+-je TARGET
+-mov    -0x170(%rbp),%rax
++mov    %al,(%rbx)
++jmp TARGET
++test   %r14b,%r14b
++je TARGET
++mov    -0x160(%rbp),%rax
+ inc    %r12d
+ cmp    0x8(%rax),%r12d
+@@ -457,12 +459,12 @@
+
+ xor    %ebx,%ebx
+ jmp TARGET
+-cmpb   $0x0,-0x178(%rbp)
+-je TARGET
+-cmpq   $0x0,-0x180(%rbp)
+-je TARGET
+-mov    -0x150(%rbp),%rax
+-mov    -0x188(%rbp),%rdi
+-mov    %rdi,0x10(%rax)
+-mov    %rdi,0x1c0(%rax)
++cmpb   $0x0,-0x150(%rbp)
++je TARGET
++cmpq   $0x0,-0x168(%rbp)
++je TARGET
++mov    -0x140(%rbp),%rax
++mov    -0x170(%rbp),%rsi
++mov    %rsi,0x10(%rax)
++mov    %rsi,0x1c0(%rax)
+ lea    -0xd0(%rbp),%rdi
+ call TARGET

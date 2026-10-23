@@ -1,0 +1,149 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave5/build/gate-run.eklpWv
+PARTIAL jobs (including prerequisites): release production_units snapshot-epoll snapshot-uring script_bounds dump_restore auth notify tls globcase
+PARTIAL jobs (including prerequisites): release production_units snapshot-epoll snapshot-uring script_bounds dump_restore auth notify tls globcase
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0.635s; correctness-plan-fallback; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 900s; median=2.775s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 900s; median=5.17s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, sigterm, epoll)
+  shutdown keeps acknowledged writes (1s, sigterm, epoll) ok
+  row budget: 900s; median=0.8s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, command, epoll)
+  shutdown keeps acknowledged writes (1s, command, epoll) ok
+  row budget: 900s; median=0.96s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 0, epoll) ok
+  row budget: 900s; median=0.935s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 1, epoll) ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, sigterm, epoll)
+  shutdown keeps acknowledged writes (2s, sigterm, epoll) ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, command, epoll)
+  shutdown keeps acknowledged writes (2s, command, epoll) ok
+  row budget: 900s; median=1.065s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 0, epoll) ok
+  row budget: 900s; median=1.05s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 1, epoll) ok
+  row budget: 900s; median=0.625s; correctness-plan-fallback; snapshot concurrent cut (uring)
+  snapshot concurrent cut (uring)                      ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; snapshot cut reload (uring)
+  snapshot cut reload (uring)                          ok
+  row budget: 900s; median=2.76s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (uring, atomic 1)
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  row budget: 900s; median=5.19s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (uring)
+  typed snapshot save (uring)                          ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; typed snapshot reload (uring)
+  typed snapshot reload (uring)                        ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; typed snapshot preimage race (uring)
+  typed snapshot preimage race (uring)                 ok
+  row budget: 900s; median=0.055s; correctness-plan-fallback; typed snapshot race reload (uring)
+  typed snapshot race reload (uring)                   ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, sigterm, uring)
+  shutdown keeps acknowledged writes (1s, sigterm, uring) ok
+  row budget: 900s; median=0.81s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, command, uring)
+  shutdown keeps acknowledged writes (1s, command, uring) ok
+  row budget: 900s; median=0.965s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+  shutdown cancels BGSAVE capture (1s, atomic 0, uring) ok
+  row budget: 900s; median=0.955s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+  shutdown cancels BGSAVE capture (1s, atomic 1, uring) ok
+  row budget: 900s; median=0.805s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, sigterm, uring)
+  shutdown keeps acknowledged writes (2s, sigterm, uring) ok
+  row budget: 900s; median=0.82s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, command, uring)
+  shutdown keeps acknowledged writes (2s, command, uring) ok
+  row budget: 900s; median=1.055s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+  shutdown cancels BGSAVE capture (2s, atomic 0, uring) ok
+  row budget: 900s; median=1.05s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+  shutdown cancels BGSAVE capture (2s, atomic 1, uring) ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; xscript limit control
+  xscript limit control                                ok
+  row budget: 900s; median=0.54s; correctness-plan-fallback; xscript window control
+  xscript window control                               ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; DUMP/RESTORE prepare + native SAVE
+  DUMP/RESTORE prepare + native SAVE                   ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; DUMP/RESTORE cross-restart round-trip
+  DUMP/RESTORE cross-restart round-trip                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; DUMP/RESTORE restart shutdown invariants
+  DUMP/RESTORE restart shutdown invariants             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=2.43s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=1.55s; correctness-plan-fallback; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=0.88s; correctness-plan-fallback; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=22.76s; correctness-plan-fallback; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+  row budget: 900s; median=1.32s; correctness-plan-fallback; TLS ephemeral CA/server/client certificates
+  TLS ephemeral CA/server/client certificates          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; NET2 serverless RX policy and KeyUpdate controls
+  NET2 serverless RX policy and KeyUpdate controls     ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject TLS listener without certificate
+  reject TLS listener without certificate              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject invalid tls-protocols
+  reject invalid tls-protocols                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject invalid tls-ciphers
+  reject invalid tls-ciphers                           ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth yes matrix
+  TLS client-auth yes matrix                           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS yes shutdown invariants
+  TLS yes shutdown invariants                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; TLS client-auth optional matrix
+  TLS client-auth optional matrix                      ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; kTLS TLS 1.2 engaged live (default boot)
+  kTLS TLS 1.2 engaged live (default boot)             ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; TLS 1.3 KeyUpdate survives (NET2)
+  TLS 1.3 KeyUpdate survives (NET2)                    ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; TLS 1.3 userspace KeyUpdate survives (NET2)
+  TLS 1.3 userspace KeyUpdate survives (NET2)          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; TLS optional shutdown invariants
+  TLS optional shutdown invariants                     ok
+  row budget: 900s; median=14.45s; correctness-plan-fallback; TLS pipeline/torn-record/coexistence battery
+  TLS pipeline/torn-record/coexistence battery         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; TLS shutdown invariants
+  TLS shutdown invariants                              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; TLS application send path error-free
+  TLS application send path error-free                 ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; TLS connection slots all freed (N/N)
+  TLS connection slots all freed (33/33)               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; TLS zc borrow gates fired (suppressed=N)
+  TLS zc borrow gates fired (suppressed=21)            ok
+  row budget: 900s; median=5.82s; correctness-plan-fallback; TLS silent-peer close after reply (ntfix N2)
+  TLS silent-peer close after reply (ntfix N2)         ok
+  row budget: 900s; median=10.69s; correctness-plan-fallback; RESP pre-AUTH limit errors (ntfix N3)
+  RESP pre-AUTH limit errors (ntfix N3)                ok
+  row budget: 900s; median=14.97s; correctness-plan-fallback; RESP query-buffer frontier (ntfix N4)
+  RESP query-buffer frontier (ntfix N4)                ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; glob/scan grammar parity vs Redis 7.4
+  glob/scan grammar parity vs Redis 7.4                ok
+GATE(PARTIAL): 72 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave5/docs/wave5/gate/supplement-fused-uring/ledger.partial

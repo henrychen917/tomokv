@@ -17,18 +17,13 @@ std::atomic<uint64_t> g_plain_stale_cuts{0};
 // Reads continue to resolve immutable predecessors without any retry or wait.
 void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
                             const ScatterState* self) {
-    store.atomic_visit_key_groups(hash, key, [&](ScatterState& script) {
-        if (&script == self || script.kind != Kind::Script ||
-            script.aborted.load(std::memory_order_acquire)) return;
-        uint64_t undecided = 0;
-        if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
-                                                 std::memory_order_acq_rel)) {
-            script.script_conflict.store(true, std::memory_order_release);
-            script.aborted.store(true, std::memory_order_release);
-        }
+    store.atomic_visit_key_groups(hash, key, [&](auto& record) {
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(record)>, AtomicEntry>)
+            multi_cancel_record(record, self);
+        else
+            multi_cancel_intent(record, self);
     });
 }
-
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
     if (__builtin_expect(snapshot != UINT64_MAX, false))
@@ -47,7 +42,9 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
         if (snapshot != UINT64_MAX) store.atomic_set_read_context(snapshot, origin_conn_id);
         return WorkError::None;
     }
-    if (script_forced) server.note_script_forced_write();
+    if (script_forced) {
+        if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
+    }
 
     // Writers must clone the newest committed version, even while an unrelated reservation
     // holds the safe read watermark behind a completed foreign write.
@@ -88,6 +85,21 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
     bool source_group = false;
     for (uint32_t i = 0; i < group.count; i++)
         source_group |= state.key_order[group.begin + i] == 0;
+
+    if (!txn_group_ready(state, shard, op)) {
+        if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
+        if (source_group) state.direct_ready.store(2, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const KeyRef& key = state.keys[state.key_order[group.begin + i]];
+        if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg))) {
+            if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
+            if (source_group) state.direct_ready.store(2, std::memory_order_release);
+            return ScatterTaskResult::Complete;
+        }
+    }
 
     if (!source_group) {
         const uint8_t ready = state.direct_ready.load(std::memory_order_acquire);
@@ -178,20 +190,41 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             const uint32_t pos = state.key_order[group.begin + i];
             if (pos != 1) continue;
             const KeyRef& key = state.keys[pos];
-            store.atomic_clear_read_epoch();
-            if (store.find(key.hash, op.arg(key.arg))) {
-                state.conditional_failed.store(true, std::memory_order_release);
-                state.aborted.store(true, std::memory_order_release);
-                return ScatterTaskResult::Complete;
-            }
+            store.atomic_set_read_context(UINT64_MAX,
+                state.multi_child ? state.origin_conn_id : 0);
             if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
                 // A foreign undecided value is deliberately invisible to ordinary reads. For an
                 // NX validator it is a reservation: let its group decide, then re-run validation.
                 // One hash probe of both tables answers "is there a physical candidate"; the
                 // previous full for_each walk of the shard ran on every Retry of this arm and
                 // stalled the owner for the whole table while the foreign group was undecided.
-                if (store.atomic_has_physical(key.hash, op.arg(key.arg)))
-                    return ScatterTaskResult::Retry;
+                bool undecided = false;
+                store.atomic_visit_unit_records(key.hash, op.arg(key.arg), false,
+                    [&](AtomicEntry& entry) {
+                        if (state.multi_parent) {
+                            // A child validates against earlier private writes
+                            // of its parent, including sibling child installs.
+                            const void* parent = entry.plain()
+                                ? (entry.group_epoch ? reinterpret_cast<MultiDecision*>(
+                                       entry.group_epoch)->owner : nullptr)
+                                : (entry.group->multi_child ? entry.group->multi_parent : nullptr);
+                            if (parent == state.multi_parent) return;
+                        }
+                        if (entry.group != &state && entry.group_epoch &&
+                            !entry.group_epoch->load(std::memory_order_acquire) &&
+                            !(entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire)))
+                            undecided = true;
+                    });
+                if (undecided && store.atomic_has_physical(key.hash, op.arg(key.arg)))
+                    return ScatterTaskResult::Defer;
+            }
+            // A foreign finalizer can publish its ticket during this owner turn.
+            // Check decisions before reading: finding absence first, then seeing
+            // a committed word here, could incorrectly pass both validations.
+            if (store.find(key.hash, op.arg(key.arg))) {
+                state.conditional_failed.store(true, std::memory_order_release);
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
             }
         }
     }
@@ -520,8 +553,9 @@ uint32_t ScatterArenaPool::reap_deferred() {
     uint32_t reaped = 0;
     for (size_t i = 0; i < deferred_destroy_.size();) {
         ScatterState* state = deferred_destroy_[i];
-        if (state->record_refs.load(std::memory_order_acquire) != 0 ||
-            state->watch_refs.load(std::memory_order_acquire) != 0) { i++; continue; }
+        if ((state->record_refs.load(std::memory_order_acquire) != 0 ||
+             state->watch_refs.load(std::memory_order_acquire) != 0) &&
+            !txn_group_release(*state)) { i++; continue; }
         const bool pooled = state->pooled;
         free_state_key_anchors(*state);
         state->~ScatterState();
@@ -611,10 +645,14 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         // deliberately widened physical tear. The state word is zero unless prepare classified a
         // non-atomic cross-owner mutation; GET/SET and read/probe waves never reach this branch.
         if (__builtin_expect(state.debug_hop_deadline != 0, false) &&
-            xshard_owner_mutation_phase(state, op) &&
-            server.worker_of_shard(shard.id()) != state.debug_hop_lead_owner &&
-            debug_hop_pending(state))
-            return true;
+            xshard_owner_mutation_phase(state, op)) {
+            // Direct RENAME's source needs every ARRIVE before it may install.
+            // The held destination must participate in ARRIVE before parking,
+            // otherwise the source-complete witness can never become true.
+            if (state.atomic_direct && !txn_group_arrive(state, shard, op)) return true;
+            if (server.worker_of_shard(shard.id()) != state.debug_hop_lead_owner &&
+                debug_hop_pending(state)) return true;
+        }
         // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
         // destination check. Both contenders' destination tasks then reach this deferred queue
         // before either newly posted phase-two task can install its result.
@@ -638,18 +676,20 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
             shard.id() != state.script_coordinator_shard &&
             now_ns() < state.debug_script_defer_deadline)
             return true;
-        if (state.atomic_direct &&
-            (state.direct_ready.load(std::memory_order_acquire) == 0 ||
-             __builtin_expect(state.debug_direct_defer != 0, false))) {
-            ShardGroup* group = group_for(state, shard.id());
-            bool source_group = false;
-            for (uint32_t i = 0; group && i < group->count; i++)
-                source_group |= state.key_order[group->begin + i] == 0;
-            if (!source_group) {
-                // The hook only lengthens an existing park; it never invents one, and it never
-                // touches the source hop, so the group still completes on its own.
-                if (state.debug_direct_defer) state.debug_direct_defer--;
-                return true;
+        if (state.atomic_direct) {
+            if (!txn_group_arrive(state, shard, op)) return true;
+            if (state.direct_ready.load(std::memory_order_acquire) == 0 ||
+                __builtin_expect(state.debug_direct_defer != 0, false)) {
+                ShardGroup* group = group_for(state, shard.id());
+                bool source_group = false;
+                for (uint32_t i = 0; group && i < group->count; i++)
+                    source_group |= state.key_order[group->begin + i] == 0;
+                if (!source_group) {
+                    // The hook only lengthens an existing park; it never invents one, and it never
+                    // touches the source hop, so the group still completes on its own.
+                    if (state.debug_direct_defer) state.debug_direct_defer--;
+                    return true;
+                }
             }
         }
     }
@@ -683,6 +723,11 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     }
 
     FlatStore& store = shard.store();
+    // multi_plain_write_ready marks a blocked reservation on the first pass.
+    // Keep its retry off xshard_retries_: that queue stops incoming waves,
+    // including the unit's next wave that releases this writer.
+    if ((op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+        shard.has_watches() && !multi_plain_write_ready(shard, op)) return true;
     if (!store.atomic_has_records()) return false;
     bool own_undecided = false;
     auto check_own = [&](uint64_t hash, Slice key) {
@@ -893,8 +938,9 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
             if (allocation_failed) return;
             if (!store.atomic_needs_version(hash, key)) return;
             if (!store.atomic_has_record(hash, key) &&
-                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
-                server.note_script_forced_write();
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+                if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
+            }
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
@@ -1011,7 +1057,9 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     // physical path).
     const Slice routed = op_routed_key(op);
     store.atomic_promote_key(op.hash, routed, floor, cleanup_cutoff);
-    if (!store.atomic_needs_version(op.hash, routed)) return true;
+    if (!store.atomic_needs_version(op.hash, routed)) {
+        return true;
+    }
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         store.atomic_set_read_context(
             plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);
@@ -1055,6 +1103,10 @@ uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {
 
 uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
                                  uint32_t budget) {
+    const uint32_t intents = shard.store().atomic_cleanup_unit_intents();
+    if (intents && shard.server())
+        shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()),
+                                  TxnCounter::IntentsLive, uint64_t{0} - intents);
     return shard.store().atomic_sweep(floor, cleanup_cutoff, budget);
 }
 

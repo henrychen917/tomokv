@@ -1,0 +1,63 @@
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [72,73,74,75,76,77,78,79]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=libc-malloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=72 L3=0 shards=0
+  thread t1: role=ifid cpu=73 L3=0 shards=0
+  thread t2: role=ifid cpu=74 L3=0 shards=0
+  thread t3: role=ifid cpu=75 L3=0 shards=0
+  thread t4: role=ifid cpu=76 L3=0 shards=0
+  thread t5: role=ifid cpu=77 L3=0 shards=0
+  thread t6: role=ex cpu=78 L3=0 shards=8
+  thread t7: role=ex cpu=79 L3=0 shards=8
+listening on 127.0.0.1:7926
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              4         65       3.2    1739.9       4.1         0        0
+io_tenure t0/0 busy_ns=3184445 idle_ns=1739945438 entry_ns=4425828970118144 begin_ns=4425828970118204 end_ns=4425830713248087 exit_ns=4425830713248247 role_exit=0 stopped=1
+t1     io            105       1613      35.4    1707.7      41.0        33      130
+io_tenure t1/0 busy_ns=35420356 idle_ns=1707722378 entry_ns=4425828970089733 begin_ns=4425828970089843 end_ns=4425830713232577 exit_ns=4425830713232637 role_exit=0 stopped=1
+t2     io              3         59       2.4    1740.6       3.5         0        1
+io_tenure t2/0 busy_ns=2415720 idle_ns=1740575530 entry_ns=4425828970237387 begin_ns=4425828970237487 end_ns=4425830713228737 exit_ns=4425830713228877 role_exit=0 stopped=1
+t3     io              4         71       3.4    1739.7       4.4         0        1
+io_tenure t3/0 busy_ns=3368012 idle_ns=1739659659 entry_ns=4425828970200856 begin_ns=4425828970201066 end_ns=4425830713228737 exit_ns=4425830713228857 role_exit=0 stopped=1
+t4     io              3         56       2.6    1740.5       3.5         0        2
+io_tenure t4/0 busy_ns=2574814 idle_ns=1740513949 entry_ns=4425828970140494 begin_ns=4425828970140674 end_ns=4425830713229437 exit_ns=4425830713229567 role_exit=0 stopped=1
+t5     io              2         53       1.7    1741.2       2.6         0        2
+io_tenure t5/0 busy_ns=1710191 idle_ns=1741206447 entry_ns=4425828970311949 begin_ns=4425828970312049 end_ns=4425830713228687 exit_ns=4425830713228727 role_exit=0 stopped=1
+t6     ex              0      69632       0.0    1737.1      47.9         0        0
+t7     ex            121     486872      35.7    1659.3     346.1       103      136
+wb: retired=121 direct=121 sends=121/121 short=0 err=0 peer_aborts=0 bytes=41943771 zc_sends=20 zc_bytes=41943040 zc_releases=20 serves=136 empty=15
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=121 executed=121 accepts=22 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":121,"executed":121},"threads":[{"tid":0,"role":"io","ops":4,"iterations":65,"busy_ns":3184445,"idle_ns":1739945438,"cpu_ns":4127590,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":4425828970118144,"begin_ns":4425828970118204,"end_ns":4425830713248087,"exit_ns":4425830713248247,"busy_ns":3184445,"idle_ns":1739945438,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":105,"iterations":1613,"busy_ns":35420356,"idle_ns":1707722378,"cpu_ns":40984380,"wake_tx":33,"wake_rx":130,"io_tenures":[{"entry_ns":4425828970089733,"begin_ns":4425828970089843,"end_ns":4425830713232577,"exit_ns":4425830713232637,"busy_ns":35420356,"idle_ns":1707722378,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":3,"iterations":59,"busy_ns":2415720,"idle_ns":1740575530,"cpu_ns":3473670,"wake_tx":0,"wake_rx":1,"io_tenures":[{"entry_ns":4425828970237387,"begin_ns":4425828970237487,"end_ns":4425830713228737,"exit_ns":4425830713228877,"busy_ns":2415720,"idle_ns":1740575530,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":4,"iterations":71,"busy_ns":3368012,"idle_ns":1739659659,"cpu_ns":4426090,"wake_tx":0,"wake_rx":1,"io_tenures":[{"entry_ns":4425828970200856,"begin_ns":4425828970201066,"end_ns":4425830713228737,"exit_ns":4425830713228857,"busy_ns":3368012,"idle_ns":1739659659,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":3,"iterations":56,"busy_ns":2574814,"idle_ns":1740513949,"cpu_ns":3530110,"wake_tx":0,"wake_rx":2,"io_tenures":[{"entry_ns":4425828970140494,"begin_ns":4425828970140674,"end_ns":4425830713229437,"exit_ns":4425830713229567,"busy_ns":2574814,"idle_ns":1740513949,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":2,"iterations":53,"busy_ns":1710191,"idle_ns":1741206447,"cpu_ns":2566890,"wake_tx":0,"wake_rx":2,"io_tenures":[{"entry_ns":4425828970311949,"begin_ns":4425828970312049,"end_ns":4425830713228687,"exit_ns":4425830713228727,"busy_ns":1710191,"idle_ns":1741206447,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":0,"iterations":69632,"busy_ns":0,"idle_ns":1737099108,"cpu_ns":47881460,"wake_tx":0,"wake_rx":0,"io_tenures":[]},{"tid":7,"role":"ex","ops":121,"iterations":486872,"busy_ns":35662545,"idle_ns":1659324830,"cpu_ns":346106430,"wake_tx":103,"wake_rx":136,"io_tenures":[]}],"wb":{"retired":121,"direct":121,"sends_completed":121,"sends_submitted":121,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":41943771,"zc_sends":20,"zc_bytes":41943040,"zc_releases":20,"serves":136,"serves_empty":15},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":22,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+
+=================================================================
+==3254665==ERROR: LeakSanitizer: detected memory leaks
+
+Indirect leak of 4194304 byte(s) in 1 object(s) allocated from:
+    #0 0x7f4804cfc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x63b3f5730a00 in char* tomo::Client::read_space_impl<false>(unsigned long, unsigned long&, bool, unsigned long, unsigned long) src/core/../net/conn.h:377
+    #2 0x63b3f5730a00 in tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) src/core/../net/conn.h:404
+
+Indirect leak of 24264 byte(s) in 9 object(s) allocated from:
+    #0 0x7f4804cfe6c8 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:98
+    #1 0x63b3f593de08 in tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x2a3e08) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+    #2 0x63b3f5948e8c in void tomo::IoLoop::on_recv<false, false, false>(tomo::Client*, int) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x2aee8c) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+
+Indirect leak of 16384 byte(s) in 1 object(s) allocated from:
+    #0 0x7f4804cfd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x63b3f593a462 in void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x2a0462) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+    #2 0x63b3f593afac in void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x2a0fac) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+
+Indirect leak of 3968 byte(s) in 2 object(s) allocated from:
+    #0 0x7f4804cfee08 in operator new(unsigned long, std::align_val_t, std::nothrow_t const&) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:113
+    #1 0x63b3f59392e1 in void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x29f2e1) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+    #2 0x63b3f593afac in void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind) (/home/user/Projects/cx-wave5/build/gate-cache/tomokv-asan+0x2a0fac) (BuildId: a65ff64c4d8648a1fd74e0f8ad140fe9d536ccac)
+
+Indirect leak of 128 byte(s) in 1 object(s) allocated from:
+    #0 0x7f4804cfc778 in realloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:85
+    #1 0x63b3f572ff0d in tomo::RespFrontier::push(unsigned int, unsigned int) src/core/../net/resp.h:291
+
+SUMMARY: AddressSanitizer: 4239048 byte(s) leaked in 14 allocation(s).

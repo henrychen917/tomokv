@@ -1,0 +1,41 @@
+directed SMOVE result 1 state [[], [b'a', b'z', b'm']]
+PASS G1-SMOVE
+directed LMOVE result b'm' state [[], [b'a', b'z', b'm']]
+PASS G1-LMOVE
+directed PFMERGE result b'OK' state [2, 6]
+PASS G1-PFMERGE
+directed RPOPLPUSH-source result b'z' state [[b'm'], [b'z', b'a']]
+PASS G1-RPOPLPUSH-source
+directed RENAME-source result b'OK' state [None, b'new']
+PASS G1-RENAME-source
+directed MSETNX result 0 state [b'from-set', None]
+PASS G2
+FAIL G3 TimeoutError('timed out')
+FAIL G4-smove TimeoutError('timed out')
+FAIL G4-rpoplpush TimeoutError('timed out')
+FAIL GX OSError('cannot read from timed out object')
+FAIL G6 OSError('cannot read from timed out object')
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txngroup.py", line 223, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/txngroup.py", line 217, in main
+    battery.hook("ATOMIC-COMMIT-HOLD", 0)
+  File "/home/user/Projects/cx-txnfix/tests/txniso.py", line 53, in hook
+    assert self.admin.must("DEBUG", name, value) == b"OK"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 704, in readinto
+    raise OSError("cannot read from timed out object")
+OSError: cannot read from timed out object

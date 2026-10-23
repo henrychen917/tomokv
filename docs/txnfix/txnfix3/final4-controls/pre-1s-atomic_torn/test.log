@@ -1,0 +1,39 @@
+  ok   DEBUG SHARD/LBSIGNALS geometry resolved same_shard=12 source_owner=4 destination_owner=2
+  ok   OFF control exposes torn MSET-8 torn=42521 reads=42531 errors=[] threads_still_alive=False
+  ok   ON MSET-8/MGET-8 torn-free torn=0 reads=2493 errors=[] threads_still_alive=False
+  ok   ON commit-delay window held a read cut delta=1870
+  ok   ON exercised predecessor resolution delta=19936
+  ok   ON exercised promotion delta=9960
+  SKIP ON promotion drains within release budget requires --release-build; promotion-drain=0.000s holds=1870 predecessors=19936 promotions=9960
+  ok   atomic_inflight returns to idle value=0
+  ok   same-owner atomic MSET-2 localfast is torn-free keys=('at:geometry:0000', 'at:geometry:0007') torn=0 reads=90700 localfast=45656 errors=[] threads_still_alive=False
+  ok   overlapping atomic writers never mix torn=0 reads=94271 errors=[] threads_still_alive=False
+  ok   promotion leaves one exact final group final=b'at:overlap:w1:18721' completed=37155 threads_still_alive=False
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001306 witness_s=0.0012617167085409164 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=138798 final=True errors=[] threads_still_alive=False hold_s=0.001287 witness_s=0.0012317709624767303 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes impossible SINTERSTORE image invalid=191 reads=34187 errors=[] threads_still_alive=False
+  ok   ON SINTERSTORE image matches one source cut invalid=0 reads=28382 final=True errors=[] threads_still_alive=False
+  ok   OFF LMPOP racers preserve element accounting popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   ON LMPOP racers pop every element exactly once popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes RENAMENX losing race anomalies=2 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes COPY losing race anomalies=13 errors=[] threads_still_alive=False
+  ok   ON COPY loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  note atomic-window window attempt=1/4 outcome=failed limit=256 groups=640 peak=65 held_stalls=0 stalls=0 carried=0 held_replies=0 arm_s=1.102 held_replies/s=0.0 released=False replies=0/640 resume_s=0.000 resume_replies/s=n/a
+  FAIL derived atomic window stalls and resumes [Errno 32] Broken pipe
+  FAIL atomic reconfiguration preserves derived bound and reclaims leases [Errno 111] Connection refused
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/atomic_torn.py", line 1021, in <module>
+    if not config("atomic", i & 1):
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomic_torn.py", line 103, in config
+    c = Resp()
+        ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomic_torn.py", line 63, in __init__
+    self.sock = socket.create_connection((HOST, PORT), timeout=30)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 852, in create_connection
+    raise exceptions[0]
+  File "/usr/lib/python3.12/socket.py", line 837, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused

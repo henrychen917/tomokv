@@ -1,0 +1,510 @@
+[
+  {
+    "run": "clientfix-uring",
+    "passing_rows": 15,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24800-24809",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/tomokv"
+      ],
+      "jobs": [
+        "clientfix"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/clientfix-uring.tar.gz"
+  },
+  {
+    "run": "epoll",
+    "passing_rows": 252,
+    "failed_rows": 7,
+    "failures": [
+      "servertail battery (atomic 0)                        FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/feature-split-0/gate-servertail-0.txt)",
+      "fused+armed servertail battery (atomic 0)            FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/feature-armed-0/gate-fusedarmed-servertail-0.txt)",
+      "servertail battery (atomic 1)                        FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/feature-split-1/gate-servertail-1.txt)",
+      "fused+armed servertail battery (atomic 1)            FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/feature-armed-1/gate-fusedarmed-servertail-1.txt)",
+      "authfix CG4.1 binary config requirepass              FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/authfix/authfix-config.log)",
+      "authfix CG4.2 missing config value refuses boot      FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/authfix/authfix-arity.log)",
+      "authfix SV4.2 binary requirepass rewrite restart     FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.xS6xFB/jobs/authfix/authfix-rewrite.log)"
+    ],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24810-24839",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll"
+      ],
+      "jobs": [
+        "debug-0",
+        "debug-1",
+        "bplus",
+        "flip",
+        "authfix",
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "netcmd_units",
+        "storage_units",
+        "readonly",
+        "globcase",
+        "hexpread",
+        "clientfix"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll.tar.gz"
+  },
+  {
+    "run": "epoll-authfix-v2",
+    "passing_rows": 6,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24800-24809",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-v2"
+      ],
+      "jobs": [
+        "authfix"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-authfix-v2.tar.gz"
+  },
+  {
+    "run": "epoll-features-v2",
+    "passing_rows": 138,
+    "failed_rows": 1,
+    "failures": [
+      "fused+armed pushtear battery (atomic 1)              FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.UfqFQe/jobs/feature-armed-1/gate-fusedarmed-pushtear-1.txt)"
+    ],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24840-24849",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-v2"
+      ],
+      "jobs": [
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-features-v2.tar.gz"
+  },
+  {
+    "run": "epoll-lru-armed-0",
+    "passing_rows": 2,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24834-24837",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-epoll-lru-armed-0"
+      ],
+      "jobs": [
+        "evict-lruclock-armed-0"
+      ],
+      "requested_jobs": [
+        "evict-lruclock-armed-0"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-lru-armed-0.tar.gz"
+  },
+  {
+    "run": "epoll-lru-armed-1",
+    "passing_rows": 2,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24864-24867",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-epoll-lru-armed-1"
+      ],
+      "jobs": [
+        "evict-lruclock-armed-1"
+      ],
+      "requested_jobs": [
+        "evict-lruclock-armed-1"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-lru-armed-1.tar.gz"
+  },
+  {
+    "run": "epoll-lru-split-0",
+    "passing_rows": 2,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24814-24817",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-epoll-lru-split-0"
+      ],
+      "jobs": [
+        "evict-lruclock-split-0"
+      ],
+      "requested_jobs": [
+        "evict-lruclock-split-0"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-lru-split-0.tar.gz"
+  },
+  {
+    "run": "epoll-lru-split-1",
+    "passing_rows": 2,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24824-24827",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-epoll-lru-split-1"
+      ],
+      "jobs": [
+        "evict-lruclock-split-1"
+      ],
+      "requested_jobs": [
+        "evict-lruclock-split-1"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/epoll-lru-split-1.tar.gz"
+  },
+  {
+    "run": "pre-epoll-armed1",
+    "passing_rows": 36,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24850-24859",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-pre-epoll-armed1"
+      ],
+      "jobs": [
+        "feature-armed-1"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/pre-epoll-armed1.tar.gz"
+  },
+  {
+    "run": "sweep-epoll",
+    "passing_rows": 28,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24870-24879",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-sweep-epoll"
+      ],
+      "jobs": [
+        "config_unit",
+        "cmd_metadata",
+        "atomic_batteries",
+        "wb_rule_units",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-2s-uring",
+        "respresume-neighbour-2s-epoll"
+      ],
+      "requested_jobs": [
+        "config_unit",
+        "cmd_metadata",
+        "atomic_batteries",
+        "wb_rule_units",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-2s-uring",
+        "respresume-neighbour-2s-epoll"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/sweep-epoll.tar.gz"
+  },
+  {
+    "run": "sweep-uring",
+    "passing_rows": 32,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24870-24879",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/tomokv"
+      ],
+      "jobs": [
+        "config_unit",
+        "cmd_metadata",
+        "atomic_batteries",
+        "wb_rule_units",
+        "evict-lfu-split-0",
+        "evict-lfu-split-1",
+        "evict-lfu-armed-0",
+        "evict-lfu-armed-1",
+        "evict-lruclock-split-0",
+        "evict-lruclock-split-1",
+        "evict-lruclock-armed-0",
+        "evict-lruclock-armed-1",
+        "respresume-fragment-1s-uring",
+        "respresume-fragment-1s-epoll",
+        "respresume-fragment-2s-uring",
+        "respresume-fragment-2s-epoll",
+        "respresume-cpu-1s-uring",
+        "respresume-cpu-1s-epoll",
+        "respresume-cpu-2s-uring",
+        "respresume-cpu-2s-epoll",
+        "respresume-neighbour-1s-uring",
+        "respresume-neighbour-1s-epoll",
+        "respresume-neighbour-2s-uring",
+        "respresume-neighbour-2s-epoll"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/sweep-uring.tar.gz"
+  },
+  {
+    "run": "uring",
+    "passing_rows": 245,
+    "failed_rows": 0,
+    "failures": [],
+    "gate_argv": {
+      "argv": [
+        "taskset",
+        "-c",
+        "96-111",
+        "bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-104",
+        "--load-cores",
+        "105-111",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "24810-24839",
+        "--candidate-binary",
+        "/home/user/Projects/cx-bugs5/build/tomokv"
+      ],
+      "jobs": [
+        "debug-0",
+        "debug-1",
+        "bplus",
+        "flip",
+        "authfix",
+        "feature-split-0",
+        "feature-split-1",
+        "feature-armed-0",
+        "feature-armed-1",
+        "fused-0",
+        "fused-1",
+        "netcmd_units",
+        "storage_units",
+        "readonly",
+        "globcase",
+        "hexpread"
+      ]
+    },
+    "archive": "docs/bugs5/gate-receipts/broad-uring.tar.gz"
+  }
+]

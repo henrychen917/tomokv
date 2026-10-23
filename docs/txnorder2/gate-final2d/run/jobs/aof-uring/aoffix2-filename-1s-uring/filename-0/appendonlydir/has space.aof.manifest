@@ -1,0 +1,4 @@
+TOMOAOF-MANIFEST 1
+file "has space.aof.2.base.tomo" seq 2 type b epoch 1 commit 0 size 662
+file "has space.aof.2.incr.tomo" seq 2 type i start 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+rewrite-base-size 742

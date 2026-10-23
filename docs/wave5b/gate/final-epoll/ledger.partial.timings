@@ -1,0 +1,56 @@
+ok	0.000000	release build (+footprint locks)
+ok	532.610000	Redis 7.4 differential part (split, atomic 1)
+ok	527.760000	Redis 7.4 differential part (armed fused, atomic 1)
+ok	22.070000	mode equivalence part (all execution modes and knobs)
+ok	127.890000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.470000	execatomic battery (atomic 0)
+ok	11.870000	execiso battery (atomic 0)
+ok	0.450000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.750000	multirace battery (atomic 0)
+ok	30.510000	session_monotonic battery (atomic 0)
+ok	0.360000	xacct battery (atomic 0)
+ok	0.270000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	2.490000	txn_nx battery (atomic 0)
+ok	8.760000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.050000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.450000	execfix battery (atomic 1)
+ok	0.110000	multires battery (atomic 1)
+ok	0.750000	multirace battery (atomic 1)
+ok	30.510000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.270000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	2.470000	txn_nx battery (atomic 1)
+ok	8.820000	txniso battery (atomic 1)
+ok	5.970000	writeback policies 0/1: 22 standard fixtures
+ok	0.030000	reject bad protected-mode
+ok	0.040000	reject bad enable-debug-command
+ok	0.470000	AUTH/HELLO/protected state machine
+ok	0.040000	ACL battery (atomic off)
+ok	0.050000	ACL battery (atomic on)
+ok	2.440000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream
+ok	0.140000	FLIP state battery
+ok	1.080000	FLIP under verified load
+ok	1.540000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.230000	FLIP close during FLIP (uring)
+ok	2.200000	FLIP close during FLIP (epoll)
+ok	1.200000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	5.190000	perfio stale epoll registration (epoll-lb)
+ok	6.180000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants

@@ -1,0 +1,44 @@
+[
+  {
+    "job": "atomic_batteries",
+    "verdict": "ok",
+    "elapsed": "32.530000",
+    "label": "atomic torn/window battery"
+  },
+  {
+    "job": "atomic_batteries",
+    "verdict": "ok",
+    "elapsed": "4.070000",
+    "label": "atomic RYOW/mixed-write battery"
+  },
+  {
+    "job": "atomic_batteries",
+    "verdict": "ok",
+    "elapsed": "4.240000",
+    "label": "atomic owner-local hazard battery"
+  },
+  {
+    "job": "atomic_batteries",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "atomic shutdown invariants"
+  },
+  {
+    "job": "perfio_stream",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "perfio XREADGROUP bounded delivery + Redis metadata (1s)"
+  },
+  {
+    "job": "perfio_stream",
+    "verdict": "ok",
+    "elapsed": "0.410000",
+    "label": "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

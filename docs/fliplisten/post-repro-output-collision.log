@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-fliplisten/docs/fliplisten/reproduce_pre.py", line 28, in <module>
+    with support.owned(label,ROOT/('build/tomokv-PRE' if arm=='PRE' else 'build/tomokv'),'48-55',21800,shape):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-fliplisten/docs/wave4/run_supplemental.py", line 21, in owned
+    directory=OUT/name;directory.mkdir(parents=True,exist_ok=False)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1313, in mkdir
+    os.mkdir(self, mode)
+FileExistsError: [Errno 17] File exists: '/home/user/Projects/cx-fliplisten/build/fliplisten/post-controls/flip-1s-uring-0'

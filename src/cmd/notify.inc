@@ -233,6 +233,7 @@ std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
 }  // namespace
 
 struct NotifyBatch {
+    uint64_t tracking_stamp = 0;
     std::mutex mutex;
     NotifyRecordImpl inline_records[8];
     uint32_t inline_size = 0;
@@ -282,6 +283,7 @@ void notify_execute_leave(Shard& shard) {
 NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
                                            uint32_t order_base) {
     if (!active || !op) return;
+    tracking_observe_read(shard, *op);
     shard_ = &shard;
     carrier_ = shard.notify_carrier();
     source_ = shard.notify_source();
@@ -608,6 +610,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
         // holds tracking connections; each filters against its own table. The executor never
         // touches a Client here -- only the same io-to-io transport pub/sub already uses.
         if (__builtin_expect((out.routes & NOTIFY_TRACKING) != 0, 0)) {
+            if (!out.tracking_stamp) out.tracking_stamp = tracking_clock_commit();
             // Re-sample destinations on every retry: tracking clients and IO roles can move
             // while this record is parked. Repeating a delivered invalidation is conservative;
             // remembering an old destination as complete can miss a newly migrated tracker.
@@ -621,7 +624,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                     invalidate->target_io = io;
                     invalidate->caller_id = 0;
                     invalidate->route_mask = io_mask;
-                    invalidate->items.push_back(PubSubEventItem{0, false, 0, out.key});
+                    invalidate->items.push_back(PubSubEventItem{0, false, out.tracking_stamp, out.key});
                 } catch (const std::bad_alloc&) { return work; }
                 server.pubsub_event_created();
                 if (!server.thread(io).post_pubsub_event_nonblocking(
@@ -714,10 +717,32 @@ void notify_discard_speculative(std::atomic<NotifyBatch*>& slot) {
     if (batch) slot.store(notify_keep_physical(batch), std::memory_order_release);
 }
 
+namespace {
+void notify_tracking_seal(NotifyBatch* batch) {
+    if (!batch || batch->tracking_stamp) return;
+    bool tracking = false;
+    for (uint32_t i = 0; i < batch->inline_size; ++i)
+        tracking |= (batch->inline_records[i].routes & NOTIFY_TRACKING) != 0;
+    for (const auto& record : batch->spill)
+        tracking |= (record.routes & NOTIFY_TRACKING) != 0;
+    if (tracking) batch->tracking_stamp = tracking_clock_commit();
+}
+}
+
+void notify_tracking_commit(Op& op) {
+    NotifyBatch* batch = nullptr;
+    if (auto* slot = notify_special_slot(op)) batch = slot->load(std::memory_order_acquire);
+    else if (op.has_notify_state()) batch = static_cast<NotifyBatch*>(op.notify_state());
+    notify_tracking_seal(batch);
+}
+
 NotifyBatch* notify_take_batch(Op& op) {
+    // Some asynchronous committers publish Done outside the ordinary owner epilogue.
+    // At IO retirement all fragments and atomic publication have joined.
+    notify_tracking_commit(op);
     if (op.has_multi_state()) {
         auto* multi = static_cast<MultiExecState*>(op.multi_state());
-        if (multi->aborted.load(std::memory_order_acquire) ||
+        if (multi->decision.aborted.load(std::memory_order_acquire) ||
             multi->watch_failed.load(std::memory_order_acquire)) {
             NotifyBatch* discarded = multi->notify.exchange(nullptr, std::memory_order_acq_rel);
             return notify_keep_physical(discarded);
@@ -766,7 +791,7 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
                 if (record.event == NotifyEventId::Keymiss) continue;
                 changed.emplace_back(record.key.p, record.key.n);
             }
-            loop.tracking_broadcast_keys(changed, writer_id);
+            loop.tracking_broadcast_keys(changed, writer_id, batch->tracking_stamp);
         }
         auto building = std::make_unique<PubSubNotificationChain>();
         building->items.reserve(records.size() * 2);
@@ -781,7 +806,14 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
         }
         auto chain = notify_reserve_chain(*loop.srv_, std::move(building));
         if (!chain) {
-            loop.srv_->notify_event_dropped(batch->total);
+            // An empty pub/sub chain is successful tracking-only delivery.
+            // Count only actual publication records on this failure path;
+            // successful publication keeps its existing work unchanged.
+            const uint32_t dropped = static_cast<uint32_t>(std::count_if(
+                records.begin(), records.end(), [](const NotifyRecordImpl& record) {
+                    return record.routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
+                }));
+            if (dropped) loop.srv_->notify_event_dropped(dropped);
             delete batch;
             return;
         }

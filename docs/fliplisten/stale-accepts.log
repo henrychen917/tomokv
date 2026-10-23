@@ -1,0 +1,5 @@
+0 0 {'arrived': 1407, 'served': 1407} positive stale 0
+0 1 {'arrived': 1418, 'served': 1418} positive stale 4
+1 0 {'arrived': 1282, 'served': 1282} positive stale 0
+1 1 {'arrived': 1767, 'served': 1767} positive stale 0
+1 2 {'arrived': 1599, 'served': 1599} positive stale 1

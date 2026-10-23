@@ -373,6 +373,12 @@ void blocking_notify_sender(Server& server, ThreadCtx& self, Ring& ring, Client*
 
 thread_local ThreadCtx* blocking_tls_self = nullptr;
 thread_local Ring* blocking_tls_ring = nullptr;
+// Keep the retry signal in the existing TLS gap between the bool below and
+// these pointers. Default object/link audits verify every old TLS offset and
+// the TLS segment size. Producers touch it only for retries or cold fences.
+struct MultiRetrySignal { std::atomic<bool> pending{false}; };
+static_assert(sizeof(MultiRetrySignal) == 1);
+constinit thread_local MultiRetrySignal multi_retry_signal;
 thread_local bool blocking_tls_defer_plain = false;
 
 void blocking_count_parked(BlockingState& state) {
@@ -405,6 +411,7 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
     // A completed mutation already handed its slot to persistence. Cancellation
     // must not publish that slot again or let IO recycle a retained receipt.
     if (op.state.load(std::memory_order_acquire) == OpState::AofWait) return;
+    slowlog_complete(op);
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done &&
         self && ring)
         blocking_notify_sender(*state.server, *self, *ring, state.client);
@@ -421,6 +428,7 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
         blocking_finish_cancelled(state, &self, &ring);
     } else if (phase == BlockingPhase::Completed) {
         Op& op = state.client->rob().at(state.op_id);
+        slowlog_complete(op);
         if (state.server->aof().configured() &&
             state.server->aof().defer_completion(self.id(), op, state.client)) return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
@@ -618,6 +626,7 @@ void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ri
     // Tasks and can publish immediately.
     if (state.active_tasks.load(std::memory_order_acquire) != 0) return;
     Op& op = state.client->rob().at(state.op_id);
+    slowlog_complete(op);
     if (state.server->aof().configured() &&
         state.server->aof().defer_completion(self.id(), op, state.client)) return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
@@ -664,7 +673,28 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         return true;
     }
     if (state.kind == BlockingKind::Xreadgroup) {
-        if (!stream_xreadgroup_execute(shard, op)) {
+        for (const auto& stream : state.keys)
+            if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream))) {
+                state.acl_checked = false;
+                return false;
+            }
+        for (const auto& stream : state.keys) {
+            if (stream.shard != shard.id()) continue;
+            const Slice bytes = blocking_key_slice(stream);
+            if (!shard.store().atomic_needs_version(stream.hash, bytes)) continue;
+            const WorkError prepared = begin_plain_version(
+                *state.server, shard, bytes, stream.hash, UINT64_MAX, state.client->id());
+            if (prepared != WorkError::None) {
+                shard.store().atomic_finish_plain();
+                reply_work_error(op, prepared);
+                blocking_publish_completion(state, self, ring);
+                return true;
+            }
+        }
+        shard.store().atomic_set_read_context(UINT64_MAX, state.client->id());
+        const bool executed = stream_xreadgroup_execute(shard, op);
+        shard.store().atomic_finish_plain();
+        if (!executed) {
             state.acl_checked = false;  // nothing ran; the waiter parks again
             return false;
         }
@@ -675,6 +705,10 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
                     shard.store(), stream.hash, blocking_key_slice(stream), context);
         blocking_publish_completion(state, self, ring);
         return true;
+    }
+    if (!shard.watch_write_ready(key_slice)) {
+        state.acl_checked = false;
+        return false;
     }
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
@@ -708,6 +742,9 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         return false;
     }
     if (result == XshardPopResult::Popped) {
+        // The async serve bypasses the producing command's epilogue. Like
+        // Redis's successful list/zset pop, it modifies the served key too.
+        shard.watch_write_committed(key_slice);
         // Parked completions bypass ExLoop's ordinary command epilogue. Journal
         // the selected physical key before Done, including after a map remap.
         AofOwnerContext context{self.id(), &ring, &self.sig()};

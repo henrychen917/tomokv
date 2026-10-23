@@ -1,0 +1,4314 @@
+{
+  "function_groups": 9165,
+  "unchanged": 7133,
+  "changed": 2032,
+  "lane_equal": 1113,
+  "residual": 919,
+  "hot_groups": 513,
+  "hot_headline": 254,
+  "hot_lane": 23,
+  "command_hot_groups": 12,
+  "command_hot_headline": 12,
+  "command_hot_lane": 0,
+  "hot_residual": [
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3701
+      ],
+      "post_sizes": [
+        3807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2634
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3488
+      ],
+      "post_sizes": [
+        3560
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3337
+      ],
+      "post_sizes": [
+        3394
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2780
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2609
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2023,
+        1737,
+        2023,
+        1737
+      ],
+      "post_sizes": [
+        2028,
+        1737,
+        2028,
+        1737,
+        2028
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix"
+      ],
+      "reason": "Composition of fliplisten, netfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        67,
+        67,
+        67
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix"
+      ],
+      "reason": "netfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1737,
+        2023
+      ],
+      "post_sizes": [
+        1737,
+        2028,
+        2028
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix"
+      ],
+      "reason": "Composition of fliplisten, netfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        67,
+        67
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix"
+      ],
+      "reason": "netfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3700
+      ],
+      "post_sizes": [
+        3806
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2633
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3487
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3336
+      ],
+      "post_sizes": [
+        3393
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2779
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        2608
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2023,
+        1737,
+        2023,
+        1721
+      ],
+      "post_sizes": [
+        2028,
+        1737,
+        2028,
+        1721,
+        2028
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix"
+      ],
+      "reason": "Composition of fliplisten, netfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        67,
+        67,
+        67
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix"
+      ],
+      "reason": "netfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1737,
+        2023
+      ],
+      "post_sizes": [
+        1737,
+        2028,
+        2028
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix"
+      ],
+      "reason": "Composition of fliplisten, netfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        67,
+        67
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix"
+      ],
+      "reason": "netfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9566
+      ],
+      "post_sizes": [
+        9164
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8496
+      ],
+      "post_sizes": [
+        8149
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12714
+      ],
+      "post_sizes": [
+        12843
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18713
+      ],
+      "post_sizes": [
+        18750
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21049
+      ],
+      "post_sizes": [
+        20688
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of trackfix, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        190
+      ],
+      "post_sizes": [
+        277
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of trackfix, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21239
+      ],
+      "post_sizes": [
+        21072
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12832
+      ],
+      "post_sizes": [
+        12923
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9922,
+        12232,
+        9973
+      ],
+      "post_sizes": [
+        9949,
+        12232,
+        10045,
+        10767
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        166,
+        166
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18616
+      ],
+      "post_sizes": [
+        18705
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21185
+      ],
+      "post_sizes": [
+        20837,
+        19202
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        197
+      ],
+      "post_sizes": [
+        284,
+        289
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21252
+      ],
+      "post_sizes": [
+        21031
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "bugs5",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, bugs5, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2905
+      ],
+      "post_sizes": [
+        2617
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, trackfix, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8704
+      ],
+      "post_sizes": [
+        8881
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)::{lambda(void*, unsigned long)#1}::_FUN(void*, unsigned long)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        110
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8166
+      ],
+      "post_sizes": [
+        7865
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12559
+      ],
+      "post_sizes": [
+        12891
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18779
+      ],
+      "post_sizes": [
+        18807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21296
+      ],
+      "post_sizes": [
+        21303
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        190
+      ],
+      "post_sizes": [
+        272
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21526
+      ],
+      "post_sizes": [
+        21764
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12685
+      ],
+      "post_sizes": [
+        12762
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10014,
+        12450,
+        9794
+      ],
+      "post_sizes": [
+        9805,
+        12318,
+        9840,
+        10771
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        170,
+        166
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18593
+      ],
+      "post_sizes": [
+        18634
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21385
+      ],
+      "post_sizes": [
+        21381,
+        19078
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        204
+      ],
+      "post_sizes": [
+        289,
+        293
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21388
+      ],
+      "post_sizes": [
+        21650
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18480
+      ],
+      "post_sizes": [
+        18524
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "compat3",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of compat3, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18396
+      ],
+      "post_sizes": [
+        18455
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2905
+      ],
+      "post_sizes": [
+        2617
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<false>::sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2585
+      ],
+      "post_sizes": [
+        2077
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1412
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2155
+      ],
+      "post_sizes": [
+        1868
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2615
+      ],
+      "post_sizes": [
+        2391
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2743
+      ],
+      "post_sizes": [
+        2503
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2318
+      ],
+      "post_sizes": [
+        2350
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2727
+      ],
+      "post_sizes": [
+        2455
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2302
+      ],
+      "post_sizes": [
+        2302
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2743
+      ],
+      "post_sizes": [
+        2503
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2318
+      ],
+      "post_sizes": [
+        2350
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2727
+      ],
+      "post_sizes": [
+        2455
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2302
+      ],
+      "post_sizes": [
+        2302
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3295
+      ],
+      "post_sizes": [
+        3119
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3077
+      ],
+      "post_sizes": [
+        2875
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2881
+      ],
+      "post_sizes": [
+        2622
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3061
+      ],
+      "post_sizes": [
+        2843
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2889
+      ],
+      "post_sizes": [
+        2606
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3077
+      ],
+      "post_sizes": [
+        2875
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2881
+      ],
+      "post_sizes": [
+        2622
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3061
+      ],
+      "post_sizes": [
+        2843
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2889
+      ],
+      "post_sizes": [
+        2606
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4815
+      ],
+      "post_sizes": [
+        4647
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3418
+      ],
+      "post_sizes": [
+        3226
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3062
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3402
+      ],
+      "post_sizes": [
+        3194
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3046
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3418
+      ],
+      "post_sizes": [
+        3226
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3062
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3402
+      ],
+      "post_sizes": [
+        3194
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3046
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        6298
+      ],
+      "post_sizes": [
+        6175
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4127
+      ],
+      "post_sizes": [
+        3986
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3482
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4063
+      ],
+      "post_sizes": [
+        4002
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3482
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4127
+      ],
+      "post_sizes": [
+        3986
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3482
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4063
+      ],
+      "post_sizes": [
+        4002
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3482
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2372
+      ],
+      "post_sizes": [
+        2404
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2388
+      ],
+      "post_sizes": [
+        2404
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2372
+      ],
+      "post_sizes": [
+        2404
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2388
+      ],
+      "post_sizes": [
+        2404
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2944
+      ],
+      "post_sizes": [
+        2676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2960
+      ],
+      "post_sizes": [
+        2676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2944
+      ],
+      "post_sizes": [
+        2676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2960
+      ],
+      "post_sizes": [
+        2676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3062
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3078
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3062
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3078
+      ],
+      "post_sizes": [
+        3094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3744
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3744
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3744
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3744
+      ],
+      "post_sizes": [
+        3591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2585
+      ],
+      "post_sizes": [
+        2077
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4180
+      ],
+      "post_sizes": [
+        4324
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix",
+        "iofix"
+      ],
+      "reason": "Composition of trackfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4360
+      ],
+      "post_sizes": [
+        4504
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1936
+      ],
+      "post_sizes": [
+        1776
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1412
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2155
+      ],
+      "post_sizes": [
+        1868
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2583
+      ],
+      "post_sizes": [
+        2359
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2711
+      ],
+      "post_sizes": [
+        2471
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2340
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2695
+      ],
+      "post_sizes": [
+        2423
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2324
+      ],
+      "post_sizes": [
+        2270
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2711
+      ],
+      "post_sizes": [
+        2471
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2340
+      ],
+      "post_sizes": [
+        2318
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2695
+      ],
+      "post_sizes": [
+        2423
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2324
+      ],
+      "post_sizes": [
+        2270
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3263
+      ],
+      "post_sizes": [
+        3087
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3045
+      ],
+      "post_sizes": [
+        2843
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2849
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3029
+      ],
+      "post_sizes": [
+        2811
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2857
+      ],
+      "post_sizes": [
+        2708
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3045
+      ],
+      "post_sizes": [
+        2843
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2849
+      ],
+      "post_sizes": [
+        2740
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3029
+      ],
+      "post_sizes": [
+        2811
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2857
+      ],
+      "post_sizes": [
+        2708
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4783
+      ],
+      "post_sizes": [
+        4615
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3386
+      ],
+      "post_sizes": [
+        3194
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3030
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3370
+      ],
+      "post_sizes": [
+        3162
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3014
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3386
+      ],
+      "post_sizes": [
+        3194
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3030
+      ],
+      "post_sizes": [
+        3062
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3370
+      ],
+      "post_sizes": [
+        3162
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3014
+      ],
+      "post_sizes": [
+        3030
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        6266
+      ],
+      "post_sizes": [
+        6143
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4095
+      ],
+      "post_sizes": [
+        3954
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3712
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4031
+      ],
+      "post_sizes": [
+        3970
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3664
+      ],
+      "post_sizes": [
+        3527
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4095
+      ],
+      "post_sizes": [
+        3954
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3712
+      ],
+      "post_sizes": [
+        3559
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4031
+      ],
+      "post_sizes": [
+        3970
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3664
+      ],
+      "post_sizes": [
+        3527
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2693
+      ],
+      "post_sizes": [
+        2453
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2693
+      ],
+      "post_sizes": [
+        2453
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2693
+      ],
+      "post_sizes": [
+        2453
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2693
+      ],
+      "post_sizes": [
+        2453
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3025
+      ],
+      "post_sizes": [
+        2823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3041
+      ],
+      "post_sizes": [
+        2823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3025
+      ],
+      "post_sizes": [
+        2823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3041
+      ],
+      "post_sizes": [
+        2823
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3328
+      ],
+      "post_sizes": [
+        3136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3344
+      ],
+      "post_sizes": [
+        3136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3328
+      ],
+      "post_sizes": [
+        3136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3344
+      ],
+      "post_sizes": [
+        3136
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3715
+      ],
+      "post_sizes": [
+        3613
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3715
+      ],
+      "post_sizes": [
+        3613
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3715
+      ],
+      "post_sizes": [
+        3613
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3715
+      ],
+      "post_sizes": [
+        3613
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        555
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        555
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1255
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1159
+      ],
+      "post_sizes": [
+        1223
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        971
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        938
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "bugs5",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, bugs5, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5068
+      ],
+      "post_sizes": [
+        5489
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5006
+      ],
+      "post_sizes": [
+        5604
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5876
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5176
+      ],
+      "post_sizes": [
+        5491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5125
+      ],
+      "post_sizes": [
+        5694
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5601
+      ],
+      "post_sizes": [
+        5921
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5114
+      ],
+      "post_sizes": [
+        5531
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5052
+      ],
+      "post_sizes": [
+        5677
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5487
+      ],
+      "post_sizes": [
+        5938
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5176
+      ],
+      "post_sizes": [
+        5491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5125
+      ],
+      "post_sizes": [
+        5694
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5601
+      ],
+      "post_sizes": [
+        5921
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5162
+      ],
+      "post_sizes": [
+        5610
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5116
+      ],
+      "post_sizes": [
+        5746
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5551
+      ],
+      "post_sizes": [
+        6011
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5224
+      ],
+      "post_sizes": [
+        5534
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5157
+      ],
+      "post_sizes": [
+        5722
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5634
+      ],
+      "post_sizes": [
+        5949
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5221
+      ],
+      "post_sizes": [
+        5654
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5177
+      ],
+      "post_sizes": [
+        5783
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5612
+      ],
+      "post_sizes": [
+        6073
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5224
+      ],
+      "post_sizes": [
+        5534
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5157
+      ],
+      "post_sizes": [
+        5722
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5634
+      ],
+      "post_sizes": [
+        5949
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        555
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "bugs5",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, bugs5, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        555
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1255
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "bugs5",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, bugs5, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1159
+      ],
+      "post_sizes": [
+        1223
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        971
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "bugs5",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, bugs5, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        938
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "bugs5",
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of bugs5, fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4949
+      ],
+      "post_sizes": [
+        5178
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4860
+      ],
+      "post_sizes": [
+        5364
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5309
+      ],
+      "post_sizes": [
+        5581
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4975
+      ],
+      "post_sizes": [
+        5228
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4987
+      ],
+      "post_sizes": [
+        5441
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5362
+      ],
+      "post_sizes": [
+        5641
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4981
+      ],
+      "post_sizes": [
+        5250
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4908
+      ],
+      "post_sizes": [
+        5423
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5357
+      ],
+      "post_sizes": [
+        5633
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4975
+      ],
+      "post_sizes": [
+        5228
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4987
+      ],
+      "post_sizes": [
+        5441
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5362
+      ],
+      "post_sizes": [
+        5641
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5014
+      ],
+      "post_sizes": [
+        5310
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4956
+      ],
+      "post_sizes": [
+        5479
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5421
+      ],
+      "post_sizes": [
+        5704
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5007
+      ],
+      "post_sizes": [
+        5271
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4966
+      ],
+      "post_sizes": [
+        5467
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5378
+      ],
+      "post_sizes": [
+        5669
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5078
+      ],
+      "post_sizes": [
+        5333
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4998
+      ],
+      "post_sizes": [
+        5504
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5463
+      ],
+      "post_sizes": [
+        5716
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5007
+      ],
+      "post_sizes": [
+        5271
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4966
+      ],
+      "post_sizes": [
+        5467
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "iofix"
+      ],
+      "reason": "iofix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5378
+      ],
+      "post_sizes": [
+        5669
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of netfix, iofix; residual instructions/layout require merit review."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bins/txnorder2-pre-97ea4e06",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+    },
+    "txnfix": {
+      "path": "/home/user/Projects/bins/txnorder2-post-5bfa95e7",
+      "sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f"
+    },
+    "bugs5": {
+      "path": "/home/user/Projects/bins/bugs5-post-e514a979",
+      "sha256": "e514a979201f2d748e947c007ce5f8411794bb2d007f2ad6a832c6c2b141c588"
+    },
+    "compat3": {
+      "path": "/home/user/Projects/bins/compat3-post-5319e470",
+      "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35"
+    },
+    "trackfix": {
+      "path": "/home/user/Projects/bins/trackfix-post-787031f0",
+      "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+    },
+    "fliplisten": {
+      "path": "/home/user/Projects/bins/fliplisten-post-191a4d96",
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    "netfix": {
+      "path": "/home/user/Projects/bins/netfix-post-9cfcbcb1",
+      "sha256": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47"
+    },
+    "iofix": {
+      "path": "/home/user/Projects/bins/iofix-post-a7a3d72a",
+      "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave5/build/tomokv",
+    "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+  }
+}

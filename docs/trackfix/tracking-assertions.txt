@@ -1,0 +1,344 @@
+tests/mutants.py:77:    'tracking-cap': dict(label='netcmd config regression',
+tests/abba_experiments.py:321:        result["reasons"].append("quiet-box contention invalidated this comparison")
+tests/lottery_evidence_test.py:121:    def test_tracking_fence_is_judged_when_the_collector_stops(self):
+tests/lottery_evidence_test.py:122:        post, done = E('tracking_post', 9, 3), E('tracking_end', 9, 3)
+tests/lottery_evidence_test.py:123:        begin, data, zero = (E('tracking_compare_begin'), E('tracking_compare_data'),
+tests/lottery_evidence_test.py:124:                             E('tracking_compare_zero'))
+tests/lottery_evidence_test.py:133:        emitted = [post, done, E('tracking_emit', 7), begin]
+tests/watchlive_gate.sh:57:    # silently across two servers, which invalidates the measurement. Refuse instead.
+tests/flipctl.py:162:    Any out-of-band second invalidates the premise, even if the controller did not move. A
+tests/flipctl.py:216:    # The common deadline bounds this phase too; expiry only invalidates the attempt.
+tests/tlsserve_checks.inc:76:        if (!track) c.start_obuf_tracking();
+tests/tlsserve_checks.inc:307:    std::printf("PASS tlsserve: %u deterministic cases (three transports, both tracking states, "
+tests/cmdmeta.py:18:client|pause client|reply client|setinfo client|setname client|tracking client|trackinginfo
+tests/flipctl_test.py:23:    def test_reported_driver_dip_with_move_invalidates(self):
+tests/flip_ttl.py:201:        # only invalidates this fresh cohort; it never excuses a lost key/event.
+tests/lottery_test_driver.py:70:            raise ValueError('changed tracking collector anchor')
+tests/lottery_test_driver.py:71:        source = source.replace(anchor, '        lottery_mark("tracking_compare_begin")\n' + anchor)
+tests/lottery_test_driver.py:74:            raise ValueError('changed tracking result anchor')
+tests/lottery_test_driver.py:75:        source = source.replace(anchor, anchor + '\n        lottery_mark("tracking_compare_zero" if a == b == b"" else "tracking_compare_data")')
+tests/gate_measurements.py:477:        def test_shape_changes_invalidate_every_axis(self):
+tests/gate_measurements.py:492:        def test_geometry_changes_invalidate(self):
+tests/gate_measurements.py:501:        def test_workload_code_change_invalidates_unchanged_cell_flags(self):
+tests/gate_history.py:396:        # tracking is added, require an explicit record naming the fix commit/code hash while
+tests/notify_order_checks.inc:37:    shard.set_notify_mask(NOTIFY_TRACKING);
+tests/notify_order_checks.inc:89:            shard.set_notify_mask(NOTIFY_TRACKING);
+tests/notify_order_checks.inc:119:    shard.set_notify_mask(NOTIFY_TRACKING | NOTIFY_SAVE);
+tests/gate.sh:848:FEATURE_BATTERIES="s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity contarity cmdgap aclsel expwide infofix pushtear netcmd"
+tests/gate.sh:1576:    for case in tracking-cap tracking-pipeline reply-skip pattern-cleanup pause-deadline geo-count geo-store; do
+tests/gate.sh:3661:# run, while activity outside the allocation cannot invalidate its measurement receipt.
+tests/gate.sh:3663:# partial completion publication or leaked child invalidates every later measurement.
+tests/netcmd.py:78:            require(t.cmd("CLIENT", "TRACKING", "ON") == b"OK", "ordinary RESP3 tracking armed")
+tests/netcmd.py:79:            t.raw(encode("XREAD", "STREAMS", "netcmd:tracked", "bad-id") + encode("PING", "tracking-parser"))
+tests/netcmd.py:80:            require(isinstance(t.read(), RespError) and t.read() == b"tracking-parser",
+tests/netcmd.py:81:                    "tracking registration does not emit an extra parser error")
+tests/netcmd.py:84:            require(t.read() == [b"invalidate", [b"netcmd:tracked"]], "XREAD alone registered its dynamic stream key")
+tests/netcmd.py:88:            require(t.read() == [b"invalidate", None], "completed flush invalidated tracking client")
+tests/netcmd.py:92:        print("ok: XREAD tracking without BCAST or a prior static-key read")
+tests/flip_cost_gate.py:286:              int(reverted["flipctl_invalidated_maneuvers"]), 0)
+tests/multidb_cost_unit.cc:105:    require(ins[1] == ins[2] && cyc[1] == cyc[2] && ins[2] && cyc[2], "multiplexed counters invalidate run");
+tests/climon2.py:206:                   b"TRACKING (ON|OFF)", b"TRACKINGINFO", b"PAUSE <timeout>"):
+tests/tracking.py:2:"""Directed CLIENT TRACKING (server-assisted client-side caching) battery.
+tests/tracking.py:4:Usage: tracking.py HOST PORT
+tests/tracking.py:8:the socket and requires emptiness. The tracking_invalidations counter is asserted
+tests/tracking.py:35:    return b">2\r\n$10\r\ninvalidate\r\n*1\r\n$%d\r\n%s\r\n" % (len(key), key)
+tests/tracking.py:38:FLUSH_PUSH = b">2\r\n$10\r\ninvalidate\r\n_\r\n"
+tests/tracking.py:190:    invalidations_before = stats()["tracking_invalidations"]
+tests/tracking.py:194:    expect(g.command("CLIENT", "TRACKING", "off"), b"OK", "TRACKING off when already off")
+tests/tracking.py:195:    expect(g.command("CLIENT", "GETREDIR"), -1, "GETREDIR when tracking off")
+tests/tracking.py:196:    expect(g.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:197:           [b"flags", [b"off"], b"redirect", -1, b"prefixes", []], "TRACKINGINFO off")
+tests/tracking.py:198:    expect_err(g.command("CLIENT", "TRACKING", "garbage"), "ERR syntax error", "TRACKING garbage")
+tests/tracking.py:199:    expect_err(g.command("CLIENT", "TRACKING", "on", "PREFIX", "p"),
+tests/tracking.py:201:    expect_err(g.command("CLIENT", "TRACKING", "on", "OPTIN", "OPTOUT"),
+tests/tracking.py:203:    expect_err(g.command("CLIENT", "TRACKING", "on", "BCAST", "OPTIN"),
+tests/tracking.py:205:    expect_err(g.command("CLIENT", "TRACKING", "on", "BCAST",
+tests/tracking.py:209:    expect_err(g.command("CLIENT", "TRACKING", "on", "REDIRECT", "999999"),
+tests/tracking.py:211:    expect_err(g.command("CLIENT", "TRACKING", "on", "REDIRECT", "abc"),
+tests/tracking.py:213:    expect(g.command("CLIENT", "TRACKING", "off", "PREFIX", "p"), b"OK",
+tests/tracking.py:214:           "TRACKING off ignores PREFIX")
+tests/tracking.py:216:               "ERR CLIENT CACHING can be called only when the client is in tracking mode "
+tests/tracking.py:222:    expect(g.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "a"), b"OK",
+tests/tracking.py:224:    expect_err(g.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "b", "PREFIX", ""),
+tests/tracking.py:227:    expect_err(g.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "a", "PREFIX", ""),
+tests/tracking.py:230:    expect(g.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:232:           "rejected prefixes leave tracking state intact")
+tests/tracking.py:233:    expect(g.command("CLIENT", "TRACKING", "off"), b"OK", "clear collision probe")
+tests/tracking.py:239:    prefix_baseline = stats()["tracking_total_prefixes"]
+tests/tracking.py:240:    expect(g.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "b", "PREFIX", "user:1"),
+tests/tracking.py:243:        expect(g.command("CLIENT", "TRACKING", "on", "BCAST"), b"OK", "add implicit empty prefix")
+tests/tracking.py:244:        expect(g.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:247:    expect(stats()["tracking_total_prefixes"], prefix_baseline + 3, "implicit prefix registered once")
+tests/tracking.py:249:        expect_err(g.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", prefixes[0],
+tests/tracking.py:253:    expect(g.command("CLIENT", "TRACKING", "off"), b"OK", "clear implicit prefix probe")
+tests/tracking.py:254:    expect(stats()["tracking_total_prefixes"], prefix_baseline, "implicit prefix accounting disarmed")
+tests/tracking.py:258:    expect(g.command("CLIENT", "TRACKING", "on", "BCAST"), b"OK", "TRACKING on BCAST")
+tests/tracking.py:259:    expect_err(g.command("CLIENT", "TRACKING", "on"),
+tests/tracking.py:260:               "ERR You can't switch BCAST mode on/off before disabling tracking for this "
+tests/tracking.py:263:    expect(g.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:265:           "TRACKINGINFO on BCAST")
+tests/tracking.py:266:    expect(g.command("CLIENT", "TRACKING", "off"), b"OK", "TRACKING off")
+tests/tracking.py:267:    expect(g.command("CLIENT", "TRACKING", "on", "OPTIN"), b"OK", "TRACKING on OPTIN")
+tests/tracking.py:268:    expect_err(g.command("CLIENT", "TRACKING", "on", "OPTOUT"),
+tests/tracking.py:269:               "ERR You can't switch OPTIN/OPTOUT mode before disabling tracking for this "
+tests/tracking.py:272:               "ERR CLIENT CACHING NO is only valid when tracking is enabled in OPTOUT mode.",
+tests/tracking.py:274:    g.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:279:    expect(t.command("CLIENT", "TRACKING", "on"), b"OK", "TRACKING on")
+tests/tracking.py:291:    # A read by ANOTHER client must never invalidate -- negative control.
+tests/tracking.py:295:    expect(t.drain(0.4), b"", "a read must not invalidate")
+tests/tracking.py:297:    # An untracked key must never invalidate -- negative control.
+tests/tracking.py:299:    expect(t.drain(0.4), b"", "write to an unread key must not invalidate")
+tests/tracking.py:314:        expect(t.command("CLIENT", "TRACKING", "on"), b"OK", "expiry tracking arm")
+tests/tracking.py:332:    t.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:334:    expect(t.command("CLIENT", "TRACKING", "on", "NOLOOP"), b"OK", "TRACKING on NOLOOP")
+tests/tracking.py:345:    # self-write WITHOUT noloop does invalidate (oracle-matched)
+tests/tracking.py:346:    t.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:348:    t.command("CLIENT", "TRACKING", "on")
+tests/tracking.py:359:    expect(b.command("CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "bc:"), b"OK", "BCAST on")
+tests/tracking.py:367:    expect(b.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:369:           "BCAST TRACKINGINFO")
+tests/tracking.py:373:        expect(b.command("CLIENT", "TRACKING", "on", "BCAST"), b"OK", "extend BCAST to all keys")
+tests/tracking.py:379:    b.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:382:    expect(b.drain(0.4), b"", "TRACKING off stops BCAST")       # negative control
+tests/tracking.py:387:    expect(o.command("CLIENT", "TRACKING", "on", "OPTIN"), b"OK", "OPTIN on")
+tests/tracking.py:408:    o.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:411:    expect(o.command("CLIENT", "TRACKING", "on", "OPTOUT"), b"OK", "OPTOUT on")
+tests/tracking.py:422:    o.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:430:        key = "tracking:client-inspection:" + option
+tests/tracking.py:433:        expect(o.command("CLIENT", "TRACKING", "on", option), b"OK", option + " inspection setup")
+tests/tracking.py:435:        expect(o.command("CLIENT", "TRACKINGINFO"), armed_info, option + " TRACKINGINFO preserves CACHING")
+tests/tracking.py:441:                   " is only valid when tracking is enabled in " + required_option + " mode.",
+tests/tracking.py:443:        expect(o.command("CLIENT", "TRACKINGINFO"), armed_info, option + " CLIENT error preserves CACHING")
+tests/tracking.py:449:        expect(o.command("CLIENT", "TRACKINGINFO"), plain_info, option + " GET consumes CACHING")
+tests/tracking.py:452:        expect(o.command("CLIENT", "TRACKINGINFO"), plain_info, option + " PING consumes CACHING")
+tests/tracking.py:453:        expect(o.command("CLIENT", "TRACKING", "off"), b"OK", option + " inspection cleanup")
+tests/tracking.py:462:    expect(plain2.command("CLIENT", "TRACKING", "on"), b"OK", "RESP2 TRACKING on")
+tests/tracking.py:463:    expect(plain3.command("CLIENT", "TRACKING", "on"), b"OK", "RESP3 TRACKING on")
+tests/tracking.py:470:    plain2.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:471:    plain3.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:478:    expect(rc.command("CLIENT", "TRACKING", "on", "REDIRECT", str(tid)), b"OK", "REDIRECT on")
+tests/tracking.py:488:    expect(target.command("SUBSCRIBE", "__redis__:invalidate"),
+tests/tracking.py:489:           [b"subscribe", b"__redis__:invalidate", 1], "redirect target subscribes")
+tests/tracking.py:496:           b"*3\r\n$7\r\nmessage\r\n$20\r\n__redis__:invalidate\r\n*1\r\n$4\r\nrd:1\r\n",
+tests/tracking.py:498:    expect(rc.drain(0.3), b"", "the tracking client itself gets nothing under REDIRECT")
+tests/tracking.py:501:    # redirect target disappears -> broken_redirect, tracking stays on (oracle-matched)
+tests/tracking.py:509:    info = rc.command("CLIENT", "TRACKINGINFO")
+tests/tracking.py:511:    expect(rc.command("CLIENT", "TRACKING", "off"), b"OK", "TRACKING off clears broken redirect")
+tests/tracking.py:512:    expect(rc.command("CLIENT", "TRACKINGINFO"),
+tests/tracking.py:520:    expect(rc3.command("CLIENT", "TRACKING", "on", "REDIRECT", str(tid3)),
+tests/tracking.py:526:    expect(target3.command("SUBSCRIBE", "__redis__:invalidate"),
+tests/tracking.py:527:           [b"subscribe", b"__redis__:invalidate", 1], "RESP3 redirect target subscribes")
+tests/tracking.py:533:    rc3.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:539:    f2.command("CLIENT", "TRACKING", "on")
+tests/tracking.py:540:    f3.command("CLIENT", "TRACKING", "on")
+tests/tracking.py:545:    f2.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:546:    f3.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:550:    invalidations_after = stats()["tracking_invalidations"]
+tests/tracking.py:552:        "tracking_invalidations never moved -- the battery proved nothing"
+tests/tracking.py:554:        c.command("CLIENT", "TRACKING", "off")
+tests/tracking.py:557:    assert "tracking_clients:0" in clients_raw, \
+tests/tracking.py:558:        f"tracking clients did not return to zero:\n{clients_raw}"
+tests/tracking.py:560:    quiet = stats()["tracking_invalidations"]
+tests/tracking.py:563:    assert stats()["tracking_invalidations"] == quiet, \
+tests/tracking.py:564:        "an invalidation fired with tracking fully off"
+tests/tracking.py:567:    print(f"tracking: ok ({checks} checks, tracking_invalidations="
+tests/clientfix_widths.py:4:An idle RESP3 tracking connection supplies OFF, unmatched BCAST, or default
+tests/clientfix_widths.py:5:tracking with one preread of the existing keys per cell (before timed traffic).
+tests/clientfix_widths.py:34:def cell(writer, observer, width, tracking, samples, rate):
+tests/clientfix_widths.py:37:    assert observer.cmd("CLIENT", "TRACKING", "OFF") == b"OK"
+tests/clientfix_widths.py:44:    if tracking == 'bcast':
+tests/clientfix_widths.py:45:        assert observer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX', 'never:') == b'OK'
+tests/clientfix_widths.py:46:    elif tracking == 'default':
+tests/clientfix_widths.py:47:        assert observer.cmd('CLIENT', 'TRACKING', 'ON') == b'OK'
+tests/clientfix_widths.py:79:    invalidated = {key for frame in pushes if isinstance(frame, Push)
+tests/clientfix_widths.py:80:                   and frame[0] == b'invalidate' and frame[1] is not None
+tests/clientfix_widths.py:82:    if tracking == 'default':
+tests/clientfix_widths.py:83:        assert invalidated == {key.encode() for key in keys}, len(invalidated)
+tests/clientfix_widths.py:89:    return dict(width=width, tracking=tracking, samples=samples, rate=rate,
+tests/clientfix_widths.py:123:    shapes = [(width, tracking) for width in (1, 32, 256, 1024)
+tests/clientfix_widths.py:124:              for tracking in ('off', 'bcast', 'default')]
+tests/clientfix_widths.py:141:                    for width, tracking in order:
+tests/clientfix_widths.py:142:                        row = cell(writer, observer, width, tracking, args.samples, args.rate)
+tests/clientfix_widths.py:151:                              'tracking', 'p50_us', 'p99_us', 'below_offered_period')}), flush=True)
+tests/legacy_reorder_witness.py:28:or a foreign producer all invalidate the attempt; none is interpreted as a
+tests/legacy_reorder_witness.py:514:        def test_migration_full_queue_and_client_movement_invalidate(self):
+tests/cd13b_wire.py:135:                        # Migration invalidates only the route witness. Check every result
+tests/climon_128.py:57:                require(conn.must('CLIENT', 'TRACKING', 'ON') == b'OK', 'tracking armed')
+tests/climon_128.py:63:            before = int(info(writer, 'STATS')['tracking_invalidations'])
+tests/climon_128.py:65:            expect_push(a, [b'invalidate', [key.encode()]], 'owner i initially receives invalidation')
+tests/climon_128.py:67:            expect_push(b, [b'invalidate', [other.encode()]], 'owner i+64 initially receives invalidation')
+tests/climon_128.py:71:            require(b.must('CLIENT', 'TRACKING', 'OFF') == b'OK', 'owner i+64 disarmed')
+tests/climon_128.py:79:            expected = [b'invalidate', None if kind == 'flush' else [key.encode()]]
+tests/climon_128.py:81:            require(int(info(writer, 'STATS')['tracking_invalidations']) >= before + 3,
+tests/climon_128.py:82:                    'tracking invalidation counter witnessed both arms and post-disarm delivery')
+tests/execatomic.py:15:that fragment's own moment.  Whether the read pinned a cut was decided from `tracking` --  a live
+tests/execatomic.py:38:- COUNTERS.  atomic_fanout_cuts counts exactly the reads that pinned a cut although the tracking
+tests/execatomic.py:267:        # The guarded path is exactly "pinned a cut although the tracking word read zero".
+tests/core_concurrency_unit.cc:173:        // swap can keep tracking an absent key. Assert the exact shard set.
+tests/climon_mask_unit.cc:17:    for (const char* lane : {"tracking", "monitor"}) {
+tests/climon_mask_unit.cc:31:                // Disconnect, TRACKING OFF and migration refresh all use this same clear.
+tests/netcmd_unit.cc:49:    // production hook (IoLoop::init) does for tracking: IoLoop::tracking_retire_read, behind the
+tests/netcmd_unit.cc:61:                    if (probe.loop->climon_local_trackers_ != 0) probe.loop->tracking_retire_read(client, op);
+tests/netcmd_unit.cc:89:        // whole sibling pairs for BOTH roles; only one IO is a tracking destination below.
+tests/netcmd_unit.cc:99:        server.climon_tracking_io_mask_.store(uint64_t{1} << io);
+tests/netcmd_unit.cc:106:        NotifyOut out; out.routes = NOTIFY_TRACKING; out.key = "expired";
+tests/netcmd_unit.cc:128:        check(ios.size() == 2, "foreign tracking IO exists");
+tests/netcmd_unit.cc:136:        server.climon_tracking_io_mask_.store(uint64_t{1} << ios[1]);
+tests/netcmd_unit.cc:146:              "completed flush invalidates foreign tracking IO");
+tests/netcmd_unit.cc:156:        client.start_obuf_tracking();
+tests/netcmd_unit.cc:225:    // clientfix routes CLIENT TRACKING connections through the cold suppressing drain so that even
+tests/netcmd_unit.cc:227:    // connection: a reply-suppressed connection WITHOUT tracking keeps the hot serve's contract
+tests/netcmd_unit.cc:245:        // CLIENT REPLY OFF, no tracking, while the same owner has a tracking connection: the
+tests/netcmd_unit.cc:251:        auto& tracking = loop.climon_conn_get(&tracker);
+tests/netcmd_unit.cc:252:        tracking.tracking_on = true;
+tests/netcmd_unit.cc:253:        loop.climon_local_trackers_ = 1;   // what CLIENT TRACKING ON leaves on this owner
+tests/netcmd_unit.cc:261:              "non-tracking suppressed connection retired and dropped both plain replies");
+tests/netcmd_unit.cc:263:              "a reply-suppressed connection without tracking took the special-retire hook for a plain op");
+tests/netcmd_unit.cc:272:              "special state on a non-tracking suppressed connection still retires through the hook");
+tests/netcmd_unit.cc:274:        // A tracking connection's plain GET takes the hook and enrolls its key at retirement.
+tests/netcmd_unit.cc:276:        loop.tracking_register_read(&tracker, tracking, *read);   // the armed dispatch gate's call
+tests/netcmd_unit.cc:278:        check(loop.climon_track_keys_.empty() && tracking.tracking_pending.count("retire:tracked") == 1,
+tests/netcmd_unit.cc:283:              "a tracking connection retires its plain GET through the hook");
+tests/netcmd_unit.cc:287:        check(tracking.tracking_reads.empty() && tracking.tracking_pending.empty(),
+tests/netcmd_unit.cc:488:        tracking_eviction();
+tests/netcmd_unit.cc:623:    static void tracking_eviction() {
+tests/netcmd_unit.cc:631:            loop.tracking_broadcast_flush();
+tests/netcmd_unit.cc:632:            server.climon_set_tracking_io(0, true);
+tests/netcmd_unit.cc:635:            auto& tracking = loop.climon_conn_get(&client); tracking.tracking_on = true;
+tests/netcmd_unit.cc:636:            check(server.databases().swap(0, 1), "tracking map swapped");
+tests/netcmd_unit.cc:640:                key = "tracking:namespace:" + std::to_string(attempt);
+tests/netcmd_unit.cc:647:            check(op.key().ns == 1, "tracking read uses post-SWAP physical identity");
+tests/netcmd_unit.cc:648:            const std::string frame = ">2\r\n$10\r\ninvalidate\r\n*1\r\n$" +
+tests/netcmd_unit.cc:652:            loop.tracking_register_read(&client, tracking, op);
+tests/netcmd_unit.cc:654:            loop.tracking_retire_read(client, op);
+tests/netcmd_unit.cc:656:                  tracking.tracking_reads.empty() && tracking.tracking_pending.empty(),
+tests/netcmd_unit.cc:658:            loop.tracking_broadcast_keys({key}, 999);
+tests/netcmd_unit.cc:662:            // A foreign write between execution and retirement invalidates the pending read too.
+tests/netcmd_unit.cc:665:            loop.tracking_register_read(&client, tracking, pending);
+tests/netcmd_unit.cc:666:            loop.tracking_broadcast_keys({key}, 999);
+tests/netcmd_unit.cc:672:            Server server; server.cfg_.tracking_table_max_keys = 32;
+tests/netcmd_unit.cc:680:            auto& ast = loop.climon_conn_get(&a); ast.tracking_on = true;
+tests/netcmd_unit.cc:681:            auto& bst = loop.climon_conn_get(&b); bst.tracking_on = true;
+tests/netcmd_unit.cc:686:                do { key = "tracking:" + std::to_string(next_key++); }
+tests/netcmd_unit.cc:691:                loop.tracking_register_read(&a, ast, op);
+tests/netcmd_unit.cc:692:                loop.tracking_register_read(&b, bst, op);
+tests/netcmd_unit.cc:696:                loop.tracking_retire_read(a, op);
+tests/netcmd_unit.cc:697:                loop.tracking_retire_read(b, op);
+tests/netcmd_unit.cc:698:                check(ast.tracking_reads.empty() && ast.tracking_pending.empty() &&
+tests/netcmd_unit.cc:699:                      bst.tracking_reads.empty() && bst.tracking_pending.empty(),
+tests/netcmd_unit.cc:701:                check(loop.climon_track_keys_.size() == std::min(turn + 1, 32u), "tracking table respects its bound");
+tests/netcmd_unit.cc:702:                check(server.climon_tracking_keys() == loop.climon_track_keys_.size() &&
+tests/netcmd_unit.cc:703:                      server.climon_tracking_items() == 2 * loop.climon_track_keys_.size(),
+tests/netcmd_unit.cc:704:                      "tracking eviction preserves exact key and owner counts");
+tests/netcmd_unit.cc:713:                        const std::string frame = ">2\r\n$10\r\ninvalidate\r\n*1\r\n$" +
+tests/netcmd_unit.cc:717:                              "each evicted key invalidates every tracking owner exactly once");
+tests/netcmd_unit.cc:889:    else if (mode == "tracking-eviction") R::tracking_eviction();
+tests/psfix.py:64:        # would invalidate the count premise and race even a correct pre-save barrier.
+tests/differ.py:4979:# ---- Lane F: CLIENT connection-control + TRACKING differential ---------------------------------
+tests/differ.py:4983:# invalidation frames a tracking connection receives for an identical write script.
+tests/differ.py:4984:def climon_tracking_conn(h, p):
+tests/differ.py:4989:    # The caller explicitly negotiates HELLO 3 after constructing both tracking sockets.
+tests/differ.py:4996:    push = b">2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n"
+tests/differ.py:4999:        client, file = climon_tracking_conn(*listener.getsockname())
+tests/differ.py:5042:        elif c == 3: grammar.append(["CLIENT", "TRACKINGINFO"])
+tests/differ.py:5043:        elif c == 4: grammar.append(["CLIENT", "TRACKING", rng.choice(["on", "off", "garbage"])])
+tests/differ.py:5045:            args = ["CLIENT", "TRACKING", rng.choice(["on", "off"])]
+tests/differ.py:5053:            grammar.append(["CLIENT", "TRACKING", "on", "REDIRECT",
+tests/differ.py:5068:                ["CLIENT", "GETREDIR", "X"], ["CLIENT", "TRACKINGINFO", "X"],
+tests/differ.py:5069:                ["CLIENT", "TRACKING"], ["CLIENT", "NO-EVICT"],
+tests/differ.py:5071:        else: grammar.append(["CLIENT", "TRACKING", "off"])
+tests/differ.py:5072:    grammar.append(["CLIENT", "TRACKING", "off"])
+tests/differ.py:5077:    # ---- invalidation stream. RESP3 tracking client + a writer, per side. --------------------
+tests/differ.py:5078:    tt, ttf = climon_tracking_conn(TH, TP); ot, otf = climon_tracking_conn(OH, OP)
+tests/differ.py:5134:    track(["CLIENT", "TRACKING", "on"], "on")
+tests/differ.py:5152:            write_both(["GET", k])            # a read must never invalidate
+tests/differ.py:5157:    track(["CLIENT", "TRACKING", "off"], "off")
+tests/differ.py:5160:    track(["CLIENT", "TRACKING", "on", "NOLOOP"], "noloop on")
+tests/differ.py:5168:    track(["CLIENT", "TRACKING", "off"], "noloop off")
+tests/differ.py:5170:    track(["CLIENT", "TRACKING", "on", "BCAST", "PREFIX", "bx:"], "bcast on")
+tests/differ.py:5176:    track(["CLIENT", "TRACKING", "off"], "bcast off")
+tests/differ.py:5577:client|pause client|reply client|setinfo client|setname client|tracking client|trackinginfo
+tests/rlfix.py:171:        # legitimately invalidate a probe of a different key in the same table.
+tests/lottery_evidence.py:63:    tracking_pending, tracking_checks = set(), []
+tests/lottery_evidence.py:64:    tracking_emitted = 0
+tests/lottery_evidence.py:257:        elif k == 'tracking_post':
+tests/lottery_evidence.py:258:            tracking_pending.add((e.id, e.a))
+tests/lottery_evidence.py:259:        elif k == 'tracking_end':
+tests/lottery_evidence.py:260:            tracking_pending.discard((e.id, e.a))
+tests/lottery_evidence.py:261:        elif k == 'tracking_emit':
+tests/lottery_evidence.py:262:            tracking_emitted += 1
+tests/lottery_evidence.py:263:        elif k == 'tracking_compare_begin':
+tests/lottery_evidence.py:265:            counts['W13.pending_at_begin'] += bool(tracking_pending)
+tests/lottery_evidence.py:266:        elif k in ('tracking_compare_zero', 'tracking_compare_data'):
+tests/lottery_evidence.py:270:            tracking_checks.append(not tracking_pending and not (
+tests/lottery_evidence.py:271:                k == 'tracking_compare_zero' and tracking_emitted))
+tests/lottery_evidence.py:272:            tracking_emitted = 0
+tests/lottery_evidence.py:288:    counts['W13'] = int(bool(tracking_checks) and all(tracking_checks) and not tracking_pending)
+tests/replyschema.py:559:        connection.command("CLIENT", "TRACKING", "ON", "REDIRECT", str(client_id.value))
+tests/replyschema.py:1064:# CLIENT subcommands.  Per-case connections keep tracking/name/reply state local.
+tests/replyschema.py:1066:    setup=(("CLIENT", "TRACKING", "ON", "OPTIN"),))
+tests/replyschema.py:1071:    setup=(("CLIENT", "TRACKING", "ON"),))
+tests/replyschema.py:1085:add("client|tracking", "CLIENT", "TRACKING", "ON")
+tests/replyschema.py:1086:add("client|trackinginfo", "CLIENT", "TRACKINGINFO")
+tests/execiso.py:335:    # The historical fanout counter counts only tracking-OFF cuts: old-generation
+tests/execiso.py:336:    # debt can keep tracking on even after CONFIG atomic 0. Its delta is diagnostic.
+tests/differ_fanout_test.py:27:        spec = importlib.util.spec_from_file_location('differ_tracking_controls', ROOT / 'tests/differ.py')
+tests/differ_fanout_test.py:60:        wire = b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n'
+tests/notify_order.py:301:def tracking_case(peers):
+tests/notify_order.py:310:                equal(conn.cmd('CLIENT', 'TRACKING', 'ON', 'NOLOOP'), b'OK', 'tracking armed')
+tests/notify_order.py:313:                equal(peer.driver.cmd('SET', key, 'v', 'PX', 100), b'OK', 'tracking seed')
+tests/notify_order.py:325:                    equal(conn.cmd('CLIENT', 'TRACKING', 'ON', 'NOLOOP'), b'OK', 'rearm tracker')
+tests/notify_order.py:327:                raise AssertionError('tracking live registration window never opened')
+tests/notify_order.py:329:            poll(lambda: peer.clock() > due + 2, 'tracking expiry deadline')
+tests/notify_order.py:333:            equal(witness.read(), [b'invalidate', [key.encode()]], 'other client invalidated')
+tests/notify_order.py:335:            assert not select.select([tracker.sock], [], [], .05)[0], 'NOLOOP self invalidated'
+tests/notify_order.py:336:            print('PASS lazy expiry CLIENT TRACKING NOLOOP target=' + str(peer.target), flush=True)
+tests/notify_order.py:429:            tracking_case(peers)
+tests/gate_quiet.py:280:        def test_unreadable_cpu_file_invalidates_observer(self):
+tests/pushtear.py:8:An out-of-band frame -- a pub/sub delivery, a CLIENT TRACKING invalidation or a
+tests/pushtear.py:19:                            pubsub.py/tracking.py emit pushes but use 5-byte
+tests/pushtear.py:24:  x producer               (pub/sub, tracking invalidation, MONITOR)
+tests/pushtear.py:25:  x protocol               (RESP3 for pub/sub and tracking pushes; RESP3 AND RESP2
+tests/pushtear.py:360:def cell_tracking_self(zc_min, size, tls=False):
+tests/pushtear.py:361:    """TRACKING x RESP3 x self-write pipeline x value >= zc-min.
+tests/pushtear.py:371:    tag = "tracking/self/resp3/%dB%s" % (size, "/tls" if tls else "")
+tests/pushtear.py:379:        reply = conn.command("CLIENT", "TRACKING", "on", wait=0.6)
+tests/pushtear.py:381:            bad(tag, "CLIENT TRACKING on refused: %r" % reply[:80])
+tests/pushtear.py:385:            # Register the read, so the next write to the key invalidates it.
+tests/pushtear.py:405:    if after.get("tracking_invalidations", 0) == before.get("tracking_invalidations", 0):
+tests/pushtear.py:415:        after.get("tracking_invalidations", 0) - before.get("tracking_invalidations", 0),
+tests/pushtear.py:419:def cell_tracking_lost(zc_min, size):
+tests/pushtear.py:427:    Oracle-free check: `tracking_invalidations` counts frames PRODUCED. Count the frames actually
+tests/pushtear.py:430:    tag = "tracking/no-loss/%dB" % size
+tests/pushtear.py:437:        if not reader.command("CLIENT", "TRACKING", "on", wait=0.6).startswith(b"+OK"):
+tests/pushtear.py:438:            bad(tag, "CLIENT TRACKING on refused")
+tests/pushtear.py:455:        # Now invalidate all of them from ANOTHER connection while the reader keeps a pipeline of
+tests/pushtear.py:469:        produced = after.get("tracking_invalidations", 0) - before.get("tracking_invalidations", 0)
+tests/pushtear.py:546:    only PARTIALLY on the wire. The notification/tracking hook fires immediately after that, in
+tests/pushtear.py:580:        if not c.command("CLIENT", "TRACKING", "on", wait=0.6).startswith(b"+OK"):
+tests/pushtear.py:581:            bad(tag, "CLIENT TRACKING on refused")
+tests/pushtear.py:787:        cell_tracking_self(knob, size)
+tests/pushtear.py:791:            cell_tracking_lost(knob, size)
+tests/pushtear.py:803:        cell_tracking_self(zc_min, max(zc_min or 16384, 16384), tls=True)
+tests/scriptsurf.py:239:    note("compiled chunk invalidated after flush",
+tests/abbagate.py:2330:    def invalidate_instrument(reason):
+tests/abbagate.py:2640:            invalidate_instrument("measurement harness changed during the ABBA tier")
+tests/abbagate.py:2643:            invalidate_instrument("measurement instrument changed during the ABBA tier")
+tests/abbagate.py:2725:            invalidate_instrument(report["reason"])
+tests/abbagate.py:2743:                invalidate_instrument(f"QuietViolation: {exc}")
+tests/abbagate.py:4398:        def test_contender_invalidates_real_loop_without_retry_or_threshold_change(self):
+tests/abbagate.py:4410:        def test_changed_harness_invalidates_the_real_measurement_loop(self):
+tests/abbagate.py:4420:        def test_changed_instrument_invalidates_the_real_measurement_loop(self):
+tests/_nullrefresh_test.py:376:        # Altering a raw workload also invalidates its artifact binding.
+tests/clientfix.py:145:def tracking_cap(port):
+tests/clientfix.py:149:        assert track.cmd('CLIENT', 'TRACKING', 'ON') == b'OK'
+tests/clientfix.py:153:        invalidated = {key for frame in frames if isinstance(frame, Push)
+tests/clientfix.py:154:                       and frame[0] == b'invalidate' and frame[1] is not None
+tests/clientfix.py:156:        missing = set(key.encode() for key in keys) - invalidated
+tests/clientfix.py:157:        emit(case='tracking-cap', tracked=len(keys), invalidated=len(invalidated),
+tests/clientfix.py:162:def tracking_pipeline(port):
+tests/clientfix.py:168:            assert track.cmd('CLIENT', 'TRACKING', 'ON', 'NOLOOP') == b'OK'
+tests/clientfix.py:176:            if frames != [Push([b'invalidate', [key.encode()]])]:
+tests/clientfix.py:178:    emit(case='tracking-pipeline', attempts=20, failures=failures)
+tests/clientfix.py:310:CASES = ('tracking-cap', 'tracking-pipeline', 'reply-skip', 'pattern-cleanup',
+tests/clientfix.py:325:    if not args.oracle and args.case.startswith('tracking-'):

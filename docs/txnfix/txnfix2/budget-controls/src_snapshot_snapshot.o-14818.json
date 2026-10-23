@@ -1,0 +1,84 @@
+{
+  "source_sha256": "10c752bb72f98fd5d97c62d59dbaebe4857efe5fce218bb0633a60cfd570bbbf",
+  "object": "src/snapshot/snapshot.o",
+  "pre_sha256": "9215e8f9389b7d8ab42cc68b5821918cf876df32066bdb9abbd66de6e5c046a6",
+  "budget": 14818,
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=14718",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/snapshot/snapshot.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnfix2/budgets/src_snapshot_snapshot.o/14818.o",
+    "-g0",
+    "--param",
+    "large-unit-insns=14818"
+  ],
+  "rows": [
+    {
+      "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+      "symbol": "_ZNK4tomo9FlatStore7find_inEimNS_5SliceE",
+      "pre_size": 540,
+      "post_size": 540,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+      "symbol": "_ZN4tomo9FlatStore19erase_in_read_localEimNS_5SliceEPb",
+      "pre_size": 871,
+      "post_size": 871,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+      "symbol": "_ZN4tomo9FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+      "pre_size": 1405,
+      "post_size": 1405,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+      "symbol": "_ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb",
+      "pre_size": 621,
+      "post_size": 621,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+      "symbol": "_ZN4tomo9FlatStore11insert_intoEimPNS_5KvObjEb",
+      "pre_size": 1243,
+      "post_size": 1243,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+      "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+      "pre_size": 1527,
+      "post_size": 1527,
+      "equal": true
+    },
+    {
+      "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+      "symbol": "_ZN4tomo9FlatStore6insertEmPNS_5KvObjE",
+      "pre_size": 1589,
+      "post_size": 1589,
+      "equal": true
+    }
+  ],
+  "changed": 0
+}

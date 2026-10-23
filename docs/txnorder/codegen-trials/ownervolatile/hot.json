@@ -1,0 +1,10 @@
+[
+  {
+    "namespace": "normal",
+    "drifts": []
+  },
+  {
+    "namespace": "db0",
+    "drifts": []
+  }
+]

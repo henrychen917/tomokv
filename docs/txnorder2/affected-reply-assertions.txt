@@ -1,0 +1,121 @@
+tests/multidb.py:55:        expect(admin.cmd("FLUSHALL"), b"OK", "clean dataset")
+tests/multidb.py:110:        expect(admin.cmd("FLUSHALL"), b"OK", "scoped setup")
+tests/multidb.py:139:        expect(c.cmd("FLUSHDB"), b"OK", "FLUSHDB")
+tests/multidb.py:142:        expect(one.cmd("GET", b"md:\0key"), b"db1", "FLUSHDB preserves another DB")
+tests/multidb.py:156:        pipeline(c, [("WATCH", b"md:\0key"), ("SELECT", 1), ("WATCH", b"md:\0key")],
+tests/multidb.py:157:                 [b"OK"] * 3, "WATCH across DBs")
+tests/multidb.py:161:                 [b"OK", b"QUEUED", [b"db1"]], "WATCH isolation")
+tests/multidb.py:162:        expect(c.cmd("WATCH", b"md:\0key"), b"OK", "WATCH before swap")
+tests/multidb.py:166:                 [b"OK", b"QUEUED", b"QUEUED", None], "WATCH swap-back abort")
+tests/multidb.py:168:        expect(c.cmd("WATCH", "md:missing"), b"OK", "WATCH absent in both DBs")
+tests/multidb.py:171:                 [b"OK", b"QUEUED", [None]], "absent WATCH survives swap")
+tests/multidb.py:172:        expect(c.cmd("WATCH", "md:missing"), b"OK", "WATCH follows DB")
+tests/multidb.py:173:        expect(admin.cmd("SWAPDB", 0, 1), b"OK", "restore map with absent WATCH")
+tests/multidb.py:174:        expect(one.cmd("SET", "md:missing", "after-swap"), b"OK", "write through new WATCH alias")
+tests/multidb.py:176:                 [b"OK", b"QUEUED", None], "WATCH sees write after swap")
+tests/multidb.py:177:        expect(one.cmd("DEL", "md:missing"), 1, "WATCH alias cleanup")
+tests/multidb.py:252:        waiter.send("BLPOP", "md:wake", 5)
+tests/multidb.py:255:            assert time.monotonic() < deadline, "BLPOP never parked"
+tests/multidb.py:302:        print("multidb PASS: namespace commands, transactions, WATCH, SWAPDB, blocking, notifications and persistence", flush=True)
+tests/execabort_watch_gate_test.py:15:        start = source.index('row_begin "EXECABORT releases WATCH reservation"')
+tests/execabort_watch_gate_test.py:29:    echo 'FAIL execabort-watch: WATCH window never armed'
+tests/multi_exec.py:2:"""Directed MULTI/EXEC/WATCH gate. Usage: multi_exec.py HOST PORT."""
+tests/multi_exec.py:167:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:168:        ok &= c.cmd("UNWATCH") == b"OK"
+tests/multi_exec.py:174:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:176:        ok &= c.cmd("UNWATCH") == b"QUEUED"
+tests/multi_exec.py:181:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:199:        note("DISCARD/UNWATCH/nested-MULTI/reset-on-EXEC semantics", ok,
+tests/multi_exec.py:216:                # debug-disabled boot doesn't read as a MULTI/WATCH defect (atomfix
+tests/multi_exec.py:218:                print("  SKIP script WATCH declared-key detector: DEBUG SHARD "
+tests/multi_exec.py:224:            note("script WATCH declared-key detector", False, "no same-owner key pair")
+tests/multi_exec.py:229:        ok = watcher.cmd("WATCH", argument) == b"OK"
+tests/multi_exec.py:240:        ok &= watcher.cmd("WATCH", declared) == b"OK"
+tests/multi_exec.py:249:        note("script WATCH declared-key detector", ok,
+tests/multi_exec.py:411:                    if c.cmd("WATCH", key) != b"OK":
+tests/multi_exec.py:412:                        raise AssertionError("WATCH failed")
+tests/multi_exec.py:441:    note("WATCH CAS race has exactly one EXEC winner per round",
+tests/multi_exec.py:455:    raise SystemExit("%d MULTI/WATCH checks failed" % FAIL)
+tests/multi_exec.py:456:print("MULTI/WATCH directed battery passed", flush=True)
+tests/watchlive.py:2:"""WATCH liveness: EXEC must always answer while the server is answering PING.
+tests/watchlive.py:9:With WATCH armed and several connections pipelining a wide multi-key write plus a transaction
+tests/watchlive.py:27:- THE DETECTOR CAN REPORT NON-ZERO.  It did: see NOTES-WATCHLIVE.md for the pre-fix rates
+tests/watchlive.py:29:- THE DETECTOR CAN REPORT ZERO.  The --no-watch control runs the identical shape with the WATCH
+tests/watchlive.py:31:  and the WATCH arm's number means nothing.
+tests/watchlive.py:118:# The shape.  One connection: WATCH over the shared key band, a wide MSET and a wide DEL over the
+tests/watchlive.py:133:    Each round is: [WATCH band-slice] wide MSET, wide DEL, MULTI(SET xN, wide DEL), EXEC.
+tests/watchlive.py:134:    Odd rounds put the WATCH *after* the connection's own wide writes.  That matters: a client's
+tests/watchlive.py:135:    own write dirties its own WATCH (redis semantics, matched here), so a WATCH placed first makes
+tests/watchlive.py:150:        watch_frame = frame("WATCH", *keys[:half]) if watch else None
+tests/watchlive.py:301:# SEMANTICS.  The liveness fix chose a serialization instead of waiting for one, so the WATCH
+tests/watchlive.py:325:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:339:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:349:    a.cmd("WATCH", *keys[:4])
+tests/watchlive.py:361:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:381:                    help="run the zero control: identical shape, WATCH frames removed")
+tests/watchlive.py:386:                    help="run only the deterministic WATCH-contract checks and exit non-zero on "
+tests/watchlive.py:399:    label = "WATCH" if watch else "NO-WATCH(control)"
+tests/execfix.py:204:        conn.command("FLUSHALL")
+tests/execfix.py:242:    conn.command("FLUSHALL")
+tests/execfix.py:266:    conn.command("FLUSHALL")
+tests/execfix.py:295:    conn.command("FLUSHALL")
+tests/execfix.py:308:    conn.command("FLUSHALL")
+tests/execfix.py:323:    conn.command("FLUSHALL")
+tests/execfix.py:357:    conn.command("FLUSHALL")
+tests/execfix.py:404:    conn.command("FLUSHALL")
+tests/execfix.py:466:        conn.command("FLUSHALL")
+tests/execfix.py:470:        conn.command("FLUSHALL")
+tests/execfix.py:488:        conn.command("FLUSHALL")
+tests/execfix.py:501:        conn.command("FLUSHALL")
+tests/execfix.py:536:            admin.command("FLUSHALL")
+tests/execiso.py:317:    # On an armed local boot, WATCH fallback proves owner routing in either atomic mode.
+tests/execiso.py:329:        # This reference specifically tests the scatter read-cut path. WATCH routes a bare
+tests/execiso.py:334:        if reader.cmd("WATCH", KEYS[0]) != b"OK":
+tests/differ.py:273:        if name == b"FLUSHALL":
+tests/differ.py:276:        if name == b"FLUSHDB":
+tests/differ.py:647:            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT",
+tests/differ.py:651:            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT", "3",
+tests/differ.py:1166:                    [rng.choice(["BLPOP", "BRPOP"]), "db:t", timeout],
+tests/differ.py:1171:                    [rng.choice(["BZPOPMIN", "BZPOPMAX"]), "db:tz", timeout],
+tests/differ.py:3150:        sock.sendall(enc(["FLUSHALL"]))
+tests/differ.py:3152:            raise RuntimeError("FLUSHALL failed on blocking clean-slate")
+tests/differ.py:3170:            both(["BLPOP", a, b, timeout], "random %d BLPOP" % iteration)
+tests/differ.py:3194:            both(["BZPOPMIN", a, b, timeout], "random %d BZPOPMIN" % iteration)
+tests/differ.py:3200:            both(["BZPOPMAX", a, b, timeout], "random %d BZPOPMAX" % iteration)
+tests/differ.py:3215:        ["BLPOP", "cbd:timeout:l", ".01"],
+tests/differ.py:3220:        ["BZPOPMIN", "cbd:timeout:z", ".01"],
+tests/differ.py:3221:        ["BZPOPMAX", "cbd:timeout:z", "1e-2"],
+tests/differ.py:3231:        (["BLPOP", "cbd:forever:blpop", "0"],
+tests/differ.py:3241:        (["BZPOPMIN", "cbd:forever:bzmin", "0"],
+tests/differ.py:3243:        (["BZPOPMAX", "cbd:forever:bzmax", "0"],
+tests/differ.py:3280:        command = ["BLPOP", "cbd:fifo", "0"]
+tests/differ.py:3290:        coverage.note('BLPOP')
+tests/differ.py:3297:    # control: a leaked waiter would consume it and make the immediate BLPOP return null.
+tests/differ.py:3301:    tw.sendall(enc(["BLPOP", "cbd:disconnect", "0"]))
+tests/differ.py:3302:    ow.sendall(enc(["BLPOP", "cbd:disconnect", "0"])); logical_ops += 1
+tests/differ.py:3309:    target, oracle = both(["BLPOP", "cbd:disconnect", ".1"], "disconnect control pop")
+tests/differ.py:3325:        ["BLPOP", "cbd:multi:l", "0"],
+tests/differ.py:3328:        ["BZPOPMIN", "cbd:multi:z", "0"],
+tests/differ.py:3329:        ["BZPOPMAX", "cbd:multi:z", "0"],
+tests/differ.py:3611:        ["LMPOP", "1", "ep:miss", "LEFT"], ["BLPOP", "ep:miss", "0.01"],
+tests/differ.py:3614:        ["BLMPOP", "0.01", "1", "ep:miss", "LEFT"], ["BZPOPMIN", "ep:miss", "0.01"],
+tests/differ.py:3706:    ops = [["FLUSHALL"]]
+tests/differ.py:4732:        sock.sendall(enc(["FLUSHALL"])); read_reply(file)
+tests/differ.py:4895:        if command(sock, file, ["FLUSHALL"])[:1] != b"+":
+tests/differ.py:4896:            raise RuntimeError("wiredump FLUSHALL failed")
+tests/differ.py:5016:        cs.sendall(enc(["FLUSHALL"])); read_reply(cf)
+tests/differ.py:5231:        raw_command(sock, file, ["FLUSHALL"])
+tests/differ.py:5249:            cmd = ["XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS"] + ks + [">"] * n
+tests/differ.py:5617:        ["XREADGROUP", "GROUP", "g", "c", "STREAMS", "a", "b", ">", ">"],
+tests/differ.py:5940:        if command(sock, file, ["FLUSHALL"])[:1] != b"+":
+tests/differ.py:5941:            raise RuntimeError("FLUSHALL failed on s6fix clean-slate")
+tests/differ.py:5977:        command(sock, file, ["FLUSHALL"])
+tests/differ.py:6135:    ops = [["SELECT", "0"], ["FLUSHALL"]]
+tests/differ.py:6141:            ["SWAPDB", "0", "1"], ["INFO", "keyspace"], ["EXEC"], ["FLUSHALL"]]
+tests/differ.py:6160:            ops.append(["FLUSHDB"])
+tests/differ.py:6177:    ops += [["SELECT", "0"], ["FLUSHALL"], ["SET", "mdb:publication", "live"]]
+tests/differ.py:6502:        assert issue(peer, ["FLUSHALL"]) == b"+OK\r\n"
+tests/differ.py:6893:# target boots fresh makes every op diff from op 0 (bit us on zset 2026-08-24). FLUSHALL (the
+tests/differ.py:6898:    cs.sendall(enc(["FLUSHALL"]))
+tests/differ.py:6899:    if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
+tests/differ.py:7217:        issue(sock, file, ["FLUSHALL"])

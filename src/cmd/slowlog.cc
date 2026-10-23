@@ -41,13 +41,19 @@
 #include <vector>
 
 namespace tomo {
+
+struct SlowlogIdentity {
+    std::string addr;
+    std::string name;
+};
+
 namespace {
 
 struct SlowlogEntry {
     uint64_t id = 0;
     int64_t  unix_seconds = 0;
     uint64_t duration_us = 0;
-    uint64_t client_id = 0;
+    std::shared_ptr<const SlowlogIdentity> identity;
     bool     exact = true;
     std::vector<std::string> argv;
 };
@@ -109,7 +115,7 @@ constexpr size_t kDirectoryShards = 16;
 
 struct ClientDirectoryShard {
     std::mutex mutex;
-    std::unordered_map<uint64_t, std::pair<std::string, std::string>> entries;  // addr, name
+    std::unordered_map<uint64_t, std::shared_ptr<const SlowlogIdentity>> entries;
 };
 
 std::array<ClientDirectoryShard, kDirectoryShards> g_directory;
@@ -118,14 +124,11 @@ ClientDirectoryShard& directory_shard(uint64_t client_id) {
     return g_directory[client_id % kDirectoryShards];
 }
 
-bool directory_lookup(uint64_t client_id, std::string& addr, std::string& name) {
+std::shared_ptr<const SlowlogIdentity> directory_lookup(uint64_t client_id) {
     ClientDirectoryShard& shard = directory_shard(client_id);
     std::lock_guard<std::mutex> lock(shard.mutex);
     auto found = shard.entries.find(client_id);
-    if (found == shard.entries.end()) return false;
-    addr = found->second.first;
-    name = found->second.second;
-    return true;
+    return found == shard.entries.end() ? nullptr : found->second;
 }
 
 bool eq_icase(Slice s, const char* lit) {
@@ -297,8 +300,10 @@ void cmd_slowlog(Shard&, Op& op) {
         auto sink = op.sink();
         reply_array_header(sink, entries.size());
         for (const SlowlogEntry& entry : entries) {
-            std::string addr, name;
-            if (!directory_lookup(entry.client_id, addr, name)) addr = "unknown:0";
+            const Slice addr = entry.identity
+                ? Slice(entry.identity->addr.data(), entry.identity->addr.size()) : Slice("unknown:0", 9);
+            const Slice name = entry.identity
+                ? Slice(entry.identity->name.data(), entry.identity->name.size()) : Slice("", 0);
             reply_array_header(sink, 6);
             reply_int(sink, static_cast<long long>(entry.id));
             reply_int(sink, static_cast<long long>(entry.unix_seconds));
@@ -306,8 +311,8 @@ void cmd_slowlog(Shard&, Op& op) {
             reply_array_header(sink, entry.argv.size());
             for (const std::string& arg : entry.argv)
                 reply_bulk(sink, Slice(arg.data(), static_cast<uint32_t>(arg.size())));
-            reply_bulk(sink, Slice(addr.data(), static_cast<uint32_t>(addr.size())));
-            reply_bulk(sink, Slice(name.data(), static_cast<uint32_t>(name.size())));
+            reply_bulk(sink, addr);
+            reply_bulk(sink, name);
         }
         return;
     }
@@ -511,7 +516,40 @@ __attribute__((noipa)) static uint32_t slowlog_redactions(const Op& op) {
     return mask;
 }
 
-void slowlog_capture(const Op& op, SlowlogCapture& out) {
+namespace {
+// A non-null static initializer keeps this pointer in .tdata, ahead of the
+// existing zero-initialized TLS state. The idle sentinel owns no operation.
+SlowlogTiming idle_timing;
+thread_local SlowlogTiming* active_timing = &idle_timing;
+}
+
+SlowlogTiming::SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
+                            uint64_t start, int64_t now, const SlowlogArm& setting)
+    : op(operation), client_id(client), started(start), now_ms(now), arm(setting),
+      thread_id(thread), previous(active_timing) {
+    if (op) active_timing = this;
+}
+
+SlowlogTiming::~SlowlogTiming() {
+    if (op) active_timing = previous;
+}
+
+__attribute__((noinline, cold)) void slowlog_complete(const Op& op) {
+    SlowlogTiming& timing = *active_timing;
+    if (timing.op != &op || timing.completed) return;
+    timing.completed = true;
+    const uint64_t elapsed = now_ns() - timing.started;
+    // slowlog_record tests the measured duration before copying argv or taking
+    // the directory reference. The caller still owns the unpublished operation.
+    slowlog_record(timing.thread_id, timing.client_id, op, elapsed,
+                   timing.now_ms, timing.arm, true);
+}
+
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(
+    const Op& op, SlowlogCapture& out, uint64_t client_id) {
+    // Capture before the executor publishes Done: a younger SETNAME or a
+    // disconnect may change the directory as soon as the reply retires.
+    auto identity = directory_lookup(client_id);
     const uint32_t argc = op.argc();
     out.total_argc = argc;
     out.captured = 0;
@@ -531,6 +569,7 @@ void slowlog_capture(const Op& op, SlowlogCapture& out) {
         out.captured++;
         out.used += take;
     }
+    return identity;
 }
 
 // The connection-local path. Safe to read argv directly: the IO loop stores Done only AFTER this
@@ -543,24 +582,24 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
                              duration_us >= static_cast<uint64_t>(arm.slowlog_us);
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
-    entry.client_id = client_id;
     entry.duration_us = duration_us;
     entry.exact = exact;
     if (wants_entry) {
         SlowlogCapture capture;
-        slowlog_capture(op, capture);
+        entry.identity = slowlog_capture(op, capture, client_id);
         if (!build_argv(capture, entry.argv)) return;
     }
     slowlog_finish(thread_id, entry, duration_ns, now_ms, arm);
 }
 
 // The executor path, fed from a capture taken before execute().
-void slowlog_record_captured(uint32_t thread_id, uint64_t client_id, const SlowlogCapture& capture,
+void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture,
                              uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm) {
     const uint64_t duration_us = duration_ns / 1000;
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
-    entry.client_id = client_id;
+    entry.identity = identity;
     entry.duration_us = duration_us;
     entry.exact = true;
     if (arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
@@ -591,7 +630,10 @@ uint64_t latency_events_recorded() { return g_latency_events.load(std::memory_or
 void slowlog_note_client(uint64_t client_id, const char* addr) {
     ClientDirectoryShard& shard = directory_shard(client_id);
     std::lock_guard<std::mutex> lock(shard.mutex);
-    try { shard.entries[client_id] = {addr ? addr : "unknown:0", std::string()}; }
+    try {
+        shard.entries[client_id] = std::make_shared<const SlowlogIdentity>(
+            SlowlogIdentity{addr ? addr : "unknown:0", std::string()});
+    }
     catch (const std::bad_alloc&) {}
 }
 
@@ -600,7 +642,11 @@ void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t nam
     std::lock_guard<std::mutex> lock(shard.mutex);
     auto found = shard.entries.find(client_id);
     if (found == shard.entries.end()) return;
-    try { found->second.second.assign(name, name_len); }
+    try {
+        // Replacing the directory version cannot mutate any historical entry.
+        found->second = std::make_shared<const SlowlogIdentity>(
+            SlowlogIdentity{found->second->addr, std::string(name, name_len)});
+    }
     catch (const std::bad_alloc&) {}
 }
 

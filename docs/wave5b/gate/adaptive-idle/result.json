@@ -1,0 +1,47 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "/home/user/Projects/cx-wave5/tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26802",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave5/build/wave5b/gate-binaries/bd2408ef0e73412d8dd61d6476e297d0df236f2033d3520f98273314f0871133/tomokv"
+  ],
+  "jobs": [
+    "iofix-deferred"
+  ],
+  "started": 1792762402.1530297,
+  "binary_sha256": "bd2408ef0e73412d8dd61d6476e297d0df236f2033d3520f98273314f0871133",
+  "snapshot_binary": "/home/user/Projects/cx-wave5/build/wave5b/gate-binaries/bd2408ef0e73412d8dd61d6476e297d0df236f2033d3520f98273314f0871133/tomokv",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "95",
+    "GATE_GLOBCASE_ORACLE_CORES": "95",
+    "GATE_TEST_PORT": "26899",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-wave5/build/wave5b/differ-history",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave5/build/wave5b/gate-history",
+    "PYTHONPATH": "/home/user/Projects/cx-wave5/docs/wave5/port_guard:",
+    "WAVE5_PORT_RECEIPT": "/home/user/Projects/cx-wave5/docs/wave5b/fixture-ports.jsonl",
+    "GATE_ONLY_JOBS": "iofix-deferred",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave5/docs/wave5b/gate/adaptive-idle/ledger",
+    "NETFIX_TLS_ORACLE": "/home/user/Projects/cx-wave5/build/wave5/redis74-tls/src/redis-server",
+    "WAVE5_BINARY": "/home/user/Projects/cx-wave5/build/wave5b/gate-binaries/bd2408ef0e73412d8dd61d6476e297d0df236f2033d3520f98273314f0871133/tomokv"
+  },
+  "returncode": 0,
+  "elapsed": 28.41743493080139,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.titkRM"
+  ],
+  "binary_stable": true
+}

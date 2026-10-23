@@ -1,0 +1,19 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "ZRANGESTORE",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-matrix/post-normal-2s-ZRANGESTORE.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-matrix/post-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "12abcab1a1b6907cf1c0343e4b7a50abef22369e06c6a965ae96f05f66c560cc",
+  "counts": {}
+}

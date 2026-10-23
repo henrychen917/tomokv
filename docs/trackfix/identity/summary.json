@@ -1,0 +1,398 @@
+{
+  "pre": {
+    "path": "/home/user/Projects/cx-trackfix/build/tomokv-PRE",
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-trackfix/build/tomokv",
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  "total": 8641,
+  "identical": 8623,
+  "changed": [
+    {
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        7107
+      ],
+      "post_sizes": [
+        7109
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2492
+      ],
+      "post_sizes": [
+        2492
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1346
+      ],
+      "post_sizes": [
+        1314
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        117
+      ],
+      "post_sizes": [
+        118
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1976
+      ],
+      "post_sizes": [
+        1976
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3974
+      ],
+      "post_sizes": [
+        3958
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        287
+      ],
+      "post_sizes": [
+        294
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2700
+      ],
+      "post_sizes": [
+        2700
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        181
+      ],
+      "post_sizes": [
+        181
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1831
+      ],
+      "post_sizes": [
+        1831
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3974
+      ],
+      "post_sizes": [
+        3958
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        287
+      ],
+      "post_sizes": [
+        294
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        865
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "All defining PRE/POST object files are byte-identical; the linked strict difference is relocation/literal-label normalization. The full difference remains reported.",
+      "source_objects": [
+        {
+          "object": "src/core/genthread.o",
+          "byte_identical": true
+        },
+        {
+          "object": "src/core/rl2s.o",
+          "byte_identical": true
+        }
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        15981
+      ],
+      "post_sizes": [
+        15981
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        17097
+      ],
+      "post_sizes": [
+        17097
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
+      "source_objects": [
+        {
+          "object": "src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        15739
+      ],
+      "post_sizes": [
+        15739
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        17145
+      ],
+      "post_sizes": [
+        17145
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
+      "source_objects": [
+        {
+          "object": "db0/src/cmd/xshard.o",
+          "byte_identical": false
+        }
+      ]
+    }
+  ],
+  "command_hot_total": 12,
+  "command_hot_changed": []
+}

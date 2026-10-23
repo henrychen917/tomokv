@@ -1,0 +1,36 @@
+{
+  "group": "pre-fused-uring",
+  "path": "docs/iofix/pre-fused-uring-launches.jsonl",
+  "records": 7,
+  "sha256": "6d96cd62400a2255b8d41e72726df5f296bf2707b08eaa4d85b4b306245d937b",
+  "source_records": [
+    {
+      "pid": 3298703,
+      "sha256": "f949a9755434f24cc609197f3bd6320a2267d4032351544501b91ead0ddba533"
+    },
+    {
+      "pid": 3298721,
+      "sha256": "332c75f19c0ae87f8f076b43f423db13c3074b53e5936ea5418491d5ce53e01a"
+    },
+    {
+      "pid": 3298735,
+      "sha256": "af5df1a833a0618615de2cdb80bd4100f3dd5da056cc33ff9462214616813e65"
+    },
+    {
+      "pid": 3299575,
+      "sha256": "5201a79348155c4395eae11bbb94b054f5b46fdf9062261397d71d9b4d412a01"
+    },
+    {
+      "pid": 3299620,
+      "sha256": "e4951206b7d803d31c7eb490bf1ccfaf6e83f378b86e863e3290cbc57d149d2e"
+    },
+    {
+      "pid": 3299662,
+      "sha256": "eeee5b000b6e624f6c0e55c45282f15dc06a61a96575ad04c1c678096957e7a4"
+    },
+    {
+      "pid": 3299743,
+      "sha256": "7fe6233a58198d39de39b28798c92991203ed219048ff6301e279619461d77b7"
+    }
+  ]
+}

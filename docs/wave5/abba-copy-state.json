@@ -1,0 +1,7 @@
+{
+  "head": "b2e91a4acfc2363bb9fa7e8bfc7b82b97c1e51cf",
+  "status": " M tests/gate.sh\n",
+  "fixture_sha256": "aa1e85729ddf7c9897689430dc7d03b215ae02fa58cd9ba8aba159a60b0fab5b",
+  "allowed_change": "Only EXPECT_QUICK=740 and EXPECT_FULL=757; fixture identical to the integrated 757-label fixture.",
+  "gate_receipt": "docs/wave5/gate/abba-quiet/result.json"
+}

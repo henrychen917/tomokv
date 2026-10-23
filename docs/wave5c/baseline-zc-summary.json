@@ -1,0 +1,47 @@
+[
+  {
+    "arm": "wave5b",
+    "engine": "uring",
+    "runs": 30,
+    "failures": 0,
+    "lsan_failures": 0,
+    "asan_clean_passes": 30,
+    "asan_clean_failures": 0
+  },
+  {
+    "arm": "headline",
+    "engine": "uring",
+    "runs": 30,
+    "failures": 0,
+    "lsan_failures": 0,
+    "asan_clean_passes": 30,
+    "asan_clean_failures": 0
+  },
+  {
+    "arm": "iofix",
+    "engine": "uring",
+    "runs": 30,
+    "failures": 6,
+    "lsan_failures": 6,
+    "asan_clean_passes": 24,
+    "asan_clean_failures": 6
+  },
+  {
+    "arm": "fliplisten",
+    "engine": "uring",
+    "runs": 30,
+    "failures": 0,
+    "lsan_failures": 0,
+    "asan_clean_passes": 30,
+    "asan_clean_failures": 0
+  },
+  {
+    "arm": "netfix",
+    "engine": "uring",
+    "runs": 30,
+    "failures": 0,
+    "lsan_failures": 0,
+    "asan_clean_passes": 30,
+    "asan_clean_failures": 0
+  }
+]

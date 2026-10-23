@@ -1,0 +1,31 @@
+directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
+PASS G1-SMOVE
+directed LMOVE result b'm' state [[], [b'a', b'm', b'z']]
+PASS G1-LMOVE
+directed PFMERGE result b'OK' state [2, 6]
+PASS G1-PFMERGE
+directed RPOPLPUSH-source result b'm' state [[b'z'], [b'm', b'a']]
+PASS G1-RPOPLPUSH-source
+directed RENAME-source result b'OK' state [b'new', b'old']
+PASS G1-RENAME-source
+directed MSETNX result 1 state [b'from-set', b'from-msetnx']
+PASS G2
+group placement counters {'atomic_group_dooms': 0, 'atomic_group_retries': 0, 'atomic_group_wounds': 0, 'atomic_txn_blind_restarts': 0, 'atomic_txn_writer_waits': 735400}
+conservation smove atomic 1 members 8000
+PASS G3
+group placement counters {'atomic_group_dooms': 0, 'atomic_group_retries': 0, 'atomic_group_wounds': 0, 'atomic_txn_blind_restarts': 0, 'atomic_txn_writer_waits': 0}
+conservation smove atomic 1 members 2000
+PASS G4-smove
+group placement counters {'atomic_group_dooms': 0, 'atomic_group_retries': 1, 'atomic_group_wounds': 1, 'atomic_txn_blind_restarts': 0, 'atomic_txn_writer_waits': 0}
+conservation rpoplpush atomic 1 members 2000
+PASS G4-rpoplpush
+directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
+directed LMOVE result b'm' state [[], [b'a', b'm', b'z']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'm' state [[b'z'], [b'm', b'a']]
+directed RENAME-source result b'OK' state [b'new', b'old']
+conservation smove atomic 0 members 8000
+conservation smove atomic 0 members 2000
+conservation rpoplpush atomic 0 members 2000
+PASS G5
+PASS G6

@@ -1,0 +1,32 @@
+{
+  "object": "src/core/rl2s.o",
+  "budget": 163036,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=163036",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/src_core_rl2s.o-163036.o",
+    "-g0"
+  ],
+  "compile_exit": 0,
+  "output": "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/src_core_rl2s.o-163036.o",
+  "total": 125,
+  "changed": [
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)"
+  ]
+}

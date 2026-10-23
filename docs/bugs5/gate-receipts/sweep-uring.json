@@ -1,0 +1,114 @@
+{
+  "label": "sweep-uring",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.c9WODl",
+  "gate_summary": [
+    "GATE(PARTIAL): 32 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/sweep-uring/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "atomic_batteries",
+      "done": "0\t4\t0"
+    },
+    {
+      "job": "cmd_metadata",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "config_unit",
+      "done": "0\t2\t0"
+    },
+    {
+      "job": "evict-lfu-armed-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lfu-armed-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lfu-split-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lfu-split-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lruclock-armed-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lruclock-armed-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lruclock-split-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "evict-lruclock-split-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "production_units",
+      "done": "0\t0\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-cpu-1s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-cpu-1s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-cpu-2s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-cpu-2s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-fragment-1s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-fragment-1s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-fragment-2s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-fragment-2s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-neighbour-1s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-neighbour-1s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-neighbour-2s-epoll",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "respresume-neighbour-2s-uring",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "wb_rule_units",
+      "done": "0\t4\t0"
+    }
+  ],
+  "archive_sha256": "a70c490d4327696be5550c0618778ef5ccf6e3972624d4296df4baa67c71b09f"
+}

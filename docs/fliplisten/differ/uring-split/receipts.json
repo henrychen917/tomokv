@@ -1,0 +1,10 @@
+{
+  "result": {
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0
+  },
+  "files": 1132,
+  "source": "build/fliplisten/differ/uring-split-results",
+  "sha256": "9117fe6c404e7afaf83f3bdb02530fe5d0cdd8eca2e248203d7c6cde382cbbad"
+}

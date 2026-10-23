@@ -50,17 +50,19 @@
         return atomic_key_pending(hash, key);
     }
     template <typename Visit>
+    __attribute__((noinline))
     void atomic_visit_key_groups(uint64_t hash, Slice key, Visit&& visit) {
-        if (!atomic_pending_ || !atomic_pending_->live) return;
+        if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
-            if (!entry->group || !(entry->membership & bit)) continue;
+            if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
-                    visit(*entry->group);
+                    visit(*entry);
                     break;
                 }
         }
+        atomic_visit_unit_intents(hash, key, false, visit);
     }
     bool atomic_has_script_intent(uint64_t hash, Slice key) const {
         if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
@@ -114,7 +116,7 @@
         if (!atomic_ensure_pending()) return false;
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
-            if (intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
+            if (intent->kind != 0 || intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
                 !bytes_equal(intent->key_data(), key.p, key.n)) continue;
             intent->refs++;
             return true;
@@ -130,10 +132,11 @@
         if (key.n) std::memcpy(intent->key_data(), key.p, key.n);
         const bool first_activity = atomic_pending_->live == 0 &&
                                     atomic_pending_->script_intent_count == 0;
+        const bool first_pin = !atomic_has_script_pins();
         intent->next = atomic_pending_->script_intents;
         atomic_pending_->script_intents = intent;
         atomic_pending_->script_intent_count++;
-        if (atomic_pending_->script_intent_count == 1 && atomic_script_intents_)
+        if (first_pin && atomic_script_intents_)
             atomic_script_intents_->fetch_add(1, std::memory_order_release);
         if (first_activity && atomic_activity_)
             atomic_activity_->fetch_add(1, std::memory_order_release);
@@ -145,7 +148,7 @@
         AtomicScriptIntent** link = &atomic_pending_->script_intents;
         while (*link) {
             AtomicScriptIntent* intent = *link;
-            if (intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
+            if (intent->kind != 0 || intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
                 !bytes_equal(intent->key_data(), key.p, key.n)) {
                 link = &intent->next;
                 continue;
@@ -156,7 +159,7 @@
             std::free(intent);
             if (!atomic_pending_->script_intent_count) std::abort();
             atomic_pending_->script_intent_count--;
-            if (!atomic_pending_->script_intent_count && atomic_script_intents_)
+            if (!atomic_has_script_pins() && atomic_script_intents_)
                 atomic_script_intents_->fetch_sub(1, std::memory_order_release);
             if (!atomic_pending_->script_intent_count && !atomic_pending_->live &&
                 atomic_activity_)
@@ -164,6 +167,112 @@
             return;
         }
         std::abort();
+    }
+
+    bool atomic_has_script_pins() const {
+        return atomic_pending_ && atomic_pending_->script_intents &&
+               atomic_pending_->script_intents->kind == 0;
+    }
+    bool atomic_has_script_pin(uint64_t hash, Slice key) const {
+        if (!atomic_pending_) return false;
+        for (auto* intent = atomic_pending_->script_intents;
+             intent && intent->kind == 0; intent = intent->next)
+            if (intent->hash == hash && intent->key_ns == key.ns && intent->key_len == key.n &&
+                bytes_equal(intent->key_data(), key.p, key.n)) return true;
+        return false;
+    }
+
+    // Returns 1 for a new intent, 0 for an already covered key and -1 on OOM.
+    // Unit nodes follow the PIN prefix. A wildcard uses an impossible namespace
+    // so atomic_has_script_intent's unchanged key predicate never matches it.
+    int atomic_unit_pin(const UnitRef& unit, uint64_t hash, Slice key, bool wildcard = false) {
+        if (!atomic_ensure_pending()) return -1;
+        AtomicScriptIntent** insertion = &atomic_pending_->script_intents;
+        while (*insertion && (*insertion)->kind == 0) insertion = &(*insertion)->next;
+        for (auto* intent = *insertion; intent; intent = intent->next) {
+            if (atomic_intent_unit(*intent).unit != unit.unit) continue;
+            if (intent->kind == 2 || (!wildcard && intent->hash == hash &&
+                intent->key_ns == key.ns && intent->key_len == key.n &&
+                bytes_equal(intent->key_data(), key.p, key.n))) return 0;
+        }
+        const size_t bytes = sizeof(UnitRef) + sizeof(AtomicScriptIntent) + (wildcard ? 0 : key.n);
+        void* memory = std::malloc(bytes);
+        if (!memory) return -1;
+        auto* ref = new (memory) UnitRef(unit);
+        auto* intent = new (ref + 1) AtomicScriptIntent;
+        intent->kind = wildcard ? 2 : 1;
+        intent->key_ns = wildcard ? UINT32_MAX : key.ns;
+        intent->hash = hash;
+        intent->refs = 1;
+        intent->key_len = wildcard ? 0 : key.n;
+        if (!wildcard && key.n) std::memcpy(intent->key_data(), key.p, key.n);
+        const bool first_activity = atomic_pending_->live == 0 &&
+                                    atomic_pending_->script_intent_count == 0;
+        intent->next = *insertion;
+        *insertion = intent;
+        ++atomic_pending_->script_intent_count;
+        if (first_activity && atomic_activity_)
+            atomic_activity_->fetch_add(1, std::memory_order_release);
+        return 1;
+    }
+
+    template <typename Predicate>
+    uint32_t atomic_remove_unit_intents(Predicate&& remove) {
+        if (!atomic_pending_) return 0;
+        uint32_t removed = 0;
+        auto** link = &atomic_pending_->script_intents;
+        while (*link) {
+            auto* intent = *link;
+            if (intent->kind == 0 || !remove(atomic_intent_unit(*intent))) {
+                link = &intent->next;
+                continue;
+            }
+            *link = intent->next;
+            atomic_free_unit_intent(&atomic_intent_unit(*intent));
+            if (!atomic_pending_->script_intent_count) std::abort();
+            --atomic_pending_->script_intent_count;
+            ++removed;
+        }
+        if (removed && !atomic_pending_->script_intent_count && !atomic_pending_->live &&
+            atomic_activity_)
+            atomic_activity_->fetch_sub(1, std::memory_order_release);
+        return removed;
+    }
+    uint32_t atomic_unit_unpin(const void* unit, bool keys_only = false) {
+        return atomic_remove_unit_intents([&](const UnitRef& ref) {
+            return ref.unit == unit && (!keys_only ||
+                reinterpret_cast<const AtomicScriptIntent*>(&ref + 1)->kind != 2);
+        });
+    }
+    uint32_t atomic_cleanup_unit_intents() {
+        return atomic_remove_unit_intents([](const UnitRef& ref) {
+            return ref.epoch->load(std::memory_order_acquire) != 0 ||
+                   ref.aborted->load(std::memory_order_acquire);
+        });
+    }
+    template <typename Visit>
+    void atomic_visit_unit_intents(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {
+        if (!atomic_pending_) return;
+        for (auto* intent = atomic_pending_->script_intents; intent; intent = intent->next) {
+            if (intent->kind == 0) continue;
+            if (wildcard || intent->kind == 2 || (intent->hash == hash &&
+                intent->key_ns == key.ns && intent->key_len == key.n &&
+                bytes_equal(intent->key_data(), key.p, key.n))) visit(*intent);
+        }
+    }
+    template <typename Visit>
+    void atomic_visit_unit_records(uint64_t hash, Slice key, bool wildcard, Visit&& visit) {
+        if (!atomic_pending_) return;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (auto* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (wildcard) { visit(*entry); continue; }
+            if (!(entry->membership & bit)) continue;
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
+                    visit(*entry);
+                    break;
+                }
+        }
     }
 
     // True when ANY version changed this key after cut. A matching undecided group is
@@ -706,6 +815,18 @@
     // subsequent table clear sees tombstones for tracked keys, so protected predecessors remain
     // parked while unrelated plain keys are reclaimed immediately.
     bool atomic_tombstone_all(int namespace_filter = -1) {
+        if (atomic_pending_) {
+            for (auto* entry = atomic_pending_->head; entry; entry = entry->next)
+                for (uint32_t i = 0; i < entry->count; ++i)
+                    if (namespace_filter < 0 || atomic_entry_key(*entry, i).ns == unsigned(namespace_filter)) {
+                        atomic_cancel_unit_record(*entry);
+                        break;
+                    }
+            for (auto* intent = atomic_pending_->script_intents; intent; intent = intent->next)
+                if (intent->kind != 0 && (intent->kind == 2 || namespace_filter < 0 ||
+                                          intent->key_ns == unsigned(namespace_filter)))
+                    atomic_cancel_unit_intent(*intent);
+        }
         if (!atomic_pending_ || atomic_pending_->live == 0) return true;
         struct PreparedClear { uint64_t hash; std::string key; uint8_t ns; AtomicEntry* entry; };
         std::vector<PreparedClear> prepared;
@@ -977,6 +1098,16 @@ private:
 
     void atomic_destroy_pending() {
         if (!atomic_pending_) return;
+        // Only shutdown reaches this destructor, after all workers have joined.
+        // A stopped EXEC may still own read intents although its value records
+        // have just been rolled back. Release those cold nodes before the
+        // existing empty-list check; PIN accounting remains independent.
+        atomic_remove_unit_intents([](const UnitRef& ref) {
+            auto& intent = *const_cast<AtomicScriptIntent*>(
+                reinterpret_cast<const AtomicScriptIntent*>(&ref + 1));
+            atomic_shutdown_unit_intent(intent);
+            return true;
+        });
         if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
         const bool read_local_extended = atomic_pending_->read_local_extended;
         for (uint32_t cls = 0; cls < AtomicPendingState::kPoolClasses; cls++) {

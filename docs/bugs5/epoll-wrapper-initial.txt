@@ -1,0 +1,2 @@
+#!/bin/bash
+exec /home/user/Projects/cx-bugs5/build/tomokv --net-io epoll "$@"

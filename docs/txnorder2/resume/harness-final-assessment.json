@@ -1,0 +1,119 @@
+{
+  "status": "EXPECTED SOURCE-COUNT REFUSAL, not PASS",
+  "gate_receipt": "docs/txnorder2/gate-harness-port-final/result.json",
+  "log": "docs/txnorder2/gate-harness-port-final/run/jobs/abba_selftest/gate-abbagate-unit.txt",
+  "log_sha256": "623020d8e64af42bb61af6c4cedd339eb6be1dc7640b6a731d4aef473064a345",
+  "environment": {
+    "GATE_ONLY_JOBS": "abba_selftest",
+    "GATE_LEDGER": "/home/user/Projects/cx-txnfix/docs/txnorder2/gate-harness-port-final/ledger.tsv",
+    "GATE_TEST_PORT": "27899",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+    "REDIS74_ROOT": "/home/user/Projects/redis"
+  },
+  "unit_summaries": [
+    {
+      "tests": 121,
+      "seconds": 462.738,
+      "result": "OK",
+      "line": 136
+    },
+    {
+      "tests": 10,
+      "seconds": 0.008,
+      "result": "OK",
+      "line": 151
+    },
+    {
+      "tests": 9,
+      "seconds": 0.479,
+      "result": "OK",
+      "line": 165
+    },
+    {
+      "tests": 16,
+      "seconds": 0.401,
+      "result": "OK",
+      "line": 186
+    },
+    {
+      "tests": 8,
+      "seconds": 0.029,
+      "result": "OK",
+      "line": 193
+    },
+    {
+      "tests": 11,
+      "seconds": 2.637,
+      "result": "OK",
+      "line": 209
+    },
+    {
+      "tests": 7,
+      "seconds": 0.807,
+      "result": "OK",
+      "line": 225
+    },
+    {
+      "tests": 11,
+      "seconds": 0.001,
+      "result": "OK",
+      "line": 230
+    },
+    {
+      "tests": 55,
+      "seconds": 21.293,
+      "result": "OK",
+      "line": 290
+    },
+    {
+      "tests": 12,
+      "seconds": 0.47,
+      "result": "OK",
+      "line": 295
+    },
+    {
+      "tests": 14,
+      "seconds": 0.135,
+      "result": "OK",
+      "line": 314
+    },
+    {
+      "tests": 67,
+      "seconds": 103.009,
+      "result": "OK",
+      "line": 319
+    },
+    {
+      "tests": 8,
+      "seconds": 0.053,
+      "result": "OK",
+      "line": 324
+    },
+    {
+      "tests": 8,
+      "seconds": 1.854,
+      "result": "OK",
+      "line": 343
+    },
+    {
+      "tests": 3,
+      "seconds": 0.011,
+      "result": "OK",
+      "line": 348
+    }
+  ],
+  "refusals": [
+    "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=733, source declarations=733"
+  ],
+  "not_run": "gate_receipt.py internal positive/negative suite after its source-count preflight: protected EXPECT_FULL=702 refuses before setup; maintainer count update is required.",
+  "unchanged_expected": {
+    "quick": 685,
+    "full": 702
+  },
+  "required_expected": {
+    "quick": 716,
+    "full": 733
+  },
+  "note": "The job remains scored FAIL. Every completed unittest summary is OK, including 121 ABBA and 67 gates tests; no receipt control is skipped and then relabelled PASS."
+}

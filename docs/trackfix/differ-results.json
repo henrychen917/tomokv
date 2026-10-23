@@ -1,0 +1,163 @@
+[
+  {
+    "arm": "POST",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 1,
+    "passed": 463,
+    "failed": 3,
+    "failures": [
+      "  differ climon (atomic=0 seed=7)                            FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-epoll-armed-fused/climon-a0-s7.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)",
+      "  differ climon (atomic=0 seed=23)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-epoll-armed-fused/climon-a0-s23.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)",
+      "  differ climon (atomic=1 seed=19)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-epoll-armed-fused/climon-a1-s19.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)"
+    ]
+  },
+  {
+    "arm": "POST",
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "POST-final",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 1,
+    "passed": 463,
+    "failed": 3,
+    "failures": [
+      "  differ climon (atomic=0 seed=7)                            FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-final-epoll-armed-fused/climon-a0-s7.txt; DIFFER climon: 4318 ops, 2 diffs -> FAIL)",
+      "  differ climon (atomic=0 seed=21)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-final-epoll-armed-fused/climon-a0-s21.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)",
+      "  differ climon (atomic=1 seed=23)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/POST-final-epoll-armed-fused/climon-a1-s23.txt; DIFFER climon: 4318 ops, 7 diffs -> FAIL)"
+    ]
+  },
+  {
+    "arm": "POST-final",
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "POST-final",
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0,
+    "passed": 466,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "POST-final",
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "POST",
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0,
+    "passed": 466,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "POST",
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 1,
+    "passed": 461,
+    "failed": 5,
+    "failures": [
+      "  differ climon (atomic=0 seed=20)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-epoll-armed-fused/climon-a0-s20.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)",
+      "  differ climon (atomic=0 seed=23)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-epoll-armed-fused/climon-a0-s23.txt; DIFFER climon: 4318 ops, 7 diffs -> FAIL)",
+      "  differ climon (atomic=0 seed=21)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-epoll-armed-fused/climon-a0-s21.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)",
+      "  differ climon (atomic=1 seed=20)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-epoll-armed-fused/climon-a1-s20.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)",
+      "  differ climon (atomic=1 seed=21)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-epoll-armed-fused/climon-a1-s21.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)"
+    ]
+  },
+  {
+    "arm": "PRE",
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE-final",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 1,
+    "passed": 464,
+    "failed": 2,
+    "failures": [
+      "  differ climon (atomic=1 seed=19)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-final-epoll-armed-fused/climon-a1-s19.txt; DIFFER climon: 4318 ops, 5 diffs -> FAIL)",
+      "  differ climon (atomic=1 seed=20)                           FAIL (see /home/user/Projects/cx-trackfix/build/trackfix/differ/PRE-final-epoll-armed-fused/climon-a1-s20.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)"
+    ]
+  },
+  {
+    "arm": "PRE-final",
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE-final",
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0,
+    "passed": 466,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE-final",
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE",
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0,
+    "passed": 466,
+    "failed": 0,
+    "failures": []
+  },
+  {
+    "arm": "PRE",
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0,
+    "passed": 475,
+    "failed": 0,
+    "failures": []
+  }
+]

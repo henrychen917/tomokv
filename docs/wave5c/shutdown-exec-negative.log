@@ -1,0 +1,7 @@
+# Directed negative control for the post-join EXEC withholding fix (wave5c continuation, 2026-10-24T02:02:17+08:00).
+# Source tree: git archive be616ff9c (unfixed WIP src/core/shutdown.cc sha256 6a8a3f08372e47e3ca9ee3e846833dae1420afd4859e9ad6cf2fdfa606272418) + the new tests/shutdown_client_checks.inc and tests/shutdown_unit.cc.
+# Command: taskset -c 64-111 make -j32 build/shutdown-unit && taskset -c 64-71 ./build/shutdown-unit
+# Expected: the shard-only EXEC retires; the BGSAVE EXEC is retired by the unfixed code, which runs BGSAVE after join and trips the snapshot stub.
+# exit status: 1
+FAIL shutdown: post-join cleanup runs no queued command and starts no save
+shutdown clients mode=2s engine=uring unlisted_close=1 FIFO=1 recv=1 exec=retired flushed=21: PASS

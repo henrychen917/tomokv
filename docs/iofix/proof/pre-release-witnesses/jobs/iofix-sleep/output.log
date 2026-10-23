@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      FAIL (see /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-sleep/sleep-*.log)

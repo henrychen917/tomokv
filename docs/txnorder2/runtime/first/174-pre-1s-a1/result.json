@@ -1,0 +1,39 @@
+{
+  "index": 174,
+  "name": "pre-1s-a1",
+  "arm": "pre",
+  "status": "FAIL",
+  "row": {
+    "name": "pre-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "tests/txnfix_audit/t19_crossed_watch.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data/pre-armed-server",
+      "--port",
+      "27801",
+      "--cores",
+      "64-71",
+      "--mode",
+      "1s",
+      "--atomic",
+      "1",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-cross-watch/pre-1s-a1"
+    ],
+    "family": "final4-cross-watch",
+    "source_parameters": "docs/txnfix/txnfix3/final4-cross-watch/runs.json",
+    "status": "PENDING owner run on final SHA",
+    "arm": "pre"
+  },
+  "started": 1792668728.802315,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+  "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+  "returncode": 1,
+  "finished": 1792668749.4979475
+}

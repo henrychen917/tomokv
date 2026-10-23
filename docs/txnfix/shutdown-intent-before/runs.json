@@ -1,0 +1,194 @@
+[
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "geometry": [
+      [
+        13,
+        7
+      ],
+      [
+        2,
+        6
+      ]
+    ],
+    "error": null,
+    "exit_code": 0,
+    "binary_sha256": "34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "geometry": [
+      [
+        10,
+        2
+      ],
+      [
+        9,
+        1
+      ]
+    ],
+    "error": null,
+    "exit_code": 0,
+    "binary_sha256": "34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "geometry": [
+      [
+        0,
+        6
+      ],
+      [
+        15,
+        7
+      ]
+    ],
+    "error": null,
+    "exit_code": -6,
+    "binary_sha256": "98c16cab8fd0055575e07efd4412a22f6d7083dbc54ab142422dd83314b76cf1"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "geometry": [
+      [
+        3,
+        3
+      ],
+      [
+        5,
+        5
+      ]
+    ],
+    "error": null,
+    "exit_code": -6,
+    "binary_sha256": "98c16cab8fd0055575e07efd4412a22f6d7083dbc54ab142422dd83314b76cf1"
+  }
+]

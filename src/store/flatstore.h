@@ -1510,6 +1510,13 @@ public:
         return previous;
     }
     void script_restore_eviction(MaxmemoryPolicy policy) { maxmemory_policy_ = policy; }
+    // Owner-task scope only: keep accounting/eviction metadata enabled while an admitted
+    // FUNCTION may grow beyond the configured cap. No new state or per-operation branch.
+    uint64_t script_exchange_memory_limit(uint64_t limit) {
+        const uint64_t previous = maxmemory_limit_;
+        maxmemory_limit_ = limit;
+        return previous;
+    }
 
     enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom, MaxmemoryOom };
 

@@ -137,7 +137,13 @@ class Race:
     @contextlib.contextmanager
     def held_exec(self, keys):
         holder = self.conn()
-        queued(holder, [("MGET", *keys)])
+        # This holder pins the global cleanup floor, not the values under test.
+        # OCC readers now protect their keys, so an EXEC writer of those same
+        # keys would correctly wait for the older holder and close our window.
+        # Fresh unrelated keys on the same owners keep the original cut/park
+        # witnesses without introducing a read dependency on the racing writes.
+        guards = [self.key(sid) for sid, _ in _lib.shards_of(self.admin, keys)]
+        queued(holder, [("MGET", *guards)])
         before = stat(self.admin, "atomic_exec_read_cuts")
         debug(self.admin, "ATOMIC-FANOUT-DEFER", 1000000)
         holder.send("EXEC")

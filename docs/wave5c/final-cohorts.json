@@ -1,0 +1,40 @@
+[
+  {
+    "name": "final-all",
+    "returncode": 0,
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-wave5/docs/wave5c/verify.py",
+      "final-all",
+      "differ-split differ-armed flip_unit flipfix_units climonfix persistfix_units wb_rule_units wbland_units wb_policy splitlocal_units netcmd_units iofix-hz iofix-sleep iofix-signal netio-1s netio-2s netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers snapshot-epoll snapshot-uring aof-epoll aof-uring notify_aof flip fliplisten flip_saturated flipctl aof_frame aoforder tls release_batteries asan_batteries replyoff zc",
+      "--server-cores",
+      "64-95",
+      "--load-cores",
+      "96-111",
+      "--ports",
+      "26800-26889",
+      "--asan",
+      "/home/user/Projects/cx-wave5/build/wave5c/arms/final-asan"
+    ]
+  },
+  {
+    "name": "final-epoll",
+    "returncode": 0,
+    "command": [
+      "python3",
+      "/home/user/Projects/cx-wave5/docs/wave5c/verify.py",
+      "final-epoll",
+      "climonfix flip flipctl flip_saturated notify_aof aof_frame aoforder tls replyoff netio-1s netio-2s differ-split differ-armed",
+      "--server-cores",
+      "64-95",
+      "--load-cores",
+      "96-111",
+      "--ports",
+      "26800-26889",
+      "--asan",
+      "/home/user/Projects/cx-wave5/build/wave5c/arms/final-asan",
+      "--engine",
+      "epoll"
+    ]
+  }
+]

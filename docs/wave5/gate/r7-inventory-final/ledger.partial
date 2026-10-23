@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_sync reorder_identity; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.910000	R7 generated envelope parity
+ok	99.290000	R7 FIFO twin off-path identity + negative controls

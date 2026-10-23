@@ -1,53 +1,15 @@
 #!/usr/bin/env python3
-"""EXEC is never weaker than the same command run bare -- the in-EXEC cross-shard read gate.
+"""Cross-shard reads inside EXEC remain coherent under concurrent writes.
 
 Usage: execiso.py HOST PORT
 
-THE DEFECT THIS GATE LOCKS
---------------------------
-A cross-shard MGET wrapped in MULTI/EXEC TORE, while the identical BARE MGET against the same
-server, the same keys and the same concurrent writer did not.  MULTI therefore gave a cross-shard
-read LESS isolation than running the command without MULTI.
+Write units hold read/write claims until their one commit. The directed arms
+add a distinct marker write, park their read fragments, and require foreign
+writers to wait without cancelling or replaying the holder. Pure read-only
+EXEC uses MGET's registered cut; the bare reference arms retain their atomic
+transaction writer and finite read cut. Geometry is discovered on every boot.
 
-Mechanism: a MULTI child ran with `!force_atomic`, which is the term that keeps a fragment out of
-the read-cut machinery, and every child then bound the UNBOUND read context (multi.inc,
-`atomic_set_read_context(UINT64_MAX, ...)`).  Each of the read's eight fragments therefore answered
-"newest committed at the instant THIS fragment runs".  A foreign transaction publishing its one
-ticket while the fan-out was in flight was seen by the fragments that ran after it and missed by
-those that ran before: one MGET, two generations, e.g. [8,8,8,8,8,8,8,7].
-
-The counter is the proof of the mechanism: on the clean bare arm `atomic_fanout_cuts` advanced by
-one per read, and on the tearing in-EXEC arm it advanced by ZERO -- the MULTI children provably
-never entered the machinery at all.
-
-THE CONTRACT, STATED NARROWLY
------------------------------
-EXEC must never be weaker than the same commands executed bare.  A bare cross-shard read is atomic,
-so a read inside MULTI must be at least as atomic.  That is the whole bar.  It does NOT promise a
-transaction-wide snapshot and it does NOT change write visibility -- see NOTES-EXECISO.md.
-
-NOT VACUOUS, BY CONSTRUCTION
-----------------------------
-- GEOMETRY.  The hash seed is drawn from the kernel at every boot, so this battery asks DEBUG SHARD
-  for the real owner of every key and refuses to pass unless the read spans more than one owner.
-- DETERMINISM.  DEBUG ATOMIC-FANOUT-DEFER now parks MULTI-child fragments as well as ordinary
-  scatter fragments: every fragment of the transaction except the one on its lead shard is
-  re-queued until the deadline.  A park, not a stall -- the executor stays free, so the foreign
-  transaction really does commit BETWEEN two fragments of one in-EXEC read.
-- THE WINDOW REALLY OPENED.  Every armed round asserts the foreign transaction's reply landed
-  BEFORE the parked read's, and that the read was held for a real fraction of the park.  An unarmed
-  control asserts the same shape completes in a small fraction of that time, so a passing armed
-  round cannot be explained by "the hook did nothing".
-- COUNTER.  atomic_exec_read_cuts counts transactions that published a read cut because they carry
-  a multi-owner read.  It is separate from atomic_fanout_cuts precisely so background bare traffic
-  cannot satisfy the assertion.  Every armed arm demands it advanced, in BOTH atomic modes.
-- BARE REFERENCE.  The same straddle shape is run against a BARE read in the same round, because
-  bare is the bar the contract names.
-- NEGATIVE CONTROLS.  A same-owner read and a write-only transaction must register NO cut: the fix
-  is scoped to multi-owner read fragments and must cost nothing outside them.  A cut must be a cut
-  and not a freeze, and it must never hide the reading connection's own writes.
-
-Boot: --enable-debug-command yes.  Without it the armed arms cannot run and the battery says so.
+Boot with --enable-debug-command yes. Both atomic settings are exercised.
 """
 
 import socket
@@ -244,6 +206,9 @@ def straddle_arm(mode, kind):
     keys = SETS if kind == "SUNION" else KEYS
     torn, detail, opened = 0, [], 0
     before_cuts = info_field("atomic_exec_read_cuts")
+    before_dooms = info_field("atomic_txn_dooms")
+    before_retries = info_field("atomic_txn_retries")
+    before_waits = info_field("atomic_txn_writer_waits")
     for round_id in range(ROUNDS):
         old, new = "g%d-old" % round_id, "g%d-new" % round_id
         if kind == "EXISTS":
@@ -274,17 +239,29 @@ def straddle_arm(mode, kind):
         read_cmd = {"MGET": ("MGET",) + tuple(keys),
                     "EXISTS": ("EXISTS",) + tuple(keys),
                     "SUNION": ("SUNION",) + tuple(keys)}[kind]
+        marker = next("execiso-marker:%d:%d" % (round_id, i) for i in range(4096)
+                      if ADMIN.cmd("DEBUG", "SHARD", "execiso-marker:%d:%d" % (round_id, i)) ==
+                         ADMIN.cmd("DEBUG", "SHARD", keys[0]))
+        assert reader.cmd("INCR", marker) == b"QUEUED"
         if reader.cmd(*read_cmd) != b"QUEUED":
             note(label, False, "read was not queued")
             reader.close()
             return
         reader.send("EXEC")
         time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+        arm(0)                              # replacement attempts must not inherit the park
         writer = Resp()
-        reply = transaction(writer, commands)
-        exec_done = time.time()
-        writer.close()
+        waits = info_field("atomic_txn_writer_waits")
+        for command in commands:
+            writer.send(*command)
+        end = time.monotonic() + HOLD_US / 1e6
+        while info_field("atomic_txn_writer_waits") == waits and time.monotonic() < end:
+            time.sleep(.001)
+        blocked = info_field("atomic_txn_writer_waits") > waits
         outer = reader.read()
+        exec_done = time.time()
+        reply = [writer.read() for command in commands]
+        writer.close()
         elapsed = time.time() - started
         reader.close()
         arm(0)
@@ -292,26 +269,26 @@ def straddle_arm(mode, kind):
         expected_writes = len(commands)
         if not isinstance(reply, list) or len(reply) != expected_writes or \
                 any(isinstance(r, RespError) for r in reply):
-            detail.append("round %d foreign EXEC=%r" % (round_id, reply))
+            detail.append("round %d foreign writes=%r" % (round_id, reply))
             torn += 1
             continue
-        if not isinstance(outer, list) or len(outer) != 1:
+        if not isinstance(outer, list) or len(outer) != 2:
             detail.append("round %d in-EXEC reply=%r" % (round_id, outer))
             torn += 1
             continue
-        values = outer[0]
-        # The window really opened: the whole foreign transaction completed while the read was held.
-        if exec_done < started or elapsed < HOLD_US / 4e6:
+        values = outer[1]
+        # The window opened only if a foreign writer encountered the held claim.
+        if not blocked or exec_done < started or elapsed < HOLD_US / 4e6:
             detail.append("round %d window did not open (read %.3fs, foreign exec ended %.3fs in)"
                           % (round_id, elapsed, exec_done - started))
         else:
             opened += 1
         if kind == "MGET":
             ok = bool(values) and all(value == values[0] for value in values[1:])
-            # The cut was pinned before the foreign transaction arrived: the answer is the OLD world.
+            # Claims keep the old generation stable until this write unit commits.
             ok = ok and values[0] == old.encode()
         elif kind == "EXISTS":
-            ok = values in (0, len(keys))
+            ok = values == 0
         else:
             ok = isinstance(values, list) and len(values) == 1 and values[0] == old.encode()
         if not ok:
@@ -319,9 +296,12 @@ def straddle_arm(mode, kind):
             if len(detail) < 3:
                 detail.append("round %d saw %r" % (round_id, values))
     cuts = info_field("atomic_exec_read_cuts") - before_cuts
-    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS
-    note(label, ok, "rounds=%d torn=%d windows_opened=%d exec_read_cuts=+%d %r"
-         % (ROUNDS, torn, opened, cuts, detail[:2]))
+    dooms = info_field("atomic_txn_dooms") - before_dooms
+    retries = info_field("atomic_txn_retries") - before_retries
+    waits = info_field("atomic_txn_writer_waits") - before_waits
+    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS and dooms == 0 and retries == 0 and waits > 0
+    note(label, ok, "rounds=%d torn=%d windows_opened=%d exec_read_cuts=+%d dooms=+%d retries=+%d %r"
+         % (ROUNDS, torn, opened, cuts, dooms, retries, detail[:2]))
 
 
 # ---- 2. the bar itself: the same shape run BARE ------------------------------------------------
