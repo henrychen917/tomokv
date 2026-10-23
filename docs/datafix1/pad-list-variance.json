@@ -1,0 +1,100 @@
+{
+  "differences": [
+    {
+      "leg": "epoll-1s-rl0-a0",
+      "pre_count": 42,
+      "pad_count": 42,
+      "pre_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:8:RPOPLPUSH"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ],
+      "pad_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:5:RPOPLPUSH"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ]
+    },
+    {
+      "leg": "epoll-1s-rl1-a0",
+      "pre_count": 43,
+      "pad_count": 42,
+      "pre_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:8:LMOVE"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ],
+      "pad_only": []
+    },
+    {
+      "leg": "uring-1s-rl0-a0",
+      "pre_count": 42,
+      "pad_count": 43,
+      "pre_only": [],
+      "pad_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:8:RPOPLPUSH"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ]
+    },
+    {
+      "leg": "uring-1s-rl1-a0",
+      "pre_count": 42,
+      "pad_count": 42,
+      "pre_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:4:RPOPLPUSH"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ],
+      "pad_only": [
+        {
+          "argv": [
+            "OBJECT",
+            "ENCODING",
+            "l:8:RPOPLPUSH"
+          ],
+          "oracle": "listpack",
+          "target": "quicklist"
+        }
+      ]
+    }
+  ],
+  "classification": "All are expected missing-demotion mismatches; no exception or other reply class.",
+  "inference": "Per-boot randomized key placement can choose PRE local image reconstruction (which already compacts) or the non-atomic cross-shard removal path (which does not demote). The differing atomic-0 fused mover mismatch counts are consistent with those existing paths.",
+  "source_anchors": [
+    "a7dfb9d23:src/main.cc:164",
+    "a7dfb9d23:src/cmd/xshard_commands.inc:2341",
+    "a7dfb9d23:src/cmd/t_list.cc:1069"
+  ],
+  "control": "All 60 PRE/PAD legs execute the same 29328 checks and fail real assertions; PAD production object digests match PRE."
+}

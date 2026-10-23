@@ -45,3 +45,15 @@ The existing differential console label says "all 32 execution/knob combinations
 The frozen mode-equivalence stream and completion artifact declare 16 cells
 (2 modes x 2 read-local x 2 reorder x 2 atomic), each with separate replay and
 witness boots, for 32 owned server lifetimes. This report counts 16 cells.
+
+Final proof completed: all four standard differential arms pass their exact 938-leg
+inventories, 16 mode-equivalence cells and both strict folds. DIFF-TRK-1 was not
+observed. The PRE globcase follow-up completes matched io_uring legacy coverage;
+the sole matched PRE legacy failure remains the broken_redirect observation above.
+The final quiet gates_test.py rerun passed 67/67.
+
+PAD-A completes all 60 directed legs and all 29,328 checks, failing assertions in
+every leg without exceptions. A few atomic-0 fused LMOVE/RPOPLPUSH encoding
+mismatch counts vary from PRE; see pad-list-variance.json for exact differences
+and the source-based randomized-routing explanation. Unchanged PRE object hashes
+remain the primary behavior-control provenance.

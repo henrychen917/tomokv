@@ -21,3 +21,6 @@ post-linear-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or r
 post-epoll-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-epoll-differ-serial-ledger.tsv.partial
 pre-epoll-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-epoll-differ-serial-ledger.tsv.partial
 post-uring-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-uring-differ-serial-ledger.tsv.partial
+pre-uring-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-uring-differ-serial-ledger.tsv.partial
+pad-directed-final GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pad-directed-final-ledger.tsv.partial
+pre-uring-globcase GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-uring-globcase-ledger.tsv.partial

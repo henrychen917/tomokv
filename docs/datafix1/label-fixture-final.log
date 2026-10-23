@@ -1,0 +1,14 @@
+RECEIPT FIXTURE REFUSED (owner count unchanged): tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=709, source declarations=709
+Missing fixture labels: none
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.
+Exact source/fixture multiset match: 709
+4286 collect_job datafix1_geo
+4287 collect_job datafix1_spop
+4288 collect_job datafix1_lists
+4289 collect_job datafix1_locale
+4290 collect_job datafix1_bitfield
+4291 collect_job datafix1_randscan
+4292 collect_job datafix1_hexpire
+Quick-tier exit output: line 4379
+DQ=+7 DF=+7; required owner counts 692/709.

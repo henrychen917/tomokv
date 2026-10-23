@@ -15,3 +15,7 @@ post-linear-extra	0
 post-epoll-differ-serial	0
 pre-epoll-differ-serial	0
 post-uring-differ-serial	0
+pre-uring-differ-serial	0
+pad-directed-final	1
+pre-uring-globcase	0
+gates-test-final	0

@@ -5,7 +5,8 @@
 All seven requested findings reproduced against the pinned Redis 7.4.10 oracle
 and are fixed on `cx-datafix1`. PRE is `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`.
 No push. All correctness work and builds used CPUs 48–63 and ports 29800–29899;
-builds used `-j16`. No throughput result is claimed.
+builds used `-j16`. No throughput result is claimed. Proof file names below refer
+to `docs/datafix1/` unless a different path is given.
 
 | Item | Change | Directed battery | Legs |
 |---|---|---|---:|
@@ -74,7 +75,7 @@ Gate accounting: **DQ=+7, DF=+7**. All seven collect_job lines (4286–4292) pre
 the quick exit (4375–4379). EXPECT_QUICK=685 and EXPECT_FULL=702 are untouched;
 the maintainer should set **692 / 709**. The explicit label fixture matches the
 source multiset exactly (709). Its count validator remains red only because
-EXPECT_FULL is still 702; see `label-fixture.log`.
+EXPECT_FULL is still 702; see `label-fixture-final.log`.
 
 Proof status (all live rows use tests/gate.sh's own partial-job interface):
 
@@ -84,10 +85,9 @@ Proof status (all live rows use tests/gate.sh's own partial-job interface):
 | Storage/atomic/netcmd units, including encoding and memory | 57/57 pass | 57/57 pass (post-linear-units) |
 | Configuration docs/parser and command metadata | 3/3 pass from PRE source | Included in final legacy jobs |
 | Legacy data-type jobs, epoll | 156/156 pass | 156/156 legacy + 3/3 static pass |
-| Legacy data-type jobs, io_uring | Earlier selected run: 157 pass, one tracking failure; globcase follow-up pending | 156/156 pass |
+| Legacy data-type jobs, io_uring | Matched inventory: 155 pass, one baseline tracking failure | 156/156 pass |
 | Related jobs: parser, AOF, debug, GEO client, hash TTL, dump/restore, notifications | 199/199 pass | 199/199 pass |
-| Standard differential, both engines | epoll complete; io_uring running | Both engines complete |
-| PAD-A directed behavior control | PRE behavior required | PENDING |
+| Standard differential, both engines | 1,876/1,876 legs pass | 1,876/1,876 legs pass |
 
 Standard differential inventory uses all 47 suites and seeds 7,19,20,23,25.
 Armed-fused omits SORT exactly as declared by the existing harness. Counts are
@@ -100,14 +100,21 @@ the existing console label's "32 combinations" is not the cell inventory.
 | POST epoll | 938/938 | 0 | 16/16 | split + armed pass |
 | PRE epoll | 938/938 | 0 | 16/16 | split + armed pass |
 | POST io_uring | 938/938 | 0 | 16/16 | split + armed pass |
-| PRE io_uring | RUNNING | — | — | — |
+| PRE io_uring | 938/938 | 0 | 16/16 | split + armed pass |
 
-The gate harness self-test passed 67/67 when run alone (`gates-test-serial.log`).
+All **3,752 standard differential legs** and **64 mode-equivalence cells** pass;
+all four inventories and both folds per arm are complete (`final-differ-summary.json`).
+DIFF-TRK-1 was not observed in these final standard runs. The separate PRE legacy
+tracking failure is a missing broken_redirect flag, retained with its exact receipt
+in RUN-NOTES.md. `legacy-uring-matched.json` verifies equal legacy label coverage
+after the successful PRE globcase follow-up.
+
+The final gate harness self-test passed **67/67** alone (`gates-test-final.log`).
 Final POST passes make -q for all, all 37 job_production_units targets and both MDB
-witness builds (`freshness-linear.log`). PRE passed the same fixture freshness
+witness builds (`freshness-closeout.log`). PRE passed the same fixture freshness
 checks before redundant fixture/control builds were removed; its source,
 production objects and server remain, with make -q all still passing.
-`lean-builds.json` records the pruning. The build tree is about 14GB, largely the
+`lean-builds.json` records the pruning. The build tree is about 15GiB, largely the
 required POST production fixtures and controls.
 
 The full changed-text/encoding grep and job mapping are in test-impact-*.txt and
@@ -142,7 +149,13 @@ PAD kind **A, behavior twin**: unchanged PRE objects plus 30,400 inert text byte
 matching POST's 7,777,926-byte .text and unchanged layout locks. This controls total
 text size, not each function's placement. Config's locale pointer occupies PRE's
 reserved storage. `tools/datafix1_pad.py` and `pad-kind.json` preserve exact link
-and object provenance; `SHA256SUMS` records all three binaries.
+and object provenance; `SHA256SUMS` records all three binaries. Final hashes were
+rechecked in `final-artifact-verification.json`. PAD-A executes all 29,328 directed
+checks and fails every leg, like PRE. A few atomic-0 fused list-mover failure
+counts vary between boots: PRE already has a local image-rebuild path that can
+compact, while its cross-shard edge-removal path does not demote. Randomized key
+placement is consistent with these differences; exact receipts and this inference
+are in `pad-list-variance.json`. No driver or boot exception is counted as a control.
 
 Maintainer merit request — **NOT RUN here**, as instructed: use the gate's ABBA
 instrument and the exact 14 cells in tests/wbland_merit_cells.txt:
@@ -153,8 +166,10 @@ geometry. Rate decides rate cells; latency decides the two p1 cells. Report
 cycles/op, IPC and instructions/op together. Require no reproducible ordinary-command
 regression beyond the same-binary null, judged per cell. A spread above 2% requires
 investigation. The question is preservation of ordinary workload merit after
-compatibility repairs. The full iteration, ABBA and NIC
-performance tiers were NOT RUN; they remain with the maintainer.
+compatibility repairs. The full iteration, ABBA and NIC performance tiers were
+NOT RUN; they remain with the maintainer.
 
 Baseline and harness history is documented in `docs/datafix1/RUN-NOTES.md`.
 Superseded or incomplete runs are not counted as final-binary passes.
+
+All owned servers have exited and ports 29800–29899 are free (`final-lifecycle.json`).
