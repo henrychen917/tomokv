@@ -3,7 +3,8 @@
 ## dispatchfix
 
 Base: `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`; branch `cx-dispatchfix`.
-All correctness work and builds use CPUs 96–111, builds `-j16`, ports 28800–28899.
+Builds and correctness server jobs use CPUs 96–111, builds `-j16`, ports 28800–28899.
+The initial scheduler self-test socket-fixture exception is recorded below.
 Redis source: `/home/user/Projects/redis/src`; oracle:
 `/home/user/Projects/redis74/src/redis-server`. No performance measurements or throughput claims.
 
@@ -51,7 +52,11 @@ that answer unknown-subcommand on PRE. The new row probes all 96 advertised
 children and compares directed DRYRUN results with Redis, including wrong
 arity, absent users/commands, key/channel denials, and proof that a dry-run
 SET leaves the value unchanged. All four mode/engine legs pass on the candidate.
-Evidence: `docs/dispatchfix/EX4.4/{pre,post}`.
+Evidence: `docs/dispatchfix/EX4.4/{pre,post}` and final protocol checks in
+`proof/gate-run.{npNOaq,varhjR,LPhZJl}.tar.gz` (POST/PRE/PAD-A). The latter adds
+valid names and an unfiltered HISTOGRAM under RESP2 and RESP3, with Redis
+explicitly configured `latency-tracking no` and RESETSTAT; setup replies are saved.
+Final count is 96 advertised children plus 25 exact oracle assertions per leg.
 
 ACL DRYRUN evaluates the immutable permission image and emits Redis's bulk
 denial descriptions without executing the embedded command or logging a denial.
@@ -59,7 +64,9 @@ LATENCY HISTOGRAM now dispatches and returns the empty RESP2/RESP3 map for the
 existing no-histogram state. **Compatibility limitation:** TomoKV's
 batch/escalation timing does not record per-command histograms; actual histogram
 recording is not implemented. No sampled slow-log data is presented as a complete
-distribution. This is dispatch compatibility, not full latency-statistics parity.
+distribution. Redis enables latency tracking by default; populated per-command
+histograms remain an unsupported compatibility surface. The dispatch defect is
+resolved, but this is not full latency-statistics parity.
 
 Row `dispatchfix EX4.4 advertised children` is before the quick exit:
 DQ +1 / DF +1; cumulative DQ +3 / DF +3.

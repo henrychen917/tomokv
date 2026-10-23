@@ -5077,5 +5077,95 @@
       }
     },
     "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.PkXmMA/ledger.partial"
+  },
+  "gate-run.npNOaq": {
+    "log": "docs/dispatchfix/children-final-POST.log",
+    "archive": "proof/gate-run.npNOaq.tar.gz",
+    "sha256": "197e8529cd0b7bbf1060c5a0d10d8ac62fbac9bf8de2be35ee83ebdfbcf1780e",
+    "files": 47,
+    "bytes": 315622,
+    "jobs": {
+      "dispatch_children": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.930000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.npNOaq/ledger.partial"
+  },
+  "gate-run.varhjR": {
+    "log": "docs/dispatchfix/children-final-PRE.log",
+    "archive": "proof/gate-run.varhjR.tar.gz",
+    "sha256": "c12ce78ef50eb9d45e0dd58f6132c0aa63c2f4e614dbdad4b2f8a89fac955da8",
+    "files": 47,
+    "bytes": 317390,
+    "jobs": {
+      "dispatch_children": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.150000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.varhjR/ledger.partial"
+  },
+  "gate-run.LPhZJl": {
+    "log": "docs/dispatchfix/children-final-PAD-A.log",
+    "archive": "proof/gate-run.LPhZJl.tar.gz",
+    "sha256": "c8df902d433ea4068377f425215cf53b48ed67f106888107ab95afc2f4b113ee",
+    "files": 47,
+    "bytes": 319362,
+    "jobs": {
+      "dispatch_children": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.160000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.LPhZJl/ledger.partial"
   }
 }

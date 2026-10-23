@@ -6,12 +6,21 @@ from pathlib import Path
 from compat2_support import Client, arguments, save, server
 
 
+class ProtocolClient(Client):
+    def read(self):
+        if self.f.peek(1)[:1] == b'%':
+            line = self.f.readline()
+            assert line.endswith(b'\r\n'), line
+            return {self.read(): self.read() for _ in range(int(line[1:-2]))}
+        return super().read()
+
+
 def run(a):
     a.output.mkdir(parents=True, exist_ok=False)
     rows, children, failures = [], [], []
     with server(a.binary, a.output / 'target', a.port, a.cores, a.mode, a.engine), \
          server(a.oracle, a.output / 'oracle', a.port + 1, a.cores, oracle=True):
-        with Client(a.port) as target, Client(a.port + 1) as oracle:
+        with ProtocolClient(a.port) as target, ProtocolClient(a.port + 1) as oracle:
             for row in target.cmd('COMMAND'):
                 for child in row[9]:
                     name, arity = child[0].decode(), child[1]
@@ -53,6 +62,25 @@ def run(a):
                 if row['target'] != row['oracle']:
                     failures.append(row)
             assert target.cmd('GET', 'allowed:key') == oracle.cmd('GET', 'allowed:key') == b'before'
+            # TomoKV currently has no command-histogram recorder. Compare its
+            # empty state with Redis's explicit equivalent, in both protocols.
+            setup = []
+            for argv in [('CONFIG', 'SET', 'latency-tracking', 'no'), ('CONFIG', 'RESETSTAT')]:
+                reply = oracle.cmd(*argv)
+                setup.append(dict(argv=argv, oracle=reply))
+                assert reply == b'OK', (argv, reply)
+            save(a.output / 'histogram-oracle-setup.json', setup)
+            for protocol in (2, 3):
+                for c in (target, oracle):
+                    hello = c.cmd('HELLO', protocol)
+                    assert (hello[b'proto'] if protocol == 3 else dict(zip(hello[::2], hello[1::2]))[b'proto']) == protocol
+                for argv in [('LATENCY', 'HISTOGRAM'), ('LATENCY', 'HISTOGRAM', 'GET'),
+                             ('LATENCY', 'HISTOGRAM', 'ping', 'config|get', 'NOSUCHCOMMAND')]:
+                    row = dict(protocol=protocol, argv=argv, target=target.cmd(*argv), oracle=oracle.cmd(*argv))
+                    rows.append(row)
+                    assert row['oracle'] == ([] if protocol == 2 else {}), row
+                    if row['target'] != row['oracle']:
+                        failures.append(row)
     save(a.output / 'children.json', children)
     save(a.output / 'replies.json', rows)
     assert len(children) >= 90, len(children)
