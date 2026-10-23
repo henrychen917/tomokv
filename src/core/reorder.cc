@@ -1846,6 +1846,8 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     // parsing and dispatching new Tasks after the teardown quiescence fence.
     if (c->dead()) return;
     if (res <= 0) {
+        // Only the original Recv CQE releases the kernel's raw buffer pointer. A cancel
+        // acknowledgement is insufficient. Migration already consumed its own cancels above.
         if (res == -ECANCELED && !c->closing()) {
             client_buffer_cron(c);
             mark_active(c);
