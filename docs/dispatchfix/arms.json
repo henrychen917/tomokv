@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "/home/user/Projects/cx-dispatchfix/build/tomokv-PRE",
+    "sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd",
+    "text_bytes": 7747526
+  },
+  "POST": {
+    "path": "/home/user/Projects/cx-dispatchfix/build/tomokv",
+    "sha256": "2eb3a851906822dfe55740646feca8fc6bead8762ce3c35924c654e1a638876d",
+    "text_bytes": 7752758
+  },
+  "PAD-A": {
+    "path": "/home/user/Projects/cx-dispatchfix/build/tomokv-PAD-A",
+    "sha256": "949fb8fb6851ef7c3975bd1c16d18da4998ffcc17b2fe2d1b448c7a0ae724ba6",
+    "text_bytes": 7752758
+  }
+}

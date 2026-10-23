@@ -1,0 +1,104 @@
+{
+  "total": 8693,
+  "equal": 8172,
+  "changed": 521,
+  "hot": 489,
+  "hot_equal": 483,
+  "command_hot": 12,
+  "command_hot_equal": 12,
+  "changed_hot": [
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        865
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1223
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        891
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    }
+  ],
+  "changed_command_hot": [],
+  "pre_sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd",
+  "post_sha256": "2eb3a851906822dfe55740646feca8fc6bead8762ce3c35924c654e1a638876d"
+}

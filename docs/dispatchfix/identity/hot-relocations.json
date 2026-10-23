@@ -1,0 +1,282 @@
+[
+  {
+    "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "constant pool: 8 identical bytes",
+    "arms": {
+      "PRE": {
+        "address": "0x799520",
+        "value": "0000000001000000"
+      },
+      "POST": {
+        "address": "0x79b950",
+        "value": "0000000001000000"
+      }
+    }
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "18 identical jump destinations within the unchanged body",
+    "arms": {
+      "PRE": {
+        "address": "0x7a5774",
+        "value": [
+          78,
+          96,
+          128,
+          160,
+          78,
+          64,
+          224,
+          240,
+          78,
+          272,
+          288,
+          320,
+          400,
+          464,
+          528,
+          672,
+          78,
+          800
+        ]
+      },
+      "POST": {
+        "address": "0x7a7b74",
+        "value": [
+          78,
+          96,
+          128,
+          160,
+          78,
+          64,
+          224,
+          240,
+          78,
+          272,
+          288,
+          320,
+          400,
+          464,
+          528,
+          672,
+          78,
+          800
+        ]
+      }
+    }
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "18 identical jump destinations within the unchanged body",
+    "arms": {
+      "PRE": {
+        "address": "0x797d70",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          224,
+          62,
+          62,
+          62,
+          62,
+          62,
+          256,
+          320,
+          62,
+          62,
+          62,
+          384
+        ]
+      },
+      "POST": {
+        "address": "0x79a1b8",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          224,
+          62,
+          62,
+          62,
+          62,
+          62,
+          256,
+          320,
+          62,
+          62,
+          62,
+          384
+        ]
+      }
+    }
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "18 identical jump destinations within the unchanged body",
+    "arms": {
+      "PRE": {
+        "address": "0x797db8",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          224,
+          62,
+          62,
+          62,
+          62,
+          62,
+          256,
+          320,
+          62,
+          62,
+          62,
+          384
+        ]
+      },
+      "POST": {
+        "address": "0x79a200",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          224,
+          62,
+          62,
+          62,
+          62,
+          62,
+          256,
+          320,
+          62,
+          62,
+          62,
+          384
+        ]
+      }
+    }
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "18 identical jump destinations within the unchanged body",
+    "arms": {
+      "PRE": {
+        "address": "0x797f68",
+        "value": [
+          78,
+          96,
+          128,
+          176,
+          78,
+          64,
+          256,
+          78,
+          78,
+          272,
+          288,
+          480,
+          608,
+          672,
+          752,
+          880,
+          78,
+          1024
+        ]
+      },
+      "POST": {
+        "address": "0x79a3b0",
+        "value": [
+          78,
+          96,
+          128,
+          176,
+          78,
+          64,
+          256,
+          78,
+          78,
+          272,
+          288,
+          480,
+          608,
+          672,
+          752,
+          880,
+          78,
+          1024
+        ]
+      }
+    }
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+    "opcodes_and_nonaddress_operands_equal": true,
+    "kind": "18 identical jump destinations within the unchanged body",
+    "arms": {
+      "PRE": {
+        "address": "0x797f20",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          208,
+          62,
+          62,
+          224,
+          240,
+          272,
+          400,
+          464,
+          528,
+          640,
+          62,
+          800
+        ]
+      },
+      "POST": {
+        "address": "0x79a368",
+        "value": [
+          62,
+          80,
+          112,
+          144,
+          62,
+          48,
+          208,
+          62,
+          62,
+          224,
+          240,
+          272,
+          400,
+          464,
+          528,
+          640,
+          62,
+          800
+        ]
+      }
+    }
+  }
+]

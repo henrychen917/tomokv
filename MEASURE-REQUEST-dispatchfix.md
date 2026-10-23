@@ -128,3 +128,55 @@ the quick-tier exit. Cumulative DQ +5 / DF +5: maintainer counts should become
 EXPECT_QUICK=690 and EXPECT_FULL=707. Both constants are untouched. The label
 fixture check identifies exactly these five missing labels and no extra labels;
 its refusal is retained in docs/dispatchfix/label-fixture.log.
+
+### Build, identity and measurement arms
+
+`make -j16 all` and the gate's production-unit build completed. All 40 targets
+(the server, every listed job_production_units target, and both mdbqsbr live arms)
+pass `make -q`; see docs/dispatchfix/freshness.json. All eight layout locks remain
+unchanged. The separate PRE object rebuild has identical loadable sections to the
+frozen PRE binary, excluding only the build-id; debug/source paths explain the
+file SHA difference (identity/pre-rebuild.json).
+
+The three established identity tools ran against PRE: lbstall_artifacts,
+ccfix_audit and deadswitch/linked_bytes. Their differences are preserved rather
+than treated as a stop condition. The complete object inventory has 16,871
+bodies, 534 changed/new; every one is listed with its reason in
+identity/object-body-reasons.{md,json}. The linked inventory has 8,693 groups,
+521 changed, including 12/12 identical GET/SET/MGET/MSET groups. No compiler budget
+change was needed to preserve those bodies. Twelve object hot-helper differences
+are cold-loader FlatStore erase instantiations; the final linked hot audit reports
+483/489 strict matches. The six remaining linked differences are only constant
+pool/jump-table references: separate decoding proves identical nonaddress bytes,
+the same eight-byte constant, and all 18 destinations for each of five tables.
+See identity/hot-linked-diffs.json and hot-relocations.json; the original strict
+checker discrepancies remain in the inventory. Identity is not a merit verdict.
+
+| Arm | Worktree path | SHA-256 | .text bytes |
+|---|---|---|---|
+| PRE | `build/tomokv-PRE` | `2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd` | 7,747,526 |
+| POST | `build/tomokv` | `2eb3a851906822dfe55740646feca8fc6bead8762ce3c35924c654e1a638876d` | 7,752,758 |
+| PAD-A | `build/tomokv-PAD-A` | `949fb8fb6851ef7c3975bd1c16d18da4998ffcc17b2fe2d1b448c7a0ae724ba6` | 7,752,758 |
+
+**PAD kind (A), behaviour twin:** PRE source behavior with POST's cold ACL and
+persistence image layouts, plus inert tail padding matching POST's total .text
+size. The data layouts are checked through DWARF in both namespaces. It does
+**not** match internal function positions, so it cannot isolate every code-layout
+effect. All five directed gate rows retain their PRE failures on this twin.
+Build recipe and receipt: docs/dispatchfix/pad.py and pad/receipt.json. No PAD-B.
+
+### Maintainer merit request — generic 14 cells
+
+Run the unchanged 14 cells in docs/dispatchfix/merit-cells.txt with the gate's
+instrument, eight server cores, 16 shards, the paper's databases=1 geometry,
+matched offered load, and a contemporaneous same-binary null. The parser accepts
+all 14; merit-cells-parsed.json retains the decoded cells. Compare PRE/POST and
+PRE/PAD-A, and compare POST/PAD-A for any moving cell. Rate at matched offered load
+decides rate cells; the instrument's latency score decides depth-one cells.
+Record cycles/op, instructions/op, IPC, p99 and p99.9 and apply the instrument's
+existing acceptance rules. A behavior effect must survive the size/layout
+control's stated limits. No throughput or zero-regression performance claim is made.
+
+NOT RUN: performance benchmarks, measurement load generators, these merit cells,
+and full tests/gate.sh iteration. Those remain maintainer-owned. Correctness uses
+only selected gate jobs, never a performance tier or full iteration.
