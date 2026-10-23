@@ -276,7 +276,9 @@ void controls(Server& server, const std::string& name) {
         require(!shard.watch_writer_stamp(slice(b),&writer.op) &&
                 !shard.watch_writer_stamp(slice(c),&writer.op), "gate pass removes complete episode");
         ScatterRun predecessor(server,{"MSET",b,"predecessor",
-            key_on(server,0,"episode-own-"),"predecessor"},false);
+            key_on(server,0,"episode-own-"),"predecessor"},!server.atomic_enabled());
+        // At atomic=0 use the forced child path that EXEC itself uses; the
+        // default bare MSET intentionally has no undecided group in that mode.
         require(predecessor.state->atomic_write && !predecessor.state->group_attempt(),
                 "own undecided predecessor is a real blind group");
         require(xshard_execute(Task{&predecessor.client,0,1,predecessor.state},shard,

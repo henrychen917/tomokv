@@ -2821,7 +2821,7 @@ job_txnorder2(){
     if [ "$case_name" = R8 ]; then
       for mode in 1s 2s; do for atomic in 0 1; do
         for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
-          taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" >>"$log" 2>&1 || passed=0
+          taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" "$atomic" >>"$log" 2>&1 || passed=0
         done
       done; done
     fi

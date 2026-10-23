@@ -45,13 +45,16 @@ void served_watch(Server& server) {
 }
 
 void same_owner_rename(Server& server) {
-    const auto a=key_on(server,0,"rename-a-"), b=key_on(server,2,"rename-b-");
-    require(server.worker_of_shard(0)==server.worker_of_shard(2),"two shards on one owner");
+    int destination=1;
+    while (destination<int(server.nshards()) &&
+           server.worker_of_shard(destination)!=server.worker_of_shard(0)) ++destination;
+    require(destination<int(server.nshards()),"two shards on one owner");
+    const auto a=key_on(server,0,"rename-a-"), b=key_on(server,destination,"rename-b-");
     require(local(server,{"SET",a,"value"})=="+OK\r\n","RENAME source seeded");
     Client client{-1};client.set_id(640);Request request({"RENAME",a,b});
     ScatterArenaPool pool;ScatterDispatch dispatch;
-    require(xshard_prepare(server,request.op,pool,0,client.id(),dispatch)==ScatterPrepare::Ready,
-            "bare atomic direct RENAME prepared");
+    require(xshard_prepare(server,request.op,pool,0,client.id(),dispatch,!server.atomic_enabled())==ScatterPrepare::Ready,
+            "atomic direct RENAME prepared (forced EXEC-child path at atomic=0)");
     auto* state=dispatch.state;state->now_cut_ms=now_realtime_ms();
     require(state->atomic_direct && state->nsub==2,"two source/destination fragments");
     bool done[16]={};bool queued=false;Ring ring;
@@ -66,7 +69,7 @@ void same_owner_rename(Server& server) {
             queued |= result==ScatterFinish::CommitQueued;
         }
     }
-    require(done[0]&&done[2]&&queued&&state->pending.load()==0,
+    require(done[0]&&done[destination]&&queued&&state->pending.load()==0,
             "last owner must queue commit after both shards finish");
     state->epoch.store(server.atomic_commit());
     require(local(server,{"GET",a})=="$-1\r\n" &&
