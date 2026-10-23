@@ -3265,8 +3265,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const ObjectImage& image = state.apply[pos];
                     if (!image.present) {
                         if (notify)
-                            shard.store_erase<true>(key.hash, op.arg(key.arg),
-                                                   FlatStore::EraseEvent::None);
+                            shard.store_erase<true>(key.hash, op.arg(key.arg));
                         else shard.store().erase(key.hash, op.arg(key.arg));
                         result = WorkError::None;
                     } else {
@@ -3293,8 +3292,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 } else {
                     const bool suppress_del =
                         ((state.kind == Kind::Rename || state.kind == Kind::Renamenx) && pos == 0) ||
-                        ((state.kind == Kind::Bitop || is_store_setop(state.kind) ||
-                          is_store_zsetop(state.kind) ||
+                        ((is_store_zsetop(state.kind) ||
                           (is_geo_kind(state.kind) && state.geo_store) ||
                           state.kind == Kind::Zrangestore ||
                           (state.kind == Kind::Sort && state.sort_options.store)) && pos == 0);

@@ -2395,7 +2395,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         const Slice destination = op.arg(2);
         const uint64_t hash = FlatStore::hash_key(destination);
         if (!output.present) {
-            shard.store_erase<kNotify>(hash, destination, FlatStore::EraseEvent::None);
+            shard.store_erase<kNotify>(hash, destination);
         } else {
             // Same contract as the scatter hop-2 arm: -1 clears TTL, raw encoding only.
             error = store_xstring<kNotify>(
@@ -2406,9 +2406,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, output.present ? NOTIFY_STRING : NOTIFY_GENERIC,
-                              output.present ? NotifyEventId::Set : NotifyEventId::Del, destination);
+            if constexpr (kNotify) if (output.present)
+                notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, destination);
             reply_int(op.sink(), output_length);
         }
         return;
@@ -2492,15 +2491,14 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         }
         if (members.empty()) apply[1] = ObjectImage{};
         else if (!encode_elements(members, apply[1], Type::Set, -1)) { set_oom(op); return; }
-        local_apply<kNotify>(shard, op, apply, {1}, error, 1);
+        local_apply<kNotify>(shard, op, apply, {1}, error);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
             NotifyEventId event = NotifyEventId::Sinterstore;
             if (kind == Kind::Sunionstore) event = NotifyEventId::Sunionstore;
             else if (kind == Kind::Sdiffstore) event = NotifyEventId::Sdiffstore;
-            if constexpr (kNotify)
-                notify_record(shard, op, members.empty() ? NOTIFY_GENERIC : NOTIFY_SET,
-                              members.empty() ? NotifyEventId::Del : event, op.arg(1));
+            if constexpr (kNotify) if (!members.empty())
+                notify_record(shard, op, NOTIFY_SET, event, op.arg(1));
             reply_int(op.sink(), static_cast<long long>(members.size()));
         }
         return;

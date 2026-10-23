@@ -323,6 +323,11 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             geo_store_preserve_metadata(shard, op.arg(key.arg), key.hash, value);
         KvObj* old = store.atomic_install_group(
             pending_entry, key.hash, op.arg(key.arg), value);
+        // Empty STORE results notify only when their owner actually replaced a
+        // destination. Phase one intentionally reads only the sources.
+        if (!value && pos == 0 &&
+            (state.kind == Kind::Bitop || is_store_setop(state.kind)))
+            state.images[pos].present = old != nullptr;
         if (old) parked_bytes += kvobj_size(old);
         if (value) {
             installed_bytes += kvobj_size(value);

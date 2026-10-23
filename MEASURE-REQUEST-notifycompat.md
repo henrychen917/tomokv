@@ -23,3 +23,13 @@ implementations and is retained as a control (NOT REPRODUCED as a GETEX defect).
 oracle bytes are in `docs/notifycompat/oracle-setpast.log`. The clean SET
 specialization is unchanged; all 65 selected hot bodies remain identical.
 Current DQ=+2 / DF=+2; required counts 741 / 758. Full final matrix pending.
+
+CC4.20: oracle confirms source `keymiss` alone when the BITOP/set-algebra
+STORE destination is absent; a live destination adds one subsequent `del`.
+The owner deletion supplies the plain fire point, and atomic installation records
+whether a destination was actually replaced. Local and cross-owner fixtures cover
+BITOP, SINTERSTORE, SUNIONSTORE and SDIFFSTORE. Destination mutation ordering was
+adjusted to preserve Redis's source-before-destination sequence in these cases.
+The initial string POST rerun exposed an overfilled test key-selection bucket on
+fused boots; that arming bug was corrected (no skipped leg or relaxed assertion).
+Current DQ=+3 / DF=+3; required counts 742 / 759. Final proof pending.

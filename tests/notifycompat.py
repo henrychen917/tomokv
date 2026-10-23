@@ -10,7 +10,7 @@ import json
 import select
 import time
 
-from _lib import Conn, encode, info, topology
+from _lib import Conn, encode, info, probe_keys, topology
 
 
 def equal(got, want, label):
@@ -39,6 +39,7 @@ class Peer:
     def __init__(self, host, port, target=False, args=None):
         self.target = target
         self.failures = []
+        self.keysets = args.keysets if args else []
         self.admin = Conn(host, port, buffering=0, timeout=5)
         self.driver = Conn(host, port, buffering=0, timeout=5)
         self.sub = Conn(host, port, buffering=0, timeout=5)
@@ -163,7 +164,18 @@ def setpast(peer):
     peer.step('NX present control', ('SET', 'nc:nx', 'v', 'NX', 'EXAT', 1), None, [])
 
 
-CASES = {'setbit': setbit, 'setpast': setpast}
+def emptystore(peer):
+    for layout, (dst, src, other) in enumerate(peer.keysets):
+        for command in (('BITOP', 'AND', dst, src), ('SINTERSTORE', dst, src),
+                        ('SUNIONSTORE', dst, src), ('SDIFFSTORE', dst, src)):
+            peer.setup(('FLUSHALL',))
+            peer.step(f'absent destination layout={layout}', command, 0, [('keymiss', src)])
+            peer.setup(('SET', dst, 'old'))
+            peer.step(f'live destination layout={layout}', command, 0,
+                      [('keymiss', src), ('del', dst)])
+
+
+CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore}
 
 
 def main():
@@ -177,6 +189,26 @@ def main():
     parser.add_argument('--atomic', type=int, default=0)
     parser.add_argument('--read-local', type=int, default=0)
     args = parser.parse_args()
+    args.keysets = [('nc:local:dst', 'nc:local:src', 'nc:local:other'),
+                    ('nc:cross:dst', 'nc:cross:src', 'nc:cross:other')]
+    if args.oracle and args.case in ('emptystore', 'expiredstore'):
+        chooser = Conn(args.host, args.port)
+        try:
+            topo = topology(chooser)
+            buckets, cross, owners = {}, [], set()
+            for key, shard, owner in probe_keys(chooser, 'nc:route', topo):
+                buckets.setdefault(shard, []).append(key)
+                if owner not in owners and len(cross) < 2:
+                    cross.append(key)
+                    owners.add(owner)
+                if len(cross) == 2 and any(len(keys) >= 3 for keys in buckets.values()):
+                    same = next(keys[:3] for keys in buckets.values() if len(keys) >= 3)
+                    args.keysets = [same, cross + [same[0]]]
+                    break
+            else:
+                raise AssertionError('could not arm local and cross-owner keys')
+        finally:
+            chooser.close()
     addresses = [(args.oracle[0], int(args.oracle[1]), False), (args.host, args.port, True)] \
         if args.oracle else [(args.host, args.port, False)]
     for host, port, target in addresses:

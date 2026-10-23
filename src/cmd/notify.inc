@@ -378,7 +378,14 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     }
 
     NotifyRecordImpl record;
-    record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
+    // STORE reads its sources before deleting/replacing the destination. Keep
+    // destination mutation events after source keymiss even in owner-parallel gathers.
+    const Slice command = source.cmd_name();
+    const bool store_tail = event != NotifyEventId::Keymiss &&
+        (command.eq_icase("bitop") || command.eq_icase("sinterstore") ||
+         command.eq_icase("sunionstore") || command.eq_icase("sdiffstore"));
+    record.order = (store_tail ? shard.notify_order_base() + 0x0ff0
+                              : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
     if (!server->pubsub_any_subscribers())
@@ -917,7 +924,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 2);
                     emit(NOTIFY_STRING, NotifyEventId::Set, 2);
-                } else
+                } else if (state.atomic_apply && state.images && state.images[0].present)
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 2);
             }
             break;
@@ -937,7 +944,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Sinterstore : state.kind == Kind::Sunionstore
                         ? NotifyEventId::Sunionstore : NotifyEventId::Sdiffstore;
                     emit(NOTIFY_SET, event, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
