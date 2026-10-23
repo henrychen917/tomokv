@@ -25,6 +25,10 @@ case "$TARGET_GEOMETRY" in
   armed-fused) TARGET_SHAPE=(--thread-mode fused --read-local 1);;
   *) echo "unknown GATE_DIFFER_GEOMETRY: $TARGET_GEOMETRY (want split|armed-fused)" >&2; exit 2;;
 esac
+# The explicit engine applies to every target leg; the default matrix is unchanged.
+TARGET_NET_IO=${GATE_DIFFER_NET_IO:-uring}
+case "$TARGET_NET_IO" in epoll|uring) :;; *) echo 'invalid GATE_DIFFER_NET_IO' >&2; exit 2;; esac
+TARGET_SHAPE+=(--net-io "$TARGET_NET_IO")
 ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$TARGET_CORES}
 REDIS_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 ORACLE_BIN=${GATE_DIFFER_ORACLE_BIN:-$REDIS_ROOT/src/redis-server}
@@ -457,7 +461,7 @@ PY
     EQ_OUT="$OUT/mode-equivalence"
     [ "$PART" = all ] || EQ_OUT="$OUT/mode-equivalence-$EQUIVALENCE_SEED"
   if python3 tests/mode_equivalence.py "${EQUIVALENCE_FLAGS[@]}" --binary "$TARGET_BIN" --server-cpus "$TARGET_CORES" \
-      --load-cpus "$LOAD_CORES" --port "$TARGET_PORT" --seed "$EQUIVALENCE_SEED" \
+      --load-cpus "$LOAD_CORES" --port "$TARGET_PORT" --net-io "$TARGET_NET_IO" --seed "$EQUIVALENCE_SEED" \
       --output "$EQ_OUT" >"$EQ_OUT.log" 2>&1; then
     say 'mode equivalence: all 32 execution/knob combinations' 'ok (exact replies and mechanism witnesses)'
     PASS=$((PASS+1))

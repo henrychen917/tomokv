@@ -56,6 +56,13 @@ def run(a):
                 # Inspect effective permissions without running administrative mutations.
                 for command in probes:
                     compare(('ACL', 'DRYRUN', 'subject', *command))
+                # Every explicitly named advertised child must exercise its own
+                # admission bit, including both the positive and negative rule.
+                for child in children:
+                    full = child[0].decode()
+                    if any(rule[1:].lower() == full for rule in rules):
+                        command = tuple(full.split('|')) + ('x',) * (abs(child[1]) - 2)
+                        compare(('ACL', 'DRYRUN', 'subject', *command))
                 # Persist and reload even rejected rules: Redis retains the old image.
                 before = [c.cmd('ACL', 'GETUSER', 'subject') for c in clients]
                 compare(('ACL', 'SAVE'))
