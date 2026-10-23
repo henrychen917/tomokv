@@ -11,6 +11,7 @@
 #include "debug_sleep.h"
 #include "info_stats.h"
 #include "hll.h"
+#include "t_sort.h"
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
@@ -311,6 +312,8 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
 void init_config(const Config& cfg) {
     std::lock_guard<std::mutex> lock(g_config_mu);
     g_config.clear();
+    if (!sort_locale_set(cfg.locale_collate)) std::abort();
+    g_config.push_back({"locale-collate", ConfigKind::String, cfg.locale_collate});
     hll::configure_sparse_max_bytes(cfg.hll_sparse_max_bytes);
     g_config.push_back({"hll-sparse-max-bytes", ConfigKind::Bytes,
                         std::to_string(cfg.hll_sparse_max_bytes), true});
@@ -508,6 +511,11 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             return true;
         }
         case ConfigKind::String:
+            if (!std::strcmp(entry.name, "locale-collate")) {
+                out.assign(input.p, strnlen(input.p, input.n));
+                if (!sort_locale_valid(out.c_str())) { error = "Invalid locale name"; return false; }
+                return true;
+            }
             if (!std::strcmp(entry.name, "acl-pubsub-default")) {
                 if (eq_icase(input, "allchannels")) out = "allchannels";
                 else if (eq_icase(input, "resetchannels")) out = "resetchannels";
@@ -623,11 +631,13 @@ bool collect_config_updates(Op& op,
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
             !std::strcmp(item->name, "aof-load-truncated") ||
-            !std::strcmp(item->name, "client-query-buffer-limit")) {
+            !std::strcmp(item->name, "client-query-buffer-limit") ||
+            !std::strcmp(item->name, "locale-collate")) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
+                    !std::strcmp(item->name, "locale-collate") ||
                     encoding == EncodingConfig::SetIntsetEntries) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
@@ -1493,6 +1503,11 @@ void cmd_config(Shard& sh, Op& op) {
             if (!collect_config_updates(op, updates)) return;
             if (sh.id() == 0) {
                 for (auto& update : updates) {
+                    if (!std::strcmp(update.first->name, "locale-collate") &&
+                        !sort_locale_set(update.second.c_str())) {
+                        reply_err(op.sink(), "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name");
+                        return;
+                    }
                     update.first->value = update.second;
                     if (!std::strcmp(update.first->name, "client-output-buffer-limit")) {
                         ClientOutputBufferLimits parsed;

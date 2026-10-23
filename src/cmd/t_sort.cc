@@ -5,11 +5,32 @@
 #include <cmath>
 #include <cstring>
 #include <new>
+#include <locale.h>
+#include <mutex>
 
 #include "../base/numeric.h"
 
 namespace tomo {
 namespace {
+
+struct LocaleState {
+    std::mutex mutex;
+    locale_t locale = nullptr;
+    ~LocaleState() { if (locale) freelocale(locale); }
+};
+LocaleState g_collate;
+
+struct SortLocale {
+    locale_t value = nullptr;
+    explicit SortLocale(bool needed) {
+        if (!needed) return;
+        std::lock_guard<std::mutex> lock(g_collate.mutex);
+        value = g_collate.locale ? duplocale(g_collate.locale)
+                                : newlocale(LC_COLLATE_MASK, "", nullptr);
+        if (!value) throw std::bad_alloc();
+    }
+    ~SortLocale() { if (value) freelocale(value); }
+};
 
 // Local copies of two three-line helpers that live in other translation units' anonymous
 // namespaces.  Duplicating the bytes is cheaper than widening two unrelated headers, and both are
@@ -38,6 +59,22 @@ struct SortItem {
 };
 
 }  // namespace
+
+bool sort_locale_valid(const char* name) {
+    locale_t value = newlocale(LC_COLLATE_MASK, name, nullptr);
+    if (!value) return false;
+    freelocale(value);
+    return true;
+}
+
+bool sort_locale_set(const char* name) {
+    locale_t value = newlocale(LC_COLLATE_MASK, name, nullptr);
+    if (!value) return false;
+    std::lock_guard<std::mutex> lock(g_collate.mutex);
+    if (g_collate.locale) freelocale(g_collate.locale);
+    g_collate.locale = value;
+    return true;
+}
 
 void sort_pattern_parse(Slice pattern, SortPattern& out) {
     out = SortPattern{};
@@ -92,6 +129,7 @@ SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
             by_lookup = false;
         }
 
+        SortLocale locale(alpha && !spec.store && !dontsort);
         std::vector<SortItem> items;
         items.reserve(elements.size());
         for (uint32_t i = 0; i < elements.size(); i++) {
@@ -141,7 +179,7 @@ SortStatus sort_run(const SortSpec& spec, const SortResolved* resolved,
                         Slice(a.weight.data(), static_cast<uint32_t>(a.weight.size())),
                         Slice(b.weight.data(), static_cast<uint32_t>(b.weight.size())));
                 } else {
-                    cmp = std::strcoll(a.weight.c_str(), b.weight.c_str());
+                    cmp = strcoll_l(a.weight.c_str(), b.weight.c_str(), locale.value);
                 }
                 return spec.descending ? cmp > 0 : cmp < 0;
             };

@@ -39,3 +39,14 @@ without allocating. PRE fails / POST passes 12 legs, with count limits 4/5/8,
 4096/4097-byte packed boundaries, all pop/move verbs, contents and memory shrink.
 The existing edgeenc shrink assertion now expects Redis list demotion (other types
 unchanged), supported by the independent oracle receipts. Cumulative DQ=DF=+3.
+
+CD4.6: locale-collate defaults to the environment, supports boot/CONFIG SET/GET/
+REWRITE, rejects invalid names and duplicate parameters with Redis's exact text.
+Each ALPHA sort without STORE duplicates the published locale under a cold mutex,
+then uses strcoll_l with that retained object for every comparison. Publication
+never calls setlocale, and replacement cannot free a running sort's context.
+STORE stays binary. Mixed-case/punctuation/accented weights, SORT_RO, dynamic BY,
+all source types and concurrent CONFIG/sort checks pass 12 POST legs; PRE fails.
+Config consumes 8 reserved bytes; all existing fields and the 624-byte size stay
+fixed. The differential's stale C-only implementation comment is corrected; its
+fixed-order corpus still requires C collation. Cumulative DQ=DF=+4.
