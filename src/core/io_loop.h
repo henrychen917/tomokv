@@ -4881,7 +4881,7 @@ ordinary_shard_ready:
 
     void flip_pass_begin() { flip_stage_snapshot_ = srv_->flip_stage(); }
 
-    bool flip_dispatch_paused() const {
+    __attribute__((noinline)) bool flip_dispatch_paused() const {
         // Standalone/cold callers outside run_loop have no pass snapshot. Keep their existing
         // live fence (including serverless witnesses); every production pass sets this byte.
         return (flip_stage_snapshot_ == kNoFlipSnapshot ? srv_->flip_stage()

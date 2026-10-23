@@ -2197,6 +2197,29 @@ private:
         return n + service_snapshot_backlogs<IofusedPrivateQueue>(BatchOps + n);
     }
 
+    // Keep exact-operation lifetime bookkeeping out of the batch-average arm.
+    // It must not change the pipelined fast loop's register allocation.
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline, cold))
+    void exec_batch_exact(const Task* batch, uint32_t n,
+                          const SlowlogArm& arm, int64_t now_ms) {
+        if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
+        for (uint32_t i = 0; i < n; i++) {
+            Client* client = batch[i].client;
+            const uint64_t started = now_ns();
+            SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
+                                 client ? client->id() : 0, self_->id(), started, now_ms, arm);
+            const bool ok = execute_timed<IofusedPrivateQueue>(batch[i]);
+            // The last owner records after the commit, before publishing Done.
+            // Fast operations copy no argv and acquire no identity reference.
+            flush_xshard_commits_timed();
+            if (ok) continue;
+            xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+            return;
+        }
+    }
+
     // The armed slow-log arm. Out of line and cold-marked so its register pressure and its clock
     // calls never reach the disabled batch loop above.
     //
@@ -2217,21 +2240,7 @@ private:
         flush_xshard_commits();
 
         if (slowlog_state_.escalate_batches || n == 1) {
-            if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
-            for (uint32_t i = 0; i < n; i++) {
-                Client* client = batch[i].client;
-                const uint64_t started = now_ns();
-                SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
-                                     client ? client->id() : 0, self_->id(), started, now_ms, arm);
-                const bool ok = execute_timed<IofusedPrivateQueue>(batch[i]);
-                // The last owner records after the commit, before publishing Done.
-                // Fast operations copy no argv and acquire no identity reference.
-                flush_xshard_commits_timed();
-                if (ok) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                return;
-            }
+            exec_batch_exact<IofusedPrivateQueue>(batch, n, arm, now_ms);
             return;
         }
 
@@ -2629,7 +2638,7 @@ private:
     }
 
     template <bool IofusedPrivateQueue = false>
-    uint32_t service_xshard_retries() {
+    __attribute__((noinline)) uint32_t service_xshard_retries() {
         if (xshard_retries_.empty()) return 0;
         const Task task = xshard_retries_.front();
         xshard_retries_.pop_front();
@@ -2704,7 +2713,7 @@ private:
     // deferred() runs first in the loop, so a younger write parked earlier could install a key
     // behind the walker's cursor and be reported by a listing that must not see it yet.
     // Both deques are empty on any path with no cross-shard atomic window open.
-    bool has_parked_predecessor(const Task& task, Op& op, int32_t shard_id) {
+    __attribute__((always_inline)) bool has_parked_predecessor(const Task& task, Op& op, int32_t shard_id) {
         if (__builtin_expect(atomic_deferred_.empty() && xshard_retries_.empty(), true))
             return false;
         return parked_predecessor_in(atomic_deferred_, task, op, shard_id) ||
@@ -2834,7 +2843,7 @@ private:
         }
         return work;
     }
-    void flush_xshard_commits() {
+    __attribute__((noinline)) void flush_xshard_commits() {
         flush_xshard_commits_impl<false>();
     }
     void flush_xshard_commits_timed() {
