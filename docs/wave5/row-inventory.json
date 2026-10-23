@@ -1,0 +1,606 @@
+{
+  "base": "a7dfb9d23",
+  "protected_constants": [
+    "EXPECT_QUICK=685",
+    "EXPECT_FULL=702"
+  ],
+  "base_quick": 685,
+  "base_full": 702,
+  "required_quick": 740,
+  "required_full": 757,
+  "fixture_count": 757,
+  "lanes": [
+    {
+      "lane": "txnfix",
+      "tip": "8dd5b8166b7fbe547d040c128d38affe437ae157",
+      "quick": {
+        "delta": 31,
+        "added": {
+          "fused txn_nx battery (atomic 0)": 1,
+          "fused txniso battery (atomic 0)": 1,
+          "fused txn_nx battery (atomic 1)": 1,
+          "fused txniso battery (atomic 1)": 1,
+          "fused txngroup battery (atomic 1)": 1,
+          "txn_nx battery (atomic 0)": 1,
+          "txniso battery (atomic 0)": 1,
+          "txn_nx battery (atomic 1)": 1,
+          "txniso battery (atomic 1)": 1,
+          "txngroup battery (atomic 1)": 1,
+          "txnorder2 writer episode R1": 1,
+          "txnorder2 writer episode R2": 1,
+          "txnorder2 writer episode R3": 1,
+          "txnorder2 writer episode R4": 1,
+          "txnorder2 writer episode R5": 1,
+          "txnorder2 writer episode R6": 1,
+          "txnorder2 writer episode R7": 1,
+          "txnorder2 writer episode R8": 1,
+          "txnorder2 writer episode R9": 1,
+          "txnorder2 writer episode R10": 1,
+          "txnorder2 writer episode R11": 1,
+          "txnorder2 writer episode R12": 1,
+          "txnorder2 direct RENAME owner join": 1,
+          "txnorder2 WATCH serve": 1,
+          "txnorder2 WATCH flush": 1,
+          "txnorder2 WATCH readonly": 1,
+          "txnorder2 busy owner inbox wake": 1,
+          "txnorder battery (fused, atomic 0)": 1,
+          "txnorder battery (fused, atomic 1)": 1,
+          "txnorder battery (split, atomic 0)": 1,
+          "txnorder battery (split, atomic 1)": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 31,
+        "added": {
+          "fused txn_nx battery (atomic 0)": 1,
+          "fused txniso battery (atomic 0)": 1,
+          "fused txn_nx battery (atomic 1)": 1,
+          "fused txniso battery (atomic 1)": 1,
+          "fused txngroup battery (atomic 1)": 1,
+          "txn_nx battery (atomic 0)": 1,
+          "txniso battery (atomic 0)": 1,
+          "txn_nx battery (atomic 1)": 1,
+          "txniso battery (atomic 1)": 1,
+          "txngroup battery (atomic 1)": 1,
+          "txnorder2 writer episode R1": 1,
+          "txnorder2 writer episode R2": 1,
+          "txnorder2 writer episode R3": 1,
+          "txnorder2 writer episode R4": 1,
+          "txnorder2 writer episode R5": 1,
+          "txnorder2 writer episode R6": 1,
+          "txnorder2 writer episode R7": 1,
+          "txnorder2 writer episode R8": 1,
+          "txnorder2 writer episode R9": 1,
+          "txnorder2 writer episode R10": 1,
+          "txnorder2 writer episode R11": 1,
+          "txnorder2 writer episode R12": 1,
+          "txnorder2 direct RENAME owner join": 1,
+          "txnorder2 WATCH serve": 1,
+          "txnorder2 WATCH flush": 1,
+          "txnorder2 WATCH readonly": 1,
+          "txnorder2 busy owner inbox wake": 1,
+          "txnorder battery (fused, atomic 0)": 1,
+          "txnorder battery (fused, atomic 1)": 1,
+          "txnorder battery (split, atomic 0)": 1,
+          "txnorder battery (split, atomic 1)": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "bugs5",
+      "tip": "46221fd290c234bfbea5b628497e1a95d569dcca",
+      "quick": {
+        "delta": 3,
+        "added": {
+          "bugs5 scancompact (both modes, both engines, atomic 0/1)": 1,
+          "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)": 1,
+          "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 3,
+        "added": {
+          "bugs5 scancompact (both modes, both engines, atomic 0/1)": 1,
+          "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)": 1,
+          "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "compat3",
+      "tip": "751c3b5861bd39f454bab08801aa7735c095afea",
+      "quick": {
+        "delta": 6,
+        "added": {
+          "compat3 CC4.12 pubsub vs Redis 7.4": 1,
+          "compat3 CC4.13 pending vs Redis 7.4": 1,
+          "compat3 CC4.14 history vs Redis 7.4": 1,
+          "compat3 CC4.16 grammar vs Redis 7.4": 1,
+          "compat3 CC4.5 glob vs Redis 7.4": 1,
+          "compat3 CC4.17 flags vs Redis 7.4": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 6,
+        "added": {
+          "compat3 CC4.12 pubsub vs Redis 7.4": 1,
+          "compat3 CC4.13 pending vs Redis 7.4": 1,
+          "compat3 CC4.14 history vs Redis 7.4": 1,
+          "compat3 CC4.16 grammar vs Redis 7.4": 1,
+          "compat3 CC4.5 glob vs Redis 7.4": 1,
+          "compat3 CC4.17 flags vs Redis 7.4": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "trackfix",
+      "tip": "ba03711eadefdf348587983fb91ee23fc2c2e058",
+      "quick": {
+        "delta": 2,
+        "added": {
+          "tracking delayed-write order vs Redis 7.4": 1,
+          "tracking-only delivery/drop accounting vs Redis 7.4": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 2,
+        "added": {
+          "tracking delayed-write order vs Redis 7.4": 1,
+          "tracking-only delivery/drop accounting vs Redis 7.4": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "fliplisten",
+      "tip": "4661b0c4684be91414b88c7aa9a7f11ae0d2e881",
+      "quick": {
+        "delta": 4,
+        "added": {
+          "FLIP listener conservation (io-ex, complete)": 1,
+          "FLIP listener conservation (io-ex, rollback)": 1,
+          "FLIP listener conservation (ex-io, complete)": 1,
+          "FLIP listener conservation (ex-io, rollback)": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 4,
+        "added": {
+          "FLIP listener conservation (io-ex, complete)": 1,
+          "FLIP listener conservation (io-ex, rollback)": 1,
+          "FLIP listener conservation (ex-io, complete)": 1,
+          "FLIP listener conservation (ex-io, rollback)": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "netfix",
+      "tip": "c98b929590f619f3688d8fbdccd37a59112f4fb0",
+      "quick": {
+        "delta": 5,
+        "added": {
+          "netfix NT4.6 query-limit INFO parity": 1,
+          "netfix NT4.11 Unix pathname parity": 1,
+          "netfix NT4.8 network CONFIG error parity": 1,
+          "netfix NT4.7 TLS default cipher parity": 1,
+          "netfix NT4.19 idle buffer reclamation": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 5,
+        "added": {
+          "netfix NT4.6 query-limit INFO parity": 1,
+          "netfix NT4.11 Unix pathname parity": 1,
+          "netfix NT4.8 network CONFIG error parity": 1,
+          "netfix NT4.7 TLS default cipher parity": 1,
+          "netfix NT4.19 idle buffer reclamation": 1
+        },
+        "removed": {}
+      }
+    },
+    {
+      "lane": "iofix",
+      "tip": "fcb52cd492b5d9da5a4b3ee20e4a835b9a2ef9e5",
+      "quick": {
+        "delta": 4,
+        "added": {
+          "iofix WB4.1 deferred IO parks": 1,
+          "iofix IO4.9 Redis hz cron": 1,
+          "iofix IO4.10 global DEBUG SLEEP": 1,
+          "iofix IO4.17 immediate signal shutdown": 1
+        },
+        "removed": {}
+      },
+      "full": {
+        "delta": 4,
+        "added": {
+          "iofix WB4.1 deferred IO parks": 1,
+          "iofix IO4.9 Redis hz cron": 1,
+          "iofix IO4.10 global DEBUG SLEEP": 1,
+          "iofix IO4.17 immediate signal shutdown": 1
+        },
+        "removed": {}
+      }
+    }
+  ],
+  "collectors": [
+    {
+      "line": 4682,
+      "text": "collect_job release"
+    },
+    {
+      "line": 4684,
+      "text": "collect_job asan"
+    },
+    {
+      "line": 4685,
+      "text": "collect_job config_unit"
+    },
+    {
+      "line": 4687,
+      "text": "collect_job iofix-deferred"
+    },
+    {
+      "line": 4688,
+      "text": "collect_job iofix-hz"
+    },
+    {
+      "line": 4689,
+      "text": "collect_job iofix-sleep"
+    },
+    {
+      "line": 4690,
+      "text": "collect_job iofix-signal"
+    },
+    {
+      "line": 4692,
+      "text": "collect_job flip_unit"
+    },
+    {
+      "line": 4694,
+      "text": "collect_job filter_unit"
+    },
+    {
+      "line": 4696,
+      "text": "collect_job ring_unit"
+    },
+    {
+      "line": 4699,
+      "text": "collect_job climonfix"
+    },
+    {
+      "line": 4700,
+      "text": "collect_job racefix_counters"
+    },
+    {
+      "line": 4701,
+      "text": "collect_job racefix_climon"
+    },
+    {
+      "line": 4702,
+      "text": "collect_job lbplanner_units"
+    },
+    {
+      "line": 4706,
+      "text": "collect_job exbatch_units"
+    },
+    {
+      "line": 4707,
+      "text": "collect_job exbatch_live"
+    },
+    {
+      "line": 4709,
+      "text": "collect_job persistfix_units"
+    },
+    {
+      "line": 4710,
+      "text": "collect_job perfex_units"
+    },
+    {
+      "line": 4711,
+      "text": "collect_job perfex_live"
+    },
+    {
+      "line": 4712,
+      "text": "collect_job ntnew4_live"
+    },
+    {
+      "line": 4713,
+      "text": "collect_job clientfix"
+    },
+    {
+      "line": 4714,
+      "text": "collect_job core_units"
+    },
+    {
+      "line": 4716,
+      "text": "collect_job flipfix_units"
+    },
+    {
+      "line": 4718,
+      "text": "collect_job wb_rule_units"
+    },
+    {
+      "line": 4721,
+      "text": "collect_job wbland_units"
+    },
+    {
+      "line": 4725,
+      "text": "collect_job reorder_sync"
+    },
+    {
+      "line": 4726,
+      "text": "collect_job reorder_engagement"
+    },
+    {
+      "line": 4727,
+      "text": "collect_job reorder_identity"
+    },
+    {
+      "line": 4728,
+      "text": "collect_job wb_policy"
+    },
+    {
+      "line": 4731,
+      "text": "collect_job perfio_stream"
+    },
+    {
+      "line": 4734,
+      "text": "collect_job splitlocal_units"
+    },
+    {
+      "line": 4736,
+      "text": "collect_job storage_units"
+    },
+    {
+      "line": 4738,
+      "text": "collect_job atomic_units"
+    },
+    {
+      "line": 4740,
+      "text": "collect_job netcmd_units"
+    },
+    {
+      "line": 4744,
+      "text": "collect_job netcap"
+    },
+    {
+      "line": 4747,
+      "text": "collect_job netfix_query_stats"
+    },
+    {
+      "line": 4748,
+      "text": "collect_job netfix_unix"
+    },
+    {
+      "line": 4749,
+      "text": "collect_job netfix_config"
+    },
+    {
+      "line": 4750,
+      "text": "collect_job netfix_tls"
+    },
+    {
+      "line": 4751,
+      "text": "collect_job netfix_idle_buffers"
+    },
+    {
+      "line": 4755,
+      "text": "collect_job respcompat"
+    },
+    {
+      "line": 4756,
+      "text": "collect_job ntfix_input"
+    },
+    {
+      "line": 4763,
+      "text": "collect_job acl_metadata"
+    },
+    {
+      "line": 4766,
+      "text": "collect_job boot_grammar"
+    },
+    {
+      "line": 4767,
+      "text": "collect_job dbdefault"
+    },
+    {
+      "line": 4769,
+      "text": "collect_job cmd_metadata"
+    },
+    {
+      "line": 4772,
+      "text": "collect_job wait_units"
+    },
+    {
+      "line": 4774,
+      "text": "collect_job readonly"
+    },
+    {
+      "line": 4776,
+      "text": "collect_job release_batteries"
+    },
+    {
+      "line": 4778,
+      "text": "collect_job atomic_batteries"
+    },
+    {
+      "line": 4779,
+      "text": "collect_job moverfix"
+    },
+    {
+      "line": 4782,
+      "text": "collect_job hexpread"
+    },
+    {
+      "line": 4784,
+      "text": "collect_job compat2"
+    },
+    {
+      "line": 4785,
+      "text": "collect_job bugs5"
+    },
+    {
+      "line": 4787,
+      "text": "collect_job compat3"
+    },
+    {
+      "line": 4793,
+      "text": "collect_job txn_group_fused"
+    },
+    {
+      "line": 4814,
+      "text": "collect_job bplus"
+    },
+    {
+      "line": 4816,
+      "text": "collect_job acl_recheck"
+    },
+    {
+      "line": 4817,
+      "text": "collect_job aclfix"
+    },
+    {
+      "line": 4819,
+      "text": "collect_job sort"
+    },
+    {
+      "line": 4822,
+      "text": "collect_job txn_group_split"
+    },
+    {
+      "line": 4823,
+      "text": "collect_job txnorder2"
+    },
+    {
+      "line": 4824,
+      "text": "collect_job txnorder_wake"
+    },
+    {
+      "line": 4827,
+      "text": "collect_job script_bounds"
+    },
+    {
+      "line": 4828,
+      "text": "collect_job scriptfix"
+    },
+    {
+      "line": 4830,
+      "text": "collect_job efficiency"
+    },
+    {
+      "line": 4832,
+      "text": "collect_job dump_restore"
+    },
+    {
+      "line": 4834,
+      "text": "collect_job auth"
+    },
+    {
+      "line": 4835,
+      "text": "collect_job authfix"
+    },
+    {
+      "line": 4839,
+      "text": "collect_job notify"
+    },
+    {
+      "line": 4841,
+      "text": "collect_job trackfix_order"
+    },
+    {
+      "line": 4842,
+      "text": "collect_job trackfix_accounting"
+    },
+    {
+      "line": 4843,
+      "text": "collect_job notify_order"
+    },
+    {
+      "line": 4844,
+      "text": "collect_job notify_aof"
+    },
+    {
+      "line": 4846,
+      "text": "collect_job flip"
+    },
+    {
+      "line": 4847,
+      "text": "collect_job fliplisten"
+    },
+    {
+      "line": 4849,
+      "text": "collect_job flipctl"
+    },
+    {
+      "line": 4850,
+      "text": "collect_job flip_saturated"
+    },
+    {
+      "line": 4852,
+      "text": "collect_job atomic_floor"
+    },
+    {
+      "line": 4856,
+      "text": "collect_job aof_frame"
+    },
+    {
+      "line": 4858,
+      "text": "collect_job aoforder"
+    },
+    {
+      "line": 4860,
+      "text": "collect_job tls"
+    },
+    {
+      "line": 4881,
+      "text": "collect_job abba_selftest"
+    },
+    {
+      "line": 4910,
+      "text": "if [ \"$TIER\" = quick ]; then"
+    },
+    {
+      "line": 4929,
+      "text": "collect_job asan_batteries"
+    },
+    {
+      "line": 4931,
+      "text": "collect_job replyoff"
+    },
+    {
+      "line": 4933,
+      "text": "collect_job zc"
+    },
+    {
+      "line": 4935,
+      "text": "collect_job rldbg"
+    },
+    {
+      "line": 4937,
+      "text": "collect_job rlcache"
+    },
+    {
+      "line": 4942,
+      "text": "collect_job differ-split"
+    },
+    {
+      "line": 4953,
+      "text": "collect_job differ-armed"
+    },
+    {
+      "line": 4955,
+      "text": "collect_job globcase"
+    }
+  ]
+}
