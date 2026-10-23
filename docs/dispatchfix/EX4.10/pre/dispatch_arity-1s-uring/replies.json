@@ -1,0 +1,217 @@
+[
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "stream",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "stream",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra",
+      "more"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "stream",
+      "full",
+      "count",
+      "1",
+      "x",
+      "y",
+      "z"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "string",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "string",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra",
+      "more"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "string",
+      "full",
+      "count",
+      "1",
+      "x",
+      "y",
+      "z"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "missing",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR no such key\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "missing",
+      "FULL",
+      "COUNT",
+      "1",
+      "extra",
+      "more"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR no such key\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "STREAM",
+      "missing",
+      "full",
+      "count",
+      "1",
+      "x",
+      "y",
+      "z"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR no such key\r\n"
+  },
+  {
+    "argv": [
+      "XINFO"
+    ],
+    "target": "-ERR wrong number of arguments for 'xinfo' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'xinfo' command\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "HELP",
+      "x"
+    ],
+    "target": "-ERR wrong number of arguments for 'xinfo|help' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'xinfo|help' command\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "GROUPS",
+      "missing",
+      "x"
+    ],
+    "target": "-ERR wrong number of arguments for 'xinfo|groups' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'xinfo|groups' command\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "CONSUMERS",
+      "missing",
+      "g",
+      "x"
+    ],
+    "target": "-ERR wrong number of arguments for 'xinfo|consumers' command\r\n",
+    "oracle": "-ERR wrong number of arguments for 'xinfo|consumers' command\r\n"
+  },
+  {
+    "argv": [
+      "XINFO",
+      "BOGUS",
+      "x",
+      "x",
+      "x",
+      "x",
+      "x",
+      "x",
+      "x",
+      "x"
+    ],
+    "target": "-ERR unknown subcommand 'BOGUS'. Try XINFO HELP.\r\n",
+    "oracle": "-ERR unknown subcommand 'BOGUS'. Try XINFO HELP.\r\n"
+  },
+  {
+    "argv": [
+      "MEMORY",
+      "USAGE",
+      "stream",
+      "SAMPLES",
+      "1",
+      "x"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR syntax error\r\n"
+  },
+  {
+    "argv": [
+      "MEMORY",
+      "USAGE",
+      "string",
+      "SAMPLES",
+      "1",
+      "x"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR syntax error\r\n"
+  },
+  {
+    "argv": [
+      "MEMORY",
+      "USAGE",
+      "missing",
+      "SAMPLES",
+      "1",
+      "x"
+    ],
+    "target": "-ERR syntax error\r\n",
+    "oracle": "-ERR syntax error\r\n"
+  }
+]

@@ -1112,7 +1112,13 @@ void cmd_xinfo(Shard& shard, Op& op) {
                 reply_syntax(op.sink()); return;
             }
             if (count == 0) count = UINT64_MAX;
-        } else if (op.argc() != 4) { reply_syntax(op.sink()); return; }
+        } else if (op.argc() != 4) {
+            std::string error = "ERR unknown subcommand or wrong number of arguments for '";
+            error.append(sub.p, sub.n);
+            error += "'. Try XINFO HELP.";
+            reply_err(op.sink(), error.c_str());
+            return;
+        }
     }
     const uint64_t length = stream_object_live_length(object);
     const uint64_t physical = stream_object_physical_length(object);
@@ -1186,7 +1192,9 @@ static const CommandSpec kTable[] = {
                               cmd_xautoclaim<false>, 1, 1, 1, cmd_xautoclaim<true>},
     {"XSETID",      3,  7, CmdFlags::Write,
                               cmd_xsetid<false>, 1, 1, 1, notify_handler<cmd_xsetid<true>>},
-    {"XINFO",       2,  6, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
+    // STREAM is variadic in Redis. Its handler looks up the key before parsing
+    // the tail, so an outer maximum would incorrectly mask missing/wrong-type keys.
+    {"XINFO",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard | CmdFlags::SubcmdRoute,
                               cmd_xinfo<false>, 2, 2, 1, cmd_xinfo<true>},
 };
 

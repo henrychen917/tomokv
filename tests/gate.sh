@@ -1106,7 +1106,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 dispatch_arity bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1616,6 +1616,24 @@ job_compat2(){
     if [ "$failed" = 0 ]; then ok "compat2 $case";
     else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
   done
+}
+
+# Each dispatchfix feature owns one scored row with all four correctness legs.
+# The scripts retain the oracle replies and both listener command lines.
+dispatchfix_job(){
+  local battery=$1 label=$2 mode engine failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    py "tests/$battery.py" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --mode "$mode" --engine "$engine" --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+        --output "$TMPDIR/$battery-$mode-$engine" \
+        >"$TMPDIR/$battery-$mode-$engine.log" 2>&1 || failed=1
+  done; done
+  if [ "$failed" = 0 ]; then ok "$label";
+  else bad "$label" "see $TMPDIR/$battery-*.log"; fi
+}
+job_dispatch_arity(){
+  row_begin 'dispatchfix EX4.10 container outer arity'
+  dispatchfix_job dispatch_arity 'dispatchfix EX4.10 container outer arity'
 }
 
 job_hexpread(){
@@ -4195,6 +4213,7 @@ collect_job moverfix
 collect_job hexpread
 # Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
 collect_job compat2
+collect_job dispatch_arity
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

@@ -384,8 +384,9 @@ bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
         int16_t first_key = 0;
         // Reaching this hook means the broad top-level row rejected the request. Usually the
         // generated child rejects it too and supplies the precise child name. The one remaining
-        // shape is a variadic child crossing a finite container maximum (MEMORY USAGE and XINFO
-        // STREAM); those tails are handler grammar, for which Redis reports syntax error.
+        // shape is MEMORY USAGE crossing its finite container maximum. Its handler grammar
+        // precedes key lookup and Redis reports syntax error for those tails. XINFO STREAM
+        // has no outer maximum: its handler must look up the key before parsing the tail.
         if (command_validate_container_subcommand(op, spec, first_key))
             reply_syntax(op.sink());
         return true;
