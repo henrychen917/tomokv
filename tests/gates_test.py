@@ -1564,7 +1564,7 @@ bad(){ printf 'FAIL\t%s\n' "$1"; }
 
 
 class TSANWiring(unittest.TestCase):
-    def run_rows(self, kind='core', failure='', ready=True, topology_failure=''):
+    def run_rows(self, kind='core', failure='', ready=True, topology_failure='', slowlog_failure=''):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         helpers = gate[gate.index('tsan_unit(){'):gate.index('\njob_production_units(){')]
@@ -1583,6 +1583,12 @@ bad(){ printf 'FAIL\t%s\n' "$1" >> "$RUN_DIR/rows"; }
 timeout(){
   local argv="$*" selected=${@: -1}
   case "$argv" in
+    *slowlog-completion-negative*)
+      printf 'negative\t%s\n' "$selected" >> "$RUN_DIR/calls"
+      [ "$SLOWLOG_FAILURE" != status ] || return 0
+      [ "$SLOWLOG_FAILURE" != witness ] || return 1
+      echo 'FAIL core concurrency: slowlog threshold decision and identity capture precede Done'
+      return 1;;
     *"$CORE_TSAN"*|*"$WAITS_TSAN"*)
       printf 'tsan\t%s\n' "$selected" >> "$RUN_DIR/calls"
       [ "$TSAN_OPTIONS" = halt_on_error=1:exitcode=66 ] || return 89
@@ -1618,7 +1624,8 @@ timeout(){
                     (directory / 'unit-ready' / name).touch()
             result = subprocess.run(['bash', '-c', stub + helpers + body + '\n' + first.split('(')[0]],
                 cwd=directory, env=dict(os.environ, RUN_DIR=temporary, TMPDIR=temporary,
-                                       FAILURE=failure, TOPOLOGY_FAILURE=topology_failure),
+                                       FAILURE=failure, TOPOLOGY_FAILURE=topology_failure,
+                                       SLOWLOG_FAILURE=slowlog_failure),
                 capture_output=True, text=True, timeout=5)
             self.assertEqual(result.returncode, 0, result.stderr)
             return [line.split('\t') for line in (directory / 'rows').read_text().splitlines()], \
@@ -1631,6 +1638,14 @@ timeout(){
                          [['ok', f'read-local topology demotion ({mode})'] for mode in ('1s', '2s')])
         self.assertEqual([case for mode, case in calls if mode == 'tsan'], selections)
         self.assertEqual([case for mode, case in calls if mode == 'control'], selections + ['1s', '2s'])
+        self.assertEqual([case for mode, case in calls if mode == 'negative'],
+                         ['slowlog-completion-negative'])
+
+    def test_slowlog_negative_requires_failure_and_exact_witness(self):
+        for failure in ('status', 'witness'):
+            with self.subTest(failure=failure):
+                rows, _ = self.run_rows(slowlog_failure=failure)
+                self.assertEqual([row[0] for row in rows], ['ok', 'FAIL'] + ['ok'] * 7)
 
     def test_core_runtime_report_unavailability_and_missing_witness_all_fail(self):
         for failure in ('runtime', 'report', 'unavailable', 'witness', 'control'):
