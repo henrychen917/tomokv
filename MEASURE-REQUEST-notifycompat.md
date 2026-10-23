@@ -42,3 +42,9 @@ Oracle bytes: `docs/notifycompat/oracle-writemiss.log`. Current DQ=+4 / DF=+4;
 required counts 743 / 760. CC4.20's identity diagnostic reports shared xshard
 execution changes and db0 prepare spillover; these remain explicit repair/merit
 inputs, not a reason to stop or a performance claim.
+
+NO-A2: all four OBJECT subcommands now use the no-touch lookup, suppress
+keymiss, and retain a physical lazy-expiry event. Redis checks missing keys
+before the IDLETIME/FREQ policy error, so that precedence is corrected too.
+The oracle's exact null/expired frames are retained in `oracle-objectmiss.log`.
+Current DQ=+5 / DF=+5; required counts 744 / 761. Final proof pending.

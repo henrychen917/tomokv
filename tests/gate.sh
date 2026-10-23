@@ -3388,7 +3388,7 @@ if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
     sleep .1
   done
 fi
-for nc_case in setbit setpast emptystore writemiss; do
+for nc_case in setbit setpast emptystore writemiss objectmiss; do
 compatible=1
 row_begin "notification compatibility $nc_case vs Redis 7.4"
 if [ "$oracle_ready" = 1 ]; then
