@@ -403,7 +403,7 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     // destination mutation events after source keymiss even in owner-parallel gathers.
     const bool store_tail = event != NotifyEventId::Keymiss &&
         notify_store_command(source);
-    record.order = (store_tail ? shard.notify_order_base() + 0x0ff0
+    record.order = (store_tail ? shard.notify_order_base() + source.argc() * 16
                               : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;

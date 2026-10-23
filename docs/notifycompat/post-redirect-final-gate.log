@@ -2,3 +2,8 @@ GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load),
   artifacts: /home/user/Projects/cx-notifycompat/build/gate-run.g90VCo
 PARTIAL jobs (including prerequisites): release tracking_redirect
 PARTIAL jobs (including prerequisites): release tracking_redirect
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; correctness-plan-fallback; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-notifycompat/docs/notifycompat/post-redirect-final-ledger.partial

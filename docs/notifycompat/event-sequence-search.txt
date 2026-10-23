@@ -1,0 +1,111 @@
+tests/ccfix2_atomic_unit.cc:63:                "EXPECTED-DEVIATION CC11: pending-source lookups emit no keymiss");
+tests/ccfix2_atomic_unit.cc:67:        std::printf("EXPECTED-DEVIATION CC11 %s pending-source keymiss=0\n", verb);
+tests/ccfix_unit.cc:12:namespace tomo { bool notify_keymiss_read_lookup(const Op&, Slice); }
+tests/ccfix_unit.cc:39:            assert(notify_keymiss_read_lookup(op, op.arg(arg)) == expected);
+tests/ccfix_unit.cc:43:        assert(!notify_keymiss_read_lookup(op, Slice(unrelated.data(), unrelated.size())));
+tests/notify.py:253:    expect_e("g", ("SET", "str:past", "v", "PXAT", "1"),
+tests/notify.py:274:    expect_e("$", ("SETBIT", "str:bit", "3", "1"), [("setbit", "str:bit")], "SETBIT")
+tests/notify.py:396:             [("del", "store:bit")], "BITOP empty")
+tests/notify.py:405:             [("del", "store:set")], "SINTERSTORE empty")
+tests/notify.py:407:             [("del", "store:sunion:empty")], "SUNIONSTORE empty")
+tests/notify.py:409:             [("del", "store:sdiff:empty")], "SDIFFSTORE empty")
+tests/notify.py:411:             [("del", "store:z")], "ZRANGESTORE empty")
+tests/notify.py:419:             [("del", "store:sort:empty")], "SORT STORE empty")
+tests/notify.py:454:    # m/n are outside A; new precedes the type event, and write lookups suppress keymiss.
+tests/notify.py:456:    expect_none("EA", ("GET", "miss:a"), "A excludes keymiss")
+tests/notify.py:457:    expect_e("Am", ("GET", "miss:m"), [("keymiss", "miss:m")], "readonly keymiss")
+tests/notify.py:458:    expect_none("Em", ("SET", "miss:write", "v"), "write suppresses keymiss")
+tests/ntnew4_clock.py:149:            require(c.must("SET", key, "v", "PXAT", deadline) == b"OK", "absolute deadline")
+tests/ntnew4_clock.py:177:        require(c.must("SET", "nt7:now", "v", "PXAT", deadline) == b"OK", "SET at now")
+tests/ntnew4_clock.py:178:        note("SET PXAT now stays live", c.must("EXISTS", "nt7:now"), 1)
+tests/ntnew4_clock.py:183:        note("GETEX PXAT now deletes", [c.must("GETEX", "nt7:gx", "PXAT", deadline),
+tests/ntnew4_clock.py:190:        note("SET PXAT now key past deadline", c.must("EXISTS", "nt7:now"), 0)
+tests/ntnew4_clock.py:197:            require(c.must("SET", key, "v", "PXAT", deadline + 30) == b"OK", "RANDOMKEY fixture")
+tests/ntnew4_clock.py:250:        require(admin.must("SET", a, "v", "PXAT", origin + 1_000_000) == b"OK", "long TTL")
+tests/ntnew4_clock.py:251:        require(admin.must("SET", b, "v", "PXAT", origin + 20) == b"OK", "short TTL")
+tests/gate.sh:2527:# RL4.3: each row requires exact local-miss accounting and keymiss delivery.
+tests/gate.sh:3391:for nc_case in setbit setpast emptystore writemiss objectmiss expiredstore flush; do
+tests/perfex_checks.py:221:            pipeline(c, [("SET", key, "v", "PXAT", at)
+tests/perfex_checks.py:258:            pipeline(c, [("SET", f"all:{i}", "v", "PXAT", uniform) for i in range(4096)], b"OK")
+tests/perfex_checks.py:281:                pipeline(c, [("SET", f"reset:{i}", "v", "PXAT", long_at)
+tests/edgeproto.py:177:                 ["SET", "ep:e", "v", "EXAT", "abc"],
+tests/flip_ttl.py:177:            send(w, "SET", k, "v", "PXAT", str(earliest_expiry_ms))
+tests/netcmd.py:62:                                ("SETBIT", "netcmd:grow", 8388608, 1),
+tests/netfix_config.py:69:                    (('SETBIT', 'netfix-wide', '34359738368', '1'),
+tests/expire_notify_unit.cc:36:            "reservation-only physical expiry emits expired then keymiss");
+tests/tracking_redirect.py:24:        if isinstance(value, list) and value and value[0] == b'tracking-redir-broken':
+tests/tracking_redirect.py:100:            expected = [] if reset or resp == 2 else [[b'tracking-redir-broken', target_id]]
+tests/tracking_redirect.py:101:            expected_wire = (b'>2\r\n$21\r\ntracking-redir-broken\r\n:' + str(target_id).encode() + b'\r\n') \
+tests/edgetime.py:228:    check("SET EXAT non-numeric", conn.raw("SET", "arith", "v", "EXAT", "abc"), not_integer)
+tests/edgetime.py:265:    conn.cmd("SET", "keep", "old", "PXAT", str(future_ms))
+tests/edgetime.py:268:    check("GETEX past returns old value", conn.cmd("GETEX", "keep", "PXAT", "1"), b"new")
+tests/edgetime.py:407:        assert conn.cmd("SET", key, "v", "PXAT", str(earliest)) == b"OK"
+tests/edgetime.py:623:    conn.cmd("SET", store_destination, "old", "PXAT", str(future))
+tests/lanefull_checks.inc:139:    static_assert(offsetof(ReadLocalStats, fallback_context_keymiss_notify) == 72);
+tests/lanefull_checks.inc:157:    static_assert(offsetof(ReadLocalStats, mget_fallback_context_keymiss_notify) == 224);
+tests/lanefull_checks.inc:179:        {"read_local_fallback_context_keymiss_notify", 72, false, false},
+tests/lanefull_checks.inc:197:        {"read_local_mget_fallback_context_keymiss_notify", 224, false, false},
+tests/fixtures/nullrefresh-ledger-labels.json:4:  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); perfio adds two migration and two stream mode rows before the quick exit (+4/+4); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full); dbdefault adds one default-config row covering both modes before the quick exit (+1 quick/+1 full); respresume adds twelve resumable-RESP rows (fragment, cpu and neighbour x 1s/2s x epoll/uring) collected after respcompat, before the quick exit (+12 quick/+12 full); aoforder declares three commit-order regressions before the quick-tier exit (+3 quick/+3 full); EXPECT constants remain maintainer-owned; hexpread adds three parked-hash expiry rows and one OBJECT expiry row per mode before the quick exit (+8 quick/+8 full), with EXPECT constants left to the maintainer; ntfix adds four directed N1-N4 rows before the quick exit (+4 quick/+4 full), retaining the wave3 labels; EXPECT constants remain maintainer-owned; moverfix adds eight deterministic/live atomic-0 conservation rows before quick exit (+8/+8); notifyorder adds the exact lazy-expiry ordering row before the quick exit (+1 quick/+1 full); notifyorder A5 adds the local script notification AOF row there (+1 quick/+1 full); EXPECT constants remain maintainer-owned; clockcut adds three NT-new-4 command-clock rows (2s, 1s, 2s epoll; with the NT-new-7 exact-deadline assertions) before the quick exit (+3 quick/+3 full); txnorder merge preserves the fourteen transaction rows before the quick exit (+14/+14); source inventory only; bugs5 preserves three aggregate rows before quick exit (+3/+3), covering all mode/engine/atomic legs; EXPECT constants remain maintainer-owned; compat3 adds six oracle-backed rows before the quick exit (+6/+6); trackfix adds two aggregate rows before quick exit (+2/+2); wave5 composes fliplisten row inventory additively, retaining duplicate labels and protected EXPECT constants; wave5 composes netfix row inventory additively, retaining duplicate labels and protected EXPECT constants; wave5 composes iofix row inventory additively, retaining duplicate labels and protected EXPECT constants; wave5b reopens WB4.1 and removes its row before quick exit (-1 quick/-1 full); required counts 739/756, EXPECT constants remain maintainer-owned; notifycompat adds setbit before quick exit (+1/+1), EXPECT remains maintainer-owned",
+tests/fixtures/nullrefresh-ledger-labels.json:511:    "notification compatibility setbit vs Redis 7.4",
+tests/aof.py:339:    expect(("SETBIT", "bitmap", "1", "1"), b":0\r\n")
+tests/aof.py:340:    expect(("SETBIT", "bitmap", "4097", "1"), b":0\r\n")
+tests/aof.py:341:    expect(("SETBIT", "bitmap", "99999", "1"), b":0\r\n")
+tests/ccfix_instr.cc:60:        c.count(mask ? "save-only/keymiss" : "off/keymiss", [&]{ notifications(shard, NOTIFY_KEY_MISS); });
+tests/_differ_ccfix.py:134:        # channel fences each batch; an absent keymiss is a zero count, never a timeout skip.
+tests/_differ_ccfix.py:146:        channel = "__keyevent@0__:keymiss"
+tests/_differ_ccfix.py:196:            api["coverage"].note(args, "keymiss frames")
+tests/_differ_ccfix.py:269:                        # Read-only MGET retains the predecessor/keymiss witness.
+tests/_differ_ccfix.py:307:                    print("  EXPECTED-DEVIATION CC11 pending MGET before %s: no keymiss; "
+tests/rlfix.py:56:            f"keymiss notification window never opened: {out!r}, expected {count}")
+tests/rlfix.py:104:                listener.must("SUBSCRIBE", "__keyevent@0__:keymiss")
+tests/rlfix.py:130:                        expected_events = [[b"message", b"__keyevent@0__:keymiss",
+tests/rlfix.py:145:                                fallback = ("context_keymiss_notify" if notify and
+tests/notifycompat.py:134:def setbit(peer):
+tests/notifycompat.py:136:    equal(peer.driver.cmd('OBJECT', 'ENCODING', 'nc:raw'), b'raw', 'raw SETBIT arm')
+tests/notifycompat.py:137:    equal(peer.driver.cmd('OBJECT', 'ENCODING', 'nc:int'), b'int', 'integer SETBIT arm')
+tests/notifycompat.py:140:    peer.step('raw unchanged', ('SETBIT', 'nc:raw', 0, 0), 0, [])
+tests/notifycompat.py:141:    peer.step('integer unchanged', ('SETBIT', 'nc:int', 0, 0), 0, [])
+tests/notifycompat.py:144:        peer.failures.append(f'unchanged SETBIT dirty delta: {after-before}, expected 0')
+tests/notifycompat.py:145:    peer.step('changed bit', ('SETBIT', 'nc:raw', 0, 1), 0, [('setbit', 'nc:raw')])
+tests/notifycompat.py:146:    peer.step('growth with zero', ('SETBIT', 'nc:int', 8, 0), 0, [('setbit', 'nc:int')])
+tests/notifycompat.py:147:    peer.step('new zero bit', ('SETBIT', 'nc:new', 0, 0), 0, [('setbit', 'nc:new')])
+tests/notifycompat.py:150:        peer.failures.append(f'changed SETBIT dirty delta: {after-before}, expected 3')
+tests/notifycompat.py:162:                      [('expired', key), ('keymiss', key)])
+tests/notifycompat.py:167:    peer.step('XX absent control', ('SET', 'nc:xx', 'v', 'XX', 'PXAT', 1), None, [])
+tests/notifycompat.py:169:    peer.step('NX present control', ('SET', 'nc:nx', 'v', 'NX', 'EXAT', 1), None, [])
+tests/notifycompat.py:184:            peer.step(f'absent destination layout={layout}', command, 0, [('keymiss', src)])
+tests/notifycompat.py:187:                      [('keymiss', src), ('del', dst)])
+tests/notifycompat.py:201:            events = ([('expired', key)] if expired else []) + [('keymiss', key)]
+tests/notifycompat.py:209:              None, [('keymiss', 'nc:xxget')])
+tests/notifycompat.py:236:            (('BITOP', 'AND', dst, src), [], [('keymiss', src)]),
+tests/notifycompat.py:238:            (('SUNIONSTORE', dst, src), [], [('keymiss', src)]),
+tests/notifycompat.py:241:            (('ZUNIONSTORE', dst, 1, src), [], [('keymiss', src)]),
+tests/notifycompat.py:309:CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore,
+tests/notify_order.py:5:single keymiss chain cannot interleave their keyless chains, regardless of timing.
+tests/notify_order.py:191:        return ('MGET', *args), [None]*3 + [b'live'] + [None]*5, [(ev, k) for k in expired for ev in ('expired', 'keymiss')], 8
+tests/notify_order.py:200:        events += [('keymiss', key)]
+tests/replyschema.py:745:add("setbit", "SETBIT", "{p}:bits", "0", "1", setup=(("DEL", "{p}:bits"),), arm=0)
+tests/replyschema.py:746:add("setbit", "SETBIT", "{p}:bits", "0", "0", setup=(("SETBIT", "{p}:bits", "0", "1"),), arm=1)
+tests/respresume.py:95:        [('SETBIT', 'k', 8, 1), ('BITCOUNT', 'k')], [('BITFIELD', 'k', 'SET', 'u8', 0, 7)],
+tests/differ.py:1445:            ops.append(["GETEX", sk(), "PXAT", str(future_ms)])
+tests/differ.py:1447:            ops.append(["GETEX", sk(), "PXAT", str(past_ms)])
+tests/differ.py:1558:        ["SET", edge, "old", "PXAT", str(future_ms)],
+tests/differ.py:1560:        ["GETEX", edge, "PXAT", "1"], ["GET", edge], ["MEMORY", "USAGE", edge],
+tests/differ.py:2530:            ops.append(["SETBIT", K(), str(rng.randrange(0, 1024)), str(rng.randrange(2))])
+tests/differ.py:2561:        ["DEL", a], ["SETBIT", a, "0", "1"], ["SETBIT", a, "7", "1"],
+tests/differ.py:2562:        ["SETBIT", a, "15", "1"], ["SETBIT", a, "79", "1"],
+tests/differ.py:2589:        ["SET", a, "hello"], ["APPEND", a, b"\x00\xff"], ["SETBIT", a, "9", "1"],
+tests/differ.py:2592:        ["SET", e, "12345"], ["SETBIT", e, "3", "0"], ["GET", e],
+tests/differ.py:2597:        ["SETBIT", a, "-1", "1"], ["SETBIT", a, "1", "2"],
+tests/differ.py:2640:            ops.append(["SETBIT", key, str(rng.randrange(0, 512)), str(rng.randrange(2))])
+tests/differ.py:3477:            ["SETBIT", "ep:bit", bad, "1"], ["GETBIT", "ep:s", bad],
+tests/differ.py:3482:            ["SET", "ep:e", "v", "EXAT", bad], ["GETEX", "ep:s", "EX", bad],
+tests/differ.py:3595:        ["SETBIT", "ep:l", "abc", "1"], ["GETEX", "ep:l", "EX", "abc"], ["EXPIRE", "ep:l", "abc"],
+tests/differ.py:3656:        ["SETRANGE", b"ep:huge", "536870911", "x"], ["SETBIT", b"ep:hb", "4294967296", "1"],
+tests/differ.py:5536:    set_notify("Em"); notify_op(["GET", "ci:n:missing"], 0, 1, "keymiss class")
+tests/differ_test.py:205:        observe(['SET', 'key', 'v', 'PXAT', '120000', 'GET'], b'$-1\r\n')
+tests/differ_test.py:412:                scope['gens']['string'] = lambda rng: ([['SET', 'key', 'v', 'PXAT', '100000']] +
+tests/expire_notify.py:46:        sub.send('SUBSCRIBE', '__keyevent@0__:expired', '__keyevent@0__:keymiss')
+tests/expire_notify.py:108:        # keymiss rides the command batch. Their relative delivery order is a
+tests/expire_notify.py:128:        assert missed == [b'message', b'__keyevent@0__:keymiss', positive.encode()], missed
+tests/scriptsurf.py:282:        ("SETBIT", "return redis.call('SETBIT', KEYS[1], 0, 1)"),

@@ -185,6 +185,12 @@ def emptystore(peer):
             peer.setup(('SET', dst, 'old'))
             peer.step(f'live destination layout={layout}', command, 0,
                       [('keymiss', src), ('del', dst)])
+    # Cross the former fixed 255-argument destination band. All these misses
+    # must precede the actual deletion, with every frame retained in argv order.
+    sources = [f'nc:wide:{i}' for i in range(300)]
+    peer.setup(('FLUSHALL',), ('SET', 'nc:wide:dst', 'old'))
+    peer.step('wide BITOP source order', ('BITOP', 'AND', 'nc:wide:dst', *sources), 0,
+              [('keymiss', key) for key in sources] + [('del', 'nc:wide:dst')])
 
 
 def writemiss(peer):

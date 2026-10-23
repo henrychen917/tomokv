@@ -190,7 +190,12 @@ def expect_none(flags, command, label):
 
 
 try:
-    expect(admin.command("CONFIG", "SET", "atomic", "0"), b"OK", "initial atomic off")
+    # The gate invokes the complete battery in both modes, including PRE runs
+    # that fail before reaching the final cross-shard controls below.
+    initial_atomic = sys.argv[3] if len(sys.argv) > 3 else "0"
+    assert initial_atomic in ("0", "1")
+    expect(admin.command("CONFIG", "SET", "atomic", initial_atomic), b"OK", "initial atomic")
+    print(f"notify: initial atomic={initial_atomic}", flush=True)
     # G1-G4: exact parser, atomic rejection, normalization, and upstream A suppressing n.
     grammar = [
         ("", ""), ("KA", "AK"), ("EA", "AE"), ("gKE", "gKE"),

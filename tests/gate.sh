@@ -3171,7 +3171,6 @@ if [ "$oracle_ready" = 1 ]; then
       booted=0
       local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
                      --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
-      [ "$nc_case" != flush ] || options+=(--appendonly yes --appendfsync always)
       if [ "$mode" = 1s ]; then
         boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
       else
@@ -3367,7 +3366,7 @@ fi
 }
 
 job_notifycompat(){
-# One counted row; every declared leg runs even when an earlier leg fails.
+# Seven counted rows; every declared leg runs even when an earlier leg fails.
 local mode atomic engine read_local compatible=1 booted oracle_ready=0 nc_case databases
 local oracle_port=$((PORT+1)) oracle_dir
 local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
@@ -3403,6 +3402,7 @@ if [ "$oracle_ready" = 1 ]; then
       booted=0
       local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
                      --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      [ "$nc_case" != flush ] || options+=(--appendonly yes --appendfsync always)
       if [ "$mode" = 1s ]; then
         boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
       else
@@ -3667,9 +3667,13 @@ row_begin "Lua feature battery"
 py tests/lua_scripting.py 127.0.0.1 $PORT >$TMPDIR/gate-lua.txt 2>&1 \
     && ok "Lua feature battery" || bad "Lua feature battery" "see $TMPDIR/gate-lua.txt"
 row_begin "keyspace notification battery (atomic 0/1)"
-py tests/notify.py 127.0.0.1 $PORT >$TMPDIR/gate-notify.txt 2>&1 \
-    && ok "keyspace notification battery (atomic 0/1)" \
-    || bad "keyspace notification battery" "see $TMPDIR/gate-notify.txt"
+local notify_atomic notify_compatible=1
+for notify_atomic in 0 1; do
+  py tests/notify.py 127.0.0.1 "$PORT" "$notify_atomic" \
+      >"$TMPDIR/gate-notify-$notify_atomic.txt" 2>&1 || notify_compatible=0
+done
+[ "$notify_compatible" = 1 ] && ok "keyspace notification battery (atomic 0/1)" \
+    || bad "keyspace notification battery" "see $TMPDIR/gate-notify-*.txt"
 stop
 row_begin "feature battery shutdown invariants"
 shutdown_clean \
