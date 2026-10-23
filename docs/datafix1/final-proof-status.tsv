@@ -13,3 +13,4 @@ post-linear-epoll	0
 post-linear-uring	0
 post-linear-extra	0
 post-epoll-differ-serial	0
+pre-epoll-differ-serial	0
