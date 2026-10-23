@@ -3,10 +3,10 @@
 import argparse,concurrent.futures,hashlib,json,os,subprocess,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; DOC=ROOT/"docs/wave5c"; BUILD=ROOT/"build/wave5c"
-p=argparse.ArgumentParser();p.add_argument("phase",choices=["baseline","fixed"]);p.add_argument("--count",type=int);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument("phase",choices=["baseline","fixed","final"]);p.add_argument("--count",type=int);a=p.parse_args()
 assert os.sched_getaffinity(0)<=set(range(64,112))
 bins=Path("/home/user/Projects/bins")
-arms={"wave5b":bins/"wave5b-2028fd77","headline":Path("/home/user/Projects/bench-bins/tomokv-headline-a7dfb9d23"),"iofix":bins/"iofix-post-a7a3d72a","fliplisten":bins/"fliplisten-post-191a4d96","netfix":bins/"netfix-post-9cfcbcb1"} if a.phase=="baseline" else {"fixed":ROOT/"build/tomokv"}
+arms={"wave5b":bins/"wave5b-2028fd77","headline":Path("/home/user/Projects/bench-bins/tomokv-headline-a7dfb9d23"),"iofix":bins/"iofix-post-a7a3d72a","fliplisten":bins/"fliplisten-post-191a4d96","netfix":bins/"netfix-post-9cfcbcb1"} if a.phase=="baseline" else {a.phase:ROOT/"build/tomokv"}
 engines=["uring"] if a.phase=="baseline" else ["uring","epoll"]
 count=a.count or (30 if a.phase=="baseline" else 50)
 records=[]

@@ -10,7 +10,7 @@ cohorts=[
 ]
 results=[]
 for name,jobs,extra in cohorts:
- command=["python3",str(ROOT/"docs/wave5c/verify.py"),name,jobs,"--server-cores","64-95","--load-cores","96-111","--ports","26800-26889","--asan",str(ROOT/"build/wave5c/arms/fixed-asan"),*extra]
+ command=["python3",str(ROOT/"docs/wave5c/verify.py"),name,jobs,"--server-cores","64-95","--load-cores","96-111","--ports","26800-26889","--asan",str(ROOT/"build/wave5c/arms/final-asan"),*extra]
  with (ROOT/"build/wave5c"/(name+".log")).open("w") as log:
   rc=subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT).returncode
  results.append(dict(name=name,returncode=rc,command=command))
