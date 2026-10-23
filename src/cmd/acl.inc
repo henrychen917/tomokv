@@ -1319,6 +1319,7 @@ bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
 static constexpr SubcommandArity kAclSubcommands[] = {
     {"cat",      2,  3, SubcommandArityError::UnknownOrWrong},
     {"deluser",  3, -1},
+    {"dryrun",   4, -1},
     {"genpass",  2,  3, SubcommandArityError::UnknownOrWrong},
     {"getuser",  3,  3},
     {"list",     2,  2},
@@ -1331,11 +1332,90 @@ static constexpr SubcommandArity kAclSubcommands[] = {
     {"help",     2,  2},
 };
 
+// A DRYRUN inspects one immutable permission image. It never dispatches the
+// embedded command, touches its keys, changes the connection, or logs a denial.
+void acl_dryrun(Op& op) {
+    uint32_t user_index = 0;
+    if (!acl_find_user(op.arg(2), user_index)) {
+        std::string error = "ERR User '";
+        error.append(op.arg(2).p, op.arg(2).n);
+        error += "' not found";
+        reply_err(op.sink(), error.c_str());
+        return;
+    }
+    const CommandSpec* spec = command_lookup(op.arg(3));
+    const CommandMetadata* metadata = command_metadata_resolve(op, 3);
+    if (!spec || !metadata) {
+        std::string error = "ERR Command '";
+        error.append(op.arg(3).p, op.arg(3).n);
+        error += "' not found";
+        reply_err(op.sink(), error.c_str());
+        return;
+    }
+    const Slice name = command_metadata_name(*metadata);
+    if (!command_metadata_arity_ok(*metadata, op.argc() - 3)) {
+        std::string error = "ERR wrong number of arguments for '";
+        error.append(name.p, name.n);
+        error += "' command";
+        reply_err(op.sink(), error.c_str());
+        return;
+    }
+    AclUser* user = acl_slot(user_index);
+    const AclPerm* perm = user ? user->perm.load(std::memory_order_acquire) : nullptr;
+    AclDeniedReason reason = AclDeniedReason::Command;
+    uint32_t denied_arg = 3;
+    std::vector<CommandKeyMetadata> keys;
+    (void)command_metadata_collect_keys(op, 3, *metadata, keys);
+    const Slice verb = op.arg(3);
+    const bool publish = verb.eq_icase("publish") || verb.eq_icase("spublish");
+    const bool pattern = verb.eq_icase("psubscribe");
+    const bool channels = publish || pattern || verb.eq_icase("subscribe") ||
+                          verb.eq_icase("ssubscribe");
+    auto check = [&](const AclSelector& selector) {
+        if (!(spec->flags & CmdFlags::AclExempt) &&
+            !(selector.flags & AclAllCommands) && !acl_command_bit(selector, spec->id))
+            return false;
+        auto denied = [&](AclDeniedReason why, uint32_t argument) {
+            if (why > reason || (why == reason && argument > denied_arg)) {
+                reason = why;
+                denied_arg = argument;
+            }
+            return false;
+        };
+        if (!(selector.flags & AclAllKeys))
+            for (const auto& key : keys)
+                if (!acl_pattern_allowed(selector, op.arg(key.argument)))
+                    return denied(AclDeniedReason::Key, key.argument);
+        if (channels && !(selector.flags & AclAllChannels)) {
+            const uint32_t end = publish ? 5 : op.argc();
+            for (uint32_t arg = 4; arg < end; arg++)
+                if (!acl_channel_allowed(selector, op.arg(arg), pattern))
+                    return denied(AclDeniedReason::Channel, arg);
+        }
+        return true;
+    };
+    bool allowed = perm && check(*perm);
+    if (perm && !allowed)
+        for (const auto& selector : perm->selectors)
+            if (check(selector)) { allowed = true; break; }
+    if (allowed) { reply_ok(op.sink()); return; }
+    std::string error = "User ";
+    error.append(op.arg(2).p, op.arg(2).n);
+    error += reason == AclDeniedReason::Command ? " has no permissions to run the '"
+                                               : " has no permissions to access the '";
+    const Slice object = reason == AclDeniedReason::Command ? name : op.arg(denied_arg);
+    error.append(object.p, object.n);
+    error += reason == AclDeniedReason::Command ? "' command" :
+             reason == AclDeniedReason::Key ? "' key" : "' channel";
+    reply_bulk(op.sink(), Slice(error.data(), error.size()));
+}
+
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
     if (auth_arity_reply(op, *op.spec, false)) return;
     if (!command_validate_subcommand(op, "ACL", kAclSubcommands,
                                      sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0]))) return;
     const Slice sub = op.arg(1);
+    if (sub.eq_icase("dryrun")) { acl_dryrun(op); return; }
     if (sub.eq_icase("cat") && (op.argc() == 2 || op.argc() == 3)) {
         acl_reply_category(op);
         return;

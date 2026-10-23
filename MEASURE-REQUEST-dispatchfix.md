@@ -46,3 +46,23 @@ PRE replies already equal Redis, as the saved table demonstrates.
 
 One row, `dispatchfix EX4.11 container errors`, collected before the quick exit:
 DQ +1 / DF +1; cumulative DQ +2 / DF +2. EXPECT constants remain unchanged.
+
+### EX4.4 — advertised children
+
+REPRODUCED: ACL DRYRUN and LATENCY HISTOGRAM are the two advertised children
+that answer unknown-subcommand on PRE. The new row probes all 96 advertised
+children and compares directed DRYRUN results with Redis, including wrong
+arity, absent users/commands, key/channel denials, and proof that a dry-run
+SET leaves the value unchanged. All four mode/engine legs pass on the candidate.
+Evidence: `docs/dispatchfix/EX4.4/{pre,post}`.
+
+ACL DRYRUN evaluates the immutable permission image and emits Redis's bulk
+denial descriptions without executing the embedded command or logging a denial.
+LATENCY HISTOGRAM now dispatches and returns the empty RESP2/RESP3 map for the
+existing no-histogram state. **Limitation / scope question pending:** TomoKV's
+batch/escalation timing does not record per-command histograms; actual histogram
+recording is not implemented. No sampled slow-log data is presented as a complete
+distribution. This is dispatch compatibility, not full latency-statistics parity.
+
+Row `dispatchfix EX4.4 advertised children` is before the quick exit:
+DQ +1 / DF +1; cumulative DQ +3 / DF +3.

@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=dispatch_children acl_subcommands; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	0.960000	dispatchfix EX4.4 advertised children
+ok	2.140000	dispatchfix CC4.15 ACL subcommand grants
