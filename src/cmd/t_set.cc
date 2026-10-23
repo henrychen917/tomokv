@@ -991,6 +991,10 @@ bool select_unique(uint32_t population, uint32_t count, std::vector<uint32_t>& p
 
 template <bool kNotify>
 void cmd_srandmember(Shard& shard, Op& op) {
+    if (op.argc() > 3) {
+        reply_syntax(op.sink());
+        return;
+    }
     const bool with_count = op.argc() == 3;
     int64_t count = 1;
     if (with_count) {
@@ -1157,7 +1161,7 @@ static const CommandSpec kTable[] = {
     {"SCARD",         2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_scard)},
     {"SMEMBERS",      2,  2, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_smembers)},
     {"SPOP",          2,  3, CmdFlags::Write,     TOMO_HANDLER_PAIR(cmd_spop)},
-    {"SRANDMEMBER",   2,  3, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_srandmember)},
+    {"SRANDMEMBER",   2, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_srandmember)},
     {"SSCAN",         3, -1, CmdFlags::Readonly,  TOMO_HANDLER_PAIR(cmd_sscan)},
     {"SMOVE",         4,  4, CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
     {"SINTER",        2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},

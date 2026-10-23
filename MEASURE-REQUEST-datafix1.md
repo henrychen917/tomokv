@@ -66,3 +66,13 @@ values before condition and FIELDS parsing; key type lookup retains its earlier
 precedence. The matrix crosses all four commands, present/missing/wrong-type keys,
 invalid values, conflicting conditions and malformed field tails. PRE fails and
 POST passes all six engine/mode legs. Cumulative DQ=DF=+6.
+
+CD4.12: RAND validates counts and optional arguments before key lookup; the two
+WITHVALUES/WITHSCORES half-range errors use Redis's short text. SRANDMEMBER excess
+arguments return syntax before numeric parsing; ZRANDMEMBER parses the count
+first. ZSCAN now emits the HSCAN-only NOVALUES error. A 1,056-case table covers
+all RAND/SCAN verbs, missing/present/wrong-type keys, numeric boundaries, conflicting
+errors and the register's remaining controls. PRE fails / POST passes six legs.
+Cumulative DQ=DF=+7: all seven rows are collected before the quick-tier exit.
+Maintainer EXPECT values should become QUICK 692 / FULL 709 (base 685 / 702);
+this lane leaves those constants unchanged.

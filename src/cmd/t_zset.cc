@@ -2008,13 +2008,17 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         reply_invalid_integer(op);
         return;
     }
-    if (withscores && !op.arg(3).eq_icase("withscores")) {
+    if (has_count && signed_count == std::numeric_limits<int64_t>::min()) {
+        reply_outofrange(op.sink());
+        return;
+    }
+    if (op.argc() > 4 || (withscores && !op.arg(3).eq_icase("withscores"))) {
         reply_syntax(op.sink());
         return;
     }
     if (withscores && (signed_count < -std::numeric_limits<int64_t>::max() / 2 ||
                        signed_count > std::numeric_limits<int64_t>::max() / 2)) {
-        reply_outofrange(op.sink());
+        reply_err(op.sink(), "ERR value is out of range");
         return;
     }
 
@@ -2055,10 +2059,6 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         return;
     }
 
-    if (signed_count == std::numeric_limits<int64_t>::min()) {
-        reply_outofrange(op.sink());
-        return;
-    }
     const bool unique = signed_count >= 0;
     uint64_t count = static_cast<uint64_t>(unique ? signed_count : -signed_count);
     if (unique) count = std::min<uint64_t>(count, value.entries());
@@ -2197,6 +2197,9 @@ void cmd_zscan(Shard& shard, Op& op) {
         } else if (op.arg(i).eq_icase("match") && i + 1 < op.argc()) {
             pattern = op.arg(++i);
             use_pattern = !(pattern.n == 1 && pattern.p[0] == '*');
+        } else if (op.arg(i).eq_icase("novalues")) {
+            reply_err(op.sink(), "ERR NOVALUES option can only be used in HSCAN");
+            return;
         } else {
             reply_syntax(op.sink());
             return;
@@ -2260,7 +2263,7 @@ static const CommandSpec kTable[] = {
     {"ZLEXCOUNT",            4,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zlexcount)},
     {"ZPOPMIN",              2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zpopmin)},
     {"ZPOPMAX",              2,  3, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_zpopmax)},
-    {"ZRANDMEMBER",          2,  4, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrandmember)},
+    {"ZRANDMEMBER",          2, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zrandmember)},
     {"ZSCAN",                3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_zscan)},
     {"BZPOPMIN",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-2,1},
     {"BZPOPMAX",             3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-2,1},
