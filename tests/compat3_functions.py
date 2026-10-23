@@ -92,22 +92,25 @@ def probe(c, case):
     equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "remove cap")
     out["ordinary-after"] = c.cmd("SET", "k", "after")
     # wave5: FUNCTION admission must survive txnorder2's EXEC owner fragments.
-    # Both owners are selected above; use exact replies and final data, including
+    # Each callback has one declared key; EXEC dispatches callbacks to both owners.
+    # Cross-shard FCALL inside EXEC is an existing CROSSSLOT boundary. Check exact data, including
     # the callback's completed writes before a later Lua error.
     for cap in (0, 1):
         equal(c.cmd("CONFIG", "SET", "maxmemory", cap), b"OK", "EXEC cap")
         equal(c.cmd("MULTI"), b"OK", "EXEC function begin")
-        for name in ("allowed_cross", "error_cross"):
-            equal(c.cmd("FCALL", name, 2, *CROSS_KEYS, "exec:" + name), b"QUEUED",
-                  "EXEC admitted function queued")
-        equal(c.cmd("GET", CROSS_KEYS[0]), b"QUEUED", "EXEC read queued")
+        for name in ("allowed", "allowed_error"):
+            for key in CROSS_KEYS:
+                equal(c.cmd("FCALL", name, 1, key, "exec:" + name), b"QUEUED",
+                      "EXEC admitted function queued on each owner")
+        for key in CROSS_KEYS:
+            equal(c.cmd("GET", key), b"QUEUED", "EXEC read queued")
         result = c.cmd("EXEC")
-        assert isinstance(result, list) and len(result) == 3, result
-        equal(result[0], b"OK", "EXEC allow-oom callback")
-        assert isinstance(result[1], RespError), result
-        equal(result[2], b"exec:error_cross", "EXEC partial callback RYOW")
-        out[f"exec:{cap}"] = [result[0], isinstance(result[1], RespError), result[2],
-                               *[c.cmd("GET", key) for key in CROSS_KEYS]]
+        assert isinstance(result, list) and len(result) == 6, result
+        equal(result[:2], [b"OK", b"OK"], "EXEC allow-oom callbacks")
+        assert all(isinstance(value, RespError) for value in result[2:4]), result
+        equal(result[4:], [b"exec:allowed_error"] * 2, "EXEC partial callback RYOW")
+        out[f"exec:{cap}"] = [*result[:2], *[isinstance(v, RespError) for v in result[2:4]],
+                               *result[4:], *[c.cmd("GET", key) for key in CROSS_KEYS]]
         if cap:
             denied = c.cmd("SET", "k", "still-over-cap")
             assert isinstance(denied, RespError) and denied.message.startswith(b"OOM "), denied
