@@ -325,10 +325,9 @@ public:
 
         // ---- shards: bucket ranges, fixed for the life of the process ----------------------------
         shards_.resize(cfg.shards);
-        const uint32_t per = kNumBuckets / cfg.shards;
         for (uint32_t i = 0; i < cfg.shards; i++) {
-            const uint32_t b0 = i * per;
-            const uint32_t b1 = (i + 1 == cfg.shards) ? kNumBuckets : (i + 1) * per;
+            const uint32_t b0 = Router::uniform_begin(i, cfg.shards);
+            const uint32_t b1 = Router::uniform_begin(i + 1, cfg.shards);
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.encodings.type_limits(),
                              cfg.stream_limits);

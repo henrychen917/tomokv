@@ -88,3 +88,43 @@ not enable those independent ACL features.
 
 Row `dispatchfix CC4.15 ACL subcommand grants` is before the quick exit:
 DQ +1 / DF +1; cumulative DQ +4 / DF +4. EXPECT constants are untouched.
+
+### EX4.17 — uniform bucket ranges and old-file recovery
+
+REPRODUCED before editing the map, through the new gate job in all four legs.
+At 200 shards PRE assigns 81 buckets to each of shards 0–198 and 265 to shard 199.
+The directed test finds a key for **every one of the 16,384 buckets**, using the
+persisted random hash seed, and checks DEBUG SHARDS against the exact expected map.
+POST assigns 81 or 82 buckets per shard. This is an exact count, not a random-load estimate.
+
+The authoritative map and Shard::init now share inverse boundaries. Cold recovery
+accepts both file versions: v1 retains its legacy section validation, then each
+current owner loads only keys belonging to its new ranges. Legacy FLUSH records
+clear only the portion belonging to that old source stream. AOF publishes a durable
+old-file manifest, then a synced v2 increment and its manifest before recording;
+it never appends new-map records to a v1 non-divisor stream. Divisor geometries
+retain the identical v1 map and header version. New non-divisor files use v2.
+
+Authenticated PRE fixtures in tests/fixtures/dispatchfix-pre cover snapshot and
+AOF, binary keys straddling old/new boundaries, grouped MSET, DEL, FLUSHALL,
+FLUSHDB, SWAPDB, multiple logical databases, TTL, and all container value types.
+Oracle assertions establish their logical contents. POST loads each PRE file,
+checks every expected reply, appends data, restarts, rewrites and restarts again.
+The same row runs PRE recovery even though the final balance assertion fails.
+All four POST legs pass; read-local and both balancers are enabled during recovery
+verification. Evidence: docs/dispatchfix/EX4.17/{pre,post}.
+
+Dependency audit: key LB weights and moves use each Shard's [bucket_begin,
+bucket_end); client LB uses owner/client weights and no bucket division; read-local
+routes through Router then current shard ownership. DEBUG SHARDS uses that same
+map, including the physical database namespace. Existing tests discover placement
+through DEBUG SHARDS or use Shard range accessors; numeric 16384 occurrences in
+other batteries are payload/capacity boundaries. The complete search is retained
+in docs/dispatchfix/router-dependencies.txt.gz. The balancer/persistence jobs are
+also included in the broader proof below.
+
+Row `dispatchfix EX4.17 uniform routing and legacy recovery` is collected before
+the quick-tier exit. Cumulative DQ +5 / DF +5: maintainer counts should become
+EXPECT_QUICK=690 and EXPECT_FULL=707. Both constants are untouched. The label
+fixture check identifies exactly these five missing labels and no extra labels;
+its refusal is retained in docs/dispatchfix/label-fixture.log.

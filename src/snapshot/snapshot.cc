@@ -1,3 +1,4 @@
+#include "../persist/routing_compat.h"
 #include "snapshot.h"
 
 #include <algorithm>
@@ -591,7 +592,7 @@ bool SnapshotManager::write_header_normal() {
     uint8_t h[kFileHeaderBytes + DatabaseMap::kPayloadBytes] = {};
     const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0);
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
-    snapshot_put_u32(h + 8, kSnapshotFormatVersion);
+    snapshot_put_u32(h + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(h + 12, header_bytes);
     snapshot_put_u32(h + 16, nshards_);
     snapshot_put_u32(h + 20, static_cast<uint32_t>(g_hash_kind));
@@ -661,7 +662,7 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
     request->epoch = epoch();
     request->fd = fd_;
     std::memcpy(request->header.data(), kFileMagic, sizeof(kFileMagic));
-    snapshot_put_u32(request->header.data() + 8, kSnapshotFormatVersion);
+    snapshot_put_u32(request->header.data() + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(request->header.data() + 12, header_bytes);
     snapshot_put_u32(request->header.data() + 16, nshards_);
     snapshot_put_u32(request->header.data() + 20, static_cast<uint32_t>(g_hash_kind));
@@ -990,7 +991,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     if (!read_ok) return nullptr;
     if (file.size() < kFileHeaderBytes + kFooterBytes ||
         std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
-        snapshot_get_u32(file.data() + 8) != kSnapshotFormatVersion ||
+        (snapshot_get_u32(file.data() + 8) != 1 && snapshot_get_u32(file.data() + 8) != 2) ||
         (snapshot_get_u32(file.data() + 12) != kFileHeaderBytes &&
          snapshot_get_u32(file.data() + 12) != kFileHeaderBytes + DatabaseMap::kPayloadBytes) ||
         snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
@@ -998,6 +999,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
         return nullptr;
     }
     auto plan = std::make_unique<SnapshotLoadPlan>();
+    plan->routing_version = snapshot_get_u32(file.data() + 8);
     plan->shard_count = snapshot_get_u32(file.data() + 16);
     if (plan->shard_count != expected_shards) {
         error = "snapshot shard count does not match --shards";
@@ -1082,51 +1084,56 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
     if (sid == 0 && !server.databases().restore(plan.database_map.data())) {
         error = "could not restore snapshot database mapping"; return false;
     }
-    const std::vector<uint8_t>& section = plan.sections[sid];
-    size_t pos = 0;
     shard.set_cached_now_ms(now);
-    while (pos < section.size()) {
-        if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
-        const uint8_t* h = section.data() + pos;
-        if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
-        const uint8_t type_raw = h[4];
-        const uint8_t encoding = h[5];
-        const uint32_t key_len = snapshot_get_u32(h + 8);
-        const uint64_t payload_len = snapshot_get_u64(h + 16);
-        const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
-        pos += kRecordHeaderBytes;
-        if (type_raw > static_cast<uint8_t>(Type::Stream) || payload_len > UINT32_MAX ||
-            static_cast<uint64_t>(section.size() - pos) <
-                static_cast<uint64_t>(key_len) + payload_len) {
-            error = "invalid record lengths";
-            return false;
+    const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
+    for (uint32_t source = sources.first; source < sources.end; ++source) {
+        const std::vector<uint8_t>& section = plan.sections[source];
+        size_t pos = 0;
+        while (pos < section.size()) {
+            if (section.size() - pos < kRecordHeaderBytes) { error = "truncated record"; return false; }
+            const uint8_t* h = section.data() + pos;
+            if (snapshot_get_u32(h) != kRecordTag) { error = "invalid record tag"; return false; }
+            const uint8_t type_raw = h[4];
+            const uint8_t encoding = h[5];
+            const uint32_t key_len = snapshot_get_u32(h + 8);
+            const uint64_t payload_len = snapshot_get_u64(h + 16);
+            const int64_t expire = static_cast<int64_t>(snapshot_get_u64(h + 24));
+            pos += kRecordHeaderBytes;
+            if (type_raw > static_cast<uint8_t>(Type::Stream) || payload_len > UINT32_MAX ||
+                static_cast<uint64_t>(section.size() - pos) <
+                    static_cast<uint64_t>(key_len) + payload_len) {
+                error = "invalid record lengths";
+                return false;
+            }
+            const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
+            if (h[6] >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
+            pos += key_len;
+            const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
+                                static_cast<uint32_t>(payload_len));
+            pos += static_cast<size_t>(payload_len);
+            if (expire >= 0 && expire < now) continue;  // Redis rdbLoad: expiretime < now
+            const uint64_t hash = FlatStore::hash_key(key);
+            const uint32_t destination = server.router().shard_of(hash);
+            if ((sources.legacy ? legacy_shard(hash, plan.shard_count) : destination) != source) {
+                error = "snapshot key is in the wrong shard section";
+                return false;
+            }
+            if (destination != sid) continue;
+            if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
+            KvObj* object = nullptr;
+            const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
+                key, encoding, expire, payload, shard.type_limits(), object);
+            if (status != SnapshotHookStatus::Ok || !object) {
+                error = hook_error(status);
+                return false;
+            }
+            if (shard.store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
+                kvobj_free(object);
+                error = "could not insert loaded key";
+                return false;
+            }
+            shard.store().note_loaded_object(hash, object);
         }
-        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
-        if (h[6] >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
-        pos += key_len;
-        const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
-                            static_cast<uint32_t>(payload_len));
-        pos += static_cast<size_t>(payload_len);
-        if (expire >= 0 && expire < now) continue;  // Redis rdbLoad: expiretime < now
-        const uint64_t hash = FlatStore::hash_key(key);
-        if (server.router().shard_of(hash) != shard.id()) {
-            error = "snapshot key is in the wrong shard section";
-            return false;
-        }
-        if (shard.store().find(hash, key)) { error = "duplicate snapshot key"; return false; }
-        KvObj* object = nullptr;
-        const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type_raw)).load(
-            key, encoding, expire, payload, shard.type_limits(), object);
-        if (status != SnapshotHookStatus::Ok || !object) {
-            error = hook_error(status);
-            return false;
-        }
-        if (shard.store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
-            kvobj_free(object);
-            error = "could not insert loaded key";
-            return false;
-        }
-        shard.store().note_loaded_object(hash, object);
     }
     shard.publish_size();
     return true;

@@ -99,6 +99,7 @@ struct AofChunk {
 
 class AofReplayPlan {
 public:
+    uint32_t routing_version = 1;
     uint32_t shard_count = 0;
     uint32_t hash_kind = 0;
     uint64_t hash_seed = 0;
@@ -399,6 +400,7 @@ private:
     bool schedule_rewrite(bool automatic);
 
     bool configured_ = false;
+    bool routing_upgrade_ = false;
     PersistIoEngine engine_;
     Server* server_ = nullptr;
     uint32_t nthreads_ = 0;

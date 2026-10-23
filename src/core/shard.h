@@ -604,12 +604,16 @@ public:
 
     enum class TransferPhase : uint8_t { Idle = 0, Preparing = 1, Committed = 2 };
 
+    // ceil(sid * buckets / shards) is the inverse of floor(bucket * shards / buckets).
+    // Sharing the boundary with Shard::init keeps migration and LB signal ranges exact.
+    static constexpr uint32_t uniform_begin(uint32_t sid, uint32_t nshards) {
+        return (sid * kNumBuckets + nshards - 1) / nshards;
+    }
+
     void build_uniform(int32_t nshards) {
         nshards_ = nshards;
-        const uint32_t per = kNumBuckets / nshards;
         for (uint32_t b = 0; b < kNumBuckets; b++) {
-            int32_t s = static_cast<int32_t>(b / per);
-            if (s >= nshards) s = nshards - 1;      // remainder buckets go to the last shard
+            const int32_t s = static_cast<int32_t>(b * nshards / kNumBuckets);
             owner_[b].store(pack(s, kNoOwner), std::memory_order_relaxed);
         }
     }

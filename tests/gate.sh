@@ -1106,7 +1106,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 dispatch_arity dispatch_errors dispatch_children acl_subcommands bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1646,6 +1646,11 @@ job_dispatch_children(){
 job_acl_subcommands(){
   row_begin 'dispatchfix CC4.15 ACL subcommand grants'
   dispatchfix_job acl_subcommands 'dispatchfix CC4.15 ACL subcommand grants'
+}
+
+job_router_uniform(){
+  row_begin 'dispatchfix EX4.17 uniform routing and legacy recovery'
+  dispatchfix_job router_uniform 'dispatchfix EX4.17 uniform routing and legacy recovery'
 }
 
 job_hexpread(){
@@ -4229,6 +4234,7 @@ collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children
 collect_job acl_subcommands
+collect_job router_uniform
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done
