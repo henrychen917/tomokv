@@ -191,9 +191,31 @@ struct ClientMeta {
     int64_t tracking_redirect = -1;
 };
 
-// One catalog per IO thread. It contains no cross-thread Client pointer and is keyed by the
-// process-unique connection id used on the IO-to-IO transport.
-thread_local std::unordered_map<uint64_t, ClientMeta> g_client_meta;
+// Registration is per IO, not per client. Only cold metadata mutation and
+// slowlog's armed snapshot take this mutex; ordinary commands never touch it.
+using ClientCatalog = std::unordered_map<uint64_t, ClientMeta>;
+std::mutex g_client_meta_mu;
+std::array<ClientCatalog*, kMaxThreads> g_client_catalogs{};
+struct RegisteredClientCatalog final : ClientCatalog {
+    RegisteredClientCatalog() {
+        std::lock_guard<std::mutex> lock(g_client_meta_mu);
+        for (auto& slot : g_client_catalogs) if (!slot) { slot = this; return; }
+        std::abort();
+    }
+    ~RegisteredClientCatalog() {
+        std::lock_guard<std::mutex> lock(g_client_meta_mu);
+        for (auto& slot : g_client_catalogs) if (slot == this) { slot = nullptr; return; }
+    }
+};
+static_assert(sizeof(RegisteredClientCatalog) == sizeof(ClientCatalog));
+// Reuse the existing catalog's TLS destructor registration. A separate TLS
+// registration object would allocate an extra libc destructor node while off.
+thread_local RegisteredClientCatalog g_client_meta;
+
+void register_client_catalog() {
+    // Initialize before taking the catalog lock: the constructor registers it.
+    (void)g_client_meta.size();
+}
 
 // `unordered_map::node_type` retains its allocation when it moves between the source and target
 // thread-local maps. A destination reserves buckets during flip preflight, so installing this node
@@ -1740,7 +1762,10 @@ void cmd_config(Shard& sh, Op& op) {
                         changed = true;
                     }
                 }
-                if (changed) g_server->set_slowlog_config(slowlog_us, latency_ms);
+                if (changed) {
+                    slowlog_set_threshold(slowlog_us);
+                    g_server->set_slowlog_config(slowlog_us, latency_ms);
+                }
             }
             if (set_auto_rewrite)
                 g_server->aof().set_auto_rewrite_config(auto_percentage, auto_min_size);
@@ -3282,9 +3307,24 @@ void command_set_local_context(Client* client, ThreadCtx* thread) {
     g_thread = thread;
 }
 
+bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string& name) {
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
+    for (auto* catalog : g_client_catalogs) {
+        if (!catalog) continue;
+        const auto found = catalog->find(id);
+        if (found == catalog->end()) continue;
+        addr = found->second.addr;
+        name = found->second.name;
+        return true;
+    }
+    return false;
+}
+
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms) {
     if (!client) return;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     ClientMeta meta;
     meta.addr = addr ? addr : "unknown:0";
     meta.laddr = laddr ? laddr : "unknown:0";
@@ -3299,6 +3339,8 @@ void command_client_connected(Client* client, const char* addr, const char* ladd
 
 void command_client_disconnected(Client* client) {
     if (!client) return;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     slowlog_forget_client(client->id());
     g_client_meta.erase(client->id());
 }
@@ -3307,6 +3349,8 @@ void* command_client_migration_extract(Client* client) {
     if (!client) return nullptr;
     auto* catalog = new (std::nothrow) ClientMigrationCatalog;
     if (!catalog) return nullptr;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     catalog->node = g_client_meta.extract(client->id());
     if (catalog->node.empty()) {
         delete catalog;
@@ -3319,6 +3363,8 @@ bool command_client_migration_install(void* opaque) {
     std::unique_ptr<ClientMigrationCatalog> catalog(
         static_cast<ClientMigrationCatalog*>(opaque));
     if (!catalog || catalog->node.empty()) return false;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     return g_client_meta.insert(std::move(catalog->node)).inserted;
 }
 
@@ -3327,6 +3373,8 @@ void command_client_migration_discard(void* opaque) {
 }
 
 bool command_client_migration_reserve(uint32_t extra) {
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     try {
         g_client_meta.reserve(g_client_meta.size() + extra);
         return true;
@@ -3430,6 +3478,7 @@ bool command_client_filter_match(const Client& client, const PubSubEvent& event,
 bool command_client_set_name(Client* client, Slice name) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return false;
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.assign(name.p, name.n);
     slowlog_note_client_name(client->id(), name.p, name.n);
     return true;
@@ -3475,6 +3524,7 @@ void command_client_set_tracking_view(Client* client, bool on, int64_t redirect)
 void command_client_reset_meta(Client* client) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return;
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.clear();
     meta->lib_name.clear();
     meta->lib_ver.clear();
