@@ -11,7 +11,7 @@ def run(a):
     files = [a.output.resolve() / f'{kind}.acl' for kind in ('target', 'oracle')]
     for path in files:
         path.write_text('user default on nopass ~* &* +@all\n')
-    rows = []
+    rows, roundtrip_failures = [], []
     with server(a.binary, a.output / 'target', a.port, a.cores, a.mode, a.engine,
                 extra=('--aclfile', str(files[0]))), \
          server(a.oracle, a.output / 'oracle', a.port + 1, a.cores,
@@ -41,7 +41,11 @@ def run(a):
                      ('+config|missing',), ('-config|missing',),
                      ('+config|get|x',), ('-config|get|x',),
                      ('+config|',), ('+get|',), ('+missing|arg',),
-                     ('-get|allowed',), ('+@read|x',)]
+                     ('-get|allowed',), ('+@read|x',),
+                     ('+GET|ALLOWED',), ('+get|allowed', '+get|ALLOWED'),
+                     ('+get|allowed\0ignored',), ('+config|get\0ignored',),
+                     ('+@all', '-config|get\0ignored'),
+                     ('+config|get\0|x',), ('+missing\0|get',)]
             commands = target.cmd('COMMAND')
             children = [child for row in commands for child in row[9]]
             reference_names = {row[0] for row in oracle.cmd('COMMAND')}
@@ -60,7 +64,8 @@ def run(a):
                 cases += [(f'+@{category.decode()}',), ('+@all', f'-@{category.decode()}')]
             probes = [('CONFIG', 'GET', 'no-such-config'), ('CONFIG', 'SET', 'timeout', '0'),
                       ('CONFIG', 'HELP'), ('GET', 'allowed'), ('GET', 'another'),
-                      ('GET', 'denied'), ('SELECT', '0'), ('SELECT', '1'), ('CLIENT', 'ID'), ('XINFO', 'STREAM', 'missing')]
+                      ('GET', 'denied'), ('GET', b'allowed\0tail'),
+                      ('GET', b'ALLOWED\0tail'), ('SELECT', '0'), ('SELECT', '1'), ('CLIENT', 'ID'), ('XINFO', 'STREAM', 'missing')]
             for rules in cases:
                 compare(('ACL', 'SETUSER', 'subject', 'reset', 'on', 'nopass', '~*', '&*', *rules))
                 compare(('ACL', 'GETUSER', 'subject'))
@@ -80,7 +85,8 @@ def run(a):
                 compare(('ACL', 'SAVE'))
                 compare(('ACL', 'LOAD'))
                 after = compare(('ACL', 'GETUSER', 'subject'))
-                assert before == after, ('ACL round trip changed permissions', rules)
+                if before != after:
+                    roundtrip_failures.append(dict(rules=rules, before=before, after=after))
                 lists = [next((line for line in c.cmd('ACL', 'LIST')
                                if line.startswith(b'user subject ')), None) for c in clients]
                 rows.append(dict(argv=('ACL LIST subject', *rules), target=lists[0], oracle=lists[1]))
@@ -94,10 +100,17 @@ def run(a):
                 compare(('ACL', 'SETUSER', 'subject', '-config|get'))
                 command = ('CONFIG', 'GET', 'no-such-config')
                 rows.append(dict(argv=command, target=user.cmd(*command), oracle=reference.cmd(*command)))
+                compare(('ACL', 'SETUSER', 'subject', 'reset', 'on', 'nopass', '~*', '+get|allowed'))
+                compare(('SET', b'allowed\0tail', 'binary-key'))
+                for command in [('GET', b'allowed\0tail'), ('GET', b'ALLOWED\0tail'),
+                                ('GET', b'allowedX\0tail')]:
+                    rows.append(dict(argv=command, target=user.cmd(*command), oracle=reference.cmd(*command)))
     save(a.output / 'replies.json', rows)
+    save(a.output / 'roundtrip-failures.json', roundtrip_failures)
     failures = [r for r in rows if r['target'] != r['oracle']]
     for row in failures[:30]:
         print(row)
+    assert not roundtrip_failures, ('ACL round trip changed permissions', roundtrip_failures)
     assert not failures, f'{len(failures)}/{len(rows)} ACL oracle comparisons differ'
     print(f'CC4.15 PASS: {len(cases)} rule sequences and {len(rows)} exact replies, SAVE/LOAD per sequence')
 

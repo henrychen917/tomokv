@@ -5497,5 +5497,1018 @@
       }
     },
     "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.56N74P/ledger.partial"
+  },
+  "gate-run.szJXMS": {
+    "log": "docs/dispatchfix/final-directed-POST.log",
+    "archive": "proof/gate-run.szJXMS.tar.gz",
+    "sha256": "e1df2e8dc0043d071f237a76046ae49befa77b513fe1838df74723b118aaf97d",
+    "files": 257,
+    "bytes": 2224595,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "13.890000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "dispatch_arity": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.850000",
+            "label": "dispatchfix EX4.10 container outer arity"
+          }
+        ]
+      },
+      "dispatch_children": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.950000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "dispatch_errors": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.890000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "router_uniform": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "4.050000",
+            "label": "dispatchfix EX4.17 uniform routing and legacy recovery"
+          }
+        ]
+      },
+      "script_bounds": {
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.050000",
+            "label": "xscript limit control"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.550000",
+            "label": "xscript window control"
+          }
+        ]
+      },
+      "scriptfix": {
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.300000",
+            "label": "scriptfix sandbox (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.160000",
+            "label": "scriptfix functions (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.160000",
+            "label": "scriptfix replies (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.560000",
+            "label": "scriptfix dump (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.230000",
+            "label": "scriptfix sandbox (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.260000",
+            "label": "scriptfix functions (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.200000",
+            "label": "scriptfix replies (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.410000",
+            "label": "scriptfix dump (2s)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 16 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.szJXMS/ledger.partial"
+  },
+  "gate-run.Rksvpm": {
+    "log": "docs/dispatchfix/final-script-PRE.log",
+    "archive": "proof/gate-run.Rksvpm.tar.gz",
+    "sha256": "5fd088db583fc5f572d9e9e5f93393ed1599a109686b8f46ddc5f96eef1e5ecd",
+    "files": 40,
+    "bytes": 24220,
+    "jobs": {
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "script_bounds": {
+        "done": "0\t2\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.060000",
+            "label": "xscript limit control"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.540000",
+            "label": "xscript window control"
+          }
+        ]
+      },
+      "scriptfix": {
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.120000",
+            "label": "scriptfix sandbox (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.130000",
+            "label": "scriptfix functions (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.700000",
+            "label": "scriptfix replies (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.840000",
+            "label": "scriptfix dump (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.150000",
+            "label": "scriptfix sandbox (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.120000",
+            "label": "scriptfix functions (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.700000",
+            "label": "scriptfix replies (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "0.820000",
+            "label": "scriptfix dump (2s)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 11 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.Rksvpm/ledger.partial"
+  },
+  "gate-run.yQXBgT": {
+    "log": "docs/dispatchfix/differ-final-PRE-epoll.log",
+    "archive": "proof/gate-run.yQXBgT.tar.gz",
+    "sha256": "451b7cd9a8d320c0b7b39207859a29b45cc0983917cb868102aafa1bbbcc077f",
+    "files": 2117,
+    "bytes": 308333,
+    "jobs": {
+      "differ-armed-0": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "515.630000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      "differ-armed-1": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "725.790000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      "differ-equivalence": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "29.900000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      "differ-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "525.010000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      "differ-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "521.690000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 4 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.yQXBgT/ledger.partial"
+  },
+  "gate-run.oC6C6Y": {
+    "log": "docs/dispatchfix/differ-final-PRE-uring.log",
+    "archive": "proof/gate-run.oC6C6Y.tar.gz",
+    "sha256": "7278fd8f290fab014460907feeba4c809ac5b010fb9ee3bd19e0f68ca84f8846",
+    "files": 2119,
+    "bytes": 305130,
+    "jobs": {
+      "differ-armed-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "515.670000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      "differ-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "736.020000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      "differ-equivalence": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "23.240000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      "differ-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "552.340000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      "differ-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "540.580000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.oC6C6Y/ledger.partial"
+  },
+  "gate-run.RMkwTt": {
+    "log": "docs/dispatchfix/final-PAD-A.log",
+    "archive": "proof/gate-run.RMkwTt.tar.gz",
+    "sha256": "b2e45dda84e22e53ff0a6814e356e97d1df13b3811a1d2951cc1fccb0ccf1fb1",
+    "files": 227,
+    "bytes": 2092255,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "13.340000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "dispatch_arity": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.070000",
+            "label": "dispatchfix EX4.10 container outer arity"
+          }
+        ]
+      },
+      "dispatch_children": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.170000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "dispatch_errors": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.120000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "router_uniform": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "4.500000",
+            "label": "dispatchfix EX4.17 uniform routing and legacy recovery"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 5 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.RMkwTt/ledger.partial"
+  },
+  "gate-run.mD0ceZ": {
+    "log": "docs/dispatchfix/acl-binary-boundary-POST.log",
+    "archive": "proof/gate-run.mD0ceZ.tar.gz",
+    "sha256": "5afc084e13d588013c4a54d71df2f4a79df6858e5bef2bed601d712acc8d106a",
+    "files": 43,
+    "bytes": 25090,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.600000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.mD0ceZ/ledger.partial"
+  },
+  "gate-run.XjBSU0": {
+    "log": "docs/dispatchfix/acl-binary-table-PRE.log",
+    "archive": "proof/gate-run.XjBSU0.tar.gz",
+    "sha256": "67a2c7ae67f61da0051edb86b65c002d3ac7eb2241c390eb7863aa7c0bdba1d0",
+    "files": 51,
+    "bytes": 1731216,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "14.100000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.XjBSU0/ledger.partial"
+  },
+  "gate-run.w4jTyD": {
+    "log": "docs/dispatchfix/acl-binary-table-POST.log",
+    "archive": "proof/gate-run.w4jTyD.tar.gz",
+    "sha256": "b241da0f6d199e0e5718cfcd54eb4e6a73534056c54e8859a9bd854b3a2882e1",
+    "files": 51,
+    "bytes": 1873121,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "14.280000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.w4jTyD/ledger.partial"
+  },
+  "gate-run.dCkDLF": {
+    "log": "docs/dispatchfix/final-respresume-PRE.log",
+    "archive": "proof/gate-run.dCkDLF.tar.gz",
+    "sha256": "187c21d056216b9073eae1a3806796bc75f0ac9c317be613b7a94d5b2488fb53",
+    "files": 117,
+    "bytes": 28402,
+    "jobs": {
+      "production_units": {
+        "done": "0\t0\t0",
+        "rows": []
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "respresume-cpu-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.660000",
+            "label": "RESP resumable cpu (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-cpu-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.670000",
+            "label": "RESP resumable cpu (1s, uring)"
+          }
+        ]
+      },
+      "respresume-cpu-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.610000",
+            "label": "RESP resumable cpu (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-cpu-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.610000",
+            "label": "RESP resumable cpu (2s, uring)"
+          }
+        ]
+      },
+      "respresume-fragment-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "15.190000",
+            "label": "RESP resumable fragment (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-fragment-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "15.460000",
+            "label": "RESP resumable fragment (1s, uring)"
+          }
+        ]
+      },
+      "respresume-fragment-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "18.010000",
+            "label": "RESP resumable fragment (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-fragment-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "19.050000",
+            "label": "RESP resumable fragment (2s, uring)"
+          }
+        ]
+      },
+      "respresume-neighbour-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.790000",
+            "label": "RESP resumable neighbour (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-neighbour-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.810000",
+            "label": "RESP resumable neighbour (1s, uring)"
+          }
+        ]
+      },
+      "respresume-neighbour-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.800000",
+            "label": "RESP resumable neighbour (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-neighbour-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.800000",
+            "label": "RESP resumable neighbour (2s, uring)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.dCkDLF/ledger.partial"
+  },
+  "gate-run.CDWshX": {
+    "log": "docs/dispatchfix/final-respresume-POST.log",
+    "archive": "proof/gate-run.CDWshX.tar.gz",
+    "sha256": "6a7cd2ea7631aeb4252a5cf9a0c13feaa2bcb52a80ca1d7d11a85db3ab1872e6",
+    "files": 117,
+    "bytes": 29017,
+    "jobs": {
+      "production_units": {
+        "done": "0\t0\t0",
+        "rows": []
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "respresume-cpu-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.690000",
+            "label": "RESP resumable cpu (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-cpu-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.690000",
+            "label": "RESP resumable cpu (1s, uring)"
+          }
+        ]
+      },
+      "respresume-cpu-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.650000",
+            "label": "RESP resumable cpu (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-cpu-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "2.660000",
+            "label": "RESP resumable cpu (2s, uring)"
+          }
+        ]
+      },
+      "respresume-fragment-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "15.740000",
+            "label": "RESP resumable fragment (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-fragment-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "15.170000",
+            "label": "RESP resumable fragment (1s, uring)"
+          }
+        ]
+      },
+      "respresume-fragment-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "14.910000",
+            "label": "RESP resumable fragment (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-fragment-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "23.280000",
+            "label": "RESP resumable fragment (2s, uring)"
+          }
+        ]
+      },
+      "respresume-neighbour-1s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.940000",
+            "label": "RESP resumable neighbour (1s, epoll)"
+          }
+        ]
+      },
+      "respresume-neighbour-1s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.960000",
+            "label": "RESP resumable neighbour (1s, uring)"
+          }
+        ]
+      },
+      "respresume-neighbour-2s-epoll": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.950000",
+            "label": "RESP resumable neighbour (2s, epoll)"
+          }
+        ]
+      },
+      "respresume-neighbour-2s-uring": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.830000",
+            "label": "RESP resumable neighbour (2s, uring)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.CDWshX/ledger.partial"
+  },
+  "gate-run.mtXnXY": {
+    "log": "docs/dispatchfix/reply-consumers-PRE.log",
+    "archive": "proof/gate-run.mtXnXY.tar.gz",
+    "sha256": "97844c37cfbbbab9f3db60eeb6e072e664e469c22918ff11a8704998de8c28a7",
+    "files": 95,
+    "bytes": 66962,
+    "jobs": {
+      "evict-lfu-armed-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.300000",
+            "label": "eviction lfu battery (fused+armed, atomic 0)"
+          }
+        ]
+      },
+      "evict-lfu-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.300000",
+            "label": "eviction lfu battery (fused+armed, atomic 1)"
+          }
+        ]
+      },
+      "evict-lfu-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.300000",
+            "label": "eviction lfu battery (split, atomic 0)"
+          }
+        ]
+      },
+      "evict-lfu-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.300000",
+            "label": "eviction lfu battery (split, atomic 1)"
+          }
+        ]
+      },
+      "evict-lruclock-armed-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "253.160000",
+            "label": "eviction lruclock battery (fused+armed, atomic 0)"
+          }
+        ]
+      },
+      "evict-lruclock-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "254.230000",
+            "label": "eviction lruclock battery (fused+armed, atomic 1)"
+          }
+        ]
+      },
+      "evict-lruclock-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "153.550000",
+            "label": "eviction lruclock battery (split, atomic 0)"
+          }
+        ]
+      },
+      "evict-lruclock-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "254.270000",
+            "label": "eviction lruclock battery (split, atomic 1)"
+          }
+        ]
+      },
+      "hexpread": {
+        "done": "0\t8\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "1.110000",
+            "label": "hexpread torn (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "3.290000",
+            "label": "hexpread replies (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.110000",
+            "label": "hexpread deferred (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.110000",
+            "label": "hexpread OBJECT expiry (1s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.110000",
+            "label": "hexpread torn (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "3.290000",
+            "label": "hexpread replies (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.110000",
+            "label": "hexpread deferred (2s)"
+          },
+          {
+            "status": "ok",
+            "elapsed": "1.100000",
+            "label": "hexpread OBJECT expiry (2s)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.010000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 17 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.mtXnXY/ledger.partial"
+  },
+  "gate-run.LFmwEP": {
+    "log": "docs/dispatchfix/candidate-final-directed-POST.log",
+    "archive": "proof/gate-run.LFmwEP.tar.gz",
+    "sha256": "bcb68528244b04ec01f948b3b39060722a25181b106dda2d11bf80df7e517b34",
+    "files": 231,
+    "bytes": 2238523,
+    "jobs": {
+      "acl_subcommands": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "13.860000",
+            "label": "dispatchfix CC4.15 ACL subcommand grants"
+          }
+        ]
+      },
+      "dispatch_arity": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.830000",
+            "label": "dispatchfix EX4.10 container outer arity"
+          }
+        ]
+      },
+      "dispatch_children": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.930000",
+            "label": "dispatchfix EX4.4 advertised children"
+          }
+        ]
+      },
+      "dispatch_errors": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.860000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      },
+      "router_uniform": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "4.120000",
+            "label": "dispatchfix EX4.17 uniform routing and legacy recovery"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.LFmwEP/ledger.partial"
   }
 }

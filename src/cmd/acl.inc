@@ -207,6 +207,11 @@ void acl_update_command_rule(AclSelector& perm, const std::string& rule) {
 
 bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
                             bool remember = true) {
+    // Redis's command-rule parser and remembered spelling consume C strings.
+    // A NUL ends the modifier, including before a later pipe. Retain the same
+    // spelling in GETUSER/LIST and SAVE so LOAD cannot change the live grant.
+    if (const void* nul = rule.n ? std::memchr(rule.p, 0, rule.n) : nullptr)
+        rule.n = static_cast<uint32_t>(static_cast<const char*>(nul) - rule.p);
     if (rule.n < 2 || (rule.p[0] != '+' && rule.p[0] != '-')) {
         error = "Syntax error";
         return false;
@@ -631,6 +636,12 @@ bool acl_command_granted(const AclSelector& perm, const CommandSpec& spec, Slice
     if (const auto* child = command_metadata_subcommand(spec, first_arg))
         return acl_subcommand_bit(perm, *child);
     if (acl_command_bit(perm, spec.id)) return true;
+    if (perm.allowed_firstargs.empty()) return false;
+    // Legacy first-argument permissions use strcasecmp in Redis. This bounds
+    // only the permission comparison; the command still receives its full,
+    // binary-safe argument (and key-pattern checks still see the whole key).
+    if (const void* nul = first_arg.n ? std::memchr(first_arg.p, 0, first_arg.n) : nullptr)
+        first_arg.n = static_cast<uint32_t>(static_cast<const char*>(nul) - first_arg.p);
     for (const auto& entry : perm.allowed_firstargs)
         if (entry.first == spec.id && acl_equal_icase(first_arg, entry.second.c_str())) return true;
     return false;
