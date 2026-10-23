@@ -1,0 +1,583 @@
+{
+  "binary": "build/tomokv-pre-prefetch",
+  "sha256": "fc4a9fa7eb91ef6748aa03662b62eab600892a2f835521ea06ad21fb39871460",
+  "expect": "pre",
+  "bodies": {
+    "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": {
+      "address": "0xd3640",
+      "instructions": 267,
+      "hints": [],
+      "calls": [
+        {
+          "address": 865939,
+          "raw": "eb 2a",
+          "ins": "jmp    d36bf <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x7f>"
+        },
+        {
+          "address": 866677,
+          "raw": "e9 79 fd ff ff",
+          "ins": "jmp    d36f3 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0xb3>"
+        },
+        {
+          "address": 866779,
+          "raw": "eb 21",
+          "ins": "jmp    d39fe <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x3be>"
+        },
+        {
+          "address": 866867,
+          "raw": "e9 88 fd ff ff",
+          "ins": "jmp    d37c0 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 866920,
+          "raw": "e9 06 fd ff ff",
+          "ins": "jmp    d3773 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x133>"
+        },
+        {
+          "address": 866940,
+          "raw": "e9 2f ff ff ff",
+          "ins": "jmp    d39b0 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x370>"
+        },
+        {
+          "address": 866952,
+          "raw": "e9 15 fe ff ff",
+          "ins": "jmp    d38a2 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x262>"
+        },
+        {
+          "address": 867014,
+          "raw": "e9 f5 fc ff ff",
+          "ins": "jmp    d37c0 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 867026,
+          "raw": "eb b9",
+          "ins": "jmp    d3a8d <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x44d>"
+        }
+      ]
+    },
+    "unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)": {
+      "address": "0xd4c30",
+      "instructions": 121,
+      "hints": [],
+      "calls": [
+        {
+          "address": 871910,
+          "raw": "e8 55 e8 ff ff",
+          "ins": "call   d3640 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo_db0::ExLoopT<false>::run()": {
+      "address": "0xd5630",
+      "instructions": 1837,
+      "hints": [],
+      "calls": [
+        {
+          "address": 882338,
+          "raw": "e8 99 bf ff ff",
+          "ins": "call   d3640 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 882491,
+          "raw": "e8 00 bf ff ff",
+          "ins": "call   d3640 <void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)": {
+      "address": "0x326a90",
+      "instructions": 85,
+      "hints": [
+        {
+          "address": 3304318,
+          "raw": "41 0f 18 0c c1",
+          "ins": "prefetcht0 (%r9,%rax,8)"
+        },
+        {
+          "address": 3304403,
+          "raw": "41 0f 18 0c c1",
+          "ins": "prefetcht0 (%r9,%rax,8)"
+        }
+      ],
+      "calls": [
+        {
+          "address": 3304101,
+          "raw": "eb 19",
+          "ins": "jmp    326ac0 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)+0x30>"
+        },
+        {
+          "address": 3304408,
+          "raw": "e9 da fe ff ff",
+          "ins": "jmp    326ab7 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)+0x27>"
+        }
+      ]
+    },
+    "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": {
+      "address": "0x33f330",
+      "instructions": 207,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3404675,
+          "raw": "eb 2a",
+          "ins": "jmp    33f3af <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x7f>"
+        },
+        {
+          "address": 3405227,
+          "raw": "eb 21",
+          "ins": "jmp    33f5ce <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x29e>"
+        },
+        {
+          "address": 3405315,
+          "raw": "e9 a8 fe ff ff",
+          "ins": "jmp    33f4b0 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 3405368,
+          "raw": "e9 26 fe ff ff",
+          "ins": "jmp    33f463 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x133>"
+        },
+        {
+          "address": 3405388,
+          "raw": "e9 2f ff ff ff",
+          "ins": "jmp    33f580 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x250>"
+        },
+        {
+          "address": 3405450,
+          "raw": "e9 21 fe ff ff",
+          "ins": "jmp    33f4b0 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 3405462,
+          "raw": "eb b9",
+          "ins": "jmp    33f651 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)+0x321>"
+        }
+      ]
+    },
+    "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)": {
+      "address": "0x33f6a0",
+      "instructions": 573,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3406699,
+          "raw": "e8 20 6f fe ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)": {
+      "address": "0x3400c0",
+      "instructions": 589,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3409339,
+          "raw": "e8 d0 64 fe ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)": {
+      "address": "0x340b10",
+      "instructions": 144,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3411190,
+          "raw": "e8 35 e6 ff ff",
+          "ins": "call   33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 3411239,
+          "raw": "e8 64 5d fe ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 3411254,
+          "raw": "e8 f5 e5 ff ff",
+          "ins": "call   33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const": {
+      "address": "0x3423d0",
+      "instructions": 598,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3418296,
+          "raw": "e8 d3 41 fe ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)": {
+      "address": "0x342e10",
+      "instructions": 261,
+      "hints": [],
+      "calls": [
+        {
+          "address": 3420632,
+          "raw": "e8 53 c1 ff ff",
+          "ins": "call   33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 3420699,
+          "raw": "e8 70 38 fe ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 3420715,
+          "raw": "e8 00 c1 ff ff",
+          "ins": "call   33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const": {
+      "address": "0x3dae20",
+      "instructions": 138,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4042684,
+          "raw": "e9 6f 43 f6 ff",
+          "ins": "jmp    33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 4042723,
+          "raw": "e8 a8 ba f4 ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const": {
+      "address": "0x3db2d0",
+      "instructions": 138,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4043884,
+          "raw": "e9 bf 3e f6 ff",
+          "ins": "jmp    33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 4043923,
+          "raw": "e8 f8 b5 f4 ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)": {
+      "address": "0x3dc240",
+      "instructions": 818,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4049926,
+          "raw": "e8 25 27 f6 ff",
+          "ins": "call   33f330 <void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)>"
+        },
+        {
+          "address": 4050822,
+          "raw": "e8 05 9b f4 ff",
+          "ins": "call   326a90 <tomo_db0::ExLoopT<true>::prefetch_owner_batch(tomo_db0::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": {
+      "address": "0x4834e0",
+      "instructions": 267,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4732211,
+          "raw": "eb 2a",
+          "ins": "jmp    48355f <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x7f>"
+        },
+        {
+          "address": 4732949,
+          "raw": "e9 79 fd ff ff",
+          "ins": "jmp    483593 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0xb3>"
+        },
+        {
+          "address": 4733051,
+          "raw": "eb 21",
+          "ins": "jmp    48389e <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x3be>"
+        },
+        {
+          "address": 4733139,
+          "raw": "e9 88 fd ff ff",
+          "ins": "jmp    483660 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 4733192,
+          "raw": "e9 06 fd ff ff",
+          "ins": "jmp    483613 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x133>"
+        },
+        {
+          "address": 4733212,
+          "raw": "e9 2f ff ff ff",
+          "ins": "jmp    483850 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x370>"
+        },
+        {
+          "address": 4733224,
+          "raw": "e9 15 fe ff ff",
+          "ins": "jmp    483742 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x262>"
+        },
+        {
+          "address": 4733286,
+          "raw": "e9 f5 fc ff ff",
+          "ins": "jmp    483660 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 4733298,
+          "raw": "eb b9",
+          "ins": "jmp    48392d <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x44d>"
+        }
+      ]
+    },
+    "unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)": {
+      "address": "0x484ad0",
+      "instructions": 121,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4738182,
+          "raw": "e8 55 e8 ff ff",
+          "ins": "call   4834e0 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo::ExLoopT<false>::run()": {
+      "address": "0x4854d0",
+      "instructions": 1889,
+      "hints": [],
+      "calls": [
+        {
+          "address": 4748866,
+          "raw": "e8 99 be ff ff",
+          "ins": "call   4834e0 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 4749019,
+          "raw": "e8 00 be ff ff",
+          "ins": "call   4834e0 <void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)": {
+      "address": "0x6ec0a0",
+      "instructions": 85,
+      "hints": [
+        {
+          "address": 7258510,
+          "raw": "41 0f 18 0c c1",
+          "ins": "prefetcht0 (%r9,%rax,8)"
+        },
+        {
+          "address": 7258595,
+          "raw": "41 0f 18 0c c1",
+          "ins": "prefetcht0 (%r9,%rax,8)"
+        }
+      ],
+      "calls": [
+        {
+          "address": 7258293,
+          "raw": "eb 19",
+          "ins": "jmp    6ec0d0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)+0x30>"
+        },
+        {
+          "address": 7258600,
+          "raw": "e9 da fe ff ff",
+          "ins": "jmp    6ec0c7 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)+0x27>"
+        }
+      ]
+    },
+    "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": {
+      "address": "0x704760",
+      "instructions": 207,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7358387,
+          "raw": "eb 2a",
+          "ins": "jmp    7047df <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x7f>"
+        },
+        {
+          "address": 7358939,
+          "raw": "eb 21",
+          "ins": "jmp    7049fe <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x29e>"
+        },
+        {
+          "address": 7359027,
+          "raw": "e9 a8 fe ff ff",
+          "ins": "jmp    7048e0 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 7359080,
+          "raw": "e9 26 fe ff ff",
+          "ins": "jmp    704893 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x133>"
+        },
+        {
+          "address": 7359100,
+          "raw": "e9 2f ff ff ff",
+          "ins": "jmp    7049b0 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x250>"
+        },
+        {
+          "address": 7359162,
+          "raw": "e9 21 fe ff ff",
+          "ins": "jmp    7048e0 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x180>"
+        },
+        {
+          "address": 7359174,
+          "raw": "eb b9",
+          "ins": "jmp    704a81 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)+0x321>"
+        }
+      ]
+    },
+    "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)": {
+      "address": "0x704ad0",
+      "instructions": 573,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7360411,
+          "raw": "e8 00 71 fe ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)": {
+      "address": "0x7054f0",
+      "instructions": 589,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7363051,
+          "raw": "e8 b0 66 fe ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)": {
+      "address": "0x705f40",
+      "instructions": 144,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7364902,
+          "raw": "e8 35 e6 ff ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 7364951,
+          "raw": "e8 44 5f fe ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 7364966,
+          "raw": "e8 f5 e5 ff ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const": {
+      "address": "0x707800",
+      "instructions": 598,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7372008,
+          "raw": "e8 b3 43 fe ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)": {
+      "address": "0x708240",
+      "instructions": 261,
+      "hints": [],
+      "calls": [
+        {
+          "address": 7374344,
+          "raw": "e8 53 c1 ff ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 7374411,
+          "raw": "e8 50 3a fe ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 7374427,
+          "raw": "e8 00 c1 ff ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const": {
+      "address": "0x7a2bf0",
+      "instructions": 138,
+      "hints": [],
+      "calls": [
+        {
+          "address": 8007052,
+          "raw": "e9 cf 19 f6 ff",
+          "ins": "jmp    704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 8007091,
+          "raw": "e8 e8 92 f4 ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const": {
+      "address": "0x7a30a0",
+      "instructions": 138,
+      "hints": [],
+      "calls": [
+        {
+          "address": 8008252,
+          "raw": "e9 1f 15 f6 ff",
+          "ins": "jmp    704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 8008291,
+          "raw": "e8 38 8e f4 ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)": {
+      "address": "0x7a4010",
+      "instructions": 626,
+      "hints": [],
+      "calls": [
+        {
+          "address": 8014010,
+          "raw": "e8 a1 fe f5 ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    },
+    "void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)": {
+      "address": "0x7a5340",
+      "instructions": 818,
+      "hints": [],
+      "calls": [
+        {
+          "address": 8019206,
+          "raw": "e8 55 ea f5 ff",
+          "ins": "call   704760 <void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)>"
+        },
+        {
+          "address": 8020102,
+          "raw": "e8 15 60 f4 ff",
+          "ins": "call   6ec0a0 <tomo::ExLoopT<true>::prefetch_owner_batch(tomo::Task const*, unsigned int)>"
+        }
+      ]
+    }
+  }
+}
