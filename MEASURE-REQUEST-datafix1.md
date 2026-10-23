@@ -14,10 +14,10 @@ PRE fails and POST passes all 12 legs. Exact paired replies and lifecycle record
 `docs/datafix1/{pre,post}-geo-proof.tar.gz`; initial independent oracle run:
 `docs/datafix1/oracle-geo/`.
 
-Gate counts are maintainer-owned and unchanged. Currently DQ=+1 / DF=+1, collected
-before the quick exit. The label fixture includes the new source-declared label;
-its EXPECT count check will remain red until the maintainer updates the counts.
-Further item proofs, final identity, artifacts and merit request follow below.
+The final directed POST proof contains 60 complete engine/mode/atomic legs and
+29,328 assertions; see docs/datafix1/post-new-row-inventory.json and the gate-owned
+post-final-epoll-proof.tar.gz. All seven source-declared labels are in the fixture.
+The maintainer-owned EXPECT constants remain unchanged.
 
 CD4.4: small partial SPOP retains intset/listpack; a counted pop with
 (n-k)*5 <= k rebuilds the survivors exactly at Redis's branch threshold. That
@@ -39,7 +39,7 @@ in one pass, build them once, and emit the remainder in another pass: O(n+B)
 plus expected hash insertion work if current limits require a table, with
 O(n-k + survivor bytes) temporary storage. There is no rejection sampling or
 repeated compact membership search. These are algorithmic costs, not measured
-throughput or cycle claims. Cumulative gate delta DQ=DF=+2; EXPECT unchanged.
+throughput or cycle claims. EXPECT constants are unchanged.
 
 CD4.5: one-node quicklists demote after LPOP/RPOP, LSET, LREM (when something was
 removed), LTRIM (including a no-op trim), blocking/MPop and mover removals. The
@@ -48,7 +48,7 @@ it uses <= half the live count/byte limit and transfers the sole packed buffer
 without allocating. PRE fails / POST passes 12 legs, with count limits 4/5/8,
 4096/4097-byte packed boundaries, all pop/move verbs, contents and memory shrink.
 The existing edgeenc shrink assertion now expects Redis list demotion (other types
-unchanged), supported by the independent oracle receipts. Cumulative DQ=DF=+3.
+unchanged), supported by the independent oracle receipts.
 
 CD4.6: locale-collate defaults to the environment, supports boot/CONFIG SET/GET/
 REWRITE, rejects invalid names and duplicate parameters with Redis's exact text.
@@ -59,7 +59,7 @@ STORE stays binary. Mixed-case/punctuation/accented weights, SORT_RO, dynamic BY
 all source types and concurrent CONFIG/sort checks pass 12 POST legs; PRE fails.
 Config consumes 8 reserved bytes; all existing fields and the 624-byte size stay
 fixed. The differential's stale C-only implementation comment is corrected; its
-fixed-order corpus still requires C collation. Cumulative DQ=DF=+4.
+fixed-order corpus still requires C collation.
 
 CD4.10: BITFIELD checks the first byte like Redis; indexed offsets use explicit
 unsigned machine-word multiplication, matching the oracle's wrapped # offset
@@ -69,13 +69,13 @@ atomicity pass six POST legs; PRE fails. Redis lookupStringForBitCommand grows t
 so growth can exceed the configured limit by at most eight bytes; the existing
 UINT32_MAX-64KiB supported cap leaves ample representable space. A static_assert
 pins this proof. Read-only probes exercise the maximum supported cap without a
-multi-gigabyte allocation. Cumulative DQ=DF=+5.
+multi-gigabyte allocation.
 
 CD4.11: HEXPIRE/HPEXPIRE/HEXPIREAT/HPEXPIREAT validate negative/overflowing expire
 values before condition and FIELDS parsing; key type lookup retains its earlier
 precedence. The matrix crosses all four commands, present/missing/wrong-type keys,
 invalid values, conflicting conditions and malformed field tails. PRE fails and
-POST passes all six engine/mode legs. Cumulative DQ=DF=+6.
+POST passes all six engine/mode legs.
 
 CD4.12: RAND validates counts and optional arguments before key lookup; the two
 WITHVALUES/WITHSCORES half-range errors use Redis's short text. SRANDMEMBER excess
@@ -129,7 +129,8 @@ changes definition; all existing non-reserved field offsets match (layout-review
 Production proof: PRE and POST each pass all 57 selected storage_units, atomic_units
 and netcmd_units rows, including encodingfix and storesize. Both builds pass
 make -q for all, all 37 targets listed in job_production_units, and mdbqsbr-live-arms
-(freshness.log). Complete gate-owned logs are archived in {pre,post}-units-proof.tar.gz.
+(freshness-final.log). Complete gate-owned logs are archived in pre-units-proof.tar.gz
+and post-final-units-proof.tar.gz.
 The gate harness self-test passes 67/67 when run alone (gates-test-serial.log).
 Two earlier concurrent runs had outer scheduler-fixture timeouts; their original
 logs are retained. No fixture assertion or deadline was changed.
@@ -140,3 +141,12 @@ and their incomplete logs archived, explicitly marked LANE INTERRUPTED. Those
 are not claimed as complete matrix passes. The serial reruns use the unchanged
 standard permanent seeds 7,19,20,23 plus rotating seed 25, cloned from the same
 pre-run history for matched PRE/POST arms. Each full leg inventory remains intact.
+
+Final live proof so far: POST epoll 166/166 selected rows; PRE epoll 156/156.
+The final io_uring and differential runs are still in progress.
+
+The first PRE SPOP receipts contain all six assertion logs but the summary writer
+then rejected bytes nested in tuple failure details. The common writer now uses
+its existing RESP-to-JSON converter for those values; no assertion changes.
+All seven directed rows are queued again on PRE and final POST with this fix,
+followed by the final PAD-A control. Earlier receipt files remain preserved.

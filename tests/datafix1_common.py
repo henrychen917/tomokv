@@ -114,5 +114,6 @@ def main(feature, battery, *, multi=False, flags=()):
             failures.append(dict(leg=name, exception=repr(e)))
             print('FAIL', name, repr(e), flush=True)
     (args.output / 'summary.json').write_text(json.dumps(dict(feature=feature, legs=len(legs),
-                                                           failures=failures), indent=2) + '\n')
+                                                           failures=failures), indent=2,
+                                                      default=plain) + '\n')
     raise SystemExit(bool(failures))
