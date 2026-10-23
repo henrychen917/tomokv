@@ -83,3 +83,35 @@ set 24222 / db0 23842 and normal zset 33447. Every trial's command, object diges
 and complete changed-body inventory is under docs/datafix1/budgets. These retain
 all ordinary storage hot bodies; final whole-tree audits follow. No runtime knob
 or algorithm change was introduced by the budget adjustment.
+
+Merit request (maintainer only; NOT RUN here): use the gate's own ABBA instrument
+and the exact 14 rows in tests/wbland_merit_cells.txt: h05, h06, p8g, p8s, d1g_l0,
+d1s_l0, m8g_l0, v1g_l0, d128g_l0, d32g_l1, d8s_l1, d32s_l1, x9_32_l1, x9_32_l0.
+First establish a same-binary null, then PRE/POST, PRE/PAD-A and PAD-A/POST with
+matched offered load and the cell's declared geometry. Rate is the verdict for
+rate cells; latency is the verdict for the two p1 cells. Report cycles/op, IPC and
+instructions/op together and judge against the instrument's measured null spread.
+A new spread above 2% needs investigation, not a relaxed threshold. The question
+is whether the compatibility repair preserves ordinary workload merit. No
+performance result or improvement is claimed by this lane.
+
+Artifacts: PRE build/datafix1/pre-src/build/tomokv; POST build/tomokv; PAD-A
+build/datafix1/PAD-A/tomokv. Digests: docs/datafix1/SHA256SUMS. PAD kind A is PRE
+behavior (unchanged PRE objects) with 3,136 inert bytes appended to match POST's
+7,750,662-byte .text. It controls total text size and the unchanged layout locks,
+not every function address. Config's new cold pointer consumes PRE's reserved
+storage; existing field offsets stay fixed. Exact link/object provenance is in
+docs/datafix1/pad-kind.json; tools/datafix1_pad.py reproduces the arm.
+
+Final identity: tools/ccfix_audit.py inventories 16,828 emitted bodies, 295 changed;
+all 1,220 selected hot bodies are canonical-equal to PRE. Its command-only INFO/
+CONFIG/ACL admission policy rejects the intentional data-type changes, as expected.
+The stricter linked audit (tools/infofields_artifacts.py) likewise rejects its
+INFO-only whitelist: 4,376/4,484 ordinary object bodies match and 2,593/2,690 linked
+ordinary bodies are proven. Every changed body, including compiler spillover in
+unedited helpers, is listed with a reason in docs/datafix1/body-reasons.json.
+All ten linked GET/SET/MGET/MSET handlers are proven against their PRE object
+implementations (linked-primary.json). These are identity proxies, not merit.
+Both namespaces retain Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore
+944, Rob<64> 192, AtomicEntry 144 and Config 624. Only Config's reserved area
+changes definition; all existing non-reserved field offsets match (layout-reviewed.json).

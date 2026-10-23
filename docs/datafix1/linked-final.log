@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-datafix1/tools/infofields_artifacts.py", line 233, in <module>
+    main()
+  File "/home/user/Projects/cx-datafix1/tools/infofields_artifacts.py", line 137, in main
+    assert after.exists(), after
+           ^^^^^^^^^^^^^^
+AssertionError: build/gate-cache/store-objects/src_cmd_hexpread.o
