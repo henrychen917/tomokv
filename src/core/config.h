@@ -1428,13 +1428,31 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         std::fprintf(stderr, "cannot open conf file '%s'\n", path);
         return false;
     }
-    char line[4096];
+    // Redis concatenates 1024-byte fgets chunks as C strings before splitting
+    // on LF. A chunk boundary is never a directive boundary. Preserve its raw
+    // NUL behavior too: the rest of that chunk (possibly including LF) vanishes.
+    std::string contents;
+    char chunk[1025];
+    while (std::fgets(chunk, sizeof(chunk), f)) contents += chunk;
+    const bool read_error = std::ferror(f);
+    std::fclose(f);
+    if (read_error) {
+        std::fprintf(stderr, "cannot read conf file '%s'\n", path);
+        return false;
+    }
     int lineno = 0;
     bool ok = true;
-    while (ok && std::fgets(line, sizeof(line), f)) {
+    size_t offset = 0;
+    while (ok && offset < contents.size()) {
+        const size_t end = contents.find('\n', offset);
+        std::string physical = contents.substr(offset, end == std::string::npos ? end : end - offset);
+        offset = end == std::string::npos ? contents.size() : end + 1;
+        char* line = physical.data();
         lineno++;
+        size_t length = std::strlen(line);
+        while (length && std::strchr(" \t\r\n", line[length - 1])) line[--length] = 0;
         const char* first = line;
-        while (*first && std::isspace(static_cast<unsigned char>(*first))) first++;
+        while (*first && std::strchr(" \t\r\n", *first)) first++;
         if (*first == '#' || !*first) continue;
         std::vector<std::string> words;
         if (!cfg_split_args(first, words)) {
@@ -1444,11 +1462,8 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
             continue;
         }
         if (words.empty()) continue;
-        // The Redis reference spelling for an empty notification mask is two quotes. This loader
-        // otherwise deliberately has no shell quoting grammar, so normalize that one exact token
-        // to the empty argv value consumed by the shared flag parser.
-        if (words[0] == "notify-keyspace-events" && words.size() == 2 && words[1] == "\"\"")
-            words[1].clear();
+        for (char& c : words[0])
+            if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
         if (words[0] == "pin") {
             if (words.size() != 2 || (words[1] != "yes" && words[1] != "no")) {
                 std::fprintf(stderr, "%s:%d: pin wants yes|no\n", path, lineno);
@@ -1474,7 +1489,6 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         for (size_t w = 1; w < words.size(); w++) store.emplace_back(words[w]);
         if (line_ends) line_ends->push_back(store.size());
     }
-    std::fclose(f);
     return ok;
 }
 
