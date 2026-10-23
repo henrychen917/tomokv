@@ -158,6 +158,8 @@ struct CoreConcurrencyTest {
         return reply;
     }
 
+    #include "slowlog_completion_checks.inc"
+
     static void watch_disconnect() {
         Fixture f;
         f.server.set_maxmemory_config(16 * 1024 * 1024, MaxmemoryPolicy::AllKeysLfu, 5);
@@ -1192,7 +1194,14 @@ int main(int argc, char** argv) {
     else T::require(false, "select lanefull or lanefull-info");
 #else
     if (row == "watch") T::watch_disconnect();
-    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
+    else if (row == "lifetime") {
+        T::lifetime(); T::close_cycles(); T::flip_close();
+        T::slowlog_completion<false>(); T::slowlog_completion<true>();
+    }
+    else if (row == "slowlog-completion") {
+        T::slowlog_completion<false>(); T::slowlog_completion<true>();
+    }
+    else if (row == "slowlog-completion-negative") T::slowlog_completion<false>(true);
     else if (row == "flip-close") T::flip_close();
     else if (row == "flipfix-plan") { T::flipfix_plan_lifetime(); T::flipfix_plan_race(); }
     else if (row == "flipfix-plan-race") T::flipfix_plan_race();

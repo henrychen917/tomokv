@@ -516,6 +516,35 @@ __attribute__((noipa)) static uint32_t slowlog_redactions(const Op& op) {
     return mask;
 }
 
+namespace {
+// A non-null static initializer keeps this pointer in .tdata, ahead of the
+// existing zero-initialized TLS state. The idle sentinel owns no operation.
+SlowlogTiming idle_timing;
+thread_local SlowlogTiming* active_timing = &idle_timing;
+}
+
+SlowlogTiming::SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
+                            uint64_t start, int64_t now, const SlowlogArm& setting)
+    : op(operation), client_id(client), started(start), now_ms(now), arm(setting),
+      thread_id(thread), previous(active_timing) {
+    if (op) active_timing = this;
+}
+
+SlowlogTiming::~SlowlogTiming() {
+    if (op) active_timing = previous;
+}
+
+__attribute__((noinline, cold)) void slowlog_complete(const Op& op) {
+    SlowlogTiming& timing = *active_timing;
+    if (timing.op != &op || timing.completed) return;
+    timing.completed = true;
+    const uint64_t elapsed = now_ns() - timing.started;
+    // slowlog_record tests the measured duration before copying argv or taking
+    // the directory reference. The caller still owns the unpublished operation.
+    slowlog_record(timing.thread_id, timing.client_id, op, elapsed,
+                   timing.now_ms, timing.arm, true);
+}
+
 std::shared_ptr<const SlowlogIdentity> slowlog_capture(
     const Op& op, SlowlogCapture& out, uint64_t client_id) {
     // Capture before the executor publishes Done: a younger SETNAME or a

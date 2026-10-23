@@ -2219,28 +2219,14 @@ private:
         if (slowlog_state_.escalate_batches || n == 1) {
             if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
             for (uint32_t i = 0; i < n; i++) {
-                // Snapshot argv BEFORE execution. execute() publishes Done, after which the owning
-                // IO thread may retire the op and compact the read buffer the Slices point into.
                 Client* client = batch[i].client;
-                const auto identity = client
-                    ? slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture,
-                                      client->id()) : nullptr;
                 const uint64_t started = now_ns();
-                const bool ok = execute<IofusedPrivateQueue>(batch[i]);
-                // Done is deliberately delayed with the commit. Armed per-op timing must include
-                // that commit and publish it before the Done-based one-command attribution test.
-                flush_xshard_commits();
-                const uint64_t elapsed = now_ns() - started;
-                // ONE ENTRY PER COMMAND, not per participating shard. A cross-shard op is handed
-                // to every owner it touches; all but the last return with the op still Issued.
-                // Recording only the owner that published Done means a scatter is attributed to
-                // the slice that actually computed the answer.
-                const OpState completed = client ?
-                    client->rob().at(batch[i].op_id).state.load(std::memory_order_relaxed) :
-                    OpState::Issued;
-                if (completed == OpState::Done || completed == OpState::AofWait)
-                    slowlog_record_captured(self_->id(), identity, slowlog_state_.capture,
-                                            elapsed, now_ms, arm);
+                SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
+                                     client ? client->id() : 0, self_->id(), started, now_ms, arm);
+                const bool ok = execute_timed<IofusedPrivateQueue>(batch[i]);
+                // The last owner records after the commit, before publishing Done.
+                // Fast operations copy no argv and acquire no identity reference.
+                flush_xshard_commits_timed();
                 if (ok) continue;
                 xshard_retries_.push_back(batch[i]);
                 for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
@@ -2385,6 +2371,16 @@ private:
 
     template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     bool execute(const Task& t) {
+        return execute_impl<IofusedPrivateQueue, ReadLocalNoEvict, false>(t);
+    }
+
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline, cold)) bool execute_timed(const Task& t) {
+        return execute_impl<IofusedPrivateQueue, false, true>(t);
+    }
+
+    template <bool IofusedPrivateQueue, bool ReadLocalNoEvict, bool Timed>
+    __attribute__((always_inline)) bool execute_impl(const Task& t) {
         Server::ClientWorkScope client_work(*srv_, self_->id());
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
@@ -2451,6 +2447,7 @@ private:
             }
             if (result == MultiTaskResult::Final) {
                 Op& public_op = t.client->rob().at(t.op_id);
+                if constexpr (Timed) slowlog_complete(public_op);
                 if (aof_manager_ &&
                     aof_manager_->defer_completion(self_->id(), public_op, t.client)) return true;
                 public_op.state.store(OpState::Done, std::memory_order_release);
@@ -2478,7 +2475,10 @@ private:
                     sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
                     false)) {
                 ReadLocalPreciseWriteGuard no_evict(sh.store());
-                return execute<IofusedPrivateQueue, true>(t);
+                if constexpr (Timed)
+                    return execute_impl<IofusedPrivateQueue, true, true>(t);
+                else
+                    return execute<IofusedPrivateQueue, true>(t);
             }
         }
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
@@ -2603,6 +2603,8 @@ private:
 
         if (__builtin_expect(op.spec->flags & CmdFlags::NotifySelected, false))
             notify_tracking_commit(op);
+
+        if constexpr (Timed) slowlog_complete(op);
 
         // The optional persistence path owns Done until this pass's post and durability
         // boundary. Merely delaying notify_sender cannot protect an IO already serving.
@@ -2833,12 +2835,23 @@ private:
         return work;
     }
     void flush_xshard_commits() {
+        flush_xshard_commits_impl<false>();
+    }
+    void flush_xshard_commits_timed() {
+        flush_xshard_commits_impl<true>();
+    }
+    template <bool Timed>
+    __attribute__((always_inline)) void flush_xshard_commits_impl() {
         if (__builtin_expect(!xshard_commit_pending_, true)) return;
         // Keep both the queue and its pending-work bit armed. The owner continues servicing
         // CONFIG and foreign work, and cannot park while the test holds these decisions open.
         if (__builtin_expect(srv_->debug_atomic_commit_hold(), false)) return;
         Server::ClientWorkScope client_work(*srv_, self_->id());
-        xshard_flush_commits(
+        const auto flush = [] {
+            if constexpr (Timed) return xshard_flush_commits_timed;
+            else return xshard_flush_commits;
+        }();
+        flush(
             *srv_, *self_, ring_, this,
             [](void* context, Client* client) {
                 static_cast<ExLoopT*>(context)->notify_sender(client);

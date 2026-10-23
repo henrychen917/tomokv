@@ -32,14 +32,14 @@ struct SlowlogArm {
 inline constexpr uint32_t kSlowlogMaxArgs = 32;
 inline constexpr uint32_t kSlowlogMaxArgBytes = 128;
 
-// A snapshot of one command's arguments, taken BEFORE it executes.
+// A snapshot of one command's arguments, taken BEFORE completion publication.
 //
 // THIS IS A LIFETIME FIX, NOT AN OPTIMISATION. Op::argv are Slices into the connection's read
 // buffer, which is pinned only until the op retires. execute() publishes OpState::Done, and the
 // owning IO thread may then retire the op and call reset_rbuf_at_quiescence(), which memmoves and
 // can even realloc that buffer. Reading argv from the executor after execute() returns is
-// therefore a use-after-retire race -- so the bytes are copied while they are provably alive, into
-// a per-executor scratch that is reused for every op and never allocates.
+// therefore a use-after-retire race. Exact timing now tests the threshold at completion,
+// then copies only a slow operation's arguments while they are still pinned.
 struct SlowlogIdentity;
 
 struct SlowlogCapture {
@@ -56,8 +56,33 @@ struct SlowlogCapture {
 struct SlowlogExState {
     // Batches remaining in per-op (exact attribution) mode. Set when a multi-op batch overruns.
     uint32_t escalate_batches = 0;
-    SlowlogCapture capture;
+    SlowlogCapture capture; // retained footprint; exact completion uses a cold stack capture
 };
+
+// Exact timing owns this stack frame only until execution returns. Completion
+// records before Done/AofWait can release argv or let a younger SETNAME run.
+// Ordinary, untimed executor specializations never create or consult it.
+struct SlowlogTiming {
+    const Op* op = nullptr;
+    uint64_t client_id = 0;
+    uint64_t started = 0;
+    int64_t now_ms = 0;
+    SlowlogArm arm{};
+    uint32_t thread_id = 0;
+    bool completed = false;
+    SlowlogTiming* previous = nullptr;
+
+    SlowlogTiming() = default;
+    SlowlogTiming(const Op* operation, uint64_t client, uint32_t thread,
+                  uint64_t start, int64_t now, const SlowlogArm& setting);
+    ~SlowlogTiming();
+    SlowlogTiming(const SlowlogTiming&) = delete;
+    SlowlogTiming& operator=(const SlowlogTiming&) = delete;
+};
+
+// Cold completion paths may finish a different client's blocked operation.
+// Match the active operation, and record it at most once before publication.
+void slowlog_complete(const Op& op);
 
 // Copies pinned arguments (at most 32 of 128 bytes) and snapshots the identity under the
 // directory shard lock. The returned shared reference keeps that version alive across Done;

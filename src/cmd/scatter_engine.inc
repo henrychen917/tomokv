@@ -4059,8 +4059,10 @@ void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task) {
     state.commit_shard = task.shard;
 }
 
-void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
-                          void* notify_context, XshardCommitNotify notify) {
+template <bool Timed>
+__attribute__((always_inline)) inline
+void xshard_flush_commits_impl(Server& server, ThreadCtx& self, Ring& ring,
+                               void* notify_context, XshardCommitNotify notify) {
     if (!notify) std::abort();
     for (;;) {
         XshardCommitBatch& pending = xshard_commit_batch;
@@ -4130,6 +4132,7 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
 
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
+            if constexpr (Timed) slowlog_complete(op);
             if (!server.aof().configured() ||
                 !server.aof().defer_completion(self.id(), op, client)) {
                 op.state.store(OpState::Done, std::memory_order_release);
@@ -4139,6 +4142,16 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
         }
         if (completed != count) std::abort();
     }
+}
+
+void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
+                          void* notify_context, XshardCommitNotify notify) {
+    xshard_flush_commits_impl<false>(server, self, ring, notify_context, notify);
+}
+
+void xshard_flush_commits_timed(Server& server, ThreadCtx& self, Ring& ring,
+                               void* notify_context, XshardCommitNotify notify) {
+    xshard_flush_commits_impl<true>(server, self, ring, notify_context, notify);
 }
 
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };

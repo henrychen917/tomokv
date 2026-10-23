@@ -1672,6 +1672,14 @@ for core_row in watch lifetime drain route snapshot config notify; do
       ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
       taskset -c "$CORES" ./build/core-concurrency-unit "$core_row" \
           >"$TMPDIR/gate-core-$core_row.txt" 2>&1 && \
+      { [ "$core_row" != lifetime ] || (
+          ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+          taskset -c "$CORES" ./build/core-concurrency-unit slowlog-completion-negative \
+              >"$TMPDIR/slowlog-completion-negative.txt" 2>&1
+          [ "$?" = 1 ] && grep -Fxq \
+              'FAIL core concurrency: slowlog threshold decision and identity capture precede Done' \
+              "$TMPDIR/slowlog-completion-negative.txt"
+        ); } && \
       tsan_unit "$CORE_TSAN" core-concurrency-tsan \
           "PASS core concurrency $core_row (state assertions fired)" "$core_row"; then
     ok "core concurrency $core_row"
