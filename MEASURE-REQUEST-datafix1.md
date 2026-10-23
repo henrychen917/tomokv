@@ -76,3 +76,10 @@ errors and the register's remaining controls. PRE fails / POST passes six legs.
 Cumulative DQ=DF=+7: all seven rows are collected before the quick-tier exit.
 Maintainer EXPECT values should become QUICK 692 / FULL 709 (base 685 / 702);
 this lane leaves those constants unchanged.
+
+Inlining budget derivation: initial set IPA sizes grew 17685→17957 and
+17505→17775 (db0); normal zset grew by 38. Bounded compile-only trials selected
+set 24222 / db0 23842 and normal zset 33447. Every trial's command, object digest
+and complete changed-body inventory is under docs/datafix1/budgets. These retain
+all ordinary storage hot bodies; final whole-tree audits follow. No runtime knob
+or algorithm change was introduced by the budget adjustment.
