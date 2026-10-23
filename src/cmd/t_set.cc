@@ -1,8 +1,9 @@
 // t_set.cc — single-key Redis-compatible SET-family commands.
 //
 // Small integer sets keep sorted 2/4/8-byte signed values in Compact. Small mixed sets keep raw
-// members in Compact plus entry offsets for O(1) random access. Both promote one-way to the
-// open-addressed SetMemberTable. All objects and PRNG state are worker-local; no synchronization is
+// members in Compact. Both promote to the open-addressed SetMemberTable; a large counted SPOP
+// rebuilds its survivors under the current encoding limits. Objects and PRNG state are worker-local;
+// no synchronization is
 // needed on a shard-owned value.
 #include "command.h"
 #include "notify.h"
@@ -853,7 +854,7 @@ void cmd_smembers(Shard& shard, Op& op) {
 
 // Compact populations are bounded by the Redis encoding controls. A single pick
 // shifts at most one packed tail. A counted pop samples without replacement in
-// one forward pass, builds the survivors once, and never promotes the encoding.
+// one forward pass and builds the survivors once, retaining the existing encoding.
 // Allocation completes before the reply or the mutation becomes visible.
 bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     const bool integers = set_small_encoding(set) == SetSmallEncoding::Integer;
@@ -902,6 +903,90 @@ bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     return set.replace_compact(std::move(survivors));
 }
 
+// Redis rebuilds the survivors when (size-count)*5 <= count. Besides allowing an
+// expanded set to become a listpack, this resets intset width and reapplies live
+// limits. Sample in one pass and append known-unique survivors without repeated
+// compact membership scans. All allocation finishes before emitting the reply.
+template <bool kNotify>
+bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
+    CollectionRef source(object);
+    const uint32_t size = source.entries(), keep = size - count;
+    const bool integers = source.encoding() == CollectionEncoding::Compact &&
+                          set_small_encoding(source) == SetSmallEncoding::Integer;
+    std::vector<uint32_t> selected;
+    try { selected.reserve(keep); }
+    catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    // Dense table indexing avoids scanning empty slots after previous removals.
+    auto visit = [&](auto&& fn) {
+        if (source.encoding() == CollectionEncoding::Hashtable) {
+            for (uint32_t i = 0; i < size; ++i) with_member_at(source, i, fn);
+        } else for_each_member(source, fn);
+    };
+    Compact members;
+    uint32_t index = 0, needed = keep, max_bytes = 0;
+    uint8_t width = 2;
+    bool ok = true;
+    visit([&](Slice member) {
+        if (random_below(size - index) < needed) {
+            selected.push_back(index);
+            --needed;
+            ok = members.append(member) && ok;
+            max_bytes = std::max(max_bytes, member.n);
+            if (integers) {
+                int64_t value = 0;
+                parse_i64_strict(member, value);
+                width = std::max(width, width_for(value));
+            }
+        }
+        ++index;
+    });
+    SetVal rebuilt;
+    rebuilt.small_encoding = integers ? SetSmallEncoding::Integer : SetSmallEncoding::Generic;
+    rebuilt.int_width = width;
+    rebuilt.max_member_bytes = max_bytes;
+    const auto& limits = shard.type_limits();
+    const bool compact = integers ? keep <= limits.set_intset_max_entries
+        : keep <= limits.set.max_entries && max_bytes <= limits.set.max_value;
+    if (!compact) {
+        ok = rebuilt.table.reserve(keep) && ok;
+        rebuilt.finish_table_promotion(0);
+    }
+    CollectionRef destination(&rebuilt);
+    for (const Compact::Entry member : members) {
+        if (!ok) break;
+        if (!compact) ok = add_to_table(destination, member.value) == AddResult::Added;
+        else if (!integers) ok = rebuilt.append(member.value);
+        else {
+            int64_t value = 0;
+            parse_i64_strict(member.value, value);
+            char bytes[8];
+            encode_integer(bytes, width, value);
+            ok = rebuilt.append(Slice(bytes, width));
+        }
+    }
+    if (!ok) { reply_err(op.sink(), "ERR out of memory"); return false; }
+    if (source.is_embedded() && !compact) {
+        if (!externalize_set<kNotify>(shard, op, object)) return false;
+        source = CollectionRef(object);
+    }
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    reply_set_header(op.sink(), count, op.resp3());
+    index = 0;
+    uint32_t next = 0;
+    visit([&](Slice member) {
+        if (next < selected.size() && index == selected[next]) ++next;
+        else reply_bulk(op.sink(), member);
+        ++index;
+    });
+    if (source.is_embedded()) {
+        // A compact survivor set cannot exceed its original embedded capacity.
+        source.replace_compact(std::move(rebuilt.mutable_compact()));
+        set_int_width(source, width);
+        set_max_member_bytes(source, max_bytes);
+    } else *source.external_as<SetVal>() = std::move(rebuilt);
+    return true;
+}
+
 template <bool kNotify>
 void cmd_spop(Shard& shard, Op& op) {
     const bool with_count = op.argc() == 3;
@@ -944,6 +1029,13 @@ void cmd_spop(Shard& shard, Op& op) {
         return;
     }
 
+    if (with_count && (size - count) * 5 <= count) {
+        if (pop_rebuilt<kNotify>(shard, op, object, static_cast<uint32_t>(count))) {
+            if constexpr (kNotify)
+                notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
+        }
+        return;
+    }
     CollectionRef set = as_set(object);
     ObjectSizeTracker size_tracker(shard.store(), object);
     if (set.encoding() == CollectionEncoding::Compact) {

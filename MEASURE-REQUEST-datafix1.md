@@ -19,17 +19,25 @@ before the quick exit. The label fixture includes the new source-declared label;
 its EXPECT count check will remain red until the maintainer updates the counts.
 Further item proofs, final identity, artifacts and merit request follow below.
 
-CD4.4: partial SPOP preserves intset/listpack, including integer width; expanded
-sets remain expanded. PRE fails / POST passes the six engine/mode legs. Conservation,
-uniqueness, TTL and non-growing MEMORY USAGE assertions accompany every shape.
-Cost per call, n members / k popped / B packed bytes: PRE first partial pop builds
-an expected O(n) hashtable and then does expected O(k) picks, allocating O(n)
-table/string storage permanently. POST single pop selects directly (intset) or
-walks (listpack), then shifts at most B bytes, O(B) with no auxiliary allocation;
-counted k>1 visits the compact set twice and rebuilds survivors once, O(n+B),
-O(k+B) temporary storage, no rejection sampling and no permanent promotion.
-These are algorithmic costs, not measured throughput or cycle claims.
-Cumulative gate delta DQ=+2 / DF=+2; EXPECT constants unchanged.
+CD4.4: small partial SPOP retains intset/listpack; a counted pop with
+(n-k)*5 <= k rebuilds the survivors exactly at Redis's branch threshold. That
+can narrow an intset, demote a hashtable to a listpack, or promote survivors
+under lowered live limits. The expanded directed row passes six POST legs and
+fails six PRE legs. It checks conservation, uniqueness, TTL, encoding, bounded
+memory, and rebuilt intset memory against a fresh set of the same survivors.
+Independent oracle receipts: docs/datafix1/oracle-spop-rebuild/; paired gate
+proof: docs/datafix1/{pre,post}-spop-rebuild-proof.tar.gz.
+Cost per call, n members / k popped / B packed bytes: PRE's first compact
+partial pop builds an expected O(n) table, then takes expected O(k) picks,
+allocating O(n) table/string storage permanently. POST's single compact pop
+walks or indexes once and shifts at most B bytes, O(n+B) with no auxiliary
+allocation. Small counted compact pops sample and rebuild in linear passes,
+O(n+B) time and O(k+B) temporary storage. Large counted pops sample survivors
+in one pass, build them once, and emit the remainder in another pass: O(n+B)
+plus expected hash insertion work if current limits require a table, with
+O(n-k + survivor bytes) temporary storage. There is no rejection sampling or
+repeated compact membership search. These are algorithmic costs, not measured
+throughput or cycle claims. Cumulative gate delta DQ=DF=+2; EXPECT unchanged.
 
 CD4.5: one-node quicklists demote after LPOP/RPOP, LSET, LREM (when something was
 removed), LTRIM (including a no-op trim), blocking/MPop and mover removals. The
