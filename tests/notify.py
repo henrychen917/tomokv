@@ -251,7 +251,7 @@ try:
     expect_e("$g", ("SET", "str:ttl", "v", "EX", "10"),
              [("set", "str:ttl"), ("expire", "str:ttl")], "SET EX")
     expect_e("g", ("SET", "str:past", "v", "PXAT", "1"),
-             [("del", "str:past")], "SET past")
+             [("expire", "str:past")], "SET past")
     expect_e("$", ("SETNX", "str:nx", "v"), [("set", "str:nx")], "SETNX")
     expect_none("E$", ("SETNX", "str:nx", "w"), "SETNX no-op")
     expect_e("$g", ("SETEX", "str:setex", "30", "v"),

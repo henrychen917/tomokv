@@ -145,7 +145,25 @@ def setbit(peer):
     peer.admin.cmd('CONFIG', 'SET', 'save', '')
 
 
-CASES = {'setbit': setbit}
+def setpast(peer):
+    for option in ('EXAT', 'PXAT'):
+        for present in (False, True):
+            key = f'nc:past:{option}:{present}'
+            peer.setup(*([('SET', key, 'old')] if present else []))
+            peer.step('SET elapsed ' + key, ('SET', key, 'value', option, 1), b'OK',
+                      [('set', key), ('expire', key)])
+            peer.step('lazy expiry ' + key, ('GET', key), None,
+                      [('expired', key), ('keymiss', key)])
+        key = f'nc:getex:{option}'
+        peer.setup(('SET', key, 'value'))
+        peer.step('GETEX past control', ('GETEX', key, option, 1), b'value', [('del', key)])
+    peer.setup()
+    peer.step('XX absent control', ('SET', 'nc:xx', 'v', 'XX', 'PXAT', 1), None, [])
+    peer.setup(('SET', 'nc:nx', 'v'))
+    peer.step('NX present control', ('SET', 'nc:nx', 'v', 'NX', 'EXAT', 1), None, [])
+
+
+CASES = {'setbit': setbit, 'setpast': setpast}
 
 
 def main():

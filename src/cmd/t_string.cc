@@ -476,16 +476,8 @@ void cmd_set(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    // Redis treats an already elapsed (now > at) SET deadline as set-then-expire: the old value is
-    // removed, no dead replacement is left for DBSIZE/active expiry, and GET (if requested) keeps
-    // the reply copied above (never EX/PX). A deadline equal to now stays live until the next ms.
-    if (expire >= 0 && expire < sh.now_ms()) {
-        if (old) sh.store_erase<kNotify>(op.hash, op.key());
-        else if constexpr (kNotify)
-            notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
-        if (!options.get) reply_ok(op.sink());
-        return;
-    }
+    // An elapsed SET still installs a value and deadline. Redis emits set/expire
+    // here; the later lazy/active expiry owns expired and its accounting.
     const StoreResult result =
         store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), expire, true,
                                   reserve_ttl_slot);

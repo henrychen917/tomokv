@@ -14,3 +14,12 @@ initial diagnostic: 65/65 bodies identical (`identity-setbit.json`). Final proof
 Current row delta: DQ=+1, DF=+1, at `collect_job notifycompat` before the quick exit.
 The explicit label fixture matches the source (757 labels); protected EXPECT values
 are unchanged. Maintainer required counts at this step: 740 quick / 757 full.
+
+CD4.22: oracle confirms SET EXAT/PXAT past emits `set, expire`, followed by
+`expired, keymiss` when a GET triggers lazy expiry with active expiry disabled.
+Both existing and absent keys are covered. GETEX past already emits `del` on both
+implementations and is retained as a control (NOT REPRODUCED as a GETEX defect).
+`tests/notify.py` now expects `expire` for its generic-only event mask. Exact
+oracle bytes are in `docs/notifycompat/oracle-setpast.log`. The clean SET
+specialization is unchanged; all 65 selected hot bodies remain identical.
+Current DQ=+2 / DF=+2; required counts 741 / 758. Full final matrix pending.
