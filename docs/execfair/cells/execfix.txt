@@ -1,0 +1,13 @@
+# Mainline-only execfix throughput request. Never run by the coding lane.
+# Eight generated keys/command, 64-byte values, p8, 512 total connections.
+# Default command posture isolates the changed atomic-0 NX admission; atomic-1 and MSET control it.
+# MSETNX uses the instrument's populated keyspace and must reject with 0.
+# id | mode | rl | ov | ro | op | depth | conns | reserved | reserved | pin | atomic | score | mix | smoke
+execfix_nx_1s_a0 | 1s | rl=0 | ov=0 | ro=0 | MSETNX | p8 | 512 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0
+execfix_ms_1s_a0 | 1s | rl=0 | ov=0 | ro=0 | MSET   | p8 | 512 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0
+execfix_nx_2s_a0 | 2s | rl=0 | ov=0 | ro=0 | MSETNX | p8 | 512 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0
+execfix_ms_2s_a0 | 2s | rl=0 | ov=0 | ro=0 | MSET   | p8 | 512 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0
+execfix_nx_1s_a1 | 1s | rl=0 | ov=0 | ro=0 | MSETNX | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+execfix_ms_1s_a1 | 1s | rl=0 | ov=0 | ro=0 | MSET   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+execfix_nx_2s_a1 | 2s | rl=0 | ov=0 | ro=0 | MSETNX | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+execfix_ms_2s_a1 | 2s | rl=0 | ov=0 | ro=0 | MSET   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0

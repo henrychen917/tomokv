@@ -1,0 +1,27 @@
+{
+  "total": 23008,
+  "functions": {
+    "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)": 1312,
+    "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)": 2208,
+    "tomo_db0::Op::key() const": 352,
+    "tomo_db0::(anonymous namespace)::store_string(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool) [clone .isra.0]": 1696,
+    "tomo_db0::(anonymous namespace)::parse_i64(tomo_db0::Slice, long&) [clone .constprop.0] [clone .isra.0]": 1824,
+    "tomo_db0::FlatStore::make_set_int(tomo_db0::Slice, long, long, bool) [clone .isra.0]": 1568,
+    "tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]": 2272,
+    "tomo_db0::(anonymous namespace)::map_insert(tomo_db0::FlatStore&, unsigned long, tomo_db0::KvObj*)": 544,
+    "tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)": 1568,
+    "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)": 4608,
+    "tomo_db0::FlatStore::deadline(unsigned long, tomo_db0::KvObj const*) const [clone .isra.0]": 224,
+    "tomo_db0::FlatStore::track_expire(unsigned long, tomo_db0::KvObj*) [clone .isra.0]": 288,
+    "tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)": 1536,
+    "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)": 320,
+    "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)": 736,
+    "tomo_db0::kvobj_size(tomo_db0::KvObj const*)": 992,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&)": 192
+  },
+  "excluded": {
+    "mallocx@plt": 32,
+    "memcmp@plt": 32
+  }
+}

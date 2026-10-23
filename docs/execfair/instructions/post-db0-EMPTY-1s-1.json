@@ -1,0 +1,24 @@
+{
+  "total": 1228,
+  "functions": {
+    "void tomo_db0::CoreConcurrencyTest::empty<true>(tomo_db0::Server&)": 2,
+    "unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()": 286,
+    "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()": 28,
+    "unsigned int tomo_db0::ExLoopT<true>::service_stale_forwards<32u, false>()": 35,
+    "tomo_db0::ExLoopT<true>::drain_releases(bool)": 150,
+    "unsigned int tomo_db0::ExLoopT<true>::service_multi_retries<false>()": 30,
+    "unsigned int tomo_db0::ExLoopT<true>::service_atomic_deferred<false>()": 27,
+    "unsigned int tomo_db0::ExLoopT<true>::service_xshard_retries<false>()": 21,
+    "unsigned int tomo_db0::ExLoopT<true>::service_ordered_deferred<32u, false>()": 30,
+    "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)": 44,
+    "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)": 251,
+    "tomo_db0::ExLoopT<true>::flush_xshard_commits()": 14,
+    "tomo_db0::ExLoopT<true>::active_expire_cycle()": 116,
+    "tomo_db0::FlatStore::active_expire(unsigned int)": 100,
+    "tomo_db0::notify_ex_pass_entry(tomo_db0::Server&, tomo_db0::Shard&, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::LoopSignals&)": 68,
+    "tomo_db0::ExLoopT<true>::aof_flush_pass()": 26
+  },
+  "excluded": {
+    "_Z18execfair_trace_endv": 1
+  }
+}

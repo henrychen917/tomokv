@@ -1,0 +1,32 @@
+{
+  "pad_kind": "A: PRE behaviour with candidate cold object/allocation and aggregate text sizes",
+  "pad_limits": "Individual function addresses and other ELF sections are not matched.",
+  "pad_attempts": [
+    {
+      "padding": 19056,
+      "text_size": 8144647
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "path": "build/pre/tomokv",
+      "sha256": "8d49d8a91079415bccc5447633f6ba9bba65b3669192d497f9975a392343d948",
+      "text_bytes": 8124983
+    },
+    "POST": {
+      "path": "build/tomokv",
+      "sha256": "df6bef840806e18cb0cd3e42bc926eef6cb7a52e0412e4f75479eb8afdf50c2c",
+      "text_bytes": 8144647
+    },
+    "POST-ALT": {
+      "path": "build/post-alt/tomokv",
+      "sha256": "b0810592ab9f0f191bf7155a882bea6c53de1ff3ffbf408d2b7f305dceff45fa",
+      "text_bytes": 8144663
+    },
+    "PAD-A": {
+      "path": "build/pad-a/tomokv",
+      "sha256": "7aae2fd27ce2d50648b42441749d834333a1d33bbaffc973802696588694bf30",
+      "text_bytes": 8144647
+    }
+  }
+}
