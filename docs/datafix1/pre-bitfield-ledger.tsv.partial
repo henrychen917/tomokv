@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_bitfield; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	2.770000	datafix1 BITFIELD bounds (both engines and modes)

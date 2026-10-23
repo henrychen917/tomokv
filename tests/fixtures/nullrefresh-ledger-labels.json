@@ -387,6 +387,7 @@
     "datafix1 SPOP encodings (both engines and modes)",
     "datafix1 list demotion (both engines and modes)",
     "datafix1 SORT locale (both engines and modes)",
+    "datafix1 BITFIELD bounds (both engines and modes)",
     "plain-write lost updates (atomic 0)",
     "lbsignals battery (atomic 0)",
     "slowlog battery (atomic 0)",

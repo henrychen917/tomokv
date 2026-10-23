@@ -1079,7 +1079,7 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -2466,6 +2466,14 @@ job_datafix1_locale(){
       --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
       && ok "datafix1 SORT locale (both engines and modes)" \
       || bad "datafix1 SORT locale (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_bitfield(){
+  row_begin "datafix1 BITFIELD bounds (both engines and modes)"
+  py tests/datafix1_bitfield.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 BITFIELD bounds (both engines and modes)" \
+      || bad "datafix1 BITFIELD bounds (both engines and modes)" "see $TMPDIR/proof.log"
 }
 
 job_sort(){
@@ -4263,6 +4271,7 @@ collect_job datafix1_geo
 collect_job datafix1_spop
 collect_job datafix1_lists
 collect_job datafix1_locale
+collect_job datafix1_bitfield
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 

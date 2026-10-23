@@ -50,3 +50,13 @@ all source types and concurrent CONFIG/sort checks pass 12 POST legs; PRE fails.
 Config consumes 8 reserved bytes; all existing fields and the 624-byte size stay
 fixed. The differential's stale C-only implementation comment is corrected; its
 fixed-order corpus still requires C collation. Cumulative DQ=DF=+4.
+
+CD4.10: BITFIELD checks the first byte like Redis; indexed offsets use explicit
+unsigned machine-word multiplication, matching the oracle's wrapped # offset
+behavior without C++ signed overflow. GET/SET/INCRBY/GETRANGE/STRLEN and refusal
+atomicity pass six POST legs; PRE fails. Redis lookupStringForBitCommand grows to
+(last_bit >> 3)+1 without a second bulk-limit check. A field is at most 64 bits,
+so growth can exceed the configured limit by at most eight bytes; the existing
+UINT32_MAX-64KiB supported cap leaves ample representable space. A static_assert
+pins this proof. Read-only probes exercise the maximum supported cap without a
+multi-gigabyte allocation. Cumulative DQ=DF=+5.
