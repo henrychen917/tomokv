@@ -1,0 +1,20 @@
+{
+  "quick": {
+    "before": 740,
+    "after": 739,
+    "delta": -1
+  },
+  "full": {
+    "before": 757,
+    "after": 756,
+    "delta": -1
+  },
+  "constants": [
+    "EXPECT_QUICK=685",
+    "EXPECT_FULL=702"
+  ],
+  "removed_collector_line": 4687,
+  "old_quick_exit_line": 4910,
+  "new_quick_exit_line": 4904,
+  "source_fixture_multisets_equal": true
+}

@@ -256,12 +256,10 @@ struct CoreConcurrencyTest {
         Fixture<Fused> f;
         require(phase(f, r7) == 0, "empty fixture has no unrelated work");
         Client c(-1); f.client(c, 1); fill(c, 8, 1); f.io.enqueue_serve(&c);
-        for (unsigned i = 0; i < 3; ++i)
-            require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0,
-                    "bounded deferral advancement is positive work");
-        for (unsigned i = 0; i < 8; ++i)
-            require(phase(f, r7) == 0 && c.serve_pending(),
-                    "saturated deferral parks with its lifetime pin");
+        // WB4.1 is reopened: bounded and saturated deferrals both preserve PRE work.
+        for (unsigned i = 0; i < 11; ++i)
+            require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0 && c.serve_pending(),
+                    "deferral alone is positive work");
         for (unsigned i = 1; i < 8; ++i) c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
         phase(f, r7); // Deliberately no new request or completion enqueue.
         require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");

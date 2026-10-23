@@ -762,7 +762,6 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
-    wb_rule::IdleWindow wb_idle;
     Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
@@ -818,7 +817,6 @@ void IoLoop::r7_run_loop() {
         scatter_pool_.reap_deferred();
 
         uint32_t did = 0;
-        uint32_t wb_completions = 0;
         {
             // The pass-boundary clock is already sampled. Reuse that same cut for
             // every monotonic millisecond consumer instead of issuing separate clock_gettime
@@ -888,8 +886,7 @@ void IoLoop::r7_run_loop() {
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
             } else {
-                wb_completions = collect_retire_work<HasUnix, kEp>();
-                did += wb_completions;
+                did += collect_retire_work<HasUnix, kEp>();
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp>();
@@ -914,10 +911,6 @@ void IoLoop::r7_run_loop() {
                 did += srv_->save_cron_pass(*self_, ring_);
                 save_cron_beat_ms_ = cached_now_ms_ + 1000;
             }
-        }
-        if constexpr (!Fused) {
-            wb_idle.observe(pass_ns, wb_completions != 0);
-            if (!did && !pending_serve_.empty() && wb_idle.active(pass_ns)) did = 1;
         }
         // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
         // PREPARED during the work section but only reach the kernel on submit; taking
@@ -953,7 +946,6 @@ void IoLoop::r7_run_loop() {
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
-        wb_idle.park();
         const unsigned wait_ms = idle_timeout_ms();
         if constexpr (Fused) {
             if (__builtin_expect(srv_->read_local_enabled(), false))

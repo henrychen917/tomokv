@@ -54,7 +54,7 @@ MUTANTS = {
     "capture": ("phase", POLICY, "visits < ready_now", "true", "capture", "callback cannot extend captured visit count"),
     "visit": ("phase", POLICY, "visits < ready_now", "visits <= ready_now", "fifo", "deferred rotation preserves order"),
     "dead": ("phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "defer(*c, loop.wb_config_)", "dead", "dead entry removed and unpinned"),
-    "work": ("phase", POLICY, "work += c->wb_deferrals() != previous_deferrals;", "/* removed bounded advancement */", "progress", "bounded deferral advancement is positive work"),
+    "work": ("phase", POLICY, "if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase", "if (false) ++work;", "progress", "deferral alone is positive work"),
     "split-policy": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-policy", "2s uses exact composite fraction"),
     "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-local", "2s reader capability shares composite writeback"),
     "split-budget": ("split-phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "split-budget", "exact mode-specific budget"),
