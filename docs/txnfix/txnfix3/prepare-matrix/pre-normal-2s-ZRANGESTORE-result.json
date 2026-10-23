@@ -1,0 +1,19 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "ZRANGESTORE",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-matrix/pre-normal-2s-ZRANGESTORE.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-matrix/pre-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "118a261b8e2b4557c1ad2e2bffa56c0bf531603deea2d73fd21316627f73969e",
+  "counts": {}
+}

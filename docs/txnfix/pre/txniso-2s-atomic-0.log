@@ -1,0 +1,7 @@
+FAIL D1 AssertionError(('D1', [1, [b'1', b'0'], 1], 1))
+FAIL D2 AssertionError(('D2', [1, [b'1', b'0'], 1], 1))
+PASS D3
+FAIL D4a AssertionError(('D4a', [1, [b'1', b'0'], 1], 1))
+FAIL D4b AssertionError(('changed WATCH must yield null', [1, [b'1', b'0'], 1]))
+FAIL D1b AssertionError(([1, 1], (2, 0.1609392580576241), (1, 0.006979412864893675)))
+FAIL D5 AssertionError()

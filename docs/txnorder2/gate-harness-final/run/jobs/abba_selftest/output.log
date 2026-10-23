@@ -1,0 +1,3 @@
+  row budget: 1200s; median=-s; abba-selftest-cx-compat2-851.44s-plus-40pct-rounded; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       FAIL (family exited 130 before this row produced a verdict)
+  correctness family abba_selftest                     FAIL (owned process teardown did not complete)

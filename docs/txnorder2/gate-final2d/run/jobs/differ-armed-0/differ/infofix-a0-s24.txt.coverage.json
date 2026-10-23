@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 461,
+    "DEL": 458,
+    "EXISTS": 490,
+    "GET": 466,
+    "PING": 2451,
+    "SET": 919,
+    "STRLEN": 503,
+    "TYPE": 452
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "PING": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ]
+  }
+}

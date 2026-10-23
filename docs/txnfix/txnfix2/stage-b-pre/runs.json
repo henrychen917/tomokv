@@ -1,0 +1,380 @@
+[
+  {
+    "name": "T03-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t03_mover_replay.py",
+      "22601",
+      "0",
+      "2s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T03-2s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.8149828240275383,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T04-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t04_mover_stress.py",
+      "22601",
+      "tomo",
+      "0",
+      "2s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T04-2s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.3642633529379964,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-smove-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "0",
+      "2s",
+      "smove",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-smove-2s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.26410138700157404,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-rpoplpush-2s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "0",
+      "2s",
+      "rpoplpush",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-rpoplpush-2s-a0"
+    ],
+    "exit_code": 1,
+    "seconds": 0.36424358282238245,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T03-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t03_mover_replay.py",
+      "22601",
+      "1",
+      "2s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T03-2s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.9149681869894266,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T04-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t04_mover_stress.py",
+      "22601",
+      "tomo",
+      "1",
+      "2s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T04-2s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 2.3168861833401024,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-smove-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "1",
+      "2s",
+      "smove",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-smove-2s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 1.1652645086869597,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-rpoplpush-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "1",
+      "2s",
+      "rpoplpush",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-rpoplpush-2s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.6646265471354127,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T10-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t10_msetnx_hold.py",
+      "22601",
+      "2s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T10-2s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.5144293401390314,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T03-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t03_mover_replay.py",
+      "22601",
+      "0",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T03-1s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.8148592137731612,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T04-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t04_mover_stress.py",
+      "22601",
+      "tomo",
+      "0",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T04-1s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.4142121151089668,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-smove-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "0",
+      "1s",
+      "smove",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-smove-1s-a0"
+    ],
+    "exit_code": 0,
+    "seconds": 0.31417573103681207,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-rpoplpush-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "0",
+      "1s",
+      "rpoplpush",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-rpoplpush-1s-a0"
+    ],
+    "exit_code": 1,
+    "seconds": 0.36417560279369354,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T03-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t03_mover_replay.py",
+      "22601",
+      "1",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T03-1s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.9149863803759217,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T04-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t04_mover_stress.py",
+      "22601",
+      "tomo",
+      "1",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T04-1s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 2.467065622098744,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-smove-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "1",
+      "1s",
+      "smove",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-smove-1s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 1.1652616816572845,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T05-rpoplpush-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t05_mover_only.py",
+      "22601",
+      "tomo",
+      "1",
+      "1s",
+      "rpoplpush",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T05-rpoplpush-1s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.664573707152158,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  },
+  {
+    "name": "T10-1s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/txnfix_audit/t10_msetnx_hold.py",
+      "22601",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnfix/txnfix2/stage-b-pre/T10-1s-a1"
+    ],
+    "exit_code": 1,
+    "seconds": 0.46434253780171275,
+    "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+  }
+]

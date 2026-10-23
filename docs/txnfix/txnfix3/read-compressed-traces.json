@@ -1,0 +1,2794 @@
+[
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-KEYS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-KEYS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-KEYS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-KEYS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-RANDOMKEY-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-RANDOMKEY-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-RANDOMKEY.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-RANDOMKEY.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-db0-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-normal-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-certified/post-normal-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-certified/pre-db0-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-PFCOUNT-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTERCARD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-UNLINK.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-UNLINK-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-SINTERCARD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-ZINTERCARD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-1s-ZDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-1s-PFCOUNT.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-UNLINK-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-db0-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-ctor/post-normal-2s-SDIFF-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-XREAD-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-ZUNION-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-LCS-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MGET-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-DEL.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-ZUNION.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH-trace.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-EXISTS-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-SINTER.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH-ranges.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-TOUCH-ranges.json.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-TOUCH.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET.log",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-db0-2s-MSET.log.gz"
+  },
+  {
+    "original": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD-trace.json",
+    "compressed": "docs/txnfix/txnfix3/read-bound-both/post-normal-2s-XREAD-trace.json.gz"
+  }
+]

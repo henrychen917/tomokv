@@ -1,0 +1,28 @@
+{
+  "index": 125,
+  "name": "watchlive-2s",
+  "arm": "post",
+  "status": "FAIL",
+  "row": {
+    "name": "watchlive-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "tests/watchlive_gate.sh",
+      "27805",
+      "64-71",
+      "10",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data/watchlive-2s"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792667902.5031133,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "14d584925c1aa2594f441172def47ddba532bf93091ca41b9a0159bed3fdf2e8",
+  "returncode": 2,
+  "finished": 1792668070.8997824
+}

@@ -14,6 +14,8 @@
 
 namespace tomo {
 
+class Op;
+
 enum class PubSubEventKind : uint8_t {
     ModifyRequest,
     ModifyResult,
@@ -106,12 +108,16 @@ struct PubSubResult {
 struct PubSubNotificationItem {
     std::string channel;
     std::string message;
+    Op* reply = nullptr; // committed EXEC child, completed only on coordinator IO
+    bool shard = false;
 };
 
 struct PubSubNotificationChain {
     uint32_t coordinator_io = 0;
     uint32_t index = 0;
     std::vector<PubSubNotificationItem> items;
+    void (*completed)(void*) = nullptr;
+    void* completion = nullptr;
 };
 
 struct PubSubEvent {

@@ -1,0 +1,14 @@
+--- PRE
+
++++ POST
+
+@@ -57,7 +57,7 @@
+
+ jb     <_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E+OFFSET>
+ jmp    <_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E+OFFSET>
+ cmpb   $0x0,0x52(%rbp)
+-je     <_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E+OFFSET>
++jne    <_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E+OFFSET>
+ cmpq   $0x0,0x2c0(%rbp)
+ je     <_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E+OFFSET>
+ movabs $0xffffffff00000000,%rax

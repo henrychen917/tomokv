@@ -1,0 +1,5 @@
+In file included from docs/txnorder/proof-drivers/writer-cycle.cc:3:
+./tests/atomic_survivors_unit.cc: In function ‘int atomic_survivors_unused_main(int, char**)’:
+./tests/atomic_survivors_unit.cc:858:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  858 | }
+      | ^

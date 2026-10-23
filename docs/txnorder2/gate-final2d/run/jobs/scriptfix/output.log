@@ -1,0 +1,16 @@
+  row budget: 900s; median=0.12s; correctness-plan-fallback; scriptfix sandbox (1s)
+  scriptfix sandbox (1s)                               ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; scriptfix functions (1s)
+  scriptfix functions (1s)                             ok
+  row budget: 900s; median=0.71s; correctness-plan-fallback; scriptfix replies (1s)
+  scriptfix replies (1s)                               ok
+  row budget: 900s; median=0.845s; correctness-plan-fallback; scriptfix dump (1s)
+  scriptfix dump (1s)                                  ok
+  row budget: 900s; median=0.135s; correctness-plan-fallback; scriptfix sandbox (2s)
+  scriptfix sandbox (2s)                               ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; scriptfix functions (2s)
+  scriptfix functions (2s)                             ok
+  row budget: 900s; median=0.715s; correctness-plan-fallback; scriptfix replies (2s)
+  scriptfix replies (2s)                               ok
+  row budget: 900s; median=0.84s; correctness-plan-fallback; scriptfix dump (2s)
+  scriptfix dump (2s)                                  ok

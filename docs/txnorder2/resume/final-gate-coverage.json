@@ -1,0 +1,209 @@
+{
+  "status": "PASS",
+  "binary_sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f",
+  "requested_jobs": 48,
+  "completed_jobs": 51,
+  "job_scored_passes": 355,
+  "job_scored_failures": 0,
+  "ledger_verdicts": {
+    "ok": 355
+  },
+  "new_rows": 17,
+  "watch_mode_engine_database_legs": 24,
+  "handshake_legs": 4,
+  "rename_namespace_legs": 2,
+  "wake_modes": 2,
+  "checked_receipts": [
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R1.log",
+      "bytes": 71,
+      "sha256": "c09f5b61244e2025cd4ab4a474b0705f046f111b8e0a4df3df5389ddb289d97c"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R2.log",
+      "bytes": 71,
+      "sha256": "53a8a21fb4ca622d036150a9874131f6e09f4597ef8773a0536d50c5a60b5d9b"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R3.log",
+      "bytes": 71,
+      "sha256": "325eff0dd9dd4baa37edea4bdbfde00af1584d8f39fd623eb6aa5a7e7b849374"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R4.log",
+      "bytes": 71,
+      "sha256": "f9c92172c66c83e542c5e3a5e4290003e6067fba740e4727145651079436208f"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R5.log",
+      "bytes": 71,
+      "sha256": "c8abf9039ac4534c487e808dad54e29d0883c7f79af5cf6cce522d18af301cbd"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R6.log",
+      "bytes": 71,
+      "sha256": "5d992746dd56627f25c0ef16701704167f02564dac1ac31574f194d726940ab8"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R7.log",
+      "bytes": 71,
+      "sha256": "39c9ac54a72cc7f58bdc66f1d3c2a26f3a4a1abdde3e0a11f11e70624692ddc7"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R8.log",
+      "bytes": 214,
+      "sha256": "818174551fa7122a40c2f11ec3ef9482d4cbd7f7a360dc3b401b072c37a1c958"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R9.log",
+      "bytes": 8,
+      "sha256": "4c062b6ce76e02dc7df8827d8b2dc22ecf0b47ef9ce83428b1b8a3f6bb16cf34"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R10.log",
+      "bytes": 9,
+      "sha256": "079b449fc7f2961218ff8f1f00e5e1f80856496fa93feed5362d3bd121995b57"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R11.log",
+      "bytes": 9,
+      "sha256": "6d5fe94773c54c4d162bb00b26a1e474b30c55c56e80e5e412824449347735d1"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/R12.log",
+      "bytes": 523,
+      "sha256": "c6ae7e77210e1b35ee3f08a70ceebb3a00cbff9e25ac59ce0590d989da986dac"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/rename.log",
+      "bytes": 66,
+      "sha256": "cb6159672cbc3f685249805e3a4539efe784d50a5e27979796067318a32e564b"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-1s-uring-1.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-1s-uring-16.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-1s-epoll-1.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-1s-epoll-16.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-2s-uring-1.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-2s-uring-16.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-2s-epoll-1.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/serve-2s-epoll-16.log",
+      "bytes": 948,
+      "sha256": "e2ced695bb5b5468b8b6fb1b76fad9ddfb2e5276aaaa0ebc8dbf5218a6694c75"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-1s-uring-1.log",
+      "bytes": 620,
+      "sha256": "a21b6d887f1b8bb6e73a35349cae0d04ca81b01aec47b9285de7cd728f127e4d"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-1s-uring-16.log",
+      "bytes": 1008,
+      "sha256": "4381b8f88888d299ccd736d8c915d2acde0d1f15c075e07cb1c237562b0d7fed"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-1s-epoll-1.log",
+      "bytes": 620,
+      "sha256": "a21b6d887f1b8bb6e73a35349cae0d04ca81b01aec47b9285de7cd728f127e4d"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-1s-epoll-16.log",
+      "bytes": 1008,
+      "sha256": "4381b8f88888d299ccd736d8c915d2acde0d1f15c075e07cb1c237562b0d7fed"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-2s-uring-1.log",
+      "bytes": 620,
+      "sha256": "a21b6d887f1b8bb6e73a35349cae0d04ca81b01aec47b9285de7cd728f127e4d"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-2s-uring-16.log",
+      "bytes": 1008,
+      "sha256": "4381b8f88888d299ccd736d8c915d2acde0d1f15c075e07cb1c237562b0d7fed"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-2s-epoll-1.log",
+      "bytes": 620,
+      "sha256": "a21b6d887f1b8bb6e73a35349cae0d04ca81b01aec47b9285de7cd728f127e4d"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/flush-2s-epoll-16.log",
+      "bytes": 1008,
+      "sha256": "4381b8f88888d299ccd736d8c915d2acde0d1f15c075e07cb1c237562b0d7fed"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-1s-uring-1.log",
+      "bytes": 225,
+      "sha256": "def23ae489a1a80454014cb49009f431856435c928f2a85adaa86baf5b174691"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-1s-uring-16.log",
+      "bytes": 226,
+      "sha256": "68c783597594ca2f487c24c88ad018265e0c9471d6332cc63fcdf3703d3c338c"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-1s-epoll-1.log",
+      "bytes": 225,
+      "sha256": "b5dfb0ec5b407a7c8f7fa74c5270f4a14754f0f8800b991847b26336495bae11"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-1s-epoll-16.log",
+      "bytes": 226,
+      "sha256": "b04a3d0b3b2918411a0793bd23f7d434e2a827c1391fa7623641ff49a2f79a96"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-2s-uring-1.log",
+      "bytes": 225,
+      "sha256": "205126caee76feb3515a896c9ae0cea0106b6e0824407d825fe70db6d8ee6a50"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-2s-uring-16.log",
+      "bytes": 226,
+      "sha256": "8c1b4ba43dcabe6be75abd1fdbf7b2e9cf1fd184d73046f44dfb57241e73c2de"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-2s-epoll-1.log",
+      "bytes": 225,
+      "sha256": "2989d9ac78ec695074d166e145725612ba0ae417d42b49619c862a8ac8248ce4"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder2/readonly-2s-epoll-16.log",
+      "bytes": 226,
+      "sha256": "ea787305cfc530277c97466d94acb6c3f4898adee6832e9cbc89c4ca358976d7"
+    },
+    {
+      "path": "gate-final2d/run/jobs/txnorder_wake/wake.log",
+      "bytes": 128,
+      "sha256": "91a6b394db0f99f70d2fa1530e5b6c2c5a1136550fce49849bb162fdae19bec7"
+    }
+  ],
+  "note": "Selected correctness jobs only. Each differential part aggregates its internal comparisons into one scored row. No full iteration/source/performance receipt claimed."
+}

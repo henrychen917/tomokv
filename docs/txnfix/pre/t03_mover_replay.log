@@ -1,0 +1,10 @@
+geometry src=m:0 ex7 dst=m:4 ex6
+SMOVE    atomic=1 mode=2s mover=1 concurrent=1 (0.011s) -> SMEMBERS=['a', 'm'] expected ['a', 'm', 'z']  [LOST WRITE] groups+1
+LMOVE    atomic=1 mode=2s mover=b'm' concurrent=2 (0.006s) -> LRANGE=['a', 'm'] expected ['a', 'm', 'z']  [LOST WRITE] groups+1
+PFMERGE  atomic=1 mode=2s mover='OK' concurrent=1 (0.011s) -> PFCOUNT=3 expected 6  [LOST WRITE] groups+1
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t03_mover_replay.py", line 51, in <module>
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [('SMOVE', ['a', 'm'], ['a', 'm', 'z']), ('LMOVE', ['a', 'm'], ['a', 'm', 'z']), ('PFMERGE', 3, 6)]

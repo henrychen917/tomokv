@@ -1,0 +1,3 @@
+held-window witness: candidate installed, decision held, SET submitted
+MSETNX=1 SET='OK' (0.000s) -> GET k1=b'from-set' GET k2=b'from-msetnx'  [legal]
+server rc 0

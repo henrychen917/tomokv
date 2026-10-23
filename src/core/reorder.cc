@@ -3023,6 +3023,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             bind_thread_arena();
+            multi_bind_retry_lane(srv, tid);
             bool ok = self.init_task_inbox_local_fused();
             if (ok) ok = executors[tid].init(&srv, &self, true);
             std::string local_error;

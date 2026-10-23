@@ -1,0 +1,19 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "1s",
+  "values": "XREADGROUP",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal-1s-XREADGROUP.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/post-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "885550a372a1310f12d6c2c53d2b05dda9ed750a044f2c1bf251a5b8a0e9fdc4",
+  "counts": {}
+}

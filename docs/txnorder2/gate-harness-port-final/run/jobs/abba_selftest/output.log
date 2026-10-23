@@ -1,0 +1,2 @@
+  row budget: 1200s; median=-s; abba-selftest-cx-compat2-851.44s-plus-40pct-rounded; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.4dCFGV/jobs/abba_selftest/gate-abbagate-unit.txt)

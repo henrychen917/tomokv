@@ -1,0 +1,2 @@
+MSETNX=0 SET='OK' (0.000s) -> GET k1=b'from-set' GET k2=None  [legal]
+server rc 0

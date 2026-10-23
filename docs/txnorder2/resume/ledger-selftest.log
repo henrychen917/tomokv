@@ -1,0 +1,49 @@
+test_count_only_drift_is_actionable (__main__.FixtureControls.test_count_only_drift_is_actionable) ... ok
+test_current_inventory_and_duplicate_occurrences (__main__.FixtureControls.test_current_inventory_and_duplicate_occurrences) ... ERROR
+test_future_literal_row_names_missing_label (__main__.FixtureControls.test_future_literal_row_names_missing_label) ... ok
+test_future_loop_row_names_missing_label (__main__.FixtureControls.test_future_loop_row_names_missing_label) ... FAIL
+test_partial_fixture_cannot_redefine_inventory_via_count (__main__.FixtureControls.test_partial_fixture_cannot_redefine_inventory_via_count) ... ok
+test_receipt_refuses_once_before_control_setup (__main__.FixtureControls.test_receipt_refuses_once_before_control_setup) ... ok
+test_retired_row_names_extra_label (__main__.FixtureControls.test_retired_row_names_extra_label) ... ok
+test_same_count_substitution_and_duplicate_loss_are_rejected (__main__.FixtureControls.test_same_count_substitution_and_duplicate_loss_are_rejected) ... ok
+test_stale_wbland_fixture_names_both_missing_labels (__main__.FixtureControls.test_stale_wbland_fixture_names_both_missing_labels) ... ok
+test_unsupported_label_expression_refuses_without_evaluation (__main__.FixtureControls.test_unsupported_label_expression_refuses_without_evaluation) ... ok
+
+======================================================================
+ERROR: test_current_inventory_and_duplicate_occurrences (__main__.FixtureControls.test_current_inventory_and_duplicate_occurrences)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/gate_ledger_fixture.py", line 219, in test_current_inventory_and_duplicate_occurrences
+    self.assertEqual(check(self.gate, self.labels), self.labels)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/gate_ledger_fixture.py", line 200, in check
+    require(not missing and not extra and len(labels) == len(expected) == int(matches[0]),
+  File "/home/user/Projects/cx-txnfix/tests/gate_ledger_fixture.py", line 27, in require
+    raise ValueError(message)
+ValueError: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=732, source declarations=733
+Missing fixture labels: 'txnorder2 busy owner inbox wake' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.
+
+======================================================================
+FAIL: test_future_loop_row_names_missing_label (__main__.FixtureControls.test_future_loop_row_names_missing_label)
+----------------------------------------------------------------------
+ValueError: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=732, source declarations=734
+Missing fixture labels: 'txnorder2 busy owner inbox wake' (x1); 'writeback policy new-group witnesses + negative controls' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/gate_ledger_fixture.py", line 237, in test_future_loop_row_names_missing_label
+    with self.assertRaisesRegex(ValueError, "Missing fixture labels: 'writeback policy new-group witnesses"):
+AssertionError: "Missing fixture labels: 'writeback policy new-group witnesses" does not match "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=732, source declarations=734
+Missing fixture labels: 'txnorder2 busy owner inbox wake' (x1); 'writeback policy new-group witnesses + negative controls' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.500s
+
+FAILED (failures=1, errors=1)

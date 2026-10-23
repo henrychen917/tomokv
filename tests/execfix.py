@@ -497,6 +497,16 @@ def arm_breadth(conn, mode):
               f"failed condition as a per-command result")
         check(conn.command("GET", a) == b"1" and conn.command("GET", b) == b"2",
               f"{body[0]}: the keyspace is left correct (atomic {mode})")
+        # NX arbitration must not wait for its own parent's private destination.
+        conn.command("FLUSHALL")
+        conn.command("MULTI")
+        conn.command("SET", a, "1")
+        conn.command("SET", b, "2")
+        conn.command(*body)
+        wrapped = conn.command("EXEC")
+        check(wrapped == [b"OK", b"OK", 0],
+              f"{body[0]} sees a destination SET earlier in EXEC (atomic {mode})",
+              f"got {wrapped!r}")
 
 
 def main():

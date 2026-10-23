@@ -44,6 +44,7 @@ Boot: --enable-debug-command yes.  Without it the armed arms cannot run and the 
 """
 
 import socket
+import select
 import sys
 import threading
 import time
@@ -222,6 +223,10 @@ def straddle_arm(mode, kind):
             writer.close()
             return
         reader = Resp()
+        # WATCH routes MGET through its owners on armed read-local boots. A local
+        # read parked before capture can legally return the complete new image;
+        # this fixture requires an already captured OLD cut.
+        assert reader.cmd("WATCH", keys[0]) == b"OK"
         started = time.time()
         if kind == "MGET":
             reader.send("MGET", *keys)
@@ -230,9 +235,13 @@ def straddle_arm(mode, kind):
         else:
             reader.send("KEYS", "execwalk:*")
         time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+        assert not select.select([reader.sock], [], [], 0)[0], "fanout hold never opened"
+        # The foreign EXEC must not inherit the read's artificial park.
+        arm(0)
         exec_started = time.time()
         reply = transaction(writer, keys, new)
         exec_done = time.time()
+        assert not select.select([reader.sock], [], [], 0)[0], "writer missed the held read window"
         writer.close()
         values = reader.read()
         elapsed = time.time() - started
@@ -334,8 +343,22 @@ def ryow_control(mode):
 
 
 # ---- 5. unarmed stress: the shape the contended box used to fail -----------------------------
-def stress_arm(mode, seconds=2.0, readers=4):
-    for key in KEYS:
+def stress_arm(mode, seconds=2.0, readers=4, attempt=0):
+    # A successful data run without a cut is not an armed proof. Re-roll the
+    # key placement and connections, bounded, without relaxing any data check.
+    keys = []
+    shards = set()
+    prefix = "execatomic:stress:%d:%d:" % (time.time_ns(), attempt)
+    for probe in range(5000):
+        key = prefix + str(probe)
+        shard = ADMIN.cmd("DEBUG", "SHARD", key)
+        if shard not in shards:
+            shards.add(shard)
+            keys.append(key)
+        if len(keys) == 8:
+            break
+    assert len(keys) == 8 and all(isinstance(s, int) for s in shards), shards
+    for key in keys:
         ADMIN.cmd("SET", key, "0")
     before_cuts = info_field("atomic_fanout_cuts") or 0
     stop = threading.Event()
@@ -351,8 +374,8 @@ def stress_arm(mode, seconds=2.0, readers=4):
         try:
             start.wait()
             while not stop.is_set():
-                reply = transaction(client, KEYS, str(seq))
-                if reply != [b"OK"] * len(KEYS):
+                reply = transaction(client, keys, str(seq))
+                if reply != [b"OK"] * len(keys):
                     raise AssertionError("bad EXEC %r" % (reply,))
                 with lock:
                     state["commits"] += 1
@@ -368,7 +391,7 @@ def stress_arm(mode, seconds=2.0, readers=4):
         try:
             start.wait()
             while not stop.is_set():
-                values = client.cmd("MGET", *KEYS)
+                values = client.cmd("MGET", *keys)
                 with lock:
                     state["reads"] += 1
                     if not values or any(v != values[0] for v in values[1:]):
@@ -394,6 +417,10 @@ def stress_arm(mode, seconds=2.0, readers=4):
     cuts = (info_field("atomic_fanout_cuts") or 0) - before_cuts
     ok = (not errors and not alive and state["torn"] == 0 and
           state["reads"] > 100 and state["commits"] > 10)
+    if mode == 0 and ok and cuts == 0 and attempt < 3:
+        print("  rearm atomic-0 stress: no cut on fresh attempt %d/4" % (attempt + 1))
+        stress_arm(mode, seconds, readers, attempt + 1)
+        return
     if mode == 0:
         # Proves the readers really went through the newly-guarded path during THIS arm.
         ok = ok and cuts > 0

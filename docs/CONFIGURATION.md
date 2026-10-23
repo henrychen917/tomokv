@@ -58,7 +58,63 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `flip-auto` | T | u32, 0 or 1 | `0` | Boot/GET | `flip_auto`, `flip_fingerprint_window` (derived) | Automatic IO/executor split controller; 1s rejects 1; `src/core/config.h:863`, `:1168`. |
 | `hash` | T | `mix64` or `siphash` | `mix64` | Boot | `hash` | Select key hash implementation; `src/core/config.h:1057`. |
 | `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Single GET borrow threshold (0 disables); scatter cutover has a separate zero caveat below; `src/core/config.h:1042`. |
-| `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable the optional multi-key epoch-MVCC path; EXEC/script atomic machinery has separate admission; `src/core/config.h:1049`, `src/cmd/scatter_engine.inc:1742`. |
+| `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable grouping for ordinary multi-key mutations. EXEC and cross-shard scripts use the shared admission window at either setting; see `Server::atomic_try_admit` and `src/cmd/scatter_engine.inc`. |
+
+Each write EXEC is one version-ordered unit. Its version is fixed at first
+admission and retained across placement restarts; all its writes publish under
+one commit ticket. Units place read/write claims for their complete key sets.
+An older unit can wound a younger unit only while it is placing claims. Once
+execution begins it is immune. CONFIG and other irreversible handlers therefore
+run once, after placement. The global exclusive fallback and
+`DEBUG TXN-OCC-LIMIT` have been removed.
+
+Plain writers wait on an executing unit's keys (D1). They hold no key while
+waiting. A writer that meets a claim leaves a fairness mark so newly arriving
+units cannot keep overtaking it. WATCH validation claims block writers from
+validation, preserving the previous WATCH contract. A whole-shard read inside a
+write unit takes a whole-shard read hold; this can stall every writer on that
+shard until the unit decides. Claims affect writers and other write units;
+ordinary readers continue to resolve immutable predecessors without retries.
+The current implementation has a confirmed wait cycle between retained writer
+marks, placing units and WATCH validation claims; see the
+[deterministic reproduction and proposed amendment](txnorder/writer-cycle/README.md).
+Transaction liveness is not accepted until that design conflict is resolved.
+
+Read-only EXEC takes one registered cut across all participating shards,
+including separate local GET commands, and stamps its children with that cut.
+A single-shard read-only EXEC samples the safe watermark on its owner. It places
+no claims or read intents and does not wait on writers. This is the existing
+MGET contract: the cut selects retained MVCC versions; it does not cause a plain
+writer on an unversioned key to create history. It is therefore not a general
+snapshot guarantee against unversioned plain writes. Write units read newest
+committed values under their claims and wait for publication when needed.
+
+At `atomic 1`, read-dependent bare groups (including MSETNX and movers) use the
+same version arbitration. Blind MSET/DEL/UNLINK groups wait on every unit claim.
+A blind group that crosses between a unit's arrival and placement scans can
+restart that unit before execution; `atomic_txn_blind_restarts` counts this D3
+residual. Finite blind traffic gives finite restarts; continuous adversarial
+blind traffic has no restart bound. Blind groups carry no fairness marks.
+Cross-shard script APPLY yields and restages when it meets a claim; after the
+existing eight restages it returns TRYAGAIN. A unit may cancel undecided script
+candidates while reading or writing. `atomic 0` still permits EXEC and scripts.
+
+Only the final attempt supplies replies, notifications, tracking invalidations
+and AOF effects; their retirement order is unchanged. WATCH registrations
+survive placement wounds. INFO hit/miss accounting can include discarded
+attempts. `atomic_txn_dooms`, `atomic_group_dooms` and
+`atomic_txn_order_violations` are zero-valued falsifiers, not activity counters.
+`DEBUG TXN-LAST-ATTEMPTS` reports the previous EXEC's attempt count on that
+connection; `DEBUG TXN-PLACE-DEFER us` is a one-shot placement test hook (zero
+disables it).
+
+Two separate limitations remain: active expiry and eviction do not consult the
+new claim registry (an executing unit's read-only keys can still be removed by
+maintenance), and blind-group AOF staging order is the separate aoforder lane
+(F3). Eviction skips keys with live records/intents, but read claims alone are
+not pins. This implementation does not claim to close either path. See the
+[txnorder proof status](txnorder/STATUS.md) and
+[maintainer measurement request](../MEASURE-REQUEST-txnfix.md#txnorder).
 
 The file-only spelling `pin yes` leaves the default alone; `pin no` translates
 to the valueless `--no-pin`. A later `pin yes` does not undo an earlier `pin no`

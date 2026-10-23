@@ -1,0 +1,9 @@
+{
+  "command": [
+    "make",
+    "-j16",
+    "all"
+  ],
+  "exit_code": 0,
+  "seconds": 98.29584339028224
+}

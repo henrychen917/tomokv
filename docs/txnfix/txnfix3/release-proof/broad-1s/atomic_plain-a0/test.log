@@ -1,0 +1,11 @@
+  PASS SMOVE atomic=0 window opened attempt=1
+  PASS LMOVE atomic=0 window opened attempt=1
+  PASS RPOPLPUSH atomic=0 window opened attempt=1
+  PASS BLPOP atomic=0 window opened attempt=1
+  PASS BRPOP atomic=0 window opened attempt=1
+  re-arm BLMPOP on fresh state: wake push did not land inside the reserved commit bracket
+  PASS BLMPOP atomic=0 window opened attempt=2
+  PASS BZPOPMIN atomic=0 window opened attempt=1
+  PASS BZPOPMAX atomic=0 window opened attempt=1
+  PASS BZMPOP atomic=0 window opened attempt=1
+ATOMIC PLAIN PASS atomic=0: 9 witnessed races

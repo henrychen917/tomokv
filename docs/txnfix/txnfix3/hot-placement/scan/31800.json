@@ -1,0 +1,74 @@
+{
+  "source_sha256": "a08e4ff0145d2c7c8bdbeacce60a00092c6b85ea014577072195877a07c42641",
+  "object": "db0/src/cmd/t_server.o",
+  "pre_sha256": "7494375f0e04f12b589b2895203cd120e3e6425d51fda4fe9731115996dc8c40",
+  "budget": 31800,
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=31725",
+    "--param",
+    "max-inline-insns-auto=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnfix2/budgets/db0_src_cmd_t_server.o/31800.o",
+    "-g0",
+    "--param",
+    "large-unit-insns=31800"
+  ],
+  "rows": [
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const [clone .part.0] [clone .isra.0]",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpEENKUlPNS_5KvObjEE_clES6_.part.0.isra.0",
+      "pre_size": 482,
+      "post_size": 482,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]",
+      "symbol": "_ZN8tomo_db09FlatStore8erase_inEimNS_5SliceEPb.isra.0",
+      "pre_size": 1125,
+      "post_size": 1125,
+      "equal": true
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b",
+      "pre_size": 1567,
+      "post_size": 1567,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE",
+      "pre_size": 3007,
+      "post_size": 3007,
+      "equal": true
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE.cold",
+      "pre_size": 69,
+      "post_size": 69,
+      "equal": true
+    }
+  ],
+  "changed": 0
+}

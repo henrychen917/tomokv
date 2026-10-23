@@ -94,6 +94,7 @@ struct MultiWriteKey {
     uint64_t hash = 0;
     int32_t shard = -1;
     uint8_t ns = 0;
+    mutable bool signals_watch = true; // Not part of the hash/equality identity.
 };
 
 struct MultiWriteKeyHash {
@@ -114,6 +115,7 @@ struct MultiSession {
     bool active = false;
     bool queue_error = false;
     uint64_t next_queue_op_id = 0;
+    uint32_t last_attempts = 0;
     std::vector<MultiQueuedCommand> queue;
     uint64_t query_bytes = 0; // Redis query accounting: argv payload plus one pointer per arg
     void clear_queue() { queue.clear(); query_bytes = 0; }
@@ -156,6 +158,9 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // more than one owner -- the only shape that can straddle a foreign ticket, and therefore the
     // only shape that pays for a cut.  A write-only or single-owner transaction registers nothing.
     bool exec_read_fanout = false;
+    bool read_cut_sampled = false;
+    bool read_only = true;
+    std::vector<std::vector<TxnClaim>> claims;
     // THE TRANSACTION'S EXPIRY CUT, the time-axis twin of the read cut above.  Absolute
     // CLOCK_REALTIME milliseconds, stamped once before any fragment is posted and installed on
     // every owner that runs part of this transaction.  Redis reaches the same place from the other
@@ -168,6 +173,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // once on the owning IO thread before the tasks are posted and read by the owners through the
     // task handoff's release/acquire pair.  Zero in production.
     uint64_t debug_fanout_deadline = 0;
+    uint64_t debug_place_deadline = 0;
     int32_t debug_fanout_lead = -1;
     std::vector<std::unique_ptr<MultiCommand>> commands;
     std::vector<MultiWatchedKey> watched;
@@ -187,16 +193,30 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<uint8_t> final_shard_done;
     std::vector<uint8_t> aof_shard_done;
     std::vector<uint8_t> execution_noted;
+    std::vector<uint16_t> per_shard_intents;
+    // A remote cancellation must not change a running collection handler's
+    // selected object from its private clone to a mutable predecessor. The
+    // parent word decides visibility immediately (cancelled remains epoch 0);
+    // only this shard's owner releases its private overlay at finalization.
+    std::unique_ptr<std::atomic<bool>[]> shard_aborted;
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
-    std::atomic<uint64_t> epoch{0};
+    MultiDecision decision;
+    bool doomed = false;               // published by finalized
+    MultiRetryNode retry;
+    uint64_t exec_op_id = UINT64_MAX;
+    uint32_t attempt = 0;
+    bool has_publication = false;
+    bool publication_started = false; // IO-owned after all participant tasks finish
+    std::atomic<bool> backoff{false};
+    uint64_t retry_after_ns = 0;
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
-    std::atomic<bool> aborted{false};
     std::atomic<bool> watch_failed{false};
     std::atomic<bool> watch_phase_done{false};
     std::atomic<uint32_t> watch_pending{0};
+    std::atomic<uint32_t> watch_arrived{0};
     std::atomic<uint32_t> lists_pending{0};
     std::atomic<bool> finalizer_claimed{false};
     std::atomic<bool> finalized{false};
@@ -208,6 +228,140 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
 };
+
+namespace {
+
+void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
+    auto& lane = server.multi_retry_lane(io);
+    auto* prior = lane.head.load(std::memory_order_relaxed);
+    do { node.next = prior; }
+    while (!lane.head.compare_exchange_weak(prior, &node,
+                std::memory_order_seq_cst, std::memory_order_relaxed));
+    // Pair with the one-time binder's SC store/load. If a startup fence reaches
+    // a worker before it binds, the binder observes the queued head instead.
+    if (auto* signal = lane.signal.load(std::memory_order_seq_cst))
+        signal->store(true, std::memory_order_release);
+}
+void multi_enqueue_retry(MultiExecState& state) {
+    state.retry.unit = &state;
+    multi_enqueue_node(*state.server, state.owner_io, state.retry);
+}
+
+MultiDecision* multi_record_decision(const AtomicEntry& entry) {
+    if (entry.plain())
+        return entry.group_epoch ? reinterpret_cast<MultiDecision*>(entry.group_epoch) : nullptr;
+    if (!entry.group->multi_child || !entry.group->multi_parent) return nullptr;
+    return &const_cast<MultiExecState*>(
+        static_cast<const MultiExecState*>(entry.group->multi_parent))->decision;
+}
+
+// An owner that sees the parent's won CAS may run before the finalizer reaches
+// this child's epoch store. Help before find() can skip that committed image.
+void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
+    if (!entry.group || !entry.group->multi_child || !ticket ||
+        ticket == kAtomicCancelledEpoch) return;
+    uint64_t zero = 0;
+    entry.group->epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
+}
+
+uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
+                               TxnCounter cause = TxnCounter::Dooms) {
+    uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
+    if (decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing) {
+        if (!epoch) decision.owner->server->note_txn(
+            decision.owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
+        return epoch;
+    }
+    if (!epoch && decision.epoch.compare_exchange_strong(
+            epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
+        auto& state = *decision.owner;
+        state.server->note_txn(state.server->worker_of_shard(shard), cause);
+        decision.aborted.store(true, std::memory_order_release);
+        return kAtomicCancelledEpoch;
+    }
+    return epoch;
+}
+}
+
+void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
+    if (MultiDecision* decision = multi_record_decision(entry)) {
+        if (self && self->multi_parent == decision->owner) return;
+        const uint32_t shard = entry.plain()
+            ? decision->owner->server->router().shard_of(entry.plain_hash)
+            : entry.group->keys[entry.group->key_order[entry.begin]].shard;
+        const auto epoch = decision->epoch.load(std::memory_order_acquire);
+        multi_help_child(entry, epoch);
+        // Scatter's visitor precedes its claim gate. Merely inspecting a
+        // blocked candidate there is expected; a plain install reaching one is not.
+        if (!self && !epoch && !decision->aborted.load(std::memory_order_acquire))
+            decision->owner->server->note_txn(
+                decision->owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
+        return;
+    }
+    if (!entry.group || entry.group == self) return;
+    ScatterState& script = *entry.group;
+    if (script.group_attempt()) {
+        const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
+        if (!self) txn_group_cancel(script, shard);
+        return;
+    }
+    if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
+    uint64_t undecided = 0;
+    if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                            std::memory_order_acq_rel)) {
+        script.script_conflict.store(true, std::memory_order_release);
+        script.aborted.store(true, std::memory_order_release);
+    }
+}
+
+void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
+    UnitRef& unit = atomic_intent_unit(intent);
+    // Group wildcard intents are lifetime anchors, not dependencies. Claims
+    // gate writes on the actual keys; unrelated keys must ignore this anchor.
+    if (unit.unit_kind == UnitRef::Kind::Group) return;
+    if (unit.unit_kind != UnitRef::Kind::Txn ||
+        (self && self->multi_parent == unit.unit)) return;
+    auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
+    const uint32_t shard = intent.kind == 2 ? intent.hash
+        : decision.owner->server->router().shard_of(intent.hash);
+    if (!self && !decision.epoch.load(std::memory_order_acquire) &&
+        !decision.aborted.load(std::memory_order_acquire))
+        decision.owner->server->note_txn(decision.owner->server->worker_of_shard(shard),
+                                        TxnCounter::OrderViolations);
+}
+
+void atomic_cancel_unit_record(AtomicEntry& entry) { multi_cancel_record(entry); }
+void atomic_cancel_unit_intent(AtomicScriptIntent& intent) { multi_cancel_intent(intent); }
+void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
+    UnitRef& unit = atomic_intent_unit(intent);
+    if (unit.unit_kind == UnitRef::Kind::Group) {
+        auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
+        uint64_t zero = 0;
+        if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch)) {
+            state.aborted.store(true, std::memory_order_relaxed);
+            aof_abort_scatter_group(state);
+        }
+        const uint32_t shard = intent.kind == 2 ? intent.hash
+            : state.server->router().shard_of(intent.hash);
+        state.server->note_txn(state.server->worker_of_shard(shard),
+                               TxnCounter::IntentsLive, uint64_t{0} - 1);
+        return;
+    }
+    if (unit.unit_kind != UnitRef::Kind::Txn) std::abort();
+    auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
+    auto& state = *decision.owner;
+    uint64_t undecided = 0;
+    if (decision.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                               std::memory_order_relaxed)) {
+        // All producers have stopped; shutdown cancels any undecided attempt.
+        decision.aborted.store(true, std::memory_order_relaxed);
+        aof_abort_group(state.aof_group);
+    }
+    const uint32_t shard = intent.kind == 2 ? intent.hash
+        : state.server->router().shard_of(intent.hash);
+    state.server->note_txn(state.server->worker_of_shard(shard),
+                           TxnCounter::IntentsLive, uint64_t{0} - 1);
+}
 
 namespace {
 
@@ -253,7 +407,7 @@ void release_admission(MultiExecState& state) {
 }
 
 // Does `group_epoch` name a word THIS transaction publishes through? A transaction is one logical
-// unit spread over several epoch words: the plain per-key installs publish through `state.epoch`,
+// unit spread over several epoch words: the plain per-key installs publish through `state.decision.epoch`,
 // and every cross-shard command lowered inside the same EXEC keeps its own ScatterState and
 // publishes through that one. Anything asking "is there an undecided record here that is not mine"
 // has to accept all of them, or the transaction answers yes against its own RENAME/LMPOP child.
@@ -262,7 +416,7 @@ void release_admission(MultiExecState& state) {
 // while a fragment is still executing -- so this walk is stable on an owner thread.
 bool multi_state_owns_epoch(const MultiExecState& state, const void* group_epoch) {
     if (!group_epoch) return false;
-    if (group_epoch == static_cast<const void*>(&state.epoch)) return true;
+    if (group_epoch == static_cast<const void*>(&state.decision.epoch)) return true;
     for (const auto& command : state.commands)
         if (command && command->scatter &&
             group_epoch == static_cast<const void*>(&command->scatter->epoch))
@@ -297,6 +451,7 @@ void destroy_multi_state(MultiExecState* state) {
     // floor is pinned to a dead transaction, so cleanup would stop advancing server-wide. That is
     // an engine invariant, not an input condition; make it loud rather than silently degrading.
     if (state->snapshot_registered) std::abort();
+    notify_discard_batch(state->notify.exchange(nullptr, std::memory_order_acq_rel));
     destroy_multi_children(*state);
     release_admission(*state);
     delete state;
@@ -562,7 +717,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
 
 bool state_writes_key(const MultiExecState& state, const MultiWatchedKey& watched) {
     for (const MultiWriteKey& key : state.write_keys)
-        if (key.shard == watched.shard && key.ns == watched.ns && key.key == watched.key) return true;
+        if (key.signals_watch && key.shard == watched.shard && key.ns == watched.ns &&
+            key.key == watched.key) return true;
     return false;
 }
 
@@ -574,12 +730,82 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const int32_t shard = command.key_shards[index];
     MultiWriteKey candidate{
         std::string(key.p, key.n), FlatStore::hash_key(key), shard,
-        static_cast<uint8_t>(key.ns)};
-    if (!state.write_key_set.emplace(candidate).second) return;
+        static_cast<uint8_t>(key.ns), !has_name(command.queued, "xreadgroup")};
+    const auto [position, inserted] = state.write_key_set.emplace(candidate);
+    if (!inserted) {
+        if (candidate.signals_watch && !position->signals_watch) {
+            position->signals_watch = true;
+            for (auto& prior : state.write_keys)
+                if (MultiWriteKeyEqual{}(prior, candidate)) { prior.signals_watch = true; break; }
+        }
+        return;
+    }
     state.write_keys.push_back(std::move(candidate));
 }
 
 bool command_has_owner_work(const MultiCommand& command);
+
+Slice txn_claim_slice(const TxnClaim& claim) {
+    return claim.key.empty() ? Slice{} : Slice(claim.key.data() + 1,
+        static_cast<uint32_t>(claim.key.size() - 1), static_cast<uint8_t>(claim.key[0]));
+}
+
+void txn_add_claim(std::vector<TxnClaim>& claims, Slice key, TxnClaimMode mode,
+                   bool whole = false) {
+    std::string owned = whole ? std::string{} : database_owned_key(key);
+    for (auto& claim : claims) {
+        if (claim.key == owned) {
+            if (mode == TxnClaimMode::Write) claim.mode = mode;
+            return;
+        }
+    }
+    claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+}
+
+void txn_cap_claims(std::vector<TxnClaim>& claims) {
+    if (claims.size() <= kTxnClaimsPerShard) return;
+    TxnClaimMode mode = TxnClaimMode::Read;
+    for (const auto& claim : claims)
+        if (claim.mode == TxnClaimMode::Write) mode = claim.mode;
+    claims.clear();
+    claims.push_back({{}, 0, mode});
+}
+
+void prepare_claims(MultiExecState& state) {
+    for (const auto& command : state.commands) {
+        if (!command_has_owner_work(*command)) continue;
+        const auto* child = command->scatter;
+        const bool loader = child && (child->kind == Kind::DebugReload || child->kind == Kind::DebugLoadAof);
+        const bool writes = (command->queued.spec->flags &
+            (CmdFlags::Write | CmdFlags::SnapshotWrite)) || (child && child->atomic_group) || loader;
+        state.read_only &= !writes;
+        const auto mode = writes ? TxnClaimMode::Write : TxnClaimMode::Read;
+        for (size_t i = 0; i < command->key_args.size(); ++i)
+            txn_add_claim(state.claims[command->key_shards[i]],
+                          command->op->arg(command->key_args[i]), mode);
+        if (child) for (uint32_t i = 0; i < child->key_count; ++i)
+            txn_add_claim(state.claims[child->keys[i].shard],
+                          command->op->arg(child->keys[i].arg), mode);
+        const bool whole = loader || has_name(command->queued, "scan") ||
+            (child && ((child->kind == Kind::Sort && child->sort_options.deref) ||
+                       child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
+                       child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
+                       child->kind == Kind::Keys));
+        if (whole) for (int32_t sid : command->participants)
+            txn_add_claim(state.claims[sid], {},
+                loader || (writes && child && child->kind == Kind::AllShards)
+                    ? TxnClaimMode::Write : TxnClaimMode::Read, true);
+    }
+    // WATCH keys are part of placement's conflict set even when no queued
+    // command accesses them. Inactive namespace aliases are validation-only.
+    for (const auto& watched : state.watched) {
+        if (state.database_map[watched.db] != watched.ns) continue;
+        txn_add_claim(state.claims[watched.shard],
+            Slice(watched.key.data(), watched.key.size(), watched.ns),
+            state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
+    }
+    for (auto& claims : state.claims) txn_cap_claims(claims);
+}
 
 bool prepare_commands(Server& server, MultiExecState& state,
                       std::vector<MultiQueuedCommand>& queue) {
@@ -772,6 +998,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 if (command->participants.empty()) add_shard(command->participants, 0);
             }
             command->shard_done.assign(server.nshards(), 0);
+            state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
+                (has_name(command->queued, "publish") || has_name(command->queued, "spublish"));
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
             // classify_multi_command already found the key set spanning more than one shard, and an
             // Xshard child carries its own participant count.  A single-owner read resolves inside
@@ -811,6 +1039,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
             state.database_watch.resize(server.nshards());
             if (!server.databases().prepare_publish(routing_map, state.database_publish)) return false;
         }
+        prepare_claims(state);
+        if (state.read_only && state.shards.size() > 1) state.exec_read_fanout = true;
     } catch (const std::bad_alloc&) {
         return false;
     }
@@ -818,24 +1048,35 @@ bool prepare_commands(Server& server, MultiExecState& state,
 }
 
 MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io,
-                               MultiStateKind kind) {
+                               MultiStateKind kind, uint64_t age_ns = 0) {
     auto* state = new (std::nothrow) MultiExecState;
     if (!state) return nullptr;
+    state->decision.owner = state;
+    if (kind == MultiStateKind::Execute) {
+        state->decision.age_ns = age_ns ? age_ns : now_ns();
+        state->decision.age_io = owner_io;
+        state->decision.age_seq = ++server.multi_retry_lane(owner_io).age_seq;
+    }
     state->server = &server;
     state->client = &client;
     state->owner_io = owner_io;
+    state->retry.owner_io = owner_io;
+    state->retry.unit = state;
     state->origin_conn_id = client.id();
     state->watch_generation = client.watch_generation();
     state->kind = kind;
     try {
         state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
         state->shard_commands.resize(server.nshards());
+        state->claims.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);
         state->execution_joined.assign(server.nshards(), 0);
         state->final_shard_done.assign(server.nshards(), 0);
         state->aof_shard_done.assign(server.nshards(), 0);
         state->execution_noted.assign(server.nshards(), 0);
+        state->per_shard_intents.assign(server.nshards(), 0);
+        state->shard_aborted = std::make_unique<std::atomic<bool>[]>(server.nshards());
     } catch (const std::bad_alloc&) {
         delete state;
         return nullptr;
@@ -947,7 +1188,7 @@ void set_state_reply(MultiExecState& state, Op& public_op) {
         reply_null_array(public_op.sink(), public_op.resp3());
         return;
     }
-    if (state.aborted.load(std::memory_order_acquire)) {
+    if (state.decision.aborted.load(std::memory_order_acquire)) {
         reply_err(public_op.sink(), "EXECABORT Transaction discarded because of an execution error.");
         return;
     }
@@ -986,14 +1227,73 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
 // this anonymous namespace, next to multi_task_owns_epoch().
 std::atomic<uint64_t> g_exec_order_late{0};
 
+bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice key,
+                     bool, bool wildcard = false) {
+    if (state.read_only) return true;
+    if (state.decision.aborted.load(std::memory_order_acquire)) return false;
+    Server& server = *state.server;
+    bool ready = true;
+    shard.store().atomic_visit_unit_records(hash, key, wildcard, [&](AtomicEntry& entry) {
+        if (multi_state_owns_epoch(state, entry.group_epoch)) return;
+        uint64_t epoch = entry.group_epoch
+            ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+        if (auto* decision = multi_record_decision(entry)) {
+            epoch = decision->epoch.load(std::memory_order_acquire);
+            multi_help_child(entry, epoch);
+            if (decision->aborted.load(std::memory_order_acquire)) return;
+        }
+        if (epoch == kAtomicCancelledEpoch ||
+            (entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire))) return;
+        if (!epoch && entry.group && entry.group->kind == Kind::Script) {
+            multi_cancel_record(entry);
+            epoch = entry.group_epoch->load(std::memory_order_acquire);
+            if (epoch == kAtomicCancelledEpoch) return;
+        }
+        if (!epoch) {
+            // Placement forbids every live foreign candidate at execution.
+            server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+            if (entry.origin_conn_id == state.origin_conn_id)
+                g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
+            ready = false;
+        } else if (entry.origin_conn_id != state.origin_conn_id &&
+                   epoch > server.atomic_snapshot() &&
+                   !(server.atomic_publish_quiescent() && epoch <= server.atomic_snapshot())) {
+            server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::Waits);
+            ready = false;
+        }
+    });
+    return ready;
+}
+
+enum class TxnBlind : uint8_t { Clear, Completing, Crossing };
+TxnBlind txn_blind_scan(Shard& shard, const std::vector<TxnClaim>& claims,
+                        const void* own = nullptr) {
+    TxnBlind result = TxnBlind::Clear;
+    for (const auto& claim : claims)
+        shard.store().atomic_visit_unit_records(claim.hash, txn_claim_slice(claim),
+            claim.key.empty(), [&](AtomicEntry& entry) {
+                if (!entry.group || entry.group == own || entry.group->multi_parent == own ||
+                    entry.group->multi_child || entry.group->kind == Kind::Script) return;
+                const auto* attempt = entry.group->group_attempt();
+                if (attempt && attempt->age_ns) return; // TO-B unit: arbitrated by claims
+                if (entry.group->epoch.load(std::memory_order_acquire) ||
+                    entry.group->aborted.load(std::memory_order_acquire)) return;
+                if (entry.group->pending.load(std::memory_order_acquire))
+                    result = TxnBlind::Crossing;
+                else if (result == TxnBlind::Clear) result = TxnBlind::Completing;
+            });
+    return result;
+}
+
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 
 MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard,
                                     Slice key, uint64_t hash, uint32_t owner_thread_id,
                                     const void* watch_token = nullptr,
-                                    std::atomic<uint32_t>* watch_refs = nullptr) {
+                                    std::atomic<uint32_t>* watch_refs = nullptr,
+                                    bool signal_watch = true) {
     if (!watch_token) watch_token = &state;
-    cancel_applied_scripts(shard.store(), hash, key);
+    if (!multi_touch_key(state, shard, hash, key, true)) return MultiPrepareWrite::Retry;
     if (!watch_refs) watch_refs = &state.watch_refs;
     // THE FALSIFIER, and it must read ZERO. It asks EXACTLY the question the dispatch-time park in
     // ExLoop::execute() asks -- does this owner still hold an undecided record belonging to a
@@ -1027,9 +1327,10 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                 return multi_state_owns_epoch(state, group_epoch);
             }))
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
-    if (!shard.watch_write_ready(key, &state)) return MultiPrepareWrite::Retry;
-    shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
-                              &state.epoch, &state.aborted, watch_refs);
+    if (!shard.watch_txn_write_ready(key, state)) return MultiPrepareWrite::Retry;
+    if (signal_watch)
+        shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
+                                  &state.decision.epoch, &state.decision.aborted, watch_refs);
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
@@ -1053,8 +1354,8 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     uint32_t* owner_refs = &owner_progress.nodes;
     void* entry = nullptr;
     if (!shard.store().atomic_prepare_transaction(
-            key, hash, state.origin_conn_id, &state.epoch, &state.record_refs,
-            &state.aborted, owner_refs, entry)) {
+            key, hash, state.origin_conn_id, &state.decision.epoch, &state.record_refs,
+            &state.shard_aborted[shard.id()], owner_refs, entry)) {
         shard.store().atomic_unadmit(clone);
         if (clone) kvobj_free(clone);
         shard.store().atomic_clear_read_epoch();
@@ -1085,49 +1386,62 @@ bool command_has_owner_work(const MultiCommand& command) {
 bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiCommand& command,
                               Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return true;
-    std::vector<uint32_t> unique;
-    try { unique.reserve(command.key_args.size()); }
-    catch (const std::bad_alloc&) { state.aborted.store(true, std::memory_order_release); return false; }
-    for (size_t i = 0; i < command.key_args.size(); i++) {
-        if (command.key_shards[i] != shard.id()) continue;
-        const uint32_t arg = command.key_args[i];
-        bool duplicate = false;
-        for (uint32_t prior : unique)
-            duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
-        if (!duplicate) unique.push_back(arg);
+    // The common one-key command needs no duplicate-index allocation. Keep the
+    // full preflight-before-install order for the less common multi-key handler.
+    const uint32_t single = command.key_args.empty() ? 0 : command.key_args.front();
+    std::vector<uint32_t> storage;
+    const uint32_t* unique = &single;
+    size_t count = command.key_args.size();
+    if (count == 1) {
+        if (command.key_shards.front() != shard.id()) return true;
+    } else {
+        try { storage.reserve(count); }
+        catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
+        for (size_t i = 0; i < command.key_args.size(); i++) {
+            if (command.key_shards[i] != shard.id()) continue;
+            const uint32_t arg = command.key_args[i];
+            bool duplicate = false;
+            for (uint32_t prior : storage)
+                duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
+            if (!duplicate) storage.push_back(arg);
+        }
+        unique = storage.data();
+        count = storage.size();
     }
-    // Reservation/snapshot checks precede every physical install, so Retry never leaves half of a
-    // command installed merely because another EXEC still owns a watched key.
-    for (uint32_t arg : unique) {
+    // Multi-key handlers must preflight every key before the first install.
+    // For one key, prepare_write_key already performs these checks before its
+    // only install, including the ordering falsifiers and snapshot retry.
+    for (size_t i = 0; count > 1 && i < count; ++i) {
+        const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
-        if (!shard.watch_write_ready(key, &state)) return false;
+        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||
+            !shard.watch_txn_write_ready(key, state)) return false;
         const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
             return false;
         }
     }
-    for (uint32_t arg : unique) {
+    for (size_t i = 0; i < count; ++i) {
+        const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
         const MultiPrepareWrite result = prepare_write_key(
-            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id);
+            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
+            nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
         if (result == MultiPrepareWrite::Retry) return false;
         if (result == MultiPrepareWrite::Error) {
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
             return false;
         }
     }
     return true;
 }
 
-// The cut a multi-owner READ fragment of this transaction resolves at.  UINT64_MAX means "newest
-// committed at the instant this fragment runs", which is what every MULTI child used before this
-// lane; that is exactly the behaviour that let one MGET's eight fragments straddle a foreign
-// transaction's single ticket.  A transaction that registered no cut (write-only, single-owner, or
-// the cut was never drawn) keeps the old value, so nothing else in the file changes shape.
+// Read-only units borrow MGET's registered cut. Write units read newest committed
+// under their claims and enforce the publication watermark through rule P.
 uint64_t multi_read_cut(const MultiExecState& state) {
-    return state.snapshot_registered ? state.snapshot : UINT64_MAX;
+    return state.read_only ? state.snapshot : UINT64_MAX;
 }
 
 uint64_t multi_tripwire_slot(const Shard& shard, size_t key_index) {
@@ -1169,10 +1483,19 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
 
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
+    if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+        if (has_name(command.queued, "scan")) {
+            if (!multi_touch_key(state, shard, 0, {}, false, true)) return false;
+        } else for (size_t i = 0; i < command.key_args.size(); ++i) {
+            if (command.key_shards[i] != shard.id()) continue;
+            const Slice key = command.op->arg(command.key_args[i]);
+            if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
+        }
+    }
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
     if (command.op->spec->flags & CmdFlags::NotifySelected)
         notify_execute_source(shard, *command.op, command.notify_order_base);
-    shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+    shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
     command.op->spec->handler(shard, *command.op);
     complete_child_zc(shard, *command.op);
     shard.store().atomic_clear_read_epoch();
@@ -1207,26 +1530,28 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         // Capture the key's presence AT this command, including prior private
         // writes. Later commands may delete it or swap it away again. Publish
         // these invalidations only when the whole transaction commits.
-        shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+        shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
         const bool ok = shard.watch_database_swap(first, second,
             command.swap_physical[0], command.swap_physical[1], &state.database_watch[shard.id()]);
         shard.store().atomic_clear_read_epoch();
-        if (!ok) state.aborted.store(true, std::memory_order_release);
+        if (!ok) state.decision.aborted.store(true, std::memory_order_release);
         return true;
     }
     Op& op = *command.op;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     if (notify)
         notify_execute_source(shard, op, command.notify_order_base);
-    // MGET/EXISTS/TOUCH are the read kinds here and reach this function only with a key set that
-    // spans more than one shard, i.e. exactly the fan-out that could straddle. They resolve at the
-    // transaction's cut. MSET/MSETNX/DEL keep UINT64_MAX on purpose: their clone base must stay
-    // the newest committed value, or a read-modify-write inside EXEC would overwrite a concurrent
-    // commit from a stale image. Write visibility is deliberately untouched by this lane.
     const bool read_kind = command.kind == MultiCommandKind::Mget ||
-                           command.kind == MultiCommandKind::Exists;
-    shard.store().atomic_set_read_context(
-        read_kind ? multi_read_cut(state) : UINT64_MAX, state.origin_conn_id);
+                           command.kind == MultiCommandKind::Exists ||
+                           (command.kind == MultiCommandKind::Msetnx && stage == 0);
+    // All touches precede this command's first install on this shard.
+    for (size_t i = 0; i < command.key_args.size(); ++i) {
+        if (command.key_shards[i] != shard.id()) continue;
+        const Slice key = op.arg(command.key_args[i]);
+        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, !read_kind) ||
+            (!read_kind && !shard.watch_txn_write_ready(key, state))) return false;
+    }
+    shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
     if (command.kind == MultiCommandKind::Mget) {
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
@@ -1263,13 +1588,13 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 return false;
             }
             if (prepared == MultiPrepareWrite::Error) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             const WorkError stored = store_xstring_selected(
                 notify, shard, key, FlatStore::hash_key(key), op.arg(arg + 1));
             if (stored != WorkError::None) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             if (notify) notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, key);
@@ -1296,7 +1621,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 return false;
             }
             if (prepared == MultiPrepareWrite::Error) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             removed += notify ? shard.store_erase<true>(FlatStore::hash_key(key), key)
@@ -1351,13 +1676,46 @@ void assemble_cross_reply(MultiCommand& command) {
 
 bool execute_watch_phase(MultiExecState& state, Shard& shard) {
     if (state.watch_shard_done[static_cast<uint32_t>(shard.id())]) return true;
+    if (state.kind == MultiStateKind::Execute && !state.read_only &&
+        state.final_reply != MultiFinalReply::ExecAbort &&
+        !state.decision.aborted.load(std::memory_order_acquire)) {
+        uint8_t& noted = state.execution_noted[shard.id()];
+        if (state.shards.size() != 1 && !(noted & 4u)) {
+            // No shard holds anything until every participant has passed
+            // program order and its blind-candidate arrival scan.
+            if (txn_blind_scan(shard, state.claims[shard.id()], &state) != TxnBlind::Clear)
+                return false;
+            noted |= 4u;
+            state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
+        }
+        if (state.shards.size() != 1 &&
+            state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
+        if (state.debug_place_deadline && shard.id() != state.shards.front() &&
+            now_ns() < state.debug_place_deadline) return false;
+        const auto blind = txn_blind_scan(shard, state.claims[shard.id()], &state);
+        if (blind == TxnBlind::Completing) return false;
+        if (blind == TxnBlind::Crossing) {
+            TxnPhase placing = TxnPhase::Placing;
+            if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Wounded,
+                                                             std::memory_order_acq_rel)) {
+                state.backoff.store(true, std::memory_order_relaxed);
+                multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts);
+            }
+        } else {
+            Shard::WatchReservation claim{&state, &state.decision.epoch, &state.decision.aborted,
+                &state.watch_refs, state.client, state.watch_generation, false, true};
+            claim.unit_kind = 1;
+            if (!shard.watch_place_unit(state.claims[shard.id()], claim)) return false;
+        }
+    }
     if (state.kind == MultiStateKind::WatchAdd) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_add(key, state.client, state.watch_generation, watched.db)) return false;
         }
-    } else if (state.kind == MultiStateKind::Execute) {
+    } else if (state.kind == MultiStateKind::Execute &&
+               !state.decision.aborted.load(std::memory_order_acquire)) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
             // Inactive namespace aliases detect a later SWAPDB, but do not reserve
@@ -1365,20 +1723,15 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             if (state.database_map[watched.db] != watched.ns) continue;
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_validate_and_reserve(
-                    key, state.client, state.watch_generation, &state, &state.epoch,
-                    &state.aborted, &state.watch_refs,
-                    state_writes_key(state, watched))) return false;
+                    key, state.client, state.watch_generation, &state, &state.decision.epoch,
+                    &state.decision.aborted, &state.watch_refs,
+                    state_writes_key(state, watched), &state, !state.read_only)) return false;
         }
         if (state.client->watch_dirty()) {
             state.watch_failed.store(true, std::memory_order_release);
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
         }
-        for (const MultiWatchedKey& watched : state.watched) {
-            if (watched.shard != shard.id()) continue;
-            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
-                               state.client, state.watch_generation);
-        }
-    } else {
+    } else if (state.kind != MultiStateKind::Execute) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
             // A prior atomic writer may have completed its owner pass while its global decision is
@@ -1392,16 +1745,36 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
         }
     }
     state.watch_shard_done[static_cast<uint32_t>(shard.id())] = 1;
-    if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1)
+    if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+        if (state.kind == MultiStateKind::Execute &&
+            state.final_reply != MultiFinalReply::ExecAbort &&
+            !state.decision.aborted.load(std::memory_order_acquire)) {
+            TxnPhase placing = TxnPhase::Placing;
+            if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Executing,
+                                                             std::memory_order_acq_rel))
+                state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                       state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
+            else state.decision.aborted.store(true, std::memory_order_release);
+        }
         state.watch_phase_done.store(true, std::memory_order_release);
+    }
     return true;
 }
 
 void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
+    // A claim-skipped serve needs another owner sweep after either decision.
+    // The periodic blocking beat alone does not revisit clean registries.
+    if (shard.has_blocking_waiters()) shard.set_blocking_dirty();
+    state.shard_aborted[shard.id()].store(
+        state.decision.aborted.load(std::memory_order_acquire), std::memory_order_release);
+    const uint32_t intents = shard.store().atomic_unit_unpin(&state);
+    state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                           TxnCounter::IntentsLive, uint64_t{0} - intents);
+    shard.watch_finish_unit(state.claims[shard.id()], &state);
     if (!state.database_watch.empty()) {
         auto& targets = state.database_watch[shard.id()];
-        const bool committed = !state.aborted.load(std::memory_order_acquire);
+        const bool committed = !state.decision.aborted.load(std::memory_order_acquire);
         for (auto [client, generation] : targets) {
             if (committed && client->watch_generation() == generation) client->set_watch_dirty();
             client->watch_unref();
@@ -1410,8 +1783,12 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     }
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
-        shard.watch_write_ready(
-            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns), nullptr);
+        const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
+        shard.watch_write_ready(key, nullptr);
+        // Cancellation discards only an attempt. Keep the original watch entry
+        // and deadline so a write between attempts still gives EXEC's legal null.
+        if (!state.doomed && state.kind == MultiStateKind::Execute)
+            shard.watch_remove(key, state.client, state.watch_generation);
     }
     for (const MultiWriteKey& write : state.write_keys) {
         if (write.shard != shard.id()) continue;
@@ -1493,7 +1870,7 @@ void publish_multi_child_epochs(MultiExecState& state, uint64_t ticket) {
 void abort_multi_children(MultiExecState& state) {
     // EXECABORT also decides the parent's WATCH reservations. Without this
     // publication a queue-time error leaves epoch=0/aborted=false forever.
-    state.aborted.store(true, std::memory_order_release);
+    state.decision.aborted.store(true, std::memory_order_release);
     for (const auto& command : state.commands)
         if (command->scatter)
             command->scatter->aborted.store(true, std::memory_order_release);
@@ -1736,6 +2113,124 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
     return MultiIoAction::LocalDone;
 }
 
+// Shared first-dispatch/retry tail. Only begin_dispatch publishes the initial
+// ROB slot; a retry supplies an empty callback and preserves that slot/barrier.
+template <bool IofusedPrivateQueue, typename Begin>
+bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& pool,
+                            Client& client, Op& op, MultiExecState* dispatch, uint64_t op_id,
+                            bool* touched, uint32_t* touched_list, uint32_t& ntouched,
+                            Begin&& begin_dispatch) {
+    uint32_t needed[kMaxThreads] = {};
+    const uint32_t count = multi_dispatch_count(dispatch);
+    for (uint32_t i = 0; i < count; i++) {
+        const int32_t sid = multi_dispatch_shard(dispatch, i);
+        needed[server.worker_of_shard(sid)]++;
+    }
+    for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
+        if (!needed[tid]) continue;
+        ThreadCtx& owner = server.thread(tid);
+        const uint32_t free_slots = [&] {
+            if constexpr (IofusedPrivateQueue)
+                return owner.iofused_task_free_slots(self.id());
+            else
+                return owner.task_free_slots(self.id());
+        }();
+        if (free_slots < needed[tid]) {
+            // Returning through the one parse-loop continuation reaches the existing top-of-loop
+            // backpressure check, which has the same effect as the old in-line break.
+            client.set_atomic_backpressure(true);
+            return false;
+        }
+    }
+
+    // PIN THE TRANSACTION'S READ CUT, BEFORE ANY FRAGMENT IS POSTED.
+    // Drawn here rather than at execution for the same reason a bare cross-shard read draws it at
+    // prepare: this is the connection's program order, and register_snapshot publishes the cleanup
+    // floor synchronously, so no owner can resolve under a cut whose predecessors cleanup has
+    // already been free to collapse. `op` reuses the parse pass's cut when IO stamped one, which
+    // keeps a plain read and a transaction prepared back to back on one connection from disagreeing
+    // about which of them is older. Untaken -- and therefore free -- for any transaction that
+    // carries no multi-owner read.
+    if (__builtin_expect(dispatch->exec_read_fanout ||
+            (dispatch->kind == MultiStateKind::Execute && dispatch->read_only && dispatch->shards.size() > 1), false)) {
+        if (!pool.can_register_snapshot()) {
+            // The unresolved-cut window is full on this IO thread. Falling through without a cut
+            // would silently restore the defect, so this is backpressure: the state stays in
+            // session->pending and the same EXEC is re-dispatched on a later pass.
+            client.set_atomic_backpressure(true);
+            return false;
+        }
+        dispatch->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
+                                               : server.atomic_snapshot();
+        if (!pool.register_snapshot(server, dispatch, self.id())) {
+            dispatch->snapshot = UINT64_MAX;
+            client.set_atomic_backpressure(true);
+            return false;
+        }
+        // Vacuous-validation guard: one per transaction that really entered the machinery. A gate
+        // row for this defect that never moves this counter never armed the window it claims to
+        // close. register_snapshot may have adopted a confirmed newer cut, so the children are
+        // stamped from dispatch->snapshot afterwards, never from the value asked for.
+        server.note_atomic_exec_read_cut();
+        for (const auto& command : dispatch->commands)
+            if (command->scatter) command->scatter->snapshot = multi_read_cut(*dispatch);
+        // TEST HOOK arming, after the participant set exists so a lead shard can be named. Only a
+        // transaction carrying a multi-owner read arms it -- the writer transaction the battery
+        // races must stay free to run and publish its ticket inside the window.
+        const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
+        if (__builtin_expect(fanout_defer != 0, false) && dispatch->shards.size() > 1) {
+            dispatch->debug_fanout_lead = dispatch->shards[0];
+            dispatch->debug_fanout_deadline =
+                now_ns() + static_cast<uint64_t>(fanout_defer) * 1000ull;
+        }
+    }
+
+    // PIN THE TRANSACTION'S TIME CUT, BEFORE ANY FRAGMENT IS POSTED.
+    // Same argument as the read cut above, for the other axis a fan-out can straddle. Unlike the
+    // read cut this one is unconditional and free of any registry: a deadline is not a ticket
+    // anybody has to wait on, so pinning one costs a single clock read per EXEC and nothing else.
+    // The cross-shard children inherit it rather than stamping their own, so a transaction is one
+    // instant end to end and not one instant per lowered command.
+    if (dispatch->kind == MultiStateKind::Execute && dispatch->attempt == 0) {
+        const auto delay = server.take_debug_txn_place_defer();
+        if (delay) dispatch->debug_place_deadline = now_ns() + uint64_t(delay) * 1000;
+    }
+    dispatch->now_cut_ms = now_realtime_ms();
+    for (const auto& command : dispatch->commands)
+        if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
+
+    // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
+    // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
+    // first task can become visible, so their slots match the routes used by this publication.
+    if (!dispatch->apply_open.load(std::memory_order_relaxed))
+        server.atomic_apply_open(self.id(), dispatch->apply_open);
+    dispatch->exec_op_id = op_id;
+    op.attach_multi_state(dispatch);
+    begin_dispatch();
+    multi_dispatch_started(client, dispatch);
+    if (dispatch->kind == MultiStateKind::Execute)
+        server.note_txn(self.id(), TxnCounter::Attempts);
+    LoopSignals& sig = self.sig();
+    for (uint32_t i = 0; i < count; i++) {
+        const int32_t sid = multi_dispatch_shard(dispatch, i);
+        const uint32_t tid = server.worker_of_shard(sid);
+        ThreadCtx& owner = server.thread(tid);
+        const Task task = multi_make_task(&client, op_id, sid, dispatch);
+        const bool posted = [&] {
+            if constexpr (IofusedPrivateQueue)
+                return owner.post_iofused_task_quiet(self.id(), task, sig);
+            else
+                return owner.post_task_quiet(self.id(), task, sig);
+        }();
+        if (!posted) std::abort();
+        if (!touched[tid]) {
+            touched[tid] = true;
+            touched_list[ntouched++] = tid;
+        }
+    }
+    return true;
+}
+
 template <bool IofusedPrivateQueue>
 bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
     MultiSession* queue_session = client.multi_session();
@@ -1760,118 +2255,13 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         return true;
     }
 
-    uint32_t needed[kMaxThreads] = {};
-    const uint32_t count = multi_dispatch_count(dispatch);
-    for (uint32_t i = 0; i < count; i++) {
-        const int32_t sid = multi_dispatch_shard(dispatch, i);
-        needed[loop.srv_->worker_of_shard(sid)]++;
-    }
-    for (uint32_t tid = 0; tid < loop.srv_->nthreads(); tid++) {
-        if (!needed[tid]) continue;
-        ThreadCtx& owner = loop.srv_->thread(tid);
-        const uint32_t free_slots = [&] {
-            if constexpr (IofusedPrivateQueue)
-                return owner.iofused_task_free_slots(loop.self_->id());
-            else
-                return owner.task_free_slots(loop.self_->id());
-        }();
-        if (free_slots < needed[tid]) {
-            // Returning through the one parse-loop continuation reaches the existing top-of-loop
-            // backpressure check, which has the same effect as the old in-line break.
-            client.set_atomic_backpressure(true);
-            return true;
-        }
-    }
-
-    // PIN THE TRANSACTION'S READ CUT, BEFORE ANY FRAGMENT IS POSTED.
-    // Drawn here rather than at execution for the same reason a bare cross-shard read draws it at
-    // prepare: this is the connection's program order, and register_snapshot publishes the cleanup
-    // floor synchronously, so no owner can resolve under a cut whose predecessors cleanup has
-    // already been free to collapse. `op` reuses the parse pass's cut when IO stamped one, which
-    // keeps a plain read and a transaction prepared back to back on one connection from disagreeing
-    // about which of them is older. Untaken -- and therefore free -- for any transaction that
-    // carries no multi-owner read.
-    if (__builtin_expect(dispatch->exec_read_fanout, false)) {
-        if (!loop.scatter_pool_.can_register_snapshot()) {
-            // The unresolved-cut window is full on this IO thread. Falling through without a cut
-            // would silently restore the defect, so this is backpressure: the state stays in
-            // session->pending and the same EXEC is re-dispatched on a later pass.
-            client.set_atomic_backpressure(true);
-            return true;
-        }
-        dispatch->snapshot = op.has_read_cut() ? op.read_cut(loop.srv_->atomic_snapshot())
-                                               : loop.srv_->atomic_snapshot();
-        if (!loop.scatter_pool_.register_snapshot(*loop.srv_, dispatch, loop.self_->id())) {
-            dispatch->snapshot = UINT64_MAX;
-            client.set_atomic_backpressure(true);
-            return true;
-        }
-        // Vacuous-validation guard: one per transaction that really entered the machinery. A gate
-        // row for this defect that never moves this counter never armed the window it claims to
-        // close. register_snapshot may have adopted a confirmed newer cut, so the children are
-        // stamped from dispatch->snapshot afterwards, never from the value asked for.
-        loop.srv_->note_atomic_exec_read_cut();
-        for (const auto& command : dispatch->commands) {
-            if (command->kind != MultiCommandKind::Xshard || !command->scatter) continue;
-            const bool sort_deref_read = command->scatter->kind == Kind::Sort &&
-                                         command->scatter->sort_options.deref;
-            if (!sort_deref_read &&
-                (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
-                continue;
-            if (!sort_deref_read && command->scatter->nsub <= 1) continue;
-            // The child never registers on its own: it lives in the transaction's private
-            // ScatterArenaPool, which does not own this thread's floor slot. It only borrows the
-            // cut the transaction published, and xshard_destroy skips unregistering it because
-            // snapshot_registered stays false.
-            command->scatter->snapshot = dispatch->snapshot;
-        }
-        // TEST HOOK arming, after the participant set exists so a lead shard can be named. Only a
-        // transaction carrying a multi-owner read arms it -- the writer transaction the battery
-        // races must stay free to run and publish its ticket inside the window.
-        const uint32_t fanout_defer = loop.srv_->debug_atomic_fanout_defer();
-        if (__builtin_expect(fanout_defer != 0, false) && dispatch->shards.size() > 1) {
-            dispatch->debug_fanout_lead = dispatch->shards[0];
-            dispatch->debug_fanout_deadline =
-                now_ns() + static_cast<uint64_t>(fanout_defer) * 1000ull;
-        }
-    }
-
-    // PIN THE TRANSACTION'S TIME CUT, BEFORE ANY FRAGMENT IS POSTED.
-    // Same argument as the read cut above, for the other axis a fan-out can straddle. Unlike the
-    // read cut this one is unconditional and free of any registry: a deadline is not a ticket
-    // anybody has to wait on, so pinning one costs a single clock read per EXEC and nothing else.
-    // The cross-shard children inherit it rather than stamping their own, so a transaction is one
-    // instant end to end and not one instant per lowered command.
-    dispatch->now_cut_ms = now_realtime_ms();
-    for (const auto& command : dispatch->commands)
-        if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
-
-    // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
-    // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
-    // first task can become visible, so their slots match the routes used by this publication.
-    Rob<kRobWindow>& rob = client.rob();
-    op.attach_multi_state(dispatch);
-    client.atomic_group_started();
-    rob.publish();
-    multi_dispatch_started(client, dispatch);
+    if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+            *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
+            loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
+                client.atomic_group_started();
+                client.rob().publish();
+            })) return true;
     LoopSignals& sig = loop.self_->sig();
-    for (uint32_t i = 0; i < count; i++) {
-        const int32_t sid = multi_dispatch_shard(dispatch, i);
-        const uint32_t tid = loop.srv_->worker_of_shard(sid);
-        ThreadCtx& owner = loop.srv_->thread(tid);
-        const Task task = multi_make_task(&client, op_id, sid, dispatch);
-        const bool posted = [&] {
-            if constexpr (IofusedPrivateQueue)
-                return owner.post_iofused_task_quiet(loop.self_->id(), task, sig);
-            else
-                return owner.post_task_quiet(loop.self_->id(), task, sig);
-        }();
-        if (!posted) std::abort();
-        if (!loop.touched_[tid]) {
-            loop.touched_[tid] = true;
-            loop.touched_list_[loop.ntouched_++] = tid;
-        }
-    }
     loop.self_->note_command(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
     client.advance_parse(consumed);
@@ -1924,9 +2314,176 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
     return multi_reap_deferred(loop.multi_deferred_);
 }
 
+namespace {
+MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
+    Server& server = *previous.server;
+    auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute,
+                                previous.decision.age_ns);
+    if (!next) return nullptr;
+    try {
+        std::vector<MultiQueuedCommand> queue;
+        queue.reserve(previous.commands.size());
+        // Old child Ops retain slices into these strings until record retirement.
+        for (const auto& command : previous.commands) queue.push_back(command->queued);
+        next->watched = previous.watched;
+        if (!prepare_commands(server, *next, queue)) throw std::bad_alloc();
+        for (const auto& key : next->watched) add_shard(next->shards, key.shard);
+        if ((!next->write_keys.empty() || next->database_publish) && server.aof().recording()) {
+            std::vector<uint32_t> participants;
+            for (const auto& write : next->write_keys) participants.push_back(write.shard);
+            if (next->database_publish) participants.push_back(0);
+            next->aof_group = aof_create_group(server.aof(), participants);
+            if (!next->aof_group) throw std::bad_alloc();
+        }
+    } catch (const std::bad_alloc&) {
+        destroy_multi_state(next);
+        return nullptr;
+    }
+    next->decision.age_ns = previous.decision.age_ns;
+    next->decision.age_io = previous.decision.age_io;
+    next->decision.age_seq = previous.decision.age_seq;
+    next->attempt = previous.attempt + 1;
+    next->exec_op_id = previous.exec_op_id;
+    next->watch_generation = previous.watch_generation;
+    next->reset_watch = true;
+    next->final_reply = MultiFinalReply::Exec;
+    const auto count = static_cast<uint32_t>(next->shards.size());
+    next->watch_pending.store(count, std::memory_order_relaxed);
+    next->lists_pending.store(count, std::memory_order_relaxed);
+    next->tasks_pending.store(count, std::memory_order_relaxed);
+    return next;
+}
+}
+
+void multi_bind_retry_lane(Server& server, uint32_t io) {
+    auto& lane = server.multi_retry_lane(io);
+    multi_retry_signal.pending.store(false, std::memory_order_relaxed);
+    lane.signal.store(&multi_retry_signal.pending, std::memory_order_seq_cst);
+    if (lane.head.load(std::memory_order_seq_cst))
+        multi_retry_signal.pending.store(true, std::memory_order_release);
+}
+
 template <bool IofusedPrivateQueue>
-uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
-    uint32_t work = multi_owner_reap_entry(loop);
+__attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
+    uint32_t work = 0;
+    // Reset before the acquire/release exchange. A producer after the exchange
+    // acquires this reset before setting the signal; an earlier node is drained.
+    multi_retry_signal.pending.store(false, std::memory_order_release);
+    auto& inbox = loop.srv_->multi_retry_lane(loop.self_->id()).head;
+    if (__builtin_expect(inbox.load(std::memory_order_relaxed) != nullptr, false)) {
+        MultiRetryNode* stack = inbox.exchange(nullptr, std::memory_order_acq_rel);
+        MultiRetryNode* pending = nullptr;
+        while (stack) {
+            auto* next = stack->next;
+            stack->next = pending;
+            pending = stack;
+            stack = next;
+        }
+        while (pending) {
+            auto* node = pending;
+            pending = node->next;
+            if (node->kind == MultiRetryNode::Kind::Group) {
+                auto& previous = *static_cast<ScatterState*>(node->unit);
+                Client* client = previous.commit_client;
+                txn_group_redispatch<IofusedPrivateQueue>(
+                    *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                loop.mark_active(client);
+                ++work;
+                continue;
+            }
+            auto* previous = static_cast<MultiExecState*>(node->unit);
+            // The IO's existing park decision consumes this hook's work count.
+            // A held/requeued attempt is still work: returning zero can park
+            // with the only retry already in our own inbox and nobody left to wake us.
+            ++work;
+            Client& client = *previous->client;
+            Op& op = client.rob().at(previous->exec_op_id);
+            if (previous->finalized.load(std::memory_order_acquire) && !previous->doomed) {
+                if (!previous->publication_started) {
+                    std::shared_ptr<PubSubNotificationChain> chain;
+                    try {
+                        chain = std::make_shared<PubSubNotificationChain>();
+                        for (const auto& command : previous->commands) {
+                            if (command->kind != MultiCommandKind::IoLocal ||
+                                !(has_name(command->queued, "publish") ||
+                                  has_name(command->queued, "spublish"))) continue;
+                            chain->items.push_back(PubSubNotificationItem{
+                                command->queued.argv[1], command->queued.argv[2], command->op.get(),
+                                has_name(command->queued, "spublish")});
+                        }
+                        chain->completed = [](void* context) {
+                            multi_enqueue_retry(*static_cast<MultiExecState*>(context));
+                        };
+                        chain->completion = previous;
+                    } catch (const std::bad_alloc&) {
+                        // No publication was queued; retain this already committed
+                        // attempt until the IO can allocate its one effect batch.
+                        multi_enqueue_retry(*previous);
+                        continue;
+                    }
+                    // Enqueue can start publishing immediately. Its allocation
+                    // failures follow the existing pub/sub policy; they must
+                    // never be mistaken for an unqueued batch and replayed.
+                    previous->publication_started = true;
+                    loop.pubsub_notification_enqueue(chain);
+                } else {
+                    op.state.store(OpState::Done, std::memory_order_release);
+                    loop.mark_active(&client);
+                }
+                ++work;
+                continue;
+            }
+            if (client.closing() || client.dead()) {
+                previous->decision.aborted.store(true, std::memory_order_release);
+                if (auto* session = ensure_multi_session(client))
+                    session->watched = std::move(previous->watched);
+                multi_close_entry(loop, client);
+                op.state.store(OpState::Done, std::memory_order_release);
+                loop.mark_active(&client);
+                ++work;
+                continue;
+            }
+            if (loop.srv_->txn_retry_held(&previous->retry) || now_ns() < previous->retry_after_ns) {
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            // No owner can still read P. Release its cleanup pin before asking
+            // for N's slot, or eight cancelled cut holders deadlock the window.
+            if (previous->snapshot_registered)
+                loop.scatter_pool_.unregister_snapshot(*loop.srv_, previous, loop.self_->id());
+            MultiExecState* next = multi_rebuild_attempt(*previous);
+            if (!next) {
+                previous->retry_after_ns = now_ns() + 1000000;
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            try { loop.multi_deferred_.reserve(loop.multi_deferred_.size() + 1); }
+            catch (const std::bad_alloc&) {
+                destroy_multi_state(next);
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            next->admitted = previous->admitted;
+            next->admission_generation = previous->admission_generation;
+            previous->admitted = false;
+            if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+                    *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
+                    previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
+                previous->admitted = next->admitted;
+                next->admitted = false;
+                destroy_multi_state(next);
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            previous->watched.clear();
+            previous->retired = true;
+            loop.multi_deferred_.push_back(previous);
+            loop.srv_->note_txn(loop.self_->id(), TxnCounter::Retries);
+            loop.flush_ifid_posts();
+            loop.mark_active(&client);
+            ++work;
+        }
+    }
     while (!loop.pending_multi_cleanups_.empty()) {
         MultiExecState* state = loop.pending_multi_cleanups_.front();
         uint32_t needed[kMaxThreads] = {};
@@ -1972,7 +2529,12 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
 }
 
 uint32_t multi_owner_pass_entry(IoLoop& loop) {
-    return multi_owner_pass_entry_impl<false>(loop);
+    uint32_t work = multi_owner_reap_entry(loop);
+    // Keep allocation, posting and their large stack frame off an empty pass.
+    if (__builtin_expect(multi_retry_signal.pending.load(std::memory_order_relaxed), false) ||
+        !loop.pending_multi_cleanups_.empty())
+        work += multi_owner_pass_entry_impl<false>(loop);
+    return work;
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {
@@ -1980,7 +2542,53 @@ void multi_close_entry(IoLoop& loop, Client& client) {
         loop.pending_multi_cleanups_.push_back(cleanup);
 }
 
+static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool,
+                                   std::vector<MultiExecState*>& deferred) {
+    uint64_t undecided = 0;
+    if (state->decision.epoch.compare_exchange_strong(
+            undecided, kAtomicCancelledEpoch, std::memory_order_relaxed)) {
+        state->decision.aborted.store(true, std::memory_order_relaxed);
+        abort_multi_children(*state);
+        aof_abort_group(state->aof_group);
+    }
+    for (const MultiWatchedKey& watched : state->watched)
+        state->server->shard(watched.shard).watch_remove(
+            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
+            state->client, state->watch_generation);
+    for (int32_t sid : state->shards)
+        state->server->shard(sid).watch_finish_unit(state->claims[sid], state);
+    if (state->snapshot_registered)
+        pool.unregister_snapshot(*state->server, state, state->owner_io);
+    if (!state->published) clear_unpublished_multi_record_refs(*state);
+    Op& op = state->client->rob().at(state->exec_op_id);
+    if (op.multi_state() != state) std::abort();
+    op.detach_scatter_state();
+    op.state.store(OpState::Done, std::memory_order_relaxed);
+    state->client->atomic_group_finished();
+    release_admission(*state);
+    state->retired = true;
+    if (multi_records_done(*state)) destroy_multi_state(state);
+    else deferred.push_back(state);
+}
+
 void multi_shutdown_entry(IoLoop& loop) {
+    if (loop.srv_ && loop.self_) {
+        // Every producer is joined and the store records have drained. Only
+        // completed attempts remain in this IO-owned retry inbox.
+        auto* pending = loop.srv_->multi_retry_lane(loop.self_->id()).head.exchange(
+            nullptr, std::memory_order_relaxed);
+        while (pending) {
+            auto* node = pending;
+            pending = node->next;
+            if (node->kind == MultiRetryNode::Kind::Group) {
+                txn_group_shutdown(*static_cast<ScatterState*>(node->unit), loop.scatter_pool_);
+                continue;
+            }
+            multi_shutdown_attempt(static_cast<MultiExecState*>(node->unit),
+                                   loop.scatter_pool_, loop.multi_deferred_);
+        }
+        multi_owner_reap_entry(loop);
+    }
     for (MultiExecState* state : loop.pending_multi_cleanups_)
         multi_abandon_unpublished(state);
     loop.pending_multi_cleanups_.clear();
@@ -2068,6 +2676,10 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,
                                    AofOwnerContext* aof_context) {
+    struct DeferBlockingPublication {
+        DeferBlockingPublication() { blocking_defer_plain_publication(true); }
+        ~DeferBlockingPublication() { blocking_defer_plain_publication(false); }
+    } defer_blocking_publication;
     // A carrier-less fragment is not an error: multi_close_entry posts the watch-release fragment
     // of a vanished connection with client=nullptr and op_id=UINT64_MAX, and this function's own
     // tail already destroys the state on that path. Only the notify scope wanted an Op, and a
@@ -2087,6 +2699,14 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         shard.note_execution(owner_domain);
         noted |= 1u;
     }
+    if (state.kind == MultiStateKind::Execute && state.read_only &&
+        state.shards.size() == 1 && !state.read_cut_sampled) {
+        // A single-shard unit samples on its owner, before its first read.
+        state.snapshot = server.atomic_snapshot();
+        state.read_cut_sampled = true;
+        for (const auto& command : state.commands)
+            if (command->scatter) command->scatter->snapshot = state.snapshot;
+    }
     if (__builtin_expect(atomic_tripwire_enabled(), false) && !(noted & 2u)) {
         multi_tripwire_fragment_begin(state, shard);
         noted |= 2u;
@@ -2097,10 +2717,16 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     }
 
+    if (state.kind == MultiStateKind::Execute &&
+        state.decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing)
+        noted |= 8u; // owner-local start: plain writers may no longer pass this shard
+
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half. Park every fragment of this
     // transaction except the one on its lead shard until the deadline, so the foreign transaction
     // the battery races really does commit BETWEEN two fragments of one in-EXEC read. It sits
-    // AFTER the watch phase deliberately: that phase is an all-participants barrier, so parking
+    // AFTER the watch phase and this owner's start bit deliberately: D1 permits plain writes
+    // before owner start, so parking earlier does not hold the read claims being tested.
+    // The watch phase is an all-participants barrier, so parking
     // ahead of it would hold the lead back too and no fragment would run early. A park, not a
     // stall -- Retry re-queues the task on multi_retries_ and the owner returns to its queue, so
     // the writer is free to execute and publish its ticket inside the window. Off, this is one
@@ -2129,6 +2755,10 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         const uint32_t stage = command.stage.load(std::memory_order_acquire);
         uint8_t& done = command.shard_done[shard_id];
         if (command.kind == MultiCommandKind::Xshard) {
+            if (!state.decision.aborted.load(std::memory_order_acquire) &&
+                command.scatter->kind == Kind::Sort && command.scatter->sort_options.deref &&
+                !multi_touch_key(state, shard, 0, {}, false, true))
+                return MultiTaskResult::Retry;
             // Membership is published with `stage`, not discovered from ScatterState::groups.
             // The latter is a reusable table: source/gather/apply transitions rewrite it on the
             // last owner of the old stage.  Reading it from a barrier-only task before the release
@@ -2141,11 +2771,34 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (command.finished.load(std::memory_order_acquire)) continue;
                 return MultiTaskResult::Retry;
             }
+            if (!state.decision.aborted.load(std::memory_order_acquire)) {
+                ShardGroup& group = *group_for(*command.scatter, shard.id());
+                const bool writes = command.queued.spec->flags &
+                    (CmdFlags::Write | CmdFlags::SnapshotWrite);
+                if (group.count == 0 || command.scatter->kind == Kind::DatabaseInfo) {
+                    if (!multi_touch_key(state, shard, 0, {}, false, true))
+                        return MultiTaskResult::Retry;
+                } else if (!sort_deref_gathering(*command.scatter)) {
+                    for (uint32_t i = 0; i < group.count; ++i) {
+                        const KeyRef& key = command.scatter->keys[
+                            command.scatter->key_order[group.begin + i]];
+                        const Slice bytes = command.op->arg(key.arg);
+                        // A source can become a phase-two write (pop/move/rename).
+                        // Conservatively resolve all keyed write-child roles as Write.
+                        if (!multi_touch_key(state, shard, key.hash, bytes, writes) ||
+                            (writes && !shard.watch_txn_write_ready(bytes, state)))
+                            return MultiTaskResult::Retry;
+                        // Its phase-one image is a read dependency until install.
+                        if (!multi_touch_key(state, shard, key.hash, bytes, false))
+                            return MultiTaskResult::Retry;
+                    }
+                }
+            } else command.scatter->aborted.store(true, std::memory_order_release);
             if (notify)
                 notify_execute_source(shard, *command.op, command.notify_order_base);
             const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
-            bool execute_child = true;
-            if (command.scatter->atomic_pop && command.scatter->phase == 2) {
+            bool execute_child = !state.decision.aborted.load(std::memory_order_acquire);
+            if (execute_child && command.scatter->atomic_pop && command.scatter->phase == 2) {
                 ShardGroup* group = group_for(*command.scatter, shard.id());
                 if (!group || group->count != 1) std::abort();
                 const uint32_t pos = command.scatter->key_order[group->begin];
@@ -2155,7 +2808,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     owner_thread_id, command.scatter, &command.scatter->watch_refs);
                 if (prepared == MultiPrepareWrite::Retry) return MultiTaskResult::Retry;
                 if (prepared == MultiPrepareWrite::Error) {
-                    state.aborted.store(true, std::memory_order_release);
+                    state.decision.aborted.store(true, std::memory_order_release);
                     command.scatter->aborted.store(true, std::memory_order_release);
                     execute_child = false;
                 }
@@ -2220,7 +2873,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             return MultiTaskResult::Retry;
         }
         bool executed = true;
-        if (state.aborted.load(std::memory_order_acquire)) {
+        if (state.decision.aborted.load(std::memory_order_acquire)) {
             // Still join the command barrier; another owner may already have installed a
             // private candidate which the shared abort flag will hide.
         } else if (command.kind == MultiCommandKind::Local ||
@@ -2247,21 +2900,45 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             bool expected = false;
             if (state.finalizer_claimed.compare_exchange_strong(
                     expected, true, std::memory_order_acq_rel)) {
+                // A read-only unit has no validation claim. All fragment reads
+                // happen-before this last join; catch a write after placement
+                // before discarding WATCH entries or publishing a non-null reply.
+                if (state.read_only && !state.watched.empty() && state.client->watch_dirty())
+                    state.watch_failed.store(true, std::memory_order_release);
                 if (state.watch_failed.load(std::memory_order_acquire))
-                    state.aborted.store(true, std::memory_order_release);
-                if (!state.aborted.load(std::memory_order_acquire) &&
+                    state.decision.aborted.store(true, std::memory_order_release);
+                if (!state.decision.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
-                    const uint64_t ticket = server.atomic_commit_group(
-                        state.epoch,
+                    const uint64_t ticket = server.atomic_commit_group_cas(
+                        state.decision.epoch,
                         [&](uint64_t shared) {
                             publish_multi_child_epochs(state, shared);
                             if (state.database_publish)
                                 server.databases().publish_prepared(std::move(state.database_publish));
                         });
-                    if (aof_context)
-                        (void)aof_commit_group(server.aof(), state.aof_group, ticket,
-                                               *aof_context);
+                    if (!ticket) {
+                        state.decision.aborted.store(true, std::memory_order_release);
+                        abort_multi_children(state);
+                        aof_abort_group(state.aof_group);
+                    } else {
+                        if (aof_context)
+                            (void)aof_commit_group(server.aof(), state.aof_group, ticket,
+                                                   *aof_context);
+                        // Private pushes must never claim a blocked client. Once
+                        // the CAS wins, sweep participant registries on their owners.
+                        bool owners[kMaxThreads] = {};
+                        for (int32_t sid : state.shards) {
+                            Shard& participant = server.shard(sid);
+                            if (!participant.has_blocking_waiters()) continue;
+                            participant.set_blocking_dirty();
+                            owners[server.worker_of_shard(sid)] = true;
+                        }
+                        ThreadCtx& self = server.thread(owner_thread_id);
+                        if (Ring* ring = self.ring())
+                            for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+                                if (owners[tid]) server.thread(tid).wake_if_parked(*ring, self.sig());
+                    }
                 } else {
                     // Child entries no longer point at the parent's abort word, because doing so
                     // made a normal child error abort every other command. A genuine transaction
@@ -2269,6 +2946,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     abort_multi_children(state);
                     aof_abort_group(state.aof_group);
                 }
+                state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
+                               kAtomicCancelledEpoch;
                 state.finalized.store(true, std::memory_order_release);
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer
@@ -2287,20 +2966,36 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         destroy_multi_state(&state);
         return MultiTaskResult::Complete;
     }
+    if (state.doomed || (state.has_publication &&
+                        !state.decision.aborted.load(std::memory_order_acquire) &&
+                        state.final_reply == MultiFinalReply::Exec)) {
+        state.exec_op_id = task.op_id;
+        if (state.backoff.load(std::memory_order_relaxed))
+            state.retry_after_ns = now_ns() + std::min(
+                kTxnRetryBackoffMax, uint64_t{1000} << std::min(state.attempt, uint32_t{10}));
+        multi_enqueue_retry(state);
+        if (Ring* ring = server.thread(owner_thread_id).ring())
+            server.thread(state.owner_io).wake_if_parked(*ring, server.thread(owner_thread_id).sig());
+        return MultiTaskResult::Complete;
+    }
     return MultiTaskResult::Final;
 }
 
 void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred) {
     auto* state = static_cast<MultiExecState*>(op.multi_state());
     if (!state) return;
+    if (state->kind == MultiStateKind::Execute)
+        if (auto* session = ensure_multi_session(client)) session->last_attempts = state->attempt + 1;
     if (state->kind == MultiStateKind::Execute &&
         state->final_reply == MultiFinalReply::Exec &&
         !state->watch_failed.load(std::memory_order_acquire) &&
-        !state->aborted.load(std::memory_order_acquire)) {
+        !state->decision.aborted.load(std::memory_order_acquire)) {
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
         for (const auto& command : state->commands)
-            if (command->kind == MultiCommandKind::IoLocal)
+            if (command->kind == MultiCommandKind::IoLocal &&
+                !(state->publication_started &&
+                  (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
                 command->op->spec->handler(state->server->shard(0), *command->op);
     }
     set_state_reply(*state, op);
@@ -2384,6 +3079,11 @@ uint64_t multi_session_memory(const Client& client) {
     return bytes;
 }
 
+uint32_t multi_last_attempts(const Client& client) {
+    const auto* session = client.multi_session();
+    return session ? session->last_attempts : 0;
+}
+
 uint64_t multi_session_query_bytes(const Client& client) {
     const MultiSession* session = client.multi_session();
     return session ? session->query_bytes : 0;
@@ -2416,6 +3116,210 @@ void for_each_spec_key(Op& op, Fn&& fn) {
 
 }  // namespace
 
+namespace {
+struct TxnUnitView {
+    std::atomic<TxnPhase>* phase;
+    uint64_t age_ns;
+    uint32_t age_io, age_seq;
+};
+TxnUnitView txn_unit_view(const Shard::WatchReservation& unit) {
+    if (unit.unit_kind == 1) {
+        auto& state = *static_cast<MultiExecState*>(const_cast<void*>(unit.token));
+        auto& d = state.decision;
+        return {&d.phase, d.age_ns, d.age_io, d.age_seq};
+    }
+    auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.token));
+    auto& d = *state.group_attempt();
+    return {&d.phase, d.age_ns, d.age_io, d.age_seq};
+}
+bool txn_version_before(const TxnUnitView& a, const TxnUnitView& b) {
+    if (a.age_ns != b.age_ns) return a.age_ns < b.age_ns;
+    if (a.age_io != b.age_io) return a.age_io < b.age_io;
+    return a.age_seq < b.age_seq;
+}
+bool txn_reservation_live(const Shard::WatchReservation& r) {
+    return r.entry_kind == 2 || (r.epoch &&
+        r.epoch->load(std::memory_order_acquire) == 0 &&
+        !(r.aborted && r.aborted->load(std::memory_order_acquire)));
+}
+bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& server) {
+    auto view = txn_unit_view(holder);
+    TxnPhase placing = TxnPhase::Placing;
+    if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,
+                                             std::memory_order_acq_rel)) return false;
+    uint64_t zero = 0;
+    if (holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel)) {
+        server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
+            ? TxnCounter::Wounds : TxnCounter::GroupWounds);
+        holder.aborted->store(true, std::memory_order_release);
+    }
+    return true;
+}
+}
+
+// This helper is cold and owner-local. No claim on this shard is published
+// until every conflicting entry has been examined. Waiter marks retain the
+// original version across polls, so newer arrivals cannot overtake a waiter.
+bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit) {
+    if (!txn_reservation_live(unit)) return true;
+    bool ready = true;
+    const auto own = txn_unit_view(unit);
+    try {
+        for (const auto& key : keys) {
+            const auto inspect = [&](const std::string& name) {
+                watch_finalize_reservation(name);
+                auto found = watch_reservations_.find(name);
+                if (found == watch_reservations_.end()) return;
+                bool wounded = false;
+                for (const auto& holder : found->second) {
+                    if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
+                    if (holder.entry_kind == 2) {
+                        // A' writer episodes: only arrivals after the episode wait.
+                        if (own.age_ns > holder.writer_generation) ready = false;
+                        continue;
+                    }
+                    if (!holder.blocking && holder.entry_kind != 3) continue;
+                    if (key.mode == TxnClaimMode::Read &&
+                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
+                    if (!holder.unit_kind) { ready = false; continue; }
+                    const auto foreign = txn_unit_view(holder);
+                    if (holder.entry_kind == 3) {
+                        if (txn_version_before(foreign, own)) ready = false;
+                        continue;
+                    }
+                    if (foreign.phase->load(std::memory_order_acquire) == TxnPhase::Executing ||
+                        !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
+                        ready = false;
+                    else wounded = true;
+                }
+                // The first scan already retired every previously decided entry.
+                // Only a successful wound creates more work in this owner turn.
+                if (wounded) watch_finalize_reservation(name);
+            };
+            if (key.key.empty()) {
+                // FLUSH visits a registry which finalization may erase from.
+                std::vector<std::string> names;
+                names.reserve(watch_reservations_.size());
+                for (const auto& [name, entries] : watch_reservations_) names.push_back(name);
+                for (const auto& name : names) inspect(name);
+            } else {
+                inspect("");
+                inspect(key.key);
+            }
+        }
+        if (!txn_reservation_live(unit)) return true;
+        if (!ready) server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PlaceWaits);
+        for (const auto& key : keys) {
+            auto found = watch_reservations_.find(key.key);
+            bool exists = false;
+            if (found != watch_reservations_.end()) {
+                for (auto& r : found->second) if (r.token == unit.token && r.entry_kind >= 1) {
+                    r.entry_kind = ready ? 1 : 3;
+                    r.blocking = ready;
+                    r.unit_mode = static_cast<uint8_t>(key.mode);
+                    exists = true;
+                }
+            }
+            if (exists) continue;
+            unit.entry_kind = ready ? 1 : 3;
+            unit.blocking = ready;
+            unit.unit_mode = static_cast<uint8_t>(key.mode);
+            if (!watch_append_reservation(key.key, unit)) throw std::bad_alloc();
+        }
+        return ready;
+    } catch (const std::bad_alloc&) {
+        unit.aborted->store(true, std::memory_order_release);
+        return true; // final error, never replay an allocation failure
+    }
+}
+
+void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*) {
+    for (const auto& key : keys) watch_finalize_reservation(key.key);
+    if (has_blocking_waiters()) set_blocking_dirty();
+}
+
+uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) const {
+    const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
+    if (found == watch_reservations_.end()) return 0;
+    for (const auto& r : found->second)
+        if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
+    return 0;
+}
+
+bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp) {
+    const auto owned = whole ? std::string{} : watch_key_string(key);
+    if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
+        for (const auto& r : found->second)
+            if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
+    WatchReservation mark;
+    mark.token = token;
+    mark.entry_kind = 2;
+    mark.writer_generation = stamp;
+    if (!watch_append_reservation(owned, mark)) return false;
+#ifdef TOMO_TXNORDER_DEBUG
+    txn_debug_writer_mark(token, 1);
+#endif
+    server_->note_txn(server_->worker_of_shard(id()), TxnCounter::WriterMarks);
+    return true;
+}
+
+void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
+    const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
+    if (found == watch_reservations_.end()) return;
+    auto& list = found->second;
+    const auto removed = std::erase_if(list, [&](const auto& r) {
+        return r.entry_kind == 2 && r.token == token;
+    });
+#ifdef TOMO_TXNORDER_DEBUG
+    if (removed) txn_debug_writer_mark(token, -static_cast<int>(removed));
+#else
+    (void)removed;
+#endif
+    if (list.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+}
+
+// Allocation failure must not leave a partial episode. This fallback does not
+// allocate, including for long keys whose owned spelling could not be built.
+void Shard::watch_writer_forget(const void* token) {
+    for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
+        const auto removed = std::erase_if(it->second, [&](const auto& r) {
+            return r.entry_kind == 2 && r.token == token;
+        });
+#ifdef TOMO_TXNORDER_DEBUG
+        if (removed) txn_debug_writer_mark(token, -static_cast<int>(removed));
+#else
+        (void)removed;
+#endif
+        if (it->second.empty()) it = watch_reservations_.erase(it);
+        else ++it;
+    }
+    refresh_has_watches();
+}
+
+// Invariant I, checked only on the blocked path. A placing validator or a
+// started TO-B claim must predate every episode covering that key.
+void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
+    const auto check = [&](const auto& entries) {
+        for (const auto& r : entries) {
+            if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
+            const auto unit = txn_unit_view(r);
+            if (unit.age_ns <= stamp ||
+                unit.phase->load(std::memory_order_acquire) != TxnPhase::Placing) continue;
+            if (r.entry_kind == 0 || (r.unit_kind == 2 &&
+                (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] & 4u)))
+                server_->note_txn(server_->worker_of_shard(id()), TxnCounter::OrderViolations);
+        }
+    };
+    if (whole) {
+        for (const auto& [name, entries] : watch_reservations_) check(entries);
+    } else {
+        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second);
+        if (auto it = watch_reservations_.find(watch_key_string(key));
+            it != watch_reservations_.end()) check(it->second);
+    }
+}
+
 // Retires every reservation on `key` whose unit has DECIDED, applying its effect, and answers
 // whether anything still blocks a foreign unit on this key.
 //
@@ -2432,6 +3336,11 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
         WatchReservation& reservation = list[i];
+        if (reservation.entry_kind == 2) {
+            if (keep != i) list[keep] = reservation;
+            ++keep;
+            continue;
+        }
         const uint64_t epoch = reservation.epoch
             ? reservation.epoch->load(std::memory_order_acquire) : 1;
         const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&
@@ -2488,7 +3397,13 @@ void Shard::watch_prune_stale(const std::string& key) {
 
 bool Shard::watch_add(Slice key, Client* client, uint64_t generation, uint16_t db) {
     const std::string owned = watch_key_string(key);
-    if (!watch_finalize_reservation(owned)) return false;
+    if (!watch_write_ready(key)) return false;
+    bool pending = false;
+    store_.atomic_visit_unit_records(FlatStore::hash_key(key), key, false, [&](AtomicEntry& e) {
+        if (e.group && e.group_epoch && !e.group_epoch->load(std::memory_order_acquire) &&
+            !(e.group_aborted && e.group_aborted->load(std::memory_order_acquire))) pending = true;
+    });
+    if (pending) return false; // F8: WATCH cannot miss an installed group's eventual write
     watch_prune_stale(owned);
     const uint8_t logical = server_ ? server_->databases().logical(key.ns) : key.ns;
     if (db == 256) db = logical;
@@ -2527,33 +3442,10 @@ void Shard::watch_remove(Slice key, Client* client, uint64_t generation) {
 bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                        const void* token, std::atomic<uint64_t>* epoch,
                                        std::atomic<bool>* aborted,
-                                       std::atomic<uint32_t>* refs, bool mutates) {
+                                       std::atomic<uint32_t>* refs, bool mutates,
+                                       MultiExecState* unit, bool reserve) {
     const std::string owned = watch_key_string(key);
-    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (WatchReservation& reservation : existing->second)
-            if (reservation.token == token) {
-                reservation.mutates |= mutates;
-                return true;
-            }
     watch_finalize_reservation(owned);
-    // Read-only validation claims can coexist. A conflicting writer instead makes this EXEC
-    // abort, including when it holds a blocking validation claim: waiting here permits cycles
-    // between transactions that already reserved different keys on different owners.
-    // Everything still on this key is an UNDECIDED reservation, and this transaction no
-    // longer waits for it. Waiting was one half of the wait-for cycle, and it buys nothing that is
-    // not already available here: a group holding a reservation on this key is a write to a key
-    // this client watched, and "the group lands first" is a realizable serialization. Take it, and
-    // this transaction must abort -- which is exactly what WATCH promises. The alternative reading
-    // (the group lands after) is only reachable by waiting for a decision that may itself be
-    // waiting on this transaction.
-    if (auto pending = watch_reservations_.find(owned); pending != watch_reservations_.end())
-        for (const WatchReservation& reservation : pending->second)
-            if (reservation.token != token &&
-                (reservation.mutates || (reservation.blocking && mutates))) {
-                client->set_watch_dirty();
-                stats_.watch_reservation_precommit_aborts++;
-                break;
-            }
     // A key that was alive when this client armed the WATCH and whose deadline has since elapsed is
     // a change, even when nothing has reaped it yet: redis aborts EXEC in that case whether the
     // removal came from its active cycle or is still pending. No command wrote the key, so the
@@ -2569,27 +3461,70 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
             }
     }
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
-    if (!watch_append_reservation(owned, WatchReservation{
-            token, epoch, aborted, refs, client, generation,
-            mutates && !multi_watch_map, /*blocking=*/true}))
-        aborted->store(true, std::memory_order_release);
+    if (!reserve) return true;
+    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
+        for (auto& r : existing->second) if (r.token == token) {
+            r.entry_kind = 0; // WATCH blocks from validation, before the started bit
+            r.blocking = true;
+            r.mutates |= mutates && !multi_watch_map;
+            if (r.mutates) watch_note_database(r, server_, key.ns);
+            return true;
+        }
+    WatchReservation claim{token, epoch, aborted, refs, client, generation,
+                            mutates && !multi_watch_map, true};
+    claim.unit_kind = unit ? 1 : 0;
+    claim.unit_mode = static_cast<uint8_t>(mutates ? TxnClaimMode::Write : TxnClaimMode::Read);
+    if (!watch_append_reservation(owned, claim)) aborted->store(true, std::memory_order_release);
+    return true;
+}
+
+bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
+    // A sole reservation belonging to the caller cannot obstruct that caller.
+    // Keep finalization on every foreign/combined list and at unit retirement.
+    if (token) {
+        const auto own = watch_reservations_.find(owned);
+        if (own != watch_reservations_.end() && own->second.size() == 1 &&
+            own->second.front().token == token) return true;
+    }
+    watch_finalize_reservation(owned);
+    const auto found = watch_reservations_.find(owned);
+    if (found == watch_reservations_.end()) return true;
+    for (const auto& r : found->second) {
+        if (r.token == token || !r.blocking || !txn_reservation_live(r)) continue;
+        if (r.entry_kind != 1 || all_units) return false;
+        if (r.unit_kind == 1) {
+            const auto& holder = *static_cast<const MultiExecState*>(r.token);
+            if (holder.execution_noted[id()] & 8u) return false;
+        } else if (r.unit_kind == 2) {
+            const auto& holder = *static_cast<const ScatterState*>(r.token);
+            if (holder.group_attempt()->arrived[id()] & 4u) return false;
+        }
+    }
     return true;
 }
 
 bool Shard::watch_write_ready(Slice key, const void* token) {
-    if (!has_watches()) return true;
-    const std::string owned = watch_key_string(key);
-    if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (const WatchReservation& reservation : existing->second)
-            if (reservation.token == token) return true;
-    return watch_finalize_reservation(owned);
+    return !has_watches() || (watch_key_ready("", token, false) &&
+                              watch_key_ready(watch_key_string(key), token, false));
+}
+bool Shard::watch_group_write_ready(Slice key, const void* token) {
+    return !has_watches() || (watch_key_ready("", token, true) &&
+                              watch_key_ready(watch_key_string(key), token, true));
+}
+
+bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
+    if (watch_group_write_ready(key, &state)) return true;
+    server_->note_txn(server_->worker_of_shard(id()), TxnCounter::OrderViolations);
+    return false;
 }
 
 void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                                 const void* token, std::atomic<uint64_t>* epoch,
                                 std::atomic<bool>* aborted,
                                 std::atomic<uint32_t>* refs) {
-    if (!has_watches()) return;
+    if (watchers_.empty()) return;
+    // A later WATCH cannot enter while this key has an undecided record. Only
+    // existing registrations need a dirty reservation for this decision.
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
         for (WatchReservation& reservation : existing->second)
@@ -2630,7 +3565,7 @@ bool Shard::watch_append_reservation(const std::string& key, const WatchReservat
 void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
     if (!has_watches()) return;
     const std::string owned = watch_key_string(key);
-    if (!watch_finalize_reservation(owned)) return;
+    if (!watch_write_ready(key)) return;
     watch_prune_stale(owned);
     auto found = watchers_.find(owned);
     if (found == watchers_.end()) return;
@@ -2640,7 +3575,7 @@ void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
             entry.client->set_watch_dirty();
 }
 
-bool Shard::watch_all_write_ready() {
+bool Shard::watch_all_write_ready(const void* token) {
     if (!has_watches()) return true;
     std::vector<std::string> keys;
     try {
@@ -2650,21 +3585,31 @@ bool Shard::watch_all_write_ready() {
         return false;
     }
     for (const std::string& key : keys)
-        if (!watch_finalize_reservation(key)) return false;
+        if (!watch_key_ready(key, token, false)) return false;
     return true;
 }
 
-void Shard::watch_all_write_committed(int physical_db) {
-    if (!has_watches()) return;
-    if (!watch_all_write_ready()) return;
-    for (auto& item : watchers_) {
-        const uint8_t ns = static_cast<uint8_t>(item.first[0]);
-        if (physical_db >= 0 && ns != physical_db) continue;
-        const uint8_t logical = server_ ? server_->databases().logical(ns) : ns;
-        for (const WatchEntry& entry : item.second)
-            if (entry.db == logical && entry.client && entry.client->watch_generation() == entry.generation)
-                entry.client->set_watch_dirty();
-    }
+bool Shard::watch_flush(int physical_db) {
+    // Capture existence before tombstones/clear erase it. WATCH registrations
+    // pin these clients for this owner turn. Failed preparation dirties nobody.
+    std::vector<Client*> dirty;
+    try {
+        for (const auto& [owned, entries] : watchers_) {
+            const uint8_t ns = static_cast<uint8_t>(owned[0]);
+            if (physical_db >= 0 && ns != physical_db) continue;
+            const uint8_t logical = server_ ? server_->databases().logical(ns) : ns;
+            const Slice key(owned.data() + 1, owned.size() - 1, ns);
+            const bool present = store_.find_no_touch(FlatStore::hash_key(key), key) != nullptr;
+            for (const auto& entry : entries)
+                if (entry.db == logical && entry.client &&
+                    entry.client->watch_generation() == entry.generation &&
+                    (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms < now_ms_)))
+                    dirty.push_back(entry.client);
+        }
+    } catch (const std::bad_alloc&) { return false; }
+    if (!store_.atomic_tombstone_all(physical_db)) return false;
+    for (Client* client : dirty) client->set_watch_dirty();
+    return true;
 }
 
 void Shard::watch_database_swap(uint8_t first, uint8_t second) {
@@ -2703,28 +3648,126 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
                          ScatterTaskResult result) {
     if (result != ScatterTaskResult::Complete || !task.scatter || !shard.has_watches()) return;
     ScatterState& state = *task.scatter;
-    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group || state.kind == Kind::Swapdb) return;
+    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group ||
+        state.kind == Kind::Swapdb || state.kind == Kind::Xreadgroup) return;
     ShardGroup* group = group_for(state, shard.id());
-    if (!group || group->count == 0) {
-        shard.watch_all_write_committed(op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1);
-        return;
-    }
+    if (!group || group->count == 0) return; // FLUSH records existence before clearing.
     for (uint32_t i = 0; i < group->count; i++) {
         const uint32_t pos = state.key_order[group->begin + i];
         shard.watch_write_committed(op.arg(state.keys[pos].arg));
     }
 }
 
+namespace {
+template <typename Fn>
+void for_each_plain_write_key(Op& op, Fn&& fn) {
+    if (op.local_xshard()) for_each_touched_key(op, fn);
+    else if (op.spec->flags & CmdFlags::ScriptRoute)
+        for_each_spec_key(op, [&](Slice key) { fn(0, key); });
+    else fn(op.hash, op_routed_key(op));
+}
+
+// Each enumerator visits the complete mark set on this owner, including "" for
+// FLUSH. The first mark carries the episode stamp; all marks share its lifetime.
+template <typename Each>
+void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
+    try {
+        uint64_t stamp = 0;
+        bool first = true;
+        each([&](Slice key, bool whole) {
+            if (first) { stamp = shard.watch_writer_stamp(key, &op, whole); first = false; }
+        });
+        if (!stamp) stamp = now_ns();
+        bool complete = true;
+        each([&](Slice key, bool whole) {
+            complete &= shard.watch_writer_mark(key, &op, whole, stamp);
+        });
+        if (!complete) { shard.watch_writer_forget(&op); return; }
+        each([&](Slice key, bool whole) { shard.watch_writer_check(key, whole, stamp); });
+    } catch (const std::bad_alloc&) {
+        shard.watch_writer_forget(&op);
+    }
+}
+}
+
 bool multi_plain_write_ready(Shard& shard, Op& op) {
     if (!shard.has_watches()) return true;
     bool ready = true;
-    for_each_spec_key(op, [&](Slice key) { ready &= shard.watch_write_ready(key); });
-    return ready;
+    for_each_plain_write_key(op, [&](uint64_t, Slice key) {
+        ready &= shard.watch_write_ready(key);
+    });
+    if (ready) {
+        for_each_plain_write_key(op, [&](uint64_t, Slice key) { shard.watch_writer_unmark(key, &op); });
+        return true;
+    }
+    txn_writer_episode(shard, op, [&](auto&& fn) {
+        for_each_plain_write_key(op, [&](uint64_t, Slice key) { fn(key, false); });
+    });
+    op.mark_atomic_hazard();
+    shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
+    return false;
 }
 
 void multi_plain_write_committed(Shard& shard, Op& op) {
-    if (!shard.has_watches()) return;
-    for_each_spec_key(op, [&](Slice key) { shard.watch_write_committed(key); });
+    if (!shard.has_watches() || op.cmd_name().eq_icase("xreadgroup")) return;
+    auto commit = [&](uint64_t, Slice key) { shard.watch_write_committed(key); };
+    if (op.local_xshard()) for_each_touched_key(op, commit);
+    else if (op.spec->flags & CmdFlags::ScriptRoute)
+        for_each_spec_key(op, [&](Slice key) { commit(0, key); });
+    else commit(op.hash, op_routed_key(op));
+}
+
+namespace {
+bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
+    auto& state = *task.scatter;
+    auto& group = *group_for(state, shard.id());
+    const void* token = state.multi_parent ? state.multi_parent
+        : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
+    bool ready = true;
+    if (state.group_attempt()) {
+        // Placement arbitrates these groups, including MSETNX before its first
+        // install. The early scatter visitor and gate must not bypass that order.
+        if (!txn_group_ready(state, shard, op))
+            return state.aborted.load(std::memory_order_acquire);
+    }
+    if (!group.count && !state.group_attempt()) {
+        ready = shard.watch_all_write_ready(token);
+    }
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
+        const bool key_ready = state.atomic_group && !state.multi_child
+            ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
+        if (!key_ready) ready = false;
+    }
+    if (!ready) {
+        if (!state.atomic_group) txn_writer_episode(shard, op, [&](auto&& fn) {
+            if (!group.count) fn(Slice{}, true);
+            for (uint32_t i = 0; i < group.count; ++i)
+                fn(op.arg(state.keys[state.key_order[group.begin + i]].arg), false);
+        });
+        if (state.kind != Kind::Script) {
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
+            return false;
+        }
+        // F2: APPLY owns a reserved ticket, so waiting here would freeze rule P
+        // behind the unit that owns this claim. Cancel and finish the APPLY wave;
+        // the existing script finalizer closes the bracket and restages (limit 8).
+        uint64_t zero = 0;
+        state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
+        state.script_conflict.store(true, std::memory_order_release);
+        state.aborted.store(true, std::memory_order_release);
+        return true;
+    }
+    if (!state.atomic_group && !group.count) shard.watch_writer_unmark({}, &op, true);
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
+        if (!state.atomic_group) shard.watch_writer_unmark(key, &op);
+        else if (state.kind != Kind::Xreadgroup)
+            shard.watch_reserve_write(key, task.client, task.client->watch_generation(), &state,
+                publish_epoch(state), publish_aborted(state), &state.watch_refs);
+    }
+    return true;
+}
 }
 
 }  // namespace tomo

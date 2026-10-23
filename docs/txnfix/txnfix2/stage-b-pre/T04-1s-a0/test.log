@@ -1,0 +1,2 @@
+tomo atomic=0 mode=1s N=3000: acked moves=3000 acked adds=3000 SCARD(dst)=6000 expected 6000 (missing 0) SCARD(src)=0 errors=0 0.2s
+server rc 0

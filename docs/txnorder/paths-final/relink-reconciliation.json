@@ -1,0 +1,1014 @@
+{
+  "status": "Every linked production object stayed identical. The only changed guard entry was build/tomokv, which the fixture does not link or execute. Final identity binds these same objects to the relinked POST binary.",
+  "changed": [
+    {
+      "path": "build/tomokv",
+      "before": "d64bef97bf30d21d7fb4273a5b34784faaff29abc0e9f24c9060c3611e633979",
+      "after": "b27bcd7085403577e46efcddb89e80d2a07fc4b1b28245b6913fb369b07138a0"
+    }
+  ],
+  "linked_objects_unchanged": 200,
+  "final_identity": "docs/txnorder/identity-final/commands.json",
+  "objects": [
+    {
+      "path": "build/src/main.o",
+      "sha256": "4ce64160c89c6f366bbc45d9a21e0dfb38c95c4fc4936dcb0fc5539a020b8b6a",
+      "equal": true
+    },
+    {
+      "path": "build/src/persist/aof_frame_debug.o",
+      "sha256": "3257eba0049d52e9b6ccda3fd2721ffd8ca8848394987979f9945d6897bc007a",
+      "equal": true
+    },
+    {
+      "path": "build/src/persist/aof.o",
+      "sha256": "4fc0152b3f1c0be5c28282fecabe88c479227749d321410a36d5c0722775798e",
+      "equal": true
+    },
+    {
+      "path": "build/src/snapshot/snapshot.o",
+      "sha256": "1b5bb5d202aca8edc0bfff136952286de89ae2803fc4fbdb31633560ff789233",
+      "equal": true
+    },
+    {
+      "path": "build/src/net/tls.o",
+      "sha256": "97634d214e1cd517b4ae40ba15a951408b1a7005c708aeb1ab2f9bed8750f1c1",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/hll.o",
+      "sha256": "600c4d619faa50e208fe3a81cf7e158f1f7e64d4a65633b1baf329e8e0a44546",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_set.o",
+      "sha256": "40183a5b31fd32f1bac263db8e837b01a97f4d4078686b86076a50590c8e3693",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/tracking.o",
+      "sha256": "cdf18c09c3fc9b824826386b5a469407ec28e970799bb46243218c1b2e2d7eca",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/geo_store.o",
+      "sha256": "5c485b5174d710cf66a3b2679035377f633e5516074d82dc63c28c8946228701",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_sort.o",
+      "sha256": "da10acc0d7a425d5052ef29c17b13f45f9f466b27702f42eb6681d5fe2d7ae50",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/acl.o",
+      "sha256": "b5cb0ce4e4debe0337d6be1fd6b485da5fd349bb2b1d5e44eb15bb22fefc26b0",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_zset_ops.o",
+      "sha256": "2becfcc7c80398cb6e4e7f8074772fbc5a9c18e03e6ec5a102dd3aec68cbed2f",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/info_stats.o",
+      "sha256": "cf2e58ccdf0b0f5e4986514aae1cd2c699078548561cf0e759aff764deedb7cf",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/l4prebuild.o",
+      "sha256": "b5b9bca1871b114bab553fe551dd879ab54fd8773b673cebe2e09567a020172f",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/xshard.o",
+      "sha256": "de22fd7d9a6b3ea95452a30efb3ab0d94d9a2abf58e3156c4014a6a5c99a4456",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/lcs.o",
+      "sha256": "a3c51050e24e24ac83159939251141c14ba33e2f525996f55b8c98e8bc6d9854",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/server_tail.o",
+      "sha256": "60e5e045879afe6a9ae8b1a474162b52f32f3d11a83cb4d0386f422112168a28",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/multidb.o",
+      "sha256": "1e2d7728189ca2b4c49d35bd6f3849f794e5ac483dea08a638eb1d5015e123af",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/cmdgap.o",
+      "sha256": "d78555ba99a412c5597830784b484fcbccb04084071c890770d7021cc302dfa8",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/storesize.o",
+      "sha256": "5ee823c30ac495a916c888d7ecafef69d9e8ecf51a6929c54287489c7393433d",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/pfdebug.o",
+      "sha256": "accae3b5a94f9ea7647c93bcf5344723a63097d37f8fd4271bf45c24745cf466",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_string.o",
+      "sha256": "8eac528818daba61e88906bedf41593d90fd24c0688c6074114846339d14d216",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/multi_admin.o",
+      "sha256": "9d0a69e34f57cc37de729b16f81d356e505a895acb5c73a1b20b7992d8c53599",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/aclkeys.o",
+      "sha256": "56a03f0c8f58da7352b7d5851e9bb8863a2a1468a64b9e3fd33dbf1033d6365a",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/commands.o",
+      "sha256": "2d9c1a43d3c508dd18d898f70261c72312f2e90cc23b38de9e836caeec1bfcbc",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/serialize.o",
+      "sha256": "a4f504ddd3aa8a7a75f7d8a0fe50e4a8119802cc7a4792eda54c217d32cddcbf",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/geo.o",
+      "sha256": "1c767dd04dd94bafa66f9cfa0a4a0d3833106d933c30f76cec47eaa3672f577e",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_hash_ttl.o",
+      "sha256": "216bd67519d1009d8f7294ad000bcea79d5b1ccb7391d8b345ad0c74c03597bf",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_list.o",
+      "sha256": "50f243655c305b41acf081b7466531b714377683ffe21a13cabd77700ce52e9e",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_zset.o",
+      "sha256": "60fd34df2be7127c308e9c50dca65dcec18d3affcb9802886c60fefa392ec41f",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/glob.o",
+      "sha256": "cbfcd7a530e19744716b7012265155dc9d93636a9c82ff83c728f568238942fc",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_stream.o",
+      "sha256": "51077ea2f6cb8e6c455e3e4ce3620cc52fe335aa390095dbf5498c4347f64f76",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/cmdmeta.o",
+      "sha256": "6b0dd17578e139189d95e69dc8fdc9fe5ab6f05742b6c10fd6b68211af2221ff",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_string_notify.o",
+      "sha256": "ee2a811ee8dccc9f15c38a973c65081fe5e0e68167cbd39d94d614a38658b0cc",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/climon.o",
+      "sha256": "fe71c427f6f5411d2866777c28f7d4f7503936832d9ed2c7463c5d75520ba91f",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_stream_groups.o",
+      "sha256": "f9454f0375e75d2d7fad9c62dcde223113024fdf8045fa6fa45af14e17c09833",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/slowlog.o",
+      "sha256": "79865bf5dcd807fd58296c85183478ab797c251973e27c6d269760c03abbc2ae",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_hash.o",
+      "sha256": "b9e2e2a8967196ffda24aa65bbb73a4979ee16e1a065172935032c3316590ecd",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/t_server.o",
+      "sha256": "c4151b8f2623c6bf42a3f160c3f562afd85d4f3d08bc1f0369b10dc858e1ec01",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/blocking_debug.o",
+      "sha256": "26b472964b26511778ba28a0ad6e3c0dcfd2b07b016c0b06edcf391853bfba7d",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/scripting.o",
+      "sha256": "9a695b40b02e79393b52bcdf2505f784b010efb1e43d455e242978f0fafb264f",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/lbsignals.o",
+      "sha256": "00aefff448ccb269fdb081fcb5f2c65a8cd7f5db51df699698966a424b8a0715",
+      "equal": true
+    },
+    {
+      "path": "build/src/cmd/functions.o",
+      "sha256": "76a209bc36e5b6cba13f4c060b125ddf2922ebd34fa053ee18a1fb1a202fc290",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/genthread.o",
+      "sha256": "3d440205e81cc928f495aa4cd00fa0ff387b9f50ee1036e38635da1f32931746",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/lbplanner.o",
+      "sha256": "8f28b7380ef27a571b9d7397fcddaae4c68dd589e21653546396395b96ebaad2",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/flipctl.o",
+      "sha256": "ec87541c3ac38cd9176ee99d0b981d7e238a5475e165a674f38f226873f4790d",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/reorder.o",
+      "sha256": "6ca674cc41d8d6542b7d67782a002cbbb61454416c42e2370171edd63563036a",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/rl2s.o",
+      "sha256": "8e985cc28a841f17929c6edc313496cd014016c4b36b9828b87b5c65149f6620",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/version.o",
+      "sha256": "bb0b7b02a85f43fe64010a7da45716ab9ac118b89df345fb3ac99d9c9303d382",
+      "equal": true
+    },
+    {
+      "path": "build/src/core/lbstall.o",
+      "sha256": "1835598e5fb710a28bd65475456ba5973300e76f61046b795f58dfac0642a8c5",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/main.o",
+      "sha256": "30a748f715f329ea26cd1375c749479b0c7880a45adf962fb76360d295802eba",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/persist/aof_frame_debug.o",
+      "sha256": "53d58b2488b3affa1a018821801343879a7d4c333a970404315fa54767798bb9",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/persist/aof.o",
+      "sha256": "d05f60c5945402d68d624daed6f02c85ac3107bf2c46610d4ad2bab3816e936f",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/snapshot/snapshot.o",
+      "sha256": "2153b873167f19e222f9b2852ecdc30bb5443dc586f7d3ab4fd8c274eb22863e",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/net/tls.o",
+      "sha256": "a35539f85ee305ea1756c3a2e890937ea1343d54d399dd454e41f14dbf649d04",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/hll.o",
+      "sha256": "459204dd618421cb4ea0e856262ef9b2c1d92e10434462d52cc202a43443f64f",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_set.o",
+      "sha256": "51439a818b8ce7c85ae4e0de5e59fb615358a5f542055467414ee3ae829d262a",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/tracking.o",
+      "sha256": "971f39381ff8a13819d04813c4bcd052a5268723259bac27b10c8b62669007d5",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/geo_store.o",
+      "sha256": "17f3a83dc340480c0a140ef3c5ad1a57450736c3d26f61b4ff8672a27b319f76",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_sort.o",
+      "sha256": "f7b0cf7e97c9944eef5af7482e825237e8753889b9e21ec3b72a44a9c1265eee",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/acl.o",
+      "sha256": "9b12761f875e1916218a7c9a55d2f1de166a6cb362abfea82ab1057f4d3e17f5",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_zset_ops.o",
+      "sha256": "a6046f38560435ee72fbb01636e4f89a8b461fe921d45c29cd6848bd2ad5d264",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/info_stats.o",
+      "sha256": "987e2ba7cc0ab4ca30800539eee8396427453aebe28ac69069702277ad466cbf",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/l4prebuild.o",
+      "sha256": "83ebee82fd9aa6a3f9eeb9e18c1e4de78b91dd4703354ad5fcd7963c2344323e",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/xshard.o",
+      "sha256": "b809f712a5c713695c138c7fe767960cf4a0e4222673001e110e0d0e5ae6b0e8",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/lcs.o",
+      "sha256": "412ea7365eb193f7073febcd9a0fcbc72edaf093c4858cba85e411b4631f01ca",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/server_tail.o",
+      "sha256": "af127921b01a7ea23309ffaf56a712b16b25c665d2026a1386c055cc63d2f759",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/multidb.o",
+      "sha256": "4b091494085340e8dd0ec03c8b7e2867d1f087f374b725904b42bcbd32e07c23",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/cmdgap.o",
+      "sha256": "83a6af73426c2e2bb754420a1c60c593b1279d506281e5077f1482bd261cc0ba",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/storesize.o",
+      "sha256": "de879d3c3ebc83fc7e2fddbca4858dce577145701756cd5997227f273870c6d3",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/pfdebug.o",
+      "sha256": "4bd94d8144775b985202968ef75c535c648fbe2a5ee7f1fc5495883774e8c392",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_string.o",
+      "sha256": "f7fb2a058652815e3f592dc3f17831aa1c83a8fbadd932e86f3ebf15b0b22215",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/multi_admin.o",
+      "sha256": "e98ac1b999d6bb771629b501be8299759a3209a7acd46bb598f11a9ff5692fcc",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/aclkeys.o",
+      "sha256": "cab16ca927ffbfa09e2756dc5af46a526e239c96ce52aed3ffbbffb68905987e",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/commands.o",
+      "sha256": "a6dfc93043fed59a6f0dc0f3cce15342ff94c0968c76bf7f6ccd7263a7c5b29c",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/serialize.o",
+      "sha256": "93eb4d5ae79eb36cc6af0efdda7a824f647779dc7627682edb6cbb240f1cc5fc",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/geo.o",
+      "sha256": "b030c6b22f1c4b5328be0a7a873ab29d8ad7412381878f8bcba3e337d564209d",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "a5179e0becb8027574ff10c2053290ab3983cf64c3701593320c0743e81b5ff8",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_list.o",
+      "sha256": "d67d003ef3189c53dec9d61599a605915cd484af9d1e4560e31c9db70b335cb5",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_zset.o",
+      "sha256": "9f2aa5f293331d9717d879557f4ac6b7e1fb3c377e49b373ea6ffe7d8f4ced38",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/glob.o",
+      "sha256": "aedf93a8c903326d7df71cb909c02447e082b19b3d722997b6b87524f87a3d3b",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_stream.o",
+      "sha256": "6afcbc1441a0a823a6d4161bbd8833a8709b136daac78b58960ab7bdbf16142b",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/cmdmeta.o",
+      "sha256": "18f0c554e76b4bffa636effcc46459bae9c30196ff044ad6ef111fd9ad15297b",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_string_notify.o",
+      "sha256": "b9641f636abbc57579f1f5ef2bc49b09860df7d3cdbebc4ec484680078464b15",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/climon.o",
+      "sha256": "f622f4651d1591dc60e13734af1a1f1c893aaa8d794bf7a5250230fc8a5505a8",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_stream_groups.o",
+      "sha256": "c946eea7ee69b91daf748919a247e4937b6cacf2efcbf642763fbca039b8a338",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/slowlog.o",
+      "sha256": "05134d78bfd1a95b28c502c75b5c1d8b71c706d84c48a6f2c6b6477e2322b752",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_hash.o",
+      "sha256": "6a20f10c01473f391a49847de87e3f7db9b3101a57a008dfd07b2af85292fd1f",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/t_server.o",
+      "sha256": "de374496e6cc75630feb8cafcfb25b8fab748ee0ba366082cf375a09ec17c237",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/blocking_debug.o",
+      "sha256": "990dd44a1536ba13e949f74ccedec2783634685e0e9374765e1a2059fe8fb644",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/scripting.o",
+      "sha256": "47bd5a5887ae7714ae64219f055a802c345d7907cde4741279d8be07e5a22df8",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/lbsignals.o",
+      "sha256": "96ea9a279b1717c32d076f7ebd75f0b14fb2e2fefb9cd065bb324b6648e19529",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/cmd/functions.o",
+      "sha256": "8aa2df64d3232f3cb4bab7b506bebe2f5595ead7b52b5f846f891314e2577b4d",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/genthread.o",
+      "sha256": "9703fd34a9f7001027c1918c6aa5b7932515462e255f3b5b4889da379beba77a",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/lbplanner.o",
+      "sha256": "8635526f9cf9bd558460046a00ed24344cd3145f0c4acf8c0d4f501072ab714e",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/flipctl.o",
+      "sha256": "8a94091b1bc7191d20dbfae670419057217e1196cd795c9991e9146e6668330e",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/reorder.o",
+      "sha256": "bf8f6c691ef27194df5aa7d098657d3170259be6d9fbd0253030ab4ab0152628",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/rl2s.o",
+      "sha256": "c37d1901d0d2cc07fbd86bb27181d088957cc1dbc5f67ea415775e7260029df6",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/version.o",
+      "sha256": "e2e72caa7e6dee802fbbfea6499586dd4fa619bf9b19061a657927475135a819",
+      "equal": true
+    },
+    {
+      "path": "build/db0/src/core/lbstall.o",
+      "sha256": "61a51c6989cf31592935d5817d4b71e464afb9f0af4f36a173df6487708d7f1b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/main.o",
+      "sha256": "45604102880e344d2eaf95ee72b28d89d2d0619e7d5def181c444cee993f83f3",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/persist/aof_frame_debug.o",
+      "sha256": "3257eba0049d52e9b6ccda3fd2721ffd8ca8848394987979f9945d6897bc007a",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/persist/aof.o",
+      "sha256": "3cbb8ad49ed3c7638850c6f8e64f6d987a98deb2b39262865de69ad7ad66717a",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/snapshot/snapshot.o",
+      "sha256": "fd2cf3e06eb449f13447c2c00e5baf7be35f8fdd9f1633039accc1aa0bf864da",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/net/tls.o",
+      "sha256": "97634d214e1cd517b4ae40ba15a951408b1a7005c708aeb1ab2f9bed8750f1c1",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/hll.o",
+      "sha256": "600c4d619faa50e208fe3a81cf7e158f1f7e64d4a65633b1baf329e8e0a44546",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_set.o",
+      "sha256": "c16f3a72bd9e335099fe492092467262700fbef3a3f0667d54f4571fa080fa3f",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/tracking.o",
+      "sha256": "3c10a138c0c5b9211f62faab0846f1330474f97b64641a22a5d216d4845fa6fa",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/geo_store.o",
+      "sha256": "3f140157137178068db300caada4fbec0480b5491264a226ba8bbe65a39199c0",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_sort.o",
+      "sha256": "da10acc0d7a425d5052ef29c17b13f45f9f466b27702f42eb6681d5fe2d7ae50",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/acl.o",
+      "sha256": "60ac7761347ee6ba96162d563a15d2088bc3d797cf48bd0c2cffb540a0ffcff2",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_zset_ops.o",
+      "sha256": "2becfcc7c80398cb6e4e7f8074772fbc5a9c18e03e6ec5a102dd3aec68cbed2f",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/info_stats.o",
+      "sha256": "be9d05306f212785d9b47241e7a95366fe7237d56aa981470d77c16076184b02",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/l4prebuild.o",
+      "sha256": "2c3fc39c5379ab847dfac82a76e26c498a7d58a58fd5ab87b08b6e7e904b8eaa",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/xshard.o",
+      "sha256": "61c90157044aafe7f6a37a401e89c4afc1c97b56808386401020ad7bf58146c6",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/lcs.o",
+      "sha256": "a3c51050e24e24ac83159939251141c14ba33e2f525996f55b8c98e8bc6d9854",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/server_tail.o",
+      "sha256": "991ccd565b320e914459fb4ac18d21cd4ac226a87a735e6ff37eb89a89e32019",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/multidb.o",
+      "sha256": "99350f4d7fa41a349743ad7038c83c0cf30448dcee6045dfea155371a520e7b5",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/cmdgap.o",
+      "sha256": "d78555ba99a412c5597830784b484fcbccb04084071c890770d7021cc302dfa8",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/storesize.o",
+      "sha256": "212ab9bd393439f8973c4dfe0f1a4c0e8744a04807849d8317a1710241f12e0d",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/pfdebug.o",
+      "sha256": "f2ae8ded7fa32e738d68b0899fdb597bbb87f27043ab545edbb72f8ff44ebab0",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_string.o",
+      "sha256": "58a37d1ffdbd5d2ae03af50caa89b56e9a9ad4c2eddfd4ed3f32820108544684",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/multi_admin.o",
+      "sha256": "43fea91484e2aca4f930c596f4531c3d0345b7dacdad3974fa9bc39a616e594d",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/aclkeys.o",
+      "sha256": "56a03f0c8f58da7352b7d5851e9bb8863a2a1468a64b9e3fd33dbf1033d6365a",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/commands.o",
+      "sha256": "2d9c1a43d3c508dd18d898f70261c72312f2e90cc23b38de9e836caeec1bfcbc",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/serialize.o",
+      "sha256": "e4ca492db9b59059e9d83fb45d2f193a40a4b0a341b07d68630e505db38019af",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/geo.o",
+      "sha256": "9852dc5faf4a7eae6b9041d045b3d5680eb5101889b7183fc13c49bc1a5e880e",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_hash_ttl.o",
+      "sha256": "e385f047d3f7e1e8a90594d50771e75c0aa3ac40b8933209f3eaa10a4f1d8957",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_list.o",
+      "sha256": "b61d903c2ab68d3f4ceffb219e4d49702b513aa9a9665f4d670fcbe4040aec61",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_zset.o",
+      "sha256": "e615af1a127c823b947028043c3926c5b645e538cb07648881945680ddf45c00",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/glob.o",
+      "sha256": "cbfcd7a530e19744716b7012265155dc9d93636a9c82ff83c728f568238942fc",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_stream.o",
+      "sha256": "d770adaad3babd2ecca31a87cfbe515f8b0f25107e8ae9a627da1bb277ce592e",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/cmdmeta.o",
+      "sha256": "6b0dd17578e139189d95e69dc8fdc9fe5ab6f05742b6c10fd6b68211af2221ff",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_string_notify.o",
+      "sha256": "286040c6dc1c4d5576ff58a1f1af2da54b55bc0203006c883a38bd3cf7e2a98e",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/climon.o",
+      "sha256": "89bd5650ecf8a849103b43997384938c0c5f2102e80fd6106f5b7b3ee52ad1d6",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_stream_groups.o",
+      "sha256": "fa5e692e2b1e24be7a49c193f2cd40d4e7441ff74071bb36d96021d12fb44515",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/slowlog.o",
+      "sha256": "e7db447645f6faa9795dce06db4e5af452aea6e9be418112475b58a7453767c5",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_hash.o",
+      "sha256": "90eb16575ce5c52a5b34169d9643e8f51076f9e42a88df256cc5ec48d2240d9a",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/t_server.o",
+      "sha256": "f9c6bfcf2fb97575347b41feeb81237aa7112453ec5dbaf7f3524157043eed20",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/blocking_debug.o",
+      "sha256": "26b472964b26511778ba28a0ad6e3c0dcfd2b07b016c0b06edcf391853bfba7d",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/scripting.o",
+      "sha256": "7fe5137f7e122683d80f981b962c7f8fc2aaae4317c7eb2f05d07f06a352cc62",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/lbsignals.o",
+      "sha256": "88976ac36bac477821f63f9ba273ddfd5534df49a1d36bd5c321f69d295582e5",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/cmd/functions.o",
+      "sha256": "15c810771151ccbcee45eece1f592fe21576954a570ec59c07db30c2739fa982",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/genthread.o",
+      "sha256": "393ac3ca219af0fb39a19e3736665787307b643aaea261dce173975edfb3ca13",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/lbplanner.o",
+      "sha256": "fee47e3862dfeb2feeb367584ab228be48d05a6243082dafd25ce1dd25cb9402",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/flipctl.o",
+      "sha256": "742e26a20e0537033852bc79016dd4fef4006c298bf3bd667d6c2c659636c9d9",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/reorder.o",
+      "sha256": "c82b5de4d69c98f050240c515f031eb70565e4e5609fa66032ec95e2acdc9519",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/rl2s.o",
+      "sha256": "da509343ee16d7107c41d6ca2d0faf900c45bd53bfb1051d36d9966beeb69347",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/version.o",
+      "sha256": "bb0b7b02a85f43fe64010a7da45716ab9ac118b89df345fb3ac99d9c9303d382",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/src/core/lbstall.o",
+      "sha256": "1f7ac3772e2b703669e60420fb0bc91ea8f861d9770061472f8546d0f2bbf2ce",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/main.o",
+      "sha256": "adcaf4ba9a6204d9ce2f4415a15c0faa84d6537563798189f94c135f62369da8",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/persist/aof_frame_debug.o",
+      "sha256": "53d58b2488b3affa1a018821801343879a7d4c333a970404315fa54767798bb9",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/persist/aof.o",
+      "sha256": "7d13a1a645e3b898702793072accd0bdd431e26e84ba4b562528ee5fbf2b651b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/snapshot/snapshot.o",
+      "sha256": "52311f3a19aeb5512a35720f3841b91cd2daa1fc6c861084825d6d12dfabe674",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/net/tls.o",
+      "sha256": "a35539f85ee305ea1756c3a2e890937ea1343d54d399dd454e41f14dbf649d04",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/hll.o",
+      "sha256": "459204dd618421cb4ea0e856262ef9b2c1d92e10434462d52cc202a43443f64f",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_set.o",
+      "sha256": "8f5b3f9e1dc5fcaf8ccf2882906e49178f6238cb2c465f7831788de25829c7b8",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/tracking.o",
+      "sha256": "f5b22bbb408a140f72edacb74c8cf864330498a5ee0a913320d05c7d46121779",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/geo_store.o",
+      "sha256": "6a2af5cac6eb8d044df59fe928678620f3b4ab9101002d772a7041fbfc1ee186",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_sort.o",
+      "sha256": "f7b0cf7e97c9944eef5af7482e825237e8753889b9e21ec3b72a44a9c1265eee",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/acl.o",
+      "sha256": "9418d69546016b46af2b9b0d6e0851eeee4dabda155c38c37751c66ced49f0c1",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_zset_ops.o",
+      "sha256": "a6046f38560435ee72fbb01636e4f89a8b461fe921d45c29cd6848bd2ad5d264",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/info_stats.o",
+      "sha256": "2d6d6e4e4265c8b783ba3193a6cccf577cd875f63b7eba8a38c109fa8de0eb09",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/l4prebuild.o",
+      "sha256": "f73609ae566812bbfcb117ca060938f575a4c3ee5da7dbad6ef33f85fce4cbcd",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/xshard.o",
+      "sha256": "64d2ec03e5ce3baef349613b8a93eaed58387fbc2bc869d65e9e93c8830a328b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/lcs.o",
+      "sha256": "412ea7365eb193f7073febcd9a0fcbc72edaf093c4858cba85e411b4631f01ca",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/server_tail.o",
+      "sha256": "fbeb23fb36d1bbaa10e7501224c0928bb3678208796f6616494ee9db7f25e200",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/multidb.o",
+      "sha256": "f6bca4bd846e809143ad67fd1f9f9bafefcdc05d31c483a815e2261858de5e83",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/cmdgap.o",
+      "sha256": "83a6af73426c2e2bb754420a1c60c593b1279d506281e5077f1482bd261cc0ba",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/storesize.o",
+      "sha256": "dbcb8dc5978d9f4e4b4738e0adc09accb025231069b48ba57d9abb70a5e3cdfb",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/pfdebug.o",
+      "sha256": "29dde62eae4adf0b8945f21ce71e8f0a2e550a3b1ea2ef8e96c8b36c2798fc93",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_string.o",
+      "sha256": "dc60d5559c83e8ea1d2c4ca265d76596c341fd01a0ea6cef08b5e073a3f25285",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/multi_admin.o",
+      "sha256": "822638e6ae23a5de866a7274dd47110f05b766c15ef52bc04376906d80eb24d1",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/aclkeys.o",
+      "sha256": "cab16ca927ffbfa09e2756dc5af46a526e239c96ce52aed3ffbbffb68905987e",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/commands.o",
+      "sha256": "a6dfc93043fed59a6f0dc0f3cce15342ff94c0968c76bf7f6ccd7263a7c5b29c",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/serialize.o",
+      "sha256": "b014a14a1fdba3de1b6d5cdab8f55cac048fa1dce95c70116c0650d519e266aa",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/geo.o",
+      "sha256": "d0b62bb229995b3c155e4285c462ed0ab30e9329b8875cf0a1ba129e1bea5f28",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "7fb2d21aed533b8f4323e92e38780c1cc3c8380a2328d683436906c7e0f3c56c",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_list.o",
+      "sha256": "daedea6c23e85751db48c82bdf06c265c446eb3bbeeecad3817e05c466599a90",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_zset.o",
+      "sha256": "cf9fd30abbebf104cfdffb735b3afa8aff1a2918dc456544872b985ccc3535e9",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/glob.o",
+      "sha256": "aedf93a8c903326d7df71cb909c02447e082b19b3d722997b6b87524f87a3d3b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_stream.o",
+      "sha256": "ca56e3a7fed4fbe212b1db971d6416cf7de5c6185a7b6c97335002b41cafbf71",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/cmdmeta.o",
+      "sha256": "18f0c554e76b4bffa636effcc46459bae9c30196ff044ad6ef111fd9ad15297b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_string_notify.o",
+      "sha256": "6f2c40c8f523872e1b40160310dc7258ddea1f6d8b1194cb559752b2e5a7239b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/climon.o",
+      "sha256": "aeadf5b8bbc4e7a53b48cc97fdb9458f6a9f79d83ac395e6e46825e7e8ccadea",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_stream_groups.o",
+      "sha256": "c383e2bf369fed2b89a819e512d5ceaf87ca1334a95f21145bfc7174619b6b85",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/slowlog.o",
+      "sha256": "79753ba7b7ad6c02656b724b33822120ece3a40e30a405ca865b379752a5a778",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_hash.o",
+      "sha256": "b132a82b5b52452a43abb5b524b6a2fec284624b5f820eb53d1dd01b6a8d9ea9",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/t_server.o",
+      "sha256": "893e783688a7f433ad3f5822a5f6ac01f517a8c76949d0235167f2881fc1b984",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/blocking_debug.o",
+      "sha256": "990dd44a1536ba13e949f74ccedec2783634685e0e9374765e1a2059fe8fb644",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/scripting.o",
+      "sha256": "416dd2c940d798aec7eb5f55c450a23edc8b19ebca844756b05fb7916056b56d",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/lbsignals.o",
+      "sha256": "4bd0f5937d9a9763205be77ecae6f14b4a45d2b9ef18a47aef9a41e086af99ef",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/cmd/functions.o",
+      "sha256": "97711c136825cd3bd3d016daada6ed5c7e4bb13ee71a715822d058282da6c06e",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/genthread.o",
+      "sha256": "2c209bfbe8b9b93ad16a330826c2bee1269cc0b0c040a5c5b0d4b15529e158a9",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/lbplanner.o",
+      "sha256": "8219c557e704ecff86979994ac87f5cc185df9658dc0ea03940d50f6d911f037",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/flipctl.o",
+      "sha256": "9474846b4be265d716c890c662a83ca40605fb580e3460db57c72441fa615c3f",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/reorder.o",
+      "sha256": "2d1e3727a94fb0a06deefa3e1fa72f3582d7f15dd89aec68a72f5769013c700b",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/rl2s.o",
+      "sha256": "a207878502a9f0ecdc6881165c10d72d6067747e2a0d1ddc6001dd0324822ff7",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/version.o",
+      "sha256": "e2e72caa7e6dee802fbbfea6499586dd4fa619bf9b19061a657927475135a819",
+      "equal": true
+    },
+    {
+      "path": "build/txnorder/pre/db0/src/core/lbstall.o",
+      "sha256": "4adbebf4fb4fa5a4788be6f4a26deae90b2db3791d5d22eb97ecc80cefd2b002",
+      "equal": true
+    }
+  ]
+}

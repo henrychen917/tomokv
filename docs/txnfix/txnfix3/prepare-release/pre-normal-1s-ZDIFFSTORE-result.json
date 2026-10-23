@@ -1,0 +1,32 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "1s",
+  "values": "ZDIFFSTORE",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-normal-1s-ZDIFFSTORE.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-normal/probe"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "9e4e0166e4f182413d311cef179bad0df3139f81e188cf24d8becc466818f870",
+  "counts": {
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1404,
+    "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+    "tomo::ScatterState::ScatterState()": 91,
+    "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 224,
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 33,
+    "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 31,
+    "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 17,
+    "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)": 13,
+    "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+    "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 130,
+    "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 43,
+    "tomo::ScatterState::~ScatterState()": 45
+  }
+}

@@ -1,0 +1,32 @@
+  row budget: 900s; median=0s; correctness-plan-fallback; txnorder2 writer episode R1
+  txnorder2 writer episode R1                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R1.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R2
+  txnorder2 writer episode R2                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R2.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R3
+  txnorder2 writer episode R3                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R3.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R4
+  txnorder2 writer episode R4                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R4.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R5
+  txnorder2 writer episode R5                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R5.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R6
+  txnorder2 writer episode R6                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R6.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R7
+  txnorder2 writer episode R7                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R7.log)
+  row budget: 900s; median=0.03s; correctness-plan-fallback; txnorder2 writer episode R8
+  txnorder2 writer episode R8                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R8.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R9
+  txnorder2 writer episode R9                          FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R9.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R10
+  txnorder2 writer episode R10                         FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R10.log)
+  row budget: 900s; median=0.01s; correctness-plan-fallback; txnorder2 writer episode R11
+  txnorder2 writer episode R11                         FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R11.log)
+  row budget: 900s; median=1.14s; correctness-plan-fallback; txnorder2 writer episode R12
+  txnorder2 writer episode R12                         FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/R12.log)
+  row budget: 900s; median=0.02s; correctness-plan-fallback; txnorder2 direct RENAME owner join
+  txnorder2 direct RENAME owner join                   FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/rename.log)
+  row budget: 900s; median=10.84s; correctness-plan-fallback; txnorder2 WATCH serve
+  txnorder2 WATCH serve                                FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/serve-*.log)
+  row budget: 900s; median=14.43s; correctness-plan-fallback; txnorder2 WATCH flush
+  txnorder2 WATCH flush                                FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/flush-*.log)
+  row budget: 900s; median=13.64s; correctness-plan-fallback; txnorder2 WATCH readonly
+  txnorder2 WATCH readonly                             FAIL (see /home/user/Projects/cx-txnfix/build/gate-run.qGpHV3/jobs/txnorder2/readonly-*.log)

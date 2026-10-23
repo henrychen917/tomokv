@@ -33,8 +33,9 @@ BIN="${4:-$ROOT/build/tomokv}"
 DEADLINE=5
 
 FAIL=0
-LOG=$(mktemp -d)
-trap 'rm -rf "$LOG"' EXIT
+LOG=${WATCHLIVE_OUT:-$(mktemp -d)}
+mkdir -p "$LOG"
+if [ -z "${WATCHLIVE_OUT:-}" ]; then trap 'rm -rf "$LOG"' EXIT; fi
 
 listener_pids() {
     ss -lntpH 2>/dev/null | grep ":$PORT " | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u
@@ -56,7 +57,11 @@ boot() {   # boot <extra server args...>
     # A leftover listener would join the next start under SO_REUSEPORT and split the client load
     # silently across two servers, which invalidates the measurement. Refuse instead.
     if [ -n "$(listener_pids)" ]; then echo "  FAIL listener already on $PORT"; return 1; fi
-    taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --enable-debug-command yes "$@" \
+    BOOT_COUNT=$((${BOOT_COUNT:-0} + 1))
+    local data
+    data=$(mktemp -d "$LOG/data-$BOOT_COUNT.XXXXXX") || return 1
+    taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --enable-debug-command yes \
+        --dir "$data" --save '' --appendonly no "$@" \
         >"$LOG/server.log" 2>&1 &
     local owned_pid=$! pids
     PYTHONPATH="$HERE" python3 - "$PORT" "$LOG/server.log" "$owned_pid" <<'PYREADY'
@@ -110,8 +115,16 @@ row() {  # row <label> <conns> <watchflag> <boot args...>
     for r in $(seq 1 "$REPS"); do
         stop_all >/dev/null
         boot "$@" || { FAIL=$((FAIL+1)); return; }
-        rate=$(timeout 120 python3 "$HERE/watchlive.py" 127.0.0.1 "$PORT" --conns "$conns" \
-                  --reps 1 --deadline "$DEADLINE" --rate-only $wflag 2>&1 | tail -1)
+        local receipt="$LOG/${label// /_}-$r"
+        timeout 120 python3 "$HERE/watchlive.py" 127.0.0.1 "$PORT" --conns "$conns" \
+            --reps 1 --deadline "$DEADLINE" --rate-only $wflag >"$receipt.client.log" 2>&1
+        local rc=$?
+        rate=$(tail -1 "$receipt.client.log")
+        cp "$LOG/server.log" "$receipt.server.log"
+        if [ "$rc" != 0 ] || { [ "$rate" != 0/1 ] && [ "$rate" != 1/1 ]; }; then
+            echo "  FAIL $label repetition $r exited $rc: $rate"
+            FAIL=$((FAIL+1))
+        fi
         entered=$((entered + $(waits_counter)))
         stop_all >/dev/null
         ran=$((ran+1))
@@ -136,6 +149,7 @@ row "watch conns=8  --atomic 1 " 8  ""           --atomic 1
 row "watch conns=16 --atomic 1 " 16 ""           --atomic 1
 row "no-watch control conns=16 " 16 "--no-watch" --atomic 1
 row "watch conns=16 --atomic 0 " 16 ""           --atomic 0
+row "no-watch conns=16 --atomic 0 " 16 "--no-watch" --atomic 0
 
 echo
 if [ "$FAIL" -eq 0 ]; then echo "watchlive gate PASS"; else echo "watchlive gate FAIL ($FAIL)"; fi

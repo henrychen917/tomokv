@@ -244,7 +244,7 @@ def run(api):
                     args = ([verb, a, dest] if verb == "COPY" else
                             [verb, "OR", dest, a, b] if verb == "BITOP" else
                             [verb, dest, a, b])
-                    wanted = [a] if verb == "COPY" else [a, b]
+                    wanted = [a, b]  # force the same pending scatter lookup in every leg
                     writer, reader = connect(endpoints[0]), connect(endpoints[0])
                     before = _lib.info(probe, "stats")
                     with _lib.armed(probe, "ATOMIC-COMMIT-HOLD", 1):
@@ -266,7 +266,12 @@ def run(api):
                             time.sleep(.005)
                         assert not select.select([writer[0]], [], [], 0)[0], "writer escaped hold"
                         predecessor = int(held["atomic_predecessor_reads"])
-                        reader[0].sendall(enc(args))
+                        # Read-only MGET retains the predecessor/keymiss witness.
+                        # TO-B COPY/STORE commands now wait for this blind write
+                        # at ARRIVE, so they cannot supply that witness themselves.
+                        reader[0].sendall(enc(["MGET", *wanted]))
+                        old_reply = read_reply(reader[1])
+                        assert parse(old_reply) == [None] * len(wanted), (verb, old_reply)
                         deadline = time.monotonic() + 5
                         while True:
                             observed = _lib.info(probe, "stats")
@@ -278,14 +283,28 @@ def run(api):
                         assert int(observed["atomic_localfast"]) == int(before["atomic_localfast"]), \
                             "pending witness took localfast instead of scatter"
                         assert not select.select([writer[0]], [], [], 0)[0], "writer committed early"
+                        misses(["MGET", *wanted], wanted, old_reply, pending_deviation=True)
+                        reader[0].sendall(enc(args))
+                        assert not select.select([reader[0]], [], [], .05)[0], \
+                            "dependency-bearing command escaped held writer"
+                        assert int(_lib.info(probe, "stats")["atomic_pending_entries"]) >= 2
+                        assert not select.select([writer[0]], [], [], 0)[0], "writer committed early"
                     assert read_reply(writer[1]) == b"+OK\r\n"
-                    misses(args, wanted, read_reply(reader[1]), pending_deviation=True)
+                    assert issue(admins[1], ["MSET", a, "private", b, "private"]) == b"+OK\r\n"
+                    result = read_reply(reader[1])
+                    misses(args, [], result)
+                    destination = issue(admins[0], ["EXISTS", dest])
+                    misses(["EXISTS", dest], [dest] if parse(destination) == b":0" else [], destination)
+                    if parse(destination) == b":1":
+                        misses(["GET", dest], [])
+                    print("  CC11 ordered %s oracle reply=%r destination=%r" %
+                          (verb, result, destination))
                     # Release each round's connection read cuts before demanding that
                     # FLUSHALL's old records drain on the next fresh-state round.
                     for sock, file in (writer, reader):
                         file.close()
                         sock.close()
-                    print("  EXPECTED-DEVIATION CC11 pending %s: no keymiss; "
+                    print("  EXPECTED-DEVIATION CC11 pending MGET before %s: no keymiss; "
                           "source records and predecessor reads witnessed, Redis emits %d" %
                           (verb, len(wanted)))
         finally:

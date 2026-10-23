@@ -1,0 +1,5 @@
+geometry src=m:0 ex7 dst=m:3 ex6
+SMOVE    atomic=1 mode=2s mover=1 concurrent=1 (0.000s) -> SMEMBERS=['a', 'm', 'z'] expected ['a', 'm', 'z']  [OK] groups+1
+LMOVE    atomic=1 mode=2s mover=b'm' concurrent=2 (0.000s) -> LRANGE=['a', 'm', 'z'] expected ['a', 'm', 'z']  [OK] groups+1
+PFMERGE  atomic=1 mode=2s mover='OK' concurrent=1 (0.000s) -> PFCOUNT=6 expected 6  [OK] groups+1
+server rc 0

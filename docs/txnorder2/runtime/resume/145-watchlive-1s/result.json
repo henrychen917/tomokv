@@ -1,0 +1,24 @@
+{
+  "index": 145,
+  "name": "watchlive-1s",
+  "arm": "post",
+  "status": "RUNNING",
+  "row": {
+    "name": "watchlive-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "tests/watchlive_gate.sh",
+      "27805",
+      "64-71",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-resume/watchlive-1s"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792678266.0326555
+}

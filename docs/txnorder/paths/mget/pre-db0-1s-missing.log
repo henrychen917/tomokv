@@ -1,0 +1,1517 @@
+Breakpoint 1 at 0x3934d0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc, line 13.
+Breakpoint 2 at 0x3934e0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc, line 14.
+
+Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:13
+13	[[gnu::noinline]] void scatter_trace_begin() { asm volatile("" ::: "memory"); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/../net/conn.h:580
+580	    uint64_t id() const { return id_; }
+0x00005555555a3665	580	    uint64_t id() const { return id_; }
+0x00005555555a366c	580	    uint64_t id() const { return id_; }
+0x00005555555a3673	580	    uint64_t id() const { return id_; }
+0x00005555555a3679	580	    uint64_t id() const { return id_; }
+0x00005555555a367c	580	    uint64_t id() const { return id_; }
+0x00005555555a367e	580	    uint64_t id() const { return id_; }
+0x00005555555a3681	580	    uint64_t id() const { return id_; }
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1569
+0x00005555555e40e4	0x00005555555e40e5	0x00005555555e40e8	0x00005555555e40ea	0x00005555555e40ec	0x00005555555e40ee	0x00005555555e40f0	0x00005555555e40f2	0x00005555555e40f6	0x00005555555e40f7	0x00005555555e40fe	0x00005555555e4101	0x00005555555e4104	0x00005555555e4107	0x00005555555e410e	0x00005555555e4114	0x00005555555e411b	0x00005555555e4122	0x00005555555e4126	0x00005555555e4129	0x00005555555e412f	0x00005555555e4138	0x00005555555e413c	0x00005555555e4141	0x00005555555e4143	0x00005555555e4149	0x00005555555e414b	0x00005555555e4154	0x00005555555e415a	0x00005555555e4161	0x00005555555e4166	0x00005555555e4168	0x00005555555e416e	0x00005555555e4176	0x00005555555e4179	0x00005555555e4180	0x00005555555e4187	0x00005555555e418e	0x00005555555e4192	0x00005555555e4195	0x00005555555e4197	0x00005555555e4199	0x00005555555e5760 in tomo_db0::Op::arg (i=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e5767	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+tomo_db0::Op::cmd_name (this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:140
+140	    Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
+0x00005555555e4285	140	    Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
+0x00005555555e4287	140	    Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
+0x00005555555e428a	140	    Slice cmd_name() const { return argc_ ? arg(0) : Slice{}; }
+tomo_db0::Op::arg (i=0, this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e4293	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e429a	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e429d	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e42a1	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e42a4	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at /usr/include/c++/13/bits/char_traits.h:399
+399		return __builtin_strlen(__s);
+0x00005555555e42ac	399		return __builtin_strlen(__s);
+0x00005555555e42b3	399		return __builtin_strlen(__s);
+0x00005555555e42b8	0x00005555555e42ba	0x00005555555e42c4	0x00005555555e42c6	0x00005555555e42d6	0x00005555555e42e4	0x00005555555e42ea	0x00005555555e42f1	std::__atomic_base<unsigned long>::load (__m=std::memory_order::acquire, this=0x7fffffff3b48) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e4304	503		__glibcxx_assert(__b != memory_order_acq_rel);
+std::__atomic_base<unsigned long>::load (__m=std::memory_order::acquire, this=0x7fffffff43e0) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e4313 in tomo_db0::Server::script_intents_active (this=<optimized out>) at src/cmd/../core/server.h:2801
+2801	        return atomic_snapshot_completions_[thread].load(std::memory_order_acquire);
+0x00005555555e4316 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1635
+0x00005555555e4319	0x00005555555e4321 in tomo_db0::Server::script_intents_active (this=<optimized out>) at src/cmd/../core/server.h:2801
+2801	        return atomic_snapshot_completions_[thread].load(std::memory_order_acquire);
+0x00005555555e4328	2801	        return atomic_snapshot_completions_[thread].load(std::memory_order_acquire);
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1637
+0x00005555555e4335	0x00005555555e4339	0x00005555555e433b	0x00005555555e4341	0x00005555555e4347	0x00005555555e434b	0x00005555555e4354	0x00005555555e435e	0x00005555555e436c	0x00005555555e437b	0x00005555555e437f	0x00005555555e8253	0x00005555555e8257	0x00005555555e825f	0x00005555555e8268	0x00005555555e826f	0x00005555555e4573	0x00005555555e4582	0x00005555555e4584	0x00005555555e4588	0x00005555555e52e4	0x00005555555e4c03	0x00005555555e4c0a	0x00005555555e4c19	0x00005555555e4c94	tomo_db0::(anonymous namespace)::is_plain_zsetop (kind=<optimized out>) at src/cmd/xshard.cc:1779
+0x00005555555e4e4a in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1781
+0x00005555555e4e4e	0x00005555555e4e60	tomo_db0::(anonymous namespace)::is_any_zsetop (kind=tomo_db0::(anonymous namespace)::Kind::Mget) at src/cmd/xshard.cc:284
+0x00005555555e4e86	0x00005555555e87af	0x00005555555e87b3	0x00005555555e87b5	0x00005555555e87bb	0x00005555555e87be	0x00005555555e87c1	0x00005555555e87c8	0x00005555555e87cf	tomo_db0::(anonymous namespace)::is_geo_kind (kind=<optimized out>) at src/cmd/xshard.cc:1790
+0x00005555555e4609 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1790
+0x00005555555e4612	tomo_db0::(anonymous namespace)::is_geo_kind (kind=tomo_db0::(anonymous namespace)::Kind::Mget) at src/cmd/xshard.cc:290
+0x00005555555e4623 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1791
+0x00005555555e4625	0x00005555555e5363	0x00005555555e5383	0x00005555555e55b9	0x00005555555e55c2	0x00005555555e55c9	0x00005555555e55d4	0x00005555555e55de	0x00005555555e55f7	0x00005555555e4f71	0x00005555555e4f7b	0x00005555555e4f8a	0x00005555555e46e5	0x00005555555e46ef	0x00005555555e46fa	0x00005555555e4705	0x00005555555e4710	0x00005555555e72d2	0x00005555555e72e7	0x00005555555e72eb	0x00005555555e5462	0x00005555555e56a7	0x00005555555e56ae	0x00005555555e5022	0x00005555555e5028	0x00005555555e5032	0x00005555555e5039	0x00005555555e5040	0x00005555555e504b	0x00005555555e7d3f	3075	    }
+0x00005555555e7d46	3075	    }
+0x00005555555e7d4c	3075	    }
+0x00005555555e47a2	0x00005555555e47a6	0x00005555555e47b0	0x00005555555e47b7	0x00005555555e47be	0x00005555555e47cc	0x00005555555e47d3	0x00005555555e47d6	0x00005555555e47d9	0x00005555555e47e9	0x00005555555e47ef	0x00005555555e47f1	tomo_db0::(anonymous namespace)::key_count_for (snapshot_writes_only=false, keys=...) at src/cmd/xshard.cc:839
+0x00005555555e47fd	0x00005555555e4801 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1887
+0x00005555555e480c in tomo_db0::(anonymous namespace)::key_count_for (snapshot_writes_only=false, keys=...) at src/cmd/xshard.cc:839
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1887
+0x00005555555e481c	0x00005555555e4823	0x00005555555e482a	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4830	0x00005555555e4837	0x00005555555e483e	0x00005555555e4845	0x00005555555e4849	0x00005555555e484c	0x00005555555e4855	0x00005555555e4862	0x00005555555e4865	0x00005555555e486b	0x00005555555e4872	0x00005555555e4879	0x00005555555e4880	0x00005555555e4886	0x00005555555e4889	0x00005555555e4890	0x00005555555e4893	0x00005555555e4896	0x00005555555e4899	0x00005555555e48a0	tomo_db0::(anonymous namespace)::key_arg_for (snapshot_writes_only=<optimized out>, key=0, keys=...) at src/cmd/xshard.cc:848
+0x00005555555e494d	0x00005555555e4959	0x00005555555e495c	0x00005555555e495e	0x00005555555e4964	0x00005555555e4966	0x00005555555e48cf	0x00005555555e48d3	0x00005555555e48dc in tomo_db0::Op::arg (i=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48e4 in tomo_db0::(anonymous namespace)::key_arg_for (snapshot_writes_only=<optimized out>, key=<optimized out>, keys=...) at src/cmd/xshard.cc:851
+tomo_db0::Op::arg (i=1, this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48ef	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f2	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f6	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f9	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48fc	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b0	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b4	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b8	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54bc	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e4902 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1895
+0x00005555555e4905	0x00005555555e4908	0x00005555555e490a	0x00005555555e490e	std::__atomic_base<unsigned int>::load (__m=std::memory_order::relaxed, this=0x7ffffffdde44) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e491a	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e491d	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e4923	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e4926	505		return __atomic_load_n(&_M_i, int(__m));
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/../core/shard.h:708
+708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4931	708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4935 in tomo_db0::Router::unpack_shard (entry=<optimized out>) at src/cmd/../core/shard.h:708
+708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4938	708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1893
+0x00005555555e4942	0x00005555555e4944	tomo_db0::(anonymous namespace)::key_arg_for (snapshot_writes_only=<optimized out>, key=1, keys=...) at src/cmd/xshard.cc:848
+0x00005555555e494d	0x00005555555e4959	0x00005555555e495c	0x00005555555e495e	0x00005555555e4964	0x00005555555e4966	0x00005555555e48cf	0x00005555555e48d3	0x00005555555e48dc in tomo_db0::Op::arg (i=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48e4 in tomo_db0::(anonymous namespace)::key_arg_for (snapshot_writes_only=<optimized out>, key=<optimized out>, keys=...) at src/cmd/xshard.cc:851
+tomo_db0::Op::arg (i=2, this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48ef	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f2	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f6	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48f9	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e48fc	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b0	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b4	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54b8	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e54bc	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555e4902 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1895
+0x00005555555e4905	0x00005555555e4908	0x00005555555e490a	0x00005555555e490e	std::__atomic_base<unsigned int>::load (__m=std::memory_order::relaxed, this=0x7ffffffdebb8) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e491a	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e491d	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e4923	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e4926	505		return __atomic_load_n(&_M_i, int(__m));
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/../core/shard.h:708
+708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4931	708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4935 in tomo_db0::Router::unpack_shard (entry=<optimized out>) at src/cmd/../core/shard.h:708
+708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+0x00005555555e4938	708	    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1893
+0x00005555555e4942	0x00005555555e4944	0x00005555555e5840	0x00005555555e5848	0x00005555555e584b	0x00005555555e5852	0x00005555555e585d	0x00005555555e5860	0x00005555555e5866	0x00005555555e586c	0x00005555555e5878	0x00005555555e587b	0x00005555555e5881	0x00005555555e5888	0x00005555555e588b	0x00005555555e588f	0x00005555555e5892	0x00005555555e5897	0x00005555555e589e	0x00005555555e58a2	0x00005555555e58ad	0x00005555555e58b2	0x00005555555e58b5	0x00005555555e58b9	0x00005555555e58bb	0x00005555555e58be	0x00005555555e58c8	0x00005555555e7ba0	0x00005555555e7ba3	0x00005555555e7ba5	0x00005555555e58df	0x00005555555e58e1	0x00005555555e58e3	0x00005555555e5910	0x00005555555e5917	0x00005555555e591e	0x00005555555e5926	0x00005555555e5929	0x00005555555e592b	0x00005555555e5932	0x00005555555e593c	0x00005555555e593f	0x00005555555e5941	0x00005555555e5944	0x00005555555e5947	tomo_db0::(anonymous namespace)::is_store_setop (kind=<optimized out>) at src/cmd/xshard.cc:273
+0x00005555555e5951 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1945
+0x00005555555e5953	tomo_db0::(anonymous namespace)::is_store_zsetop (kind=<optimized out>) at src/cmd/xshard.cc:280
+0x00005555555e6d6e in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1945
+0x00005555555e6d78	0x00005555555e6d7a	tomo_db0::(anonymous namespace)::is_geo_kind (kind=<optimized out>) at src/cmd/xshard.cc:290
+0x00005555555e6d84 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:1942
+0x00005555555e6d86	0x00005555555e776c	0x00005555555e776f	0x00005555555e7779	0x00005555555e777c	0x00005555555e777e	0x00005555555e7784	0x00005555555e7788	0x00005555555e6c6a	0x00005555555e6c6c	0x00005555555e6c6e	0x00005555555e6c71	0x00005555555e7c81	0x00005555555e7c85	0x00005555555e7c8b	0x00005555555e7c92	0x00005555555e7c96	0x00005555555e7c9c	0x00005555555e6d99	0x00005555555e6da3	0x00005555555e5960	0x00005555555e596d	0x00005555555e5973	0x00005555555e5976	0x00005555555e5979	0x00005555555e597f	0x00005555555e5986	0x00005555555e5989	0x00005555555e598c	0x00005555555e598f	0x00005555555e5993	0x00005555555e5997	0x00005555555e599b	0x00005555555e59a1	0x00005555555e7b3d	0x00005555555e7b40	0x00005555555e59e9	0x00005555555e59eb	0x00005555555e59ef	0x00005555555e59f1	0x00005555555e59a1	0x00005555555e59a7	0x00005555555e59a9	0x00005555555e59ad	0x00005555555e59b0	0x00005555555e59b3	0x00005555555e59b6	0x00005555555e59b9	0x00005555555e59bd	0x00005555555e59c0	0x00005555555e59e1	0x00005555555e59d4	0x00005555555e59d7	0x00005555555e7b3d	0x00005555555e7b40	0x00005555555e59e9	0x00005555555e59eb	0x00005555555e59ef	0x00005555555e59f1	0x00005555555e59f3	0x00005555555e59fe	0x00005555555e6ca3	0x00005555555e6ca9	0x00005555555e6cac	0x00005555555e6cb3	0x00005555555e725d	0x00005555555e7262	0x00005555555e7269	0x00005555555e7040	0x00005555555e7046	0x00005555555e704d	0x00005555555e7053	0x00005555555e7055	0x00005555555e705d	0x00005555555e7063	0x00005555555e7065	0x00005555555e7a18	0x00005555555e7a1e	0x00005555555e7a20	0x00005555555e7cb0	0x00005555555e7cb4	0x00005555555e7a38	0x00005555555e5a67	0x00005555555e5a6e	0x00005555555e5a76	0x00005555555e5a7b	0x00005555555e5a7e	0x00005555555e5a8b	0x00005555555e5a92	0x00005555555e5a94	0x00005555555e5a9e	0x00005555555e5aa0	0x00005555555e5aa6	0x00005555555e5aac	0x00005555555e8224	0x00005555555e822b	0x00005555555e8233	0x00005555555e823a	0x00005555555e8240	tomo_db0::(anonymous namespace)::carve_size<tomo_db0::(anonymous namespace)::ShardGroup> (count=<optimized out>, offset=<optimized out>) at src/cmd/xshard.cc:2026
+0x00005555555e5b0e in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2028
+std::vector<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >, std::allocator<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> > > >::size (this=0x7ffffffed2a8) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5b1e in tomo_db0::(anonymous namespace)::arena_layout_bytes (sort_deref=<optimized out>, owner_slots=<optimized out>, atomic_apply=<optimized out>, atomic_write=<optimized out>, shard_slots=<optimized out>, group_cap=<optimized out>, key_count=<optimized out>, kind=<optimized out>) at src/cmd/xshard.cc:875
+0x00005555555e5b23 in std::vector<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >, std::allocator<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> > > >::size (this=0x7ffffffed2a8) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+std::vector<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >, std::allocator<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> > > >::size (this=0x7ffffffed290) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+tomo_db0::(anonymous namespace)::carve_size<tomo_db0::(anonymous namespace)::ShardGroup> (count=2, offset=<synthetic pointer>: 896) at src/cmd/xshard.cc:311
+0x00005555555e5b35	0x00005555555e5b37	0x00005555555e5b39	0x00005555555e5b3d	tomo_db0::(anonymous namespace)::carve_size<tomo_db0::(anonymous namespace)::KeyRef> (count=2, offset=<synthetic pointer>: 1008) at src/cmd/xshard.cc:311
+0x00005555555e5b4a	0x00005555555e5b4c	0x00005555555e5b52	0x00005555555e5b59	0x00005555555e5b5c	0x00005555555e5b60	0x00005555555e5b64 in tomo_db0::(anonymous namespace)::carve_size<unsigned int> (count=2, offset=<synthetic pointer>: <optimized out>) at src/cmd/xshard.cc:314
+0x00005555555e5b67	tomo_db0::(anonymous namespace)::has_values (atomic_write=false, kind=<optimized out>) at src/cmd/xshard.cc:858
+0x00005555555e5b6f	0x00005555555e5b88 in tomo_db0::(anonymous namespace)::carve_size<tomo_db0::(anonymous namespace)::ValueSlot> (count=<optimized out>, offset=<optimized out>) at src/cmd/xshard.cc:320
+0x00005555555e5b8f	0x00005555555e5b93 in tomo_db0::(anonymous namespace)::arena_layout_bytes (sort_deref=false, owner_slots=8, atomic_apply=<optimized out>, atomic_write=false, shard_slots=16, group_cap=2, key_count=2, kind=<optimized out>) at src/cmd/xshard.cc:880
+0x00005555555e5b96	0x00005555555e5b99 in tomo_db0::(anonymous namespace)::carve_size<tomo_db0::(anonymous namespace)::ValueSlot> (count=<optimized out>, offset=<optimized out>) at src/cmd/xshard.cc:314
+0x00005555555e5b9d	0x00005555555e5ba4	tomo_db0::(anonymous namespace)::arena_layout_bytes (sort_deref=false, owner_slots=8, atomic_apply=<optimized out>, atomic_write=false, shard_slots=16, group_cap=2, key_count=2, kind=<optimized out>) at src/cmd/xshard.cc:880
+0x00005555555e5bac	0x00005555555e5bb3	0x00005555555e5bb5	0x00005555555e5bbb in tomo_db0::(anonymous namespace)::has_images (kind=<optimized out>) at src/cmd/xshard.cc:867
+0x00005555555e5bbf	0x00005555555e5bc5	tomo_db0::(anonymous namespace)::arena_layout_bytes (sort_deref=false, owner_slots=8, atomic_apply=<optimized out>, atomic_write=false, shard_slots=16, group_cap=2, key_count=2, kind=<optimized out>) at src/cmd/xshard.cc:888
+0x00005555555e5bd7	0x00005555555e5be0	tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2029
+0x00005555555e5bf4	0x00005555555e5bfc	0x00005555555e5c00	0x00005555555e5c06	0x00005555555e5c0d	0x00005555555e5c10	0x00005555555e5c17	0x00005555555e5c25	tomo_db0::ScatterArenaPool::acquire (this=0x7ffffffdc2b0, bytes=3176, pooled=@0x7ffffffdb7af: false) at src/cmd/xshard.cc:1551
+0x00005555555c1f84	0x00005555555c1f88	0x00005555555c1f91	0x00005555555c1f96	0x00005555555c1f9f	0x00005555555c1fa4	0x00005555555c1faa	0x00005555555c1fac	tomo_db0::ScatterArenaPool::acquire (this=0x7ffffffdc2b0, pooled=@0x7ffffffdb7af: true, bytes=3176) at src/cmd/xshard.cc:1554
+0x00005555555c1fb3	0x00005555555c1fb6	0x00005555555c1fc1	0x00005555555c1fc5	0x00005555555c1fca	0x00005555555c1fcd	0x00005555555c1fd2	0x00005555555c1fd4	0x00005555555c1fda in tomo_db0::ScatterArenaPool::acquire (this=<optimized out>, bytes=<optimized out>, pooled=<optimized out>) at src/cmd/xshard.cc:1558
+0x00005555555c1fdf	0x00005555555c1fe8	0x00005555555c1fea	0x00005555555c1fee	0x00005555555e5c2a in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2037
+0x00005555555e5c31	0x00005555555e5c39	0x00005555555e5c3c	0x00005555555e5c45	0x00005555555e5c48	0x00005555555e5c4f	0x00005555555e5c56	tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616cd8	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616ce0	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616ce8	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616ced in tomo_db0::SnapshotCut::SnapshotCut (this=0x7ffff61d4780) at src/cmd/xshard.h:85
+85	struct SnapshotCut {
+0x0000555555616cf4	85	struct SnapshotCut {
+0x0000555555616cfb	85	struct SnapshotCut {
+std::__atomic_base<unsigned int>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d09 in std::__atomic_base<unsigned int>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d10 in std::__atomic_base<bool>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d16 in std::__atomic_base<unsigned char>::__atomic_base (__i=0 '\000', this=0x7ffff61d479e) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+std::__atomic_base<unsigned long>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d22 in std::__atomic_base<unsigned int>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d2a in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616d32	0x0000555555616d39	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d45	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d4d	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d55	362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616d5d	16	struct LcsOptions {
+0x0000555555616d6c	16	struct LcsOptions {
+0x0000555555616d74	16	struct LcsOptions {
+0x0000555555616d7c	16	struct LcsOptions {
+0x0000555555616d84 in tomo_db0::LcsOptions::LcsOptions (this=0x7ffff61d4860) at src/cmd/lcs.h:16
+16	struct LcsOptions {
+0x0000555555616d8c in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616d93	0x0000555555616d9e	0x0000555555616da5	0x0000555555616db0	0x0000555555616dbb	0x0000555555616dc6 in tomo_db0::LcsOptions::LcsOptions (this=0x7ffff61d4860) at src/cmd/lcs.h:16
+16	struct LcsOptions {
+0x0000555555616dcf	16	struct LcsOptions {
+tomo_db0::(anonymous namespace)::SortOptions::SortOptions (this=<optimized out>) at src/cmd/xshard.cc:191
+0x0000555555616de0 in tomo_db0::LcsOptions::LcsOptions (this=<optimized out>) at src/cmd/lcs.h:16
+16	struct LcsOptions {
+0x0000555555616de8 in tomo_db0::(anonymous namespace)::ImageRangeOptions::ImageRangeOptions (this=0x7ffff61d48b0) at src/cmd/xshard.cc:191
+0x0000555555616df0 in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616dfb in std::__atomic_base<unsigned long>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616e06 in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616e11	0x0000555555616e1c	0x0000555555616e27 in tomo_db0::(anonymous namespace)::ImageRangeOptions::ImageRangeOptions (this=0x7ffff61d48b0) at src/cmd/xshard.cc:191
+0x0000555555616e30	tomo_db0::(anonymous namespace)::ImageScoreRange::ImageScoreRange (this=0x7ffff61d48d8) at src/cmd/xshard.cc:249
+0x0000555555616e42	0x0000555555616e4d	tomo_db0::(anonymous namespace)::ImageLexBound::ImageLexBound (this=0x7ffff61d48f0) at src/cmd/xshard.cc:257
+tomo_db0::Slice::Slice (this=0x7ffff61d48f8) at src/cmd/../store/../cmd/../base/slice.h:140
+140	    Slice() = default;
+0x0000555555616e68	140	    Slice() = default;
+0x0000555555616e72 in tomo_db0::(anonymous namespace)::ImageLexBound::ImageLexBound (this=0x7ffff61d48f0) at src/cmd/xshard.cc:257
+0x0000555555616e79 in tomo_db0::(anonymous namespace)::ImageLexBound::ImageLexBound (this=0x7ffff61d4910) at src/cmd/xshard.cc:257
+tomo_db0::Slice::Slice (this=0x7ffff61d4918) at src/cmd/../store/../cmd/../base/slice.h:140
+140	    Slice() = default;
+0x0000555555616e8b	140	    Slice() = default;
+0x0000555555616e95 in tomo_db0::(anonymous namespace)::ImageLexBound::ImageLexBound (this=0x7ffff61d4910) at src/cmd/xshard.cc:257
+tomo_db0::(anonymous namespace)::SortOptions::SortOptions (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+0x0000555555616ea5	0x0000555555616eac	0x0000555555616eb7	0x0000555555616ebe in tomo_db0::(anonymous namespace)::ImageRangeOptions::ImageRangeOptions (this=<optimized out>) at src/cmd/xshard.cc:191
+0x0000555555616ec6 in tomo_db0::(anonymous namespace)::SortOptions::SortOptions (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+std::_Vector_base<unsigned int, std::allocator<unsigned int> >::_Vector_impl_data::_Vector_impl_data (this=0x7ffff61d4950) at /usr/include/c++/13/bits/stl_vector.h:99
+99		_Vector_impl_data() _GLIBCXX_NOEXCEPT
+0x0000555555616ed8	100		: _M_start(), _M_finish(), _M_end_of_storage()
+0x0000555555616ee3	100		: _M_start(), _M_finish(), _M_end_of_storage()
+0x0000555555616eee in tomo_db0::(anonymous namespace)::SortOptions::SortOptions (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+0x0000555555616ef5 in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_Vector_impl_data (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:99
+99		_Vector_impl_data() _GLIBCXX_NOEXCEPT
+0x0000555555616f09	100		: _M_start(), _M_finish(), _M_end_of_storage()
+0x0000555555616f14	100		: _M_start(), _M_finish(), _M_end_of_storage()
+0x0000555555616f1f in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616f27	0x0000555555616f30 in std::__atomic_base<tomo_db0::NotifyBatch*>::__atomic_base (__p=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:708
+708	      constexpr __atomic_base(__pointer_type __p) noexcept : _M_p (__p) { }
+0x0000555555616f3b in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+0x0000555555616f46	0x0000555555616f51	0x0000555555616f5c	0x0000555555616f66	0x0000555555616f71	0x0000555555616f7c	0x0000555555616f86	0x0000555555616f91 in std::__atomic_base<unsigned long>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616f9c in std::__atomic_base<bool>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616fa3 in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+99		_Vector_impl_data() _GLIBCXX_NOEXCEPT
+0x0000555555616faf	99		_Vector_impl_data() _GLIBCXX_NOEXCEPT
+0x0000555555616fb9	99		_Vector_impl_data() _GLIBCXX_NOEXCEPT
+std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_Vector_impl_data (this=<optimized out>) at /usr/include/c++/13/bits/shared_ptr_base.h:908
+908	      constexpr __shared_count() noexcept : _M_pi(0)
+0x0000555555616fc7	908	      constexpr __shared_count() noexcept : _M_pi(0)
+std::__atomic_base<bool>::__atomic_base (__i=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:362
+362	      constexpr __atomic_base(__int_type __i) noexcept : _M_i (__i) { }
+0x0000555555616fd2 in tomo_db0::ScatterState::ScatterState (this=0x7ffff61d4780) at src/cmd/xshard.cc:488
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2044
+0x00005555555e5c62	0x00005555555e5c6a	0x00005555555e5c71	0x00005555555e5c75	0x00005555555e5c7b	0x00005555555e5c8a	0x00005555555e5c8c	0x00005555555e5c96	0x00005555555e5c9d	0x00005555555e5ca8	0x00005555555e5caa	0x00005555555e5cb0	0x00005555555e5cb7	0x00005555555e5cc2	0x00005555555e5cc9	0x00005555555e5ccf	0x00005555555e5cd1	0x00005555555e5cd5	0x00005555555e5cdc	0x00005555555e5ce0	0x00005555555e5ceb	0x00005555555e5cf1	0x00005555555e5cfe	0x00005555555e5d06	0x00005555555e5d0e	std::vector<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >, std::allocator<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> > > >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5d1a	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5d22	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5d26 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2066
+0x00005555555e5d2c	0x00005555555e5d33	0x00005555555e5d43	0x00005555555e5d59	0x00005555555e5d5e	tomo_db0::now_realtime_ms () at src/cmd/../store/../persist/../core/signal.h:53
+53	    clock_gettime(CLOCK_REALTIME, &ts);
+0x00005555555e5d6c	53	    clock_gettime(CLOCK_REALTIME, &ts);
+0x00005555555e5d6e	53	    clock_gettime(CLOCK_REALTIME, &ts);
+0x00005555555e5d75	53	    clock_gettime(CLOCK_REALTIME, &ts);
+0x00005555555e5d78	53	    clock_gettime(CLOCK_REALTIME, &ts);
+0x00005555555e5d7f	53	    clock_gettime(CLOCK_REALTIME, &ts);
+54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5d8b	54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5d96	54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5da0 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2077
+0x00005555555e5da7 in tomo_db0::now_realtime_ms () at src/cmd/../store/../persist/../core/signal.h:54
+54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5daa in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2079
+0x00005555555e5db0	0x00005555555e5db4	0x00005555555e5dbe in tomo_db0::now_realtime_ms () at src/cmd/../store/../persist/../core/signal.h:54
+54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5dc2	54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5dc6 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2079
+0x00005555555e5dcd in tomo_db0::now_realtime_ms () at src/cmd/../store/../persist/../core/signal.h:54
+54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5dd0	54	    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
+0x00005555555e5dd3 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2080
+0x00005555555e5dda	0x00005555555e5de3	0x00005555555e5de7	0x00005555555e5e0f	0x00005555555e5e16	0x00005555555e5e20	0x00005555555e5e28	0x00005555555e5e30 in std::vector<double, std::allocator<double> >::~vector (this=<optimized out>, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:738
+738	      }
+0x00005555555e5e37 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2090
+0x00005555555e5e3f	0x00005555555e5e42	0x00005555555e5e4d	0x00005555555e5e54	0x00005555555e5e5e in std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e5e66 in std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e5e71	116		  _M_finish = __x._M_finish;
+0x00005555555e5e7c in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2082
+0x00005555555e5e7f	0x00005555555e5e81	0x00005555555e5e88	0x00005555555e5e91	0x00005555555e5e9b	0x00005555555e5e9e	0x00005555555e5ea0 in std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+0x00005555555e5ea7 in std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+0x00005555555e5eb2 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2082
+0x00005555555e5ebd	0x00005555555e5ed0	0x00005555555e5ed7	0x00005555555e5ede	std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at src/cmd/xshard.cc:2093
+0x00005555555e5ef0 in std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e5ef9 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2093
+std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:113
+113		_M_copy_data(_Vector_impl_data const& __x) _GLIBCXX_NOEXCEPT
+std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=0x7ffff61d4978) at /usr/include/c++/13/bits/stl_vector.h:113
+113		_M_copy_data(_Vector_impl_data const& __x) _GLIBCXX_NOEXCEPT
+std::_Vector_base<double, std::allocator<double> >::_Vector_impl_data::_M_copy_data (__x=..., this=0x7ffffffdb880) at /usr/include/c++/13/bits/stl_vector.h:113
+113		_M_copy_data(_Vector_impl_data const& __x) _GLIBCXX_NOEXCEPT
+0x00005555555e5f16	117		  _M_end_of_storage = __x._M_end_of_storage;
+std::vector<double, std::allocator<double> >::~vector (this=0x7ffffffdb880, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/alloc_traits.h:945
+945	    _Destroy(_ForwardIterator __first, _ForwardIterator __last,
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2096
+0x00005555555e5f29	0x00005555555e5f31	0x00005555555e5f39 in std::vector<unsigned int, std::allocator<unsigned int> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555e5f40 in std::vector<unsigned int, std::allocator<unsigned int> >::capacity (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:1080
+1080				 - this->_M_impl._M_start); }
+0x00005555555e5f47 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2095
+0x00005555555e5f56	0x00005555555e5f5f in std::vector<unsigned int, std::allocator<unsigned int> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555e5f62 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2100
+0x00005555555e5f6b in tomo_db0::(anonymous namespace)::SortOptions::operator= (this=<optimized out>) at src/cmd/xshard.cc:199
+0x00005555555e5f73 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2097
+0x00005555555e5f81	0x00005555555e5f8b	tomo_db0::(anonymous namespace)::SortOptions::operator= (this=<optimized out>) at src/cmd/xshard.cc:2101
+0x00005555555e5f99 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2101
+0x00005555555e5fa3	0x00005555555e5fad in tomo_db0::(anonymous namespace)::SortOptions::operator= (this=<optimized out>) at src/cmd/xshard.cc:199
+0x00005555555e5fb5	0x00005555555e5fbc	0x00005555555e5fc5	0x00005555555e5fcc	0x00005555555e5fd2	0x00005555555e5fd9	0x00005555555e5fdf in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2101
+tomo_db0::(anonymous namespace)::SortOptions::operator= (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+std::vector<unsigned int, std::allocator<unsigned int> >::size (this=0x7ffffffdb920) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5ff7	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e5ffa	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+std::vector<unsigned int, std::allocator<unsigned int> >::capacity (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:1078
+1078	      capacity() const _GLIBCXX_NOEXCEPT
+0x00005555555e6004	1078	      capacity() const _GLIBCXX_NOEXCEPT
+0x00005555555e6007 in std::vector<unsigned int, std::allocator<unsigned int> >::operator= (__x=..., this=0x7ffff61d4950) at /usr/include/c++/13/bits/vector.tcc:236
+236		  if (__xlen > capacity())
+0x00005555555e600a	236		  if (__xlen > capacity())
+std::vector<unsigned int, std::allocator<unsigned int> >::size (this=0x7ffff61d4950) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e6017	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e601a	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e601d in std::vector<unsigned int, std::allocator<unsigned int> >::operator= (__x=..., this=0x7ffff61d4950) at /usr/include/c++/13/bits/vector.tcc:248
+248		  else if (size() >= __xlen)
+0x00005555555e6020	248		  else if (size() >= __xlen)
+std::__copy_move<false, true, std::random_access_iterator_tag>::__copy_m<unsigned int const, unsigned int> (__result=0x0, __last=0x0, __first=0x0) at /usr/include/c++/13/bits/stl_algobase.h:433
+433		__copy_m(_Tp* __first, _Tp* __last, _Up* __result)
+0x00005555555e602a	433		__copy_m(_Tp* __first, _Tp* __last, _Up* __result)
+0x00005555555e820f	438		  else if (_Num == 1)
+0x00005555555e817a in std::vector<unsigned int, std::allocator<unsigned int> >::operator= (__x=..., this=0x7ffff61d4950) at /usr/include/c++/13/bits/vector.tcc:262
+262		  this->_M_impl._M_finish = this->_M_impl._M_start + __xlen;
+0x00005555555e817d	262		  this->_M_impl._M_finish = this->_M_impl._M_start + __xlen;
+0x00005555555e6045 in tomo_db0::(anonymous namespace)::SortOptions::operator= (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+0x00005555555e604c in std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::reset (__p=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:208
+208		const pointer __old_p = _M_ptr();
+0x00005555555e6053 in std::vector<unsigned int, std::allocator<unsigned int> >::operator= (__x=..., this=0x7ffff61d4950) at /usr/include/c++/13/bits/vector.tcc:262
+262		  this->_M_impl._M_finish = this->_M_impl._M_start + __xlen;
+0x00005555555e605a in tomo_db0::(anonymous namespace)::SortOptions::operator= (this=0x7ffff61d4930) at src/cmd/xshard.cc:199
+std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::reset (__p=0x0, this=0x7ffff61d4a08) at /usr/include/c++/13/bits/unique_ptr.h:206
+206	      void reset(pointer __p) noexcept
+0x00005555555e6068	206	      void reset(pointer __p) noexcept
+0x00005555555e606f	210		if (__old_p)
+0x00005555555e6072	210		if (__old_p)
+std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::release (this=0x7ffffffdb7c0) at /usr/include/c++/13/bits/unique_ptr.h:215
+215	      pointer release() noexcept
+0x00005555555e6083 in std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::reset (__p=<optimized out>, this=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:208
+208		const pointer __old_p = _M_ptr();
+0x00005555555e608a in std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::release (this=0x7ffffffdb7c0) at /usr/include/c++/13/bits/unique_ptr.h:218
+218		_M_ptr() = nullptr;
+std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::reset (__p=0x0, this=0x7ffff61d4a10) at /usr/include/c++/13/bits/unique_ptr.h:206
+206	      void reset(pointer __p) noexcept
+0x00005555555e609c	210		if (__old_p)
+0x00005555555e609f	210		if (__old_p)
+std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:113
+113		_M_copy_data(_Vector_impl_data const& __x) _GLIBCXX_NOEXCEPT
+0x00005555555e60b1 in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e60b8 in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e60c3	116		  _M_finish = __x._M_finish;
+0x00005555555e60ce in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+0x00005555555e60d5 in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+0x00005555555e60dc in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:116
+116		  _M_finish = __x._M_finish;
+0x00005555555e60e3 in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+0x00005555555e60ee in std::_Destroy_aux<false>::__destroy<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >*> (__last=<optimized out>, __first=<optimized out>) at /usr/include/c++/13/bits/stl_construct.h:162
+162		  for (; __first != __last; ++__first)
+0x00005555555e60f1 in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:115
+115		  _M_start = __x._M_start;
+0x00005555555e60fa in std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:117
+117		  _M_end_of_storage = __x._M_end_of_storage;
+std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_Vector_impl_data::_M_copy_data (__x=..., this=0x7ffff61d4a18) at /usr/include/c++/13/bits/stl_vector.h:113
+113		_M_copy_data(_Vector_impl_data const& __x) _GLIBCXX_NOEXCEPT
+std::_Destroy_aux<false>::__destroy<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >*> (__last=0x0, __first=0x0) at /usr/include/c++/13/bits/stl_construct.h:162
+162		  for (; __first != __last; ++__first)
+0x00005555555e610b	162		  for (; __first != __last; ++__first)
+std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_M_deallocate (__n=0, __p=0x0, this=<synthetic pointer>) at /usr/include/c++/13/bits/stl_vector.h:386
+386	      _M_deallocate(pointer __p, size_t __n)
+0x00005555555e6275	386	      _M_deallocate(pointer __p, size_t __n)
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2114
+0x00005555555e6290	206	    bool has_read_cut() const { return route_flags_ & kReadCut; }
+0x00005555555e6296	std::__atomic_base<unsigned long>::load (__m=std::memory_order::seq_cst, this=0x7fffffff1a78) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e7c7c	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e62c4 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2119
+0x00005555555e62cc	std::__atomic_base<unsigned long>::fetch_add (__m=std::memory_order::relaxed, __i=1, this=0x7fffffff3b20) at /usr/include/c++/13/bits/atomic_base.h:633
+633	      fetch_add(__int_type __i,
+0x00005555555e7d3a in tomo_db0::Server::note_atomic_fanout_cut (this=<optimized out>) at src/cmd/../core/server.h:3075
+3075	    }
+std::__atomic_base<unsigned long>::load (__m=std::memory_order::seq_cst, this=0x7fffffff1a78) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+std::__atomic_base<unsigned long>::load (__m=std::memory_order::seq_cst, this=0x7fffffff1a68) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e62e5 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2124
+0x00005555555e62e8	0x00005555555e62f5	0x00005555555e62f8	0x00005555555e62fa	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:908
+tomo_db0::(anonymous namespace)::carve_at<tomo_db0::(anonymous namespace)::ShardGroup> (count=2, off=<synthetic pointer>: 896, base=0x7ffff61d4780 "") at src/cmd/xshard.cc:896
+0x00005555555e6330	0x00005555555e6336	0x00005555555e6338	0x00005555555e633f	0x00005555555e6343	0x00005555555e634a in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:909
+0x00005555555e6351	0x00005555555e6356	0x00005555555e635b	tomo_db0::(anonymous namespace)::carve_at<tomo_db0::(anonymous namespace)::KeyRef> (count=2, off=<synthetic pointer>: 1008, base=0x7ffff61d4780 "") at src/cmd/xshard.cc:896
+0x00005555555e6364	0x00005555555e636a	0x00005555555e636d	0x00005555555e6371	0x00005555555e6374	0x00005555555e6378	0x00005555555e637c	0x00005555555e6380 in tomo_db0::(anonymous namespace)::carve_at<unsigned int> (count=<optimized out>, off=<optimized out>, base=<optimized out>) at src/cmd/xshard.cc:899
+0x00005555555e6383	0x00005555555e6387	0x00005555555e638b in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:909
+tomo_db0::(anonymous namespace)::has_values (atomic_write=false, kind=tomo_db0::(anonymous namespace)::Kind::Mget) at src/cmd/xshard.cc:858
+0x00005555555e639d	0x00005555555e78a6 in tomo_db0::(anonymous namespace)::carve_at<tomo_db0::(anonymous namespace)::ValueSlot> (count=<optimized out>, off=<optimized out>, base=<optimized out>) at src/cmd/xshard.cc:899
+0x00005555555e78aa	0x00005555555e78b1 in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:913
+0x00005555555e78b5	0x00005555555e78bb in tomo_db0::(anonymous namespace)::carve_at<tomo_db0::(anonymous namespace)::ValueSlot> (count=<optimized out>, off=<optimized out>, base=<optimized out>) at src/cmd/xshard.cc:899
+0x00005555555e78bf	0x00005555555e78c2	0x00005555555e78c5	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:913
+0x00005555555e78d1	0x00005555555e78d7	0x00005555555e78d9	0x00005555555e7903 in tomo_db0::(anonymous namespace)::has_images (kind=<optimized out>) at src/cmd/xshard.cc:867
+0x00005555555e7907	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:921
+0x00005555555e7912	0x00005555555e6443	0x00005555555e6445	0x00005555555e644a	0x00005555555e649c	0x00005555555e64a5	0x00005555555e64a7	0x00005555555e64ae	0x00005555555e64b0	0x00005555555e64b3	0x00005555555e64b5	0x00005555555e64c2	0x00005555555e64c4	0x00005555555e64c8	tomo_db0::(anonymous namespace)::ShardGroup::ShardGroup (this=0x7ffff61d4b00) at src/cmd/xshard.cc:122
+0x00005555555e64d1	0x00005555555e64d9	0x00005555555e64e1	0x00005555555e64e8	0x00005555555e64f0	0x00005555555e64f6	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:929
+0x00005555555e6505	0x00005555555e64c2	0x00005555555e64c4	0x00005555555e64c8	tomo_db0::(anonymous namespace)::ShardGroup::ShardGroup (this=0x7ffff61d4b38) at src/cmd/xshard.cc:122
+0x00005555555e64d1	0x00005555555e64d9	0x00005555555e64e1	0x00005555555e64e8	0x00005555555e64f0	0x00005555555e64f6	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:929
+0x00005555555e6505	0x00005555555e650a	0x00005555555e650c	0x00005555555e6513	0x00005555555e6515 in tomo_db0::(anonymous namespace)::KeyRef::KeyRef (this=<optimized out>) at src/cmd/xshard.cc:134
+0x00005555555e651f in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:931
+0x00005555555e6522	0x00005555555e6524	0x00005555555e652f	0x00005555555e6530	0x00005555555e6532	0x00005555555e6534	0x00005555555e6538	tomo_db0::(anonymous namespace)::KeyRef::KeyRef (this=0x7ffff61d4b70) at src/cmd/xshard.cc:134
+0x00005555555e6542	0x00005555555e6546	0x00005555555e654e	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:931
+0x00005555555e655d	0x00005555555e6530	0x00005555555e6532	0x00005555555e6534	0x00005555555e6538	tomo_db0::(anonymous namespace)::KeyRef::KeyRef (this=0x7ffff61d4b90) at src/cmd/xshard.cc:134
+0x00005555555e6542	0x00005555555e6546	0x00005555555e654e	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:931
+0x00005555555e655d	0x00005555555e6562	59	  return __builtin___memset_chk (__dest, __ch, __len,
+0x00005555555e656b in memset (__len=8, __ch=0, __dest=0x7ffff61d4bb0) at /usr/include/x86_64-linux-gnu/bits/string_fortified.h:59
+59	  return __builtin___memset_chk (__dest, __ch, __len,
+0x00005555555e656d	59	  return __builtin___memset_chk (__dest, __ch, __len,
+0x00005555555e6570 in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:932
+0x00005555555e6574 in memset (__len=8, __ch=0, __dest=0x7ffff61d4bb0) at /usr/include/x86_64-linux-gnu/bits/string_fortified.h:59
+59	  return __builtin___memset_chk (__dest, __ch, __len,
+0x00005555555e6577	59	  return __builtin___memset_chk (__dest, __ch, __len,
+tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:933
+0x00005555555e6583	0x00005555555e6586	0x00005555555e6588	0x00005555555e658f	0x00005555555e6591 in tomo_db0::(anonymous namespace)::ValueSlot::ValueSlot (this=<optimized out>) at src/cmd/xshard.cc:84
+0x00005555555e659b in tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:933
+0x00005555555e659d	0x00005555555e659f	0x00005555555e65a0	0x00005555555e65a2	0x00005555555e65a4	0x00005555555e65ab	tomo_db0::(anonymous namespace)::ValueSlot::ValueSlot (this=0x7ffff61d4bb8) at src/cmd/xshard.cc:84
+0x00005555555e65b5	0x00005555555e65b9	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:933
+0x00005555555e65c4	0x00005555555e65a0	0x00005555555e65a2	0x00005555555e65a4	0x00005555555e65ab	tomo_db0::(anonymous namespace)::ValueSlot::ValueSlot (this=0x7ffff61d4fd0) at src/cmd/xshard.cc:84
+0x00005555555e65b5	0x00005555555e65b9	tomo_db0::(anonymous namespace)::init_arena_arrays (state=...) at src/cmd/xshard.cc:933
+0x00005555555e65c4	0x00005555555e65cd	0x00005555555e65d0	0x00005555555e65ea	0x00005555555e65ed	0x00005555555e6607	0x00005555555e660a	0x00005555555e6628	0x00005555555e662b	0x00005555555e6650	0x00005555555e6653	0x00005555555e66f7	0x00005555555e66fa	0x00005555555e675e	0x00005555555e6761	tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2136
+0x00005555555e67cd	0x00005555555e67cf	0x00005555555e67d5	0x00005555555e67db	0x00005555555e67e2	0x00005555555e67e9	0x00005555555e67ed	0x00005555555e67f1	0x00005555555e67f8	0x00005555555e6803	0x00005555555e6806	0x00005555555e6809	0x00005555555e6811	0x00005555555e681d	0x00005555555e6821	0x00005555555e6825	0x00005555555e6828	0x00005555555e682b	0x00005555555e682e	0x00005555555e6803	0x00005555555e6806	0x00005555555e6809	0x00005555555e6811	0x00005555555e681d	0x00005555555e6821	0x00005555555e6825	0x00005555555e6828	0x00005555555e682b	0x00005555555e682e	0x00005555555e6837	0x00005555555e683e	0x00005555555e6841	0x00005555555e7a50	0x00005555555e7a53	0x00005555555e6859	0x00005555555e7412	0x00005555555e7414	0x00005555555e741a	0x00005555555e7421	0x00005555555e7424	0x00005555555e7427	tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:433
+433	    uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+1281	      push_back(const value_type& __x)
+0x00005555555c3816	1281	      push_back(const value_type& __x)
+0x00005555555c3818	1281	      push_back(const value_type& __x)
+0x00005555555c381a	1281	      push_back(const value_type& __x)
+0x00005555555c381d	1281	      push_back(const value_type& __x)
+0x00005555555c381f	1281	      push_back(const value_type& __x)
+0x00005555555c3820	1281	      push_back(const value_type& __x)
+0x00005555555c3821	1281	      push_back(const value_type& __x)
+0x00005555555c3824	1281	      push_back(const value_type& __x)
+0x00005555555c3828 in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::push_back (__x=<synthetic pointer>: 0x7ffff61d4780, this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/stl_vector.h:1283
+1283		if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+0x00005555555c382f	1283		if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+0x00005555555c3836 in tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:433
+433	    uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+0x00005555555c3839	433	    uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+0x00005555555c383c in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::push_back (__x=<synthetic pointer>: 0x7ffff61d4780, this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/stl_vector.h:1283
+1283		if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+0x00005555555c3843	1283		if (this->_M_impl._M_finish != this->_M_impl._M_end_of_storage)
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555c3a13 in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_check_len (this=0x7ffffffdc4b8, __s=0x555555c4018d "vector::_M_realloc_insert", __n=1) at /usr/include/c++/13/bits/stl_vector.h:1898
+1898		if (max_size() - size() < __n)
+0x00005555555c3a1d in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555c3a20	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555c3a23	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555c3a27 in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_check_len (this=0x7ffffffdc4b8, __s=0x555555c4018d "vector::_M_realloc_insert", __n=1) at /usr/include/c++/13/bits/stl_vector.h:1898
+1898		if (max_size() - size() < __n)
+0x00005555555c3a2a	1898		if (max_size() - size() < __n)
+std::max<unsigned long> (__b=<synthetic pointer>: 1, __a=<optimized out>) at /usr/include/c++/13/bits/stl_algobase.h:257
+257	    max(const _Tp& __a, const _Tp& __b)
+0x00005555555c3a33	257	    max(const _Tp& __a, const _Tp& __b)
+0x00005555555c3b00 in std::__new_allocator<tomo_db0::SnapshotCut*>::deallocate (this=<optimized out>, __n=<optimized out>, __p=<optimized out>) at /usr/include/c++/13/bits/new_allocator.h:172
+172		_GLIBCXX_OPERATOR_DELETE(_GLIBCXX_SIZED_DEALLOC(__p, __n));
+0x00005555555c3b04	172		_GLIBCXX_OPERATOR_DELETE(_GLIBCXX_SIZED_DEALLOC(__p, __n));
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_check_len (this=<optimized out>, __s=<optimized out>, __n=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:378
+378	      _M_allocate(size_t __n)
+0x00005555555c3b10	378	      _M_allocate(size_t __n)
+0x00005555555c3b13	378	      _M_allocate(size_t __n)
+0x00005555555c3b17 in std::__new_allocator<unsigned long>::allocate (this=<optimized out>, __n=<optimized out>) at /usr/include/c++/13/bits/new_allocator.h:151
+151		return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+0x00005555555c3b1f	151		return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+126	      allocate(size_type __n, const void* = static_cast<const void*>(0))
+0x00005555555c3b29	126	      allocate(size_type __n, const void* = static_cast<const void*>(0))
+0x00005555555c3b2e	151		return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+0x00005555555c3b31 in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_realloc_insert<tomo_db0::SnapshotCut* const&> (__position=..., this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/vector.tcc:523
+523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3b36	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3b39	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3b3e	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+94	    construct_at(_Tp* __location, _Args&&... __args)
+0x00005555555c3a60	94	    construct_at(_Tp* __location, _Args&&... __args)
+0x00005555555c3a65 in std::construct_at<tomo_db0::SnapshotCut*, tomo_db0::SnapshotCut* const&> (__location=0x7ffff6a98078) at /usr/include/c++/13/bits/stl_construct.h:97
+97	    { return ::new((void*)__location) _Tp(std::forward<_Args>(__args)...); }
+std::__relocate_a_1<tomo_db0::SnapshotCut*, tomo_db0::SnapshotCut*> (__alloc=..., __result=0x7ffff6a98078, __last=<optimized out>, __first=<optimized out>) at /usr/include/c++/13/bits/stl_uninitialized.h:1114
+1114	    __relocate_a_1(_Tp* __first, _Tp* __last,
+0x00005555555c3a6f	1119	      if (__count > 0)
+0x00005555555c3a72	1119	      if (__count > 0)
+std::_Vector_base<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_deallocate (__n=0, __p=<optimized out>, this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/stl_vector.h:386
+386	      _M_deallocate(pointer __p, size_t __n)
+0x00005555555c3a77	386	      _M_deallocate(pointer __p, size_t __n)
+0x00005555555c3a7d in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::_M_realloc_insert<tomo_db0::SnapshotCut* const&> (__position=..., this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/vector.tcc:523
+523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3a82	521	      this->_M_impl._M_start = __new_start;
+0x00005555555c3a8a	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3a8d	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+0x00005555555c3a94	523	      this->_M_impl._M_end_of_storage = __new_start + __len;
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555c385a in tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:439
+439	    }
+0x00005555555c3861	437	    } else if (cut == unresolved_snapshot_floor_) {
+0x00005555555c3865 in std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555c3868	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555c386c in tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:436
+436	        unresolved_floor_refs_ = 1;
+0x00005555555c386e	436	        unresolved_floor_refs_ = 1;
+438	        unresolved_floor_refs_++;
+tomo_db0::(anonymous namespace)::snapshot_exclusive_floor (snapshot=0) at src/cmd/atomics_glue.inc:409
+409	    uint32_t refs = 0;
+0x00005555555c3879	409	    uint32_t refs = 0;
+0x00005555555c387f	409	    uint32_t refs = 0;
+tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:439
+439	    }
+0x00005555555c3885	439	    }
+440	    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+0x00005555555c388e	440	    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+441	        published_snapshot_floor_ = unresolved_snapshot_floor_;
+445	    // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
+0x00005555555c38a6	445	    // Publish the successor of each inclusive read cut. A version visible at the oldest snapshot
+std::__atomic_base<unsigned long>::store (__m=<optimized out>, __i=<optimized out>, this=<optimized out>) at src/cmd/atomics_glue.inc:446
+446	    // is then strictly below the floor and may become the sole physical representation without
+0x00005555555c38ab in tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:446
+446	    // is then strictly below the floor and may become the sole physical representation without
+std::__atomic_base<unsigned long>::store (__m=std::memory_order::seq_cst, __i=1, this=0x7fffffff3b50) at /usr/include/c++/13/bits/atomic_base.h:479
+479		__glibcxx_assert(__b != memory_order_consume);
+0x00005555555c38b9	481		__atomic_store_n(&_M_i, __i, int(__m));
+std::__atomic_base<unsigned long>::load (__m=std::memory_order::seq_cst, this=0x7fffffff1a78) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+tomo_db0::ScatterArenaPool::register_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:458
+458	            if (!unresolved_floor_refs_) std::abort();
+0x00005555555c38c9	458	            if (!unresolved_floor_refs_) std::abort();
+0x00005555555c3919	482	    const uint32_t slot = state->snapshot_slot;
+0x00005555555c391e	483	    if (slot != UINT32_MAX) {
+0x00005555555c3922	483	    if (slot != UINT32_MAX) {
+0x00005555555c3923	483	    if (slot != UINT32_MAX) {
+0x00005555555c3924	483	    if (slot != UINT32_MAX) {
+0x00005555555c3926	483	    if (slot != UINT32_MAX) {
+0x00005555555c3928	483	    if (slot != UINT32_MAX) {
+0x00005555555c392a	483	    if (slot != UINT32_MAX) {
+0x00005555555c392c	483	    if (slot != UINT32_MAX) {
+0x00005555555e742c in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2158
+0x00005555555e742e	0x00005555555e743b	0x00005555555e7441	0x00005555555e7448	0x00005555555e7451	tomo_db0::(anonymous namespace)::build_initial_groups (state=...) at src/cmd/xshard.cc:989
+0x00005555555b1932	0x00005555555b1933	0x00005555555b1934	0x00005555555b1937	0x00005555555b193e	0x00005555555b1944	0x00005555555b194b	0x00005555555b1954	0x00005555555b195c	0x00005555555b1962	0x00005555555b196b	0x00005555555b1970	0x00005555555b1972	0x00005555555b1975	0x00005555555b197a	0x00005555555b1980	0x00005555555b1982	0x00005555555b1989	0x00005555555b198e	0x00005555555b1990	0x00005555555b1992	0x00005555555b1995	0x00005555555b1998	0x00005555555b199c	0x00005555555b19a0	0x00005555555b19a3	0x00005555555b19a8	0x00005555555b19b4	0x00005555555b19b8	0x00005555555b19be	0x00005555555b19b4	0x00005555555b19b8	0x00005555555b19be	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555b19c6 in std::vector<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >, std::allocator<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> > > >::size (this=0x7ffffffed290) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555b19cd	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555b19d4 in tomo_db0::(anonymous namespace)::build_initial_groups (state=...) at src/cmd/xshard.cc:1010
+0x00005555555b19d6 in std::vector<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >, std::allocator<std::unique_ptr<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> > > >::size (this=0x7ffffffed290) at /usr/include/c++/13/bits/stl_vector.h:993
+993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+tomo_db0::(anonymous namespace)::build_initial_groups (state=...) at src/cmd/xshard.cc:1010
+0x00005555555b19dd	0x00005555555b19df	0x00005555555b19e1	0x00005555555b19ec	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b19fe	0x00005555555b1a02	0x00005555555b1a08	0x00005555555b1a0b	0x00005555555b1a0f	0x00005555555b1a1c	0x00005555555b1a23	0x00005555555b1a28	0x00005555555b1a2d	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b19fe	0x00005555555b1a02	0x00005555555b1a08	0x00005555555b1a0b	0x00005555555b1a0f	0x00005555555b1a1c	0x00005555555b1a23	0x00005555555b1a28	0x00005555555b1a2d	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b19f4	0x00005555555b19f6	0x00005555555b1a41	0x00005555555b1a44	0x00005555555b1a46	0x00005555555b1a4c	0x00005555555b1a55	0x00005555555b1a5d	0x00005555555b1a62	0x00005555555b1a6b	0x00005555555b1b13	0x00005555555b1b15	0x00005555555b1b18	0x00005555555b1b1f	0x00005555555b1b23	0x00005555555b1b2a	0x00005555555b1b34	0x00005555555b1b37	0x00005555555b1b3b	tomo_db0::(anonymous namespace)::group_for (state=..., shard=0) at src/cmd/xshard.cc:719
+0x00005555555b1897	0x00005555555b189a	0x00005555555b18e0	0x00005555555b18e6	tomo_db0::(anonymous namespace)::group_for (state=..., shard=0) at src/cmd/xshard.cc:724
+0x00005555555b18ef	0x00005555555b18f1	0x00005555555b18f5	0x00005555555b18f8	0x00005555555b190b	0x00005555555b190d	0x00005555555b1910 in tomo_db0::(anonymous namespace)::group_for (state=..., shard=<optimized out>) at src/cmd/xshard.cc:727
+tomo_db0::(anonymous namespace)::build_initial_groups (state=...) at src/cmd/xshard.cc:1030
+0x00005555555b1b43	0x00005555555b1b4a	0x00005555555b1b4d	0x00005555555b1b50	0x00005555555b1b57	0x00005555555b1b5d	0x00005555555b1b63	0x00005555555b1b34	0x00005555555b1b37	0x00005555555b1b3b	tomo_db0::(anonymous namespace)::group_for (state=..., shard=1) at src/cmd/xshard.cc:719
+0x00005555555b1897	0x00005555555b189a	0x00005555555b18e0	0x00005555555b18e6	tomo_db0::(anonymous namespace)::group_for (state=..., shard=1) at src/cmd/xshard.cc:724
+0x00005555555b18ef	0x00005555555b18f1	0x00005555555b18f5	0x00005555555b18f8	0x00005555555b190b	0x00005555555b1900	0x00005555555b1904	0x00005555555b1907	0x00005555555b190b	0x00005555555b190d	0x00005555555b1910 in tomo_db0::(anonymous namespace)::group_for (state=..., shard=<optimized out>) at src/cmd/xshard.cc:727
+tomo_db0::(anonymous namespace)::build_initial_groups (state=...) at src/cmd/xshard.cc:1030
+0x00005555555b1b43	0x00005555555b1b4a	0x00005555555b1b4d	0x00005555555b1b50	0x00005555555b1b57	0x00005555555b1b5d	0x00005555555b1b63	0x00005555555b1b65	0x00005555555b1ae2	0x00005555555b1aea	0x00005555555b1af3	0x00005555555b1af9	0x00005555555b1b00	0x00005555555b1b01	0x00005555555b1b02	0x00005555555b1b04	tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2176
+0x00005555555e7459	0x00005555555e745c	tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase (op=..., state=...) at src/cmd/xshard.cc:2757
+0x00005555555c1134	0x00005555555c1136	0x00005555555c113f	0x00005555555c1196	tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2179
+0x00005555555e7469	0x00005555555e7634	0x00005555555e7639	0x00005555555e87d4	0x00005555555e87db	0x00005555555e87dd	0x00005555555e87df	0x00005555555e87e1	0x00005555555e7646	0x00005555555e7649	0x00005555555e764b	0x00005555555e7651	0x00005555555e7654	0x00005555555e765b	std::__atomic_base<unsigned int>::load (__m=std::memory_order::relaxed, this=0x7fffffff3adc) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc780) at src/cmd/xshard.cc:2193
+0x00005555555e766c	0x00005555555e7476	tomo_db0::(anonymous namespace)::initialize_owner_completion (state=...) at src/cmd/xshard.cc:1192
+0x00005555555e7481	0x00005555555e7487	0x00005555555e748c	0x00005555555e7499	std::__atomic_base<unsigned int>::store (__m=std::memory_order::relaxed, __i=2, this=0x7ffff61d4790) at /usr/include/c++/13/bits/atomic_base.h:479
+479		__glibcxx_assert(__b != memory_order_consume);
+tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=<optimized out>, origin_client=<optimized out>) at src/cmd/xshard.cc:2210
+0x00005555555e74a9	0x00005555555e74bf	0x00005555555e74c6	0x00005555555e74cd	0x00005555555e74d0	0x00005555555e74d5	0x00005555555e74e0	0x00005555555e74e9	0x00005555555e74ec	0x00005555555e74f1 in std::__uniq_ptr_impl<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::release (this=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:218
+218		_M_ptr() = nullptr;
+0x00005555555e74fc	218		_M_ptr() = nullptr;
+tomo_db0::(anonymous namespace)::SortOptions::~SortOptions (this=0x7ffffffdb900, __in_chrg=<optimized out>) at src/cmd/xshard.cc:199
+0x00005555555e57a1	0x00005555555e57a8	0x00005555555e57ad	std::vector<double, std::allocator<double> >::~vector (this=0x7ffffffdb840, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/alloc_traits.h:945
+945	    _Destroy(_ForwardIterator __first, _ForwardIterator __last,
+0x00005555555e51d0	945	    _Destroy(_ForwardIterator __first, _ForwardIterator __last,
+0x00005555555e51d5	738	      }
+0x00005555555e4d09 in tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=<optimized out>, origin_client=<optimized out>) at src/cmd/xshard.cc:2228
+0x00005555555e4d10	std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::~unique_ptr (this=0x7ffffffdb7c0, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x00005555555e4d1c	403		if (__ptr != nullptr)
+0x00005555555e4d1f	403		if (__ptr != nullptr)
+std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::~unique_ptr (this=<synthetic pointer>, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x00005555555e4d91	197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x00005555555e4d94	197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+RuntimeLoadingGuard::~RuntimeLoadingGuard (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/xshard.cc:1610
+0x00005555555e4b73	tomo_db0::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=<optimized out>, origin_client=<optimized out>) at src/cmd/xshard.cc:1610
+0x00005555555e49b6	0x00005555555e49bf	0x00005555555e49c5	0x00005555555e49c9	0x00005555555e49cb	0x00005555555e49cc	0x00005555555e49ce	0x00005555555e49d0	0x00005555555e49d2	0x00005555555e49d4	0x00005555555e49d6	0x00005555555e49d7	0x00005555555a3686 in require (value=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3688 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:59
+59	    require(xshard_prepare(server, op, pool, 0, client.id(), dispatch, false, &client) == ScatterPrepare::Ready);
+0x00005555555a3689	59	    require(xshard_prepare(server, op, pool, 0, client.id(), dispatch, false, &client) == ScatterPrepare::Ready);
+require (value=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3697	15	static void require(bool value) { if (!value) std::abort(); }
+tomo_db0::Op::attach_scatter_state (state_=0x7ffff61d4780, this=0x7ffffffdc160) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/../store/../net/../exec/op.h:398
+398	        zc_ptr = reinterpret_cast<const char*>(state_);
+0x00005555555a36a4 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:62
+62	    for (unsigned i = 0; i < dispatch.nshards; ++i) {
+0x00005555555a36a6 in tomo_db0::Op::attach_scatter_state (state_=0x7ffff61d4780, this=0x7ffffffdc160) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/../store/../net/../exec/op.h:398
+398	        zc_ptr = reinterpret_cast<const char*>(state_);
+400	        zc_shard = kScatterStateMarker;
+0x00005555555a36b2	400	        zc_shard = kScatterStateMarker;
+0x00005555555a36b6	400	        zc_shard = kScatterStateMarker;
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:62
+62	    for (unsigned i = 0; i < dispatch.nshards; ++i) {
+63	        const auto s = xshard_dispatch_shard(dispatch, i);
+0x00005555555a36ec	63	        const auto s = xshard_dispatch_shard(dispatch, i);
+0x00005555555a36ee	63	        const auto s = xshard_dispatch_shard(dispatch, i);
+tomo_db0::xshard_dispatch_shard (dispatch=..., index=index@entry=0) at src/cmd/xshard.cc:2230
+0x00005555555c2067	0x00005555555c206a	0x00005555555c2072	0x00005555555c2074	0x00005555555c2076	0x00005555555c207a	0x00005555555c2081	0x00005555555c2083	std::__atomic_base<unsigned int>::load (__m=std::memory_order::acquire, this=0x7ffffffedf78) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555a36f6	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555a36fd	505		return __atomic_load_n(&_M_i, int(__m));
+std::__uniq_ptr_impl<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >::_M_ptr (this=0x7ffff6aa2080) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a370c in tomo_db0::Task::Task (state=<optimized out>, sid=<optimized out>, id=<optimized out>, c=<optimized out>, this=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3713 in std::__uniq_ptr_impl<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >::_M_ptr (this=0x7ffff6aa2080) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+tomo_db0::Task::Task (state=0x7ffff61d4780, sid=0, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:86
+86	    Task(Client* c, uint64_t id, int32_t sid, ScatterState* state)
+0x00005555555a371e	87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3724 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a372b in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=0, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3732 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a3739	67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a373c in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=0, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3747	87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3751 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a3754 in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=0, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+tomo_db0::xshard_task_should_defer (server=..., shard=..., task=..., op=...) at src/cmd/atomics_glue.inc:640
+640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b4	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b6	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b8	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82ba	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82bc	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82bd	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82be	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82c5	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82ce	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82d6	640	    // fragment forever while its sibling spun at the command barrier.
+641	    if (multi_task_tagged(task)) return false;
+0x00005555555f82dc	641	    if (multi_task_tagged(task)) return false;
+0x00005555555f82e2 in tomo_db0::multi_task_tagged (task=...) at src/cmd/multi.inc:2725
+2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82e6	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+tomo_db0::xshard_task_should_defer (server=..., shard=..., task=..., op=...) at src/cmd/multi.inc:2725
+2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82ec	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f0	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f6	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f9	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+647	        // deliberately widened physical tear. The state word is zero unless prepare classified a
+0x00005555555f82ff	647	        // deliberately widened physical tear. The state word is zero unless prepare classified a
+654	        // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
+0x00005555555f8309	654	        // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
+662	        // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
+0x00005555555f8317	662	        // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
+670	        // The coordinator's own shard reads immediately; every other declared key's owner is parked
+0x00005555555f8325	670	        // The coordinator's own shard reads immediately; every other declared key's owner is parked
+677	        if (state.atomic_direct) {
+0x00005555555f8333	677	        if (state.atomic_direct) {
+682	                bool source_group = false;
+0x00005555555f833e	682	                bool source_group = false;
+185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f8349	185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f834d	185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f8490	641	    if (multi_task_tagged(task)) return false;
+0x00005555555f8493	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f849b	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84a4	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84aa	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b1	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b4	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b5	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b6	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b8	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84ba	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84bc	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84be	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+require (value=255) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3762	15	static void require(bool value) { if (!value) std::abort(); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:68
+68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a376f	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3772	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3775	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3778	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2797
+0x00005555555feab4	0x00005555555feab9	0x00005555555feabd	0x00005555555feac1	0x00005555555feac2	0x00005555555feac5	0x00005555555feac7	0x00005555555feac9	0x00005555555feacb	0x00005555555feacd	0x00005555555feacf	0x00005555555fead0	0x00005555555fead7	0x00005555555feada	0x00005555555feae1	0x00005555555feae8	0x00005555555feaef	0x00005555555feaf5	0x00005555555feaf8 in tomo_db0::Shard::notify_order_base (this=<optimized out>) at src/cmd/../core/shard.h:167
+167	    Op* notify_source() const { return notify_source_; }
+0x00005555555feafe in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2797
+0x00005555555feb07	0x00005555555feb0b	tomo_db0::NotifyExecutionScope::NotifyExecutionScope (order_base=<optimized out>, active=<optimized out>, op=<optimized out>, shard=..., this=<optimized out>) at src/cmd/xshard.cc:2798
+0x00005555555feb18	0x00005555555feb23 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2798
+0x00005555555feb28	tomo_db0::NotifyExecutionScope::NotifyExecutionScope (order_base=0, active=false, op=0x7ffffffdc160, shard=..., this=0x7ffffffdbc40) at src/cmd/notify.inc:280
+280	NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
+0x00005555555feb3a	280	NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
+282	    if (!active || !op) return;
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2800
+0x00005555555feb8b in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555feb92 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2800
+0x00005555555feb96 in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555feb9a in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2800
+0x00005555555feba8 in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555febaf in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2806
+tomo_db0::PinnedNowMs::PinnedNowMs (cut_ms=1791739821965, shard=..., this=<synthetic pointer>) at src/cmd/../core/shard.h:582
+582	// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
+0x00005555555febb9	582	// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
+tomo_db0::Shard::pin_now_ms (now_ms=1791739821965, this=0x7ffff6aa6000) at src/cmd/../core/shard.h:125
+125	    void pin_now_ms(int64_t now_ms) {
+tomo_db0::FlatStore::set_cached_now_ms (now_ms=1791739821965, this=0x7ffff6aa6038) at src/cmd/../store/flatstore.h:1417
+1417	    void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2807
+0x00005555555febcd	0x00005555555febd1	103	
+0x00005555555febde	103	
+0x00005555555febe5	0x00005555555febe8	tomo_db0::(anonymous namespace)::group_for (state=..., shard=0) at src/cmd/xshard.cc:719
+0x00005555555b1897	0x00005555555b189a	0x00005555555b18e0	0x00005555555b18e6	tomo_db0::(anonymous namespace)::group_for (state=..., shard=0) at src/cmd/xshard.cc:724
+0x00005555555b18ef	0x00005555555b18f1	0x00005555555b18f5	0x00005555555b18f8	0x00005555555b190b	0x00005555555b190d	0x00005555555b1910 in tomo_db0::(anonymous namespace)::group_for (state=..., shard=<optimized out>) at src/cmd/xshard.cc:727
+0x00005555555febed in tomo_db0::FlatStore::atomic_has_records (this=<optimized out>) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555febf4 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2811
+0x00005555555febf7	37	        return atomic_pending_ &&
+tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase (state=..., op=...) at src/cmd/xshard.cc:2757
+0x00005555555b28f4	0x00005555555b28f8	0x00005555555b28ff	0x00005555555b2920	0x00005555555fec03 in tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6038) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fec06	37	        return atomic_pending_ &&
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2816
+0x00005555555fed27	0x00005555555fed2a	tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase (state=..., op=...) at src/cmd/xshard.cc:2757
+0x00005555555b28f4	0x00005555555b28f8	0x00005555555b28ff	0x00005555555b2920	0x00005555555fed2f in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2816
+0x00005555555fed31	0x00005555555fed3e	0x00005555555fed42 in tomo_db0::FlatStore::atomic_has_records (this=<optimized out>) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fed49 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2844
+tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6038) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fef07	37	        return atomic_pending_ &&
+0x00005555555fef0a	37	        return atomic_pending_ &&
+0x00005555555fed4f in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2844
+0x00005555555fed53	0x00005555555fed61	0x00005555555fed65	0x00005555555fed69	0x00005555555fed6d	0x00005555555fed71	0x00005555555fee62	0x00005555555fee68	0x00005555555fee6f	ReadEpochGuard::ReadEpochGuard (multi_child=<optimized out>, origin_conn_id=<optimized out>, snapshot=<optimized out>, store_=..., this=<synthetic pointer>) at src/cmd/xshard.cc:2867
+0x00005555555fee76	0x00005555555fee7b	tomo_db0::FlatStore::atomic_set_read_context (origin_conn_id=777, epoch=0, this=0x7ffff6aa6038) at src/cmd/../store/flatstore_atomic.inc:404
+404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee86	404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee8c	404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee93	403	        atomic_read_epoch_ = epoch;
+ReadEpochGuard::ReadEpochGuard (multi_child=<optimized out>, origin_conn_id=<optimized out>, snapshot=<optimized out>, store_=..., this=<optimized out>) at src/cmd/xshard.cc:2901
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:2903
+0x00005555555feea9	0x00005555555feead	0x00005555555ff269	0x00005555555ff26d	tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6038) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555ff27a	37	        return atomic_pending_ &&
+0x00005555555ff281	37	        return atomic_pending_ &&
+0x00005555555ff283	37	        return atomic_pending_ &&
+0x00005555555ff286	37	        return atomic_pending_ &&
+0x00005555555ff293 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:3071
+0x00005555555ff29e	0x00005555555ff2a0	0x00005555555ff2ad	0x00005555555ff2b4	0x00005555555ff2bb	0x00005555555ff2c2	0x00005555555ff2c9	tomo_db0::(anonymous namespace)::sort_deref_gathering (state=...) at src/cmd/xshard.cc:1036
+0x00005555555ff2d7	0x00005555555ff2de	0x00005555555ff2e1	tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:3121
+0x00005555555ff2f9	0x00005555555ff2fd	0x00005555555ff301	0x00005555555ff307	0x00005555555ff30a	0x0000555555601fa8	0x0000555555601fb2	0x0000555555601fba	0x0000555555601fc1	0x0000555555601fcb	0x0000555555601fd2	0x0000555555601fd8	0x0000555555601fed	0x0000555555603113	operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3122
+0x00005555555d0532	0x00005555555d0534	0x00005555555d0536	0x00005555555d0538	0x00005555555d0539	0x00005555555d053a	0x00005555555d053e	0x00005555555d0547	0x00005555555d054c	0x00005555555d054f	0x00005555555d0552	0x00005555555d0554	0x00005555555d055a	0x00005555555d055d	0x00005555555d0560	0x00005555555d056a	0x00005555555d0651	0x00005555555d0655	0x00005555555d0658	0x00005555555d065b	0x00005555555d065f	0x00005555555d0666	0x00005555555d0669 in tomo_db0::Shard::store (this=<optimized out>) at src/cmd/../core/shard.h:192
+192	
+0x00005555555d066d in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3125
+0x00005555555d0670 in tomo_db0::Shard::store (this=<optimized out>) at src/cmd/../core/shard.h:192
+192	
+0x00005555555d0674 in tomo_db0::Op::arg (i=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d067b in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3125
+0x00005555555d067f	tomo_db0::Op::arg (i=1, this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0689	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d068c	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0692	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0696	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d069a	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d069e	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0577	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d057a	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d057d in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3131
+0x00005555555d0580	0x00005555555d0583	0x00005555555d0586	0x00005555555d0589	0x00005555555d058c	0x00005555555d0591	tomo_db0::Shard::note_keyspace_read (object=0x0, this=0x7ffff6aa6000) at src/cmd/../core/shard.h:204
+204	    void note_keyspace_read(const KvObj* object) {
+0x00005555555d0598	204	    void note_keyspace_read(const KvObj* object) {
+operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/../core/shard.h:205
+205	        if (object) stats_.hits++;
+0x00005555555d06b3	0x00005555555d06b6 in tomo_db0::Shard::note_keyspace_read (object=<optimized out>, this=0x7ffff6aa6000) at src/cmd/../core/shard.h:205
+205	        if (object) stats_.hits++;
+operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3123
+0x00005555555d06c1	0x00005555555d06c3	0x00005555555d06c8	0x00005555555d06d1	0x00005555555d06d7	0x00005555555d06db	0x00005555555d06dc	0x00005555555d06dd	0x00005555555d06df	0x00005555555d06e1	0x00005555555d06e3	0x00005555555d06e5	0x0000555555603118 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:3116
+0x000055555560311a	ReadEpochGuard::~ReadEpochGuard (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/xshard.cc:2875
+0x00005555555fedeb	tomo_db0::FlatStore::atomic_clear_read_epoch (this=0x7ffff6aa6038) at src/cmd/../store/flatstore_atomic.inc:407
+407	        atomic_read_epoch_ = UINT64_MAX;
+0x00005555555fedf4	407	        atomic_read_epoch_ = UINT64_MAX;
+408	        atomic_read_origin_conn_id_ = 0;
+tomo_db0::PinnedNowMs::~PinnedNowMs (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/../core/shard.h:584
+584	// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
+0x00005555555fee0c	584	// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
+tomo_db0::Shard::pin_now_ms (now_ms=0, this=0x7ffff6aa6000) at src/cmd/../core/shard.h:125
+125	    void pin_now_ms(int64_t now_ms) {
+0x00005555555fee15	125	    void pin_now_ms(int64_t now_ms) {
+0x00005555555fee1c	125	    void pin_now_ms(int64_t now_ms) {
+tomo_db0::FlatStore::set_cached_now_ms (now_ms=0, this=0x7ffff6aa6038) at src/cmd/../store/flatstore.h:1417
+1417	    void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+0x00005555555fee27 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=0) at src/cmd/xshard.cc:3612
+0x00005555555fee2e	0x00005555555fee33	0x00005555555fee37	0x00005555555fee40	0x00005555555fee46	0x00005555555fee4a	0x00005555555fee4c	0x00005555555fee4d	0x00005555555fee4f	0x00005555555fee51	0x00005555555fee53	0x00005555555fee55	0x00005555555fee57	0x00005555555fee58	0x00005555555fee5c	require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a377f	15	static void require(bool value) { if (!value) std::abort(); }
+std::__uniq_ptr_impl<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >::_M_ptr (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:69
+69	        const auto result = fused
+0x00005555555a378c in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:70
+70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a3793	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a379a	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a379d	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a37a4	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a37a7 in std::__uniq_ptr_impl<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >::_M_ptr (this=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37ab in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:70
+70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+tomo_db0::xshard_complete_iofused (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:4037
+tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3888
+0x0000555555641004	0x0000555555641005	0x0000555555641008	0x000055555564100a	0x000055555564100c	0x000055555564100e	0x000055555564100f	0x0000555555641012	0x0000555555641015	0x0000555555641018	0x000055555564101c	0x0000555555641020	0x0000555555641024	0x000055555564102d	0x0000555555641032	0x0000555555641034	0x0000555555641038	0x000055555564103e	0x0000555555641042	0x0000555555641047	0x000055555564104c	0x0000555555641051	0x0000555555641057	0x000055555564105d	0x0000555555641063	0x0000555555641069	0x000055555564106f	0x0000555555641073	0x0000555555641079	std::__atomic_base<unsigned int>::fetch_sub (__m=std::memory_order::acq_rel, __i=1, this=0x7ffff61d4790) at /usr/include/c++/13/bits/atomic_base.h:643
+643	      fetch_sub(__int_type __i,
+0x0000555555641080 in tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3913
+0x0000555555641130	0x0000555555641133	0x0000555555641138	0x0000555555641141	0x0000555555641147	0x000055555564114b	0x000055555564114e	0x000055555564114f	0x0000555555641151	0x0000555555641153	0x0000555555641155	0x0000555555641156	main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:72
+72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cb	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cd	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cf	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a36d7	15	static void require(bool value) { if (!value) std::abort(); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:62
+62	    for (unsigned i = 0; i < dispatch.nshards; ++i) {
+0x00005555555a36df	62	    for (unsigned i = 0; i < dispatch.nshards; ++i) {
+63	        const auto s = xshard_dispatch_shard(dispatch, i);
+0x00005555555a36ec	63	        const auto s = xshard_dispatch_shard(dispatch, i);
+0x00005555555a36ee	63	        const auto s = xshard_dispatch_shard(dispatch, i);
+tomo_db0::xshard_dispatch_shard (dispatch=..., index=index@entry=1) at src/cmd/xshard.cc:2230
+0x00005555555c2067	0x00005555555c206a	0x00005555555c2072	0x00005555555c2074	0x00005555555c2076	0x00005555555c207a	0x00005555555c2081	0x00005555555c2083	std::__atomic_base<unsigned int>::load (__m=std::memory_order::acquire, this=0x7ffffffedf7c) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555a36f6	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555a36fd	505		return __atomic_load_n(&_M_i, int(__m));
+std::__uniq_ptr_impl<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >::_M_ptr (this=0x7ffff6aa2088) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a370c in tomo_db0::Task::Task (state=<optimized out>, sid=<optimized out>, id=<optimized out>, c=<optimized out>, this=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3713 in std::__uniq_ptr_impl<tomo_db0::Shard, std::default_delete<tomo_db0::Shard> >::_M_ptr (this=0x7ffff6aa2088) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+tomo_db0::Task::Task (state=0x7ffff61d4780, sid=1, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:86
+86	    Task(Client* c, uint64_t id, int32_t sid, ScatterState* state)
+0x00005555555a371e	87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3724 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a372b in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=1, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3732 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a3739	67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a373c in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=1, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3747	87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+0x00005555555a3751 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+0x00005555555a3754 in tomo_db0::Task::Task (state=0x7ffff61d4780, sid=1, id=0, c=0x7ffffffdc780, this=0x7ffffffdbe60) at /home/user/Projects/cx-txnfix/build/txnorder/pre-source/src/core/thread.h:87
+87	        : client(c), op_id(id), shard(sid), scatter(state) {}
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:67
+67	        require(!xshard_task_should_defer(server, shard, task, op));
+tomo_db0::xshard_task_should_defer (server=..., shard=..., task=..., op=...) at src/cmd/atomics_glue.inc:640
+640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b4	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b6	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82b8	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82ba	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82bc	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82bd	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82be	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82c5	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82ce	640	    // fragment forever while its sibling spun at the command barrier.
+0x00005555555f82d6	640	    // fragment forever while its sibling spun at the command barrier.
+641	    if (multi_task_tagged(task)) return false;
+0x00005555555f82dc	641	    if (multi_task_tagged(task)) return false;
+0x00005555555f82e2 in tomo_db0::multi_task_tagged (task=...) at src/cmd/multi.inc:2725
+2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82e6	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+tomo_db0::xshard_task_should_defer (server=..., shard=..., task=..., op=...) at src/cmd/multi.inc:2725
+2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82ec	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f0	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f6	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+0x00005555555f82f9	2725	        const uint32_t stage = command.stage.load(std::memory_order_acquire);
+647	        // deliberately widened physical tear. The state word is zero unless prepare classified a
+0x00005555555f82ff	647	        // deliberately widened physical tear. The state word is zero unless prepare classified a
+654	        // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
+0x00005555555f8309	654	        // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
+662	        // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
+0x00005555555f8317	662	        // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
+670	        // The coordinator's own shard reads immediately; every other declared key's owner is parked
+0x00005555555f8325	670	        // The coordinator's own shard reads immediately; every other declared key's owner is parked
+677	        if (state.atomic_direct) {
+0x00005555555f8333	677	        if (state.atomic_direct) {
+682	                bool source_group = false;
+0x00005555555f833e	682	                bool source_group = false;
+185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f8349	185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f834d	185	    bool atomic_hazard() const { return route_flags_ & kAtomicHazard; }
+0x00005555555f8490	641	    if (multi_task_tagged(task)) return false;
+0x00005555555f8493	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f849b	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84a4	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84aa	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b1	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b4	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b5	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b6	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84b8	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84ba	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84bc	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+0x00005555555f84be	747	bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+require (value=255) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3762	15	static void require(bool value) { if (!value) std::abort(); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:68
+68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a376f	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3772	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3775	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+0x00005555555a3778	68	        require(xshard_execute(task, shard, op, owner) == ScatterTaskResult::Complete);
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2797
+0x00005555555feab4	0x00005555555feab9	0x00005555555feabd	0x00005555555feac1	0x00005555555feac2	0x00005555555feac5	0x00005555555feac7	0x00005555555feac9	0x00005555555feacb	0x00005555555feacd	0x00005555555feacf	0x00005555555fead0	0x00005555555fead7	0x00005555555feada	0x00005555555feae1	0x00005555555feae8	0x00005555555feaef	0x00005555555feaf5	0x00005555555feaf8 in tomo_db0::Shard::notify_order_base (this=<optimized out>) at src/cmd/../core/shard.h:167
+167	    Op* notify_source() const { return notify_source_; }
+0x00005555555feafe in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2797
+0x00005555555feb07	0x00005555555feb0b	tomo_db0::NotifyExecutionScope::NotifyExecutionScope (order_base=<optimized out>, active=<optimized out>, op=<optimized out>, shard=..., this=<optimized out>) at src/cmd/xshard.cc:2798
+0x00005555555feb18	0x00005555555feb23 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2798
+0x00005555555feb28	tomo_db0::NotifyExecutionScope::NotifyExecutionScope (order_base=0, active=false, op=0x7ffffffdc160, shard=..., this=0x7ffffffdbc40) at src/cmd/notify.inc:280
+280	NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
+0x00005555555feb3a	280	NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
+282	    if (!active || !op) return;
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2800
+0x00005555555feb8b in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555feb92 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2800
+0x00005555555feb96 in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555feb9a in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2800
+0x00005555555feba8 in tomo_db0::Shard::now_ms (this=<optimized out>) at src/cmd/../core/shard.h:109
+109	    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
+0x00005555555febaf in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2806
+tomo_db0::PinnedNowMs::PinnedNowMs (cut_ms=1791739821965, shard=..., this=<synthetic pointer>) at src/cmd/../core/shard.h:582
+582	// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
+0x00005555555febb9	582	// the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an
+tomo_db0::Shard::pin_now_ms (now_ms=1791739821965, this=0x7ffff6aa6600) at src/cmd/../core/shard.h:125
+125	    void pin_now_ms(int64_t now_ms) {
+tomo_db0::FlatStore::set_cached_now_ms (now_ms=1791739821965, this=0x7ffff6aa6638) at src/cmd/../store/flatstore.h:1417
+1417	    void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2807
+0x00005555555febcd	0x00005555555febd1	103	
+0x00005555555febde	103	
+0x00005555555febe5	0x00005555555febe8	tomo_db0::(anonymous namespace)::group_for (state=..., shard=1) at src/cmd/xshard.cc:719
+0x00005555555b1897	0x00005555555b189a	0x00005555555b18e0	0x00005555555b18e6	tomo_db0::(anonymous namespace)::group_for (state=..., shard=1) at src/cmd/xshard.cc:724
+0x00005555555b18ef	0x00005555555b18f1	0x00005555555b18f5	0x00005555555b18f8	0x00005555555b190b	0x00005555555b1900	0x00005555555b1904	0x00005555555b1907	0x00005555555b190b	0x00005555555b190d	0x00005555555b1910 in tomo_db0::(anonymous namespace)::group_for (state=..., shard=<optimized out>) at src/cmd/xshard.cc:727
+0x00005555555febed in tomo_db0::FlatStore::atomic_has_records (this=<optimized out>) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555febf4 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2811
+0x00005555555febf7	37	        return atomic_pending_ &&
+tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase (state=..., op=...) at src/cmd/xshard.cc:2757
+0x00005555555b28f4	0x00005555555b28f8	0x00005555555b28ff	0x00005555555b2920	0x00005555555fec03 in tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6638) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fec06	37	        return atomic_pending_ &&
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2816
+0x00005555555fed27	0x00005555555fed2a	tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase (state=..., op=...) at src/cmd/xshard.cc:2757
+0x00005555555b28f4	0x00005555555b28f8	0x00005555555b28ff	0x00005555555b2920	0x00005555555fed2f in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2816
+0x00005555555fed31	0x00005555555fed3e	0x00005555555fed42 in tomo_db0::FlatStore::atomic_has_records (this=<optimized out>) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fed49 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2844
+tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6638) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555fef07	37	        return atomic_pending_ &&
+0x00005555555fef0a	37	        return atomic_pending_ &&
+0x00005555555fed4f in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2844
+0x00005555555fed53	0x00005555555fed61	0x00005555555fed65	0x00005555555fed69	0x00005555555fed6d	0x00005555555fed71	0x00005555555fee62	0x00005555555fee68	0x00005555555fee6f	ReadEpochGuard::ReadEpochGuard (multi_child=<optimized out>, origin_conn_id=<optimized out>, snapshot=<optimized out>, store_=..., this=<synthetic pointer>) at src/cmd/xshard.cc:2867
+0x00005555555fee76	0x00005555555fee7b	tomo_db0::FlatStore::atomic_set_read_context (origin_conn_id=777, epoch=0, this=0x7ffff6aa6638) at src/cmd/../store/flatstore_atomic.inc:404
+404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee86	404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee8c	404	        atomic_read_origin_conn_id_ = origin_conn_id;
+0x00005555555fee93	403	        atomic_read_epoch_ = epoch;
+ReadEpochGuard::ReadEpochGuard (multi_child=<optimized out>, origin_conn_id=<optimized out>, snapshot=<optimized out>, store_=..., this=<optimized out>) at src/cmd/xshard.cc:2901
+tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:2903
+0x00005555555feea9	0x00005555555feead	0x00005555555ff269	0x00005555555ff26d	tomo_db0::FlatStore::atomic_has_records (this=0x7ffff6aa6638) at src/cmd/../store/flatstore_atomic.inc:37
+37	        return atomic_pending_ &&
+0x00005555555ff27a	37	        return atomic_pending_ &&
+0x00005555555ff281	37	        return atomic_pending_ &&
+0x00005555555ff283	37	        return atomic_pending_ &&
+0x00005555555ff286	37	        return atomic_pending_ &&
+0x00005555555ff293 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:3071
+0x00005555555ff29e	0x00005555555ff2a0	0x00005555555ff2ad	0x00005555555ff2b4	0x00005555555ff2bb	0x00005555555ff2c2	0x00005555555ff2c9	tomo_db0::(anonymous namespace)::sort_deref_gathering (state=...) at src/cmd/xshard.cc:1036
+0x00005555555ff2d7	0x00005555555ff2de	0x00005555555ff2e1	tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:3121
+0x00005555555ff2f9	0x00005555555ff2fd	0x00005555555ff301	0x00005555555ff307	0x00005555555ff30a	0x0000555555601fa8	0x0000555555601fb2	0x0000555555601fba	0x0000555555601fc1	0x0000555555601fcb	0x0000555555601fd2	0x0000555555601fd8	0x0000555555601fed	0x0000555555603113	operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3122
+0x00005555555d0532	0x00005555555d0534	0x00005555555d0536	0x00005555555d0538	0x00005555555d0539	0x00005555555d053a	0x00005555555d053e	0x00005555555d0547	0x00005555555d054c	0x00005555555d054f	0x00005555555d0552	0x00005555555d0554	0x00005555555d055a	0x00005555555d055d	0x00005555555d0560	0x00005555555d056a	0x00005555555d0651	0x00005555555d0655	0x00005555555d0658	0x00005555555d065b	0x00005555555d065f	0x00005555555d0666	0x00005555555d0669 in tomo_db0::Shard::store (this=<optimized out>) at src/cmd/../core/shard.h:192
+192	
+0x00005555555d066d in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3125
+0x00005555555d0670 in tomo_db0::Shard::store (this=<optimized out>) at src/cmd/../core/shard.h:192
+192	
+0x00005555555d0674 in tomo_db0::Op::arg (i=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d067b in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3125
+0x00005555555d067f	tomo_db0::Op::arg (i=2, this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:139
+139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0689	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d068c	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0692	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0696	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d069a	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d069e	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d0577	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d057a	139	    Slice arg(uint32_t i) const { return argv_heap_ ? argv_heap_[i] : argv_inline_[i]; }
+0x00005555555d057d in operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3131
+0x00005555555d0580	0x00005555555d0583	0x00005555555d0586	0x00005555555d0589	0x00005555555d058c	0x00005555555d0591	tomo_db0::Shard::note_keyspace_read (object=0x0, this=0x7ffff6aa6600) at src/cmd/../core/shard.h:204
+204	    void note_keyspace_read(const KvObj* object) {
+0x00005555555d0598	204	    void note_keyspace_read(const KvObj* object) {
+operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/../core/shard.h:205
+205	        if (object) stats_.hits++;
+0x00005555555d06b3	0x00005555555d06b6 in tomo_db0::Shard::note_keyspace_read (object=<optimized out>, this=0x7ffff6aa6600) at src/cmd/../core/shard.h:205
+205	        if (object) stats_.hits++;
+operator()<false, false> (__closure=0x7ffffffdbc60) at src/cmd/xshard.cc:3123
+0x00005555555d06c1	0x00005555555d06c3	0x00005555555d06c8	0x00005555555d06d1	0x00005555555d06d7	0x00005555555d06db	0x00005555555d06dc	0x00005555555d06dd	0x00005555555d06df	0x00005555555d06e1	0x00005555555d06e3	0x00005555555d06e5	0x0000555555603118 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:3116
+0x000055555560311a	ReadEpochGuard::~ReadEpochGuard (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/xshard.cc:2875
+0x00005555555fedeb	tomo_db0::FlatStore::atomic_clear_read_epoch (this=0x7ffff6aa6638) at src/cmd/../store/flatstore_atomic.inc:407
+407	        atomic_read_epoch_ = UINT64_MAX;
+0x00005555555fedf4	407	        atomic_read_epoch_ = UINT64_MAX;
+408	        atomic_read_origin_conn_id_ = 0;
+tomo_db0::PinnedNowMs::~PinnedNowMs (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/../core/shard.h:584
+584	// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
+0x00005555555fee0c	584	// A zero cut disarms the guard rather than pinning: an unstamped state must not be read as 1970,
+tomo_db0::Shard::pin_now_ms (now_ms=0, this=0x7ffff6aa6600) at src/cmd/../core/shard.h:125
+125	    void pin_now_ms(int64_t now_ms) {
+0x00005555555fee15	125	    void pin_now_ms(int64_t now_ms) {
+0x00005555555fee1c	125	    void pin_now_ms(int64_t now_ms) {
+tomo_db0::FlatStore::set_cached_now_ms (now_ms=0, this=0x7ffff6aa6638) at src/cmd/../store/flatstore.h:1417
+1417	    void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
+0x00005555555fee27 in tomo_db0::xshard_execute (task=..., shard=..., op=..., owner_thread_id=owner_thread_id@entry=1) at src/cmd/xshard.cc:3612
+0x00005555555fee2e	0x00005555555fee33	0x00005555555fee37	0x00005555555fee40	0x00005555555fee46	0x00005555555fee4a	0x00005555555fee4c	0x00005555555fee4d	0x00005555555fee4f	0x00005555555fee51	0x00005555555fee53	0x00005555555fee55	0x00005555555fee57	0x00005555555fee58	0x00005555555fee5c	require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a377f	15	static void require(bool value) { if (!value) std::abort(); }
+std::__uniq_ptr_impl<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >::_M_ptr (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:69
+69	        const auto result = fused
+0x00005555555a378c in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:70
+70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a3793	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a379a	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a379d	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a37a4	70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+0x00005555555a37a7 in std::__uniq_ptr_impl<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >::_M_ptr (this=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37ab in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:70
+70	            ? xshard_complete_iofused(server, server.thread(owner), ring, task, op)
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+tomo_db0::xshard_complete_iofused (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:4037
+tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3888
+0x0000555555641004	0x0000555555641005	0x0000555555641008	0x000055555564100a	0x000055555564100c	0x000055555564100e	0x000055555564100f	0x0000555555641012	0x0000555555641015	0x0000555555641018	0x000055555564101c	0x0000555555641020	0x0000555555641024	0x000055555564102d	0x0000555555641032	0x0000555555641034	0x0000555555641038	0x000055555564103e	0x0000555555641042	0x0000555555641047	0x000055555564104c	0x0000555555641051	0x0000555555641057	0x000055555564105d	0x0000555555641063	0x0000555555641069	0x000055555564106f	0x0000555555641073	0x0000555555641079	std::__atomic_base<unsigned int>::fetch_sub (__m=std::memory_order::acq_rel, __i=1, this=0x7ffff61d4790) at /usr/include/c++/13/bits/atomic_base.h:643
+643	      fetch_sub(__int_type __i,
+0x0000555555641080 in tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3913
+0x0000555555641086	0x000055555564108a	0x0000555555641096	0x000055555564109a	0x00005555556410a0	0x00005555556410a4	0x00005555556410aa	0x00005555556410ae	std::__atomic_base<bool>::exchange (__m=std::memory_order::acq_rel, __i=true, this=0x7ffff61d478d) at /usr/include/c++/13/bits/atomic_base.h:520
+520	      exchange(__int_type __i,
+0x0000555555641335	520	      exchange(__int_type __i,
+0x0000555555641338 in tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3966
+0x000055555564133a	std::__atomic_base<unsigned long>::fetch_add (__m=std::memory_order::release, __i=1, this=0x7fffffff3f50) at /usr/include/c++/13/bits/atomic_base.h:633
+633	      fetch_add(__int_type __i,
+0x0000555555641343	635	      { return __atomic_fetch_add(&_M_i, __i, int(__m)); }
+0x0000555555641349	635	      { return __atomic_fetch_add(&_M_i, __i, int(__m)); }
+0x000055555564134e in tomo_db0::Server::note_atomic_snapshot_complete (thread=<optimized out>, this=<optimized out>) at src/cmd/../core/server.h:2822
+2822	        return groups;
+0x00005555556410b4 in tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:3969
+0x00005555556410b8	0x00005555556410be	0x00005555556410c3	0x00005555556410c7	0x00005555556410cd	0x00005555556410d1	0x00005555556410d3	0x00005555556410d9	0x00005555556410db	0x00005555556410e1	0x00005555556410e5	0x00005555556412c0	0x00005555556412c5	tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const (__closure=__closure@entry=0x7ffffffdbcc0) at src/cmd/xshard.cc:3897
+0x000055555562b564	0x000055555562b565	0x000055555562b568	0x000055555562b56b	0x000055555562b56e	0x000055555562b572	0x000055555562b574	0x000055555562b578 in tomo_db0::ThreadCtx::id (this=<optimized out>) at src/cmd/../core/thread.h:366
+366	    uint32_t id()   const { return id_; }
+0x000055555562b57c in tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const (__closure=__closure@entry=0x7ffffffdbcc0) at src/cmd/xshard.cc:3904
+tomo_db0::ThreadCtx::id (this=0x7ffff6ac2600) at src/cmd/../core/thread.h:366
+366	    uint32_t id()   const { return id_; }
+std::vector<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >, std::allocator<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> > > >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x000055555562b589	992	      size() const _GLIBCXX_NOEXCEPT
+0x000055555562b590	992	      size() const _GLIBCXX_NOEXCEPT
+0x000055555562b594 in tomo_db0::Server::atomic_apply_close (flag=..., tid=1, this=0x7ffffffdcf40) at src/cmd/../core/server.h:2880
+2880	    uint32_t debug_read_local_lane_cap() const {
+0x000055555562b596	2880	    uint32_t debug_read_local_lane_cap() const {
+std::__atomic_base<bool>::load (__m=std::memory_order::acquire, this=0x7ffff61d47d8) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x000055555562b59c	505		return __atomic_load_n(&_M_i, int(__m));
+0x000055555562b5a0 in tomo_db0::Server::atomic_apply_close (flag=..., tid=1, this=0x7ffffffdcf40) at src/cmd/../core/server.h:2881
+2881	        return debug_read_local_lane_cap_.load(std::memory_order_relaxed);
+0x000055555562b5a2	2881	        return debug_read_local_lane_cap_.load(std::memory_order_relaxed);
+0x000055555562b5a4 in tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const (__closure=__closure@entry=0x7ffffffdbcc0) at src/cmd/xshard.cc:3897
+0x000055555562b5a9	0x000055555562b5aa	0x00005555556412ca in tomo_db0::xshard_complete_impl<true> (server=..., self=..., ring=..., task=..., op=...) at src/cmd/xshard.cc:4020
+0x00005555556412cd	0x0000555555641133	0x0000555555641138	0x0000555555641141	0x0000555555641147	0x000055555564114b	0x000055555564114e	0x000055555564114f	0x0000555555641151	0x0000555555641153	0x0000555555641155	0x0000555555641156	main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:72
+72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cb	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cd	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+0x00005555555a36cf	72	        require(result == (i + 1 == dispatch.nshards ? ScatterFinish::Final : ScatterFinish::Waiting));
+require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a37c8	15	static void require(bool value) { if (!value) std::abort(); }
+main (argc=<optimized out>, argv=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:199
+199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37d0	199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37d2	199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37d4	199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37d7	199	      pointer    _M_ptr() const noexcept { return std::get<0>(_M_t); }
+0x00005555555a37de	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37e5	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37ec	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37ef	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37f6	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37f8	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+0x00005555555a37fb	74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4269
+0x00005555555e3e96	0x00005555555e3e98	0x00005555555e3e9a	0x00005555555e3e9d	0x00005555555e3e9f	0x00005555555e3ea0	0x00005555555e3ea1	391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3ea8 in tomo_db0::Op::has_scatter_state (this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:391
+391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3eaf in tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4269
+0x00005555555e3eb2	0x00005555555e3eb7	0x00005555555e3ebc	0x00005555555e3ec4	0x00005555555e3ecc in tomo_db0::Op::has_scatter_state (this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:391
+391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3ecf	391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3ed1	391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3ed8	391	        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+0x00005555555e3ef0 in tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4298
+0x00005555555e3ef8	0x00005555555e3efb	0x00005555555e3efe	0x00005555555e3f03	0x00005555555e3f08	tomo_db0::(anonymous namespace)::assemble_final (client=..., op=..., state=..., release_ctx=release_ctx@entry=0x0, release_fn=release_fn@entry=0x0, suppressed_fn=0x0) at src/cmd/xshard_commands.inc:1785
+1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91e2	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91e7	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91eb	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91ef	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91f0	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91f3	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91f5	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91f7	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91f9	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91fb	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d91fc	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d9203	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d9208	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d920f	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d9214	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d921b	1789	    if (state.kind == Kind::Script) return;
+0x00005555555d9220	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d9229	1785	                    void (*suppressed_fn)(void*)) {
+0x00005555555d922d	1785	                    void (*suppressed_fn)(void*)) {
+1789	    if (state.kind == Kind::Script) return;
+0x00005555555d9233	1789	    if (state.kind == Kind::Script) return;
+0x00005555555d9239	1790	    if (state.final_reply != FinalReply::None) {
+0x00005555555d923d	1790	    if (state.final_reply != FinalReply::None) {
+0x00005555555d9240	1790	    if (state.final_reply != FinalReply::None) {
+1790	    if (state.final_reply != FinalReply::None) {
+0x00005555555d9245	1790	    if (state.final_reply != FinalReply::None) {
+0x00005555555d92f0	1946	}
+0x00005555555d92f3	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d92fa	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d92fd	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d9304	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d930b	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+tomo_db0::(anonymous namespace)::first_error (state=..., error=@0x7ffffffd9bef: tomo_db0::(anonymous namespace)::WorkError::None) at src/cmd/xshard.cc:819
+0x00005555555afb77	0x00005555555afb7a	0x00005555555afb7d	0x00005555555afb80	0x00005555555afb86	0x00005555555afb8d	0x00005555555afb91	0x00005555555afb99	0x00005555555afb9b	0x00005555555afba4	0x00005555555afba7	0x00005555555afbb9	0x00005555555afbbc	0x00005555555afc24	0x00005555555afc27	0x00005555555afb99	0x00005555555afb9b	0x00005555555afba4	0x00005555555afba7	0x00005555555afbb9	0x00005555555afbbc	0x00005555555afc24	0x00005555555afc27	0x00005555555afc2d	0x00005555555afc2f	0x00005555555d9317 in tomo_db0::(anonymous namespace)::assemble_final (client=..., op=..., state=..., release_ctx=release_ctx@entry=0x0, release_fn=release_fn@entry=0x0, suppressed_fn=0x0) at src/cmd/xshard_commands.inc:1867
+1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d931e	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d9320	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d9327	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+0x00005555555d932e	1867	    if (first_error(state, error)) { reply_work_error(op, error); return; }
+1868	    switch (state.kind) {
+0x00005555555d9334	1868	    switch (state.kind) {
+0x00005555555d9336	1868	    switch (state.kind) {
+0x00005555555d933d	1868	    switch (state.kind) {
+0x00005555555d9341	1868	    switch (state.kind) {
+0x00005555555d9345	1868	    switch (state.kind) {
+0x00005555555d9348	1868	    switch (state.kind) {
+tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=0x0, state=..., op=..., client=...) at src/cmd/../core/../net/conn.h:760
+760	    bool is_tls() const { return tls_slot_ != kNoTlsSlot; }
+0x00005555555d9b6b in tomo_db0::(anonymous namespace)::assemble_final (client=..., op=..., state=..., release_ctx=release_ctx@entry=0x0, release_fn=release_fn@entry=0x0, suppressed_fn=0x0) at src/cmd/xshard_commands.inc:1883
+1883	            for (uint32_t i = 0; i < state.key_count; i++) ready += state.images[i].present;
+0x00005555555d9b72 in tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=0x0, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1718
+1718	    if (client.is_tls() && !release_fn) {
+0x00005555555d9b75	1718	    if (client.is_tls() && !release_fn) {
+0x00005555555d9b78	1718	    if (client.is_tls() && !release_fn) {
+0x00005555555d9b7b	1718	    if (client.is_tls() && !release_fn) {
+0x00005555555d9b7d	1718	    if (client.is_tls() && !release_fn) {
+1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b85	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b87	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b8d	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b94	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b96	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9b9d	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+1732	        borrowed |= state.values[i].kind == ValueKind::Borrow;
+0x00005555555d9ba4	1732	        borrowed |= state.values[i].kind == ValueKind::Borrow;
+0x00005555555d9ba7	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9bad	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9baf	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9bb2	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+1732	        borrowed |= state.values[i].kind == ValueKind::Borrow;
+0x00005555555d9ba4	1732	        borrowed |= state.values[i].kind == ValueKind::Borrow;
+0x00005555555d9ba7	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9bad	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9baf	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+0x00005555555d9bb2	1731	    for (uint32_t i = 0; i < state.key_count; i++)
+1733	    if (!borrowed) {
+0x00005555555d9bb6	1733	    if (!borrowed) {
+291	        explicit Sink(Op& o) : op_(o) {}
+0x00005555555da392	291	        explicit Sink(Op& o) : op_(o) {}
+0x00005555555da395	1734	        reply_array_header(op.sink(), state.key_count);
+0x00005555555da39c	1734	        reply_array_header(op.sink(), state.key_count);
+0x00005555555da3a3	1734	        reply_array_header(op.sink(), state.key_count);
+0x00005555555da3a6	1734	        reply_array_header(op.sink(), state.key_count);
+0x00005555555da3ad	1734	        reply_array_header(op.sink(), state.key_count);
+1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da3b9	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da3bb	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da3c1	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da3c4 in tomo_db0::reply_null<tomo_db0::Op::Sink> (resp3=<optimized out>, b=...) at src/cmd/../store/../net/resp3.h:15
+15	    b.append("_\r\n", 3);
+0x00005555555da3c7 in tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1735
+1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da3ca in tomo_db0::reply_null<tomo_db0::Op::Sink> (resp3=<optimized out>, b=...) at src/cmd/../store/../net/resp3.h:15
+15	    b.append("_\r\n", 3);
+0x00005555555da3d1	15	    b.append("_\r\n", 3);
+0x00005555555da3d4	15	    b.append("_\r\n", 3);
+0x00005555555da3d7	15	    b.append("_\r\n", 3);
+tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1736
+1736	            const ValueSlot& slot = state.values[i];
+0x00005555555da457	1736	            const ValueSlot& slot = state.values[i];
+1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da45e	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da460	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+tomo_db0::Op::Sink::code (v=<optimized out>, c=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:291
+291	        explicit Sink(Op& o) : op_(o) {}
+0x00005555555da3de in tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1737
+1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da3e5	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+tomo_db0::reply_null<tomo_db0::Op::Sink> (resp3=false, b=...) at src/cmd/../store/../net/resp3.h:12
+12	template <typename Buf> __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
+0x00005555555da3f1	12	template <typename Buf> __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
+tomo_db0::Op::Sink::code (v=0, c=tomo_db0::ReplyCode::Nil, this=0x7ffffffd9bf0) at src/cmd/../store/../net/../exec/op.h:358
+358	            if (!op_.reply_code_ok_) return false;
+0x00005555555da4ab	358	            if (!op_.reply_code_ok_) return false;
+tomo_db0::Op::Sink::append<6ul> (lit=<synthetic pointer>..., this=0x7ffffffd9bf0) at src/cmd/../store/../net/../exec/op.h:327
+327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da5f7	327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da5fc	327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da601	332	                advance(N - 1);
+0x00005555555da608	332	                advance(N - 1);
+0x00005555555da60f	332	                advance(N - 1);
+0x00005555555da614	331	                __builtin_memcpy(p, lit, N - 1);
+0x00005555555da61a	331	                __builtin_memcpy(p, lit, N - 1);
+0x00005555555da61e	332	                advance(N - 1);
+0x00005555555da623	332	                advance(N - 1);
+0x00005555555da626	336	        }
+tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1735
+1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da43a	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da441	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da449	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+1736	            const ValueSlot& slot = state.values[i];
+0x00005555555da457	1736	            const ValueSlot& slot = state.values[i];
+1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da45e	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da460	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+tomo_db0::Op::Sink::code (v=<optimized out>, c=<optimized out>, this=<optimized out>) at src/cmd/../store/../net/../exec/op.h:291
+291	        explicit Sink(Op& o) : op_(o) {}
+0x00005555555da3de in tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1737
+1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+0x00005555555da3e5	1737	            if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
+tomo_db0::reply_null<tomo_db0::Op::Sink> (resp3=false, b=...) at src/cmd/../store/../net/resp3.h:12
+12	template <typename Buf> __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
+0x00005555555da3f1	12	template <typename Buf> __attribute__((always_inline)) inline void reply_null(Buf&& b, bool resp3) {
+tomo_db0::Op::Sink::code (v=0, c=tomo_db0::ReplyCode::Nil, this=0x7ffffffd9bf0) at src/cmd/../store/../net/../exec/op.h:358
+358	            if (!op_.reply_code_ok_) return false;
+0x00005555555da4ab	358	            if (!op_.reply_code_ok_) return false;
+tomo_db0::Op::Sink::append<6ul> (lit=<synthetic pointer>..., this=0x7ffffffd9bf0) at src/cmd/../store/../net/../exec/op.h:327
+327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da5f7	327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da5fc	327	        __attribute__((always_inline)) void append(const char (&lit)[N]) {
+0x00005555555da601	332	                advance(N - 1);
+0x00005555555da608	332	                advance(N - 1);
+0x00005555555da60f	332	                advance(N - 1);
+0x00005555555da614	331	                __builtin_memcpy(p, lit, N - 1);
+0x00005555555da61a	331	                __builtin_memcpy(p, lit, N - 1);
+0x00005555555da61e	332	                advance(N - 1);
+0x00005555555da623	332	                advance(N - 1);
+0x00005555555da626	336	        }
+tomo_db0::(anonymous namespace)::assemble_mget (suppressed_fn=0x0, release_fn=0x0, release_ctx=<optimized out>, state=..., op=..., client=...) at src/cmd/xshard_commands.inc:1735
+1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da43a	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da441	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555da449	1735	        for (uint32_t i = 0; i < state.key_count; i++) {
+0x00005555555d92c0 in tomo_db0::(anonymous namespace)::assemble_final (client=..., op=..., state=..., release_ctx=release_ctx@entry=0x0, release_fn=release_fn@entry=0x0, suppressed_fn=<optimized out>) at src/cmd/xshard_commands.inc:1946
+1946	}
+0x00005555555d92c4	1946	}
+0x00005555555d92cd	1946	}
+0x00005555555d92d3	1946	}
+0x00005555555d92da	1946	}
+0x00005555555d92db	1946	}
+0x00005555555d92dd	1946	}
+0x00005555555d92df	1946	}
+0x00005555555d92e1	1946	}
+0x00005555555d92e3	1946	}
+0x00005555555d92e4	1946	}
+0x00005555555d92e8	1946	}
+0x00005555555d92ea	1946	}
+tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4277
+0x00005555555e3f11	0x00005555555e3f16	0x00005555555e3f1b	0x00005555555e3f20	0x00005555555e3f80	0x00005555555e3f87	0x00005555555e3f8a	0x00005555555e3f92	0x00005555555e3f94	0x00005555555e3f96	0x00005555555e3f99	0x00005555555e3f9d	0x00005555555e3fa0	0x00005555555e3fbe	0x00005555555e3fc3	0x00005555555e4016	0x00005555555e401d	0x00005555555e3fb0	0x00005555555e3fbe	0x00005555555e3fc3	0x00005555555e4016	0x00005555555e401d	0x00005555555e401f	0x00005555555e3f26	0x00005555555e3f34	tomo_db0::Op::detach_scatter_state (this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:405
+405	        zc_shard = -1;
+0x00005555555e3f4e	403	        zc_ptr = nullptr;
+0x00005555555e3f59 in tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4297
+0x00005555555e3f5c	0x00005555555e3f5f in tomo_db0::Op::detach_scatter_state (this=0x7ffffffdc160) at src/cmd/../store/../net/../exec/op.h:404
+404	        zc_len = 0;
+tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x0, release_fn=0x0, suppressed_fn=0x0) at src/cmd/xshard.cc:4297
+0x00005555555e3f6a	0x00005555555e3f6d	0x00005555555e3f6e	0x00005555555e3f6f	0x00005555555e3f71	0x00005555555e3f73	0x00005555555e3f75	0x00005555555e3f77	tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=0) at src/cmd/xshard.cc:2244
+0x00005555555e3b87	0x00005555555e3b8d	0x00005555555e3b8f	0x00005555555e3b91	0x00005555555e3b93	0x00005555555e3b96	0x00005555555e3b97	0x00005555555e3b98	0x00005555555e3b9d	0x00005555555e3ba0	0x00005555555e3ba2	0x00005555555e3ba4	0x00005555555e3ba8	std::__atomic_base<bool>::load (__m=std::memory_order::relaxed, this=0x555555d20588 <tomo_db0::atomic_tripwire_detail::armed>) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e3bb5 in tomo_db0::atomic_tripwire_enabled () at src/cmd/../store/../core/atomic_tripwire.h:146
+146	    return atomic_tripwire_detail::armed.load(std::memory_order_relaxed) &&
+0x00005555555e3bb7	146	    return atomic_tripwire_detail::armed.load(std::memory_order_relaxed) &&
+tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=0) at src/cmd/xshard.cc:2250
+0x00005555555e3c13	0x00005555555e3c1d	0x00005555555e3c21	0x00005555555e3c23	0x00005555555e3c26	tomo_db0::ScatterArenaPool::unregister_snapshot (owner_io=0, state=0x7ffff61d4780, server=..., this=0x7ffffffdc2b0) at src/cmd/atomics_glue.inc:486
+486	        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+0x00005555555e3c2e	486	        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+0x00005555555e3c31	486	        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+0x00005555555e3c34	486	        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:487
+487	        if (cut == unresolved_snapshot_floor_) {
+0x00005555555b6293	487	        if (cut == unresolved_snapshot_floor_) {
+488	            if (!unresolved_floor_refs_) std::abort();
+0x00005555555b6299	488	            if (!unresolved_floor_refs_) std::abort();
+0x00005555555b629c	488	            if (!unresolved_floor_refs_) std::abort();
+0x00005555555b629f	488	            if (!unresolved_floor_refs_) std::abort();
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at src/cmd/atomics_glue.inc:489
+489	            unresolved_floor_refs_--;
+0x00005555555b62ac	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555b62b3 in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:489
+489	            unresolved_floor_refs_--;
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555b62b9	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555b62bc	993	      { return size_type(this->_M_impl._M_finish - this->_M_impl._M_start); }
+0x00005555555b62c0 in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:489
+489	            unresolved_floor_refs_--;
+0x00005555555b62c3	489	            unresolved_floor_refs_--;
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::operator[] (__n=0, this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/stl_vector.h:1126
+1126	      operator[](size_type __n) _GLIBCXX_NOEXCEPT
+0x00005555555b62cd in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:489
+489	            unresolved_floor_refs_--;
+0x00005555555b62d0	489	            unresolved_floor_refs_--;
+491	        SnapshotCut* moved = unresolved_snapshots_.back();
+tomo_db0::(anonymous namespace)::snapshot_exclusive_floor (snapshot=0) at src/cmd/atomics_glue.inc:409
+409	    uint32_t refs = 0;
+0x00005555555b62db	409	    uint32_t refs = 0;
+0x00005555555b62df	409	    uint32_t refs = 0;
+0x00005555555b62e3	409	    uint32_t refs = 0;
+tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:492
+492	        unresolved_snapshots_[slot] = moved;
+0x00005555555b62ec	492	        unresolved_snapshots_[slot] = moved;
+0x00005555555b62f3	492	        unresolved_snapshots_[slot] = moved;
+493	        moved->snapshot_slot = slot;
+0x00005555555b62f7	493	        moved->snapshot_slot = slot;
+494	        unresolved_snapshots_.pop_back();
+0x00005555555b62ff	494	        unresolved_snapshots_.pop_back();
+1076	      __normal_iterator(const _Iterator& __i) _GLIBCXX_NOEXCEPT
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::pop_back (this=<optimized out>) at src/cmd/atomics_glue.inc:497
+497	    state->snapshot_registered = false;
+0x00005555555b630d in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:497
+497	    state->snapshot_registered = false;
+498	    if (!unresolved_floor_refs_) {
+std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> >::pop_back (this=0x7ffffffdc4b8) at /usr/include/c++/13/bits/stl_vector.h:1322
+1322	      pop_back() _GLIBCXX_NOEXCEPT
+tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:500
+500	        unresolved_snapshot_floor_ = exact.floor;
+502	    }
+503	    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+0x00005555555b6328	503	    if (unresolved_snapshot_floor_ != published_snapshot_floor_) {
+__gnu_cxx::__normal_iterator<tomo_db0::SnapshotCut* const*, std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> > >::__normal_iterator (__i=@0x7ffffffdc4b8: 0x7ffff6a98078, this=<optimized out>) at /usr/include/c++/13/bits/stl_iterator.h:1076
+1076	      __normal_iterator(const _Iterator& __i) _GLIBCXX_NOEXCEPT
+__gnu_cxx::__normal_iterator<tomo_db0::SnapshotCut* const*, std::vector<tomo_db0::SnapshotCut*, std::allocator<tomo_db0::SnapshotCut*> > >::__normal_iterator (__i=@0x7ffffffdc4c0: 0x7ffff6a98078, this=<optimized out>) at /usr/include/c++/13/bits/stl_iterator.h:1076
+1076	      __normal_iterator(const _Iterator& __i) _GLIBCXX_NOEXCEPT
+tomo_db0::(anonymous namespace)::active_snapshot_floor (unresolved_snapshots=...) at src/cmd/atomics_glue.inc:419
+419	        } else if (cut == result.floor) {
+0x00005555555b6355	419	        } else if (cut == result.floor) {
+0x00005555555b6358	419	        } else if (cut == result.floor) {
+0x00005555555b635a	419	        } else if (cut == result.floor) {
+tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:505
+505	        server.publish_atomic_read_floor(owner_io, unresolved_snapshot_floor_);
+506	    }
+508	
+0x00005555555b6374	508	
+std::__atomic_base<unsigned long>::store (__m=<optimized out>, __i=<optimized out>, this=<optimized out>) at src/cmd/atomics_glue.inc:509
+509	uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner_io) {
+0x00005555555b637d in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x7ffffffdc2b0, server=..., state=state@entry=0x7ffff61d4780, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:509
+509	uint32_t ScatterArenaPool::refresh_snapshot_floor(Server& server, uint32_t owner_io) {
+std::__atomic_base<unsigned long>::store (__m=std::memory_order::seq_cst, __i=18446744073709551615, this=<optimized out>) at /usr/include/c++/13/bits/atomic_base.h:479
+479		__glibcxx_assert(__b != memory_order_consume);
+0x00005555555b6388	481		__atomic_store_n(&_M_i, __i, int(__m));
+0x00005555555e3c39 in tomo_db0::ScatterArenaPool::unregister_snapshot (owner_io=<optimized out>, state=<optimized out>, server=..., this=<optimized out>) at src/cmd/atomics_glue.inc:486
+486	        const uint64_t cut = snapshot_exclusive_floor(state->snapshot);
+tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=0) at src/cmd/xshard.cc:2255
+0x00005555555e3c40	std::vector<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> >, std::allocator<std::unique_ptr<tomo_db0::ThreadCtx, std::default_delete<tomo_db0::ThreadCtx> > > >::size (this=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:992
+992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e3c4d	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e3c54	992	      size() const _GLIBCXX_NOEXCEPT
+0x00005555555e3c58 in tomo_db0::Server::atomic_apply_close (flag=..., tid=0, this=0x7ffffffdcf40) at src/cmd/../core/server.h:2880
+2880	    uint32_t debug_read_local_lane_cap() const {
+0x00005555555e3c5a	2880	    uint32_t debug_read_local_lane_cap() const {
+std::__atomic_base<bool>::load (__m=std::memory_order::acquire, this=0x7ffff61d47d8) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e3c64	505		return __atomic_load_n(&_M_i, int(__m));
+0x00005555555e3c68 in tomo_db0::Server::atomic_apply_close (flag=..., tid=0, this=0x7ffffffdcf40) at src/cmd/../core/server.h:2881
+2881	        return debug_read_local_lane_cap_.load(std::memory_order_relaxed);
+0x00005555555e3c6a	2881	        return debug_read_local_lane_cap_.load(std::memory_order_relaxed);
+tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2257
+0x00005555555e3c74	0x00005555555e3ce0	0x00005555555e3d03	std::__shared_ptr<tomo_db0::AofGroupDecision, (__gnu_cxx::_Lock_policy)2>::operator bool (this=0x7ffff61d4a30) at /usr/include/c++/13/bits/shared_ptr_base.h:1669
+1669	      explicit operator bool() const noexcept
+0x00005555555e3d2e in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2269
+0x00005555555e3d31	tomo_db0::(anonymous namespace)::free_state_contents (state=...) at src/cmd/xshard.cc:2271
+0x00005555555e3d43 in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2271
+tomo_db0::(anonymous namespace)::free_state_contents (state=...) at src/cmd/xshard.cc:1524
+0x00005555555e3d49	0x00005555555e3d4c	tomo_db0::(anonymous namespace)::free_state_contents (state=...) at src/cmd/xshard.cc:1525
+0x00005555555c7792	0x00005555555c7794	0x00005555555c7796	0x00005555555c7797	0x00005555555c7798	0x00005555555c779f	0x00005555555c77a2	0x00005555555c77a4	0x00005555555c77a7	0x00005555555c77b7	0x00005555555c77bd	0x00005555555c77c1	0x00005555555c77c8	0x00005555555c77cd	0x00005555555c77d1	0x00005555555c77b0	0x00005555555c77b2	0x00005555555c77b5	0x00005555555c77b7	0x00005555555c77bd	0x00005555555c77c1	0x00005555555c77c8	0x00005555555c77cd	0x00005555555c77d1	0x00005555555c77b0	0x00005555555c77b2	0x00005555555c77b5	0x00005555555c77b7	0x00005555555c77bd	0x00005555555c77f6	0x00005555555c77f9	0x00005555555c77fb	0x00005555555c7801	0x00005555555c780c	0x00005555555c7810	0x00005555555c7814	0x00005555555c781b	0x00005555555c781f	0x00005555555c7822	0x00005555555c78eb	0x00005555555c78f2	0x00005555555c7810	0x00005555555c7814	0x00005555555c781b	0x00005555555c781f	0x00005555555c7822	0x00005555555c78eb	0x00005555555c78f2	0x00005555555c78ff	0x00005555555c7901	0x00005555555c7904	0x00005555555c7906	0x00005555555c794f	0x00005555555c7951	0x00005555555c7954	0x00005555555c7956	0x00005555555c799f	0x00005555555c79a2	0x00005555555c7a3d	0x00005555555c7a40	0x00005555555c7b6f	0x00005555555c7b70	0x00005555555c7b71	0x00005555555c7b73	0x00005555555c7b75	0x00005555555c7b77	tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2273
+std::__atomic_base<unsigned int>::load (__m=std::memory_order::acquire, this=0x7ffff61d4794) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e3d58 in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2274
+0x00005555555e3d5a	std::__atomic_base<unsigned int>::load (__m=std::memory_order::acquire, this=0x7ffff61d4798) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x00005555555e3d5f in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2274
+0x00005555555e3d61	0x00005555555e3d83	tomo_db0::(anonymous namespace)::free_state_key_anchors (state=...) at src/cmd/xshard.cc:1536
+0x00005555555d3406	0x00005555555d3408	0x00005555555d340e	0x00005555555d3410	0x00005555555d3412	0x00005555555d3413	0x00005555555d3416	0x00005555555d3417	0x00005555555d3419 in tomo_db0::good_size (n=<optimized out>) at src/cmd/../store/../base/alloc.h:53
+53	    const size_t step = size_t(1) << (k - 2);                                     // group / 4
+0x00005555555d341f in tomo_db0::(anonymous namespace)::free_state_key_anchors (state=...) at src/cmd/xshard.cc:1535
+0x00005555555d3423	0x00005555555d342a	0x00005555555d3433	0x00005555555d3437	0x00005555555d343c	0x00005555555d343f	0x00005555555d34d8	0x00005555555d34df	0x00005555555d3433	0x00005555555d3437	0x00005555555d343c	0x00005555555d343f	0x00005555555d34d8	0x00005555555d34df	0x00005555555d34e5	0x00005555555d34e9	0x00005555555d34ea	0x00005555555d34eb	0x00005555555d34ed	0x00005555555d34ef	tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2280
+0x00005555555e3d8b	tomo_db0::ScatterState::~ScatterState (this=0x7ffff61d4780, __in_chrg=<optimized out>) at src/cmd/xshard.cc:489
+852	      exchange(__pointer_type __p,
+0x00005555556238d6	852	      exchange(__pointer_type __p,
+0x00005555556238d8	852	      exchange(__pointer_type __p,
+0x00005555556238da	852	      exchange(__pointer_type __p,
+0x00005555556238dd	852	      exchange(__pointer_type __p,
+0x00005555556238df	852	      exchange(__pointer_type __p,
+0x00005555556238e0	852	      exchange(__pointer_type __p,
+0x00005555556238e1 in std::__atomic_base<tomo_db0::NotifyBatch*>::exchange (__m=std::memory_order::seq_cst, __p=0x0, this=0x7ffff61d4a48) at /usr/include/c++/13/bits/atomic_base.h:855
+855		return __atomic_exchange_n(&_M_p, __p, int(__m));
+0x00005555556238e3 in tomo_db0::ScatterState::~ScatterState (this=0x7ffff61d4780, __in_chrg=<optimized out>) at src/cmd/xshard.cc:489
+0x00005555556238e7 in std::__atomic_base<tomo_db0::NotifyBatch*>::exchange (__m=std::memory_order::seq_cst, __p=0x0, this=0x7ffff61d4a48) at /usr/include/c++/13/bits/atomic_base.h:855
+855		return __atomic_exchange_n(&_M_p, __p, int(__m));
+tomo_db0::notify_discard_batch (batch=0x0) at src/cmd/notify.inc:650
+650	void notify_discard_batch(NotifyBatch* batch) { delete batch; }
+0x00005555556238f1	650	void notify_discard_batch(NotifyBatch* batch) { delete batch; }
+std::__shared_count<(__gnu_cxx::_Lock_policy)2>::~__shared_count (this=0x7ffff61d4a38, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/shared_ptr_base.h:1068
+1068	      ~__shared_count() noexcept
+0x000055555562392e	1070		if (_M_pi != nullptr)
+0x0000555555623931	1070		if (_M_pi != nullptr)
+std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::~vector (this=0x7ffff61d4a18, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:301
+301	      _M_get_Tp_allocator() _GLIBCXX_NOEXCEPT
+0x000055555562393f	301	      _M_get_Tp_allocator() _GLIBCXX_NOEXCEPT
+std::_Destroy_aux<false>::__destroy<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >*> (__last=0x0, __first=0x0) at /usr/include/c++/13/bits/stl_construct.h:162
+162		  for (; __first != __last; ++__first)
+0x0000555555623949	162		  for (; __first != __last; ++__first)
+std::_Vector_base<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >::_M_deallocate (__n=0, __p=0x0, this=0x7ffff61d4a18) at /usr/include/c++/13/bits/stl_vector.h:386
+386	      _M_deallocate(pointer __p, size_t __n)
+0x0000555555623a6e	386	      _M_deallocate(pointer __p, size_t __n)
+std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::~unique_ptr (this=0x7ffff61d4a10, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x0000555555623a89	403		if (__ptr != nullptr)
+0x0000555555623a8c	403		if (__ptr != nullptr)
+std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >::~unique_ptr (this=0x7ffff61d4a08, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x0000555555623b01	403		if (__ptr != nullptr)
+0x0000555555623b04	403		if (__ptr != nullptr)
+std::_Vector_base<double, std::allocator<double> >::~_Vector_base (this=0x7ffff61d4978, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:367
+367	      ~_Vector_base() _GLIBCXX_NOEXCEPT
+std::_Vector_base<double, std::allocator<double> >::_M_deallocate (__n=0, TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS linked production MGET scatter path
+__p=0x0, this=0x7ffff61d4978) at /usr/include/c++/13/bits/stl_vector.h:386
+386	      _M_deallocate(pointer __p, size_t __n)
+0x0000555555623b74	386	      _M_deallocate(pointer __p, size_t __n)
+std::_Vector_base<unsigned int, std::allocator<unsigned int> >::~_Vector_base (this=0x7ffff61d4950, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/stl_vector.h:367
+367	      ~_Vector_base() _GLIBCXX_NOEXCEPT
+std::_Vector_base<unsigned int, std::allocator<unsigned int> >::_M_deallocate (__n=0, __p=0x0, this=0x7ffff61d4950) at /usr/include/c++/13/bits/stl_vector.h:386
+386	      _M_deallocate(pointer __p, size_t __n)
+0x0000555555623b8f	386	      _M_deallocate(pointer __p, size_t __n)
+0x0000555555623bb0 in tomo_db0::ScatterState::~ScatterState (this=0x7ffff61d4780, __in_chrg=<optimized out>) at src/cmd/xshard.cc:491
+0x0000555555623bb4	0x0000555555623bb5	0x0000555555623bb6	0x0000555555623bb8	0x0000555555623bba	0x0000555555623bbc	0x0000555555623bbe	tomo_db0::ScatterArenaPool::release (pooled=true, ptr=0x7ffff61d4780, this=0x7ffffffdc2b0) at src/cmd/xshard.cc:1562
+0x00005555555e3d93	0x00005555555e3d95	0x00005555555e3d9d	0x00005555555e3da0	0x00005555555e3da2	0x00005555555e3da5	0x00005555555e3dad	0x00005555555e3db1 in tomo_db0::xshard_destroy (state=0x7ffff61d4780, pool=..., owner_io=<optimized out>) at src/cmd/xshard.cc:2282
+0x00005555555e3db2	0x00005555555e3db3	0x00005555555e3db5	0x00005555555e3db7	0x00005555555e3db9	0x00005555555a3800 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:74
+74	    xshard_retire(server, server.thread(0), ring, client, op, pool, 0, nullptr, nullptr, nullptr);
+75	    scatter_trace_end();
+0x00005555555a380b	75	    scatter_trace_end();
+0x00005555555a3812	75	    scatter_trace_end();
+0x00005555555a3819	75	    scatter_trace_end();
+
+Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-matrix.cc:14
+14	[[gnu::noinline]] void scatter_trace_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 2009980) exited normally]
+TRACE_INSTRUCTIONS 3017

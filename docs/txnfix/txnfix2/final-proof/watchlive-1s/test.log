@@ -1,0 +1,8 @@
+watchlive gate (port 22605, cores 112-119, reps 6, fresh server per repetition)
+  ok   watch conns=4  --atomic 1   wedged 0/6  (reservation contention 474034)
+  ok   watch conns=8  --atomic 1   wedged 0/6  (reservation contention 504147)
+  ok   watch conns=16 --atomic 1   wedged 0/6  (reservation contention 929067)
+  ok   no-watch control conns=16   wedged 0/6  (control; reservation waits 410421)
+  ok   watch conns=16 --atomic 0   wedged 0/6  (reservation contention 826635)
+
+watchlive gate PASS

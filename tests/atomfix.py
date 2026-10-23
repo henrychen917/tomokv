@@ -23,6 +23,7 @@ detects atomic 0 and still runs the shape, where it must also pass).
 """
 
 import socket
+import select
 import sys
 import time
 
@@ -238,6 +239,38 @@ def case_walker_ahead_of_writes(conn):
 # armed run must be the one that actually parks destination tasks -- otherwise case 1 proved
 # nothing about the window it claims to force.
 # ---------------------------------------------------------------------------------------------
+def held_rename_witness(admin):
+    """Prove the earlier IO barrier when TO-B prevents a walker reaching EX.
+
+    A real source-complete/destination-held image exists; RENAME and its following
+    KEYS share one connection. The final listing must contain the destination.
+    """
+    prefix = f"{TAG}:held:{time.time_ns()}:"
+    candidates = [prefix + str(i) for i in range(256)]
+    routes = admin.command("DEBUG", "SHARDS", *candidates)
+    source = candidates[0]
+    destination = next(k for k, r in zip(candidates, routes) if r[1] != routes[0][1])
+    expect(admin.command("SET", source, "held"), b"OK", "held source seeded")
+    probe = Conn()
+    try:
+        expect(admin.command("DEBUG", "ATOMIC-OFF-HOP-HOLD", "5000"), b"OK", "directed hold armed")
+        probe.send_raw(encode("RENAME", source, destination) + encode("KEYS", prefix + "*"))
+        deadline = time.monotonic() + 3
+        while admin.command("DEBUG", "ATOMIC-OFF-HOP-STATUS") != 2:
+            assert time.monotonic() < deadline, "source-complete RENAME hold never opened"
+            time.sleep(.001)
+        assert not select.select([probe.sock], [], [], 0)[0], "RENAME replied inside held decision"
+        assert admin.command("MGET", source, destination) == [b"held", None], "undecided mover leaked"
+        expect(admin.command("DEBUG", "ATOMIC-OFF-HOP-HOLD", "0"), b"OK", "directed hold released")
+        expect(probe.read(), b"OK", "held RENAME completed")
+        assert probe.read() == [destination.encode()], "following KEYS overtook its held RENAME"
+        ok("source-complete hold and same-connection walker ordering witnessed")
+    finally:
+        admin.command("DEBUG", "ATOMIC-OFF-HOP-HOLD", "0")
+        probe.close()
+        admin.command("DEL", source, destination)
+
+
 def main():
     conn = Conn()
     admin = Conn()
@@ -271,10 +304,10 @@ def main():
         # the hook parked no destination task, the run never entered the window this test exists
         # to close, and it must be reported as a failure rather than a pass.
         if atomic_on and armed_holds == 0:
-            raise AssertionError(
-                "the armed run recorded 0 atomic_scan_order_holds: the ordering gate never "
-                "opened, so the pass is vacuous (check --atomic 1 and that the RENAMEs are "
-                "cross-shard)")
+            # Version-ordered RENAME now holds dispatch before the walker can
+            # reach this older executor counter. Require the actual held image
+            # and exact final data instead of accepting a zero witness.
+            held_rename_witness(admin)
         ok(f"armed run forced the interleave, holds fired {armed_holds}x")
         if atomic_on and armed_holds <= unarmed_holds:
             print(f"  note armed holds {armed_holds} did not exceed unarmed {unarmed_holds}; the "

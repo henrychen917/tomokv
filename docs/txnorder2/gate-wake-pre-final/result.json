@@ -1,0 +1,48 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "27820-27889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/gate-wake-pre/tomokv"
+  ],
+  "environment": {
+    "GATE_ONLY_JOBS": "txnorder_wake",
+    "GATE_LEDGER": "/home/user/Projects/cx-txnfix/docs/txnorder2/gate-wake-pre-final/ledger.tsv",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis/src/redis-cli",
+    "REDIS74_ROOT": "/home/user/Projects/redis"
+  },
+  "started": 1792684556.336662,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/gate-wake-pre/tomokv",
+  "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+  "status": "FAIL",
+  "pid": 489117,
+  "returncode": 1,
+  "finished": 1792684559.859484,
+  "sha256_after": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+  "stable_binary": true,
+  "run_dir": "/home/user/Projects/cx-txnfix/build/gate-run.I6ptba",
+  "jobs": {
+    "production_units": "0\t0\t0",
+    "release": "0\t1\t0",
+    "txnorder_wake": "0\t0\t1"
+  },
+  "ledger_verdicts": {
+    "ok": 1,
+    "FAIL": 1
+  }
+}

@@ -1,0 +1,4 @@
+atomic=0 credit_pool(idle)=256 window_stalls=0 groups=0
+mid-burst: credit_pool=0 inflight=256 window_stalls=47
+after: window_stalls=73 groups=400 k1=b'400' k2=b'400'
+server rc 0

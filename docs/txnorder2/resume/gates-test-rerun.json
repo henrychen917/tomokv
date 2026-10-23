@@ -1,0 +1,14 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "72-83",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "started": 1792680288.284237,
+  "test_sha256": "84cb96476c2eb47a6a165692914cfefcdf98d3aebb9e7e1d875f239932003432",
+  "note": "Unchanged rerun after compilation completed; disjoint from correctness server CPUs 64-71 and client CPUs 85-95. Prior timeout retained in gates-test.log.",
+  "returncode": 0,
+  "finished": 1792680412.1225781
+}

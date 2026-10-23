@@ -1,0 +1,8 @@
+{
+  "atomic_has_records": true,
+  "atomic_has_script_intent": true,
+  "atomic_needs_version": true,
+  "src/core/ex_loop.h": true,
+  "src/core/io_loop.h": true,
+  "src/cmd/scatter_engine.inc": true
+}

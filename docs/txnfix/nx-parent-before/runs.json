@@ -1,0 +1,116 @@
+[
+  {
+    "arm": "pre",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "sha256": "34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e",
+    "geometry": [
+      "nx-own:0",
+      [
+        12,
+        6
+      ],
+      "nx-own:1",
+      [
+        11,
+        7
+      ]
+    ],
+    "queue": [
+      "OK",
+      "QUEUED",
+      "QUEUED",
+      "QUEUED"
+    ],
+    "error": "TimeoutError('timed out')",
+    "seconds": 3.0040225852280855,
+    "shutdown_rc": 0
+  },
+  {
+    "arm": "candidate",
+    "server": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "22601",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--databases",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "sha256": "4ecd9fe91d23cb67ad9a41d48e6065fa91712882dabb86205a996f1715bc78a2",
+    "geometry": [
+      "nx-own:0",
+      [
+        10,
+        6
+      ],
+      "nx-own:3",
+      [
+        7,
+        7
+      ]
+    ],
+    "queue": [
+      "OK",
+      "QUEUED",
+      "QUEUED",
+      "QUEUED"
+    ],
+    "error": "TimeoutError('timed out')",
+    "seconds": 3.002821469679475,
+    "shutdown_rc": 0
+  }
+]

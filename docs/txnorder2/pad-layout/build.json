@@ -1,0 +1,21 @@
+{
+  "kind": "A base: PRE behaviour plus unused candidate-sized Server tail",
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "make",
+    "-j32",
+    "all"
+  ],
+  "cwd": "/home/user/Projects/cx-txnfix/build/txnorder2/pad-layout-source",
+  "exit_code": 0,
+  "mutation": {
+    "file": "src/core/server.h",
+    "after": "\n    // Type-A control: unused cold tail, equal to the candidate Server tail.\n    alignas(64) unsigned char txnorder2_layout_padding_[32832]{};\n"
+  },
+  "source_before_sha256": "e5b9bf09020a34e1b4ae0fb9bf66d3db5745ebf331d1b72d170a2e273b774c22",
+  "source_after_sha256": "3f95822830769f2a7ae9e63eb19134a4147fe0cb412a13de35438a6696ee8ea2",
+  "sha256": "a6e8fc7e6b57955faf6c6953e9741ec88f906238491a528c0be32a69d07e09f0",
+  "freshness": 0
+}

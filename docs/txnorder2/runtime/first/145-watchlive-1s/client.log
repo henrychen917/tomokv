@@ -1,0 +1,105 @@
+watchlive gate (port 27805, cores 64-71, reps 10, fresh server per repetition)
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138603)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138621)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138637)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138653)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138669)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 247, in check_process
+    os.kill(owned_pid, 0)
+ProcessLookupError: [Errno 3] No such process
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-txnfix/tests/_lib.py", line 249, in check_process
+    raise exited("server exited during boot (pid %s)" % owned_pid) from error
+RuntimeError: server exited during boot (pid 1138685)
+snapshot load plan failed: snapshot shard count does not match --shards
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+
+watchlive gate FAIL (6)

@@ -1,0 +1,33 @@
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:395:39:
+tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+In file included from ./src/cmd/xshard.cc:63,
+                 from tests/atomic_survivors_unit.cc:6:
+./src/cmd/notify.inc: In function ‘bool tomo::notify_record_keyless_slow(Shard&, uint32_t, uint32_t, NotifyEventId, Slice)’:
+./src/cmd/notify.inc:395:39: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  395 |         slot.reset(new (std::nothrow) NotifyShardState);
+      |                                       ^~~~~~~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:250:44,
+    inlined from ‘bool tomo::notify_record_slow(Shard&, Op&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:334:52:
+tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’,
+    inlined from ‘bool tomo::notify_record_slow(Shard&, Op&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:334:52:
+./src/cmd/notify.inc:250:44: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  250 |         auto* created = new (std::nothrow) NotifyBatch;
+      |                                            ^~~~~~~~~~~
+In function ‘void operator delete(void*, const std::nothrow_t&)’,
+    inlined from ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’ at ./src/cmd/notify.inc:261:38,
+    inlined from ‘bool tomo::notify_record_slow(Shard&, Op&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:334:52:
+tests/atomic_survivors_unit.cc:38:74: warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   38 | void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+      |                                                                 ~~~~~~~~~^~~
+In function ‘tomo::NotifyBatch* tomo::{anonymous}::notify_get_or_create_batch(tomo::Op&)’,
+    inlined from ‘bool tomo::notify_record_slow(Shard&, Op&, uint32_t, uint32_t, NotifyEventId, Slice)’ at ./src/cmd/notify.inc:334:52:
+./src/cmd/notify.inc:261:38: note: returned from ‘void* operator new(std::size_t, const std::nothrow_t&)’
+  261 |     auto* batch = new (std::nothrow) NotifyBatch;
+      |                                      ^~~~~~~~~~~

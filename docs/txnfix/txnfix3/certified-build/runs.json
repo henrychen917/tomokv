@@ -1,0 +1,74 @@
+[
+  {
+    "name": "all",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "-W",
+      "src/cmd/xshard.cc",
+      "-W",
+      "src/cmd/t_server.cc",
+      "all"
+    ],
+    "exit_code": 0,
+    "seconds": 70.1010040040128
+  },
+  {
+    "name": "production",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-k",
+      "-j16",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon"
+    ],
+    "exit_code": 0,
+    "seconds": 201.1000047037378
+  },
+  {
+    "name": "mdbqsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "exit_code": 0,
+    "seconds": 141.34637807589024
+  }
+]

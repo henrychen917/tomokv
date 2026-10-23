@@ -1029,6 +1029,16 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // nothing would ever notice a clock expiring. Clear it from ANOTHER connection (the barred one
     // cannot be parsed, by construction) and then wake the io threads -- CLIENT LIST fans out to
     // every one of them and is the cheapest existing way to do it.
+    if (eq_icase(subcommand, "txn-barrier-witness") && op.argc() == 3) {
+        uint64_t armed = 0;
+        if (!parse_u64(op.arg(2), armed) || armed > 1) {
+            reply_err(op.sink(), "ERR expected 0 or 1");
+            return;
+        }
+        txn_barrier_witness(armed != 0);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "barrier-hold") && op.argc() == 3) {
         uint64_t armed = 0;
         if (!parse_u64(op.arg(2), armed) || armed > 1) {
@@ -1168,6 +1178,21 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // between the lead fragment's answer and the rest. That straddle is the shape of the defect:
     // a reader with no pinned cut reports one key from after the transaction and the others from
     // before it. Production 0.
+    if (eq_icase(subcommand, "txn-place-defer") && op.argc() == 3) {
+        uint64_t delay = 0;
+        if (!parse_u64(op.arg(2), delay) || delay > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_txn_place_defer(static_cast<uint32_t>(delay));
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "txn-last-attempts") && op.argc() == 2) {
+        reply_int(op.sink(), g_client ? multi_last_attempts(*g_client) : 0);
+        return;
+    }
     if (eq_icase(subcommand, "atomic-fanout-defer") && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
@@ -2624,6 +2649,18 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        static constexpr const char* txn_fields[] = {
+            "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
+            "atomic_txn_waits", "atomic_txn_intents", "atomic_txn_intents_live",
+            "atomic_group_dooms", "atomic_group_retries",
+            "atomic_group_barriers", "atomic_txn_executed", "atomic_txn_place_waits",
+            "atomic_txn_writer_waits", "atomic_txn_writer_marks", "atomic_txn_blind_restarts",
+            "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds"
+        };
+        static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
+        for (unsigned i = 0; i < std::size(txn_fields); ++i)
+            appendf(body, "%s:%llu\r\n", txn_fields[i], static_cast<unsigned long long>(
+                g_server ? g_server->txn_counter(static_cast<TxnCounter>(i)) : 0));
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"

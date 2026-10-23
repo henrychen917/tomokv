@@ -1,0 +1,7 @@
+PASS served BLPOP: WATCH saw one, serve removed it and dirtied WATCH
+PASS served BRPOP: WATCH saw one, serve removed it and dirtied WATCH
+PASS served BLMPOP: WATCH saw one, serve removed it and dirtied WATCH
+PASS served BZPOPMIN: WATCH saw one, serve removed it and dirtied WATCH
+PASS served BZPOPMAX: WATCH saw one, serve removed it and dirtied WATCH
+PASS served BZMPOP: WATCH saw one, serve removed it and dirtied WATCH
+PASS WATCH owner-turn regression

@@ -1,0 +1,2 @@
+--ratio: 8 threads but only 7 allowed cpus
+FAIL: 16-shard, 6:2 owner geometry initialized

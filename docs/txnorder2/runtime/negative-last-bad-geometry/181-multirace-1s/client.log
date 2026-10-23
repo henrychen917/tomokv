@@ -1,0 +1,29 @@
+multirace: atomic=1
+  note blocker shard=1 owner=1, victims=[(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)], veto-prefix=256
+  ok   aborted MSETNX then EXEC write on the same connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   control: committed MSETNX then EXEC write (RYOW must hold): rounds=200 stale=0 ordering+0
+  note the hazard window stayed shut on attempt 1 of 4; re-arming the pair on fresh connections
+  note blocker shard=2 owner=2, victims=[(13, 1), (13, 1), (13, 1), (13, 1), (13, 1), (13, 1)], veto-prefix=256
+  ok   aborted MSETNX then EXEC write on the same connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   control: committed MSETNX then EXEC write (RYOW must hold): rounds=200 stale=0 ordering+0
+  note the hazard window stayed shut on attempt 2 of 4; re-arming the pair on fresh connections
+  note blocker shard=1 owner=1, victims=[(0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0)], veto-prefix=256
+  ok   aborted MSETNX then EXEC write on the same connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   control: committed MSETNX then EXEC write (RYOW must hold): rounds=200 stale=0 ordering+0
+  note the hazard window stayed shut on attempt 3 of 4; re-arming the pair on fresh connections
+  note blocker shard=10 owner=2, victims=[(11, 3), (11, 3), (11, 3), (11, 3), (11, 3), (11, 3)], veto-prefix=256
+  ok   aborted MSETNX then EXEC write on the same connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   control: committed MSETNX then EXEC write (RYOW must hold): rounds=200 stale=0 ordering+0
+  ok   control: aborted MSETNX, transaction on a second connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   liveness: two-phase RENAME/LMPOP/SMOVE then EXEC on their targets: rounds=150 holds+0
+  FAIL the armed cases recorded atomic_group_barriers=[0, 0] across 4 attempt(s) on fresh keys/connections: BOTH abort and commit must meet the MSETNX dispatch barrier retaining the following MULTI; a missing witness is vacuous
+  ok   no install-time ordering violation: the park fired before every install
+multirace: atomic=0
+  note blocker shard=12 owner=0, victims=[(14, 2), (14, 2), (14, 2), (14, 2), (14, 2), (14, 2)], veto-prefix=256
+  ok   aborted MSETNX then EXEC write on the same connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   control: committed MSETNX then EXEC write (RYOW must hold): rounds=200 stale=0 ordering+0
+  ok   control: aborted MSETNX, transaction on a second connection: rounds=200 leaked=0 foreign_leaked=0 bad_exec=0 ordering+0
+  ok   liveness: two-phase RENAME/LMPOP/SMOVE then EXEC on their targets: rounds=150 holds+0
+  ok   atomic 0: MSETNX is two-hop and installs nothing before it decides, window shut
+  ok   no install-time ordering violation: the park fired before every install
+multirace: FAIL (1 failing case(s))

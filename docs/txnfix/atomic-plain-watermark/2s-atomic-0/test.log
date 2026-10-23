@@ -1,0 +1,27 @@
+  PASS SMOVE atomic=0 window opened attempt=1
+  PASS LMOVE atomic=0 window opened attempt=1
+  PASS RPOPLPUSH atomic=0 window opened attempt=1
+  PASS BLPOP atomic=0 window opened attempt=1
+  re-arm BRPOP on fresh state: wake push did not land inside the reserved commit bracket
+  re-arm BRPOP on fresh state: wake push did not land inside the reserved commit bracket
+  re-arm BRPOP on fresh state: wake push did not land inside the reserved commit bracket
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 239, in run_case
+    getattr(race, method)(verb)
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 231, in blocking
+    witnessed(opened, "wake push did not land inside the reserved commit bracket")
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 102, in witnessed
+    raise WindowMiss(label)
+WindowMiss: wake push did not land inside the reserved commit bracket
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 482, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 275, in main
+    run_case(args.host, args.port, admin, args.atomic, method, verb)
+  File "/home/user/Projects/cx-txnfix/tests/atomic_plain.py", line 244, in run_case
+    raise AssertionError(f"{verb}: window never opened after four fresh attempts: {error}") from error
+AssertionError: BRPOP: window never opened after four fresh attempts: wake push did not land inside the reserved commit bracket

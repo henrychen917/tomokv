@@ -1,0 +1,19 @@
+{
+  "arm": "post",
+  "namespace": "db0",
+  "mode": "1s",
+  "values": "RANDOMKEY",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/post-db0-1s-RANDOMKEY.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/post-db0/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "42eb8181d2924f4b73ff87519ac34508c4dbf64171ffb36d68ce032500cee4a6",
+  "counts": {}
+}

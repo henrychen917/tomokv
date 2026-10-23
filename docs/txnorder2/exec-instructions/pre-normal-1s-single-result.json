@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "1s",
+  "shape": "single",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-nx",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/pre-normal-1s-single.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/exec/pre-normal/probe"
+  ],
+  "sha256": "2a975b81999573b5ce068d7d9cbec37f8bcd9053b13454f2426e79bb11cb549a",
+  "returncode": 0,
+  "fixture_completed": true,
+  "steps_per_exec": 21945,
+  "excluded_vdso_calls": 0,
+  "rep_steps": 16
+}

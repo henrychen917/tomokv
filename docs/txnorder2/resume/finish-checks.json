@@ -1,0 +1,10 @@
+{
+  "time": 1792685775.2999856,
+  "no_listening_ports_in_lane": true,
+  "report_links_valid": true,
+  "receipts_utf8_without_binary_data": true,
+  "max_receipt_bytes": 625742,
+  "receipt_files": 12832,
+  "artifact_hashes_still_match": true,
+  "scope": "docs/txnorder2 cleanup and this final report; historical reports elsewhere are preserved"
+}

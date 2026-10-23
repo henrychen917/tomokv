@@ -1,0 +1,18 @@
+k1=key:0(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:2(ex7) k2=key:0(ex6) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:4(ex7) k2=key:0(ex6) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:6(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:8(ex7) k2=key:0(ex6) EXEC=[1, 1] INCR=[1] incr_latency=0.3s -> GET k1=1 GET k2=1
+k1=key:10(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[1] incr_latency=0.3s -> GET k1=1 GET k2=1
+k1=key:12(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:14(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[1] incr_latency=0.3s -> GET k1=1 GET k2=1
+k1=key:16(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[2] incr_latency=0.55s -> GET k1=2 GET k2=1
+k1=key:18(ex6) k2=key:1(ex7) EXEC=[1, 1] INCR=[1] incr_latency=0.3s -> GET k1=1 GET k2=1
+atomic=1 mode=2s: rounds=10, rounds with a lost INCR (k1 != 2): 4
+atomic_commit_windows 4 atomic_groups 20
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t02b_exec_vs_exec.py", line 40, in <module>
+    assert lost == 0, "acknowledged INCR lost"
+           ^^^^^^^^^
+AssertionError: acknowledged INCR lost

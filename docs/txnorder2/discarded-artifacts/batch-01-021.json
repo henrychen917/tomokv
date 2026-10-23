@@ -1,0 +1,986 @@
+[
+  {
+    "path": "paths-final2b/read/post-db0-2s-UNLINK-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "683bd700a60be4003ffe57c29648f828279a4f0b7d6a9337d7241a4c1871ad2f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-UNLINK-trace.json.gz",
+    "bytes": 29841,
+    "sha256": "5fae31f2377e68898f21417a78357faf7af4a95f87e9b71e9e06d466baf36ea3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-DEL-ranges.json.gz",
+    "bytes": 8345,
+    "sha256": "82e96f711bc1676867fd3e3abbfe5bdf28f3201a69f45a3354ef41a9ba230787",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-DEL-trace.json.gz",
+    "bytes": 29211,
+    "sha256": "54a09ff046fae28e459c9f7febc39db9aeb832b3e898ea2993d740c6698fd62b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-MGET-ranges.json.gz",
+    "bytes": 8346,
+    "sha256": "ae54c7cdf6d0adce736cb80637e6ac960f8dea9715930b1d4779d010a80376e6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-MGET-trace.json.gz",
+    "bytes": 32127,
+    "sha256": "0d512707363e3ad65aafbd3889f26f0a58838ee8b025c2e1dfe1f06a3d3433ac",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-MSET-ranges.json.gz",
+    "bytes": 8346,
+    "sha256": "29c22a3ce756f9322ac257c2ae27f764d07df4606fdb1f0e524c2755f6ba6ba2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-MSET-trace.json.gz",
+    "bytes": 30029,
+    "sha256": "b6263e01d2591cf9ce9428a27373868232d2e944284b89b0f7393a90160f336e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-UNLINK-ranges.json.gz",
+    "bytes": 8348,
+    "sha256": "e6e0c3799258262ed94453bc925cb457f0c79dc6a7f2424c197249dfb7fea0a3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-1s-UNLINK-trace.json.gz",
+    "bytes": 29214,
+    "sha256": "cef1ba7385a8e9192ff61045310f76a9ca5c840061589c1519c98cb6607b54ea",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-DEL-ranges.json.gz",
+    "bytes": 8345,
+    "sha256": "6848d3bbe44ebc35db1b9c1aa9364853e59cfb84dac14daaa55db41d6878cc20",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-DEL-trace.json.gz",
+    "bytes": 29204,
+    "sha256": "2589a380ca9da2b5ef1c86a5df3d8cd56097c8cee40ac2e89cb561e5df7fb4ba",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-MGET-ranges.json.gz",
+    "bytes": 8346,
+    "sha256": "b001339db5427a00b3edc28c11bab6da78127d160893c5a423065139b83fe4f0",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-MGET-trace.json.gz",
+    "bytes": 32117,
+    "sha256": "4abc570f5ddec284d43393efc60afc3612ef6f789c2a53bcdc56ab309a0856f9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-MSET-ranges.json.gz",
+    "bytes": 8346,
+    "sha256": "bdac178f9badf5e222549cae9b783393b1a03923ce895d31a30a92e336513e7e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-MSET-trace.json.gz",
+    "bytes": 29640,
+    "sha256": "05fc6c1ced6497f1edabd404765b24270cb02ebed9e40af867fae4784155c604",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-UNLINK-ranges.json.gz",
+    "bytes": 8348,
+    "sha256": "cdaddcb84fb006a953e9f14dcb59a413987df40450f41c0020eefa6fe94e1d6d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-normal-2s-UNLINK-trace.json.gz",
+    "bytes": 29207,
+    "sha256": "da405fbc2baf5a08c382cf7ff4772f5f6f7262116de363c6b668c3ed73b23a38",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-DEL-ranges.json.gz",
+    "bytes": 7500,
+    "sha256": "92659b12e1253736b58c0d8a02178a2f4aee12c891977f75338b781fa99adf5f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-DEL-trace.json.gz",
+    "bytes": 30405,
+    "sha256": "858f2ada06c2de053dd5c89c579f4eb1b5ab84695824a69fcc52369d95295b50",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-MGET-ranges.json.gz",
+    "bytes": 7501,
+    "sha256": "c48393679e7e19f18ce017a383be7fa123388aa8c6498f76a25c0775c7068e79",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-MGET-trace.json.gz",
+    "bytes": 33531,
+    "sha256": "edc50937e62fd8e18243873dbdac3f6dc4f30efbdb935387729ad61189cdb319",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-MSET-ranges.json.gz",
+    "bytes": 7501,
+    "sha256": "ae0e057a8dd851db00642b4df5a31cebb59d22249200a54cfa63d70864bb365b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-MSET-trace.json.gz",
+    "bytes": 31366,
+    "sha256": "4d9cbf4dc26323112851ebac03807eda12d64ff85d114f538b83072f8b2f3845",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-UNLINK-ranges.json.gz",
+    "bytes": 7503,
+    "sha256": "6cb1e198b149785d05df20cc77cdfebe5dee0773ce71f88c059a0734a2d63b58",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-1s-UNLINK-trace.json.gz",
+    "bytes": 30408,
+    "sha256": "841a82403f91fa2ac70682bfc4d4022c3cbf938f5cf56171c800446813a647cf",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-DEL-ranges.json.gz",
+    "bytes": 7500,
+    "sha256": "79a42492691e1793ad314d381bbce584d37a13c35aa5eab65b54016dd3499ac1",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-DEL-trace.json.gz",
+    "bytes": 30387,
+    "sha256": "9ffd8f9c97c976e5a03d7bf45003046dc58ea5b828832d6aa1845a5f94b933b0",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-MGET-ranges.json.gz",
+    "bytes": 7501,
+    "sha256": "7eec93237d7c370eb346a8c575812b4d6fbafca86e8536b156b2b7df9d30939b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-MGET-trace.json.gz",
+    "bytes": 33508,
+    "sha256": "0d852cb938dc71e371b2e6c832a6348118900f79ceb2975e8d3c79a954a6696c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-MSET-ranges.json.gz",
+    "bytes": 7501,
+    "sha256": "aef26091d3922bb170fe7cb31836874873309f08b6cbc5c891d60c3ca163cbd5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-MSET-trace.json.gz",
+    "bytes": 30984,
+    "sha256": "c8a1a2c41dfb31fad03f88ff3819ad29927d36b99ceadcc1ff94ba3fe3260bf1",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-UNLINK-ranges.json.gz",
+    "bytes": 7503,
+    "sha256": "8da8d27490d755f05f153fb2f742799b6047a7283f9438a8153cb1a5d49481db",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-db0-2s-UNLINK-trace.json.gz",
+    "bytes": 30390,
+    "sha256": "d2caa65788d01a80db513fa71ce7fc88898e687e93f3b62113ea7a6f56ba2e58",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-DEL-ranges.json.gz",
+    "bytes": 7324,
+    "sha256": "e698b96080d93732510b50b66053884bee9774060d4602f2d082a482e2c10ef7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-DEL-trace.json.gz",
+    "bytes": 29456,
+    "sha256": "55afa4bbe45b7246f93a49501d00b3ed5b1e0d5fb0bbeaa804e86c3a602eb5d2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-MGET-ranges.json.gz",
+    "bytes": 7325,
+    "sha256": "8390c61a686e1f9393a0bb13c813ccbc9bf915ea0569e157902ec8703c013c11",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-MGET-trace.json.gz",
+    "bytes": 32470,
+    "sha256": "8547cc81cbad8ed6d0367ebac2816c73239fe2c3390ce983fd7f2da99452dcc1",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-MSET-ranges.json.gz",
+    "bytes": 7325,
+    "sha256": "9719a86ca5e46ef2a3902601c269e54f5f8eea6cd5f812df61626e459f8ff86a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-MSET-trace.json.gz",
+    "bytes": 30228,
+    "sha256": "839d98527a60eae1cd38018892cfc5a5c2b53b96100bd09936cfe085293183d3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-UNLINK-ranges.json.gz",
+    "bytes": 7327,
+    "sha256": "0201db12e59f7fab4603f2ab4f263af332bc3fc28c035b8ef48e31b35967f5b8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-1s-UNLINK-trace.json.gz",
+    "bytes": 29459,
+    "sha256": "231809ef5d885e23cde7f28ac76cd07413e45fa8dd6167951deb737d0d4144ce",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-DEL-ranges.json.gz",
+    "bytes": 7324,
+    "sha256": "9ffc7dcff3a28565db214b6ddc372a7567c11cfcc0f190d28ee68e65732fddef",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-DEL-trace.json.gz",
+    "bytes": 29439,
+    "sha256": "5c924db869a52b54f0a281dc47ba0627b72fae7bcd7e714338f6e31a816b94fa",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-MGET-ranges.json.gz",
+    "bytes": 7325,
+    "sha256": "82014c343161ade24a2cb914e1848b21d466625c190b23b5a99cd02dff91b8a7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-MGET-trace.json.gz",
+    "bytes": 32445,
+    "sha256": "bbf3723fbeae6e4b1a997cdbe7b108ef57ba935170295a207ea7e4929dcb1175",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-MSET-ranges.json.gz",
+    "bytes": 7325,
+    "sha256": "da8fff925c56456108d94c307a4a8658ac9d129109929de35e2a3e35e763bff8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-MSET-trace.json.gz",
+    "bytes": 29837,
+    "sha256": "a8f98cdf3528071cb88e1d7201242924db07239b10b5f70950608297297aa990",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-UNLINK-ranges.json.gz",
+    "bytes": 7327,
+    "sha256": "25650cc4d727f451d19a141f7dae23ecb4c1ceead0b843857c9788eb679b5425",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/pre-normal-2s-UNLINK-trace.json.gz",
+    "bytes": 29442,
+    "sha256": "7543e60343f6e02d3bd0dcd6af7ea81418ad05d28670407679dbdc7584b54e3f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-KEYS-ranges.json.gz",
+    "bytes": 8430,
+    "sha256": "8591acf9bbfcde483d9ec4cd0f2908db18f46ab8d49b423e61ceb39e3eb1b96c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-KEYS-trace.json.gz",
+    "bytes": 177537,
+    "sha256": "40896c43ae81f951c5198e031646047d28508f349c6851d106f7980cd51bd2ed",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-KEYS.log",
+    "bytes": 7527089,
+    "sha256": "34c363ed21097fab29c3d6c901c5e271d9453bbf600903391925547702c781ed",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5fb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5fc0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a7605 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6d33\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a739b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3110871) exited normally]",
+      "TRACE_INSTRUCTIONS 86165"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-RANDOMKEY-ranges.json.gz",
+    "bytes": 8435,
+    "sha256": "142a07786e2a22b17d08a75a6cd51cc6ab58fc51ab4185fb7b6f6c09753250c0",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-RANDOMKEY-trace.json.gz",
+    "bytes": 177143,
+    "sha256": "2c0b8956484bc4633e4a10300079be6ab4dda5997f7a7ad6d1eaed21b5f01b9c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-1s-RANDOMKEY.log",
+    "bytes": 7522276,
+    "sha256": "271127570e2561e42661b5a99947b8962a82264ea8a59613c3fb88799a5df1d6",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5fb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5fc0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a7605 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6d33\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a739b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3110874) exited normally]",
+      "TRACE_INSTRUCTIONS 86121"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-KEYS-ranges.json.gz",
+    "bytes": 8430,
+    "sha256": "1b0aeceada1c406088dbc5bca69f51d004cdd80f0da962ec02fefa6df1a8d5cf",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-KEYS-trace.json.gz",
+    "bytes": 177530,
+    "sha256": "58e0c01851f4b1d55c08e92589d5904cd2c775462538522e973292726dcf73ac",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-KEYS.log",
+    "bytes": 7527209,
+    "sha256": "af3db07bf37a5186acef0e3b4872d6a2ef37a91497cc86a822a6531a6f3e176b",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5fb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5fc0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a7605 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6d33\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a739b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3110865) exited normally]",
+      "TRACE_INSTRUCTIONS 86165"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-RANDOMKEY-ranges.json.gz",
+    "bytes": 8435,
+    "sha256": "3db0c4cfebc11ed542a6035a868c7ff06101fa595b3982444552d29becaa0ed3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-RANDOMKEY-trace.json.gz",
+    "bytes": 177136,
+    "sha256": "a75a21c47af72b3edfeaac39531d64016b66c2699f7745c8223cc87c3f609506",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-db0-2s-RANDOMKEY.log",
+    "bytes": 7522396,
+    "sha256": "de8251377c3febc3d6966d2a3265ab886073ba7f2b5a9b5bfba0eafd9398efca",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5fb0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5fc0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a7605 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6d33\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a739b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a73a9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3110868) exited normally]",
+      "TRACE_INSTRUCTIONS 86121"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-KEYS-ranges.json.gz",
+    "bytes": 8297,
+    "sha256": "73f1f4ceb09ff3965fb7a396bd9215ad76fdc0cdd8fc5e50549e33402332561e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-KEYS-trace.json.gz",
+    "bytes": 868590,
+    "sha256": "2e0eb37a48686173d59829e32c3c79453d4947cd96cd2218afc93fde9a648be4",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-KEYS.log",
+    "bytes": 7859891,
+    "sha256": "e195fcd0d1eb609e4f5a39d2af8c4d88e4f7c408d314d8520cd35e27500632ee",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5f10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f20: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a76bb in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6df3\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a746b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7477\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7479\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3107861) exited normally]",
+      "TRACE_INSTRUCTIONS 81102"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-RANDOMKEY-ranges.json.gz",
+    "bytes": 8302,
+    "sha256": "473dddb52ad45ecc2d4c62141f81b5588c3185f58bcabdabeb9e78b742508bc2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-RANDOMKEY-trace.json.gz",
+    "bytes": 868215,
+    "sha256": "0035fe31f7030d247f50086f54d1bc6464efaae4649e1a9bd25a14fbe784c5ed",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-1s-RANDOMKEY.log",
+    "bytes": 7855886,
+    "sha256": "deb8fded6f32bd093cf357d7023d030992eb9fa2d3edd729085b4dfc4cee8c75",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5f10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f20: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a76bb in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6df3\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a746b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7477\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7479\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3107867) exited normally]",
+      "TRACE_INSTRUCTIONS 81062"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-KEYS-ranges.json.gz",
+    "bytes": 8297,
+    "sha256": "b3f0920ed024e2483c017a2c980790827dfa530da14e160af4e9cd233b48f5be",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-KEYS-trace.json.gz",
+    "bytes": 868584,
+    "sha256": "cfb0edcd3c5f82b6ab2e35434cd44c6c824f7311e40ddd6201fa9ca68080a275",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-KEYS.log",
+    "bytes": 7860011,
+    "sha256": "bb62c24ef2cde914dfae9a7afa45e785371d007c63a526f37c2ae8c4fb3dafdc",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5f10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f20: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a76bb in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6df3\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a746b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7477\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7479\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3107858) exited normally]",
+      "TRACE_INSTRUCTIONS 81102"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-RANDOMKEY-ranges.json.gz",
+    "bytes": 8302,
+    "sha256": "cdfae028c0d4ca9258f38f0ccb2b9bb62c14c68dd527ce1af5a5d46db6713988",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-RANDOMKEY-trace.json.gz",
+    "bytes": 868209,
+    "sha256": "40e5b35b370c4b311daf0d9032f8f2ebc0449d967c7dd7212f47b1ccdee15cb6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/post-normal-2s-RANDOMKEY.log",
+    "bytes": 7856006,
+    "sha256": "e09f94b0f951707d3a939d5e0e373f85896dc70afb4a41a1347760950b06566e",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a5f10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3a5f20: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a76bb in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a6df3\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a746b\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7477\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a7479\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3107862) exited normally]",
+      "TRACE_INSTRUCTIONS 81062"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-KEYS-ranges.json.gz",
+    "bytes": 7459,
+    "sha256": "2d929039436273e1124e495b71bbb6d5b253cfb113c3448fd8886aeb2f080293",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-KEYS-trace.json.gz",
+    "bytes": 177918,
+    "sha256": "ec66d2b366679ced3afcc643a162ff3471619809e4aff80bc18de86eb5492820",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-KEYS.log",
+    "bytes": 8094515,
+    "sha256": "ad822ba6b95f8054feec652aec8f653b022bfe2a9568f37b65e55f9a1263dc15",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3970d0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3970e0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a6455 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5b83\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "PASS linked production ordinary scatter execution",
+      "5\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3104196) exited normally]",
+      "TRACE_INSTRUCTIONS 86164"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-RANDOMKEY-ranges.json.gz",
+    "bytes": 7464,
+    "sha256": "bc2dae220e9dd27df1fe1ca02286d51afbe52eef312558bbdef85a0dabb72ec5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-RANDOMKEY-trace.json.gz",
+    "bytes": 177489,
+    "sha256": "582bae0cd3c5edbf750af3c10239728a9d22e758bb28de3d70fa03f595a99b2d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-1s-RANDOMKEY.log",
+    "bytes": 8090382,
+    "sha256": "fc965ad4238c745a109e7c11afed43856a162f649709bac467e175013efe63a5",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3970d0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3970e0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a6455 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5b83\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "PASS linked production ordinary scatter execution",
+      "f (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3104197) exited normally]",
+      "TRACE_INSTRUCTIONS 86120"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-KEYS-ranges.json.gz",
+    "bytes": 7459,
+    "sha256": "6a48bc621176709e8dd91ef0465440475198d22566c5497ddfab6708d8128871",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-KEYS-trace.json.gz",
+    "bytes": 177911,
+    "sha256": "a7cda6ec13a077fb8fec161d94d79589ab46a0497dd2ff440769c8b2e49b2198",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-KEYS.log",
+    "bytes": 8094635,
+    "sha256": "aa032084a9b972f92c723d8b623eed54b7690e5f9c35c18a1c00c93a4548770f",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3970d0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3970e0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a6455 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5b83\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a61eb\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3104177) exited normally]",
+      "TRACE_INSTRUCTIONS 86164"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-RANDOMKEY-ranges.json.gz",
+    "bytes": 7464,
+    "sha256": "596a8897498dec1ff41dceff2c057197d0ba7c84f58a382bf5688bfc932919a7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-RANDOMKEY-trace.json.gz",
+    "bytes": 177483,
+    "sha256": "cb64c618b7320e267280f3da442b8cb0c50c644f2150d90c118bb22cb081e6dc",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-db0-2s-RANDOMKEY.log",
+    "bytes": 8090502,
+    "sha256": "fe4c7b7b72eb0f832dc1bbb8ec831f5def9082cb0a1cf5a56914b905b040b1fd",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3970d0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x3970e0: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a6455 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5b83\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a61eb\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a61f9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3104193) exited normally]",
+      "TRACE_INSTRUCTIONS 86120"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-KEYS-ranges.json.gz",
+    "bytes": 7264,
+    "sha256": "b2a0bc19205e0f8b6118f12f8a4dd4a5e70c235478682f5639df8f34a6c75ec4",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-KEYS-trace.json.gz",
+    "bytes": 868717,
+    "sha256": "d7d54aad7151c34ac03d7baf7a9d3854ae103349eaff687c4f5483510c3421c4",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-KEYS.log",
+    "bytes": 7860380,
+    "sha256": "79c6c9080fca5e1372842049192fe9d80ea6119b7714869f864a7eca763b0392",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x397030: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x397040: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a650b in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5c43\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "0x00005555555a62bb\t15\tstatic void require(bool value) { if (!value) std::abort(); }",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:93",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3100797) exited normally]",
+      "TRACE_INSTRUCTIONS 81109"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-RANDOMKEY-ranges.json.gz",
+    "bytes": 7269,
+    "sha256": "196b9cad182ed4cf66e2bc67e6c8ebdaaab97642284847ff9423ec7a62844246",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-RANDOMKEY-trace.json.gz",
+    "bytes": 868368,
+    "sha256": "0d2261a226fa981095ddf05a8c653e6c7b74859abe33ea5a3c4126b97b6a87bd",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-1s-RANDOMKEY.log",
+    "bytes": 7856519,
+    "sha256": "3923504850f4bf3fab9545b2f25eb0a58e45f7f7b13864c82fbac45100b82483",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x397030: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x397040: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a650b in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5c43\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, sTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "geometry threads=8 shards=16 capacity=1024",
+      "PASS linked production ordinary scatter execution",
+      "catter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3100796) exited normally]",
+      "TRACE_INSTRUCTIONS 81069"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-KEYS-ranges.json.gz",
+    "bytes": 7264,
+    "sha256": "b1b9bf3aa3722df1c318d45cbf6a9c339a0f4e076762dca821b909b1c115afe5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-KEYS-trace.json.gz",
+    "bytes": 868707,
+    "sha256": "8fe883659080ac2e3a1a2ac39eecab2a50fcfb3ac67adbf626340908269e7701",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-KEYS.log",
+    "bytes": 7860500,
+    "sha256": "b9f41053fe6d6ff662cf13c26ad4ffc358229ecd23ac18bdceb4f0c117738106",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x397030: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x397040: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a650b in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5c43\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::nTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "geometry threads=8 shards=16 capacity=1024",
+      "PASS linked production ordinary scatter execution",
+      "oinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3100798) exited normally]",
+      "TRACE_INSTRUCTIONS 81109"
+    ]
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-RANDOMKEY-ranges.json.gz",
+    "bytes": 7269,
+    "sha256": "56cb4b707a5df4d23eef1c1ef135d5ee55c1788f40a86640491218dfc37fdefd",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-RANDOMKEY-trace.json.gz",
+    "bytes": 868359,
+    "sha256": "64241e6db17a11af4e558c6182a2aeb843a80413129c4af1c6b63b56b609e166",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/scan/pre-normal-2s-RANDOMKEY.log",
+    "bytes": 7856639,
+    "sha256": "2b7a673540f11f8ef507c52b8b47bfc90cf0e90535f53510604375a9e53f52ca",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x397030: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 13.",
+      "Breakpoint 2 at 0x397040: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin() { asm volatile(\"\" ::: \"memory\"); }",
+      "0x00005555555a650b in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:80",
+      "80\t        if (i == 0) scatter_trace_begin();",
+      "0x00005555555a5c43\t75\t    for (unsigned i = 0; i < dispatch.nshards; ++i) {"
+    ],
+    "tail": [
+      "93\t        if (i == 0) scatter_trace_end();",
+      "0x00005555555a62c7\t93\t        if (i == 0) scatter_trace_end();",
+      "0x0TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "geometry threads=8 shards=16 capacity=1024",
+      "PASS linked production ordinary scatter execution",
+      "0005555555a62c9\t93\t        if (i == 0) scatter_trace_end();",
+      "93\t        if (i == 0) scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-scan.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end() { asm volatile(\"\" ::: \"memory\"); }",
+      "[Inferior 1 (process 3100805) exited normally]",
+      "TRACE_INSTRUCTIONS 81069"
+    ]
+  },
+  {
+    "path": "paths-final2b/session/post-db0-1s-GET-ranges.json.gz",
+    "bytes": 23395,
+    "sha256": "eb595597916d3d98738c8076dd02781af919a8b73f36676e126b87c9e07df5ec",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/session/post-db0-1s-GET-trace.json.gz",
+    "bytes": 1596,
+    "sha256": "c2161206d85205a4bccf1d54a257ea5c13168dde36965a7f431b550e6eff971e",
+    "reason": "binary or compressed generated artifact"
+  }
+]

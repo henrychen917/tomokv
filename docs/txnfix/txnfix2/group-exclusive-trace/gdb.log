@@ -1,0 +1,152 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+[New Thread 0x7ffff607f6c0 (LWP 1017663)]
+[New Thread 0x7ffff587e6c0 (LWP 1017664)]
+[New Thread 0x7ffff43ff6c0 (LWP 1017665)]
+[New Thread 0x7ffff3bfe6c0 (LWP 1017666)]
+[New Thread 0x7ffff33fd6c0 (LWP 1017667)]
+[New Thread 0x7ffff2bfc6c0 (LWP 1017668)]
+[New Thread 0x7ffff23fb6c0 (LWP 1017669)]
+[New Thread 0x7ffff13ff6c0 (LWP 1017670)]
+listening on 127.0.0.1:22605
+[Thread 0x7ffff43ff6c0 (LWP 1017665) exited]
+[Thread 0x7ffff3bfe6c0 (LWP 1017666) exited]
+[Thread 0x7ffff2bfc6c0 (LWP 1017668) exited]
+[Thread 0x7ffff23fb6c0 (LWP 1017669) exited]
+[Thread 0x7ffff13ff6c0 (LWP 1017670) exited]
+
+Thread 2 "group-exclusive" received signal SIGCONT, Continued.
+[Switching to Thread 0x7ffff607f6c0 (LWP 1017663)]
+0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+
+Thread 6 (Thread 0x7ffff33fd6c0 (LWP 1017667) "group-exclusive"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559c49c2 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622c058) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622b590) at src/core/io_loop.h:726
+#4  0x000055555593aad1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 3 (Thread 0x7ffff587e6c0 (LWP 1017664) "group-exclusive"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559a155a in tomo::Ring::submit_and_wait<false> (database_fd=<optimized out>, timeout_ms=50, want=1, this=0x7ffff6243778) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6243768) at src/core/ex_loop.h:726
+#4  0x000055555593b52e in operator() (__closure=0x7ffff6a78208) at src/main.cc:460
+
+Thread 2 (Thread 0x7ffff607f6c0 (LWP 1017663) "group-exclusive"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559a155a in tomo::Ring::submit_and_wait<false> (database_fd=<optimized out>, timeout_ms=50, want=1, this=0x7ffff62420a0) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6242090) at src/core/ex_loop.h:726
+#4  0x000055555593b52e in operator() (__closure=0x7ffff6a78188) at src/main.cc:460
+
+Thread 1 (Thread 0x7ffff7ef3440 (LWP 1017659) "group-exclusive"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x7ffffffb58e0, op=137, expected=0, futex_word=0x7ffff6b2a0c4) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x7ffffffb58e0, clockid=0, expected=0, futex_word=0x7ffff6b2a0c4) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x7ffff6b2a0c4, expected=expected@entry=0, clockid=clockid@entry=1, abstime=abstime@entry=0x7ffffffb58e0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9c1f6 in __pthread_cond_wait_common (abstime=<optimized out>, clockid=<optimized out>, mutex=0x7ffff6b2a070, cond=0x7ffff6b2a098) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_clockwait64 (abstime=<optimized out>, clockid=<optimized out>, mutex=0x7ffff6b2a070, cond=0x7ffff6b2a098) at ./nptl/pthread_cond_wait.c:691
+LOOP 6 tomo::IoLoop::run_loop<false, false, false, false, false>
+QUEUE multi_retries_
+There is no member or method named multi_retries_.
+QUEUE xshard_retries_
+There is no member or method named xshard_retries_.
+QUEUE atomic_deferred_
+There is no member or method named atomic_deferred_.
+QUEUE ordered_deferred_
+There is no member or method named ordered_deferred_.
+LOOP 3 tomo::ExLoopT<false>::run
+QUEUE multi_retries_
+QUEUE xshard_retries_
+QUEUE atomic_deferred_
+QUEUE ordered_deferred_
+LOOP 2 tomo::ExLoopT<false>::run
+QUEUE multi_retries_
+QUEUE xshard_retries_
+QUEUE atomic_deferred_
+QUEUE ordered_deferred_
+SERVER 0x7ffffffb8f00
+txn_exclusive_owner_ {_M_b = {_M_p = 0x0}}
+snapshot_atomic_barrier_ {<std::__atomic_base<unsigned char>> = {static _S_alignment = 1, _M_i = 0 '\000'}, static is_always_lock_free = true}
+txn_exclusive_generation_ 6
+IO 0
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              3       8636       2.2     192.1       2.8        26       35
+io_tenure t0/0 busy_ns=2247888 idle_ns=192068298 entry_ns=3370801061557092 begin_ns=3370801061557132 end_ns=3370801255873318 exit_ns=3370801255873468 role_exit=0 stopped=1
+t1     io              3         40       0.3     194.0       0.8         0        9
+io_tenure t1/0 busy_ns=306599 idle_ns=194046907 entry_ns=3370801061484431 begin_ns=3370801061484482 end_ns=3370801255837988 exit_ns=3370801255838158 role_exit=0 stopped=1
+t2     io              2      10830       2.6    1579.3       3.0        17       25
+io_tenure t2/0 busy_ns=2587451 idle_ns=1579262745 entry_ns=3370801060240776 begin_ns=3370801060240836 end_ns=3370802642091032 exit_ns=3370802642091182 role_exit=0 stopped=1
+t3     io             23        638       6.2     188.5       7.4        12       39
+io_tenure t3/0 busy_ns=6188414 idle_ns=188518644 entry_ns=3370801061166530 begin_ns=3370801061166570 end_ns=3370801255873628 exit_ns=3370801255873768 role_exit=0 stopped=1
+t4     io              2       1263       0.5     194.2       0.8         9       17
+io_tenure t4/0 busy_ns=478344 idle_ns=194240514 entry_ns=3370801061093910 begin_ns=3370801061093970 end_ns=3370801255812828 exit_ns=3370801255812888 role_exit=0 stopped=1
+t5     io              0         15       0.0     193.6       0.4         0        6
+io_tenure t5/0 busy_ns=36640 idle_ns=193576213 entry_ns=3370801062245785 begin_ns=3370801062245825 end_ns=3370801255858678 exit_ns=3370801255858818 role_exit=0 stopped=1
+t6     ex             30      67404       0.9    1567.0      22.8        17       35
+t7     ex             35      71664       0.5    1564.1      23.8        21       38
+wb: retired=195 direct=27 sends=195/195 short=0 err=0 peer_aborts=0 bytes=732259 zc_sends=0 zc_bytes=0 zc_releases=0 serves=520 empty=325
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=33 executed=65 accepts=13 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":33,"executed":65},"threads":[{"tid":0,"role":"io","ops":3,"iterations":8636,"busy_ns":2247888,"idle_ns":192068298,"cpu_ns":2812720,"wake_tx":26,"wake_rx":35,"io_tenures":[{"entry_ns":3370801061557092,"begin_ns":3370801061557132,"end_ns":3370801255873318,"exit_ns":3370801255873468,"busy_ns":2247888,"idle_ns":192068298,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":3,"iterations":40,"busy_ns":306599,"idle_ns":194046907,"cpu_ns":765170,"wake_tx":0,"wake_rx":9,"io_tenures":[{"entry_ns":3370801061484431,"begin_ns":3370801061484482,"end_ns":3370801255837988,"exit_ns":3370801255838158,"busy_ns":306599,"idle_ns":194046907,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":2,"iterations":10830,"busy_ns":2587451,"idle_ns":1579262745,"cpu_ns":2990500,"wake_tx":17,"wake_rx":25,"io_tenures":[{"entry_ns":3370801060240776,"begin_ns":3370801060240836,"end_ns":3370802642091032,"exit_ns":3370802642091182,"busy_ns":2587451,"idle_ns":1579262745,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":23,"iterations":638,"busy_ns":6188414,"idle_ns":188518644,"cpu_ns":7406100,"wake_tx":12,"wake_rx":39,"io_tenures":[{"entry_ns":3370801061166530,"begin_ns":3370801061166570,"end_ns":3370801255873628,"exit_ns":3370801255873768,"busy_ns":6188414,"idle_ns":188518644,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":2,"iterations":1263,"busy_ns":478344,"idle_ns":194240514,"cpu_ns":831790,"wake_tx":9,"wake_rx":17,"io_tenures":[{"entry_ns":3370801061093910,"begin_ns":3370801061093970,"end_ns":3370801255812828,"exit_ns":3370801255812888,"busy_ns":478344,"idle_ns":194240514,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":0,"iterations":15,"busy_ns":36640,"idle_ns":193576213,"cpu_ns":391200,"wake_tx":0,"wake_rx":6,"io_tenures":[{"entry_ns":3370801062245785,"begin_ns":3370801062245825,"end_ns":3370801255858678,"exit_ns":3370801255858818,"busy_ns":36640,"idle_ns":193576213,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":30,"iterations":67404,"busy_ns":873682,"idle_ns":1566996891,"cpu_ns":22786550,"wake_tx":17,"wake_rx":35,"io_tenures":[]},{"tid":7,"role":"ex","ops":35,"iterations":71664,"busy_ns":503339,"idle_ns":1564109839,"cpu_ns":23766590,"wake_tx":21,"wake_rx":38,"io_tenures":[]}],"wb":{"retired":195,"direct":27,"sends_completed":195,"sends_submitted":195,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":732259,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":520,"serves_empty":325},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":13,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+{static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 1
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 2
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 4}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 3
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 4
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 2}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 5
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 6, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}}
+IO 6
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 0, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}}
+IO 7
+head {_M_b = {_M_p = 0x0}}
+fence {next = 0x0, unit = 0x0, generation = 0, kind = tomo::MultiRetryNode::Kind::Fence, owner_io = 0}
+fence_ack {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}
+APPLY {opened = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, closed = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 6}, static is_always_lock_free = true}}
+[Inferior 1 (process 1017659) detached]

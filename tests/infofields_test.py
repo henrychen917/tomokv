@@ -21,6 +21,20 @@ with patch.object(sys, "argv", ["differ.py", "--list-generators"]), contextlib.r
 
 
 class InfoFieldsControls(unittest.TestCase):
+    def test_transaction_counters(self):
+        fields = {b"Stats": {name: b"0" for name in differ.INFOFIELDS_TXN_STATS}}
+        differ.infofields_txn_stats(fields)
+        for name in differ.INFOFIELDS_TXN_STATS:
+            missing = copy.deepcopy(fields)
+            del missing[b"Stats"][name]
+            with self.assertRaises(AssertionError):
+                differ.infofields_txn_stats(missing)
+            for bad in (b"-1", b"", b"nan"):
+                invalid = copy.deepcopy(fields)
+                invalid[b"Stats"][name] = bad
+                with self.assertRaises(AssertionError):
+                    differ.infofields_txn_stats(invalid)
+
     def test_names_and_placement(self):
         fields = {section: {name: b"0" for name in names}
                   for section, names in differ.INFOFIELDS_REQUIRED.items()}

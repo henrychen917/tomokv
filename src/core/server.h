@@ -37,6 +37,7 @@
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/multi.h"
 #include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
 #include "climon_mask.h"
@@ -145,6 +146,7 @@ static_assert(alignof(AtomicApplySlot) == 64);
 
 class Server {
     friend struct CoreConcurrencyTest;
+    friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
 public:
     // Done releases the ROB slot, but executor code may still be notifying its IO.
@@ -2539,7 +2541,8 @@ public:
         return true;
     }
     void set_snapshot_atomic_barrier(bool enabled) {
-        snapshot_atomic_barrier_.store(enabled, std::memory_order_release);
+        if (enabled) snapshot_atomic_barrier_.fetch_or(1, std::memory_order_acq_rel);
+        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfe}, std::memory_order_acq_rel);
     }
     void atomic_retire_group(uint32_t owner_io, uint64_t admission_token) {
         AtomicAdmissionState& local = thread(owner_io).atomic_admission_state();
@@ -2631,6 +2634,56 @@ public:
     }
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
         return atomic_commit_group(epoch, [](uint64_t) {});
+    }
+    template <typename PublishMembers>
+    uint64_t atomic_commit_group_cas(std::atomic<uint64_t>& epoch,
+                                     PublishMembers&& publish_members) {
+        const uint64_t ticket = atomic_commit_reserve();
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        uint64_t undecided = 0;
+        const bool won = epoch.compare_exchange_strong(
+            undecided, ticket, std::memory_order_acq_rel);
+        if (won) publish_members(ticket);
+        // A cancelled attempt still reserved a ticket and opened a bracket.
+        atomic_commit_publish();
+        return won ? ticket : 0;
+    }
+    // The ordinary publication bracket is conservative: A can sample `drawn`,
+    // B can reserve and publish, then A can decrement the last reference and
+    // publish its older sample. Rule-P waiters need an eventual watermark even
+    // when no further writer arrives. Sample the sequence BEFORE observing an
+    // empty bracket: every ticket in that sample has then finished publication.
+    // A subsequent reservation has a newer ticket and cannot ride this update.
+    // Only the cold transaction touch path calls this helper.
+    bool atomic_publish_quiescent() {
+        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+        if (atomic_commit_inflight_.load(std::memory_order_seq_cst)) return false;
+        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn && !atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+        return true;
+    }
+    void note_txn(uint32_t owner, TxnCounter counter, uint64_t count = 1) {
+        txn_counters_[owner].values[static_cast<unsigned>(counter)].fetch_add(
+            count, std::memory_order_relaxed);
+    }
+    uint64_t txn_counter(TxnCounter counter) const {
+        uint64_t total = 0;
+        for (uint32_t owner = 0; owner < nthreads(); ++owner)
+            total += txn_counters_[owner].values[static_cast<unsigned>(counter)].load(
+                std::memory_order_relaxed);
+        return total;
+    }
+    MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
+    bool txn_retry_held(const void* = nullptr) const {
+        return snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1;
+    }
+    uint32_t take_debug_txn_place_defer() {
+        return debug_txn_place_defer_.exchange(0, std::memory_order_relaxed);
+    }
+    void set_debug_txn_place_defer(uint32_t delay) {
+        debug_txn_place_defer_.store(delay, std::memory_order_relaxed);
     }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
@@ -3520,7 +3573,7 @@ private:
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
-    std::atomic<bool> snapshot_atomic_barrier_{false};
+    std::atomic<uint8_t> snapshot_atomic_barrier_{0}; // bit 0: snapshot
     AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
@@ -3649,6 +3702,12 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+
+    // Transaction-only counters live after the established Server layout. Each
+    // slot has one physical owner writer; INFO reads them with relaxed loads.
+    TxnOwnerCounters txn_counters_[kMaxThreads];
+    MultiRetryLane multi_retry_lanes_[kMaxThreads];
+    std::atomic<uint32_t> debug_txn_place_defer_{0};
 
 };
 

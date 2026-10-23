@@ -1,0 +1,1194 @@
+[
+  {
+    "label": "redis74-oracle-db16-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "84",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27891",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/redis74-oracle-db16-epoll",
+      "--databases",
+      "16"
+    ],
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27891",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27891",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "pre-1s-db1-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-1s-db1-uring",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-1s-db1-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-1s-db1-epoll",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-1s-db16-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-1s-db16-uring",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-1s-db16-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-1s-db16-epoll",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-2s-db1-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-2s-db1-uring",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-2s-db1-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-2s-db1-epoll",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-2s-db16-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-2s-db16-uring",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "pre-2s-db16-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/pre-2s-db16-epoll",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 1
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 1
+      }
+    }
+  },
+  {
+    "label": "post-1s-db1-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-1s-db1-uring",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-1s-db1-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-1s-db1-epoll",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-1s-db16-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-1s-db16-uring",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-1s-db16-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-1s-db16-epoll",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "1"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-2s-db1-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-2s-db1-uring",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-2s-db1-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-2s-db1-epoll",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "1",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-2s-db16-uring",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-2s-db16-uring",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "uring",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  },
+  {
+    "label": "post-2s-db16-epoll",
+    "server": [
+      "taskset",
+      "-c",
+      "72-79",
+      "/home/user/Projects/cx-txnfix/build/tomokv",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "27890",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/watch-oracle/post-2s-db16-epoll",
+      "--databases",
+      "16",
+      "--thread-mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--shards",
+      "16",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--read-local",
+      "0"
+    ],
+    "sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+    "cases": {
+      "flush": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "flush"
+        ],
+        "exit_code": 0
+      },
+      "serve": {
+        "command": [
+          "taskset",
+          "-c",
+          "85-95",
+          "python3",
+          "tests/txnorder_watch.py",
+          "127.0.0.1",
+          "27890",
+          "--databases",
+          "16",
+          "--only",
+          "serve"
+        ],
+        "exit_code": 0
+      }
+    }
+  }
+]

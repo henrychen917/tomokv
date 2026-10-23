@@ -1,0 +1,43 @@
+{
+  "index": 43,
+  "name": "original-pre/t18_watch_cas-2s-a1",
+  "arm": "pre",
+  "status": "PASS",
+  "row": {
+    "name": "original-pre/t18_watch_cas-2s-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t18_watch_cas.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+      "--cores",
+      "64-71",
+      "--port",
+      "27801",
+      "--mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-proof/original-pre/t18_watch_cas-2s-a1",
+      "tomo",
+      "2s",
+      "8",
+      "500"
+    ],
+    "arm": "pre",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792666343.5489767,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/pre-source/build/tomokv",
+  "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+  "returncode": 0,
+  "finished": 1792666345.3715336
+}

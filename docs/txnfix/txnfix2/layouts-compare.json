@@ -1,0 +1,134 @@
+{
+  "tomo::Op": {
+    "pre_size": 336,
+    "post_size": 336,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::Client": {
+    "pre_size": 1984,
+    "post_size": 1984,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::ThreadCtx": {
+    "pre_size": 1408,
+    "post_size": 1408,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::Shard": {
+    "pre_size": 1440,
+    "post_size": 1440,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::FlatStore": {
+    "pre_size": 944,
+    "post_size": 944,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::Rob<64>": {
+    "pre_size": 192,
+    "post_size": 192,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::AtomicEntry": {
+    "pre_size": 144,
+    "post_size": 144,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::Config": {
+    "pre_size": 624,
+    "post_size": 624,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::AtomicScriptIntent": {
+    "pre_size": 32,
+    "post_size": 32,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::AtomicPendingState": {
+    "pre_size": 1352,
+    "post_size": 1352,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo::Server": {
+    "pre_size": 108736,
+    "post_size": 133376,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Op": {
+    "pre_size": 336,
+    "post_size": 336,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Client": {
+    "pre_size": 1984,
+    "post_size": 1984,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::ThreadCtx": {
+    "pre_size": 1408,
+    "post_size": 1408,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Shard": {
+    "pre_size": 1440,
+    "post_size": 1440,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::FlatStore": {
+    "pre_size": 944,
+    "post_size": 944,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Rob<64>": {
+    "pre_size": 192,
+    "post_size": 192,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::AtomicEntry": {
+    "pre_size": 144,
+    "post_size": 144,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Config": {
+    "pre_size": 624,
+    "post_size": 624,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::AtomicScriptIntent": {
+    "pre_size": 32,
+    "post_size": 32,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::AtomicPendingState": {
+    "pre_size": 1352,
+    "post_size": 1352,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::Server": {
+    "pre_size": 108352,
+    "post_size": 132992,
+    "existing_fields_equal": true,
+    "changed_existing_fields": {}
+  }
+}

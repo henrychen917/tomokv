@@ -76,6 +76,7 @@ static_assert(sizeof(AtomicEntry) == 144);
 // bytes make the intent independent of the IO-owned request buffer.
 struct AtomicScriptIntent {
     uint32_t key_ns = 0;
+    uint32_t kind = 0;                 // 0: script PIN; 1: unit key; 2: unit shard
     AtomicScriptIntent* next = nullptr;
     uint64_t hash = 0;
     uint32_t refs = 0;
@@ -83,6 +84,37 @@ struct AtomicScriptIntent {
     char* key_data() { return reinterpret_cast<char*>(this + 1); }
     const char* key_data() const { return reinterpret_cast<const char*>(this + 1); }
 };
+static_assert(sizeof(AtomicScriptIntent) == 32);
+static_assert(offsetof(AtomicScriptIntent, kind) == 4);
+static_assert(offsetof(AtomicScriptIntent, next) == 8);
+static_assert(offsetof(AtomicScriptIntent, hash) == 16);
+static_assert(offsetof(AtomicScriptIntent, refs) == 24);
+static_assert(offsetof(AtomicScriptIntent, key_len) == 28);
+
+// Only unit intents allocate this prefix. PIN nodes keep their existing allocation
+// and all key-matching offsets, so the ordinary versioning predicates stay intact.
+struct UnitRef {
+    enum class Kind : uint8_t { Txn, Group };
+    std::atomic<uint64_t>* epoch = nullptr;
+    std::atomic<bool>* aborted = nullptr;
+    const void* unit = nullptr;
+    Kind unit_kind = Kind::Txn;
+    uint64_t age_ns = 0;
+    uint32_t age_io = 0;
+    uint32_t age_seq = 0;
+};
+static_assert(sizeof(UnitRef) % alignof(AtomicScriptIntent) == 0);
+inline UnitRef& atomic_intent_unit(AtomicScriptIntent& intent) {
+    return *(reinterpret_cast<UnitRef*>(&intent) - 1);
+}
+inline const UnitRef& atomic_intent_unit(const AtomicScriptIntent& intent) {
+    return *(reinterpret_cast<const UnitRef*>(&intent) - 1);
+}
+void atomic_cancel_unit_record(AtomicEntry&);
+void atomic_cancel_unit_intent(AtomicScriptIntent&);
+void atomic_shutdown_unit_intent(AtomicScriptIntent&);
+// Out-of-line destruction keeps the owner unpin walk at its original one-call cost.
+void atomic_free_unit_intent(UnitRef*);
 
 struct AtomicPendingState {
     struct FreeValue {

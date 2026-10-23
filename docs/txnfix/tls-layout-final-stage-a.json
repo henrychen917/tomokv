@@ -1,0 +1,574 @@
+{
+  "pre": {
+    "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+      "offset": 232,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": {
+      "offset": 48,
+      "size": 40
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+      "offset": 256,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+      "offset": 248,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "offset": 240,
+      "size": 1
+    },
+    "__tls_guard": {
+      "offset": 624,
+      "size": 1
+    },
+    "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+      "offset": 264,
+      "size": 16
+    },
+    "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+      "offset": 288,
+      "size": 56
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+      "offset": 360,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+      "offset": 352,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+      "offset": 344,
+      "size": 8
+    },
+    "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+      "offset": 368,
+      "size": 8
+    },
+    "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": {
+      "offset": 88,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+      "offset": 424,
+      "size": 24
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+      "offset": 400,
+      "size": 24
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+      "offset": 448,
+      "size": 16
+    },
+    "_ZZN8tomo_db014multidb_randomEmE5state": {
+      "offset": 96,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+      "offset": 472,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": {
+      "offset": 160,
+      "size": 40
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+      "offset": 496,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+      "offset": 488,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "offset": 480,
+      "size": 1
+    },
+    "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+      "offset": 504,
+      "size": 16
+    },
+    "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+      "offset": 528,
+      "size": 56
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+      "offset": 600,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+      "offset": 592,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+      "offset": 584,
+      "size": 8
+    },
+    "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+      "offset": 608,
+      "size": 8
+    },
+    "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": {
+      "offset": 200,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+      "offset": 664,
+      "size": 24
+    },
+    "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+      "offset": 640,
+      "size": 24
+    },
+    "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+      "offset": 688,
+      "size": 16
+    },
+    "_ZZN4tomo14multidb_randomEmE5state": {
+      "offset": 208,
+      "size": 8
+    },
+    "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": {
+      "offset": 0,
+      "size": 42
+    },
+    "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": {
+      "offset": 112,
+      "size": 42
+    }
+  },
+  "post": {
+    "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+      "offset": 264,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_119xshard_commit_batchE": {
+      "offset": 48,
+      "size": 40
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+      "offset": 408,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+      "offset": 400,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "offset": 392,
+      "size": 1
+    },
+    "_ZN8tomo_db012_GLOBAL__N_118multi_retry_signalE": {
+      "offset": 320,
+      "size": 64
+    },
+    "_ZN8tomo_db012_GLOBAL__N_115multi_io_age_nsE": {
+      "offset": 384,
+      "size": 8
+    },
+    "__tls_guard": {
+      "offset": 912,
+      "size": 1
+    },
+    "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+      "offset": 416,
+      "size": 16
+    },
+    "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+      "offset": 440,
+      "size": 56
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+      "offset": 512,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+      "offset": 504,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+      "offset": 496,
+      "size": 8
+    },
+    "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+      "offset": 520,
+      "size": 8
+    },
+    "_ZZN8tomo_db012_GLOBAL__N_111next_randomEvE5state": {
+      "offset": 88,
+      "size": 8
+    },
+    "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+      "offset": 568,
+      "size": 24
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+      "offset": 544,
+      "size": 24
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+      "offset": 592,
+      "size": 16
+    },
+    "_ZZN8tomo_db014multidb_randomEmE5state": {
+      "offset": 96,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+      "offset": 648,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_119xshard_commit_batchE": {
+      "offset": 160,
+      "size": 40
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+      "offset": 792,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+      "offset": 784,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "offset": 776,
+      "size": 1
+    },
+    "_ZN4tomo12_GLOBAL__N_118multi_retry_signalE": {
+      "offset": 704,
+      "size": 64
+    },
+    "_ZN4tomo12_GLOBAL__N_115multi_io_age_nsE": {
+      "offset": 768,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+      "offset": 800,
+      "size": 16
+    },
+    "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+      "offset": 824,
+      "size": 56
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+      "offset": 896,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+      "offset": 888,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+      "offset": 880,
+      "size": 8
+    },
+    "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+      "offset": 904,
+      "size": 8
+    },
+    "_ZZN4tomo12_GLOBAL__N_111next_randomEvE5state": {
+      "offset": 200,
+      "size": 8
+    },
+    "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+      "offset": 952,
+      "size": 24
+    },
+    "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+      "offset": 928,
+      "size": 24
+    },
+    "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+      "offset": 976,
+      "size": 16
+    },
+    "_ZZN4tomo14multidb_randomEmE5state": {
+      "offset": 208,
+      "size": 8
+    },
+    "_ZZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpEE7message": {
+      "offset": 0,
+      "size": 42
+    },
+    "_ZZN4tomo24resp_expected_bulk_errorEcRNS_2OpEE7message": {
+      "offset": 112,
+      "size": 42
+    }
+  },
+  "changed": {
+    "_ZN8tomo_db012_GLOBAL__N_115multi_watch_mapE": {
+      "pre": {
+        "offset": 232,
+        "size": 8
+      },
+      "post": {
+        "offset": 264,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_selfE": {
+      "pre": {
+        "offset": 256,
+        "size": 8
+      },
+      "post": {
+        "offset": 408,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_117blocking_tls_ringE": {
+      "pre": {
+        "offset": 248,
+        "size": 8
+      },
+      "post": {
+        "offset": 400,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "pre": {
+        "offset": 240,
+        "size": 1
+      },
+      "post": {
+        "offset": 392,
+        "size": 1
+      }
+    },
+    "__tls_guard": {
+      "pre": {
+        "offset": 624,
+        "size": 1
+      },
+      "post": {
+        "offset": 912,
+        "size": 1
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_118t_script_workbenchE": {
+      "pre": {
+        "offset": 264,
+        "size": 16
+      },
+      "post": {
+        "offset": 416,
+        "size": 16
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_113g_client_metaE": {
+      "pre": {
+        "offset": 288,
+        "size": 56
+      },
+      "post": {
+        "offset": 440,
+        "size": 56
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_clientE": {
+      "pre": {
+        "offset": 360,
+        "size": 8
+      },
+      "post": {
+        "offset": 512,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_18g_threadE": {
+      "pre": {
+        "offset": 352,
+        "size": 8
+      },
+      "post": {
+        "offset": 504,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_116g_database_statsE": {
+      "pre": {
+        "offset": 344,
+        "size": 8
+      },
+      "post": {
+        "offset": 496,
+        "size": 8
+      }
+    },
+    "_ZZN8tomo_db012_GLOBAL__N_18random64EvE5state": {
+      "pre": {
+        "offset": 368,
+        "size": 8
+      },
+      "post": {
+        "offset": 520,
+        "size": 8
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_112t_lua_engineE": {
+      "pre": {
+        "offset": 424,
+        "size": 24
+      },
+      "post": {
+        "offset": 568,
+        "size": 24
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114t_script_crossE": {
+      "pre": {
+        "offset": 400,
+        "size": 24
+      },
+      "post": {
+        "offset": 544,
+        "size": 24
+      }
+    },
+    "_ZN8tomo_db012_GLOBAL__N_114tls_io_contextE": {
+      "pre": {
+        "offset": 448,
+        "size": 16
+      },
+      "post": {
+        "offset": 592,
+        "size": 16
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_115multi_watch_mapE": {
+      "pre": {
+        "offset": 472,
+        "size": 8
+      },
+      "post": {
+        "offset": 648,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_selfE": {
+      "pre": {
+        "offset": 496,
+        "size": 8
+      },
+      "post": {
+        "offset": 792,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_117blocking_tls_ringE": {
+      "pre": {
+        "offset": 488,
+        "size": 8
+      },
+      "post": {
+        "offset": 784,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_124blocking_tls_defer_plainE": {
+      "pre": {
+        "offset": 480,
+        "size": 1
+      },
+      "post": {
+        "offset": 776,
+        "size": 1
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_118t_script_workbenchE": {
+      "pre": {
+        "offset": 504,
+        "size": 16
+      },
+      "post": {
+        "offset": 800,
+        "size": 16
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_113g_client_metaE": {
+      "pre": {
+        "offset": 528,
+        "size": 56
+      },
+      "post": {
+        "offset": 824,
+        "size": 56
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_clientE": {
+      "pre": {
+        "offset": 600,
+        "size": 8
+      },
+      "post": {
+        "offset": 896,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_18g_threadE": {
+      "pre": {
+        "offset": 592,
+        "size": 8
+      },
+      "post": {
+        "offset": 888,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_116g_database_statsE": {
+      "pre": {
+        "offset": 584,
+        "size": 8
+      },
+      "post": {
+        "offset": 880,
+        "size": 8
+      }
+    },
+    "_ZZN4tomo12_GLOBAL__N_18random64EvE5state": {
+      "pre": {
+        "offset": 608,
+        "size": 8
+      },
+      "post": {
+        "offset": 904,
+        "size": 8
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_112t_lua_engineE": {
+      "pre": {
+        "offset": 664,
+        "size": 24
+      },
+      "post": {
+        "offset": 952,
+        "size": 24
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_114t_script_crossE": {
+      "pre": {
+        "offset": 640,
+        "size": 24
+      },
+      "post": {
+        "offset": 928,
+        "size": 24
+      }
+    },
+    "_ZN4tomo12_GLOBAL__N_114tls_io_contextE": {
+      "pre": {
+        "offset": 688,
+        "size": 16
+      },
+      "post": {
+        "offset": 976,
+        "size": 16
+      }
+    }
+  }
+}

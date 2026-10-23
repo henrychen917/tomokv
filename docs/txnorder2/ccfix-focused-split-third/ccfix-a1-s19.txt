@@ -1,0 +1,17 @@
+  CC18 read-local suite-entry: thread_mode=2s read_local=0 read_local_hits=0 read_local_fallbacks=0 read_local_arms=0
+  CC11 local source/destination lookups: exact
+  CC11 cross source/destination lookups: exact
+  CC11 ordered COPY oracle reply=b':1\r\n' destination=b':1'
+  EXPECTED-DEVIATION CC11 pending MGET before COPY: no keymiss; source records and predecessor reads witnessed, Redis emits 2
+  CC11 ordered SINTERSTORE oracle reply=b'-WRONGTYPE Operation against a key holding the wrong kind of value\r\n' destination=b':0'
+  EXPECTED-DEVIATION CC11 pending MGET before SINTERSTORE: no keymiss; source records and predecessor reads witnessed, Redis emits 2
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/differ.py", line 4815, in <module>
+    sys.exit(run_ccfix(globals()))
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/_differ_ccfix.py", line 286, in run
+    misses(["MGET", *wanted], wanted, old_reply, pending_deviation=True)
+  File "/home/user/Projects/cx-txnfix/tests/_differ_ccfix.py", line 185, in misses
+    assert len(messages) <= expected_count, (args, messages)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (['MGET', 'ccfix2:BITOP:1792676825281162702::0000', 'ccfix2:BITOP:1792676825281162702::0002'], [b'ccfix2:SINTERSTORE:1792676825222910836::0009'])

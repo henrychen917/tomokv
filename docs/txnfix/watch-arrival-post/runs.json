@@ -1,0 +1,34 @@
+[
+  {
+    "mode": "2s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-2s"
+    ],
+    "sha256": "5e4206c1da24296e4188406859484f20ed0d45a8bb795d67c143efc19d7553c3",
+    "exit_code": 0,
+    "seconds": 80.33781783189625
+  },
+  {
+    "mode": "1s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "tests/watchlive_gate.sh",
+      "22605",
+      "112-119",
+      "6",
+      "/home/user/Projects/cx-txnfix/build/txnfix/watchlive-1s"
+    ],
+    "sha256": "5e4206c1da24296e4188406859484f20ed0d45a8bb795d67c143efc19d7553c3",
+    "exit_code": 0,
+    "seconds": 78.17008650582284
+  }
+]

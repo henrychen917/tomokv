@@ -1,0 +1,1410 @@
+[
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "MGET",
+    "pre": 1218,
+    "post": 1218,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "MSET",
+    "pre": 1162,
+    "post": 1162,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "MSETNX",
+    "pre": 1212,
+    "post": 1212,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "DEL",
+    "pre": 1168,
+    "post": 1168,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "UNLINK",
+    "pre": 1168,
+    "post": 1168,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "EXISTS",
+    "pre": 1210,
+    "post": 1208,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SINTER",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SUNION",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SDIFF",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SINTERCARD",
+    "pre": 1360,
+    "post": 1357,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SINTERSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SUNIONSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SDIFFSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "RENAME",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "RENAMENX",
+    "pre": 1296,
+    "post": 1288,
+    "delta": -8
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "COPY",
+    "pre": 1307,
+    "post": 1297,
+    "delta": -10
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SMOVE",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "RPOPLPUSH",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "LMOVE",
+    "pre": 1332,
+    "post": 1331,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "LMPOP",
+    "pre": 1294,
+    "post": 1293,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZMPOP",
+    "pre": 1294,
+    "post": 1293,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZUNION",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZINTER",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZDIFF",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZINTERCARD",
+    "pre": 1352,
+    "post": 1349,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZUNIONSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZINTERSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZDIFFSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "PFCOUNT",
+    "pre": 1250,
+    "post": 1248,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "PFMERGE",
+    "pre": 1444,
+    "post": 1443,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "BITOP",
+    "pre": 1393,
+    "post": 1392,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "ZRANGESTORE",
+    "pre": 1237,
+    "post": 1237,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "LCS",
+    "pre": 1300,
+    "post": 1296,
+    "delta": -4
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "TOUCH",
+    "pre": 1210,
+    "post": 1208,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SORT",
+    "pre": 1237,
+    "post": 1237,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "SORTDEREF",
+    "pre": 1402,
+    "post": 1402,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "GEORADIUS",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "GEORADIUSBYMEMBER",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "GEOSEARCHSTORE",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "XREAD",
+    "pre": 1302,
+    "post": 1298,
+    "delta": -4
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "KEYS",
+    "pre": 1260,
+    "post": 1257,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "RANDOMKEY",
+    "pre": 1239,
+    "post": 1236,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "FLUSHDB",
+    "pre": 1284,
+    "post": 1283,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "2s",
+    "command": "FLUSHALL",
+    "pre": 1284,
+    "post": 1283,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "MGET",
+    "pre": 1218,
+    "post": 1218,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "MSET",
+    "pre": 1197,
+    "post": 1197,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "MSETNX",
+    "pre": 1212,
+    "post": 1212,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "DEL",
+    "pre": 1168,
+    "post": 1168,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "UNLINK",
+    "pre": 1168,
+    "post": 1168,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "EXISTS",
+    "pre": 1210,
+    "post": 1208,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SINTER",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SUNION",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SDIFF",
+    "pre": 1343,
+    "post": 1340,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SINTERCARD",
+    "pre": 1360,
+    "post": 1357,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SINTERSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SUNIONSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SDIFFSTORE",
+    "pre": 1392,
+    "post": 1391,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "RENAME",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "RENAMENX",
+    "pre": 1296,
+    "post": 1288,
+    "delta": -8
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "COPY",
+    "pre": 1307,
+    "post": 1297,
+    "delta": -10
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SMOVE",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "RPOPLPUSH",
+    "pre": 1292,
+    "post": 1291,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "LMOVE",
+    "pre": 1332,
+    "post": 1331,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "LMPOP",
+    "pre": 1294,
+    "post": 1293,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZMPOP",
+    "pre": 1294,
+    "post": 1293,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZUNION",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZINTER",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZDIFF",
+    "pre": 1349,
+    "post": 1346,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZINTERCARD",
+    "pre": 1352,
+    "post": 1349,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZUNIONSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZINTERSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZDIFFSTORE",
+    "pre": 1404,
+    "post": 1403,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "PFCOUNT",
+    "pre": 1250,
+    "post": 1248,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "PFMERGE",
+    "pre": 1444,
+    "post": 1443,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "BITOP",
+    "pre": 1393,
+    "post": 1392,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "ZRANGESTORE",
+    "pre": 1237,
+    "post": 1237,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "LCS",
+    "pre": 1300,
+    "post": 1296,
+    "delta": -4
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "TOUCH",
+    "pre": 1210,
+    "post": 1208,
+    "delta": -2
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SORT",
+    "pre": 1237,
+    "post": 1237,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "SORTDEREF",
+    "pre": 1402,
+    "post": 1402,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "GEORADIUS",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "GEORADIUSBYMEMBER",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "GEOSEARCHSTORE",
+    "pre": 1233,
+    "post": 1233,
+    "delta": 0
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "XREAD",
+    "pre": 1302,
+    "post": 1298,
+    "delta": -4
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "KEYS",
+    "pre": 1260,
+    "post": 1257,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "RANDOMKEY",
+    "pre": 1239,
+    "post": 1236,
+    "delta": -3
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "FLUSHDB",
+    "pre": 1284,
+    "post": 1283,
+    "delta": -1
+  },
+  {
+    "namespace": "normal",
+    "mode": "1s",
+    "command": "FLUSHALL",
+    "pre": 1284,
+    "post": 1283,
+    "delta": -1
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "MGET",
+    "pre": 1270,
+    "post": 1261,
+    "delta": -9
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "MSET",
+    "pre": 1211,
+    "post": 1203,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "MSETNX",
+    "pre": 1273,
+    "post": 1256,
+    "delta": -17
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "DEL",
+    "pre": 1217,
+    "post": 1209,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "UNLINK",
+    "pre": 1217,
+    "post": 1209,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "EXISTS",
+    "pre": 1258,
+    "post": 1250,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SINTER",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SUNION",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SDIFF",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SINTERCARD",
+    "pre": 1415,
+    "post": 1402,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SINTERSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SUNIONSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SDIFFSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "RENAME",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "RENAMENX",
+    "pre": 1351,
+    "post": 1331,
+    "delta": -20
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "COPY",
+    "pre": 1362,
+    "post": 1340,
+    "delta": -22
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SMOVE",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "RPOPLPUSH",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "LMOVE",
+    "pre": 1386,
+    "post": 1373,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "LMPOP",
+    "pre": 1348,
+    "post": 1335,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZMPOP",
+    "pre": 1348,
+    "post": 1335,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZUNION",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZINTER",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZDIFF",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZINTERCARD",
+    "pre": 1406,
+    "post": 1393,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZUNIONSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZINTERSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZDIFFSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "PFCOUNT",
+    "pre": 1302,
+    "post": 1288,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "PFMERGE",
+    "pre": 1497,
+    "post": 1483,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "BITOP",
+    "pre": 1438,
+    "post": 1433,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "ZRANGESTORE",
+    "pre": 1280,
+    "post": 1278,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "LCS",
+    "pre": 1351,
+    "post": 1337,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "TOUCH",
+    "pre": 1258,
+    "post": 1250,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SORT",
+    "pre": 1278,
+    "post": 1280,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "SORTDEREF",
+    "pre": 1447,
+    "post": 1447,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "GEORADIUS",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "GEORADIUSBYMEMBER",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "GEOSEARCHSTORE",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "XREAD",
+    "pre": 1353,
+    "post": 1339,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "KEYS",
+    "pre": 1294,
+    "post": 1296,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "RANDOMKEY",
+    "pre": 1285,
+    "post": 1278,
+    "delta": -7
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "FLUSHDB",
+    "pre": 1324,
+    "post": 1326,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "2s",
+    "command": "FLUSHALL",
+    "pre": 1324,
+    "post": 1326,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "MGET",
+    "pre": 1270,
+    "post": 1261,
+    "delta": -9
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "MSET",
+    "pre": 1246,
+    "post": 1238,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "MSETNX",
+    "pre": 1273,
+    "post": 1256,
+    "delta": -17
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "DEL",
+    "pre": 1217,
+    "post": 1209,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "UNLINK",
+    "pre": 1217,
+    "post": 1209,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "EXISTS",
+    "pre": 1258,
+    "post": 1250,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SINTER",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SUNION",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SDIFF",
+    "pre": 1398,
+    "post": 1385,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SINTERCARD",
+    "pre": 1415,
+    "post": 1402,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SINTERSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SUNIONSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SDIFFSTORE",
+    "pre": 1436,
+    "post": 1430,
+    "delta": -6
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "RENAME",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "RENAMENX",
+    "pre": 1351,
+    "post": 1331,
+    "delta": -20
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "COPY",
+    "pre": 1362,
+    "post": 1340,
+    "delta": -22
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SMOVE",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "RPOPLPUSH",
+    "pre": 1346,
+    "post": 1333,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "LMOVE",
+    "pre": 1386,
+    "post": 1373,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "LMPOP",
+    "pre": 1348,
+    "post": 1335,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZMPOP",
+    "pre": 1348,
+    "post": 1335,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZUNION",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZINTER",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZDIFF",
+    "pre": 1403,
+    "post": 1390,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZINTERCARD",
+    "pre": 1406,
+    "post": 1393,
+    "delta": -13
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZUNIONSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZINTERSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZDIFFSTORE",
+    "pre": 1447,
+    "post": 1442,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "PFCOUNT",
+    "pre": 1302,
+    "post": 1288,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "PFMERGE",
+    "pre": 1497,
+    "post": 1483,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "BITOP",
+    "pre": 1438,
+    "post": 1433,
+    "delta": -5
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "ZRANGESTORE",
+    "pre": 1280,
+    "post": 1278,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "LCS",
+    "pre": 1351,
+    "post": 1337,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "TOUCH",
+    "pre": 1258,
+    "post": 1250,
+    "delta": -8
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SORT",
+    "pre": 1278,
+    "post": 1280,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "SORTDEREF",
+    "pre": 1447,
+    "post": 1447,
+    "delta": 0
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "GEORADIUS",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "GEORADIUSBYMEMBER",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "GEOSEARCHSTORE",
+    "pre": 1275,
+    "post": 1273,
+    "delta": -2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "XREAD",
+    "pre": 1353,
+    "post": 1339,
+    "delta": -14
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "KEYS",
+    "pre": 1294,
+    "post": 1296,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "RANDOMKEY",
+    "pre": 1285,
+    "post": 1278,
+    "delta": -7
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "FLUSHDB",
+    "pre": 1324,
+    "post": 1326,
+    "delta": 2
+  },
+  {
+    "namespace": "db0",
+    "mode": "1s",
+    "command": "FLUSHALL",
+    "pre": 1324,
+    "post": 1326,
+    "delta": 2
+  }
+]

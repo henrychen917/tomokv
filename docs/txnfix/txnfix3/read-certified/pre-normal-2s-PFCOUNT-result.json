@@ -1,0 +1,42 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "PFCOUNT",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-normal-2s-PFCOUNT.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-normal/probe"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "7f341de46c4a47e7067c3e14005f2585ef9a7f9fa56d47ca52b85cbfe96f67e8",
+  "counts": {
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1250,
+    "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+    "tomo::ScatterState::ScatterState()": 91,
+    "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 224,
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 66,
+    "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 40,
+    "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)": 22,
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 96,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 438,
+    "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 64,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const": 58,
+    "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 4,
+    "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 115,
+    "tomo::(anonymous namespace)::finish_pfcount(tomo::ScatterState&)": 74,
+    "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)": 84,
+    "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const": 23,
+    "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))": 50,
+    "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))": 52,
+    "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+    "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 106,
+    "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 35,
+    "tomo::ScatterState::~ScatterState()": 42
+  }
+}

@@ -1,0 +1,12 @@
+{"event": "spawn", "time_ns": 1792683596439650542, "boot": 1, "pid": 337011, "port": 27820, "argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-txnfix/build/tomokv", "--bind", "127.0.0.1", "--port", "27820", "--shards", "16", "--databases", "1", "--protected-mode", "no", "--thread-mode", "1s", "--appendonly", "yes", "--appendfsync", "always", "--save", "", "--auto-aof-rewrite-percentage", "0", "--enable-debug-command", "yes", "--dir", "/home/user/Projects/cx-txnfix/build/gate-run.fkxL5a/jobs/aof-uring/persistfix/1s-term-ww3z2zb5", "--net-io", "uring"], "log": "/home/user/Projects/cx-txnfix/build/gate-run.fkxL5a/jobs/aof-uring/persistfix/1s-term-ww3z2zb5/server-1.log"}
+{"event": "ready", "time_ns": 1792683596498327156, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683596719142576, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683596719231186, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683596729012622, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683596729049682, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683596865741621, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "client", "time_ns": 1792683597051258478, "boot": 1, "pid": 337011, "port": 27820, "observed_pid": "337011"}
+{"event": "reap", "time_ns": 1792683597813648151, "boot": 1, "pid": 337011, "port": 27820, "status": 0}
+{"event": "spawn", "time_ns": 1792683597840956993, "boot": 2, "pid": 337053, "port": 27820, "argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-txnfix/build/tomokv", "--bind", "127.0.0.1", "--port", "27820", "--shards", "16", "--databases", "1", "--protected-mode", "no", "--thread-mode", "1s", "--appendonly", "yes", "--appendfsync", "always", "--save", "", "--auto-aof-rewrite-percentage", "0", "--enable-debug-command", "yes", "--dir", "/home/user/Projects/cx-txnfix/build/gate-run.fkxL5a/jobs/aof-uring/persistfix/1s-term-ww3z2zb5", "--net-io", "uring"], "log": "/home/user/Projects/cx-txnfix/build/gate-run.fkxL5a/jobs/aof-uring/persistfix/1s-term-ww3z2zb5/server-2.log"}
+{"event": "ready", "time_ns": 1792683597923638180, "boot": 2, "pid": 337053, "port": 27820, "observed_pid": "337053"}
+{"event": "reap", "time_ns": 1792683599775113928, "boot": 2, "pid": 337053, "port": 27820, "status": 0}

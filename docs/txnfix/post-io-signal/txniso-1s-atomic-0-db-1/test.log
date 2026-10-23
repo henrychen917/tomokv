@@ -1,0 +1,7 @@
+geometry 1s atomic b'0' databases b'1'
+FAIL D1 TimeoutError('timed out')
+PASS D2
+FAIL D3 TimeoutError('timed out')
+FAIL D4a TimeoutError('timed out')
+FAIL D4b TimeoutError('timed out')
+FAIL S1 TimeoutExpired(['/usr/bin/python3', '/home/user/Projects/cx-txnfix/tests/txnfix_audit/t15_exec_only_stress.py', '--attach', '--host', '127.0.0.1', '--port', '22601', 'tomo', '1s', '16', '500', '4'], 30)

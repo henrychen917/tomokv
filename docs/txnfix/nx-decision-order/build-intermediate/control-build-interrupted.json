@@ -1,0 +1,11 @@
+{
+  "command": [
+    "make",
+    "-j16",
+    "mdbqsbr-live-arms"
+  ],
+  "status": "interrupted by this lane",
+  "reason": "Source review identified the own-parent NX validation case; retain the partial control log and rebuild after that case is checked.",
+  "production_build": 0,
+  "production_units_build": 0
+}

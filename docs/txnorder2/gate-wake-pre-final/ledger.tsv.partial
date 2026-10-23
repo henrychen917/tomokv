@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_wake; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	0.010000	txnorder2 busy owner inbox wake

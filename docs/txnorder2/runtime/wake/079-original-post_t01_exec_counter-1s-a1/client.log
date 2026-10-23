@@ -1,0 +1,11 @@
+geometry k1 [9, 1] k2 [7, 7]
+tomo atomic=1 mode=1s N=2000: k1=16000 (expected 16000, lost 0)  k2=8000 (expected 8000, lost 0)  errors=0  0.5s
+  atomic_groups 0 -> 8000
+  atomic_commit_windows 0 -> 0
+  atomic_promotions 0 -> 16000
+  atomic_entries 0 -> 16000
+  atomic_exec_order_holds 0 -> 0
+  atomic_exec_order_late 0 -> 0
+  atomic_window_stalls 0 -> 0
+  stale-cut counter 0
+server rc 0

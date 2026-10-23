@@ -1,0 +1,51 @@
+atomfix: atomic=on
+  ok   atomic_scan_order_holds baseline = 0
+  ok   DEBUG ATOMIC-DIRECT-DEFER 0 accepted
+  ok   seed SET 0
+  ok   seeded 96 source keys
+  ok   KEYS listed all 96 destinations that answered +OK
+  ok   second round (overwrite then re-RENAME) listed every destination
+  ok   trailing MSET replied
+  ok   KEYS between DEL and MSET listed neither the deleted nor the not-yet-written values
+  ok   unarmed control passed, holds fired 0x
+  ok   DEBUG ATOMIC-DIRECT-DEFER 64 accepted
+  ok   seed SET 0
+  ok   seeded 96 source keys
+  ok   KEYS listed all 96 destinations that answered +OK
+  ok   second round (overwrite then re-RENAME) listed every destination
+  ok   trailing MSET replied
+  ok   KEYS between DEL and MSET listed neither the deleted nor the not-yet-written values
+  ok   held source seeded
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 256, in held_rename_witness
+    expect(admin.command("DEBUG", "ATOMIC-OFF-HOP-HOLD", 5000), b"OK", "directed hold armed")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 66, in command
+    self.send(*args)
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 60, in send
+    self.sock.sendall(encode(*args))
+                      ^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 48, in encode
+    out.extend((f"${len(arg)}\r\n".encode(), arg, b"\r\n"))
+                    ^^^^^^^^
+TypeError: object of type 'int' has no len()
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 332, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 310, in main
+    held_rename_witness(admin)
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 269, in held_rename_witness
+    admin.command("DEBUG", "ATOMIC-OFF-HOP-HOLD", 0)
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 66, in command
+    self.send(*args)
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 60, in send
+    self.sock.sendall(encode(*args))
+                      ^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/atomfix.py", line 48, in encode
+    out.extend((f"${len(arg)}\r\n".encode(), arg, b"\r\n"))
+                    ^^^^^^^^
+TypeError: object of type 'int' has no len()

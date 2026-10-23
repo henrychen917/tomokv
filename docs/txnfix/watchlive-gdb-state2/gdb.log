@@ -1,0 +1,255 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+[New Thread 0x7ffff607f6c0 (LWP 747831)]
+[New Thread 0x7ffff587e6c0 (LWP 747832)]
+[New Thread 0x7ffff43ff6c0 (LWP 747833)]
+[New Thread 0x7ffff3bfe6c0 (LWP 747834)]
+[New Thread 0x7ffff33fd6c0 (LWP 747835)]
+[New Thread 0x7ffff25ff6c0 (LWP 747836)]
+[New Thread 0x7ffff15ff6c0 (LWP 747837)]
+[New Thread 0x7fffefdff6c0 (LWP 747838)]
+listening on 127.0.0.1:22605
+
+Thread 1 "tomokv" received signal SIGSTOP, Stopped (signal).
+0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb59e0, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+
+Thread 9 (Thread 0x7fffefdff6c0 (LWP 747838) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b8a92 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622f410) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622e948) at src/core/io_loop.h:720
+#4  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 8 (Thread 0x7ffff15ff6c0 (LWP 747837) "tomokv"):
+#0  0x00007ffff7fa591f in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00005555559b8815 in tomo::Ring::submit_and_reap<false> (this=0x7ffff622d828) at src/core/../store/../persist/../core/../net/uring.h:223
+#2  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622cd60) at src/core/io_loop.h:674
+#3  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#4  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+#5  operator() (__closure=0x7ffff625f188) at src/main.cc:571
+
+Thread 7 (Thread 0x7ffff25ff6c0 (LWP 747836) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b8a92 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622bc40) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622b178) at src/core/io_loop.h:720
+#4  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 6 (Thread 0x7ffff33fd6c0 (LWP 747835) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b8a92 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622a058) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff6229590) at src/core/io_loop.h:720
+#4  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 5 (Thread 0x7ffff3bfe6c0 (LWP 747834) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b8a92 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff6228470) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff62279a8) at src/core/io_loop.h:720
+#4  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 4 (Thread 0x7ffff43ff6c0 (LWP 747833) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b8a92 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff6226888) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff6225dc0) at src/core/io_loop.h:720
+#4  0x000055555592c9ff in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:426
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:432
+
+Thread 3 (Thread 0x7ffff587e6c0 (LWP 747832) "tomokv"):
+#0  0x00007ffff7fa591f in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00005555559916f0 in tomo::Ring::submit_and_reap<false> (this=<optimized out>) at src/core/../store/../persist/../core/../net/uring.h:223
+#2  tomo::ExLoopT<false>::run (this=0x7ffff6243768) at src/core/ex_loop.h:719
+#3  0x000055555592d3ee in operator() (__closure=0x7ffff6a78208) at src/main.cc:443
+#4  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#5  std::__invoke<tomokv_multidb_main(int, char**)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+
+Thread 2 (Thread 0x7ffff607f6c0 (LWP 747831) "tomokv"):
+#0  0x00007ffff7fc3a49 in ?? ()
+#1  0x00007ffff6eeca6d in __GI___clock_gettime (clock_id=<optimized out>, tp=<optimized out>) at ../sysdeps/unix/sysv/linux/clock_gettime.c:42
+#2  0x00005555559916c1 in tomo::thread_cpu_ns () at src/core/../store/../persist/../core/signal.h:63
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6242090) at src/core/ex_loop.h:683
+#4  0x000055555592d3ee in operator() (__closure=0x7ffff6a78188) at src/main.cc:443
+#5  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+
+Thread 1 (Thread 0x7ffff7ef3440 (LWP 747828) "tomokv"):
+#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb59e0, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x0000555555c598dc in poll (__timeout=50, __nfds=1, __fds=0x7ffffffb59e0) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:76
+#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffb8fc0) at src/core/lbplanner.cc:522
+#4  0x00005555555892d6 in tomokv_multidb_main (argc=argc@entry=23, argv=argv@entry=0x7fffffffd848) at src/main.cc:589
+#5  0x000055555559ec81 in main (argc=23, argv=0x7fffffffd848) at src/main.cc:195
+EXECUTOR 3
+QUEUE multi_retries_
+{client = 0x7fffefe47800, op_id = 14055, shard = 13, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+MULTI 0x7fffefe76000
+kind tomo::MultiStateKind::Execute
+client 0x7fffefe47800
+exec_op_id 14055
+decision {epoch = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, aborted = {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}, exclusive = false, age_ns = 3318538019000000, age_io = 3, age_seq = 2094, owner = 0x7fffefe76000}
+doomed false
+watch_failed {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_phase_done {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 2}, static is_always_lock_free = true}
+lists_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+tasks_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+finalized {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watched {<std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >> = {_M_impl = {<std::allocator<tomo::MultiWatchedKey>> = {<std::__new_allocator<tomo::MultiWatchedKey>> = {<No data fields>}, <No data fields>}, <std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >::_Vector_impl_data> = {_M_start = 0x7fffefe9c000, _M_finish = 0x7fffefe9e400, _M_end_of_storage = 0x7fffefe9f000}, <No data fields>}}, <No data fields>}
+shards [0, 5, 10, 14, 11, 12, 7, 9, 15, 2, 1, 4, 13, 3, 8, 6]
+watch_shard_done [1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1]
+shard_cursors [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+execution_joined [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+{client = 0x7fffefe47800, op_id = 14055, shard = 3, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 5, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 11, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 7, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 9, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 15, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 1, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+QUEUE xshard_retries_
+{client = 0x7fffeee47000, op_id = 13973, shard = 5, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+SCATTER 0x7fffeeec5ac0
+kind tomo::(anonymous namespace)::Kind::Mset
+phase 1 '\001'
+epoch {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}
+aborted {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 2}, static is_always_lock_free = true}
+commit_next 0x0
+multi_parent 0x0
+QUEUE atomic_deferred_
+QUEUE ordered_deferred_
+{client = 0x7fffeee47000, op_id = 13973, shard = 7, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 9, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 11, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 15, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13974, shard = 1, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+SCATTER 0x7fffeeed2340
+kind tomo::(anonymous namespace)::Kind::Del
+phase 1 '\001'
+epoch {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}
+aborted {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 2}, static is_always_lock_free = true}
+commit_next 0x0
+multi_parent 0x0
+{client = 0x7fffeee47000, op_id = 13974, shard = 3, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 5, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 7, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 9, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 11, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 15, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13985, shard = 7, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+MULTI 0x7fffeee70700
+kind tomo::MultiStateKind::Execute
+client 0x7fffeee47000
+exec_op_id 13985
+decision {epoch = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, aborted = {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}, exclusive = false, age_ns = 3318538019000000, age_io = 4, age_seq = 1049, owner = 0x7fffeee70700}
+doomed false
+watch_failed {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_phase_done {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+lists_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+tasks_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+finalized {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watched {<std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >> = {_M_impl = {<std::allocator<tomo::MultiWatchedKey>> = {<std::__new_allocator<tomo::MultiWatchedKey>> = {<No data fields>}, <No data fields>}, <std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >::_Vector_impl_data> = {_M_start = 0x7fffeee91000, _M_finish = 0x7fffeee93400, _M_end_of_storage = 0x7fffeee94000}, <No data fields>}}, <No data fields>}
+shards [7, 12, 5, 11, 9, 6, 3, 14, 10, 0, 15, 4, 8, 13, 1, 2]
+watch_shard_done [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+shard_cursors [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+execution_joined [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+{client = 0x7fffeee47000, op_id = 13985, shard = 5, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 11, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 9, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 3, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 15, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 13, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffeee47000, op_id = 13985, shard = 1, enqueue_us_low = 0, scatter = 0x7fffeee70701}
+{client = 0x7fffee847000, op_id = 14027, shard = 11, enqueue_us_low = 0, scatter = 0x7fffee870001}
+MULTI 0x7fffee870000
+kind tomo::MultiStateKind::Execute
+client 0x7fffee847000
+exec_op_id 14027
+decision {epoch = {<std::__atomic_base<unsigned long>> = {static _S_alignment = 8, _M_i = 0}, static is_always_lock_free = true}, aborted = {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}, exclusive = false, age_ns = 3318538019000000, age_io = 5, age_seq = 1039, owner = 0x7fffee870000}
+doomed false
+watch_failed {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_phase_done {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watch_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+lists_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+tasks_pending {<std::__atomic_base<unsigned int>> = {static _S_alignment = 4, _M_i = 16}, static is_always_lock_free = true}
+finalized {_M_base = {static _S_alignment = 1, _M_i = false}, static is_always_lock_free = true}
+watched {<std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >> = {_M_impl = {<std::allocator<tomo::MultiWatchedKey>> = {<std::__new_allocator<tomo::MultiWatchedKey>> = {<No data fields>}, <No data fields>}, <std::_Vector_base<tomo::MultiWatchedKey, std::allocator<tomo::MultiWatchedKey> >::_Vector_impl_data> = {_M_start = 0x7fffee894000, _M_finish = 0x7fffee896400, _M_end_of_storage = 0x7fffee897000}, <No data fields>}}, <No data fields>}
+shards [14, 11, 10, 12, 8, 3, 9, 1, 7, 6, 5, 15, 2, 0, 13, 4]
+watch_shard_done [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+shard_cursors [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+execution_joined [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+{client = 0x7fffee847000, op_id = 14027, shard = 3, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 9, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 1, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 7, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 5, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 15, enqueue_us_low = 0, scatter = 0x7fffee870001}
+{client = 0x7fffee847000, op_id = 14027, shard = 13, enqueue_us_low = 0, scatter = 0x7fffee870001}
+EXECUTOR 2
+QUEUE multi_retries_
+{client = 0x7fffefe47800, op_id = 14055, shard = 2, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 4, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 0, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 10, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 14, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+{client = 0x7fffefe47800, op_id = 14055, shard = 12, enqueue_us_low = 0, scatter = 0x7fffefe76001}
+QUEUE xshard_retries_
+{client = 0x7fffeee47000, op_id = 13973, shard = 0, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+QUEUE atomic_deferred_
+QUEUE ordered_deferred_
+{client = 0x7fffeee47000, op_id = 13973, shard = 6, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 10, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 12, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13973, shard = 14, enqueue_us_low = 0, scatter = 0x7fffeeec5ac0}
+{client = 0x7fffeee47000, op_id = 13974, shard = 0, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 10, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+{client = 0x7fffeee47000, op_id = 13974, shard = 14, enqueue_us_low = 0, scatter = 0x7fffeeed2340}
+[Inferior 1 (process 747828) detached]
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              0        110       9.5    7220.8       1.3         0        0
+io_tenure t0/0 busy_ns=9506751 idle_ns=7220842872 entry_ns=3318537611666623 begin_ns=3318537611666663 end_ns=3318544842016286 exit_ns=3318544842016416 role_exit=0 stopped=1
+t1     io              0        111       0.2    7230.4       1.3         0        0
+io_tenure t1/0 busy_ns=193481 idle_ns=7230367063 entry_ns=3318537611461122 begin_ns=3318537611461162 end_ns=3318544842021706 exit_ns=3318544842021856 role_exit=0 stopped=1
+t2     io              0        174       0.9    7229.5       2.2         0        0
+io_tenure t2/0 busy_ns=893615 idle_ns=7229534818 entry_ns=3318537611589723 begin_ns=3318537611589763 end_ns=3318544842018196 exit_ns=3318544842018326 role_exit=0 stopped=1
+t3     io           8017     106325     123.0    7107.4     131.8         2     4851
+io_tenure t3/0 busy_ns=122954571 idle_ns=7107375832 entry_ns=3318537611686214 begin_ns=3318537611686263 end_ns=3318544842016666 exit_ns=3318544842016786 role_exit=0 stopped=1
+t4     io           3996   29091193    6885.3     344.8    5117.8         0     3306
+io_tenure t4/0 busy_ns=6885296962 idle_ns=344844899 entry_ns=3318537611863774 begin_ns=3318537611863824 end_ns=3318544842005685 exit_ns=3318544842005716 role_exit=0 stopped=1
+t5     io           4008      69197      64.3    7165.7      70.8         0     3276
+io_tenure t5/0 busy_ns=64325058 idle_ns=7165741753 entry_ns=3318537611951424 begin_ns=3318537611951475 end_ns=3318544842018286 exit_ns=3318544842018316 role_exit=0 stopped=1
+t6     ex         104525   10301640    1982.5     131.2    5329.6      3381     3382
+t7     ex         115429   10928103    1840.8     131.1    5329.5      8050     8051
+wb: retired=56058 direct=0 sends=17934/17934 short=0 err=0 peer_aborts=0 bytes=444705 zc_sends=0 zc_bytes=0 zc_releases=0 serves=19664 empty=1730
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=2 rob_not_quiesced=1 unsent_bytes_pending=0 | slots done=0 issued=0 free=1 flag_set=0
+shutdown: dispatched=16021 executed=219954 accepts=5 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":16021,"executed":219954},"threads":[{"tid":0,"role":"io","ops":0,"iterations":110,"busy_ns":9506751,"idle_ns":7220842872,"cpu_ns":1309388,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3318537611666623,"begin_ns":3318537611666663,"end_ns":3318544842016286,"exit_ns":3318544842016416,"busy_ns":9506751,"idle_ns":7220842872,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":0,"iterations":111,"busy_ns":193481,"idle_ns":7230367063,"cpu_ns":1256229,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3318537611461122,"begin_ns":3318537611461162,"end_ns":3318544842021706,"exit_ns":3318544842021856,"busy_ns":193481,"idle_ns":7230367063,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":0,"iterations":174,"busy_ns":893615,"idle_ns":7229534818,"cpu_ns":2154869,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3318537611589723,"begin_ns":3318537611589763,"end_ns":3318544842018196,"exit_ns":3318544842018326,"busy_ns":893615,"idle_ns":7229534818,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":8017,"iterations":106325,"busy_ns":122954571,"idle_ns":7107375832,"cpu_ns":131838930,"wake_tx":2,"wake_rx":4851,"io_tenures":[{"entry_ns":3318537611686214,"begin_ns":3318537611686263,"end_ns":3318544842016666,"exit_ns":3318544842016786,"busy_ns":122954571,"idle_ns":7107375832,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":3996,"iterations":29091193,"busy_ns":6885296962,"idle_ns":344844899,"cpu_ns":5117787350,"wake_tx":0,"wake_rx":3306,"io_tenures":[{"entry_ns":3318537611863774,"begin_ns":3318537611863824,"end_ns":3318544842005685,"exit_ns":3318544842005716,"busy_ns":6885296962,"idle_ns":344844899,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":4008,"iterations":69197,"busy_ns":64325058,"idle_ns":7165741753,"cpu_ns":70796669,"wake_tx":0,"wake_rx":3276,"io_tenures":[{"entry_ns":3318537611951424,"begin_ns":3318537611951475,"end_ns":3318544842018286,"exit_ns":3318544842018316,"busy_ns":64325058,"idle_ns":7165741753,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":104525,"iterations":10301640,"busy_ns":1982515109,"idle_ns":131204301,"cpu_ns":5329617520,"wake_tx":3381,"wake_rx":3382,"io_tenures":[]},{"tid":7,"role":"ex","ops":115429,"iterations":10928103,"busy_ns":1840776437,"idle_ns":131059232,"cpu_ns":5329530009,"wake_tx":8050,"wake_rx":8051,"io_tenures":[]}],"wb":{"retired":56058,"direct":0,"sends_completed":17934,"sends_submitted":17934,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":444705,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":19664,"serves_empty":1730},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":2,"rob_not_quiesced":1,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":1,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":5,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}

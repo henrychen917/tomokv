@@ -344,6 +344,12 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
 EXPECT_QUICK=685
 EXPECT_FULL=702                 # ABBA reports only; self-test remains counted.
+# txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
+# DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
+# txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
+# txnorder2: seventeen more rows before quick exit. Against merged origin/cpp:
+# DQ=DF=+31; maintainer counts 685+31=716 quick, 702+31=733 full.
+# EXPECT assignments are owner-owned and unchanged by this lane.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -950,6 +956,9 @@ job_body(){
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
+    txnorder2) job_txnorder2;;
+    txnorder_wake) job_txnorder_wake;;
+    txnorder-*) job_txnorder "$name";;
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
     netio-*) job_netio "${name##*-}";;
@@ -1108,7 +1117,8 @@ plan_jobs(){
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
-              aof_frame aoforder tls ntfix_input fused-0 fused-1)
+              aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
+              txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2296,6 +2306,38 @@ shutdown_clean \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
 }
 
+txniso_checks(){
+  local mode=$1 atomic=$2 log=$3 passed=1 boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_intents >>"$log" 2>&1 \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_help >>"$log" 2>&1 \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txnorder_placement >>"$log" 2>&1 || passed=0
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \
+      && py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" --only V4 >>"$log" 2>&1 \
+      || passed=0
+  stop
+  [ "$passed" = 1 ]
+}
+
+txngroup_checks(){
+  local mode=$1 log=$2 passed=1 boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_group >>"$log" 2>&1 || passed=0
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \
+      && py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" --only AOF >>"$log" 2>&1 \
+      || passed=0
+  stop
+  [ "$passed" = 1 ]
+}
+
 job_fused(){
 # ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
 local AT=${1##*-}
@@ -2329,6 +2371,20 @@ local AT=${1##*-}
       && ok "fused shutdown report (atomic $AT)" \
       || bad "fused shutdown report (atomic $AT)" \
              "mode=$FUSED_REPORT_MODE kind=$FUSED_REPORT_KIND; see $SRVLOG"
+  row_begin "fused txn_nx battery (atomic $AT)"
+  boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && py tests/txn_nx.py 127.0.0.1 "$PORT" >"$TMPDIR/gate-fused-txn-nx-$AT.txt" 2>&1 \
+      && ok "fused txn_nx battery (atomic $AT)" \
+      || bad "fused txn_nx battery (atomic $AT)" "see $TMPDIR/gate-fused-txn-nx-$AT.txt"
+  stop
+  row_begin "fused txniso battery (atomic $AT)"
+  boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txniso_checks 1s "$AT" "$TMPDIR/gate-fused-txniso-$AT.txt" \
+      && ok "fused txniso battery (atomic $AT)" \
+      || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
+  stop
 }
 
 job_bplus(){
@@ -2501,14 +2557,145 @@ local AT=${1##*-}
   # print PASS on a run where no transaction fragment ever met an undecided same-connection unit,
   # and its committed-MSETNX control asserts read-your-own-writes still crosses the two units --
   # a "fix" that merely hid the group's candidate would fail there.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txn_nx txniso; do
     FEATURE_ARGS=()
     [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
-    py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
+    if [ "$t" = txniso ]; then
+      txniso_checks 2s "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
+          && ok "txniso battery (atomic $AT)" \
+          || bad "txniso battery (atomic $AT)" "see $TMPDIR/gate-txniso-$AT.txt"
+    else
+      py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see $TMPDIR/gate-$t-$AT.txt"
+    fi
   done
   stop
+}
+
+job_txn_group_fused(){
+  row_begin "fused txngroup battery (atomic 1)"
+  boot_fused "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txngroup_checks 1s "$TMPDIR/gate-fused-txngroup.txt" \
+      && ok "fused txngroup battery (atomic 1)" \
+      || bad "fused txngroup battery (atomic 1)" "see $TMPDIR/gate-fused-txngroup.txt"
+  stop
+}
+
+job_txn_group_split(){
+  row_begin "txngroup battery (atomic 1)"
+  boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txngroup_checks 2s "$TMPDIR/gate-txngroup.txt" \
+      && ok "txngroup battery (atomic 1)" \
+      || bad "txngroup battery (atomic 1)" "see $TMPDIR/gate-txngroup.txt"
+  stop
+}
+
+# Version-order stress needs four distinct executor owners. Existing batteries
+# retain GATE_RATIO; only these new split boots request the design's 4:4 geometry.
+job_txnorder(){
+  local prefix mode_label atomic mode=2s db=1 boot_fn=boot passed=1 case_name
+  IFS=- read -r prefix mode_label atomic <<< "$1"
+  local label="txnorder battery ($mode_label, atomic $atomic)" log="$TMPDIR/txnorder-$mode-$atomic.txt"
+  local shape=(--ratio 4:4)
+  if [ "$mode_label" = fused ]; then
+    mode=1s
+    boot_fn=boot_fused
+    shape=(--read-local 1)
+    [ "$atomic" != 1 ] || db=16
+  fi
+  row_begin "$label"
+  "$boot_fn" "$CANDIDATE_BINARY" "${shape[@]}" --atomic "$atomic" --databases "$db" \
+      --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit || passed=0
+  for case_name in f1 f2 f4 f5 f6 f8 claims placement readonly; do
+    taskset -c "$CORES" ./build/atomic-survivors-unit "txnorder_$case_name" >>"$log" 2>&1 || passed=0
+  done
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" "${shape[@]}" --atomic "$atomic" --databases "$db" \
+      --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0 \
+      --appendonly yes --appendfsync no \
+      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" --only d >>"$log" 2>&1 || passed=0
+  stop
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $log"
+}
+
+# A' schedules, WATCH defects, RENAME join and busy-owner wake: seventeen rows before quick exit.
+# R12 also runs allocation and invariant/retirement falsifiers. The WATCH rows
+# aggregate both thread modes, both databases images and both network engines.
+job_txnorder_wake(){
+  local label passed mode unit_root
+  unit_root=$(dirname "$CANDIDATE_BINARY")
+  label="txnorder2 busy owner inbox wake"
+  row_begin "$label"
+  passed=1
+  for mode in 1s 2s; do
+    taskset -c "$CORES" "$unit_root/txnorder-wake-unit" "$mode" >>"$TMPDIR/wake.log" 2>&1 || passed=0
+  done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/wake.log"
+}
+
+job_txnorder2(){
+  local case_name label passed mode engine databases boot_fn unit unit_root log
+  unit_root=$(dirname "$CANDIDATE_BINARY")
+  for case_name in R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12; do
+    label="txnorder2 writer episode $case_name"
+    row_begin "$label"
+    passed=1
+    log="$TMPDIR/$case_name.log"
+    taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >"$log" 2>&1 || passed=0
+    if [ "$case_name" = R8 ]; then
+      for mode in 1s 2s; do
+        for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
+          taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" >>"$log" 2>&1 || passed=0
+        done
+      done
+    fi
+    if [ "$case_name" = R12 ]; then
+      for case_name in invariant failure; do
+        taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >>"$log" 2>&1 || passed=0
+      done
+      taskset -c "$CORES" "$unit_root/txnorder-episodes-debug" retirement >>"$log" 2>&1 || passed=0
+    fi
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $log"
+  done
+  label="txnorder2 direct RENAME owner join"
+  row_begin "$label"
+  passed=1
+  for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
+    taskset -c "$CORES" "$unit_root/$unit" rename 2s >>"$TMPDIR/rename.log" 2>&1 || passed=0
+  done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/rename.log"
+  for case_name in serve flush readonly; do
+    label="txnorder2 WATCH $case_name"
+    row_begin "$label"
+    passed=1
+    for mode in 1s 2s; do for engine in uring epoll; do for databases in 1 16; do
+      log="$TMPDIR/$case_name-$mode-$engine-$databases.log"
+      unit="$unit_root/txnorder-watch-unit"
+      [ "$databases" != 1 ] || unit="$unit_root/txnorder-watch-db0-unit"
+      if [ "$case_name" != flush ]; then
+        taskset -c "$CORES" "$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
+      fi
+      boot_fn=boot
+      [ "$mode" != 1s ] || boot_fn=boot_fused
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --databases "$databases" \
+          --read-local "$([ "$mode" = 1s ] && echo 1 || echo 0)" --atomic 1 \
+          --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
+        if [ "$case_name" != readonly ]; then
+          py tests/txnorder_watch.py 127.0.0.1 "$PORT" --databases "$databases" --only "$case_name" >>"$log" 2>&1 || passed=0
+        else
+          py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" --only W1,W2,S5 >>"$log" 2>&1 || passed=0
+        fi
+      else passed=0; fi
+      stop
+      shutdown_clean || passed=0
+    done; done; done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*.log"
+  done
 }
 
 job_script_bounds(){
@@ -3951,14 +4138,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -4043,7 +4230,7 @@ job_dependencies(){
     tls|compat2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -4200,6 +4387,7 @@ collect_job compat2
 for AT in 0 1; do collect_job "feature-split-$AT"; done
 
 for AT in 0 1; do collect_job "fused-$AT"; done
+collect_job txn_group_fused
 
 # Whole armed boots run independently; collect their rows in the original atomic-mode order.
 for AT in 0 1; do collect_job "feature-armed-$AT"; done
@@ -4228,6 +4416,10 @@ collect_job aclfix
 collect_job sort
 
 for AT in 0 1; do collect_job "debug-$AT"; done
+collect_job txn_group_split
+collect_job txnorder2
+collect_job txnorder_wake
+for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
 
 collect_job script_bounds
 collect_job scriptfix

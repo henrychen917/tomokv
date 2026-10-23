@@ -1,0 +1,1754 @@
+[
+  {
+    "path": "drivers/__pycache__/paths.cpython-312.pyc",
+    "bytes": 16474,
+    "sha256": "b25434fc115f7359f257eaa80f856fb573e3ab386867fc8b312e43dee6abc81f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "drivers/__pycache__/runtime.cpython-312.pyc",
+    "bytes": 13509,
+    "sha256": "92f520cf4d017936bac64cd75c33612f11a0725b46c3c3f72a8518b73c8c44b2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "exec-instructions/post-db0-1s-cross.json",
+    "bytes": 3363676,
+    "sha256": "f2c823f7e01f13ad05bb7d4720025a8030cfd4e307ad10e7c0f3056cc02ee473",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-db0-1s-cross.log",
+    "bytes": 2773261,
+    "sha256": "36be78b8fe0d72bd3e86bf7ccf3f4b45231330f669ea3c2e6ce163f7717aaf29",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee61a\t3019\t}",
+      "0x00005555555ee61c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "der2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3166388) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-db0-1s-single.json",
+    "bytes": 3426448,
+    "sha256": "f06695385ab562c54e23be62df4c099307077295d87949ed320468b093bf360b",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-db0-1s-single.log",
+    "bytes": 2619314,
+    "sha256": "ebb3e2b8f93ba4bc828b3613ff52d360efb1e019da7fdab0ce3b6929c81aed63",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee616\t3019\t}",
+      "0x00005555555ee618\t3019\t}",
+      "0x00005555555ee61a\t3019\t}",
+      "0x00005555555ee61c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3166375) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-db0-2s-cross.json",
+    "bytes": 3394292,
+    "sha256": "82976128a2b1da4ebcb93032ffa53e35820eb936fe89dae99640f7e9b86465bf",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-db0-2s-cross.log",
+    "bytes": 3054709,
+    "sha256": "ddb7f8e92259b8a5a8c821cc5b63afed413559666330fc06cd56641a4f82296e",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee616\t3019\t}",
+      "0x00005555555ee618\t3019\t}",
+      "0x00005555555ee61a\t3019\t}",
+      "0x00005555555ee61c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3166463) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-db0-2s-single.json",
+    "bytes": 3459395,
+    "sha256": "e46faf3bf2995de8029a4f6dce33c9fcd921d37a0742ccbd8f4518205a50c71f",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-db0-2s-single.log",
+    "bytes": 2896557,
+    "sha256": "cc4066d65ace0a61a8c6b3cbfbafffeb0a5fc8efa268c0a3ff86cd566b31903f",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee61a\t3019\t}",
+      "0x000055555TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "55ee61c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3166428) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-normal-1s-cross.json",
+    "bytes": 3369319,
+    "sha256": "b339e3722c6bc8631cfe558975422cbd76f61b37b49f7cd51406644c26485bb4",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-normal-1s-cross.log",
+    "bytes": 2902311,
+    "sha256": "12f643cc969f65a064adb9346ee157e39248041bd10e0331510d7e2427c086f7",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x0000555555945566\t3019\t}",
+      "0x0000555555945568\t3019\t}",
+      "0x000055555594556a\t3019\t}",
+      "0x000055555594556c\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3163274) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-normal-1s-single.json",
+    "bytes": 3430563,
+    "sha256": "3e31e2774386e9d77804cfef1ebc1038dac5bb43ad67238d029b5fe92dd75e47",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-normal-1s-single.log",
+    "bytes": 2740299,
+    "sha256": "412c6aad7273c320fc75a651fcf01ff2cb6f7c7b43f59a97b764e9c7116488fa",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x0000555555945566\t3019\t}",
+      "0x0000555555945568\t3019\t}",
+      "0x000055555594556a\t3019\t}",
+      "0x000055555594556c\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3163241) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-normal-2s-cross.json",
+    "bytes": 3399499,
+    "sha256": "4615ae7ef6b74bfe2af1f4724e4d121a5dca67ce78a7f3aa41d7ea09e1890d89",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-normal-2s-cross.log",
+    "bytes": 3185697,
+    "sha256": "9c22bf504f0fad68a3bfdf05310d7921a27d1232b3bd43de6267461327c7bcd9",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x0000555555945566\t3019\t}",
+      "0x0000555555945568\t3019\t}",
+      "0x000055555594556a\t3019\t}",
+      "0x000055555594556c\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3163313) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/post-normal-2s-single.json",
+    "bytes": 3462965,
+    "sha256": "cd4adf5547d7a3a9429fd4ffc490c08cf4f14ef1b91ae7b8b2fc8517b7e9e942",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/post-normal-2s-single.log",
+    "bytes": 3020312,
+    "sha256": "c09e794232c0974174c1426e3fd7aaa330d2db3445f18cda0754bdc938ae2b9c",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x0000555555945566\t3019\t}",
+      "0x0000555555945568\t3019\t}",
+      "0x000055555594556a\t3019\t}",
+      "0x000055555594556c\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3163304) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-db0-1s-cross.json",
+    "bytes": 2500854,
+    "sha256": "eac6e92878c8b671631803ba590266b8c248935bd3a701a832b937bb66302f77",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-db0-1s-cross.log",
+    "bytes": 2043198,
+    "sha256": "e96ba224c27b4cba22dfaf997d3edd329109799a195e17fb9b3f476c87fd9501",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3162967) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-db0-1s-single.json",
+    "bytes": 2536646,
+    "sha256": "dfafe91507a57f1f84f1bc63c62db9b9d219b9a153980d591720cecb5f6f43cc",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-db0-1s-single.log",
+    "bytes": 1955595,
+    "sha256": "997b60e2724565701628b84c4ff7ffaea338a910abaf119bbc28c622b895ddf8",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3162957) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-db0-2s-cross.json",
+    "bytes": 2531100,
+    "sha256": "542844ec92b87e8542792ff97ce219afec85339195bdabda520a0b20e4716679",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-db0-2s-cross.log",
+    "bytes": 2327629,
+    "sha256": "516ee145b092f27cfdbf412b715194e73626e0b17d1714e40c6fa17fc3e3d14c",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3162993) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-db0-2s-single.json",
+    "bytes": 2570916,
+    "sha256": "59d4532ff1b9848ebb62e19ef2088087362ce48b914ea758713b34562a2d4803",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-db0-2s-single.log",
+    "bytes": 2234273,
+    "sha256": "8295b829ff72320d7a2881e4f69026bab64bed14c6bc3abeb0f5c6a3ab006cbc",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3162990) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-normal-1s-cross.json",
+    "bytes": 2540476,
+    "sha256": "d617b843f67653b5fd6a59048187384202ca98ea24920100f309db675a0891bd",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-normal-1s-cross.log",
+    "bytes": 2171440,
+    "sha256": "0bc99ccbb173c9b2e7dd96972068ecd2e7e0146eb07d46be044f9b27adaed9bf",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3159857) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-normal-1s-single.json",
+    "bytes": 2573762,
+    "sha256": "35840b00f1a3b05cbeec720d1b24a1bd2ac5e0e80e1a82a31dcc47ca415b056e",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-normal-1s-single.log",
+    "bytes": 2080682,
+    "sha256": "9f087271856ec77a410930b050a3df4dc297cb20f40aec9269da479bb35ef4c4",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3159858) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-normal-2s-cross.json",
+    "bytes": 2572279,
+    "sha256": "8eae698021d25ed7135c351ab72d1c81d76303a5f0176815acadb50d6c827d1c",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-normal-2s-cross.log",
+    "bytes": 2458541,
+    "sha256": "ab9df67bdff162755c86fee0cf073e43e6b566c898964a3d9374885694f02cec",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3159852) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions/pre-normal-2s-single.json",
+    "bytes": 2609327,
+    "sha256": "7c0c96e56fc8654aafd691fd21d1b3776b1a798222aeff3e9ef196df42f7cb51",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions/pre-normal-2s-single.log",
+    "bytes": 2362538,
+    "sha256": "5cbbd3e4c22bafee3de5a93fe6688db43f19d98cc116edec6eaa361b763de81c",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3159851) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-1s-cross.json",
+    "bytes": 3363676,
+    "sha256": "b8c779a80c4863697b443e11f10be54cf30c7d8ac51589d3770fc7014fe46812",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-1s-cross.log",
+    "bytes": 2773269,
+    "sha256": "82a8fe1f8843f76a5e856d47bd93f47e04fd35bba4b6799f9ebd578f744695ad",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4b70: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee64a\t3019\t}",
+      "0x00005555555ee64c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 15654) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-1s-single.json",
+    "bytes": 3426448,
+    "sha256": "912b0c4c0a827576aefa62db77b49ed789630a5ca96ce89ba7565a6077a0fcf4",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-1s-single.log",
+    "bytes": 2619310,
+    "sha256": "269f91911bf6c5b1dd8823631b35b81519a292120d449a4f8026606a7555f78d",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4b70: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee646\t3019\t}",
+      "0x00005555555ee648\t3019\t}",
+      "0x00005555555ee64a\t3019\t}",
+      "0x00005555555ee64c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 15578) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-2s-cross.json",
+    "bytes": 3394292,
+    "sha256": "6e74d17ebaf05150d2cd5d7d3ab2acde20aaea585806ce039a4d3e94db93202a",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-2s-cross.log",
+    "bytes": 3054707,
+    "sha256": "10e78cbc858984c7a052174d9699094c74ee48f118d5919b9f4bae26ab70b8ca",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4b70: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee646\t3019\t}",
+      "0x00005555555ee648\t3019\t}",
+      "0x00005555555ee64a\t3019\t}",
+      "0x00005555555ee64c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 15698) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-2s-single.json",
+    "bytes": 3459395,
+    "sha256": "9ed1e734bc3905be441202f73d50ebf1619ad0b03dcface1936a6bb584206eb0",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-db0-2s-single.log",
+    "bytes": 2896557,
+    "sha256": "c1c1aa941dda94b58fc82a3869eef51590513623cc45418a31944712c26f1734",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4b60: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4b70: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555ee64a\t3019\t}",
+      "0x0000555TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "5555ee64c\t3019\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6d88 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 15695) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-1s-cross.json",
+    "bytes": 3369319,
+    "sha256": "684a5df05d751725b903151dc25f9a0f7cf547d6c16066bea499b389d591afa2",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-1s-cross.log",
+    "bytes": 2902309,
+    "sha256": "8923acddc77694934a6299ba204a0ccaf5a9f32a8661214581e54cce19b7c5be",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a90: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4aa0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559455e6\t3019\t}",
+      "0x00005555559455e8\t3019\t}",
+      "0x00005555559455ea\t3019\t}",
+      "0x00005555559455ec\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 12231) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-1s-single.json",
+    "bytes": 3430563,
+    "sha256": "0052879ed866c5098f5c95e3ba76b3281a40c320a77d0401c2e61ca749f171ac",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-1s-single.log",
+    "bytes": 2740295,
+    "sha256": "dbc6f1a3c06cc4fd27af0d91be983d775d6c9516d492f90041c8340cef7a3e18",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a90: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4aa0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559455e6\t3019\t}",
+      "0x00005555559455e8\t3019\t}",
+      "0x00005555559455ea\t3019\t}",
+      "0x00005555559455ec\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 12225) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-2s-cross.json",
+    "bytes": 3399499,
+    "sha256": "ab068ed2425708f46c5c54811de5550fd0ce9c89ff293f46f452515245b97f98",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-2s-cross.log",
+    "bytes": 3185695,
+    "sha256": "c66173f577587fcccd8607c455818f9e20e4df8260d17a5d6d20e9ebc1773037",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a90: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4aa0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559455e6\t3019\t}",
+      "0x00005555559455e8\t3019\t}",
+      "0x00005555559455ea\t3019\t}",
+      "0x00005555559455ec\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 12342) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-2s-single.json",
+    "bytes": 3462965,
+    "sha256": "eec1fff2f6f4bbebe50b488840394b3e6129e9d8cd6b5d6fb7f69b2a1d294a91",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/post-normal-2s-single.log",
+    "bytes": 3020318,
+    "sha256": "ffa6e89a878beef1aa55ae05d227e4d925c29a5ccda5d9698ec727dcb250ef78",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a90: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4aa0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559455e6\t3019\t}",
+      "0x00005555559455e8\t3019\t}",
+      "0x00005555559455ea\t3019\t}",
+      "0x00005555559455ec\t3019\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a6de8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 12325) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-1s-cross.json",
+    "bytes": 2500854,
+    "sha256": "7b0419d76058624833d286c957c7106e8d5ad90aa316e5a74cf7eacc1772a775",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-1s-cross.log",
+    "bytes": 2043200,
+    "sha256": "6253ba468f8f7d9a202e1c01c4a66d7e76062fa2cb0fd1989d1321daca9cd92c",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 11714) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-1s-single.json",
+    "bytes": 2536646,
+    "sha256": "f1383552fa37b8bdd150dc03237399e9a2ce92128b1204fd2f3a7713d23a163d",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-1s-single.log",
+    "bytes": 1955598,
+    "sha256": "735cceade7d86a91c5f1cc1cc2a4594d8433c3dbeb2e3658e999722c4e261b6c",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 11711) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-2s-cross.json",
+    "bytes": 2531100,
+    "sha256": "0084fff426885748a780660dd3cd3618611e2850cabbbf60cb99b45aeb1cda77",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-2s-cross.log",
+    "bytes": 2327624,
+    "sha256": "1635686bd97c657391d8611b8b90d429a43aa0710b67d713f767072155a456ce",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 11766) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-2s-single.json",
+    "bytes": 2570916,
+    "sha256": "e5a852e8e45266279b355bf282690cfc5035f7b0f12b84b412c74ebc35ed7d5b",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-db0-2s-single.log",
+    "bytes": 2234274,
+    "sha256": "6f4317d66c90fdec95df7549f91eac3a36fc618bff6ee0e481548c8aa2090327",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 11751) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-1s-cross.json",
+    "bytes": 2540476,
+    "sha256": "018c2205ca3b1a2f176b5134f0791baa1fbb669194635f3c1467210c724d32e0",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-1s-cross.log",
+    "bytes": 2171433,
+    "sha256": "25cb89778b9550c59fceea11d2a00fd7f1fe6d370a9f188dad9fdeb9718b2886",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "e-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 8379) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-1s-single.json",
+    "bytes": 2573762,
+    "sha256": "12ce21bc96de3f4608e8e6af035d9c37be8fc971402894277958ea7d0b23c036",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-1s-single.log",
+    "bytes": 2080678,
+    "sha256": "41529bdedf08ee56ddb4c4c91623ce71aff37ddf4c3ccd30e3b87f08753948eb",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 8380) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-2s-cross.json",
+    "bytes": 2572279,
+    "sha256": "e64a1ca1eb0c3603e1faa54c294739535a3605674144ca0d4c6192f94278d690",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-2s-cross.log",
+    "bytes": 2458534,
+    "sha256": "813e32a5ac702b0886883fda7e1196e42a312189a6f98e354095bd9dabdd55b4",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 8385) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-2s-single.json",
+    "bytes": 2609327,
+    "sha256": "4978d6d7d4316459e56a9ab83e67a2522de8bdaeae4ea5492d5f46015ffa8576",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-final2c/pre-normal-2s-single.log",
+    "bytes": 2362534,
+    "sha256": "b7e7c48cd9911e93e67fbbbcc610a948f62c4838cc20932395f9f74549dfa000",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 8387) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-db0-1s-cross.log",
+    "bytes": 14052272,
+    "sha256": "a23a8f0c54904fc892ca738f074d0308a045f42ec7cc8e484aa16a3c8d4a6eb0",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc3991 in ?? ()",
+      "0x00007ffff7fc3997 in ?? ()",
+      "0x00007ffff7fc399a in ?? ()",
+      "0x00007ffff7fc399c in ?? ()",
+      "0x00007ffff7fc39a0 in ?? ()",
+      "0x00007ffff7fc39a3 in ?? ()",
+      "0x00007ffff7fc39a8 in ?? ()",
+      "0x00007ffff7fc39ab in ?? ()",
+      "0x00007ffff7fc39ae in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-db0-1s-cross.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-db0-1s-single.log",
+    "bytes": 14052273,
+    "sha256": "f230ef53773d19e67cc833183aa8dcf8597fd13f8e5932941a732a9ef76e702d",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc397e in ?? ()",
+      "0x00007ffff7fc3981 in ?? ()",
+      "0x00007ffff7fc3985 in ?? ()",
+      "0x00007ffff7fc398b in ?? ()",
+      "0x00007ffff7fc398e in ?? ()",
+      "0x00007ffff7fc3991 in ?? ()",
+      "0x00007ffff7fc3997 in ?? ()",
+      "0x00007ffff7fc399a in ?? ()",
+      "0x00007ffff7fc399c in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-db0-1s-single.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-db0-2s-cross.log",
+    "bytes": 14052272,
+    "sha256": "f0e99149b25c49e7cb247003dc45b6b09bc63d98bd7b5e3fb0ee5e463ed96dbf",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc39a0 in ?? ()",
+      "0x00007ffff7fc39a3 in ?? ()",
+      "0x00007ffff7fc39a8 in ?? ()",
+      "0x00007ffff7fc39ab in ?? ()",
+      "0x00007ffff7fc39ae in ?? ()",
+      "0x00007ffff7fc39b2 in ?? ()",
+      "0x00007ffff7fc39b6 in ?? ()",
+      "0x00007ffff7fc39b9 in ?? ()",
+      "0x00007ffff7fc39bd in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-db0-2s-cross.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-db0-2s-single.log",
+    "bytes": 14052273,
+    "sha256": "e6b58b8c1f1262044e92e54e15d14fd16c1946cb2d00fb53c47a83807bd81799",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4ae0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4af0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a6747\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc39dd in ?? ()",
+      "0x00007ffff7fc397e in ?? ()",
+      "0x00007ffff7fc3981 in ?? ()",
+      "0x00007ffff7fc3985 in ?? ()",
+      "0x00007ffff7fc398b in ?? ()",
+      "0x00007ffff7fc398e in ?? ()",
+      "0x00007ffff7fc3991 in ?? ()",
+      "0x00007ffff7fc3997 in ?? ()",
+      "0x00007ffff7fc399a in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-db0-2s-single.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-normal-1s-cross.log",
+    "bytes": 14057932,
+    "sha256": "0b8b287d5bb1dd2f0b6d71b2e166c70187381348e7729d2af64ed7228b846513",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc3b4e in ?? ()",
+      "0x00007ffff7fc3b51 in ?? ()",
+      "0x00007ffff7fc3b54 in ?? ()",
+      "0x00007ffff7fc39d4 in ?? ()",
+      "0x00007ffff7fc39d8 in ?? ()",
+      "0x00007ffff7fc39da in ?? ()",
+      "0x00007ffff7fc39dd in ?? ()",
+      "0x00007ffff7fc397e in ?? ()",
+      "0x00007ffff7fc3981 in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-normal-1s-cross.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-normal-1s-single.log",
+    "bytes": 14057933,
+    "sha256": "d66084ac5106ea8a7f72e46b0473ddd1e649ff04c2c54a225f4845271a1479c8",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc399c in ?? ()",
+      "0x00007ffff7fc39a0 in ?? ()",
+      "0x00007ffff7fc39a3 in ?? ()",
+      "0x00007ffff7fc39a8 in ?? ()",
+      "0x00007ffff7fc39ab in ?? ()",
+      "0x00007ffff7fc39ae in ?? ()",
+      "0x00007ffff7fc39b2 in ?? ()",
+      "0x00007ffff7fc39b6 in ?? ()",
+      "0x00007ffff7fc39b9 in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-normal-1s-single.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-normal-2s-cross.log",
+    "bytes": 14057932,
+    "sha256": "443298252f67ca52ad34d1d28e03c8fba2ff877134f8dff2d92985b8bff715ea",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc3991 in ?? ()",
+      "0x00007ffff7fc3997 in ?? ()",
+      "0x00007ffff7fc399a in ?? ()",
+      "0x00007ffff7fc399c in ?? ()",
+      "0x00007ffff7fc39a0 in ?? ()",
+      "0x00007ffff7fc39a3 in ?? ()",
+      "0x00007ffff7fc39a8 in ?? ()",
+      "0x00007ffff7fc39ab in ?? ()",
+      "0x00007ffff7fc39ae in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-normal-2s-cross.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/post-normal-2s-single.log",
+    "bytes": 14057933,
+    "sha256": "9bce138ce138cce2d5a6ee202497ec0545638084b5b947868f2abda44db6c3aa",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x3a4a10: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x3a4a20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a67c7\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00007ffff7fc39b9 in ?? ()",
+      "0x00007ffff7fc39bd in ?? ()",
+      "0x00007ffff7fc39c1 in ?? ()",
+      "0x00007ffff7fc3b47 in ?? ()",
+      "0x00007ffff7fc3b4c in ?? ()",
+      "0x00007ffff7fc3b4e in ?? ()",
+      "0x00007ffff7fc3b51 in ?? ()",
+      "0x00007ffff7fc3b54 in ?? ()",
+      "0x00007ffff7fc39d4 in ?? ()",
+      "Python Exception <class 'RuntimeError'>: EXEC did not reach its end marker in 500000 steps",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/post-normal-2s-single.gdb:27: Error in sourced command file:",
+      "Error occurred in Python: EXEC did not reach its end marker in 500000 steps"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-1s-cross.json",
+    "bytes": 2500826,
+    "sha256": "422dd0ee54f913e6950278365458124293acd498fff602812143ca1fea0b9c5c",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-1s-cross.log",
+    "bytes": 2043197,
+    "sha256": "e0ce23b30c6f42a973a465ccee4ba95c1d648f0a90f45df788284898ab1c9253",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3114617) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-1s-single.json",
+    "bytes": 2536618,
+    "sha256": "e9580c96178110bbf719458c77ae75eaeba4f4c23632d0ef7976e426417cafee",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-1s-single.log",
+    "bytes": 1955595,
+    "sha256": "2b2e36b81d882aed4131e9deaeb730a1fd721b4472bc745196f61a0e2f203059",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3114604) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-2s-cross.json",
+    "bytes": 2531072,
+    "sha256": "13de899065b5b08e3a7e955dc978e7b64ff01b2969bd36e8e81964ae80b735e3",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-2s-cross.log",
+    "bytes": 2327628,
+    "sha256": "ed28391ec421137052139bdff8e8b365951d21665ba6f16848854a507fb06356",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3114633) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-2s-single.json",
+    "bytes": 2570888,
+    "sha256": "8ff343d5b35301f09ed5277a69ee6844c6ee75dd1d4a7358c0b34ba1f28637cd",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-db0-2s-single.log",
+    "bytes": 2234277,
+    "sha256": "4338a8db7474a1e073b6d43f08efcd5fba25ba2518b20a1cd240b2e2f8426919",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395bd0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395be0: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5567\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555555eacb6\t2324\t}",
+      "0x00005555555eacb8\t2324\t}",
+      "0x00005555555eacba\t2324\t}",
+      "0x00005555555eacbc\t2324\t}",
+      "tomo_db0::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5ba8 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3114630) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-1s-cross.json",
+    "bytes": 2540448,
+    "sha256": "1e8ab40795638c228e7c768934792c77611d7a535354ad773f12251068da6f82",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-1s-cross.log",
+    "bytes": 2171437,
+    "sha256": "d89dd182c424ba9ad3fad69f587d7e18393a0e67c8927f7b16c4eca7fb267223",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/proTomoKV 1.0-cpp (Redis 7.4.10 compatible)",
+      "PASS linked production EXEC: two INCRs, exact reply, bounded owner turns",
+      "be-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3111010) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-1s-single.json",
+    "bytes": 2573734,
+    "sha256": "bdc55a80c506b9cf5518f5ffcde6004741bbafe6385ce664e13246e26ba83545",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-1s-single.log",
+    "bytes": 2080681,
+    "sha256": "964072b44766ae6a8f884acd2b03645c70a845c3e150592257fa8c1e048978b0",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3111003) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-2s-cross.json",
+    "bytes": 2572251,
+    "sha256": "9da188ad2237134f6db1a20de73aa8e7ddcc6d4bb13af418db30587154efb094",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-2s-cross.log",
+    "bytes": 2458542,
+    "sha256": "723a70648fbaf81325a92de5882c07b1f3adb69c2ce8fcdbd5061b5c85ea53d1",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3111007) exited normally]"
+    ]
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-2s-single.json",
+    "bytes": 2609299,
+    "sha256": "87b1b191f729675041c3b59b11717283195a74dae1947258229c8afeeb7a8c69",
+    "reason": "larger than 1 MB"
+  },
+  {
+    "path": "exec-instructions-unsteppable-clock/pre-normal-2s-single.log",
+    "bytes": 2362540,
+    "sha256": "591fcf1991aabbc3f3ac0ca23b059e37c443f89e0b6f8bc8cab1b976ecda65e3",
+    "reason": "larger than 1 MB",
+    "head": [
+      "Breakpoint 1 at 0x395b20: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 13.",
+      "Breakpoint 2 at 0x395b30: file /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc, line 14.",
+      "",
+      "Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:13",
+      "13\t[[gnu::noinline]] void scatter_trace_begin(){asm volatile(\"\" ::: \"memory\");}",
+      "main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:37",
+      "37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);",
+      "0x00005555555a5607\t37\t require(multi_handle_io(server,client,*op,0,state)==MultiIoAction::Dispatch&&state);"
+    ],
+    "tail": [
+      "0x00005555559346f6\t2324\t}",
+      "0x00005555559346f8\t2324\t}",
+      "0x00005555559346fa\t2324\t}",
+      "0x00005555559346fc\t2324\t}",
+      "tomo::SmallBuf<96ul>::size (this=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "0x00005555555a5c28 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:46",
+      "46\t scatter_trace_end();",
+      "",
+      "Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnorder2/drivers/probe-exec.cc:14",
+      "14\t[[gnu::noinline]] void scatter_trace_end(){asm volatile(\"\" ::: \"memory\");}",
+      "[Inferior 1 (process 3111013) exited normally]"
+    ]
+  },
+  {
+    "path": "identity-final/full/bodies.json.gz",
+    "bytes": 529748,
+    "sha256": "90bfd3f7eddcbfaed658b6ddd6dc71f72c4fae445e5a21ce080fb60833570354",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final/scatter/db0-post.asm.gz",
+    "bytes": 464694,
+    "sha256": "156744ad5d48141a067ac4c4bf729653731f2f9420ef02e766c83e9e71e9fa6e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final/scatter/db0-pre.asm.gz",
+    "bytes": 430270,
+    "sha256": "9854a68b203da65f58c88b7fef6b015a8687b7c6abd54f94a9849c11b69d5564",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final/scatter/post.asm.gz",
+    "bytes": 438310,
+    "sha256": "3ded2305fefa3ac053fda9606d3b752eb25efaf9a40ca044bd96586699dcb552",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final/scatter/pre.asm.gz",
+    "bytes": 402377,
+    "sha256": "b42cd7a5bb9f7b332e15e5a598323d698519f58faaf4e0341c5a3b15a807d266",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final-before-age/full/bodies.json.gz",
+    "bytes": 529694,
+    "sha256": "aed8f97b4ab2cd3e6d0dd177176474263d05239976fd0a755f22ba78168c0d6b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final-before-age/scatter/db0-post.asm.gz",
+    "bytes": 464669,
+    "sha256": "008a26df68bd2cfb5159dcc5996129df15e683deaacce43543adea72b00d9f1e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final-before-age/scatter/db0-pre.asm.gz",
+    "bytes": 430270,
+    "sha256": "713bafdf8262d8a2bff493a64185de9e9cb3478b31042537150e0f4b4eba92e8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final-before-age/scatter/post.asm.gz",
+    "bytes": 438192,
+    "sha256": "ee5e7c81374c2f4141bd931b4b25d802409de65447f5796a35570000ae1e17db",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "identity-final-before-age/scatter/pre.asm.gz",
+    "bytes": 402377,
+    "sha256": "e48be3c70989153405542bb90f1a7cb045f7e9afcadf6d0a746ff88931ccad67",
+    "reason": "binary or compressed generated artifact"
+  }
+]

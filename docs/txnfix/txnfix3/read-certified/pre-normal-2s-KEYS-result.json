@@ -1,0 +1,19 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "KEYS",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-normal-2s-KEYS.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "7f341de46c4a47e7067c3e14005f2585ef9a7f9fa56d47ca52b85cbfe96f67e8",
+  "counts": {}
+}

@@ -1,0 +1,2 @@
+tomo mode=1s C=8 N=500: k=4000 k2=4000 expected 4000; duplicate observed v=0; aborted retries=15840 1.9s
+server rc 0

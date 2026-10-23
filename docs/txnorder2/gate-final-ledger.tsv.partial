@@ -1,0 +1,90 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder2 debug-0 debug-1 fused-0 fused-1 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 release_batteries auth aoforder; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	9.160000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.470000	execatomic battery (atomic 0)
+ok	11.870000	execiso battery (atomic 0)
+ok	0.430000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.750000	multirace battery (atomic 0)
+ok	30.480000	session_monotonic battery (atomic 0)
+ok	0.360000	xacct battery (atomic 0)
+ok	0.300000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	1.960000	txn_nx battery (atomic 0)
+ok	9.710000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.040000	atomfix battery (atomic 1)
+ok	0.050000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.440000	execfix battery (atomic 1)
+ok	0.140000	multires battery (atomic 1)
+ok	0.750000	multirace battery (atomic 1)
+ok	30.490000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.280000	xmove battery (atomic 1)
+ok	1.860000	xscript battery (atomic 1)
+ok	2.020000	txn_nx battery (atomic 1)
+ok	9.380000	txniso battery (atomic 1)
+ok	6.640000	torture battery
+ok	0.970000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.040000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	0.010000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.030000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	1.020000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	9.580000	AOF commit order single
+ok	4.230000	AOF commit order crossing
+ok	4.480000	AOF commit order rewrite
+ok	0.270000	fused boot line (atomic 0)
+ok	1.260000	fused s6 battery (atomic 0)
+ok	2.090000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.050000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.170000	fused shutdown report (atomic 0)
+ok	1.790000	fused txn_nx battery (atomic 0)
+ok	9.470000	fused txniso battery (atomic 0)
+ok	0.270000	fused boot line (atomic 1)
+ok	1.290000	fused s6 battery (atomic 1)
+ok	2.080000	fused multi_exec battery (atomic 1)
+ok	0.740000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	10.460000	fused txn_nx battery (atomic 1)
+ok	9.290000	fused txniso battery (atomic 1)
+ok	0.000000	txnorder2 writer episode R1
+ok	0.010000	txnorder2 writer episode R2
+ok	0.010000	txnorder2 writer episode R3
+ok	0.010000	txnorder2 writer episode R4
+ok	0.000000	txnorder2 writer episode R5
+ok	0.010000	txnorder2 writer episode R6
+ok	0.010000	txnorder2 writer episode R7
+ok	0.030000	txnorder2 writer episode R8
+ok	0.010000	txnorder2 writer episode R9
+ok	0.010000	txnorder2 writer episode R10
+ok	0.010000	txnorder2 writer episode R11
+ok	1.140000	txnorder2 writer episode R12
+ok	0.010000	txnorder2 direct RENAME owner join
+ok	10.930000	txnorder2 WATCH serve
+ok	14.370000	txnorder2 WATCH flush
+ok	22.000000	txnorder2 WATCH readonly
+ok	47.260000	txnorder battery (fused, atomic 0)
+ok	47.220000	txnorder battery (fused, atomic 1)
+ok	47.130000	txnorder battery (split, atomic 0)
+ok	47.040000	txnorder battery (split, atomic 1)

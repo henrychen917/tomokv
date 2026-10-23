@@ -1,0 +1,9 @@
+  ok   enable atomic lane
+  ok   DEBUG command available (geometry + window hooks)
+  ok   S1 geometry: cross-shard MSET, RENAME across owners, cross-shard pin 16 shards, 8 owners; each attempt checks its actual keys
+  ok   S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees its own write) armed=3/3 attempts=4 misses=['attempt 1: window did not open (writes 0.601s, park 0.601s); FLUSH found no live records (pending_entries=0)']
+  ok   S2 geometry: DEL/EXEC span the stream's owner and at least one other others=7 shards/5 owners; EXEC crosses owner 4
+  ok   S2 pipelined XREAD behind its own cross-shard DEL answers nil (armed) []
+  ok   S2 pipelined XREAD behind its own cross-shard DEL answers nil (unarmed control) []
+  ok   S2 pipelined XREAD behind its own EXEC{XADD} sees the entry (armed) []
+FAIL=0

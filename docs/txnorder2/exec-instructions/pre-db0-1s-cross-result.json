@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "mode": "1s",
+  "shape": "cross",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-nx",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions/pre-db0-1s-cross.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/exec/pre-db0/probe"
+  ],
+  "sha256": "f755b5a0459f73b42e95722becd8e1f6c959e3744bea441e97821758ecb9b48f",
+  "returncode": 0,
+  "fixture_completed": true,
+  "steps_per_exec": 20711,
+  "excluded_vdso_calls": 0,
+  "rep_steps": 16
+}

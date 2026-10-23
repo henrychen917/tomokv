@@ -1,0 +1,6 @@
+  row budget: 900s; median=4.39s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0)
+  multidb (2s, read-local 0, atomic 0)                 ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 0, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=0.28s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+  multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB ok

@@ -1,0 +1,19 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "RANDOMKEY",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/post-normal-2s-RANDOMKEY.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/post-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "3db7274354d25861a1a49d4f1799f4b1aa011ef0bc8b3ab1bb89d67e0b7bf591",
+  "counts": {}
+}

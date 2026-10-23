@@ -1,0 +1,4 @@
+TOMOAOF-MANIFEST 1
+file appendonly.aof.1.incr.tomo seq 1 type i start 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+file appendonly.aof.2.incr.tomo seq 2 type i start 285,265,265,271,274,265,271,275,265,287,283,270,265,272,285,275
+rewrite-base-size 80

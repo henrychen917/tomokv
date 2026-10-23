@@ -1,0 +1,3 @@
+--ratio: 8 threads but only 4 allowed cpus
+placement/geometry resolution failed
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)

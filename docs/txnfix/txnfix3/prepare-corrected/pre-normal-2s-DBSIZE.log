@@ -1,0 +1,37 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PREPARE_RESULT 0
+PASS linked production ordinary scatter preparation
+Breakpoint 1 at 0x389540: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc, line 13.
+Breakpoint 2 at 0x389550: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc, line 14.
+
+Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc:13
+13	[[gnu::noinline]] void scatter_trace_begin() { asm volatile("" ::: "memory"); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnfix2/pre-source/src/core/../net/conn.h:580
+580	    uint64_t id() const { return id_; }
+0x00005555555a3a4e	580	    uint64_t id() const { return id_; }
+0x00005555555a3a55	580	    uint64_t id() const { return id_; }
+0x00005555555a3a5c	580	    uint64_t id() const { return id_; }
+0x00005555555a3a5e	580	    uint64_t id() const { return id_; }
+0x00005555555a3a61	580	    uint64_t id() const { return id_; }
+tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffe2640) at src/cmd/xshard.cc:1519
+0x00005555559219c4	0x00005555559219c5	0x00005555559219c8	0x00005555559219ca	0x00005555559219cc	0x00005555559219ce	0x00005555559219d0	0x00005555559219d2	0x00005555559219d3	0x00005555559219d6	0x00005555559219dd	0x00005555559219e0	0x00005555559219e7	0x00005555559219ed	0x00005555559219f4	0x00005555559219fb	0x00005555559219ff	0x0000555555921a02	0x0000555555921a0b	0x0000555555921a0f	0x0000555555921a14	0x0000555555921a17	0x0000555555921a1b	0x0000555555921a1d	0x0000555555921a23	0x0000555555921a25	0x00005555559222e0	0x00005555559222e4	0x00005555559222e7	0x00005555559222ec	0x00005555559222ee	0x00005555559222f4	0x00005555559222f7	0x00005555559222fa	0x0000555555921a2e	0x0000555555922210	0x0000555555922216	0x000055555592221f	0x0000555555922225	0x0000555555922229	0x000055555592222b	0x000055555592222c	0x000055555592222e	0x0000555555922230	0x0000555555922232	0x0000555555922234	0x0000555555922236	0x0000555555922237	0x00005555555a3a66 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/build/txnfix2/pre-source/src/core/../net/conn.h:580
+580	    uint64_t id() const { return id_; }
+0x00005555555a3a68	580	    uint64_t id() const { return id_; }
+0x00005555555a3a69	580	    uint64_t id() const { return id_; }
+require (value=true) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3a6d	15	static void require(bool value) { if (!value) std::abort(); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc:73
+73	    if (result == ScatterPrepare::Ready) {
+77	    scatter_trace_end();
+0x00005555555a3a96 in printf (__fmt=<optimized out>) at /usr/include/x86_64-linux-gnu/bits/stdio2.h:86
+86	  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
+0x00005555555a3a9d	86	  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
+0x00005555555a3aa2	86	  return __printf_chk (__USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
+0x00005555555a3aa4 in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc:77
+77	    scatter_trace_end();
+
+Breakpoint 2, scatter_trace_end () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare-local.cc:14
+14	[[gnu::noinline]] void scatter_trace_end() { asm volatile("" ::: "memory"); }
+[Inferior 1 (process 2292745) exited normally]
+TRACE_INSTRUCTIONS 52

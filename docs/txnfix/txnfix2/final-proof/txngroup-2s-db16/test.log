@@ -1,0 +1,34 @@
+directed SMOVE result 1 state [[], [b'a', b'z', b'm']]
+PASS G1-SMOVE
+directed LMOVE result b'm' state [[], [b'a', b'z', b'm']]
+PASS G1-LMOVE
+directed PFMERGE result b'OK' state [2, 6]
+PASS G1-PFMERGE
+directed RPOPLPUSH-source result b'z' state [[b'm'], [b'z', b'a']]
+PASS G1-RPOPLPUSH-source
+directed RENAME-source result b'OK' state [None, b'new']
+PASS G1-RENAME-source
+directed MSETNX result 0 state [b'from-set', None]
+PASS G2
+conservation smove atomic 1 members 8000
+PASS G3
+conservation smove atomic 1 members 2000
+PASS G4-smove
+conservation rpoplpush atomic 1 members 2000
+PASS G4-rpoplpush
+directed SMOVE result 1 state [[], [b'a', b'z', b'm']]
+directed LMOVE result b'm' state [[], [b'a', b'z', b'm']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'z' state [[b'm'], [b'z', b'a']]
+directed RENAME-source result b'OK' state [None, b'new']
+directed MSETNX result 0 state [b'from-set', None]
+PASS GX
+directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
+directed LMOVE result b'm' state [[], [b'a', b'm', b'z']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'm' state [[b'z'], [b'm', b'a']]
+directed RENAME-source result b'OK' state [b'new', b'old']
+conservation smove atomic 0 members 8000
+conservation smove atomic 0 members 2000
+FAIL G5 AssertionError('duplicate delivery')
+PASS G6

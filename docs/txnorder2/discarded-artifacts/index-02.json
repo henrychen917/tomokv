@@ -1,0 +1,14 @@
+{
+  "files": 568,
+  "bytes": 77945371,
+  "deleted": true,
+  "parts": [
+    "discarded-artifacts/batch-02-000.json",
+    "discarded-artifacts/batch-02-001.json",
+    "discarded-artifacts/batch-02-002.json",
+    "discarded-artifacts/batch-02-003.json",
+    "discarded-artifacts/batch-02-004.json",
+    "discarded-artifacts/batch-02-005.json"
+  ],
+  "retained": "Small run/result JSON, named/function counts, build recipes, identity inventories and logs; merit binaries remain in build/."
+}

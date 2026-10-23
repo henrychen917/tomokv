@@ -1,0 +1,7 @@
+tomo atomic=0 mode=2s rpoplpush N=2000 W=4: acked=2000  src=9 dst=2000  src+dst=2009 (must be 2000)  dst-vs-acked=0  errors=0 0.1s
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t05_mover_only.py", line 55, in <module>
+    assert not errs and a + b == N and b == acked[0], "members lost or duplicated"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: members lost or duplicated

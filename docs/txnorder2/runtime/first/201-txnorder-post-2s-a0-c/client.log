@@ -1,0 +1,2 @@
+FAIL c AssertionError(RespError(b'BUSY Cross-shard script snapshot window is full'))
+PASS armed

@@ -58,5 +58,6 @@
 #include "atomics_glue.inc"
 #include "blocking.inc"
 #include "multi.inc"
+#include "txn_group.inc"
 #include "auth.inc"
 #include "notify.inc"

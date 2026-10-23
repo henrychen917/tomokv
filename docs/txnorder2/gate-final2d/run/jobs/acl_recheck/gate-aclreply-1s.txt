@@ -1,0 +1,15 @@
+== 1. TIMEOUT: the reply is a CODED null, and the discard must drop the code
+  ok   BLPOP timeout, command revoked (RESP2)
+  ok   BLPOP timeout, command revoked (RESP3)
+  ok   BZPOPMIN timeout, command revoked (RESP2)
+  ok   BLMPOP timeout, command revoked (RESP3)
+== 2. WOKEN: the reply is real data, and the discard must drop the bytes
+  ok   BLPOP woken then command revoked (RESP2)
+  ok   BLPOP woken then command revoked (RESP3)
+  ok   BZPOPMIN woken then command revoked
+  ok   BLPOP woken then KEY revoked
+== 3. STILL PERMITTED: the recheck must not disturb an allowed reply
+  ok   BLPOP timeout, still permitted (RESP2)
+  ok   BLPOP timeout, still permitted (RESP3)
+  ok   BLPOP woken, still permitted
+aclreply: all rows ok

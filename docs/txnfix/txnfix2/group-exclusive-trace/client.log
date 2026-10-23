@@ -1,0 +1,8 @@
+directed SMOVE result 1 state [[], [b'a', b'z', b'm']]
+directed LMOVE result b'm' state [[], [b'a', b'z', b'm']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'z' state [[b'm'], [b'z', b'a']]
+directed RENAME-source result b'OK' state [None, b'new']
+directed MSETNX result 0 state [b'from-set', None]
+PASS GX
+PASS G6

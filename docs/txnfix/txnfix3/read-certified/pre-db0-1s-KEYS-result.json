@@ -1,0 +1,19 @@
+{
+  "arm": "pre",
+  "namespace": "db0",
+  "mode": "1s",
+  "values": "KEYS",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-db0-1s-KEYS.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/read-certified/pre-db0/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "9f503a3354a4789e4f0f586601d7a142ad3bc034317b47603f041654027f8ca0",
+  "counts": {}
+}

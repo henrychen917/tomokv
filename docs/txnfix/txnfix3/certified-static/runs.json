@@ -1,0 +1,79 @@
+[
+  {
+    "name": "run-identity-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/run-identity-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-scatter-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-scatter-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-scatter-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-scatter-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-prepare-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-prepare-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-prepare-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-prepare-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-prepare-stream-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-prepare-stream-certified.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-prepare-stream-certified.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-prepare-stream-certified.py"
+    ],
+    "exit_code": 0
+  }
+]

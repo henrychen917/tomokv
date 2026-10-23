@@ -38,6 +38,20 @@ void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
 void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
+namespace tomo {
+struct AtomicSurvivorsTest {
+    static void publish_stale_sample(Server& server, uint64_t drawn) {
+        // Exactly the last half of A's publication, after B reserved and
+        // published between A's sequence load and A's decrement.
+        if (server.atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1)
+            std::abort();
+        uint64_t safe = server.atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn && !server.atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+    }
+};
+}
+
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
@@ -124,10 +138,11 @@ struct ScatterRun {
     Request request;
     ScatterArenaPool pool;
     ScatterState* state = nullptr;
-    ScatterRun(Server& s, std::vector<std::string> args) : server(s), request(std::move(args)) {
+    ScatterRun(Server& s, std::vector<std::string> args, bool force = true)
+        : server(s), request(std::move(args)) {
         client.set_id(777);
         ScatterDispatch dispatch;
-        require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch, true) ==
+        require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch, force) ==
                 ScatterPrepare::Ready, "cross-owner scatter prepared");
         state = dispatch.state;
         state->now_cut_ms = now_realtime_ms();
@@ -240,6 +255,339 @@ void write_latest(Server& server) {
     server.atomic_commit_publish();
     release_records(server);
 }
+void txn_intents(Server& server) {
+    {
+        auto& lane = server.multi_retry_lane(0);
+        MultiRetryNode first, second;
+        multi_enqueue_node(server, 0, first);
+        multi_bind_retry_lane(server, 0);
+        require(multi_retry_signal.pending.load() && lane.head.load() == &first,
+                "binding a late worker signals a previously queued startup fence");
+        multi_retry_signal.pending.store(false, std::memory_order_release);
+        require(lane.head.exchange(nullptr, std::memory_order_acq_rel) == &first,
+                "first retry drained after resetting the signal");
+        multi_enqueue_node(server, 0, second);
+        require(multi_retry_signal.pending.load() && lane.head.exchange(nullptr) == &second,
+                "a producer after the drain raises a new signal");
+        multi_retry_signal.pending.store(false);
+    }
+    static_assert(sizeof(AtomicScriptIntent) == 32);
+    static_assert(sizeof(AtomicPendingState) == 1352);
+    auto& store = server.shard(0).store();
+    const std::string key = key_on(server, 0, "txn-intent");
+    const auto hash = FlatStore::hash_key(slice(key));
+    MultiDecision first, second;
+    UnitRef one{&first.epoch, &first.aborted, &first};
+    UnitRef two{&second.epoch, &second.aborted, &second};
+    require(!store.atomic_has_records() && !server.script_intents_active(), "idle intent state");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 1, "first unit intent installed");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 0, "unit key intent deduplicated");
+    require(store.atomic_has_records() && store.atomic_needs_version(hash, slice(key)),
+            "unit intent forces the existing versioning path");
+    require(server.atomic_work_active() && !server.script_intents_active(),
+            "unit activity does not arm the script PIN guard");
+    require(store.atomic_script_pin(hash, slice(key)), "PIN coexists with a unit on the same key");
+    require(store.atomic_script_pin(hash, slice(key)), "duplicate PIN increments only PIN refs");
+    require(store.atomic_has_script_pins() && server.script_intents_active(), "PIN prefix armed");
+    require(store.atomic_unit_pin(two, 0, {}, true) == 1, "wildcard inserted after PIN prefix");
+    require(!store.atomic_has_script_intent(0, {}), "wildcard cannot match ordinary key predicate");
+    store.atomic_script_unpin(hash, slice(key));
+    require(store.atomic_has_script_pins(), "one duplicate PIN remains");
+    store.atomic_script_unpin(hash, slice(key));
+    require(!store.atomic_has_script_pins() && !server.script_intents_active(),
+            "last PIN disarms guard even while unit intents remain");
+    require(store.atomic_unit_unpin(&first) == 1 && store.atomic_has_records(),
+            "exact unit removal leaves wildcard alive");
+    require(store.atomic_cleanup_unit_intents() == 0, "cleanup retains undecided unit");
+    second.epoch.store(kAtomicCancelledEpoch, std::memory_order_release);
+    require(store.atomic_cleanup_unit_intents() == 1, "cleanup reaps decided wildcard");
+    require(!store.atomic_has_records() && !server.atomic_work_active(), "activity balances to zero");
+    require(store.atomic_script_pin(hash, slice(key)), "PIN prefix re-arms from empty");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 1, "unit appended to PIN prefix");
+    require(store.atomic_unit_unpin(&first) == 1 && server.script_intents_active(),
+            "unit removal does not decrement PIN owner accounting");
+    store.atomic_script_unpin(hash, slice(key));
+    require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
+    {
+        Client client{-1}; client.set_id(887);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "shutdown attempt allocated");
+        state->shards.push_back(0);
+        state->exec_op_id = 0;
+        require(server.atomic_try_admit(0, state->admission_generation, true),
+                "shutdown attempt keeps admission credit");
+        state->admitted = true;
+        auto* op = client.rob().acquire();
+        require(op != nullptr, "shutdown carrier allocated");
+        op->attach_multi_state(state);
+        client.rob().publish();
+        client.atomic_group_started();
+        // The generic intent cleanup API is retained for Stage B anchors.
+        // EXEC placement no longer registers read intents.
+        UnitRef shutdown_ref{&state->decision.epoch, &state->decision.aborted, state};
+        require(store.atomic_unit_pin(shutdown_ref, hash, slice(key)) == 1,
+                "shutdown legacy intent armed directly");
+        server.note_txn(server.worker_of_shard(0), TxnCounter::IntentsLive);
+        require(server.txn_counter(TxnCounter::IntentsLive) == 1, "live shutdown intent counted");
+        store.atomic_shutdown_release_records();
+        require(!store.atomic_has_records() && !server.script_intents_active() &&
+                server.txn_counter(TxnCounter::IntentsLive) == 0,
+                "shutdown releases a live unit intent without a PIN accounting change");
+        require(state->decision.aborted.load() &&
+                state->decision.epoch.load() == kAtomicCancelledEpoch,
+                "shutdown withdraws an undecided attempt");
+        ScatterArenaPool pool;
+        std::vector<MultiExecState*> deferred;
+        multi_shutdown_attempt(state, pool, deferred);
+        require(deferred.empty() && server.atomic_can_admit(0),
+                "shutdown releases pending attempt and admission credit");
+        require(!op->multi_state() && op->state.load() == OpState::Done,
+                "shutdown leaves no carrier pointer to the discarded attempt");
+        require(!server.atomic_work_active(), "shutdown releases the admission credit");
+    }
+}
+
+void txn_group(Server& server) {
+    static_assert(sizeof(ScatterState) == 896);
+    static_assert(sizeof(Shard::WatchReservation) == 88);
+    static_assert(offsetof(Shard::WatchReservation, dirty_databases) == 56);
+    const auto a = key_on(server, 0, "txn-group-a");
+    const auto b = key_on(server, 1, "txn-group-b");
+    Request request({"SMOVE", a, b, "m"});
+    struct Attempt {
+        Server& server;
+        ScatterState state;
+        KeyRef keys[2];
+        ShardGroup groups[2];
+        uint32_t order[2]{0, 1};
+        Attempt(Server& server_, Request& request) : server(server_) {
+            state.server = &server;
+            state.atomic_group = state.atomic_apply = true;
+            state.kind = Kind::Smove;
+            state.keys = keys;
+            state.groups = groups;
+            state.key_order = order;
+            state.key_count = state.nsub = state.group_cap = 2;
+            for (uint32_t i = 0; i != 2; ++i) {
+                keys[i] = KeyRef{FlatStore::hash_key(request.op.arg(i + 1)), i + 1, int32_t(i)};
+                groups[i].shard = i;
+                groups[i].begin = i;
+                groups[i].count = 1;
+            }
+            require(txn_group_prepare(state, server, 0), "group cold state allocated");
+        }
+        ~Attempt() {
+            if (!state.epoch.load()) state.aborted.store(true);
+            for (uint32_t i = 0; i != 2; ++i)
+                xshard_cleanup_shard_at(server.shard(i), UINT64_MAX, UINT64_MAX, 256);
+            require(txn_group_release(state), "group intent/reservation lifetime pins drained");
+            require(state.watch_refs.load() == 0, "cold attempt ownership released");
+        }
+    };
+    require(local(server, {"SET", a, "old"}) == "+OK\r\n", "group predecessor seeded");
+    release_records(server);
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        require(!txn_group_ready(state, server.shard(0), request.op), "group waits for all arrivals");
+        require(txn_group_arrive(state, server.shard(1), request.op), "second group arrival");
+        require(txn_group_ready(state, server.shard(0), request.op), "group places source");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 2,
+                "source claim and lazy anchor retain the attempt");
+        require(!txn_group_release(state), "live owner pins prevent sidecar release");
+        Client older_client{-1}; older_client.set_id(898);
+        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        older->decision.age_ns = state.group_attempt()->age_ns - 1;
+        txn_add_claim(older->claims[0], slice(a), TxnClaimMode::Write);
+        Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
+            &older->watch_refs, &older_client, 0, false, true};
+        claim.unit_kind = 1;
+        require(server.shard(0).watch_place_unit(older->claims[0], claim), "older EXEC places");
+        require(state.epoch.load() == kAtomicCancelledEpoch && state.aborted.load(),
+                "older EXEC wounds a placing group");
+        require(!txn_group_decide(state, server.atomic_commit()), "wound cannot be overwritten by commit");
+        older->decision.aborted.store(true);
+        server.shard(0).watch_finish_unit(older->claims[0], older);
+        destroy_multi_state(older);
+    }
+    release_records(server);
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        // Suspend the doomer immediately after its CAS. The batch must take
+        // its existing abort arm even before that doomer stores the flag.
+        state.epoch.store(kAtomicCancelledEpoch);
+        require(!state.aborted.load(),
+                "cancelled word precedes doomer metadata");
+        require(!txn_group_decide(state, server.atomic_commit()) && state.aborted.load(),
+                "failed commit CAS publishes abort before batch completion");
+    }
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        require(!txn_group_ready(state, server.shard(0), request.op), "first fragment waits for arrival");
+        require(!server.shard(0).has_watches(), "no early reservation before final fragment arrives");
+        require(txn_group_arrive(state, server.shard(1), request.op), "direct destination can arrive before source readiness");
+        require(txn_group_ready(state, server.shard(0), request.op) &&
+                txn_group_ready(state, server.shard(1), request.op), "owners place after arrival");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 4, "two reservations and two lazy cleanup anchors");
+        require(!server.shard(0).watch_write_ready(slice(a)) &&
+                !server.shard(1).watch_write_ready(slice(b)), "started group guards both owners' writes");
+        Request writer({"SET", a, "racing"});
+        writer.op.hash = run.keys[0].hash;
+        writer.op.shard = 0;
+        Client foreign{-1}; foreign.set_id(899);
+        const Task blocked{&foreign, 0, 0, nullptr};
+        require(!writer.op.atomic_hazard(), "ordinary writer starts without a hazard mark");
+        require(!multi_plain_write_ready(server.shard(0), writer.op) && writer.op.atomic_hazard(),
+                "reservation wait marks only the blocked writer");
+        require(xshard_task_should_defer(server, server.shard(0), blocked, writer.op),
+                "blocked writer parks without preventing the group's next owner wave");
+        require(server.shard(0).store().find(run.keys[0].hash, slice(a)) != nullptr,
+                "group does not obstruct a reader");
+        const uint64_t ticket = server.atomic_commit_reserve();
+        require(txn_group_decide(state, ticket), "immune group commits by CAS");
+        server.atomic_commit_publish();
+        require(server.atomic_can_admit(0, true), "group placement never blocks admission");
+        xshard_cleanup_shard_at(server.shard(0), UINT64_MAX, UINT64_MAX, 256);
+        xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
+        require(multi_plain_write_ready(server.shard(0), writer.op),
+                "released writer passes and removes its fairness mark");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef && !server.shard(0).has_watches() &&
+                !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
+    }
+    require(server.txn_counter(TxnCounter::OrderViolations) == 0 &&
+            server.txn_counter(TxnCounter::IntentsLive) == 0,
+            "group unit leaves no violation or live intent");
+}
+
+void txn_help(Server& server) {
+    {
+        const auto a = key_on(server, 0, "txn-watch-arrive-a");
+        const auto b = key_on(server, 1, "txn-watch-arrive-b");
+        Client client{-1}; client.set_id(890);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "WATCH arrival attempt allocated");
+        state->shards = {0, 1};
+        state->database_map = server.databases().capture();
+        state->watched = {{a, FlatStore::hash_key(slice(a)), 0, 0, 0},
+                          {b, FlatStore::hash_key(slice(b)), 1, 0, 0}};
+        state->watch_pending.store(2);
+        state->read_only = false;
+        for (const auto& key : state->watched)
+            require(server.shard(key.shard).watch_add(slice(key.key), &client,
+                        state->watch_generation), "WATCH arrival registry armed");
+        require(!execute_watch_phase(*state, server.shard(0)),
+                "first fragment waits for all participants before reserving");
+        require(server.shard(0).watch_write_ready(slice(a)),
+                "a writer cannot hide missing EXEC fragments behind a WATCH claim");
+        require(!execute_watch_phase(*state, server.shard(0)) &&
+                state->watch_arrived.load() == 1, "arrival is counted once per shard");
+        require(execute_watch_phase(*state, server.shard(1)) &&
+                execute_watch_phase(*state, server.shard(0)),
+                "all arrivals allow the existing WATCH validation barrier to finish");
+        require(!server.shard(0).watch_write_ready(slice(a)) &&
+                !server.shard(1).watch_write_ready(slice(b)),
+                "validated WATCH claims still block ordinary writers");
+        state->decision.aborted.store(true);
+        finalize_reservations(*state, server.shard(0));
+        finalize_reservations(*state, server.shard(1));
+        require(server.shard(0).watch_write_ready(slice(a)) &&
+                server.shard(1).watch_write_ready(slice(b)), "decided claims are released");
+        destroy_multi_state(state);
+    }
+    {
+        const auto key = key_on(server, 0, "txn-rule-p");
+        auto& shard = server.shard(0);
+        auto& store = shard.store();
+        const auto first = server.atomic_commit_reserve();
+        const auto last = server.atomic_commit_reserve();
+        void* entry = nullptr;
+        KvObj* tombstone = nullptr;
+        require(store.atomic_prepare_plain(slice(key), FlatStore::hash_key(slice(key)), 0, entry),
+                "Rule P foreign version prepared");
+        store.atomic_install_plain(FlatStore::hash_key(slice(key)), slice(key), entry, tombstone, last);
+        store.atomic_clear_read_epoch();
+        server.atomic_commit_publish();
+        AtomicSurvivorsTest::publish_stale_sample(server, first);
+        require(server.atomic_snapshot() == first, "completed commit left a conservative watermark");
+        Client client{-1}; client.set_id(889);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "Rule P attempt allocated");
+        state->read_only = false;
+        require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
+                "Rule P advances a quiescent watermark instead of waiting forever");
+        require(server.atomic_snapshot() == last, "quiescent publication caught up");
+        (void)server.atomic_commit_reserve();
+        require(!server.atomic_publish_quiescent() && server.atomic_snapshot() == last,
+                "Rule P cannot advance across an open commit bracket");
+        server.atomic_commit_publish();
+        finalize_reservations(*state, shard);
+        release_records(server);
+        destroy_multi_state(state);
+    }
+    {
+        const auto key = key_on(server, 0, "txn-cancel-handler");
+        require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");
+        Client client{-1}; client.set_id(888);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "collection attempt allocated");
+        Request request({"LPUSH", key, "ghost"});
+        std::vector<MultiQueuedCommand> queue(1);
+        require(queued_copy(request.op, queue[0]) && prepare_commands(server, *state, queue),
+                "collection attempt prepared");
+        initialize_multi_owner_record_refs(*state);
+        Shard& shard = server.shard(0);
+        require(prepare_local_write_keys(server, *state, *state->commands[0], shard,
+                    server.worker_of_shard(0)), "private collection clone installed");
+        multi_cancel_decision(state->decision, 0);
+        // A different owner can cancel exactly here, after prepare and before
+        // the collection handler's find(). It must still mutate its clone.
+        state->commands[0]->op->spec->handler(shard, *state->commands[0]->op);
+        shard.store().atomic_clear_read_epoch();
+        require(local(server, {"LRANGE", key, "0", "-1"}) == "*1\r\n$4\r\nseed\r\n",
+                "cancelled handler did not mutate the committed predecessor");
+        state->doomed = true;
+        finalize_reservations(*state, shard);
+        complete_multi_owner_record_refs(*state, server.worker_of_shard(0));
+        release_records(server);
+        destroy_multi_state(state);
+    }
+    const auto a = key_on(server, 0, "txn-help-a"), b = key_on(server, 1, "txn-help-b");
+    require(local(server, {"SET", a, "old"}) == "+OK\r\n", "help predecessor");
+    MultiExecState parent;
+    parent.server = &server;
+    parent.decision.owner = &parent;
+    ScatterRun run(server, {"MSET", a, "new", b, "new"});
+    run.state->multi_child = true;
+    run.state->multi_parent = &parent;
+    for (uint32_t i = 0; i < run.state->nsub; ++i) {
+        const int shard = run.state->groups[i].shard;
+        require(xshard_execute(Task{&run.client, 0, shard, run.state}, server.shard(shard),
+                run.request.op, server.worker_of_shard(shard)) == ScatterTaskResult::Complete,
+                "child candidate installed");
+    }
+    require(run.state->epoch.load() == 0, "child is still undecided");
+    require(local(server, {"GET", a}) == "$3\r\nold\r\n", "foreign read skips undecided child");
+    const uint64_t ticket = server.atomic_commit_reserve();
+    parent.decision.epoch.store(ticket, std::memory_order_release);
+    cancel_applied_scripts(server.shard(0).store(), FlatStore::hash_key(slice(a)), slice(a));
+    require(run.state->epoch.load() == ticket && !parent.decision.aborted.load(),
+            "writer helps the won parent ticket into the child");
+    auto& store = server.shard(0).store();
+    store.atomic_set_read_context(UINT64_MAX, 91);
+    auto* visible = store.find(FlatStore::hash_key(slice(a)), slice(a));
+    require(visible && visible->str_value() == Slice("new", 3), "writer clone sees the helped child");
+    store.atomic_clear_read_epoch();
+    server.atomic_commit_publish();
+    MultiDecision cancelled;
+    cancelled.epoch.store(kAtomicCancelledEpoch);
+    const auto before = server.atomic_snapshot();
+    require(!server.atomic_commit_group_cas(cancelled.epoch, [](uint64_t) { std::abort(); }),
+            "cancelled decision cannot commit");
+    require(server.atomic_snapshot() > before, "lost CAS closes its reserved ticket bracket");
+}
+
 void script_apply(Server& server) {
     const auto x = key_on(server, 0, "apply-x"), y = key_on(server, 1, "apply-y");
     require(local(server, {"SET", x, "B"}) == "+OK\r\n", "seed script image");
@@ -471,6 +819,7 @@ void stage_flag(Server& server) {
 
 #include "atomiccollapse_checks.inc"
 #include "atomic_plain_checks.inc"
+#include "txnorder_checks.inc"
 
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
@@ -486,10 +835,14 @@ int main(int argc, char** argv) {
     command_bind_server(&server);
     std::string acl_error;
     require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
-    if (name.starts_with("plain_")) atomic_plain_checks(server, name);
+    if (name.starts_with("txnorder_")) txnorder_checks(server, name);
+    else if (name.starts_with("plain_")) atomic_plain_checks(server, name);
     else if (name == "admission") { admission(server); atomiccollapse_checks(); }
     else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);
+    else if (name == "txn_intents") txn_intents(server);
+    else if (name == "txn_help") txn_help(server);
+    else if (name == "txn_group") txn_group(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);
     else if (name == "script_apply") script_apply(server);

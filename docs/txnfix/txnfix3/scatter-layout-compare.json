@@ -1,0 +1,12 @@
+{
+  "tomo::ScatterState": {
+    "pre_size": 896,
+    "post_size": 896,
+    "changed_existing_fields": {}
+  },
+  "tomo_db0::ScatterState": {
+    "pre_size": 896,
+    "post_size": 896,
+    "changed_existing_fields": {}
+  }
+}

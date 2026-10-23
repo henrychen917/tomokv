@@ -5,7 +5,10 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 namespace tomo {
@@ -19,6 +22,67 @@ struct MultiExecState;
 struct MultiSession;
 struct Task;
 struct AofOwnerContext;
+struct AtomicEntry;
+struct AtomicScriptIntent;
+struct ScatterState;
+
+inline constexpr uint32_t kTxnIntentsPerShard = 256;
+inline constexpr uint32_t kTxnClaimsPerShard = 256;
+
+enum class TxnClaimMode : uint8_t { Read, Write };
+enum class TxnPhase : uint8_t { Placing, Executing, Wounded };
+struct TxnClaim {
+    // Physical namespace byte followed by key bytes. Empty means the whole shard.
+    std::string key;
+    uint64_t hash = 0;
+    TxnClaimMode mode = TxnClaimMode::Read;
+};
+inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
+inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
+
+enum class TxnCounter : uint8_t {
+    Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
+    GroupDooms, GroupRetries, GroupBarriers,
+    Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
+    OrderViolations, GroupWounds, Count
+};
+// DEBUG-only witness arming; no per-operation state on ordinary commands.
+void txn_barrier_witness(bool armed);
+
+struct alignas(64) TxnOwnerCounters {
+    std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
+};
+struct MultiRetryNode {
+    enum class Kind : uint8_t { Execute, Group };
+    MultiRetryNode* next = nullptr;
+    void* unit = nullptr;
+    Kind kind = Kind::Execute;
+    uint32_t owner_io = 0;            // fits the existing tail padding
+};
+static_assert(sizeof(MultiRetryNode) == 24);
+struct alignas(64) MultiRetryLane {
+    std::atomic<MultiRetryNode*> head{nullptr};
+    uint32_t age_seq = 0;              // IO-owned, used only at first admission
+    std::atomic<std::atomic<bool>*> signal{nullptr}; // worker TLS; bound before serving
+};
+
+// Cold writer visitors; self is a scatter writer (possibly an EXEC child).
+void multi_cancel_record(AtomicEntry&, const ScatterState* self = nullptr);
+void multi_cancel_intent(AtomicScriptIntent&, const ScatterState* self = nullptr);
+
+// A transaction record points to epoch. Standard layout and the zero offset
+// let the cold conflict visitor recover the enclosing attempt decision safely.
+struct MultiDecision {
+    std::atomic<uint64_t> epoch{0};
+    std::atomic<bool> aborted{false};
+    std::atomic<TxnPhase> phase{TxnPhase::Placing};
+    uint64_t age_ns = 0;
+    uint32_t age_io = 0;
+    uint32_t age_seq = 0;
+    MultiExecState* owner = nullptr;
+};
+static_assert(std::is_standard_layout_v<MultiDecision>);
+static_assert(offsetof(MultiDecision, epoch) == 0);
 
 enum class MultiIoAction : uint8_t {
     NotHandled,
@@ -45,6 +109,7 @@ void multi_mark_queue_error(Client& client);
 // parse/dispatch and retirement paths.
 bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed);
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op);
+void multi_bind_retry_lane(Server& server, uint32_t io);
 uint32_t multi_owner_pass_entry(IoLoop& loop);
 uint32_t multi_owner_reap_entry(IoLoop& loop);
 void multi_close_entry(IoLoop& loop, Client& client);
@@ -89,6 +154,7 @@ uint32_t multi_session_queue_size(const Client& client);
 uint32_t multi_session_watch_size(const Client& client);
 uint64_t multi_session_memory(const Client& client);
 uint64_t multi_session_query_bytes(const Client& client);
+uint32_t multi_last_attempts(const Client& client);
 
 // Ordinary owner-local write hook.  The false result means an EXEC still holds a WATCH validation
 // reservation on one of this command's keys and the task must be retried, not executed early.

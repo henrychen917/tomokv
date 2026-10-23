@@ -1,0 +1,7 @@
+tomo mode=2s: produced 12000 (counter b'11999'), consumed+left 12000 distinct, duplicates 0, missing 0
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t17_queue_exec.py", line 55, in <module>
+    assert not missing and not dup and counter_value == NP*N and set(consumed) == produced, "queue accounting"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: queue accounting

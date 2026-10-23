@@ -1,0 +1,2 @@
+tomo atomic=1 mode=2s rpoplpush N=2000 W=4: acked=2000  src=0 dst=2000  src+dst=2000 (must be 2000)  dst-vs-acked=0  errors=0 0.3s
+server rc 0
