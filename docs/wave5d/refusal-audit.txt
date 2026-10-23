@@ -1,0 +1,10 @@
+tests/atomic_survivors_unit.cc:698:            require(run.request.reply().starts_with("-TRYAGAIN ") && write_reply == ":2\r\n" &&
+tests/atomic_survivors_unit.cc:816:    require(run.request.reply() == "-ERR cross-shard script staging limit exceeded\r\n", "staging error retained");
+tests/mode_equivalence.py:205:        replay(Sink(), io.BytesIO(b'-BUSY Cross-shard script snapshot window is full\r\n'),
+tests/expwide.py:512:# S4. A cross-shard script compares deadlines against the wall clock like everything else.
+tests/xscript.py:17:    "TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
+tests/xscript.py:18:    "BUSY Cross-shard script snapshot window is full": "BUSY",
+tests/xscript.py:823:             refused.message == "ERR cross-shard script staging limit exceeded" and
+tests/txnorder.py:19:# AT4.12: known contention refusals, not arbitrary TRYAGAIN/BUSY errors.
+tests/txnorder.py:21:    b"TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
+tests/txnorder.py:22:    b"BUSY Cross-shard script snapshot window is full": "BUSY",

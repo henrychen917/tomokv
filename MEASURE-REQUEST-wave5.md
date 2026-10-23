@@ -770,3 +770,147 @@ PMU performance measurements; these remain with the maintainer under this
 lane's authorization. No push. No new PAD arm: this is a correctness repair,
 not an optimization claim. Temporary historical/diagnostic object trees are
 removed; binary hashes and reproducible source-build commands are retained.
+
+## wave5d
+
+Test-only correction on `cx-wave5`, starting at `9d7b2dd58`. The reported
+landing failure was case c rejecting the AT4.12 snapshot-window refusal
+([original log](docs/wave5d/reported-failure.txt)). No server source, build rule,
+gate job, gate row, or protected EXPECT assignment changed.
+
+**Changes and audit.**
+
+- `41a844522`: `tests/txnorder.py::OrderBattery.deadlock` accepts only the exact
+  RESP error payloads `TRYAGAIN Cross-shard script conflicted, retry` and
+  `BUSY Cross-shard script snapshot window is full`. Its two script workers
+  count refusals under the existing lock; the case-c JSON report includes
+  `script_refusals` with explicit `TRYAGAIN` and `BUSY` counts, including zero.
+  Only successful integer replies record script increments. All other
+  assertions remain unchanged: progress, exact final counters, EXEC/WATCH
+  shapes, mover delivery, and the bystander PING bound.
+- `55cc476a8`: the only other matching battery is `tests/xscript.py`.
+  `contention_and_deadlock.worker` (opposite-order overlapping scripts) and
+  `contention_and_deadlock.script_racer` (script versus plain MSET) now use
+  the same two exact payloads and report separate refusal counts. The first
+  reports counts per worker; the second reports its single script writer.
+  Both cases retain their original completion and data predicates.
+- The remaining TRYAGAIN match in `tests/atomic_survivors_unit.cc:698`
+  deliberately proves a conflicting write rejects the whole script; it is
+  unchanged. `xscript.cut_window_refusal` deliberately tests admission
+  refusal, and `mode_equivalence.py` requires refusal-free replay; both are
+  unchanged. [Baseline matches](docs/wave5d/refusal-audit-before.txt),
+  [final matches](docs/wave5d/refusal-audit.txt).
+
+**Correctness execution.** All commands were pinned with `taskset -c 64-111`.
+The gate planner divided server CPUs 64-95 into four eight-core slots and
+load CPUs 96-111 into four groups, with SMT disabled and ports 26800-26899.
+Every boot retained the gate job's own geometry: 16 shards, including
+`job_txnorder`'s existing split override `--ratio 4:4` for four owners;
+other split boots use the gate's `6:2`. These were `GATE_ONLY_JOBS` partial
+runs, with the normal release and production-unit prerequisites, watchdogs,
+cleanup, AOF checks, and ledgers. No manual replacement boot was used.
+
+Run this selection five times:
+
+```bash
+taskset -c 64-111 env GATE_ONLY_JOBS="txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1" \
+  tests/gate.sh iteration --server-cores 64-95 --load-cores 96-111 \
+  --server-smt "" --load-smt "" --ports 26800-26899
+```
+
+All **20/20 txnorder battery rows passed**, five per mode/atomic cell,
+including each row's serverless subcases and its AOF storm/reload.
+Each table cell is **TRYAGAIN / BUSY** from that run's case-c report:
+
+| Round | fused, atomic 0 | fused, atomic 1 | split, atomic 0 | split, atomic 1 |
+| --- | ---: | ---: | ---: | ---: |
+| [1](docs/wave5d/txnorder-round-1/ledger.partial) | 4453 / 0 | 2421 / 0 | 950 / 0 | 6988 / 0 |
+| [2](docs/wave5d/txnorder-round-2/ledger.partial) | 3091 / 0 | 13091 / 0 | 904 / 0 | 9296 / 0 |
+| [3](docs/wave5d/txnorder-round-3/ledger.partial) | 2930 / 0 | 14191 / 0 | 1419 / 3 | 7157 / 0 |
+| [4](docs/wave5d/txnorder-round-4/ledger.partial) | 3815 / 0 | 2679 / 0 | 891 / 0 | 7066 / 0 |
+| [5](docs/wave5d/txnorder-round-5/ledger.partial) | 4501 / 0 | 22123 / 0 | 1423 / 0 | 6940 / 0 |
+
+Totals: **116,329 TRYAGAIN and 3 BUSY**. Round 3 split/atomic-0 exercised the
+new BUSY branch live while all existing assertions passed. The other zero
+BUSY counts are recorded as zero, without claiming that window opened.
+[Full case-c reports and original log paths](docs/wave5d/txnorder-results.json);
+each linked round directory retains all four battery logs and its CPU/port plan.
+
+The remaining affected jobs were selected together:
+
+```bash
+taskset -c 64-111 env GATE_ONLY_JOBS="debug-0 debug-1 script_bounds txnorder2 txnorder_wake" \
+  tests/gate.sh iteration --server-cores 64-95 --load-cores 96-111 \
+  --server-smt "" --load-smt "" --ports 26800-26899
+```
+
+**52/52 partial-gate rows passed**: release build, 16 rows each in `debug-0`
+and `debug-1`, 2 in `script_bounds`, 16 in `txnorder2`, and the additional
+`txnorder_wake` row (all **17 txnorder2 rows**). The WATCH rows retain their
+both-mode, both-engine, both-database matrix. The `production_units`
+prerequisite also finished successfully.
+[Ledger](docs/wave5d/related-jobs/ledger.partial),
+[job summary](docs/wave5d/related-results.json),
+[gate output](docs/wave5d/related-jobs.log).
+
+The two `xscript` opposite-order workers each reported TRYAGAIN=0/BUSY=0
+in both atomic modes. The script/MSET race reported TRYAGAIN=2/BUSY=0 in
+atomic-0 and TRYAGAIN=3/BUSY=0 in atomic-1. The unchanged directed window
+control observed **4 BUSY refusals**, exactly matching its server counter;
+its zero-control and no-leak checks passed.
+[Atomic-0 log](docs/wave5d/related-jobs/debug-0/gate-xscript-0.txt),
+[atomic-1 log](docs/wave5d/related-jobs/debug-1/gate-xscript-1.txt),
+[window-control log](docs/wave5d/related-jobs/script_bounds/gate-xscript-window.txt).
+
+**Worker negative controls.**
+[The serverless check](docs/wave5d/check_refusals.py) extracts and runs the
+actual nested worker functions from the committed source. All three accept
+and separately count the two exact replies; txnorder records increments only
+for its successful script. Each rejects 11 unrelated or altered errors,
+including extra prefixes/suffixes, changed case, truncated text, and other
+TRYAGAIN/BUSY errors. The same workers from `9d7b2dd58` reject the exact BUSY
+reply and accept an unrelated TRYAGAIN. The AST comparison retains all 66
+txnorder assertions with only the refusal predicate changed, and every
+xscript `note` verdict predicate is identical.
+[Results](docs/wave5d/check_refusals.log). Reproduce with:
+
+```bash
+taskset -c 64-111 python3 docs/wave5d/check_refusals.py
+```
+
+**Gate harness and final integrity.** `python3 tests/gates_test.py` passed
+**70/70 tests**, including its 14 nested persistfix controls
+([log](docs/wave5d/gates_test.log)). Its socket fixture used port 26890:
+
+```bash
+taskset -c 64-111 mkdir -p build/wave5d/tmp
+taskset -c 64-111 env TMPDIR="$PWD/build/wave5d/tmp" GATE_TEST_PORT=26890 \
+  python3 tests/gates_test.py
+taskset -c 64-111 make
+taskset -c 64-111 sha256sum build/tomokv
+```
+
+`make` reports nothing to rebuild ([log](docs/wave5d/make.log)). Final
+`build/tomokv` SHA-256 is unchanged from the required starting binary:
+
+`e2726028307cda4070799df80c3798b3811cf36aaecd65719fa499c7a16de004`
+
+[Hash evidence](docs/wave5d/binary.sha256). `src/`, `Makefile`, and
+`tests/gate.sh` are unchanged from `9d7b2dd58`. The live affinity observation
+also verified every thread of the two sampled active correctness servers
+stayed inside CPUs 64-111, listening on 26800 and 26809
+([observation](docs/wave5d/live-affinity.json)). Each partial run retains the
+planner's complete slot allocation.
+
+Source declarations remain **739 quick / 756 full**, counted by their
+position relative to the quick-tier exit at `tests/gate.sh:4928`; the full
+inventory matches all 756 fixture labels, preserving multiplicity. No rows
+were added or retired. As documented in wave5c, this checkout's protected
+assignments are still `EXPECT_QUICK=685` / `EXPECT_FULL=702`; they were not
+edited. The maintainer's landing counts remain 739/756.
+[Inventory evidence](docs/wave5d/row-inventory.json).
+
+**NOT RUN:** the complete `tests/gate.sh iteration`, performance benchmarks,
+ABBA, and PMU measurements; these remain with the maintainer under this
+lane's correctness-only authorization. Every requested individual job and
+`tests/gates_test.py` ran. No server change, no PAD arm, and no push.

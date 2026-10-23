@@ -1,0 +1,822 @@
+[
+  {
+    "round": 1,
+    "mode": "fused",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 142864,
+        "atomic_txn_blind_restarts": 690,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 91240,
+        "atomic_txn_intents": 29032,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 1065681,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 3273,
+        "atomic_txn_waits": 1981,
+        "atomic_txn_wounds": 2583,
+        "atomic_txn_writer_marks": 9610,
+        "atomic_txn_writer_waits": 801682
+      },
+      "delivered": 20000,
+      "executions": 91240,
+      "mode": "1s",
+      "ping_max_seconds": 0.014277372509241104,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 4453
+      }
+    },
+    "log": "build/gate-run.YOWaVc/jobs/txnorder-fused-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 1,
+    "mode": "fused",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 21,
+        "atomic_group_wounds": 21,
+        "atomic_txn_attempts": 117961,
+        "atomic_txn_blind_restarts": 996,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 82712,
+        "atomic_txn_intents": 290794,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 4495678,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 1704,
+        "atomic_txn_waits": 2069,
+        "atomic_txn_wounds": 708,
+        "atomic_txn_writer_marks": 4044,
+        "atomic_txn_writer_waits": 379733
+      },
+      "delivered": 17732,
+      "executions": 82712,
+      "mode": "1s",
+      "ping_max_seconds": 0.01926341373473406,
+      "produced": 17767,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 2421
+      }
+    },
+    "log": "build/gate-run.YOWaVc/jobs/txnorder-fused-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 1,
+    "mode": "split",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 1,
+        "atomic_group_wounds": 1,
+        "atomic_txn_attempts": 145449,
+        "atomic_txn_blind_restarts": 477,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 93802,
+        "atomic_txn_intents": 11800,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 389976,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 1001,
+        "atomic_txn_waits": 26986,
+        "atomic_txn_wounds": 524,
+        "atomic_txn_writer_marks": 3344,
+        "atomic_txn_writer_waits": 361156
+      },
+      "delivered": 20000,
+      "executions": 93802,
+      "mode": "2s",
+      "ping_max_seconds": 0.0020138798281550407,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 950
+      }
+    },
+    "log": "build/gate-run.YOWaVc/jobs/txnorder-split-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 1,
+    "mode": "split",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 14,
+        "atomic_group_wounds": 14,
+        "atomic_txn_attempts": 146408,
+        "atomic_txn_blind_restarts": 8247,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 85283,
+        "atomic_txn_intents": 296879,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 6301279,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 18661,
+        "atomic_txn_waits": 1205,
+        "atomic_txn_wounds": 10414,
+        "atomic_txn_writer_marks": 10422,
+        "atomic_txn_writer_waits": 5809337
+      },
+      "delivered": 17459,
+      "executions": 85283,
+      "mode": "2s",
+      "ping_max_seconds": 0.0014144005253911018,
+      "produced": 17483,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 6988
+      }
+    },
+    "log": "build/gate-run.YOWaVc/jobs/txnorder-split-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 2,
+    "mode": "fused",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 140605,
+        "atomic_txn_blind_restarts": 111,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 91103,
+        "atomic_txn_intents": 34326,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 829837,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 627,
+        "atomic_txn_waits": 5182,
+        "atomic_txn_wounds": 516,
+        "atomic_txn_writer_marks": 6528,
+        "atomic_txn_writer_waits": 17649
+      },
+      "delivered": 20000,
+      "executions": 91103,
+      "mode": "1s",
+      "ping_max_seconds": 0.010742542333900928,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 3091
+      }
+    },
+    "log": "build/gate-run.8XvFba/jobs/txnorder-fused-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 2,
+    "mode": "fused",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 17,
+        "atomic_group_wounds": 17,
+        "atomic_txn_attempts": 152567,
+        "atomic_txn_blind_restarts": 14157,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 82427,
+        "atomic_txn_intents": 240301,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 5250283,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 32786,
+        "atomic_txn_waits": 3426,
+        "atomic_txn_wounds": 18629,
+        "atomic_txn_writer_marks": 9902,
+        "atomic_txn_writer_waits": 4942945
+      },
+      "delivered": 17615,
+      "executions": 82427,
+      "mode": "1s",
+      "ping_max_seconds": 0.009816433303058147,
+      "produced": 17655,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 13091
+      }
+    },
+    "log": "build/gate-run.8XvFba/jobs/txnorder-fused-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 2,
+    "mode": "split",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 1,
+        "atomic_group_wounds": 1,
+        "atomic_txn_attempts": 145751,
+        "atomic_txn_blind_restarts": 518,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 93892,
+        "atomic_txn_intents": 11599,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 303717,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 1031,
+        "atomic_txn_waits": 35669,
+        "atomic_txn_wounds": 513,
+        "atomic_txn_writer_marks": 2931,
+        "atomic_txn_writer_waits": 294597
+      },
+      "delivered": 20000,
+      "executions": 93892,
+      "mode": "2s",
+      "ping_max_seconds": 0.0021354397758841515,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 904
+      }
+    },
+    "log": "build/gate-run.8XvFba/jobs/txnorder-split-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 2,
+    "mode": "split",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 12,
+        "atomic_group_wounds": 12,
+        "atomic_txn_attempts": 153464,
+        "atomic_txn_blind_restarts": 10458,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 86207,
+        "atomic_txn_intents": 319698,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 7893035,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 24124,
+        "atomic_txn_waits": 38319,
+        "atomic_txn_wounds": 13666,
+        "atomic_txn_writer_marks": 12046,
+        "atomic_txn_writer_waits": 7369923
+      },
+      "delivered": 17559,
+      "executions": 86207,
+      "mode": "2s",
+      "ping_max_seconds": 0.0018125306814908981,
+      "produced": 17593,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 9296
+      }
+    },
+    "log": "build/gate-run.8XvFba/jobs/txnorder-split-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 3,
+    "mode": "fused",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 142174,
+        "atomic_txn_blind_restarts": 118,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 91915,
+        "atomic_txn_intents": 29090,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 840750,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 636,
+        "atomic_txn_waits": 2234,
+        "atomic_txn_wounds": 518,
+        "atomic_txn_writer_marks": 7944,
+        "atomic_txn_writer_waits": 18885
+      },
+      "delivered": 20000,
+      "executions": 91915,
+      "mode": "1s",
+      "ping_max_seconds": 0.01376570388674736,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 2930
+      }
+    },
+    "log": "build/gate-run.M27y1k/jobs/txnorder-fused-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 3,
+    "mode": "fused",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 291,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 16,
+        "atomic_group_wounds": 16,
+        "atomic_txn_attempts": 164832,
+        "atomic_txn_blind_restarts": 20046,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 80697,
+        "atomic_txn_intents": 315717,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 4679752,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 44139,
+        "atomic_txn_waits": 91636,
+        "atomic_txn_wounds": 24093,
+        "atomic_txn_writer_marks": 14017,
+        "atomic_txn_writer_waits": 9413105
+      },
+      "delivered": 17690,
+      "executions": 80697,
+      "mode": "1s",
+      "ping_max_seconds": 0.009215292520821095,
+      "produced": 17745,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 14191
+      }
+    },
+    "log": "build/gate-run.M27y1k/jobs/txnorder-fused-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 3,
+    "mode": "split",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 143118,
+        "atomic_txn_blind_restarts": 168,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 93059,
+        "atomic_txn_intents": 9902,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 368544,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 413,
+        "atomic_txn_waits": 52,
+        "atomic_txn_wounds": 245,
+        "atomic_txn_writer_marks": 3890,
+        "atomic_txn_writer_waits": 682866
+      },
+      "delivered": 20000,
+      "executions": 93059,
+      "mode": "2s",
+      "ping_max_seconds": 0.0015785200521349907,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 3,
+        "TRYAGAIN": 1419
+      }
+    },
+    "log": "build/gate-run.M27y1k/jobs/txnorder-split-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 3,
+    "mode": "split",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 12,
+        "atomic_group_wounds": 12,
+        "atomic_txn_attempts": 147768,
+        "atomic_txn_blind_restarts": 10783,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 85590,
+        "atomic_txn_intents": 293905,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 7982753,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 19843,
+        "atomic_txn_waits": 1367,
+        "atomic_txn_wounds": 9060,
+        "atomic_txn_writer_marks": 10798,
+        "atomic_txn_writer_waits": 5858792
+      },
+      "delivered": 17559,
+      "executions": 85590,
+      "mode": "2s",
+      "ping_max_seconds": 0.001691039651632309,
+      "produced": 17576,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 7157
+      }
+    },
+    "log": "build/gate-run.M27y1k/jobs/txnorder-split-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 4,
+    "mode": "fused",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 143320,
+        "atomic_txn_blind_restarts": 459,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 91117,
+        "atomic_txn_intents": 32672,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 1143119,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 3098,
+        "atomic_txn_waits": 1324,
+        "atomic_txn_wounds": 2639,
+        "atomic_txn_writer_marks": 10081,
+        "atomic_txn_writer_waits": 273732
+      },
+      "delivered": 20000,
+      "executions": 91117,
+      "mode": "1s",
+      "ping_max_seconds": 0.01463365275412798,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 3815
+      }
+    },
+    "log": "build/gate-run.yVI9rH/jobs/txnorder-fused-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 4,
+    "mode": "fused",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 8,
+        "atomic_group_wounds": 8,
+        "atomic_txn_attempts": 127437,
+        "atomic_txn_blind_restarts": 2604,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 83191,
+        "atomic_txn_intents": 320063,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 4336157,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 3793,
+        "atomic_txn_waits": 2200,
+        "atomic_txn_wounds": 1189,
+        "atomic_txn_writer_marks": 3924,
+        "atomic_txn_writer_waits": 401861
+      },
+      "delivered": 17613,
+      "executions": 83191,
+      "mode": "1s",
+      "ping_max_seconds": 0.016883471980690956,
+      "produced": 17626,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 2679
+      }
+    },
+    "log": "build/gate-run.yVI9rH/jobs/txnorder-fused-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 4,
+    "mode": "split",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 144869,
+        "atomic_txn_blind_restarts": 437,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 93508,
+        "atomic_txn_intents": 12812,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 308150,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 952,
+        "atomic_txn_waits": 42290,
+        "atomic_txn_wounds": 515,
+        "atomic_txn_writer_marks": 3072,
+        "atomic_txn_writer_waits": 390918
+      },
+      "delivered": 20000,
+      "executions": 93508,
+      "mode": "2s",
+      "ping_max_seconds": 0.0019245250150561333,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 891
+      }
+    },
+    "log": "build/gate-run.yVI9rH/jobs/txnorder-split-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 4,
+    "mode": "split",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 9,
+        "atomic_group_wounds": 9,
+        "atomic_txn_attempts": 144430,
+        "atomic_txn_blind_restarts": 6057,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 85896,
+        "atomic_txn_intents": 262233,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 6401387,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 15703,
+        "atomic_txn_waits": 1014,
+        "atomic_txn_wounds": 9646,
+        "atomic_txn_writer_marks": 10548,
+        "atomic_txn_writer_waits": 5678359
+      },
+      "delivered": 17464,
+      "executions": 85896,
+      "mode": "2s",
+      "ping_max_seconds": 0.0020488956943154335,
+      "produced": 17492,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 7066
+      }
+    },
+    "log": "build/gate-run.yVI9rH/jobs/txnorder-split-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 5,
+    "mode": "fused",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 293,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 143650,
+        "atomic_txn_blind_restarts": 584,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 91645,
+        "atomic_txn_intents": 27844,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 978286,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 2844,
+        "atomic_txn_waits": 3285,
+        "atomic_txn_wounds": 2260,
+        "atomic_txn_writer_marks": 11342,
+        "atomic_txn_writer_waits": 797468
+      },
+      "delivered": 20000,
+      "executions": 91645,
+      "mode": "1s",
+      "ping_max_seconds": 0.010808690451085567,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 4501
+      }
+    },
+    "log": "build/gate-run.XZYpeJ/jobs/txnorder-fused-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 5,
+    "mode": "fused",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 291,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 17,
+        "atomic_group_wounds": 17,
+        "atomic_txn_attempts": 158590,
+        "atomic_txn_blind_restarts": 22456,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 81976,
+        "atomic_txn_intents": 321074,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 6531436,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 41282,
+        "atomic_txn_waits": 3120,
+        "atomic_txn_wounds": 18826,
+        "atomic_txn_writer_marks": 17330,
+        "atomic_txn_writer_waits": 9673149
+      },
+      "delivered": 17624,
+      "executions": 81976,
+      "mode": "1s",
+      "ping_max_seconds": 0.020165045745670795,
+      "produced": 17668,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 22123
+      }
+    },
+    "log": "build/gate-run.XZYpeJ/jobs/txnorder-fused-1/txnorder-2s-1.txt"
+  },
+  {
+    "round": 5,
+    "mode": "split",
+    "atomic": 0,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 0,
+      "config_executions": 294,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 0,
+        "atomic_group_wounds": 0,
+        "atomic_txn_attempts": 144793,
+        "atomic_txn_blind_restarts": 182,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 93608,
+        "atomic_txn_intents": 9402,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 372361,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 423,
+        "atomic_txn_waits": 23,
+        "atomic_txn_wounds": 241,
+        "atomic_txn_writer_marks": 4058,
+        "atomic_txn_writer_waits": 635904
+      },
+      "delivered": 20000,
+      "executions": 93608,
+      "mode": "2s",
+      "ping_max_seconds": 0.0192584041506052,
+      "produced": 20000,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 1423
+      }
+    },
+    "log": "build/gate-run.XZYpeJ/jobs/txnorder-split-0/txnorder-2s-0.txt"
+  },
+  {
+    "round": 5,
+    "mode": "split",
+    "atomic": 1,
+    "verdict": "PASS",
+    "report": {
+      "atomic": 1,
+      "config_executions": 292,
+      "counters": {
+        "atomic_group_barriers": 0,
+        "atomic_group_dooms": 0,
+        "atomic_group_retries": 7,
+        "atomic_group_wounds": 7,
+        "atomic_txn_attempts": 146320,
+        "atomic_txn_blind_restarts": 8361,
+        "atomic_txn_dooms": 0,
+        "atomic_txn_executed": 85597,
+        "atomic_txn_intents": 284902,
+        "atomic_txn_intents_live": 0,
+        "atomic_txn_order_violations": 0,
+        "atomic_txn_place_waits": 6452324,
+        "atomic_txn_readonly": 0,
+        "atomic_txn_retries": 17831,
+        "atomic_txn_waits": 609,
+        "atomic_txn_wounds": 9470,
+        "atomic_txn_writer_marks": 10484,
+        "atomic_txn_writer_waits": 5691245
+      },
+      "delivered": 17448,
+      "executions": 85597,
+      "mode": "2s",
+      "ping_max_seconds": 0.0017780503258109093,
+      "produced": 17473,
+      "row": "c",
+      "script_refusals": {
+        "BUSY": 0,
+        "TRYAGAIN": 6940
+      }
+    },
+    "log": "build/gate-run.XZYpeJ/jobs/txnorder-split-1/txnorder-2s-1.txt"
+  }
+]

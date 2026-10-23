@@ -1,0 +1,12 @@
+{
+  "quick_rows": 739,
+  "full_rows": 756,
+  "quick_exit_line": 4928,
+  "fixture_count": 756,
+  "gate_identical_to_base": true,
+  "new_rows": 0,
+  "protected_assignments": [
+    "EXPECT_QUICK=685",
+    "EXPECT_FULL=702                 # ABBA reports only; self-test remains counted."
+  ]
+}
