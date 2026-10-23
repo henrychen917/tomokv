@@ -86,7 +86,7 @@ Proof status (all live rows use tests/gate.sh's own partial-job interface):
 | Legacy data-type jobs, epoll | 156/156 pass | 156/156 legacy + 3/3 static pass |
 | Legacy data-type jobs, io_uring | Earlier selected run: 157 pass, one tracking failure; globcase follow-up pending | 156/156 pass |
 | Related jobs: parser, AOF, debug, GEO client, hash TTL, dump/restore, notifications | 199/199 pass | 199/199 pass |
-| Standard differential, both engines | epoll complete; io_uring pending | epoll complete; io_uring running |
+| Standard differential, both engines | epoll complete; io_uring running | Both engines complete |
 | PAD-A directed behavior control | PRE behavior required | PENDING |
 
 Standard differential inventory uses all 47 suites and seeds 7,19,20,23,25.
@@ -99,8 +99,8 @@ the existing console label's "32 combinations" is not the cell inventory.
 |---|---:|---:|---:|---|
 | POST epoll | 938/938 | 0 | 16/16 | split + armed pass |
 | PRE epoll | 938/938 | 0 | 16/16 | split + armed pass |
-| POST io_uring | RUNNING | — | — | — |
-| PRE io_uring | PENDING | — | — | — |
+| POST io_uring | 938/938 | 0 | 16/16 | split + armed pass |
+| PRE io_uring | RUNNING | — | — | — |
 
 The gate harness self-test passed 67/67 when run alone (`gates-test-serial.log`).
 Final POST passes make -q for all, all 37 job_production_units targets and both MDB
