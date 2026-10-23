@@ -2272,6 +2272,15 @@ private:
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void prefetch_exec_batch(const Task* batch, uint32_t n) {
+        // A singleton has no later task to overlap. Keep this guard in the caller,
+        // so it pays neither a walk nor an out-of-line call.
+        if (n > 1) prefetch_exec_slots(batch, n);
+    }
+
+    // Like the fused owner walk below, this must be flattened out of line:
+    // GCC erases FlatStore's bucket hints when the walk is inlined into a drain.
+    __attribute__((noinline, flatten))
+    void prefetch_exec_slots(const Task* batch, uint32_t n) {
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
