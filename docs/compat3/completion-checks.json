@@ -1,0 +1,45 @@
+{
+  "completed_utc": "2026-10-22T15:36:09.857571+00:00",
+  "binary_hashes": [
+    {
+      "arm": "PRE",
+      "path": "/home/user/Projects/cx-compat3/build/compat3/PRE/tomokv",
+      "sha256": "00a1f5dffc9b80e018ea6a6954065bb70004955d5c1827652a50df32a1cf5122",
+      "bytes": 192601912,
+      "text_bytes": 7747526
+    },
+    {
+      "arm": "POST",
+      "path": "/home/user/Projects/cx-compat3/build/tomokv",
+      "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35",
+      "bytes": 192703328,
+      "text_bytes": 7736886
+    },
+    {
+      "arm": "POST-copy",
+      "path": "/home/user/Projects/cx-compat3/build/compat3/POST/tomokv",
+      "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35",
+      "bytes": 192703328,
+      "text_bytes": 7736886
+    },
+    {
+      "arm": "PAD-A",
+      "path": "/home/user/Projects/cx-compat3/build/compat3/PAD-A/tomokv",
+      "sha256": "014f89a22b8f334df1992eb415479a0c851e08a1e3608e3d40abbbc03f7c8fdb",
+      "bytes": 192703600,
+      "text_bytes": 7736886
+    },
+    {
+      "arm": "Redis-7.4-oracle",
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+      "bytes": 17663696,
+      "text_bytes": 2456416
+    }
+  ],
+  "production_and_test_source_hashes_match": true,
+  "source_files": 14,
+  "fixture_bindings": 51,
+  "all_fixture_bindings_in_reserved_range": true,
+  "no_lane_listeners_remaining": true
+}

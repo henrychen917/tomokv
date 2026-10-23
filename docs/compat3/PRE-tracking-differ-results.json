@@ -1,0 +1,24 @@
+[
+  {
+    "name": "PRE-tracking-differ-epoll",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25860-25881",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/compat3/PRE-tracking-epoll-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "differ-armed",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/PRE-tracking-differ-epoll.ledger"
+    },
+    "returncode": 1
+  }
+]

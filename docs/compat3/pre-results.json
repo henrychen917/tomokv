@@ -1,0 +1,46 @@
+[
+  {
+    "name": "POST-eviction",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/POST-eviction.ledger"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "PRE-complete",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/compat3/PRE/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "compat3",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/PRE-complete.ledger"
+    },
+    "returncode": 1
+  }
+]

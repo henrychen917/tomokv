@@ -1115,7 +1115,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3030,6 +3030,88 @@ local NET_IO=${1##*-}
   done
 }
 
+compat3_case(){
+local script=$1 case=$2
+# One counted row; every declared leg runs even when an earlier leg fails.
+local mode atomic engine read_local compatible=1 booted oracle_ready=0
+local oracle_port=$((PORT+1)) oracle_dir
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/compat3-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_COMPAT3_ORACLE_CORES:-${GATE_DIFFER_ORACLE_CORES:-$CORES}}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no \
+      --enable-debug-command yes --dir "$oracle_dir" >"$TMPDIR/oracle.log" 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep .1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+  for databases in 1 16; do for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
+    local reads="1 0"
+    [ "$mode" = 1s ] || reads=0
+    for read_local in $reads; do
+      booted=0
+      local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      if [ "$mode" = 1s ]; then
+        boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
+      else
+        boot "$CANDIDATE_BINARY" --thread-mode 2s "${options[@]}" && booted=1
+      fi
+      if [ "$booted" != 1 ] || ! py "tests/compat3_$script.py" 127.0.0.1 "$PORT" \
+          --case "$case" --oracle 127.0.0.1 "$oracle_port" \
+          --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/$case-db$databases-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+        compatible=0
+      fi
+      stop
+    done
+  done; done; done; done
+else
+  compatible=0
+fi
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+[ "$compatible" = 1 ]
+}
+
+job_compat3(){
+  row_begin "compat3 CC4.12 pubsub vs Redis 7.4"
+  compat3_case pubsub pubsub && ok "compat3 CC4.12 pubsub vs Redis 7.4" \
+      || bad "compat3 CC4.12 pubsub vs Redis 7.4" "see $TMPDIR/pubsub-*.log"
+  row_begin "compat3 CC4.13 pending vs Redis 7.4"
+  compat3_case streams pending && ok "compat3 CC4.13 pending vs Redis 7.4" \
+      || bad "compat3 CC4.13 pending vs Redis 7.4" "see $TMPDIR/pending-*.log"
+  row_begin "compat3 CC4.14 history vs Redis 7.4"
+  compat3_case streams history && ok "compat3 CC4.14 history vs Redis 7.4" \
+      || bad "compat3 CC4.14 history vs Redis 7.4" "see $TMPDIR/history-*.log"
+  row_begin "compat3 CC4.16 grammar vs Redis 7.4"
+  compat3_case streams grammar && ok "compat3 CC4.16 grammar vs Redis 7.4" \
+      || bad "compat3 CC4.16 grammar vs Redis 7.4" "see $TMPDIR/grammar-*.log"
+  row_begin "compat3 CC4.5 glob vs Redis 7.4"
+  compat3_case functions glob && ok "compat3 CC4.5 glob vs Redis 7.4" \
+      || bad "compat3 CC4.5 glob vs Redis 7.4" "see $TMPDIR/glob-*.log"
+  row_begin "compat3 CC4.17 flags vs Redis 7.4"
+  compat3_case functions flags && ok "compat3 CC4.17 flags vs Redis 7.4" \
+      || bad "compat3 CC4.17 flags vs Redis 7.4" "see $TMPDIR/flags-*.log"
+}
+
 job_notify_order(){
 # One counted row; every declared leg runs even when an earlier leg fails.
 local mode atomic engine read_local compatible=1 booted oracle_ready=0
@@ -4422,6 +4504,8 @@ collect_job hexpread
 # Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
 collect_job compat2
 collect_job bugs5
+# Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.
+collect_job compat3
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

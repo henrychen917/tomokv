@@ -90,12 +90,13 @@ struct PubSubBlob {
 };
 
 // One (blob, destination connection) pair queued for an owning IO thread.  Connections are named
-// by process-unique id, never by a cross-thread Client*.  A non-empty `pattern` selects the
-// `pmessage` shape.  Each item holds ONE reference on `blob`.
+// by process-unique id, never by a cross-thread Client*. `is_pattern` selects the
+// `pmessage` shape, including a valid empty pattern.  Each item holds ONE reference on `blob`.
 struct PubSubDelivery {
     PubSubBlob* blob = nullptr;
     uint64_t conn = 0;
     std::string pattern;
+    bool is_pattern = false;
 };
 
 // A finished PUBLISH/SPUBLISH, batched back to the publisher's own IO thread.

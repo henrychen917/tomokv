@@ -1,0 +1,19 @@
+{
+  "mark": "DIFF-TRK-1",
+  "arm": "PRE",
+  "binary": "build/compat3/PRE/tomokv",
+  "binary_sha256": "00a1f5dffc9b80e018ea6a6954065bb70004955d5c1827652a50df32a1cf5122",
+  "engine": "epoll",
+  "geometry": "armed-fused",
+  "atomic": 1,
+  "seed": 20,
+  "round": 21,
+  "mode": 0,
+  "key": "ck:4",
+  "target_invalidations": 2,
+  "oracle_invalidations": 1,
+  "run": "build/gate-run.AwxK0k",
+  "source": "build/gate-run.AwxK0k/jobs/differ-armed-1/differ/climon-a1-s20.txt",
+  "receipt": "docs/compat3/DIFF-TRK-1-PRE-climon-a1-s20.txt",
+  "receipt_sha256": "aa7ac2ee4709553abace5a9e9b0d7ef33f0c9974f529ba9959370633fa09e213"
+}

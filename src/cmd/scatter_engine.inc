@@ -2892,6 +2892,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 if (state.kind == Kind::Script) {
                     state.server->note_script_apply_owner();
                     ScriptApplyPins pins{state, shard, op, group};
+                    // Preserve the callback's admission on every actual APPLY owner.
+                    const bool admitted = group.count &&
+                        (state.status[state.key_order[group.begin]] & kScriptFunctionAdmitted);
+                    FunctionMemoryScope memory_scope(shard.store(), admitted);
                     return execute_atomic_apply(task, shard, op, execution_owner);
                 }
                 return execute_atomic_apply(task, shard, op, execution_owner);

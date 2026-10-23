@@ -1,0 +1,20 @@
+# compat3 source and scope review
+
+The six complete REGISTER T3 entries at `/home/user/Projects/round4-read/REGISTER.md:117` and their originating `/home/user/Projects/round4-read/cmd-complex.md` rows (155, 162–167) were read, including the report's parser/flag notes and T2/T6/T8/T9 reproductions. The audit's line numbers predate this tree; the anchors below name the reverified current code.
+
+| Mark | Current anchor | Change and reason |
+|---|---|---|
+| CC4.12 | `src/core/pubsub.inc:353,399`; `src/core/pubsub_event.h:97` | Carry a pattern discriminator independently of the pattern bytes. A zero-length pattern must emit a four-element `pmessage`; the direct route still emits its direct frame. The existing carrier is moved with its blob reference during client forwarding. |
+| CC4.13 | `src/cmd/t_stream_groups.cc:660,673` | Track consumer-argument presence independently of its length. Empty and binary names receive exact byte filtering. |
+| CC4.14 | `src/cmd/t_stream_groups.cc:1371` | Apply a history limit only when COUNT is nonzero, including pending tombstones. |
+| CC4.16 | `src/cmd/t_stream_groups.cc:426,550,721` | Use the existing canonical signed parser for ENTRIESREAD and XCLAIM min-idle; accept only ENTRIESREAD >= -1 with Redis's exact range error, and clamp a nonpositive min-idle to zero. |
+| CC4.5 | `src/cmd/functions.cc:184` | Enumerate the registry with the existing Redis-style glob matcher, **case insensitive**, as Redis's `stringmatchlen(...,1)` requires. Empty/binary patterns and WITHCODE are covered. |
+| CC4.17 | `src/cmd/functions.cc:690`; `src/cmd/scripting.cc:1138,1165`; `src/cmd/scatter_engine.inc:2840` | Decide FUNCTION admission before the callback; allow-oom and no-writes permit admission. An admitted activation may cross its cap while executing. Scoped restoration leaves ordinary commands capped after success or error. Cross-owner completed writes carry that decision in the existing per-key access byte through owner APPLY. |
+
+Redis source is `/home/user/Projects/redis/src` (7.4.10); the separately pinned executable is `/home/user/Projects/redis74/src/redis-server`. The binary manifest records its digest. Oracle replies are evaluated before target replies in every new battery leg. Redis's top-level dynamic DENYOOM check precedes its script-level read-only check: at maxmemory 1, an unflagged FCALL_RO returns the generic OOM error, while an allow-oom function reaches the write-flag rejection. The separate oracle precedence record and the directed flags row cover this distinction.
+
+The FUNCTION implementation does not disable accounting or allocator failures. It temporarily exchanges the existing store limit within a single owner task, and restores it through RAII. The Lua callback is enclosed by lua_pcall, so Lua errors return through that scope. The APPLY scope ends before any dispatch deferral. EVAL keeps its existing behavior; it does not receive the FUNCTION admission bit. No new per-operation branch, reader retry, seqlock, lock, or per-owner persistent state is added.
+
+All eight locked layouts remain enforced by the unchanged compile-time assertions in both database builds. PubSubDelivery is outside those locks and grows from 48 to 56 bytes. Its whole carrier (including the discriminator) moves on forwarding; this is the layout change controlled by PAD-A.
+
+`no-writes` still rejects nested writes under plain FCALL and FCALL_RO, including in combination with allow-oom, while allowing reads under OOM. No difference was observed in the directed primary-mode cases. `allow-stale` is accepted and listed, and has no additional effect on a primary in either implementation. TomoKV has no replica/disconnected-stale state, so the Redis replica-specific MASTERDOWN exemption has no corresponding supported state here. Existing TomoKV memory accounting is per-shard logical storage, rather than Redis's process-wide allocator accounting; this lane implements the function flag decisions on that existing admission model and does not claim identical memory thresholds or eviction behavior. The additional stream parser differences are listed separately and intentionally left unchanged.

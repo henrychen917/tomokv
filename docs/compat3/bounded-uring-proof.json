@@ -1,0 +1,46 @@
+{
+  "engine": "uring",
+  "run": "/home/user/Projects/cx-compat3/build/gate-run.1E9ADa",
+  "groups": {
+    "split": {
+      "schema": 1,
+      "group": "split",
+      "parts": [
+        "split-0",
+        "split-1",
+        "equivalence"
+      ],
+      "start": 1792679131.6354775,
+      "end": 1792681248.2826328,
+      "seconds": 2116.6471552848816,
+      "comparisons": 490,
+      "complete": true
+    },
+    "armed": {
+      "schema": 1,
+      "group": "armed",
+      "parts": [
+        "armed-0",
+        "armed-1"
+      ],
+      "start": 1792680183.5452158,
+      "end": 1792681226.7413266,
+      "seconds": 1043.1961107254028,
+      "comparisons": 464,
+      "complete": true
+    }
+  },
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    25
+  ],
+  "suites": 47,
+  "equivalence_seed": [
+    25
+  ],
+  "comparisons": 954,
+  "declared_armed_sort_skips": 10
+}

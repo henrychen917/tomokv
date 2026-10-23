@@ -1,0 +1,14 @@
+{
+  "source": 708,
+  "fixture": 702,
+  "missing": [
+    "compat3 CC4.12 pubsub vs Redis 7.4",
+    "compat3 CC4.13 pending vs Redis 7.4",
+    "compat3 CC4.14 history vs Redis 7.4",
+    "compat3 CC4.16 grammar vs Redis 7.4",
+    "compat3 CC4.5 glob vs Redis 7.4",
+    "compat3 CC4.17 flags vs Redis 7.4"
+  ],
+  "extra": [],
+  "error": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=702, source declarations=708\nMissing fixture labels: 'compat3 CC4.12 pubsub vs Redis 7.4' (x1); 'compat3 CC4.13 pending vs Redis 7.4' (x1); 'compat3 CC4.14 history vs Redis 7.4' (x1); 'compat3 CC4.16 grammar vs Redis 7.4' (x1); 'compat3 CC4.17 flags vs Redis 7.4' (x1); 'compat3 CC4.5 glob vs Redis 7.4' (x1)\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+}

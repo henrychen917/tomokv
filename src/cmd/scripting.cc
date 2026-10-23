@@ -291,6 +291,7 @@ struct ScriptContext {
     // EVAL_RO / EVALSHA_RO / FCALL_RO, and any function carrying the no-writes flag. Checked at
     // the redis.call dispatch site against the command row's Write bit.
     bool readonly = false;
+    bool function_admitted = false;
     // Nested Write-flagged commands that answered without an error: the keyspace effects this
     // activation has already applied and which a failure must NOT reverse.
     uint32_t effect_writes = 0;
@@ -647,7 +648,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                     const bool errored = !nested.zc_ptr && nested.reply.size() &&
                                          nested.reply.data()[0] == '-';
                     if (!errored) {
-                        mark_declared(*context, key, 2);
+                        mark_declared(*context, key, 2 | (context->function_admitted ? kScriptFunctionAdmitted : 0));
                         context->effect_writes++;
                         g_effect_writes.fetch_add(1, std::memory_order_relaxed);
                     }
@@ -1134,6 +1135,23 @@ int script_pcall_library(lua_State* state) {
     return status;
 }
 
+bool FunctionMemoryScope::admit(Shard& shard, Slice protected_key) {
+    // A scatter callback runs on a private workbench with the coordinator's shard
+    // id. Inspect the real owner shard rather than the uncapped private copy.
+    FlatStore& admission = shard.server()
+        ? shard.server()->shard(shard.id()).store() : shard.store();
+    return admission.budget_admit(protected_key);
+}
+
+FunctionMemoryScope::FunctionMemoryScope(FlatStore& store, bool admitted)
+    : store_(admitted ? &store : nullptr) {
+    if (store_) previous_ = store_->script_exchange_memory_limit(UINT64_MAX);
+}
+
+FunctionMemoryScope::~FunctionMemoryScope() {
+    if (store_) store_->script_exchange_memory_limit(previous_);
+}
+
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
@@ -1144,9 +1162,11 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     }
     context.notify = call.notify;
     context.readonly = call.readonly;
+    context.function_admitted = call.style == ScriptArgStyle::Params;
     engine.current = &context;
 
     ScriptEvictionGuard eviction_guard(shard);
+    FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
 
     // The message handler must sit BELOW the callable for lua_pcall; the callable arrived on top.
     lua_pushcfunction(state, script_error_handler);

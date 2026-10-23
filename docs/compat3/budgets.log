@@ -1,0 +1,202 @@
+compiled post src/core/genthread.o 130241 102925
+compiled pre src/core/genthread.o 130241 102916
+compiled pre db0/src/core/genthread.o 130360 102136
+compiled pre src/cmd/xshard.o 128705 101128
+compiled pre db0/src/cmd/xshard.o 127713 99819
+compiled post src/cmd/xshard.o 128705 101161
+compiled pre db0/src/main.o 147449 96977
+compiled post db0/src/main.o 147449 96986
+compiled pre src/main.o 147428 97739
+compiled post src/main.o 147428 97748
+compiled pre db0/src/core/reorder.o 149000 113889
+compiled pre src/core/reorder.o 148006 114797
+compiled post src/core/reorder.o 148006 114806
+compiled pre src/core/rl2s.o 162972 111026
+compiled post src/core/rl2s.o 162972 111035
+compiled pre db0/src/core/rl2s.o 162334 110113
+compiled post db0/src/core/genthread.o 130360 102145
+compiled post db0/src/cmd/xshard.o 127713 99852
+compiled post db0/src/core/reorder.o 149000 113898
+compiled post db0/src/core/rl2s.o 162334 110122
+compiled post src/core/genthread.o 130254 102925
+compiled post src/core/genthread.o 130246 102925
+compiled post src/core/genthread.o 130250 102925
+compiled post src/cmd/xshard.o 128742 101161
+compiled post src/cmd/xshard.o 128734 101161
+compiled post src/main.o 147441 97748
+compiled post src/cmd/xshard.o 128738 101161
+compiled post src/main.o 147433 97748
+compiled post db0/src/main.o 147454 96986
+compiled post src/core/reorder.o 148011 114806
+compiled post src/core/reorder.o 148015 114806
+compiled post src/main.o 147437 97748
+compiled post src/core/reorder.o 148019 114806
+compiled post src/core/rl2s.o 162981 111035
+compiled post src/core/rl2s.o 162985 111035
+compiled post src/core/rl2s.o 162977 111035
+compiled post db0/src/core/genthread.o 130373 102145
+compiled post db0/src/core/genthread.o 130365 102145
+compiled post db0/src/main.o 147458 96986
+compiled post db0/src/core/genthread.o 130369 102145
+compiled post db0/src/main.o 147462 96986
+compiled post db0/src/cmd/xshard.o 127742 99852
+compiled post db0/src/core/reorder.o 149005 113898
+compiled post db0/src/core/rl2s.o 162347 110122
+compiled post db0/src/core/reorder.o 149009 113898
+compiled post db0/src/core/reorder.o 149013 113898
+compiled post db0/src/cmd/xshard.o 127750 99852
+compiled post db0/src/core/rl2s.o 162339 110122
+compiled post db0/src/cmd/xshard.o 127746 99852
+compiled post db0/src/core/rl2s.o 162343 110122
+scored src/main.o 147441 [0, 2, 11]
+scored src/main.o 147433 [0, 2, 11]
+scored src/main.o 147437 [0, 2, 11]
+scored src/main.o 147428 [0, 2, 11]
+scored src/core/genthread.o 130250 [0, 5, 15]
+scored src/core/genthread.o 130246 [0, 5, 15]
+scored src/core/genthread.o 130241 [0, 5, 15]
+scored src/core/genthread.o 130254 [0, 5, 14]
+scored src/core/rl2s.o 162981 [4, 10, 19]
+scored src/core/rl2s.o 162977 [4, 10, 19]
+scored src/core/rl2s.o 162972 [4, 10, 19]
+scored src/core/rl2s.o 162985 [6, 15, 24]
+scored src/core/reorder.o 148019 [0, 4, 14]
+scored src/core/reorder.o 148011 [0, 6, 16]
+scored src/core/reorder.o 148006 [0, 6, 16]
+scored src/core/reorder.o 148015 [0, 3, 13]
+scored src/cmd/xshard.o 128742 [0, 18, 29]
+scored src/cmd/xshard.o 128738 [0, 12, 23]
+scored src/cmd/xshard.o 128705 [1, 17, 28]
+scored src/cmd/xshard.o 128734 [0, 12, 23]
+scored db0/src/main.o 147454 [0, 2, 11]
+scored db0/src/main.o 147458 [0, 2, 11]
+scored db0/src/main.o 147462 [0, 2, 11]
+scored db0/src/main.o 147449 [0, 2, 11]
+scored db0/src/core/genthread.o 130373 [0, 6, 15]
+scored db0/src/core/genthread.o 130369 [2, 8, 17]
+scored db0/src/core/genthread.o 130365 [0, 7, 16]
+scored db0/src/core/genthread.o 130360 [3, 9, 18]
+scored db0/src/core/rl2s.o 162347 [0, 2, 11]
+scored db0/src/core/rl2s.o 162343 [0, 2, 11]
+scored db0/src/core/rl2s.o 162339 [0, 2, 11]
+scored db0/src/core/rl2s.o 162334 [0, 2, 11]
+scored db0/src/core/reorder.o 149005 [1, 8, 17]
+scored db0/src/core/reorder.o 149000 [4, 11, 20]
+scored db0/src/core/reorder.o 149009 [2, 8, 17]
+scored db0/src/core/reorder.o 149013 [4, 10, 19]
+scored db0/src/cmd/xshard.o 127713 [0, 14, 25]
+scored db0/src/cmd/xshard.o 127746 [0, 18, 30]
+scored db0/src/cmd/xshard.o 127742 [0, 12, 23]
+scored db0/src/cmd/xshard.o 127750 [0, 11, 22]
+[
+  {
+    "unit": "src/main.o",
+    "old": 147428,
+    "budget": 147428,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_main.o-post-147428.o"
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "old": 130241,
+    "budget": 130254,
+    "score": [
+      0,
+      5,
+      14
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_genthread.o-post-130254.o"
+  },
+  {
+    "unit": "src/core/rl2s.o",
+    "old": 162972,
+    "budget": 162972,
+    "score": [
+      4,
+      10,
+      19
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162972.o"
+  },
+  {
+    "unit": "src/core/reorder.o",
+    "old": 148006,
+    "budget": 148015,
+    "score": [
+      0,
+      3,
+      13
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_reorder.o-post-148015.o"
+  },
+  {
+    "unit": "src/cmd/xshard.o",
+    "old": 128705,
+    "budget": 128734,
+    "score": [
+      0,
+      12,
+      23
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_cmd_xshard.o-post-128734.o"
+  },
+  {
+    "unit": "db0/src/main.o",
+    "old": 147449,
+    "budget": 147449,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_main.o-post-147449.o"
+  },
+  {
+    "unit": "db0/src/core/genthread.o",
+    "old": 130360,
+    "budget": 130373,
+    "score": [
+      0,
+      6,
+      15
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_genthread.o-post-130373.o"
+  },
+  {
+    "unit": "db0/src/core/rl2s.o",
+    "old": 162334,
+    "budget": 162334,
+    "score": [
+      0,
+      2,
+      11
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_rl2s.o-post-162334.o"
+  },
+  {
+    "unit": "db0/src/core/reorder.o",
+    "old": 149000,
+    "budget": 149005,
+    "score": [
+      1,
+      8,
+      17
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149005.o"
+  },
+  {
+    "unit": "db0/src/cmd/xshard.o",
+    "old": 127713,
+    "budget": 127750,
+    "score": [
+      0,
+      11,
+      22
+    ],
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_cmd_xshard.o-post-127750.o"
+  }
+]

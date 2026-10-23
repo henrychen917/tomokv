@@ -22,6 +22,7 @@ struct lua_State;
 namespace tomo {
 
 class Shard;
+class FlatStore;
 class Op;
 
 enum class ScriptArgStyle : uint8_t {
@@ -60,6 +61,23 @@ int script_pcall_library(lua_State* state);
 // the reply — or the Redis-shaped error — into `op`. The stack is left empty either way.
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call);
 
+// FUNCTION admission is decided before its callback. The same decision follows its
+// completed writes to the owner-side scatter APPLY. Never bypass allocator failures.
+class FunctionMemoryScope {
+public:
+    static bool admit(Shard& shard, Slice protected_key);
+    explicit FunctionMemoryScope(FlatStore& store, bool admitted);
+    ~FunctionMemoryScope();
+    FunctionMemoryScope(const FunctionMemoryScope&) = delete;
+    FunctionMemoryScope& operator=(const FunctionMemoryScope&) = delete;
+private:
+    FlatStore* store_;
+    uint64_t previous_ = 0;
+};
+
+// Per-key cross-script access byte: read=1, completed write=2, admitted FUNCTION=4.
+constexpr uint8_t kScriptFunctionAdmitted = 4;
+
 // Flattens a Lua error string into one RESP-safe line (CR/LF/NUL to spaces, 2 KiB cap).
 std::string script_clean_error(const char* text, size_t length);
 
@@ -94,7 +112,8 @@ FunctionStats function_stats();
 bool function_is_fcall(const Op& op);
 
 // Cold bridge used by the cross-owner scatter coordinator. Each declared-key byte receives bit 0
-// when a nested command reads it and bit 1 when a nested write completes without an error. The
+// when a nested command reads it and bit 1 when a nested write completes without an error;
+// bit 2 carries FUNCTION memory admission to APPLY. The
 // binding is thread-local and scoped to one outer Op, so ordinary single-owner activations do not
 // test or allocate cross-script state.
 void script_cross_access_begin(Op& op, uint8_t* access, uint32_t count);
