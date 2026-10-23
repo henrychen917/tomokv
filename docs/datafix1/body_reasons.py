@@ -9,17 +9,17 @@ features={'geo.o':'CD4.3 free-order GEO grammar and owner-side error precedence'
  't_hash_ttl.o':'CD4.11 expiry validation before FIELDS',
  't_list.o':'CD4.5 one-node list demotion',
  't_server.o':'CD4.6 locale-collate registry, validation and publication',
- 't_set.o':'CD4.4 compact SPOP and CD4.12 SRANDMEMBER grammar',
+ 't_set.o':'CD4.4 compact SPOP and survivor rebuilding; CD4.12 SRANDMEMBER grammar',
  't_sort.o':'CD4.6 per-sort locale lifetime and strcoll_l comparison',
  't_zset.o':'CD4.12 ZRANDMEMBER grammar and ZSCAN NOVALUES',
  'xshard.o':'CD4.3 prepared GEO error and CD4.10 BITFIELD offset acceptance',
  'main.o':'CD4.6 Config reserved storage, boot parsing and locale validation'}
 semantic={'geo.o':r'parse_search|cmd_geosearch|geo_build_store|geo_prepare_route|cmd_geo_xshard_local',
- 't_hash.o':'.*','t_hash_ttl.o':'.*',
+ 't_hash.o':r'cmd_hrandfield','t_hash_ttl.o':r'parse_expire|expire_generic|cmd_h(?:expire|pexpire)',
  't_list.o':r'demote_shrunk_list|pop_generic|xshard_pop_list|xshard_remove_list|cmd_l(?:rem|set|trim)',
  't_server.o':r'cmd_config|init_config|collect_config_updates',
- 't_set.o':r'pop_compact|cmd_spop|cmd_srandmember|_GLOBAL__',
- 't_sort.o':'.*','t_zset.o':r'cmd_zrandmember|cmd_zscan|_GLOBAL__',
+ 't_set.o':r'pop_compact|pop_rebuilt|cmd_spop|cmd_srandmember',
+ 't_sort.o':'.*','t_zset.o':r'cmd_zrandmember|cmd_zscan',
  'xshard.o':r'finish_phase1|assemble_final|parse_bitfield_operations','main.o':'.*'}
 for r in rows:
     obj=Path(r['object']).name

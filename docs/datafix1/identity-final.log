@@ -29,7 +29,7 @@ db0/src/cmd/t_hash.o 235 bodies
 db0/src/cmd/t_hash_ttl.o 98 bodies
 db0/src/cmd/t_list.o 197 bodies
 db0/src/cmd/t_server.o 233 bodies
-db0/src/cmd/t_set.o 207 bodies
+db0/src/cmd/t_set.o 211 bodies
 db0/src/cmd/t_sort.o 27 bodies
 db0/src/cmd/t_stream.o 250 bodies
 db0/src/cmd/t_stream_groups.o 159 bodies
@@ -82,7 +82,7 @@ src/cmd/t_hash.o 235 bodies
 src/cmd/t_hash_ttl.o 98 bodies
 src/cmd/t_list.o 195 bodies
 src/cmd/t_server.o 230 bodies
-src/cmd/t_set.o 208 bodies
+src/cmd/t_set.o 214 bodies
 src/cmd/t_sort.o 27 bodies
 src/cmd/t_stream.o 252 bodies
 src/cmd/t_stream_groups.o 160 bodies
@@ -104,7 +104,7 @@ src/net/tls.o 38 bodies
 src/persist/aof.o 331 bodies
 src/persist/aof_frame_debug.o 6 bodies
 src/snapshot/snapshot.o 128 bodies
-{"total": 16828, "equal": 16533, "changed": 295, "handlers": 1219, "handlers_equal": 1110, "hot": 1220, "hot_equal": 1220, "hot_nonerror_equal": 1220, "handlers_nonerror_equal": 1110}
+{"total": 16838, "equal": 16513, "changed": 325, "handlers": 1219, "handlers_equal": 1101, "hot": 1220, "hot_equal": 1220, "hot_nonerror_equal": 1220, "handlers_nonerror_equal": 1101}
 Traceback (most recent call last):
   File "/home/user/Projects/cx-datafix1/tools/ccfix_audit.py", line 157, in <module>
     main()

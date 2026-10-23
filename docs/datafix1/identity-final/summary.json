@@ -1,9 +1,9 @@
 {
-  "total": 16828,
-  "equal": 16533,
-  "changed": 295,
+  "total": 16838,
+  "equal": 16513,
+  "changed": 325,
   "handlers": 1219,
-  "handlers_equal": 1110,
+  "handlers_equal": 1101,
   "hot": 1220,
   "hot_equal": 1220,
   "changed_handlers": [
@@ -455,7 +455,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3089,
-      "post_size": 2896,
+      "post_size": 2897,
       "classification": "other"
     },
     {
@@ -477,18 +477,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3141,
-      "post_size": 3017,
-      "classification": "other"
-    },
-    {
-      "object": "db0/src/cmd/t_set.o",
-      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE.cold",
-      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 45,
-      "post_size": 45,
+      "post_size": 2965,
       "classification": "other"
     },
     {
@@ -499,7 +488,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3276,
-      "post_size": 3024,
+      "post_size": 9041,
       "classification": "other"
     },
     {
@@ -510,7 +499,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 185,
       "classification": "other"
     },
     {
@@ -521,7 +510,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3372,
-      "post_size": 3184,
+      "post_size": 9285,
       "classification": "other"
     },
     {
@@ -532,7 +521,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 192,
       "classification": "other"
     },
     {
@@ -555,6 +544,50 @@
       "raw_equal": false,
       "pre_size": 39,
       "post_size": 40,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2858,
+      "post_size": 3506,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 115,
+      "post_size": 115,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2858,
+      "post_size": 3506,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 115,
+      "post_size": 115,
       "classification": "other"
     },
     {
@@ -1054,13 +1087,35 @@
     },
     {
       "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2826,
+      "post_size": 2698,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2879,
+      "post_size": 2697,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
       "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb0EEEvRNS_5ShardERNS_2OpE",
       "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&)",
       "equal": false,
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3196,
-      "post_size": 2976,
+      "post_size": 8627,
       "classification": "other"
     },
     {
@@ -1071,7 +1126,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 186,
       "classification": "other"
     },
     {
@@ -1082,7 +1137,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3324,
-      "post_size": 3152,
+      "post_size": 8823,
       "classification": "other"
     },
     {
@@ -1093,7 +1148,51 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 187,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3395,
+      "post_size": 2869,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 117,
+      "post_size": 117,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3395,
+      "post_size": 2869,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 117,
+      "post_size": 117,
       "classification": "other"
     },
     {
@@ -1209,7 +1308,7 @@
   ],
   "changed_hot": [],
   "hot_nonerror_equal": 1220,
-  "handlers_nonerror_equal": 1110,
+  "handlers_nonerror_equal": 1101,
   "other_handlers": [
     {
       "object": "db0/src/cmd/geo.o",
@@ -1659,7 +1758,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3089,
-      "post_size": 2896,
+      "post_size": 2897,
       "classification": "other"
     },
     {
@@ -1681,18 +1780,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3141,
-      "post_size": 3017,
-      "classification": "other"
-    },
-    {
-      "object": "db0/src/cmd/t_set.o",
-      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE.cold",
-      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 45,
-      "post_size": 45,
+      "post_size": 2965,
       "classification": "other"
     },
     {
@@ -1703,7 +1791,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3276,
-      "post_size": 3024,
+      "post_size": 9041,
       "classification": "other"
     },
     {
@@ -1714,7 +1802,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 185,
       "classification": "other"
     },
     {
@@ -1725,7 +1813,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3372,
-      "post_size": 3184,
+      "post_size": 9285,
       "classification": "other"
     },
     {
@@ -1736,7 +1824,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 192,
       "classification": "other"
     },
     {
@@ -1759,6 +1847,50 @@
       "raw_equal": false,
       "pre_size": 39,
       "post_size": 40,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2858,
+      "post_size": 3506,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 115,
+      "post_size": 115,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2858,
+      "post_size": 3506,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 115,
+      "post_size": 115,
       "classification": "other"
     },
     {
@@ -2258,13 +2390,35 @@
     },
     {
       "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2826,
+      "post_size": 2698,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2879,
+      "post_size": 2697,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
       "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb0EEEvRNS_5ShardERNS_2OpE",
       "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&)",
       "equal": false,
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3196,
-      "post_size": 2976,
+      "post_size": 8627,
       "classification": "other"
     },
     {
@@ -2275,7 +2429,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 186,
       "classification": "other"
     },
     {
@@ -2286,7 +2440,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3324,
-      "post_size": 3152,
+      "post_size": 8823,
       "classification": "other"
     },
     {
@@ -2297,7 +2451,51 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 48,
+      "post_size": 187,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3395,
+      "post_size": 2869,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 117,
+      "post_size": 117,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3395,
+      "post_size": 2869,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 117,
+      "post_size": 117,
       "classification": "other"
     },
     {

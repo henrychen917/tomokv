@@ -1,0 +1,21 @@
+[
+  "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name",
+  "ERR COUNT must be > 0",
+  "ERR NOVALUES option can only be used in HSCAN",
+  "ERR could not decode requested zset member",
+  "ERR exactly one of BYRADIUS and BYBOX can be specified for ",
+  "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for ",
+  "ERR need numeric radius",
+  "ERR out of memory",
+  "ERR radius cannot be negative",
+  "ERR the ANY argument requires COUNT argument",
+  "ERR value is not a valid float",
+  "ERR value is not an integer or out of range",
+  "ERR value is out of range",
+  "ERR bit offset is not an integer or out of range",
+  "ERR value is out of range",
+  "NOVALUES option can only be used in HSCAN",
+  "listpack",
+  "quicklist",
+  "intset"
+]

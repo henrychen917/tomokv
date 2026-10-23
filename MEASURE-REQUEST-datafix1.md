@@ -107,17 +107,17 @@ performance result or improvement is claimed by this lane.
 
 Artifacts: PRE build/datafix1/pre-src/build/tomokv; POST build/tomokv; PAD-A
 build/datafix1/PAD-A/tomokv. Digests: docs/datafix1/SHA256SUMS. PAD kind A is PRE
-behavior (unchanged PRE objects) with 3,136 inert bytes appended to match POST's
-7,750,662-byte .text. It controls total text size and the unchanged layout locks,
+behavior (unchanged PRE objects) with 29,504 inert bytes appended to match POST's
+7,777,030-byte .text. It controls total text size and the unchanged layout locks,
 not every function address. Config's new cold pointer consumes PRE's reserved
 storage; existing field offsets stay fixed. Exact link/object provenance is in
 docs/datafix1/pad-kind.json; tools/datafix1_pad.py reproduces the arm.
 
-Final identity: tools/ccfix_audit.py inventories 16,828 emitted bodies, 295 changed;
+Final identity: tools/ccfix_audit.py inventories 16,838 emitted bodies, 325 changed;
 all 1,220 selected hot bodies are canonical-equal to PRE. Its command-only INFO/
 CONFIG/ACL admission policy rejects the intentional data-type changes, as expected.
 The stricter linked audit (tools/infofields_artifacts.py) likewise rejects its
-INFO-only whitelist: 4,376/4,484 ordinary object bodies match and 2,593/2,690 linked
+INFO-only whitelist: 4,364/4,484 ordinary object bodies match and 2,584/2,690 linked
 ordinary bodies are proven. Every changed body, including compiler spillover in
 unedited helpers, is listed with a reason in docs/datafix1/body-reasons.json.
 All ten linked GET/SET/MGET/MSET handlers are proven against their PRE object

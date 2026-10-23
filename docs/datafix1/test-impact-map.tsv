@@ -1,0 +1,39 @@
+tests/bitfield.py	
+tests/cd13b_window_test.py	
+tests/cd13b_wire.py	
+tests/clientfix.py	job_clientfix
+tests/climon.py	
+tests/datafix1_geo.py	job_datafix1_geo
+tests/datafix1_hexpire.py	job_datafix1_hexpire
+tests/datafix1_lists.py	job_datafix1_lists
+tests/datafix1_locale.py	job_datafix1_locale
+tests/datafix1_randscan.py	job_datafix1_randscan
+tests/datafix1_spop.py	job_datafix1_spop
+tests/differ.py	
+tests/differ_fanout_test.py	
+tests/differ_test.py	
+tests/docs_drift.py	job_config_unit
+tests/dumpttl.py	
+tests/edgeenc.py	
+tests/edgeproto.py	
+tests/edgetime.py	
+tests/encodingfix.py	
+tests/expwide.py	
+tests/geo.py	
+tests/globcase.py	job_globcase
+tests/hexpire.py	
+tests/hexpread.py	job_hexpread
+tests/infofields_test.py	
+tests/knobs.py	job_aof
+tests/lbsignals.py	job_release_batteries
+tests/multirace.py	
+tests/notify_order.py	job_notify_order,job_notify_aof
+tests/ntnew4_clock.py	ntnew4_live_leg
+tests/redisgap.py	
+tests/replyschema.py	
+tests/resp3.py	
+tests/respresume.py	job_respresume
+tests/s6.py	
+tests/servertail.py	
+tests/wiredump.py	
+tests/zsetops.py	

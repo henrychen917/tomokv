@@ -5,3 +5,4 @@ pad-control GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; 
 post-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
 pre-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
 post-existing-uring LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+post-serial-epoll GATE(PARTIAL): 164 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-serial-epoll-ledger.tsv.partial

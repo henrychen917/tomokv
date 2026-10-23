@@ -3,8 +3,8 @@
   "behavior": "PRE objects unchanged",
   "layout": "POST total .text size; existing layout lock sizes/offsets; function addresses may differ",
   "limitation": "Not an exact placement twin. Config locale pointer occupies PRE reserved bytes.",
-  "padding_bytes": 3136,
-  "text_bytes": 7750662,
+  "padding_bytes": 29504,
+  "text_bytes": 7777030,
   "objects": {
     "build/datafix1/pre-src/build/db0/src/main.o": "7a813551468e70eea7c5d8375f3b510acd562945ca3a9a03b1be6a869391d59e",
     "build/datafix1/pre-src/build/db0/src/net/tls.o": "3c90e8013ccdcb807ff15876990e56d4d37dfe98dfcda6ad7aa9034ae03e88b0",
@@ -113,5 +113,5 @@
     "build/datafix1/pre-src/build/src/cmd/autharity.o": "0eb6377535617dd9e851cf43b80b398df6981be902c73a359c1496507e833c7c",
     "build/datafix1/pre-src/build/src/core/version.o": "dd3719c099b6e84c1a7e717ad0862b6c57d0c0fd7d822eac9a2f07725cbc436c"
   },
-  "sha256": "0f1c41f58522e91feed82713539d76c8192e0446e89fb9ce2646072c714b8d9a"
+  "sha256": "403d206e5ba15b25727eec9f5c327a106c2b1a1ff8c75d98ea6b9464455a26ae"
 }

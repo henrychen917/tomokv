@@ -156,8 +156,8 @@
   },
   {
     "object": "db0/src/cmd/t_set.o",
-    "functions": 207,
-    "changed": 24
+    "functions": 211,
+    "changed": 39
   },
   {
     "object": "db0/src/cmd/t_sort.o",
@@ -421,8 +421,8 @@
   },
   {
     "object": "src/cmd/t_set.o",
-    "functions": 208,
-    "changed": 16
+    "functions": 214,
+    "changed": 31
   },
   {
     "object": "src/cmd/t_sort.o",
