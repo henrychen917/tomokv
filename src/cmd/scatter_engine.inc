@@ -3571,6 +3571,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         (is_geo_kind(state.kind) &&
                          pos == (state.geo_store ? 1u : 0u));
                     KvObj* object = find_value(key.hash, op.arg(key.arg), source_read);
+                    // The MVCC probe bypasses FlatStore's notification sink.
+                    // Preserve the source read's keymiss when an atomic STORE
+                    // encounters absence (including a retained tombstone).
+                    if (notify && pending_reads && source_read && !object)
+                        notify_flat_emit(&shard, NOTIFY_KEY_MISS, NotifyEventId::Keymiss,
+                                         op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;
