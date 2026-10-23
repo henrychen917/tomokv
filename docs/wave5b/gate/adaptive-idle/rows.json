@@ -1,0 +1,14 @@
+[
+  {
+    "job": "iofix-deferred",
+    "verdict": "ok",
+    "elapsed": "26.760000",
+    "label": "iofix WB4.1 deferred IO parks"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

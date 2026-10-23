@@ -1,0 +1,20 @@
+[
+  {
+    "job": "differ-armed-0",
+    "verdict": "ok",
+    "elapsed": "523.940000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+  },
+  {
+    "job": "differ-split-0",
+    "verdict": "ok",
+    "elapsed": "526.310000",
+    "label": "Redis 7.4 differential part (split, atomic 0)"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "release build (+footprint locks)"
+  }
+]

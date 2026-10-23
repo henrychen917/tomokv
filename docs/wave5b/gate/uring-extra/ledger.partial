@@ -1,0 +1,14 @@
+PARTIAL	0	GATE_ONLY_JOBS=fliplisten auth flipctl; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	119.890000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	0.000000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.030000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	2.580000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream
+ok	26.020000	FLIP listener conservation (io-ex, complete)
+ok	26.500000	FLIP listener conservation (io-ex, rollback)
+ok	25.860000	FLIP listener conservation (ex-io, complete)
+ok	26.440000	FLIP listener conservation (ex-io, rollback)

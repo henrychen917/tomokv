@@ -1,0 +1,93 @@
+{
+  "arms": [
+    {
+      "path": "build/tomokv-wave5-PRE",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "text_bytes": 7747526
+    },
+    {
+      "path": "build/tomokv-wave5b-BASE",
+      "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+      "text_bytes": 8076601
+    },
+    {
+      "path": "build/tomokv",
+      "sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+      "text_bytes": 8073113
+    },
+    {
+      "path": "build/tomokv-wave5b-POST-REVERT",
+      "sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+      "text_bytes": 8073113
+    },
+    {
+      "path": "build/tomokv-wave5b-PAD-A",
+      "sha256": "6e81f38fa1ec61e6904231c8e121a546c9febca56d3bee8bf55abd0928907fae",
+      "text_bytes": 8073113
+    },
+    {
+      "path": "build/tomokv-wave5b-PAD-B",
+      "sha256": "b0c5b3ef96e1fd37bf5990c67e4c3693d76ca7bf80321881f86dc6cb60d7180a",
+      "text_bytes": 8076601
+    }
+  ],
+  "archives": [
+    {
+      "path": "docs/wave5b/gate/adaptive-idle/witnesses.tar.gz",
+      "files": 38,
+      "sha256": "024d8df559bb7a2c0c173992bbfd3a27ea9f62704a9f194e9fa2ab29d3bc8a36"
+    },
+    {
+      "path": "docs/wave5b/gate/auth-fused-epoll/witnesses.tar.gz",
+      "files": 24,
+      "sha256": "d0fd29ecc02b4e0d0d47b0da08e2ec1ce72fb65051568b94162fd1d76097d58c"
+    },
+    {
+      "path": "docs/wave5b/gate/auth-fused-uring/witnesses.tar.gz",
+      "files": 24,
+      "sha256": "3003a8c757024327fec9596fd1ca2287496bb9a2e17f5a2d8750c985fbe1a5d3"
+    },
+    {
+      "path": "docs/wave5b/gate/differ-epoll-first/witnesses.tar.gz",
+      "files": 961,
+      "sha256": "4292482c517ee7930a81547655e71b03b2c8f63835549795d529b98252c815b8"
+    },
+    {
+      "path": "docs/wave5b/gate/final-epoll/witnesses.tar.gz",
+      "files": 1314,
+      "sha256": "a1d60a97c2874d168f1d57f808017802909c9ed2d06b2ff4dd3228121b0a40db"
+    },
+    {
+      "path": "docs/wave5b/gate/final-uring/witnesses.tar.gz",
+      "files": 2509,
+      "sha256": "d50fbcbb376e3f09f332e4afbb3a25732a7c5c53a6500c1fd79dd4f29e9b1ba7"
+    },
+    {
+      "path": "docs/wave5b/gate/pad-a-epoll/witnesses.tar.gz",
+      "files": 34,
+      "sha256": "d0422bc7cefc8ad5106c7f08ab4cb3f8115e00b7fcc4007c731855189ca168f2"
+    },
+    {
+      "path": "docs/wave5b/gate/pad-a-uring/witnesses.tar.gz",
+      "files": 34,
+      "sha256": "9efeb53fe38d6f4705a511d4d6d551e10d7e952c6a6594ff53b15840236cad44"
+    },
+    {
+      "path": "docs/wave5b/gate/pad-b-epoll/witnesses.tar.gz",
+      "files": 34,
+      "sha256": "c17105065cf1cc5d531e3991827c710cc7d4c3f344d4667371b0110b437ee9c0"
+    },
+    {
+      "path": "docs/wave5b/gate/pad-b-uring/witnesses.tar.gz",
+      "files": 34,
+      "sha256": "82327250f5e1654f726bb0c97f6fbc995485d23d1411db0fad5772c88f1d9e7d"
+    },
+    {
+      "path": "docs/wave5b/gate/uring-extra/witnesses.tar.gz",
+      "files": 120,
+      "sha256": "9a0000e4c5f4c960ebc85104c3258e105109880ab3c2fcd855ffa336fa24b5c1"
+    }
+  ],
+  "wb_rule_exact_headline": true,
+  "io_loop_and_reorder_exact_base": true
+}

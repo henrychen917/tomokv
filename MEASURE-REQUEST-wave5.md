@@ -429,8 +429,6 @@ CPU battery remains available as an explicit reproducer of the reopened
 issue. Existing FIFO/R7 progress witnesses and their mutant now assert that
 both bounded and saturated deferrals report work. No other gate row is removed.
 
-Validation and frozen-arm details are appended below after completion.
-
 ### Frozen arms and identity
 
 | Arm | Path | SHA-256 | .text bytes |
@@ -471,6 +469,55 @@ The ccfix and lbstall strict hot-body checks return nonzero for the intentional
 writeback changes; they are not represented as whole-server identity passes.
 Merit, not those strict exit codes, decides acceptance.
 
+### Completed correctness proof
+
+The final correctness batteries used `tests/gate.sh`'s selected-job interface
+with frozen ELFs; these are partial-job receipts, not a full-iteration receipt. The joined
+receipt is `docs/wave5b/proof.json`, with per-cohort logs, row inventories,
+launch records and compressed witness archives under `docs/wave5b/gate/`.
+
+| Check | Result |
+|---|---|
+| Writeback jobs | `wb_rule_units`, `wbland_units`, and `wb_policy` passed; live policies 0/1 covered both modes and both engines |
+| Remaining iofix rows | IO4.9, IO4.10 and IO4.17 passed all 12 mode/engine legs |
+| FLIP and DEBUG SLEEP | Requested unit/live rows passed; listener conservation passed all 16 engine/atomic/direction/outcome legs; DEBUG SLEEP covered both modes and engines |
+| Standard differential suites | 1,880 passing checks across uring and epoll: 1,860 suite legs plus 20 MULTI/armed-fire checks, no failed checks |
+| Mode equivalence | All 16 current cells per engine passed (32 total); inventory derived from `tests/mode_equivalence.py` |
+| `python3 tests/gates_test.py` | 68/68 passed with unchanged assertions and deadlines |
+| Build and freshness | `make -j32 all`, all 42 `job_production_units` targets, and both MDB live arms built; all 45 `make -q` queries passed |
+| PAD controls | Both PAD-A and PAD-B passed the live writeback job in both modes and engines |
+| Gate inventory | Source and fixture label multisets match; required quick/full counts are 739/756 |
+
+The differential plan retained standard permanent seeds 7, 19, 20 and 23.
+Its rotating seeds were 21 for uring, 22 for epoll atomic 0 and 24 for epoll
+atomic 1. The oracle was `/home/user/Projects/redis74/src/redis-server`.
+The final six correctness cohorts contain 168 passing row observations;
+repeated observations are not additional gate rows. `reorder_sync`, the
+network-command and split-local unit jobs also passed in the final sweep.
+
+Two harness failures are retained rather than counted as passes. The first
+FLIP-listener run gave GDB the engine/mode adapter script instead of an ELF;
+its four rows failed before server startup. Rerunning the same frozen ELF
+directly passed all 16 legs and all four rows. The wrapper now rejects that
+combination. The first `gates_test.py` attempt had four scheduler-fixture
+timeouts while compiles ran; the complete quiet rerun passed 68/68 without
+changing deadlines. Strict label-fixture checking still reports the protected,
+stale `EXPECT_FULL=702`; there are no missing or extra fixture labels. The
+maintainer must set the required totals to 739/756. Neither EXPECT constant
+was edited by this lane.
+
+**NOT RUN:** performance benchmarks, ABBA, PMU measurements and the full
+`tests/gate.sh iteration`, reserved to the maintainer. Fused SORT differential
+legs are excluded by the standard split-only suite plan; fused FLIP is not
+a supported feature. The FLIP saturation load was used solely for its
+correctness assertions; its rate output supplies no performance claim.
+
+Final arm hashes were rechecked after verification. Launch evidence records
+CPU affinities within 64–111 and listener ports within 26800–26899. Duplicate
+temporary object trees totaling 4.7 GB were removed; deliverable and trace
+ELFs, production dependencies and indexed evidence remain. No other lane's
+artifacts were removed.
+
 ### Maintainer measurement request — NOT RUN
 
 `docs/wave5b/merit-cells.txt` parses as 24 cells: exactly `mk2g_a1_p8` and
@@ -484,10 +531,14 @@ rate measurement or PMU performance pass was run by this lane.
 common=(--build-reference 0 --cells docs/wave5b/merit-cells.txt --subset full
         --server-cores "$WAVE5B_MERIT_SERVER" --load-cores "$WAVE5B_MERIT_LOAD"
         --ports 26800-26899)
-python3 tests/abbagate.py "${common[@]}"   --reference-binary build/tomokv-wave5-PRE --candidate-binary build/tomokv   --output build/wave5b-merit-headline
+taskset -c 64-111 python3 tests/abbagate.py "${common[@]}" \
+  --reference-binary build/tomokv-wave5-PRE --candidate-binary build/tomokv \
+  --output build/wave5b-merit-headline
 # Attribute behavior versus text-size effects against integrated wave-5 POST:
 for arm in tomokv tomokv-wave5b-PAD-A tomokv-wave5b-PAD-B; do
-  python3 tests/abbagate.py "${common[@]}"     --reference-binary build/tomokv-wave5b-BASE --candidate-binary "build/$arm"     --output "build/wave5b-merit-$arm"
+  taskset -c 64-111 python3 tests/abbagate.py "${common[@]}" \
+    --reference-binary build/tomokv-wave5b-BASE --candidate-binary "build/$arm" \
+    --output "build/wave5b-merit-$arm"
 done
 ```
 

@@ -1,0 +1,80 @@
+[
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "reject bad protected-mode"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "reject bad enable-debug-command"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.150000",
+    "label": "AUTH/HELLO/protected state machine"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "ACL battery (atomic off)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic on)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "2.580000",
+    "label": "DEBUG toggle/reload battery"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "typed snapshot round-trip incl stream"
+  },
+  {
+    "job": "flipctl",
+    "verdict": "ok",
+    "elapsed": "119.890000",
+    "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "26.020000",
+    "label": "FLIP listener conservation (io-ex, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "26.500000",
+    "label": "FLIP listener conservation (io-ex, rollback)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "25.860000",
+    "label": "FLIP listener conservation (ex-io, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "26.440000",
+    "label": "FLIP listener conservation (ex-io, rollback)"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

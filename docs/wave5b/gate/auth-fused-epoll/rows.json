@@ -1,0 +1,50 @@
+[
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad protected-mode"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad enable-debug-command"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.150000",
+    "label": "AUTH/HELLO/protected state machine"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic off)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic on)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "2.450000",
+    "label": "DEBUG toggle/reload battery"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.120000",
+    "label": "typed snapshot round-trip incl stream"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

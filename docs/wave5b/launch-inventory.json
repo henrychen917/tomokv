@@ -1,0 +1,16 @@
+{
+  "launches": {
+    "auth-fused-epoll": 6,
+    "differ-epoll-first": 2,
+    "pad-b-epoll": 4,
+    "final-epoll": 63,
+    "auth-fused-uring": 6,
+    "pad-a-uring": 4,
+    "final-uring": 104,
+    "pad-a-epoll": 4,
+    "pad-b-uring": 4
+  },
+  "server_affinities_within": "64-111",
+  "explicit_listener_ports_within": "26800-26899 (zero is disabled)",
+  "gdb_legs": "16 real-ELF launches in uring-extra command.json files, each taskset 96-103 and ports 26860/26861"
+}

@@ -1,0 +1,338 @@
+[
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad protected-mode"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "reject bad enable-debug-command"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.470000",
+    "label": "AUTH/HELLO/protected state machine"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic off)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "ACL battery (atomic on)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "2.440000",
+    "label": "DEBUG toggle/reload battery"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "typed snapshot round-trip incl stream"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "9.170000",
+    "label": "plain-write lost updates (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "lbsignals battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "1.490000",
+    "label": "slowlog battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "atomfix battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "scriptatomic battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "14.470000",
+    "label": "execatomic battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "11.870000",
+    "label": "execiso battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "execfix battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.110000",
+    "label": "multires battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.750000",
+    "label": "multirace battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "30.510000",
+    "label": "session_monotonic battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.360000",
+    "label": "xacct battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "0.270000",
+    "label": "xmove battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "1.860000",
+    "label": "xscript battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "2.490000",
+    "label": "txn_nx battery (atomic 0)"
+  },
+  {
+    "job": "debug-0",
+    "verdict": "ok",
+    "elapsed": "8.760000",
+    "label": "txniso battery (atomic 0)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "6.160000",
+    "label": "plain-write lost updates (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "lbsignals battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "1.490000",
+    "label": "slowlog battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "atomfix battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "scriptatomic battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "14.460000",
+    "label": "execatomic battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "11.870000",
+    "label": "execiso battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "execfix battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.110000",
+    "label": "multires battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.750000",
+    "label": "multirace battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "30.510000",
+    "label": "session_monotonic battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.360000",
+    "label": "xacct battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "0.270000",
+    "label": "xmove battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "1.870000",
+    "label": "xscript battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "2.470000",
+    "label": "txn_nx battery (atomic 1)"
+  },
+  {
+    "job": "debug-1",
+    "verdict": "ok",
+    "elapsed": "8.820000",
+    "label": "txniso battery (atomic 1)"
+  },
+  {
+    "job": "differ-armed-1",
+    "verdict": "ok",
+    "elapsed": "527.760000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+  },
+  {
+    "job": "differ-equivalence",
+    "verdict": "ok",
+    "elapsed": "22.070000",
+    "label": "mode equivalence part (all execution modes and knobs)"
+  },
+  {
+    "job": "differ-split-1",
+    "verdict": "ok",
+    "elapsed": "532.610000",
+    "label": "Redis 7.4 differential part (split, atomic 1)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.140000",
+    "label": "FLIP state battery"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.080000",
+    "label": "FLIP under verified load"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.540000",
+    "label": "FLIP TTL + expiry events"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.230000",
+    "label": "partial-frame conn parks (no io spin)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.230000",
+    "label": "FLIP close during FLIP (uring)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.200000",
+    "label": "FLIP close during FLIP (epoll)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.200000",
+    "label": "FLIP signal stop during FLIP + second SIGINT"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "perfio stale epoll registration (epoll-flip)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "5.190000",
+    "label": "perfio stale epoll registration (epoll-lb)"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "6.180000",
+    "label": "FLIP applies under saturated load"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "flip battery shutdown invariants"
+  },
+  {
+    "job": "flipctl",
+    "verdict": "ok",
+    "elapsed": "127.890000",
+    "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "wb_policy",
+    "verdict": "ok",
+    "elapsed": "5.970000",
+    "label": "writeback policies 0/1: 22 standard fixtures"
+  }
+]
