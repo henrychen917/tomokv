@@ -18,6 +18,7 @@ enum class WaitCommandResult : uint8_t { Error, Immediate, Unsatisfied };
 // defer the reply for timeout_ms (zero means forever); MULTI calls the ordinary handler and turns
 // the same result into its required immediate integer element.
 WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms);
+void server_tail_reply_wait(Op& op);
 
 // CONFIG subcommands owned by this file. Each returns false when `op` names a subcommand it does
 // not handle, leaving the caller's own dispatch (GET/SET) and error reply untouched.

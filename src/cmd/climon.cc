@@ -550,6 +550,23 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
     for (Client* c : self_->clients()) {
         if (!c || c->id() != id) continue;
         if (c->dead() || !c->blocked()) return false;
+        for (size_t i = 0; i < deferred_timers_.size(); ++i) {
+            const DeferredTimer timer = deferred_timers_[i];
+            if (timer.client != c || timer.kind != DeferredTimerKind::WaitZero) continue;
+            Op& waiting = c->rob().at(timer.op_id);
+            if (error_flavor)
+                reply_err(waiting.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
+            else server_tail_reply_wait(waiting);
+            waiting.state.store(OpState::Done, std::memory_order_release);
+            c->set_blocked(false);
+            c->set_last_interaction_s(cached_now_s_);
+            srv_->blocking_client_unparked();
+            deferred_timers_[i] = deferred_timers_.back();
+            deferred_timers_.pop_back();
+            enqueue_serve(c);
+            mark_active(c);
+            return true;
+        }
         if (!blocking_request_unblock(*c, error_flavor)) return false;
         if (blocking_cancel_client(*srv_, *self_, ring_, *c)) enqueue_serve(c);
         mark_active(c);
