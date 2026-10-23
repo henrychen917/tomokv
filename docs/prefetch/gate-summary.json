@@ -28,5 +28,8 @@
   "test_sources_changed": false,
   "early_selftest_port_exception": "Initial and first retry invocations omitted GATE_TEST_PORT; two socket-only fixtures used default ephemeral listener ports. TomoKV/Redis listeners stayed in the lane range.",
   "gates_test_final_command": "GATE_TEST_PORT=23898 TMPDIR=\"$PWD/build/prefetch/selftest-tmp\" taskset -c 89-95 python3 tests/gates_test.py",
-  "gates_test_final_status": "running"
+  "gates_test_final_status": "passed",
+  "gates_test_final_exit": 0,
+  "gates_test_final_tests": 70,
+  "gates_test_final_seconds": 378.153
 }
