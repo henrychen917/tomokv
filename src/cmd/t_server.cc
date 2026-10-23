@@ -818,9 +818,9 @@ void cmd_auth(Shard&, Op& op) {
 void cmd_hello(Shard&, Op& op) {
     uint32_t next = 1;
     const bool has_version = op.argc() >= 2;
-    uint64_t version = g_client && g_client->resp3() ? 3 : 2;
+    int64_t version = g_client && g_client->resp3() ? 3 : 2;
     if (has_version) {
-        if (!parse_u64(op.arg(next++), version)) {
+        if (!cfg_parse_integer(op.arg(next++), version)) {
             reply_err(op.sink(), "ERR Protocol version is not an integer or out of range");
             return;
         }

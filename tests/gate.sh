@@ -1121,7 +1121,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -2962,6 +2962,15 @@ job_serverfix_config(){
       --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-config" \
       >"$TMPDIR/serverfix-config.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/serverfix-config.log"
+}
+
+job_serverfix_hello(){
+  local label="serverfix SV4.7 HELLO canonical protocol"
+  row_begin "$label"
+  py tests/serverfix_hello.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-hello" \
+      >"$TMPDIR/serverfix-hello.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-hello.log"
 }
 
 job_authfix(){
@@ -4882,6 +4891,7 @@ collect_job authfix
 collect_job serverfix_lines
 collect_job serverfix_scalar
 collect_job serverfix_config
+collect_job serverfix_hello
 
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 
