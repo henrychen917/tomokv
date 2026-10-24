@@ -1,0 +1,346 @@
+{
+  "directed": {
+    "POST": {
+      "receipt": "final-post-gate.log",
+      "cases": {
+        "mkstream": {
+          "legs": 24,
+          "passed": 24,
+          "oracle_legs": 24,
+          "names": [
+            "mkstream-db1-1s-epoll-a0-rl0.log",
+            "mkstream-db1-1s-epoll-a0-rl1.log",
+            "mkstream-db1-1s-epoll-a1-rl0.log",
+            "mkstream-db1-1s-epoll-a1-rl1.log",
+            "mkstream-db1-1s-uring-a0-rl0.log",
+            "mkstream-db1-1s-uring-a0-rl1.log",
+            "mkstream-db1-1s-uring-a1-rl0.log",
+            "mkstream-db1-1s-uring-a1-rl1.log",
+            "mkstream-db1-2s-epoll-a0-rl0.log",
+            "mkstream-db1-2s-epoll-a1-rl0.log",
+            "mkstream-db1-2s-uring-a0-rl0.log",
+            "mkstream-db1-2s-uring-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl1.log",
+            "mkstream-db16-1s-epoll-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a1-rl1.log",
+            "mkstream-db16-1s-uring-a0-rl0.log",
+            "mkstream-db16-1s-uring-a0-rl1.log",
+            "mkstream-db16-1s-uring-a1-rl0.log",
+            "mkstream-db16-1s-uring-a1-rl1.log",
+            "mkstream-db16-2s-epoll-a0-rl0.log",
+            "mkstream-db16-2s-epoll-a1-rl0.log",
+            "mkstream-db16-2s-uring-a0-rl0.log",
+            "mkstream-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "registry": {
+          "legs": 24,
+          "passed": 24,
+          "oracle_legs": 24,
+          "names": [
+            "registry-db1-1s-epoll-a0-rl0.log",
+            "registry-db1-1s-epoll-a0-rl1.log",
+            "registry-db1-1s-epoll-a1-rl0.log",
+            "registry-db1-1s-epoll-a1-rl1.log",
+            "registry-db1-1s-uring-a0-rl0.log",
+            "registry-db1-1s-uring-a0-rl1.log",
+            "registry-db1-1s-uring-a1-rl0.log",
+            "registry-db1-1s-uring-a1-rl1.log",
+            "registry-db1-2s-epoll-a0-rl0.log",
+            "registry-db1-2s-epoll-a1-rl0.log",
+            "registry-db1-2s-uring-a0-rl0.log",
+            "registry-db1-2s-uring-a1-rl0.log",
+            "registry-db16-1s-epoll-a0-rl0.log",
+            "registry-db16-1s-epoll-a0-rl1.log",
+            "registry-db16-1s-epoll-a1-rl0.log",
+            "registry-db16-1s-epoll-a1-rl1.log",
+            "registry-db16-1s-uring-a0-rl0.log",
+            "registry-db16-1s-uring-a0-rl1.log",
+            "registry-db16-1s-uring-a1-rl0.log",
+            "registry-db16-1s-uring-a1-rl1.log",
+            "registry-db16-2s-epoll-a0-rl0.log",
+            "registry-db16-2s-epoll-a1-rl0.log",
+            "registry-db16-2s-uring-a0-rl0.log",
+            "registry-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "structure": {
+          "legs": 24,
+          "passed": 24,
+          "oracle_legs": 24,
+          "names": [
+            "structure-db1-1s-epoll-a0-rl0.log",
+            "structure-db1-1s-epoll-a0-rl1.log",
+            "structure-db1-1s-epoll-a1-rl0.log",
+            "structure-db1-1s-epoll-a1-rl1.log",
+            "structure-db1-1s-uring-a0-rl0.log",
+            "structure-db1-1s-uring-a0-rl1.log",
+            "structure-db1-1s-uring-a1-rl0.log",
+            "structure-db1-1s-uring-a1-rl1.log",
+            "structure-db1-2s-epoll-a0-rl0.log",
+            "structure-db1-2s-epoll-a1-rl0.log",
+            "structure-db1-2s-uring-a0-rl0.log",
+            "structure-db1-2s-uring-a1-rl0.log",
+            "structure-db16-1s-epoll-a0-rl0.log",
+            "structure-db16-1s-epoll-a0-rl1.log",
+            "structure-db16-1s-epoll-a1-rl0.log",
+            "structure-db16-1s-epoll-a1-rl1.log",
+            "structure-db16-1s-uring-a0-rl0.log",
+            "structure-db16-1s-uring-a0-rl1.log",
+            "structure-db16-1s-uring-a1-rl0.log",
+            "structure-db16-1s-uring-a1-rl1.log",
+            "structure-db16-2s-epoll-a0-rl0.log",
+            "structure-db16-2s-epoll-a1-rl0.log",
+            "structure-db16-2s-uring-a0-rl0.log",
+            "structure-db16-2s-uring-a1-rl0.log"
+          ]
+        }
+      }
+    },
+    "PRE": {
+      "receipt": "reserved-pre-directed-gate.log",
+      "cases": {
+        "mkstream": {
+          "legs": 24,
+          "passed": 0,
+          "oracle_legs": 24,
+          "names": [
+            "mkstream-db1-1s-epoll-a0-rl0.log",
+            "mkstream-db1-1s-epoll-a0-rl1.log",
+            "mkstream-db1-1s-epoll-a1-rl0.log",
+            "mkstream-db1-1s-epoll-a1-rl1.log",
+            "mkstream-db1-1s-uring-a0-rl0.log",
+            "mkstream-db1-1s-uring-a0-rl1.log",
+            "mkstream-db1-1s-uring-a1-rl0.log",
+            "mkstream-db1-1s-uring-a1-rl1.log",
+            "mkstream-db1-2s-epoll-a0-rl0.log",
+            "mkstream-db1-2s-epoll-a1-rl0.log",
+            "mkstream-db1-2s-uring-a0-rl0.log",
+            "mkstream-db1-2s-uring-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl1.log",
+            "mkstream-db16-1s-epoll-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a1-rl1.log",
+            "mkstream-db16-1s-uring-a0-rl0.log",
+            "mkstream-db16-1s-uring-a0-rl1.log",
+            "mkstream-db16-1s-uring-a1-rl0.log",
+            "mkstream-db16-1s-uring-a1-rl1.log",
+            "mkstream-db16-2s-epoll-a0-rl0.log",
+            "mkstream-db16-2s-epoll-a1-rl0.log",
+            "mkstream-db16-2s-uring-a0-rl0.log",
+            "mkstream-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "registry": {
+          "legs": 24,
+          "passed": 24,
+          "oracle_legs": 24,
+          "names": [
+            "registry-db1-1s-epoll-a0-rl0.log",
+            "registry-db1-1s-epoll-a0-rl1.log",
+            "registry-db1-1s-epoll-a1-rl0.log",
+            "registry-db1-1s-epoll-a1-rl1.log",
+            "registry-db1-1s-uring-a0-rl0.log",
+            "registry-db1-1s-uring-a0-rl1.log",
+            "registry-db1-1s-uring-a1-rl0.log",
+            "registry-db1-1s-uring-a1-rl1.log",
+            "registry-db1-2s-epoll-a0-rl0.log",
+            "registry-db1-2s-epoll-a1-rl0.log",
+            "registry-db1-2s-uring-a0-rl0.log",
+            "registry-db1-2s-uring-a1-rl0.log",
+            "registry-db16-1s-epoll-a0-rl0.log",
+            "registry-db16-1s-epoll-a0-rl1.log",
+            "registry-db16-1s-epoll-a1-rl0.log",
+            "registry-db16-1s-epoll-a1-rl1.log",
+            "registry-db16-1s-uring-a0-rl0.log",
+            "registry-db16-1s-uring-a0-rl1.log",
+            "registry-db16-1s-uring-a1-rl0.log",
+            "registry-db16-1s-uring-a1-rl1.log",
+            "registry-db16-2s-epoll-a0-rl0.log",
+            "registry-db16-2s-epoll-a1-rl0.log",
+            "registry-db16-2s-uring-a0-rl0.log",
+            "registry-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "structure": {
+          "legs": 24,
+          "passed": 0,
+          "oracle_legs": 24,
+          "names": [
+            "structure-db1-1s-epoll-a0-rl0.log",
+            "structure-db1-1s-epoll-a0-rl1.log",
+            "structure-db1-1s-epoll-a1-rl0.log",
+            "structure-db1-1s-epoll-a1-rl1.log",
+            "structure-db1-1s-uring-a0-rl0.log",
+            "structure-db1-1s-uring-a0-rl1.log",
+            "structure-db1-1s-uring-a1-rl0.log",
+            "structure-db1-1s-uring-a1-rl1.log",
+            "structure-db1-2s-epoll-a0-rl0.log",
+            "structure-db1-2s-epoll-a1-rl0.log",
+            "structure-db1-2s-uring-a0-rl0.log",
+            "structure-db1-2s-uring-a1-rl0.log",
+            "structure-db16-1s-epoll-a0-rl0.log",
+            "structure-db16-1s-epoll-a0-rl1.log",
+            "structure-db16-1s-epoll-a1-rl0.log",
+            "structure-db16-1s-epoll-a1-rl1.log",
+            "structure-db16-1s-uring-a0-rl0.log",
+            "structure-db16-1s-uring-a0-rl1.log",
+            "structure-db16-1s-uring-a1-rl0.log",
+            "structure-db16-1s-uring-a1-rl1.log",
+            "structure-db16-2s-epoll-a0-rl0.log",
+            "structure-db16-2s-epoll-a1-rl0.log",
+            "structure-db16-2s-uring-a0-rl0.log",
+            "structure-db16-2s-uring-a1-rl0.log"
+          ]
+        }
+      }
+    },
+    "PAD-A": {
+      "receipt": "final-pad-a-replay-gate.log",
+      "cases": {
+        "mkstream": {
+          "legs": 24,
+          "passed": 0,
+          "oracle_legs": 24,
+          "names": [
+            "mkstream-db1-1s-epoll-a0-rl0.log",
+            "mkstream-db1-1s-epoll-a0-rl1.log",
+            "mkstream-db1-1s-epoll-a1-rl0.log",
+            "mkstream-db1-1s-epoll-a1-rl1.log",
+            "mkstream-db1-1s-uring-a0-rl0.log",
+            "mkstream-db1-1s-uring-a0-rl1.log",
+            "mkstream-db1-1s-uring-a1-rl0.log",
+            "mkstream-db1-1s-uring-a1-rl1.log",
+            "mkstream-db1-2s-epoll-a0-rl0.log",
+            "mkstream-db1-2s-epoll-a1-rl0.log",
+            "mkstream-db1-2s-uring-a0-rl0.log",
+            "mkstream-db1-2s-uring-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl0.log",
+            "mkstream-db16-1s-epoll-a0-rl1.log",
+            "mkstream-db16-1s-epoll-a1-rl0.log",
+            "mkstream-db16-1s-epoll-a1-rl1.log",
+            "mkstream-db16-1s-uring-a0-rl0.log",
+            "mkstream-db16-1s-uring-a0-rl1.log",
+            "mkstream-db16-1s-uring-a1-rl0.log",
+            "mkstream-db16-1s-uring-a1-rl1.log",
+            "mkstream-db16-2s-epoll-a0-rl0.log",
+            "mkstream-db16-2s-epoll-a1-rl0.log",
+            "mkstream-db16-2s-uring-a0-rl0.log",
+            "mkstream-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "registry": {
+          "legs": 24,
+          "passed": 24,
+          "oracle_legs": 24,
+          "names": [
+            "registry-db1-1s-epoll-a0-rl0.log",
+            "registry-db1-1s-epoll-a0-rl1.log",
+            "registry-db1-1s-epoll-a1-rl0.log",
+            "registry-db1-1s-epoll-a1-rl1.log",
+            "registry-db1-1s-uring-a0-rl0.log",
+            "registry-db1-1s-uring-a0-rl1.log",
+            "registry-db1-1s-uring-a1-rl0.log",
+            "registry-db1-1s-uring-a1-rl1.log",
+            "registry-db1-2s-epoll-a0-rl0.log",
+            "registry-db1-2s-epoll-a1-rl0.log",
+            "registry-db1-2s-uring-a0-rl0.log",
+            "registry-db1-2s-uring-a1-rl0.log",
+            "registry-db16-1s-epoll-a0-rl0.log",
+            "registry-db16-1s-epoll-a0-rl1.log",
+            "registry-db16-1s-epoll-a1-rl0.log",
+            "registry-db16-1s-epoll-a1-rl1.log",
+            "registry-db16-1s-uring-a0-rl0.log",
+            "registry-db16-1s-uring-a0-rl1.log",
+            "registry-db16-1s-uring-a1-rl0.log",
+            "registry-db16-1s-uring-a1-rl1.log",
+            "registry-db16-2s-epoll-a0-rl0.log",
+            "registry-db16-2s-epoll-a1-rl0.log",
+            "registry-db16-2s-uring-a0-rl0.log",
+            "registry-db16-2s-uring-a1-rl0.log"
+          ]
+        },
+        "structure": {
+          "legs": 24,
+          "passed": 0,
+          "oracle_legs": 24,
+          "names": [
+            "structure-db1-1s-epoll-a0-rl0.log",
+            "structure-db1-1s-epoll-a0-rl1.log",
+            "structure-db1-1s-epoll-a1-rl0.log",
+            "structure-db1-1s-epoll-a1-rl1.log",
+            "structure-db1-1s-uring-a0-rl0.log",
+            "structure-db1-1s-uring-a0-rl1.log",
+            "structure-db1-1s-uring-a1-rl0.log",
+            "structure-db1-1s-uring-a1-rl1.log",
+            "structure-db1-2s-epoll-a0-rl0.log",
+            "structure-db1-2s-epoll-a1-rl0.log",
+            "structure-db1-2s-uring-a0-rl0.log",
+            "structure-db1-2s-uring-a1-rl0.log",
+            "structure-db16-1s-epoll-a0-rl0.log",
+            "structure-db16-1s-epoll-a0-rl1.log",
+            "structure-db16-1s-epoll-a1-rl0.log",
+            "structure-db16-1s-epoll-a1-rl1.log",
+            "structure-db16-1s-uring-a0-rl0.log",
+            "structure-db16-1s-uring-a0-rl1.log",
+            "structure-db16-1s-uring-a1-rl0.log",
+            "structure-db16-1s-uring-a1-rl1.log",
+            "structure-db16-2s-epoll-a0-rl0.log",
+            "structure-db16-2s-epoll-a1-rl0.log",
+            "structure-db16-2s-uring-a0-rl0.log",
+            "structure-db16-2s-uring-a1-rl0.log"
+          ]
+        }
+      }
+    }
+  },
+  "quiet_harness": {
+    "pre": {
+      "tests": 72,
+      "nested_tests": 14,
+      "rc": 0,
+      "log": "gates-test-quiet-pre.log"
+    },
+    "post": {
+      "tests": 72,
+      "nested_tests": 14,
+      "rc": 0,
+      "log": "gates-test-quiet-post.log"
+    }
+  },
+  "quiet_perfio": {
+    "pre": {
+      "rows": 3,
+      "failures": 0,
+      "receipt": "quiet-pre-perfio-gate.log"
+    },
+    "post": {
+      "rows": 3,
+      "failures": 0,
+      "receipt": "quiet-post-perfio-gate.log"
+    }
+  },
+  "standard_differentials": {
+    "legs": 3752,
+    "passed": 3727,
+    "reader_control_bind_errors": 25,
+    "full_matrix_ledgers": "red; focused replays are separate receipts"
+  },
+  "focused_climon": {
+    "invocations": 8,
+    "cases": 128,
+    "passed": 128,
+    "failed": 0,
+    "coverage_sidecars": 128,
+    "DIFF-TRK-1": "NOT OBSERVED"
+  },
+  "freshness_checks": 46,
+  "protected_counts": {
+    "DQ": 3,
+    "DF": 3,
+    "maintainer_EXPECT_QUICK": 771,
+    "maintainer_EXPECT_FULL": 788,
+    "constants_edited": false
+  }
+}

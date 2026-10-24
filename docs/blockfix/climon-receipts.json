@@ -1,0 +1,810 @@
+{
+  "climon-post-epoll-armed-fused": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-post-epoll-split": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-post-uring-armed-fused": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-post-uring-split": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-pre-epoll-armed-fused": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-pre-epoll-split": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-pre-uring-armed-fused": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  },
+  "climon-pre-uring-split": {
+    "expected": 16,
+    "cases": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 0,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 21,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 22,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 24,
+        "passed": true,
+        "has_coverage": true
+      },
+      {
+        "atomic": 1,
+        "seed": 25,
+        "passed": true,
+        "has_coverage": true
+      }
+    ]
+  }
+}

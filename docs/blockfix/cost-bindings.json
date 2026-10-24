@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "build/blockfix/PRE/tomokv": "fbb429d0a4f36bd7f3f6a3d14625af1f0e8c9017c1adf7ce1d8c6b32f1037394",
+    "build/blockfix/PRE/blockfix-cost": "ca8d05607d53920adfb1b6183424e1a25590fa82fb04134ff7048ca9d3b7065a",
+    "binding": "fbb429d0a4f36bd7f3f6a3d14625af1f0e8c9017c1adf7ce1d8c6b32f1037394  /home/user/Projects/cx-blockfix/build/blockfix/PRE/tomokv\nca8d05607d53920adfb1b6183424e1a25590fa82fb04134ff7048ca9d3b7065a  /home/user/Projects/cx-blockfix/build/blockfix/PRE/blockfix-cost\n"
+  },
+  "POST": {
+    "build/tomokv": "4fb4f41bdaaf92dbcaaa782e1462ee14bbd1566dfe1336a723fd4cd827ac2331",
+    "build/blockfix-cost": "dc01e0bc49fa5202b675d0a4ac0a5e53dd97432f4def97c7f5cce43e0eb3ecb9",
+    "binding": "4fb4f41bdaaf92dbcaaa782e1462ee14bbd1566dfe1336a723fd4cd827ac2331  /home/user/Projects/cx-blockfix/build/tomokv\ndc01e0bc49fa5202b675d0a4ac0a5e53dd97432f4def97c7f5cce43e0eb3ecb9  /home/user/Projects/cx-blockfix/build/blockfix-cost\n"
+  },
+  "PAD-A": {
+    "build/blockfix/PAD-A/tomokv": "47195ccce034613c8a1549d6a4333966d29eac7d7fe96b98d72692433083518a",
+    "build/blockfix/PAD-A/blockfix-cost": "ca8d05607d53920adfb1b6183424e1a25590fa82fb04134ff7048ca9d3b7065a",
+    "binding": "47195ccce034613c8a1549d6a4333966d29eac7d7fe96b98d72692433083518a  /home/user/Projects/cx-blockfix/build/blockfix/PAD-A/tomokv\nca8d05607d53920adfb1b6183424e1a25590fa82fb04134ff7048ca9d3b7065a  /home/user/Projects/cx-blockfix/build/blockfix/PAD-A/blockfix-cost\n"
+  }
+}

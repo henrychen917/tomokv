@@ -1,0 +1,32 @@
+DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix
+DIFFER suites (1): climon
+DIFFER geometry: armed-fused (--thread-mode fused --read-local 1 --net-io uring)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 21 22 23 24 25} legs=16 logs=/home/user/Projects/cx-blockfix/build/blockfix/climon/climon-post-uring-armed-fused
+  vanilla Redis oracle boot                                  ok (pid=1138645 port=37844)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=1138681 port=37843)
+  differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=24)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=25)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  read-local lane fired (atomic=0)                           ok (hits=411 fallbacks=0 at peak; final_hits=411 final_fallbacks=0)
+  target atomic=0 stop                                       ok (port 37843 free)
+  target atomic=1 boot                                       ok (pid=1327744 port=37843)
+  differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=24)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=25)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  read-local lane fired (atomic=1)                           ok (hits=411 fallbacks=0 at peak; final_hits=411 final_fallbacks=0)
+  target atomic=1 stop                                       ok (port 37843 free)
+  oracle stop                                                ok (port 37844 free)
+DIFFER COMMAND COVERAGE: diffed 1 of 245 registered commands (67232 recorded comparison witnesses, 16 legs)
+  not observed in compared replies/properties: ACL, APPEND, ASKING, AUTH, BGREWRITEAOF, BGSAVE, BITCOUNT, BITFIELD, BITFIELD_RO, BITOP, BITPOS, BLMOVE, BLMPOP, BLPOP, BRPOP, BRPOPLPUSH, BZMPOP, BZPOPMAX, BZPOPMIN, COMMAND, CONFIG, COPY, DBSIZE, DEBUG, DECR, DECRBY, DEL, DISCARD, DUMP, ECHO, EVAL, EVALSHA, EVALSHA_RO, EVAL_RO, EXEC, EXISTS, EXPIRE, EXPIREAT, EXPIRETIME, FAILOVER, FCALL, FCALL_RO, FLIP, FLUSHALL, FLUSHDB, FUNCTION, GEOADD, GEODIST, GEOHASH, GEOPOS, GEORADIUS, GEORADIUSBYMEMBER, GEORADIUSBYMEMBER_RO, GEORADIUS_RO, GEOSEARCH, GEOSEARCHSTORE, GET, GETBIT, GETDEL, GETEX, GETRANGE, GETSET, HDEL, HELLO, HEXISTS, HEXPIRE, HEXPIREAT, HEXPIRETIME, HGET, HGETALL, HINCRBY, HINCRBYFLOAT, HKEYS, HLEN, HMGET, HMSET, HPERSIST, HPEXPIRE, HPEXPIREAT, HPEXPIRETIME, HPTTL, HRANDFIELD, HSCAN, HSET, HSETNX, HSTRLEN, HTTL, HVALS, INCR, INCRBY, INCRBYFLOAT, INFO, KEYS, LASTSAVE, LATENCY, LCS, LINDEX, LINSERT, LLEN, LMOVE, LMPOP, LOLWUT, LPOP, LPOS, LPUSH, LPUSHX, LRANGE, LREM, LSET, LTRIM, MEMORY, MGET, MONITOR, MOVE, MSET, MSETNX, MULTI, OBJECT, PERSIST, PEXPIRE, PEXPIREAT, PEXPIRETIME, PFADD, PFCOUNT, PFDEBUG, PFMERGE, PFSELFTEST, PING, PSETEX, PSUBSCRIBE, PTTL, PUBLISH, PUBSUB, PUNSUBSCRIBE, QUIT, RANDOMKEY, READONLY, READWRITE, RENAME, RENAMENX, REPLICAOF, RESET, RESTORE, RESTORE-ASKING, ROLE, RPOP, RPOPLPUSH, RPUSH, RPUSHX, SADD, SAVE, SCAN, SCARD, SCRIPT, SDIFF, SDIFFSTORE, SELECT, SET, SETBIT, SETEX, SETNX, SETRANGE, SHUTDOWN, SINTER, SINTERCARD, SINTERSTORE, SISMEMBER, SLAVEOF, SLOWLOG, SMEMBERS, SMISMEMBER, SMOVE, SORT, SORT_RO, SPOP, SPUBLISH, SRANDMEMBER, SREM, SSCAN, SSUBSCRIBE, STRLEN, SUBSCRIBE, SUBSTR, SUNION, SUNIONSTORE, SUNSUBSCRIBE, SWAPDB, TIME, TOUCH, TTL, TYPE, UNLINK, UNSUBSCRIBE, UNWATCH, WAIT, WAITAOF, WATCH, XACK, XADD, XAUTOCLAIM, XCLAIM, XDEL, XGROUP, XINFO, XLEN, XPENDING, XRANGE, XREAD, XREADGROUP, XREVRANGE, XSETID, XTRIM, ZADD, ZCARD, ZCOUNT, ZDIFF, ZDIFFSTORE, ZINCRBY, ZINTER, ZINTERCARD, ZINTERSTORE, ZLEXCOUNT, ZMPOP, ZMSCORE, ZPOPMAX, ZPOPMIN, ZRANDMEMBER, ZRANGE, ZRANGEBYLEX, ZRANGEBYSCORE, ZRANGESTORE, ZRANK, ZREM, ZREMRANGEBYLEX, ZREMRANGEBYRANK, ZREMRANGEBYSCORE, ZREVRANGE, ZREVRANGEBYLEX, ZREVRANGEBYSCORE, ZREVRANK, ZSCAN, ZSCORE, ZUNION, ZUNIONSTORE
+DIFFER FOCUSED PROOF: pass=18 fail=0 runtime=19m05s

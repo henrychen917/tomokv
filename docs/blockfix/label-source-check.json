@@ -1,0 +1,25 @@
+{
+  "source": 788,
+  "fixture": 788,
+  "missing": [],
+  "extra": [],
+  "new_rows": [
+    [
+      5222,
+      "collect_job blockfix_registry"
+    ],
+    [
+      5223,
+      "collect_job blockfix_mkstream"
+    ],
+    [
+      5224,
+      "collect_job blockfix_structure"
+    ]
+  ],
+  "quick_exit_line": 5375,
+  "DQ": 3,
+  "DF": 3,
+  "maintainer_EXPECT_QUICK": 771,
+  "maintainer_EXPECT_FULL": 788
+}

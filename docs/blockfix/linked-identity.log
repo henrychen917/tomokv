@@ -1,0 +1,5 @@
+normalizer self-checks PASS
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-blockfix/tests/reorder_noop.py", line 523, in <module>
+    raise ValueError(f'expected {args.expected_functions} PRE bodies, found {len(rows)}')
+ValueError: expected 169 PRE bodies, found 340

@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "build/blockfix/PRE/tomokv",
+    "text_bytes": 8217911,
+    "sha256": "fbb429d0a4f36bd7f3f6a3d14625af1f0e8c9017c1adf7ce1d8c6b32f1037394"
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "text_bytes": 8225335,
+    "sha256": "4fb4f41bdaaf92dbcaaa782e1462ee14bbd1566dfe1336a723fd4cd827ac2331"
+  },
+  "PAD-A": {
+    "path": "build/blockfix/PAD-A/tomokv",
+    "text_bytes": 8225335,
+    "sha256": "4052a92b2f24070f2622a343d500b8dd436fa704af2c7d43ccc896bbb11ae900"
+  }
+}
