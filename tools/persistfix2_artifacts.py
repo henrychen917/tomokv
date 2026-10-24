@@ -121,9 +121,27 @@ def build_control():
 
 def identity():
     # Reuse both existing normalizers without altering their comparisons.
-    (WORK / 'pre/tomokv').symlink_to('../../tomokv-persistfix2-pre') if not (WORK / 'pre/tomokv').exists() else None
-    result = subprocess.run([sys.executable, 'tools/psfix_artifacts.py', str(WORK / 'pre'),
-                             'build', str(DOCS / 'object-identity')], cwd=ROOT,
+    # Unit builds share build/; audit exactly every object in the production link
+    # recipe, including both database runtimes, rather than instrumented test copies.
+    objects = [Path(word).relative_to('build') for word in link_command(recipes())
+               if word.startswith('build/') and word.endswith('.o')]
+    roots = []
+    for arm, source in (('pre', WORK / 'pre'), ('post', ROOT / 'build')):
+        target = WORK / ('identity-objects-' + arm)
+        target.mkdir(parents=True, exist_ok=True)
+        for relative in objects + [Path('tomokv')]:
+            original = (source / relative).resolve(strict=True)
+            link = target / relative
+            link.parent.mkdir(parents=True, exist_ok=True)
+            if not link.exists(): link.symlink_to(original)
+            assert link.resolve() == original
+        assert {p.relative_to(target) for p in target.rglob('*.o')} == set(objects)
+        roots.append(target)
+    (DOCS / 'identity-object-inventory.json').write_text(json.dumps(
+        dict(source='make -Bn all production link recipe', objects=list(map(str, objects))),
+        indent=2) + '\n')
+    result = subprocess.run([sys.executable, 'tools/psfix_artifacts.py', *map(str, roots),
+                             str(DOCS / 'object-identity')], cwd=ROOT,
                             stdout=(WORK / 'object-identity.log').open('w'), stderr=subprocess.STDOUT)
     print('Object audit exit (identity is diagnostic):', result.returncode)
     hot = (ROOT / 'tools/serverfix_hot_identity.py').read_text().replace(
