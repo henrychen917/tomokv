@@ -1,0 +1,222 @@
+[
+  {
+    "target": "all",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/at15-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/flushfix-units",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/lbplanner-units",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "mdbqsbr-live-arms",
+    "exit": 0,
+    "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source'\nmake[1]: Leaving directory '/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source'\nmake[1]: Leaving directory '/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source'\n"
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/moverfix-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/netcap-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/netcmd-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/persistfix-units",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/publishfix-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-migration",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/rltopo-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/shutdown-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/storesize-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-episodes",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-episodes-debug",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-wake-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-watch-db0-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/txnorder-watch-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/waits-unit",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/wb-rule-units",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "target": "build/wbland-units",
+    "exit": 0,
+    "output": ""
+  }
+]

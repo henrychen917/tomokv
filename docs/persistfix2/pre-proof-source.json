@@ -10,5 +10,8 @@
     "tests/dispatch_arity.py",
     "tests/dispatch_errors.py",
     "tests/router_uniform.py"
-  ]
+  ],
+  "object_root_physical": "build/persistfix2/pre-proof-source/build",
+  "object_root_alias": "build/persistfix2/pre",
+  "historical_objects": "Read-only alternates to the parent repository object store"
 }
