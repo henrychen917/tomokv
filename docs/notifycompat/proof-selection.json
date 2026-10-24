@@ -1,0 +1,113 @@
+[
+  {
+    "receipt": "pre-r3-directed"
+  },
+  {
+    "receipt": "post-r3-directed"
+  },
+  {
+    "receipt": "pad-a-directed"
+  },
+  {
+    "receipt": "pre-r2-notify-epoll-1s"
+  },
+  {
+    "receipt": "pre-r2-notify-epoll-2s"
+  },
+  {
+    "receipt": "pre-r2-notify-uring-1s"
+  },
+  {
+    "receipt": "pre-r2-notify-uring-2s"
+  },
+  {
+    "receipt": "post-notify-epoll-1s"
+  },
+  {
+    "receipt": "post-notify-epoll-2s"
+  },
+  {
+    "receipt": "post-r2-notify-uring-1s"
+  },
+  {
+    "receipt": "post-notify-uring-2s"
+  },
+  {
+    "receipt": "pre-related-jobs"
+  },
+  {
+    "receipt": "post-r2-related-jobs",
+    "jobs": [
+      "aof-epoll",
+      "aof-uring",
+      "climonfix",
+      "clientfix",
+      "racefix_climon",
+      "atomic_units",
+      "netcmd_units",
+      "ntnew4_live"
+    ]
+  },
+  {
+    "receipt": "post-r3-related-failed"
+  },
+  {
+    "receipt": "pre-feature-epoll"
+  },
+  {
+    "receipt": "pre-differ-epoll"
+  },
+  {
+    "receipt": "pre-feature-uring"
+  },
+  {
+    "receipt": "pre-differ-uring"
+  },
+  {
+    "receipt": "pre-persistfix-units"
+  },
+  {
+    "receipt": "post-r2-feature-epoll"
+  },
+  {
+    "receipt": "post-differ-epoll"
+  },
+  {
+    "receipt": "post-feature-uring"
+  },
+  {
+    "receipt": "post-differ-uring"
+  },
+  {
+    "receipt": "post-persistfix-units"
+  },
+  {
+    "receipt": "pre-r2-search-jobs",
+    "jobs": [
+      "bplus",
+      "perfex_live",
+      "flip",
+      "netfix_config",
+      "respresume-cpu-1s-epoll",
+      "respresume-cpu-1s-uring",
+      "respresume-cpu-2s-epoll",
+      "respresume-cpu-2s-uring",
+      "respresume-neighbour-1s-epoll",
+      "respresume-neighbour-1s-uring",
+      "respresume-neighbour-2s-epoll",
+      "respresume-neighbour-2s-uring"
+    ]
+  },
+  {
+    "receipt": "pre-r3-search-fragment"
+  },
+  {
+    "receipt": "pre-r2-search-epoll"
+  },
+  {
+    "receipt": "post-search-jobs"
+  },
+  {
+    "receipt": "post-r2-search-epoll"
+  }
+]

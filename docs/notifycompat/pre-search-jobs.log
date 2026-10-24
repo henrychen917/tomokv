@@ -1,0 +1,317 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu
+PARTIAL jobs (including prerequisites): release production_units respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring perfex_live netfix_config bplus flip
+PARTIAL jobs (including prerequisites): release production_units respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring perfex_live netfix_config bplus flip
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=14.53s; correctness-plan-fallback; RESP resumable fragment (1s, epoll)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-epoll/gate-srv-fused.6ZfBRo:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable fragment (1s, epoll)                  FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-epoll/respresume-fragment.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-epoll/gate-srv-fused.6ZfBRo)
+  row budget: 900s; median=14.82s; correctness-plan-fallback; RESP resumable fragment (1s, uring)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-uring/gate-srv-fused.3hHFjQ:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable fragment (1s, uring)                  FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-uring/respresume-fragment.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-1s-uring/gate-srv-fused.3hHFjQ)
+  row budget: 900s; median=14.48s; correctness-plan-fallback; RESP resumable fragment (2s, epoll)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-epoll/gate-srv-main.9c4rWr:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable fragment (2s, epoll)                  FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-epoll/respresume-fragment.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-epoll/gate-srv-main.9c4rWr)
+  row budget: 900s; median=14.42s; correctness-plan-fallback; RESP resumable fragment (2s, uring)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-uring/gate-srv-main.q4ovWd:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable fragment (2s, uring)                  FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-uring/respresume-fragment.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-fragment-2s-uring/gate-srv-main.q4ovWd)
+  row budget: 900s; median=2.6s; correctness-plan-fallback; RESP resumable cpu (1s, epoll)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-epoll/gate-srv-fused.8oGJEz:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable cpu (1s, epoll)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-epoll/respresume-cpu.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-epoll/gate-srv-fused.8oGJEz)
+  row budget: 900s; median=2.61s; correctness-plan-fallback; RESP resumable cpu (1s, uring)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-uring/gate-srv-fused.VG0mQi:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable cpu (1s, uring)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-uring/respresume-cpu.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-1s-uring/gate-srv-fused.VG0mQi)
+  row budget: 900s; median=2.6s; correctness-plan-fallback; RESP resumable cpu (2s, epoll)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-epoll/gate-srv-main.hg6Cqd:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable cpu (2s, epoll)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-epoll/respresume-cpu.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-epoll/gate-srv-main.hg6Cqd)
+  row budget: 900s; median=2.61s; correctness-plan-fallback; RESP resumable cpu (2s, uring)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-uring/gate-srv-main.dFy4Wd:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable cpu (2s, uring)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-uring/respresume-cpu.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-cpu-2s-uring/gate-srv-main.dFy4Wd)
+  row budget: 900s; median=0.79s; correctness-plan-fallback; RESP resumable neighbour (1s, epoll)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-epoll/gate-srv-fused.SMkppH:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable neighbour (1s, epoll)                 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-epoll/respresume-neighbour.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-epoll/gate-srv-fused.SMkppH)
+  row budget: 900s; median=0.79s; correctness-plan-fallback; RESP resumable neighbour (1s, uring)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-uring/gate-srv-fused.U0ihmO:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=1, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  RESP resumable neighbour (1s, uring)                 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-uring/respresume-neighbour.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-1s-uring/gate-srv-fused.U0ihmO)
+  row budget: 900s; median=0.78s; correctness-plan-fallback; RESP resumable neighbour (2s, epoll)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-epoll/gate-srv-main.UvxRFl:
+GATE|   --net-io epoll: using syscall persistence (no io_uring ring)
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable neighbour (2s, epoll)                 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-epoll/respresume-neighbour.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-epoll/gate-srv-main.UvxRFl)
+  row budget: 900s; median=0.79s; correctness-plan-fallback; RESP resumable neighbour (2s, uring)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-uring/gate-srv-main.2HPqj1:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  RESP resumable neighbour (2s, uring)                 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-uring/respresume-neighbour.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/respresume-neighbour-2s-uring/gate-srv-main.2HPqj1)
+  row budget: 900s; median=15.275s; correctness-plan-fallback; perfex TTL sampler beat (1s)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/gate-srv-fused.wzEtXY:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  perfex TTL sampler beat (1s)                         FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/perfex-sampler-1s.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/gate-srv-fused.wzEtXY)
+  row budget: 900s; median=15.255s; correctness-plan-fallback; perfex TTL sampler beat (2s)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/gate-srv-main.VNYDHH:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  perfex TTL sampler beat (2s)                         FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/perfex-sampler-2s.log and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/perfex_live/gate-srv-main.VNYDHH)
+  row budget: 900s; median=2.16s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/netfix_config/proof.log)
+GATE: boot (fused) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-srv-fused.xtxQoT:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+GATE|     thread t0: role=unified cpu=48 L3=0 shards=2 send=self
+GATE|     thread t1: role=unified cpu=49 L3=0 shards=2 send=self
+GATE|     thread t2: role=unified cpu=50 L3=0 shards=2 send=self
+GATE|     thread t3: role=unified cpu=51 L3=0 shards=2 send=self
+GATE|     thread t4: role=unified cpu=52 L3=0 shards=2 send=self
+GATE|     thread t5: role=unified cpu=53 L3=0 shards=2 send=self
+GATE|     thread t6: role=unified cpu=54 L3=0 shards=2 send=self
+GATE|     thread t7: role=unified cpu=55 L3=0 shards=2 send=self
+GATE|   bind: Address already in use
+  B+ read-local purpose boot                           FAIL
+  row budget: 900s; median=2.14s; correctness-plan-fallback; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-bplus.txt)
+  row budget: 900s; median=0.14s; correctness-plan-fallback; read-local lane admission battery
+  read-local lane admission battery                    FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-read-local-lane.txt)
+  row budget: 900s; median=0.03s; correctness-plan-fallback; read-local MGET fence battery (1s)
+  read-local MGET fence battery (1s)                   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfence-1s.txt)
+  row budget: 900s; median=1.9s; correctness-plan-fallback; read-local GET miss battery (1s)
+  read-local GET miss battery (1s)                     FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfix-miss-1s.txt)
+  row budget: 900s; median=0.04s; correctness-plan-fallback; read-local one-key delete battery (1s)
+  read-local one-key delete battery (1s)               FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfix-del-1s.txt)
+  row budget: 900s; median=0.285s; correctness-plan-fallback; read-local MGET fence battery (2s)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-srv-main.iQGxjJ:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, reorder=0, read-local=1, io_uring, alloc=jemalloc
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0 read-local=1
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0 read-local=1
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0 read-local=1
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0 read-local=1
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0 read-local=1
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0 read-local=1
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8 read-local=0
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8 read-local=0
+GATE|   bind: Address already in use
+  read-local MGET fence battery (2s)                   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfence-2s.txt and /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-srv-main.iQGxjJ)
+  row budget: 900s; median=1.89s; correctness-plan-fallback; read-local GET miss battery (2s)
+  read-local GET miss battery (2s)                     FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfix-miss-2s.txt)
+  row budget: 900s; median=0.05s; correctness-plan-fallback; read-local one-key delete battery (2s)
+  read-local one-key delete battery (2s)               FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/bplus/gate-rlfix-del-2s.txt)
+GATE: boot (main) exited before it listened -- last 25 lines of /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-srv-main.3KZM2J:
+GATE|   TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+GATE|   topology: 1 L3 domain(s)
+GATE|     domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+GATE|   tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+GATE|     thread t0: role=ifid cpu=48 L3=0 shards=0
+GATE|     thread t1: role=ifid cpu=49 L3=0 shards=0
+GATE|     thread t2: role=ifid cpu=50 L3=0 shards=0
+GATE|     thread t3: role=ifid cpu=51 L3=0 shards=0
+GATE|     thread t4: role=ifid cpu=52 L3=0 shards=0
+GATE|     thread t5: role=ifid cpu=53 L3=0 shards=0
+GATE|     thread t6: role=ex cpu=54 L3=0 shards=8
+GATE|     thread t7: role=ex cpu=55 L3=0 shards=8
+GATE|   bind: Address already in use
+  flip battery boot                                    FAIL
+  row budget: 900s; median=0.15s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flip.txt)
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flip-load.txt)
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flip-ttl.txt)
+  row budget: 900s; median=2.23s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-spinprobe.txt)
+  row budget: 900s; median=2.2s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flipfix-{close,churn}-uring.txt)
+  row budget: 900s; median=2.135s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flipfix-{close,churn}-epoll.txt)
+  row budget: 900s; median=1.18s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/gate-flipfix-sig*-*.txt)
+  row budget: 900s; median=0.54s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/perfio-epoll-flip.log)
+  row budget: 900s; median=9.21s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.mxMCVu/jobs/flip/perfio-epoll-lb.log)
+GATE(PARTIAL): 1 ok, 34 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-notifycompat/docs/notifycompat/pre-search-jobs.ledger.partial

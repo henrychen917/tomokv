@@ -1,0 +1,234 @@
+PARTIAL	0	GATE_ONLY_JOBS=notify_order notify_aof trackfix_order trackfix_accounting aof-epoll aof-uring aof_frame aoforder climonfix clientfix racefix_climon atomic_units netcmd_units compat2 compat3 hexpread ntnew4_live readonly; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	0	AOF purpose boot (epoll, atomic 0)
+FAIL	0.100000	configuration reduction + actual geometry (epoll, atomic 0)
+FAIL	0.100000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+FAIL	0.100000	AOF writer fired (records=N)
+FAIL	0	AOF replay boot (epoll, atomic 0)
+FAIL	0.100000	AOF process-restart script replay (epoll, atomic 0)
+FAIL	0.100000	AOF native snapshot streams byte-exact
+FAIL	0.010000	AOF replay fired (records=N skipped=N)
+FAIL	0	AOF purpose boot (epoll, atomic 1)
+FAIL	0.090000	configuration reduction + actual geometry (epoll, atomic 1)
+FAIL	0.100000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+FAIL	0.100000	AOF writer fired (records=N)
+FAIL	0	AOF replay boot (epoll, atomic 1)
+FAIL	0.100000	AOF process-restart script replay (epoll, atomic 1)
+FAIL	0.090000	AOF native snapshot streams byte-exact
+FAIL	0.010000	AOF replay fired (records=N skipped=N)
+FAIL	0	AOF group purpose boot (epoll)
+FAIL	0.090000	AOF directed group interruption fired
+FAIL	0	AOF group recovery boot (epoll)
+FAIL	0.090000	AOF atomic-group recovery + writer order
+FAIL	0.020000	AOF group shutdown invariants
+FAIL	0	AOF always purpose boot (epoll)
+FAIL	0.100000	AOF always sync + reply gate fired
+FAIL	0	AOF always recovery boot (epoll)
+FAIL	0.090000	AOF always recovery after quiescent SIGKILL
+FAIL	0.120000	AOF in-window kill recovery (2s, epoll)
+FAIL	0.120000	AOF in-window term recovery (2s, epoll)
+FAIL	0.120000	AOF in-window kill recovery (1s, epoll)
+FAIL	0.110000	AOF in-window term recovery (1s, epoll)
+FAIL	0.340000	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+FAIL	0.340000	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+FAIL	0.330000	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+FAIL	0.340000	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+FAIL	0	AOF everysec purpose boot (epoll)
+FAIL	0.090000	AOF everysec write gate + idle sync fired
+FAIL	0	AOF everysec recovery boot (epoll)
+FAIL	0.090000	AOF everysec durability window + tail warning
+FAIL	0	AOF no-sync purpose boot (epoll)
+FAIL	0.090000	AOF no-sync bypassed sync + reply gate
+FAIL	0.160000	AOF rewrite atomic/stage/corruption matrix
+FAIL	0.160000	AOF rewrite triggers + observability matrix
+FAIL	0	AOF-off negative-control boot
+FAIL	0.010000	AOF-off negative-control seed landed
+FAIL	0	AOF-off negative-control reboot
+FAIL	0.010000	AOF-off negative control lost data
+FAIL	0.230000	aoffix2 snapshot (1s, epoll)
+FAIL	0.230000	aoffix2 filename (1s, epoll)
+FAIL	0.220000	aoffix2 error (1s, epoll)
+FAIL	0.220000	aoffix2 tickets (1s, epoll)
+FAIL	0.230000	aoffix2 exec_tickets (1s, epoll)
+FAIL	0.220000	aoffix2 resurrection (1s, epoll)
+FAIL	0.230000	aoffix2 rewrite_fail2 (1s, epoll)
+FAIL	0.220000	aoffix2 manifest_missing (1s, epoll)
+FAIL	0.290000	aoffix2 off-writer acknowledgement everysec (1s, epoll)
+FAIL	0.280000	aoffix2 off-writer acknowledgement always (1s, epoll)
+FAIL	0.230000	aoffix2 snapshot (2s, epoll)
+FAIL	0.230000	aoffix2 filename (2s, epoll)
+FAIL	0.230000	aoffix2 error (2s, epoll)
+FAIL	0.230000	aoffix2 tickets (2s, epoll)
+FAIL	0.220000	aoffix2 exec_tickets (2s, epoll)
+FAIL	0.230000	aoffix2 resurrection (2s, epoll)
+FAIL	0.220000	aoffix2 rewrite_fail2 (2s, epoll)
+FAIL	0.230000	aoffix2 manifest_missing (2s, epoll)
+FAIL	0.280000	aoffix2 off-writer acknowledgement everysec (2s, epoll)
+FAIL	0.280000	aoffix2 off-writer acknowledgement always (2s, epoll)
+FAIL	0.220000	aoffix2 large (1s, epoll)
+FAIL	0.230000	aoffix2 large_placed (1s, epoll)
+FAIL	0	AOF purpose boot (uring, atomic 0)
+FAIL	0.090000	configuration reduction + actual geometry (uring, atomic 0)
+FAIL	0.100000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+FAIL	0.110000	AOF writer fired (records=N)
+FAIL	0	AOF replay boot (uring, atomic 0)
+FAIL	0.100000	AOF process-restart script replay (uring, atomic 0)
+FAIL	0.090000	AOF native snapshot streams byte-exact
+FAIL	0.010000	AOF replay fired (records=N skipped=N)
+FAIL	0	AOF purpose boot (uring, atomic 1)
+FAIL	0.100000	configuration reduction + actual geometry (uring, atomic 1)
+FAIL	0.110000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+FAIL	0.100000	AOF writer fired (records=N)
+FAIL	0	AOF replay boot (uring, atomic 1)
+FAIL	0.100000	AOF process-restart script replay (uring, atomic 1)
+FAIL	0.100000	AOF native snapshot streams byte-exact
+FAIL	0.010000	AOF replay fired (records=N skipped=N)
+FAIL	0	AOF group purpose boot (uring)
+FAIL	0.090000	AOF directed group interruption fired
+FAIL	0	AOF group recovery boot (uring)
+FAIL	0.100000	AOF atomic-group recovery + writer order
+FAIL	0.020000	AOF group shutdown invariants
+FAIL	0	AOF always purpose boot (uring)
+FAIL	0.090000	AOF always sync + reply gate fired
+FAIL	0	AOF always recovery boot (uring)
+FAIL	0.090000	AOF always recovery after quiescent SIGKILL
+FAIL	0.160000	AOF in-window kill recovery (2s, uring)
+FAIL	0.180000	AOF in-window term recovery (2s, uring)
+FAIL	0.170000	AOF in-window kill recovery (1s, uring)
+FAIL	0.190000	AOF in-window term recovery (1s, uring)
+FAIL	0.380000	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)
+FAIL	0.410000	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)
+FAIL	0.390000	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)
+FAIL	0.380000	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)
+FAIL	0	AOF everysec purpose boot (uring)
+FAIL	0.090000	AOF everysec write gate + idle sync fired
+FAIL	0	AOF everysec recovery boot (uring)
+FAIL	0.100000	AOF everysec durability window + tail warning
+FAIL	0	AOF no-sync purpose boot (uring)
+FAIL	0.100000	AOF no-sync bypassed sync + reply gate
+FAIL	0.170000	AOF rewrite atomic/stage/corruption matrix
+FAIL	0.160000	AOF rewrite triggers + observability matrix
+FAIL	0	AOF-off negative-control boot
+FAIL	0.010000	AOF-off negative-control seed landed
+FAIL	0	AOF-off negative-control reboot
+FAIL	0.010000	AOF-off negative control lost data
+FAIL	0.250000	aoffix2 snapshot (1s, uring)
+FAIL	0.250000	aoffix2 filename (1s, uring)
+FAIL	0.240000	aoffix2 error (1s, uring)
+FAIL	0.240000	aoffix2 tickets (1s, uring)
+FAIL	0.240000	aoffix2 exec_tickets (1s, uring)
+FAIL	0.240000	aoffix2 resurrection (1s, uring)
+FAIL	0.240000	aoffix2 rewrite_fail2 (1s, uring)
+FAIL	0.240000	aoffix2 manifest_missing (1s, uring)
+FAIL	0.290000	aoffix2 off-writer acknowledgement everysec (1s, uring)
+FAIL	0.300000	aoffix2 off-writer acknowledgement always (1s, uring)
+FAIL	0.240000	aoffix2 snapshot (2s, uring)
+FAIL	0.230000	aoffix2 filename (2s, uring)
+FAIL	0.240000	aoffix2 error (2s, uring)
+FAIL	0.240000	aoffix2 tickets (2s, uring)
+FAIL	0.240000	aoffix2 exec_tickets (2s, uring)
+FAIL	0.230000	aoffix2 resurrection (2s, uring)
+FAIL	0.240000	aoffix2 rewrite_fail2 (2s, uring)
+FAIL	0.240000	aoffix2 manifest_missing (2s, uring)
+FAIL	0.300000	aoffix2 off-writer acknowledgement everysec (2s, uring)
+FAIL	0.300000	aoffix2 off-writer acknowledgement always (2s, uring)
+FAIL	0.240000	aoffix2 large (1s, uring)
+FAIL	0.240000	aoffix2 large_placed (1s, uring)
+ok	0.030000	shutdown policy + signal handoff serverless
+FAIL	0.120000	shutdown persistence (1s, command)
+FAIL	0.110000	shutdown persistence (1s, sigterm)
+FAIL	0.110000	shutdown persistence (1s, sigint)
+FAIL	0.120000	shutdown persistence (2s, command)
+FAIL	0.120000	shutdown persistence (2s, sigterm)
+FAIL	0.110000	shutdown persistence (2s, sigint)
+FAIL	0.220000	clientfix tracking-cap (1s)
+FAIL	0.210000	clientfix tracking-pipeline (1s)
+FAIL	0.100000	clientfix reply-skip (1s)
+FAIL	0.110000	clientfix pattern-cleanup (1s)
+FAIL	0.100000	clientfix pause-deadline (1s)
+FAIL	0.100000	clientfix geo-count (1s)
+FAIL	0.100000	clientfix geo-store (1s)
+FAIL	0.220000	clientfix tracking-cap (2s)
+FAIL	0.240000	clientfix tracking-pipeline (2s)
+FAIL	0.100000	clientfix reply-skip (2s)
+FAIL	0.100000	clientfix pattern-cleanup (2s)
+FAIL	0.100000	clientfix pause-deadline (2s)
+FAIL	0.110000	clientfix geo-count (2s)
+FAIL	0.100000	clientfix geo-store (2s)
+FAIL	1.530000	Climon armed refresh + stale-store suppression control
+FAIL	0.350000	NT-new-4 command clock after dequeue (2s)
+FAIL	0.350000	NT-new-4 command clock after dequeue (1s)
+FAIL	0.350000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.180000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.410000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	11.490000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.080000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.000000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.000000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.000000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.000000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.000000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.000000	encodingfix knob
+ok	0.000000	encodingfix precedence
+ok	0.020000	NET1 serverless bounds + scan + reclamation
+FAIL	1.270000	read-only resize split read-local=0
+FAIL	1.260000	read-only resize split read-local=1
+FAIL	1.260000	read-only resize fused read-local=0
+FAIL	1.260000	read-only resize fused read-local=1
+FAIL	0.470000	hexpread torn (1s)
+FAIL	0.450000	hexpread replies (1s)
+FAIL	0.450000	hexpread deferred (1s)
+FAIL	0.480000	hexpread OBJECT expiry (1s)
+FAIL	0.460000	hexpread torn (2s)
+FAIL	0.460000	hexpread replies (2s)
+FAIL	0.450000	hexpread deferred (2s)
+FAIL	0.460000	hexpread OBJECT expiry (2s)
+FAIL	0.520000	compat2 autharity
+FAIL	0.510000	compat2 expire_notify
+FAIL	1.680000	compat2 ktls_lifetime
+ok	33.450000	compat3 CC4.12 pubsub vs Redis 7.4
+FAIL	31.630000	compat3 CC4.13 pending vs Redis 7.4
+FAIL	30.410000	compat3 CC4.14 history vs Redis 7.4
+FAIL	30.730000	compat3 CC4.16 grammar vs Redis 7.4
+FAIL	30.410000	compat3 CC4.5 glob vs Redis 7.4
+FAIL	30.390000	compat3 CC4.17 flags vs Redis 7.4
+ok	65.650000	keyspace lazy-expiry order vs Redis 7.4
+ok	11.950000	local script notification AOF vs Redis 7.4
+ok	54.830000	tracking-only delivery/drop accounting vs Redis 7.4
+ok	218.990000	tracking delayed-write order vs Redis 7.4
+ok	0.320000	AOF control frame never inside a large record (atomic 0)
+ok	0.350000	AOF control frame never inside a large record (atomic 1)
+ok	9.490000	AOF commit order single
+ok	4.270000	AOF commit order crossing
+ok	4.500000	AOF commit order rewrite

@@ -68,7 +68,7 @@ def main():
         print('REUSED completed gate receipt: ' + str(previous), flush=True)
         return
     band = next(low for low, high in ((32800, 32839), (32840, 32859),
-                                     (32860, 32879), (32890, 32899))
+                                     (32860, 32879), (32880, 32889), (32890, 32899))
                 if low <= first <= last <= high)
     port_lock = (ROOT / 'build/notifycompat' / f'ports-{band}.lock').open('w')
     fcntl.flock(port_lock, fcntl.LOCK_EX)

@@ -1,0 +1,21 @@
+PARTIAL	0	GATE_ONLY_JOBS=bplus perfex_live flip; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	15.290000	perfex TTL sampler beat (1s)
+ok	15.260000	perfex TTL sampler beat (2s)
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.030000	read-local MGET fence battery (1s)
+ok	1.900000	read-local GET miss battery (1s)
+ok	0.040000	read-local one-key delete battery (1s)
+ok	0.290000	read-local MGET fence battery (2s)
+ok	1.890000	read-local GET miss battery (2s)
+ok	0.050000	read-local one-key delete battery (2s)
+ok	0.150000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.230000	FLIP close during FLIP (uring)
+ok	2.140000	FLIP close during FLIP (epoll)
+FAIL	0.840000	FLIP signal stop during FLIP + second SIGINT
+FAIL	0.120000	perfio stale epoll registration (epoll-flip)
+FAIL	0.120000	perfio stale epoll registration (epoll-lb)

@@ -141,7 +141,8 @@ mdbqsbr live arms, is inventoried in `production-targets.json`; final build and
 `make -q` receipts are in `production-final.json`: build exit 0 and all 44 checks
 (`all`, 42 file targets, and the recursive mdbqsbr target) returned 0. Required layout assertions remain enabled.
 
-The source-accurate xshard IPA growth is +2531/+2526 instructions by namespace.
+The xshard IPA growth is +2531/+2526 GCC estimated instructions by namespace
+(compiler accounting, not measured runtime instructions/op).
 Bounded compile-only trials select budgets 144904/143890. The classifier and
 numeric observer avoid adding callers to hot parser helpers. All selected clean
 GET/SET bodies are identical. **The broader GET/SET/MGET/MSET routing audit is
@@ -149,7 +150,8 @@ not fully identical: 58/67 bodies match.** Shared xshard_execute and its cold/
 scan helpers change, and DB0 xshard_prepare still differs (18724→18665 bytes;
 cold 578→558). The normal-namespace prepare and the local MGET routing helpers
 match. `identity-selected.json` names every difference. The full ccfix inventory
-has 18,206 bodies, 17,549 identical, 657 changed; 1296/1322 classified hot bodies
+in `docs/notifycompat/identity/summary.json` has 18,206 bodies,
+17,549 identical, 657 changed; 1296/1322 classified hot bodies
 match. Both identity tools return their expected nonzero mismatch verdicts.
 These are explicit merit risks, not performance conclusions or reasons to skip
 correctness proof. Per-commit diagnostics and all budget trials are retained.

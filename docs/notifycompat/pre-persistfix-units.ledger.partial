@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=persistfix_units; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.050000	AOF publication/shutdown witnesses + negative controls

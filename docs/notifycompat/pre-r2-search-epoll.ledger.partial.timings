@@ -1,0 +1,20 @@
+ok	0.000000	release build (+footprint locks)
+ok	15.260000	perfex TTL sampler beat (1s)
+ok	15.260000	perfex TTL sampler beat (2s)
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.030000	read-local MGET fence battery (1s)
+ok	1.900000	read-local GET miss battery (1s)
+ok	0.050000	read-local one-key delete battery (1s)
+ok	0.280000	read-local MGET fence battery (2s)
+ok	1.900000	read-local GET miss battery (2s)
+ok	0.050000	read-local one-key delete battery (2s)
+ok	0.140000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.500000	FLIP TTL + expiry events
+ok	4.430000	partial-frame conn parks (no io spin)
+ok	2.310000	FLIP close during FLIP (uring)
+ok	2.280000	FLIP close during FLIP (epoll)
+ok	1.310000	FLIP signal stop during FLIP + second SIGINT
+ok	0.560000	perfio stale epoll registration (epoll-flip)
+ok	23.230000	perfio stale epoll registration (epoll-lb)
