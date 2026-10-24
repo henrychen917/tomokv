@@ -1,0 +1,18 @@
+[
+  {
+    "file": "src/core/ex_loop.h",
+    "patch_result_equals_delete_source": true,
+    "delete_sha256": "902880cb693ac9e9f93c871a6c516f134b0036edbaafc3c2ee179b4dc9c16ca4",
+    "merged_sha256": "d0ab0f7e128c36439100d814e40202da773fc71cf9ac0e817761ecda0d595316",
+    "whole_file_equal": false,
+    "reason": "Merged execfair/serverfix and integration changes retained; only prefetch projection can be identical."
+  },
+  {
+    "file": "src/core/reorder.cc",
+    "patch_result_equals_delete_source": true,
+    "delete_sha256": "1f8c284914781e8af815065ca63c770af8fae20e15fbe334f5f9508d84ee1b22",
+    "merged_sha256": "221d3ddd84c0ea2628665ceeb4b7189ef0587ea3f82988e55d6013a9290e663c",
+    "whole_file_equal": false,
+    "reason": "Merged execfair/serverfix and integration changes retained; only prefetch projection can be identical."
+  }
+]

@@ -1,13 +1,154 @@
 {
-  "declared": 785,
+  "expected_unchanged": [
+    "EXPECT_QUICK=739",
+    "EXPECT_FULL=756"
+  ],
+  "source_quick": 768,
+  "source_full": 785,
   "fixture": 785,
-  "missing_before": {
-    "dispatchfix EX4.10 container outer arity": 1,
-    "dispatchfix EX4.11 container errors": 1,
-    "dispatchfix EX4.4 advertised children": 1,
-    "dispatchfix CC4.15 ACL subcommand grants": 1,
-    "dispatchfix EX4.17 uniform routing and legacy recovery": 1
-  },
-  "delta_quick": 29,
-  "delta_full": 29
+  "missing": {},
+  "extra": {},
+  "quick_exit_line": 5324,
+  "lane_collections": [
+    {
+      "job": "execfair",
+      "rows": 1,
+      "line": 5225,
+      "before_quick_exit": true
+    },
+    {
+      "job": "notifycompat",
+      "rows": 7,
+      "line": 5255,
+      "before_quick_exit": true
+    },
+    {
+      "job": "tracking_redirect",
+      "rows": 1,
+      "line": 5256,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_lines",
+      "rows": 1,
+      "line": 5239,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_scalar",
+      "rows": 1,
+      "line": 5240,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_config",
+      "rows": 1,
+      "line": 5241,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_hello",
+      "rows": 1,
+      "line": 5242,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_waitaof",
+      "rows": 1,
+      "line": 5243,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_hll",
+      "rows": 1,
+      "line": 5244,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_slowlog",
+      "rows": 1,
+      "line": 5245,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_acllog",
+      "rows": 1,
+      "line": 5246,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_arity",
+      "rows": 1,
+      "line": 5178,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_errors",
+      "rows": 1,
+      "line": 5179,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_children",
+      "rows": 1,
+      "line": 5180,
+      "before_quick_exit": true
+    },
+    {
+      "job": "acl_subcommands",
+      "rows": 1,
+      "line": 5181,
+      "before_quick_exit": true
+    },
+    {
+      "job": "router_uniform",
+      "rows": 1,
+      "line": 5182,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_geo",
+      "rows": 1,
+      "line": 5215,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_spop",
+      "rows": 1,
+      "line": 5216,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_lists",
+      "rows": 1,
+      "line": 5217,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_locale",
+      "rows": 1,
+      "line": 5218,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_bitfield",
+      "rows": 1,
+      "line": 5219,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_hexpire",
+      "rows": 1,
+      "line": 5221,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_randscan",
+      "rows": 1,
+      "line": 5220,
+      "before_quick_exit": true
+    }
+  ],
+  "DQ": 29,
+  "DF": 29
 }

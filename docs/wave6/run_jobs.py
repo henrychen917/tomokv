@@ -19,6 +19,7 @@ p.add_argument('--fused', action='store_true')
 p.add_argument('--atomic', choices=['0', '1'], default='1')
 p.add_argument('--root', type=Path, default=ROOT)
 p.add_argument('--adapter', action='store_true')
+p.add_argument('--selftest', action='store_true', help='one gate slot; 24 CPUs for scheduler self-tests')
 a = p.parse_args()
 out = ROOT / 'docs/wave6/correctness' / a.name
 out.mkdir(parents=True, exist_ok=False)
@@ -46,8 +47,8 @@ if a.adapter:
     if a.fused:
         env['WAVE6_MODE'] = '1s'
 command = ['taskset', '-c', '64-95', 'bash', 'tests/gate.sh', 'full',
-           '--server-cores', '64-87', '--server-smt', '',
-           '--load-cores', '88-95', '--load-smt', '',
+           '--server-cores', '64-71' if a.selftest else '64-87', '--server-smt', '',
+           '--load-cores', '72-95' if a.selftest else '88-95', '--load-smt', '',
            '--ports', '26800-26889', '--candidate-binary', str(candidate)]
 receipt = dict(command=command, cwd=str(source), start=time.time(),
                commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
