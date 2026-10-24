@@ -1,0 +1,29 @@
+{
+  "PRE": {
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "sections": {
+      ".tdata": {
+        "size": 224,
+        "alignment": 16
+      },
+      ".tbss": {
+        "size": 480,
+        "alignment": 16
+      }
+    }
+  },
+  "POST": {
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "sections": {
+      ".tdata": {
+        "size": 224,
+        "alignment": 16
+      },
+      ".tbss": {
+        "size": 480,
+        "alignment": 16
+      }
+    }
+  },
+  "size_and_alignment_equal": true
+}

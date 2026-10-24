@@ -1,0 +1,6 @@
+{
+  "path": "build/serverfix/identity/changed-bodies.json.gz",
+  "sha256": "e64c59910cd4b51d90df5cf24ab24d9e3dc17d01a8ec61934e4bb54a17421fa5",
+  "bytes": 2641282,
+  "reason_retained_locally": "Full normalized instruction diffs are retained beside the frozen binaries; every changed body name, size and reason is committed in changed-bodies.md."
+}

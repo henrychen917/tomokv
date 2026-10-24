@@ -1,0 +1,100 @@
+{
+  "removed": [
+    {
+      "path": "build/serverfix/pad-source",
+      "bytes": 42275837,
+      "reason": "Archived PRE source/unit proof completed; final three arms are retained separately."
+    },
+    {
+      "path": "build/serverfix/pad-objects",
+      "bytes": 12045983845,
+      "reason": "Archived PRE source/unit proof completed; final three arms are retained separately."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-epoll/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135372658,
+      "sha256": "aa92664731d8f129e087cae8041b24447a37875274a29c5a0e2086646df25af6",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-epoll/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135417276,
+      "sha256": "ad2508d4c5d39326bf6fb0b3d6da13aee403c9ee1c3cf177ce54dbc3d1d39ba7",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-epoll/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135373885,
+      "sha256": "d4ab3de04794cef649529bff1e765fdef3f0f60f6448b220ac0c13dc8f7905d4",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-epoll/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135418845,
+      "sha256": "2a148924f0de3b5f28b7cc361f1677ac1cc6a1daf8f467e11e0c28c8d4ef948e",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-uring/savefix-rewrite-1s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135367480,
+      "sha256": "a68328e6169fd8e08b01325a7248d5b32209d72c8aab0f64289853a08137ae26",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-uring/savefix-rewrite-1s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135411528,
+      "sha256": "ecab52c8be67a8ff0c101aa033815de8d208aebdb3be90e39464d59adb75caab",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-uring/savefix-rewrite-2s-0/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135368419,
+      "sha256": "f40d9dc3ff665f26f5b83aef714da723502febc0c567b09ca307bbec26ef73d3",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/aof-uring/savefix-rewrite-2s-1/attempt-1/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 135419400,
+      "sha256": "dca9cd7715ee81bf25e4a4eeeecad635dadaec2f2c6749df481f2a31aab383b1",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_engagement/db0/fifo-twin",
+      "bytes": 196307952,
+      "sha256": "6968b7f9d3dbaec93998141602570355b6b2564fe8a53da38cb816abd6cb14c5",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_engagement/multi/fifo-twin",
+      "bytes": 102577568,
+      "sha256": "0aa142ed52e7f779f3beaec8a67fa77b146d99ecbd1e4994635de94a9be4334c",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 208574288,
+      "sha256": "7799b4ef98a11b8d8d6925d95e462aaebdf34b4ec557307f304b42ad0931b7c4",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_identity/receipt/identity/fifo-twin.7799b4ef98a1.objdump",
+      "bytes": 126098865,
+      "sha256": "db652adfc2b3bb27ba6f575b6fd84acf972317db04f97559ac62520098ce8831",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_identity/receipt/identity/tomokv.c0b527316c39.objdump",
+      "bytes": 126098816,
+      "sha256": "fd2ff247f047008ce0bd5b17cd0c15e31c711bfcea6221852d22d74ef9070880",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    },
+    {
+      "path": "build/gate-run.lc0r60/jobs/reorder_identity/receipt/negative/tomokv.c0b527316c39.objdump",
+      "bytes": 126098816,
+      "sha256": "fd2ff247f047008ce0bd5b17cd0c15e31c711bfcea6221852d22d74ef9070880",
+      "reason": "Disposable correctness data/image/disassembly; archived receipts retain the verdicts and identities."
+    }
+  ],
+  "reclaimed_bytes": 14057165478,
+  "retained": "PRE, POST, PAD-A, required POST unit products, proof receipts and full serverfix normalized instruction diffs"
+}

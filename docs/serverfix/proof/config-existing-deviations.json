@@ -1,0 +1,1024 @@
+{
+  "description": "Existing boot-only controls are exercised with ERR and retained-value assertions; their full oracle differences are explicit, not claimed compatible. No live reconfiguration feature was added for them.",
+  "candidate_sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+  "pre_sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "parameters": [
+    "appendonly",
+    "bind",
+    "hll-sparse-max-bytes",
+    "port",
+    "tls-auth-clients",
+    "tls-ca-cert-dir",
+    "tls-ca-cert-file",
+    "tls-cert-file",
+    "tls-ciphers",
+    "tls-ciphersuites",
+    "tls-key-file",
+    "tls-port",
+    "tls-prefer-server-ciphers",
+    "tls-protocols",
+    "tracking-table-max-keys"
+  ],
+  "native_without_oracle": [
+    "atomic",
+    "client-lb",
+    "flip-auto",
+    "hash-max-compact-entries",
+    "hash-max-compact-value",
+    "key-lb",
+    "key-lb-damping",
+    "net-io",
+    "read-local",
+    "reorder",
+    "thread-mode",
+    "wb-complete-visits",
+    "wb-policy",
+    "wb-small-pipe",
+    "zc-min",
+    "zset-max-compact-entries",
+    "zset-max-compact-value"
+  ],
+  "case_differences": {
+    "appendonly:valid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "appendonly:invalid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - argument must be 'yes' or 'no'"
+      }
+    },
+    "appendonly:invalid-uppercase": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'APPENDONLY') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - argument must be 'yes' or 'no'"
+      }
+    },
+    "appendonly:duplicate": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'APPENDONLY') - duplicate parameter"
+      }
+    },
+    "appendonly:atomic-tail": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "appendonly:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "bind:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "bind:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "bind:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'BIND') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'BIND') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "bind:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'BIND') - duplicate parameter"
+      }
+    },
+    "bind:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "bind:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'bind') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "hll-sparse-max-bytes:valid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "hll-sparse-max-bytes:invalid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - argument must be a memory value"
+      }
+    },
+    "hll-sparse-max-bytes:invalid-uppercase": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'HLL-SPARSE-MAX-BYTES') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - argument must be a memory value"
+      }
+    },
+    "hll-sparse-max-bytes:duplicate": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'HLL-SPARSE-MAX-BYTES') - duplicate parameter"
+      }
+    },
+    "hll-sparse-max-bytes:atomic-tail": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "hll-sparse-max-bytes:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'hll-sparse-max-bytes') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "port:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "port:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - argument couldn't be parsed into an integer"
+      }
+    },
+    "port:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'PORT') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'PORT') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - argument couldn't be parsed into an integer"
+      }
+    },
+    "port:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'PORT') - duplicate parameter"
+      }
+    },
+    "port:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "port:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-auth-clients:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-auth-clients:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - argument(s) must be one of the following: no, yes, optional"
+      }
+    },
+    "tls-auth-clients:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-AUTH-CLIENTS') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-AUTH-CLIENTS') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - argument(s) must be one of the following: no, yes, optional"
+      }
+    },
+    "tls-auth-clients:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-AUTH-CLIENTS') - duplicate parameter"
+      }
+    },
+    "tls-auth-clients:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-auth-clients:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-auth-clients') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-dir:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-ca-cert-dir:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-dir:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-DIR') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-DIR') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-dir:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-DIR') - duplicate parameter"
+      }
+    },
+    "tls-ca-cert-dir:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-dir:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-dir') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-file:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-ca-cert-file:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-file:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-FILE') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-FILE') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-file:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CA-CERT-FILE') - duplicate parameter"
+      }
+    },
+    "tls-ca-cert-file:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ca-cert-file:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ca-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-cert-file:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-cert-file:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-cert-file:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CERT-FILE') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CERT-FILE') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-cert-file:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CERT-FILE') - duplicate parameter"
+      }
+    },
+    "tls-cert-file:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-cert-file:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-cert-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphers:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-ciphers:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphers:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERS') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERS') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphers:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERS') - duplicate parameter"
+      }
+    },
+    "tls-ciphers:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphers:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphersuites:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-ciphersuites:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphersuites:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERSUITES') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERSUITES') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphersuites:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-CIPHERSUITES') - duplicate parameter"
+      }
+    },
+    "tls-ciphersuites:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-ciphersuites:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-ciphersuites') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-key-file:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-key-file:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-key-file:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-KEY-FILE') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-KEY-FILE') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-key-file:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-KEY-FILE') - duplicate parameter"
+      }
+    },
+    "tls-key-file:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-key-file:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-key-file') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-port:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-port:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-port:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PORT') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PORT') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-port:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PORT') - duplicate parameter"
+      }
+    },
+    "tls-port:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-port:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-port') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-prefer-server-ciphers:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-prefer-server-ciphers:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - argument must be 'yes' or 'no'"
+      }
+    },
+    "tls-prefer-server-ciphers:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PREFER-SERVER-CIPHERS') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PREFER-SERVER-CIPHERS') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - argument must be 'yes' or 'no'"
+      }
+    },
+    "tls-prefer-server-ciphers:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PREFER-SERVER-CIPHERS') - duplicate parameter"
+      }
+    },
+    "tls-prefer-server-ciphers:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-prefer-server-ciphers:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-prefer-server-ciphers') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-protocols:valid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tls-protocols:invalid": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-protocols:invalid-uppercase": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PROTOCOLS') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PROTOCOLS') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-protocols:duplicate": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TLS-PROTOCOLS') - duplicate parameter"
+      }
+    },
+    "tls-protocols:atomic-tail": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tls-protocols:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tls-protocols') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tracking-table-max-keys:valid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+      },
+      "oracle": "OK"
+    },
+    "tracking-table-max-keys:invalid": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tracking-table-max-keys:invalid-uppercase": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TRACKING-TABLE-MAX-KEYS') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tracking-table-max-keys:duplicate": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'TRACKING-TABLE-MAX-KEYS') - duplicate parameter"
+      }
+    },
+    "tracking-table-max-keys:atomic-tail": {
+      "pre": {
+        "error": "ERR parameter is immutable at runtime"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    },
+    "tracking-table-max-keys:atomic-head": {
+      "pre": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      },
+      "post": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config"
+      },
+      "oracle": {
+        "error": "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"
+      }
+    }
+  },
+  "geometry_consistency": {
+    "PRE": {
+      "legs": [
+        "1s-uring",
+        "1s-epoll",
+        "2s-uring",
+        "2s-epoll"
+      ],
+      "all_case_replies_identical_across_legs": true
+    },
+    "POST": {
+      "legs": [
+        "1s-uring",
+        "1s-epoll",
+        "2s-uring",
+        "2s-epoll"
+      ],
+      "all_case_replies_identical_across_legs": true
+    }
+  }
+}

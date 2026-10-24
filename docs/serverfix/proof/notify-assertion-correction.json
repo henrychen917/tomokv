@@ -1,0 +1,13 @@
+{
+  "candidate_sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+  "original_gate_summary": "435 ok, 1 FAIL",
+  "job": "notify",
+  "failure": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-serverfix/tests/notify.py\", line 207, in <module>\n    raise AssertionError(f\"bad flag {bad!r} accepted: {result!r}\")\nAssertionError: bad flag 'Qz' accepted: RespError(\"ERR CONFIG SET failed (possibly related to argument 'notify-keyspace-events') - Invalid event class character. Use 'Ag$lshzxeKEtmdn'.\")\n",
+  "old_assertion_blob": "b987308e22267e185a688b1a99d7fd97c1386036",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "oracle_receipt": "post-directed.tar.gz: gate-run.cfu4RC/jobs/serverfix_config/serverfix-config/oracle/results.json",
+  "oracle_reply": {
+    "error": "ERR CONFIG SET failed (possibly related to argument 'notify-keyspace-events') - Invalid event class character. Use 'Ag$lshzxeKEtmdn'."
+  },
+  "resolution": "Compare the exact Redis error and defer only diagnostic mismatches until both unchanged atomic notification legs finish. The CONFIG row additionally probes all nine invalid flags against Redis."
+}

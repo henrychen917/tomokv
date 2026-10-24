@@ -1,0 +1,498 @@
+[
+  {
+    "arm": "POST",
+    "feature": "slowlog",
+    "leg": "1s-uring",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24456,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 25064,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 25216,
+        "feature_live_bytes": 2900,
+        "feature_allocations": 20
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23604,
+      "off_clients_rss_kib": 24160,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "slowlog",
+    "leg": "1s-epoll",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20460,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 21120,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 21252,
+        "feature_live_bytes": 2900,
+        "feature_allocations": 20
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19636,
+      "off_clients_rss_kib": 20148,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "slowlog",
+    "leg": "2s-uring",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 23972,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 24448,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 24636,
+        "feature_live_bytes": 2900,
+        "feature_allocations": 20
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23236,
+      "off_clients_rss_kib": 23704,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "slowlog",
+    "leg": "2s-epoll",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 19804,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 20372,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 20500,
+        "feature_live_bytes": 2900,
+        "feature_allocations": 20
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 18916,
+      "off_clients_rss_kib": 19424,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "acllog",
+    "leg": "1s-uring",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24352,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 25076,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 25316,
+        "feature_live_bytes": 4736,
+        "feature_allocations": 67
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23616,
+      "off_clients_rss_kib": 24312,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "acllog",
+    "leg": "1s-epoll",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20480,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 21220,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 21400,
+        "feature_live_bytes": 4736,
+        "feature_allocations": 67
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19340,
+      "off_clients_rss_kib": 20040,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "acllog",
+    "leg": "2s-uring",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 23860,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 24472,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 24596,
+        "feature_live_bytes": 3552,
+        "feature_allocations": 57
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23188,
+      "off_clients_rss_kib": 23772,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "POST",
+    "feature": "acllog",
+    "leg": "2s-epoll",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 19720,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "off-clients": {
+        "rss_kib": 20336,
+        "feature_live_bytes": 0,
+        "feature_allocations": 0
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 20540,
+        "feature_live_bytes": 3552,
+        "feature_allocations": 57
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 18968,
+      "off_clients_rss_kib": 19560,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "slowlog",
+    "leg": "1s-uring",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24864,
+        "feature_live_bytes": 145512,
+        "feature_allocations": 515
+      },
+      "off-clients": {
+        "rss_kib": 25548,
+        "feature_live_bytes": 149760,
+        "feature_allocations": 602
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 25656,
+        "feature_live_bytes": 151124,
+        "feature_allocations": 614
+      }
+    },
+    "per_client_feature_bytes": 177.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23828,
+      "off_clients_rss_kib": 24452,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "slowlog",
+    "leg": "1s-epoll",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20892,
+        "feature_live_bytes": 145512,
+        "feature_allocations": 515
+      },
+      "off-clients": {
+        "rss_kib": 21576,
+        "feature_live_bytes": 149760,
+        "feature_allocations": 602
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 21728,
+        "feature_live_bytes": 151124,
+        "feature_allocations": 614
+      }
+    },
+    "per_client_feature_bytes": 177.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19500,
+      "off_clients_rss_kib": 20136,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "slowlog",
+    "leg": "2s-uring",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24284,
+        "feature_live_bytes": 145512,
+        "feature_allocations": 515
+      },
+      "off-clients": {
+        "rss_kib": 24792,
+        "feature_live_bytes": 149760,
+        "feature_allocations": 602
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 24896,
+        "feature_live_bytes": 151124,
+        "feature_allocations": 614
+      }
+    },
+    "per_client_feature_bytes": 177.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23412,
+      "off_clients_rss_kib": 23904,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "slowlog",
+    "leg": "2s-epoll",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20216,
+        "feature_live_bytes": 145512,
+        "feature_allocations": 515
+      },
+      "off-clients": {
+        "rss_kib": 20744,
+        "feature_live_bytes": 149760,
+        "feature_allocations": 602
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 20900,
+        "feature_live_bytes": 151124,
+        "feature_allocations": 614
+      }
+    },
+    "per_client_feature_bytes": 177.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19396,
+      "off_clients_rss_kib": 19900,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "acllog",
+    "leg": "1s-uring",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24872,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "off-clients": {
+        "rss_kib": 25700,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 25840,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 555
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23772,
+      "off_clients_rss_kib": 24568,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "acllog",
+    "leg": "1s-epoll",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20820,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "off-clients": {
+        "rss_kib": 21648,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 21792,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 555
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19744,
+      "off_clients_rss_kib": 20528,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "acllog",
+    "leg": "2s-uring",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 24536,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "off-clients": {
+        "rss_kib": 25224,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 25336,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 551
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 23240,
+      "off_clients_rss_kib": 23916,
+      "allocation_tracer_loaded": false
+    }
+  },
+  {
+    "arm": "PRE",
+    "feature": "acllog",
+    "leg": "2s-epoll",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "clients": 24,
+    "snapshots": {
+      "off-boot": {
+        "rss_kib": 20220,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "off-clients": {
+        "rss_kib": 20920,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 512
+      },
+      "enabled-then-disabled": {
+        "rss_kib": 21032,
+        "feature_live_bytes": 120832,
+        "feature_allocations": 551
+      }
+    },
+    "per_client_feature_bytes": 0.0,
+    "rss_uninstrumented": {
+      "clients": 24,
+      "off_boot_rss_kib": 19076,
+      "off_clients_rss_kib": 19692,
+      "allocation_tracer_loaded": false
+    }
+  }
+]

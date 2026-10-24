@@ -758,7 +758,15 @@
     "netfix NT4.19 idle buffer reclamation",
     "iofix IO4.9 Redis hz cron",
     "iofix IO4.10 global DEBUG SLEEP",
-    "iofix IO4.17 immediate signal shutdown"
+    "iofix IO4.17 immediate signal shutdown",
+    "serverfix CG4.3 physical config lines",
+    "serverfix CG4.4 shared scalar grammar",
+    "serverfix SV4.6 CONFIG validation matrix",
+    "serverfix SV4.7 HELLO canonical protocol",
+    "serverfix SV4.5 WAITAOF wait lifecycle",
+    "serverfix SV4.8 HyperLogLog self-test controls",
+    "serverfix SV4.14 disabled slowlog allocation",
+    "serverfix CC4.26 disabled ACL log allocation"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -1059,5 +1067,6 @@
       "atomic commit publication catches up at quiescence"
     ],
     "purpose": "Lost-publication repair: the deterministic serverless publication unit (build/publishfix-unit) in job_atomic_units, collected before the quick-tier exit, DQ=DF=+1. Fails on PRE with safe=1 drawn=2. Source inventory only; EXPECT stays maintainer-owned."
-  }
+  },
+  "note": "; serverfix adds eight aggregate rows before quick exit (+8/+8); each covers both modes and engines with its oracle; source inventory only, EXPECT remains maintainer-owned"
 }

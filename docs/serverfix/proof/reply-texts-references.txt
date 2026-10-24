@@ -45,3 +45,8 @@ tests/serverfix_waitaof.py:60:                send(c, 'WAITAOF', 0, 1, 0)
 tests/serverfix_waitaof.py:67:                          {'error': 'UNBLOCKED client unblocked via CLIENT UNBLOCK'})
 tests/serverfix_waitaof.py:72:            send(c, 'WAITAOF', 0, 1, 0)
 tests/serverfix_waitaof.py:80:        run.check(label + ' queued WAITAOF', admin.cmd('WAITAOF', 0, 1, 0), b'QUEUED')
+
+Additional notification diagnostic search after the existing-row failure:
+$ rg -n "Invalid argument|Invalid event class character" tests
+tests/notify.py:204:    expected_parser_error = "ERR CONFIG SET failed (possibly related to argument 'notify-keyspace-events') - Invalid event class character. Use 'Ag$lshzxeKEtmdn'."
+tests/serverfix_config.py:94:            expected = {'error': "ERR CONFIG SET failed (possibly related to argument 'notify-keyspace-events') - Invalid event class character. Use 'Ag$lshzxeKEtmdn'."}
