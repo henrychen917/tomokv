@@ -226,6 +226,8 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
             // The deadline is already behind us: Redis deletes the field outright and answers 2.
             if (slot && *slot) (*slot)->erase(field);
             hash_ttl_field_erase(object, field);
+            // Redis counts immediate deadline deletions as expired subkeys too.
+            shard.store().note_field_expired(1);
             results[i] = 2;
             deleted_any = true;
             if (hash_ttl_field_count(object) == 0) { key_gone = true; break; }
