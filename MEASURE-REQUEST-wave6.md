@@ -154,6 +154,25 @@ the measured-in-instructions weak-definition flip. The two EXEC-only outlined
 helpers remove ordinary dispatch's initial +6 instructions/op in 1s and +2 in
 2s. They retain the promotion callbacks and execute/Done ordering.
 
+Final `large-unit-insns` selections (including retained ties):
+
+| Unit | Normal | DB0 |
+|---|---:|---:|
+| `cmd/climon` | 26265 | 26780 |
+| `cmd/t_server` | 32703 | 33074 |
+| `cmd/t_set` | 26200 | 26400 |
+| `cmd/t_zset` | 33447 | 32984 |
+| `cmd/geo` | 14410 | 16457 |
+| `cmd/xshard` | 145327 | 144177 |
+| `main` | 147428 | 147449 |
+| `core/genthread` | 132011 | 132813 |
+| `core/rl2s` | 165332 | 163824 |
+| `core/reorder` | 149814 | 150803 |
+
+Unlisted budgets retain the headline values. The string-handler include now
+has an explicit Makefile dependency for both armed units, preventing stale
+objects after edits to `t_string.cc`.
+
 The complete **64-cell serverless matrix** is in
 `docs/wave6/instructions/counts.md`, with aggregate per-body/address counters,
 compressed instruction traces, production provenance, and build/link commands.
