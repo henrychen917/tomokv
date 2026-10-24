@@ -1,0 +1,2911 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.4V3ebr",
+  "gate_log_sha256": "067e87a1652af8db832bf38bd442e2e80b6692794fe1ca727afb8a4cd0cce928",
+  "jobs": [
+    {
+      "job": "acl_recheck",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "6.090000",
+          "label": "ACL recheck one-reply battery (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "6.240000",
+          "label": "ACL recheck one-reply battery (1s)"
+        }
+      ]
+    },
+    {
+      "job": "aof-epoll",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.420000",
+          "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF writer fired (records=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF process-restart script replay (epoll, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF native snapshot streams byte-exact"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "AOF replay fired (records=N skipped=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.420000",
+          "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF writer fired (records=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF process-restart script replay (epoll, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF native snapshot streams byte-exact"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF replay fired (records=N skipped=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF directed group interruption fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "AOF atomic-group recovery + writer order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "AOF group shutdown invariants"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF always sync + reply gate fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF always recovery after quiescent SIGKILL"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.860000",
+          "label": "AOF in-window kill recovery (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.140000",
+          "label": "AOF in-window term recovery (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.860000",
+          "label": "AOF in-window kill recovery (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.020000",
+          "label": "AOF in-window term recovery (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.790000",
+          "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.850000",
+          "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.930000",
+          "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.930000",
+          "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.290000",
+          "label": "AOF everysec write gate + idle sync fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF everysec durability window + tail warning"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "AOF no-sync bypassed sync + reply gate"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.180000",
+          "label": "AOF rewrite atomic/stage/corruption matrix"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.850000",
+          "label": "AOF rewrite triggers + observability matrix"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF-off negative-control seed landed"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF-off negative control lost data"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.420000",
+          "label": "aoffix2 snapshot (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.380000",
+          "label": "aoffix2 filename (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "aoffix2 error (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.550000",
+          "label": "aoffix2 tickets (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.560000",
+          "label": "aoffix2 exec_tickets (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.550000",
+          "label": "aoffix2 resurrection (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.410000",
+          "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.300000",
+          "label": "aoffix2 manifest_missing (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "aoffix2 snapshot (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.540000",
+          "label": "aoffix2 filename (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "aoffix2 error (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.550000",
+          "label": "aoffix2 tickets (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.550000",
+          "label": "aoffix2 exec_tickets (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.540000",
+          "label": "aoffix2 resurrection (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.420000",
+          "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.300000",
+          "label": "aoffix2 manifest_missing (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.290000",
+          "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.290000",
+          "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.340000",
+          "label": "aoffix2 large (1s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.200000",
+          "label": "aoffix2 large_placed (1s, epoll)"
+        }
+      ]
+    },
+    {
+      "job": "aof-uring",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "configuration reduction + actual geometry (uring, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF writer fired (records=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "AOF process-restart script replay (uring, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF native snapshot streams byte-exact"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "AOF replay fired (records=N skipped=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "configuration reduction + actual geometry (uring, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF writer fired (records=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF process-restart script replay (uring, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "AOF native snapshot streams byte-exact"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF replay fired (records=N skipped=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.270000",
+          "label": "AOF directed group interruption fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "AOF atomic-group recovery + writer order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "AOF group shutdown invariants"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF always sync + reply gate fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "AOF always recovery after quiescent SIGKILL"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.920000",
+          "label": "AOF in-window kill recovery (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.890000",
+          "label": "AOF in-window term recovery (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.880000",
+          "label": "AOF in-window kill recovery (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.680000",
+          "label": "AOF in-window term recovery (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.890000",
+          "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.840000",
+          "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.890000",
+          "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.040000",
+          "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.300000",
+          "label": "AOF everysec write gate + idle sync fired"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "AOF everysec durability window + tail warning"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "AOF no-sync bypassed sync + reply gate"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.230000",
+          "label": "AOF rewrite atomic/stage/corruption matrix"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.470000",
+          "label": "AOF rewrite triggers + observability matrix"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF-off negative-control seed landed"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "AOF-off negative control lost data"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.440000",
+          "label": "aoffix2 snapshot (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.540000",
+          "label": "aoffix2 filename (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.180000",
+          "label": "aoffix2 error (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.560000",
+          "label": "aoffix2 tickets (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.570000",
+          "label": "aoffix2 exec_tickets (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.600000",
+          "label": "aoffix2 resurrection (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.350000",
+          "label": "aoffix2 rewrite_fail2 (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.320000",
+          "label": "aoffix2 manifest_missing (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.310000",
+          "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.320000",
+          "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.460000",
+          "label": "aoffix2 snapshot (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.550000",
+          "label": "aoffix2 filename (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.190000",
+          "label": "aoffix2 error (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.600000",
+          "label": "aoffix2 tickets (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.600000",
+          "label": "aoffix2 exec_tickets (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.580000",
+          "label": "aoffix2 resurrection (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "aoffix2 rewrite_fail2 (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.330000",
+          "label": "aoffix2 manifest_missing (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.310000",
+          "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.310000",
+          "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.360000",
+          "label": "aoffix2 large (1s, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.210000",
+          "label": "aoffix2 large_placed (1s, uring)"
+        }
+      ]
+    },
+    {
+      "job": "aof_frame",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.410000",
+          "label": "AOF control frame never inside a large record (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.370000",
+          "label": "AOF control frame never inside a large record (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "aoforder",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "12.130000",
+          "label": "AOF commit order single"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.670000",
+          "label": "AOF commit order crossing"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.760000",
+          "label": "AOF commit order rewrite"
+        }
+      ]
+    },
+    {
+      "job": "atomic_batteries",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "32.540000",
+          "label": "atomic torn/window battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.060000",
+          "label": "atomic RYOW/mixed-write battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.240000",
+          "label": "atomic owner-local hazard battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "atomic shutdown invariants"
+        }
+      ]
+    },
+    {
+      "job": "atomic_units",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic commit publication catches up at quiescence"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.450000",
+          "label": "flushfix flush witnesses"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "flushfix headers witnesses"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.470000",
+          "label": "multidb serverless owners"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.210000",
+          "label": "multidb global namespace boundary"
+        },
+        {
+          "status": "ok",
+          "seconds": "11.770000",
+          "label": "storesize published monitoring"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.210000",
+          "label": "MULTI admin command replies"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "EXECABORT releases WATCH reservation"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "atomic survivors unit build"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: admission"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: closure"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: script_keys"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: rename_overlay"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: write_latest"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: script_apply"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: post_apply_probe"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: lua_conversion"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: watch_parent"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: watch_cycle"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: mset_arity"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: watch_oom"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "atomic survivor: lua_lines"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: library_limit"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: stage_flag"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "atomic survivor: instruction_limit"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "armed resize retirement: atomic-growth"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "armed resize retirement: flush-prepared"
+        }
+      ]
+    },
+    {
+      "job": "auth",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "reject bad protected-mode"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "reject bad enable-debug-command"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "AUTH/HELLO/protected state machine"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "ACL battery (atomic off)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "ACL battery (atomic on)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.470000",
+          "label": "DEBUG toggle/reload battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "typed snapshot round-trip incl stream"
+        }
+      ]
+    },
+    {
+      "job": "climonfix",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "shutdown policy + signal handoff serverless"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.340000",
+          "label": "shutdown persistence (1s, command)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "shutdown persistence (1s, sigterm)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "shutdown persistence (1s, sigint)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.340000",
+          "label": "shutdown persistence (2s, command)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "shutdown persistence (2s, sigterm)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.140000",
+          "label": "shutdown persistence (2s, sigint)"
+        }
+      ]
+    },
+    {
+      "job": "compat2",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "1.650000",
+          "label": "compat2 autharity"
+        },
+        {
+          "status": "ok",
+          "seconds": "6.830000",
+          "label": "compat2 expire_notify"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.360000",
+          "label": "compat2 ktls_lifetime"
+        }
+      ]
+    },
+    {
+      "job": "core_tsan_build",
+      "rows": []
+    },
+    {
+      "job": "core_units",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.200000",
+          "label": "core concurrency watch"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.350000",
+          "label": "core concurrency lifetime"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.110000",
+          "label": "core concurrency drain"
+        },
+        {
+          "status": "ok",
+          "seconds": "7.470000",
+          "label": "core concurrency route"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.110000",
+          "label": "core concurrency snapshot"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "core concurrency config"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "core concurrency notify"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.570000",
+          "label": "read-local topology demotion (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.590000",
+          "label": "read-local topology demotion (2s)"
+        }
+      ]
+    },
+    {
+      "job": "debug-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "9.400000",
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.490000",
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.460000",
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "11.880000",
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.110000",
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.730000",
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.480000",
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.360000",
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.320000",
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.870000",
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.920000",
+          "label": "txn_nx battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.750000",
+          "label": "txniso battery (atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "debug-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "6.180000",
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.490000",
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.460000",
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "11.870000",
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.440000",
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.110000",
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.740000",
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.480000",
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.360000",
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.320000",
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.870000",
+          "label": "xscript battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.900000",
+          "label": "txn_nx battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "9.190000",
+          "label": "txniso battery (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "differ-armed-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "527.550000",
+          "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "differ-armed-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "530.130000",
+          "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "differ-equivalence",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "21.560000",
+          "label": "mode equivalence part (all execution modes and knobs)"
+        }
+      ]
+    },
+    {
+      "job": "differ-split-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "538.510000",
+          "label": "Redis 7.4 differential part (split, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "differ-split-1",
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "546.890000",
+          "label": "Redis 7.4 differential part (split, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "dump_restore",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "DUMP/RESTORE prepare + native SAVE"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "DUMP/RESTORE cross-restart round-trip"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "DUMP/RESTORE restart shutdown invariants"
+        }
+      ]
+    },
+    {
+      "job": "exbatch_live",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.290000",
+          "label": "exbatch publication and WATCH lifecycle (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "exbatch publication and WATCH lifecycle (2s)"
+        }
+      ]
+    },
+    {
+      "job": "exbatch_units",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "14.840000",
+          "label": "exbatch publication unit + negative controls"
+        },
+        {
+          "status": "ok",
+          "seconds": "38.420000",
+          "label": "exbatch watch unit + negative controls"
+        },
+        {
+          "status": "ok",
+          "seconds": "16.230000",
+          "label": "exbatch metadata unit + negative controls"
+        }
+      ]
+    },
+    {
+      "job": "execfair",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "19.820000",
+          "label": "EXEC fast-lane polls"
+        }
+      ]
+    },
+    {
+      "job": "feature-armed-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.250000",
+          "label": "fused+armed boot line (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.140000",
+          "label": "fused+armed s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.070000",
+          "label": "fused+armed multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.540000",
+          "label": "fused+armed blocking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.450000",
+          "label": "fused+armed blockmulti battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.530000",
+          "label": "fused+armed stream battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "fused+armed streamgroups battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.900000",
+          "label": "fused+armed pubsub battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed lua_scripting battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "fused+armed scriptsurf battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.780000",
+          "label": "fused+armed limits battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed resp3 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed bitfield battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "fused+armed dumprestore battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "fused+armed zsetops battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed geo battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.130000",
+          "label": "fused+armed climon battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.350000",
+          "label": "fused+armed climon2 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "13.290000",
+          "label": "fused+armed tracking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.050000",
+          "label": "fused+armed hexpire battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.380000",
+          "label": "fused+armed servertail battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "fused+armed lcs battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.800000",
+          "label": "fused+armed concur battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.700000",
+          "label": "fused+armed edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.370000",
+          "label": "fused+armed edgeenc battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.780000",
+          "label": "fused+armed edgetime battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed arity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed contarity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed cmdgap battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed aclsel battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "47.790000",
+          "label": "fused+armed expwide battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.200000",
+          "label": "fused+armed infofix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.970000",
+          "label": "fused+armed pushtear battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed netcmd battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.160000",
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "feature-armed-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.260000",
+          "label": "fused+armed boot line (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.140000",
+          "label": "fused+armed s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.070000",
+          "label": "fused+armed multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.530000",
+          "label": "fused+armed blocking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.450000",
+          "label": "fused+armed blockmulti battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.500000",
+          "label": "fused+armed stream battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed streamgroups battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.880000",
+          "label": "fused+armed pubsub battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed lua_scripting battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "fused+armed scriptsurf battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.770000",
+          "label": "fused+armed limits battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed resp3 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed bitfield battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "fused+armed dumprestore battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "fused+armed zsetops battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed geo battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.130000",
+          "label": "fused+armed climon battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.300000",
+          "label": "fused+armed climon2 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "13.220000",
+          "label": "fused+armed tracking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.050000",
+          "label": "fused+armed hexpire battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.380000",
+          "label": "fused+armed servertail battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "fused+armed lcs battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.790000",
+          "label": "fused+armed concur battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.740000",
+          "label": "fused+armed edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.360000",
+          "label": "fused+armed edgeenc battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.790000",
+          "label": "fused+armed edgetime battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed arity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed contarity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "fused+armed cmdgap battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed aclsel battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "59.760000",
+          "label": "fused+armed expwide battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.200000",
+          "label": "fused+armed infofix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.940000",
+          "label": "fused+armed pushtear battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "fused+armed netcmd battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.170000",
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "feature-split-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "2.370000",
+          "label": "s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.070000",
+          "label": "multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.510000",
+          "label": "blocking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.450000",
+          "label": "blockmulti battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.530000",
+          "label": "stream battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "streamgroups battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.870000",
+          "label": "pubsub battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "lua_scripting battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "scriptsurf battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "15.350000",
+          "label": "limits battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "resp3 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "bitfield battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "dumprestore battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "zsetops battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "geo battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.120000",
+          "label": "climon battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.310000",
+          "label": "climon2 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "13.460000",
+          "label": "tracking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.300000",
+          "label": "hexpire battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.380000",
+          "label": "servertail battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "lcs battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.750000",
+          "label": "concur battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.660000",
+          "label": "edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.340000",
+          "label": "edgeenc battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.590000",
+          "label": "edgetime battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "arity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "contarity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "cmdgap battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "aclsel battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "51.270000",
+          "label": "expwide battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.200000",
+          "label": "infofix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.430000",
+          "label": "pushtear battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "netcmd battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "feature shutdown invariants (atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "feature-split-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "2.350000",
+          "label": "s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.070000",
+          "label": "multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.470000",
+          "label": "blocking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.450000",
+          "label": "blockmulti battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.500000",
+          "label": "stream battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "streamgroups battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.890000",
+          "label": "pubsub battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "lua_scripting battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "scriptsurf battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.610000",
+          "label": "limits battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "resp3 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "bitfield battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "dumprestore battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "zsetops battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "geo battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.130000",
+          "label": "climon battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.360000",
+          "label": "climon2 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "13.320000",
+          "label": "tracking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.040000",
+          "label": "hexpire battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.370000",
+          "label": "servertail battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.160000",
+          "label": "lcs battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.760000",
+          "label": "concur battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.620000",
+          "label": "edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.340000",
+          "label": "edgeenc battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "3.700000",
+          "label": "edgetime battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "arity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "contarity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "cmdgap battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "aclsel battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "56.650000",
+          "label": "expwide battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.150000",
+          "label": "infofix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.430000",
+          "label": "pushtear battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "netcmd battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "feature shutdown invariants (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "fused-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.290000",
+          "label": "fused boot line (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "10.470000",
+          "label": "fused s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.190000",
+          "label": "fused multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.750000",
+          "label": "fused edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.190000",
+          "label": "fused atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.240000",
+          "label": "fused spinprobe battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.170000",
+          "label": "fused shutdown report (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.500000",
+          "label": "fused txn_nx battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "10.700000",
+          "label": "fused txniso battery (atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "fused-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.290000",
+          "label": "fused boot line (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.550000",
+          "label": "fused s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.110000",
+          "label": "fused multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.720000",
+          "label": "fused edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.080000",
+          "label": "fused atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.230000",
+          "label": "fused spinprobe battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.170000",
+          "label": "fused shutdown report (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.140000",
+          "label": "fused txn_nx battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.640000",
+          "label": "fused txniso battery (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "moverfix",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "2.500000",
+          "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.480000",
+          "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.470000",
+          "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.470000",
+          "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.510000",
+          "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.510000",
+          "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.490000",
+          "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.490000",
+          "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "multidb-1s-0-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.420000",
+          "label": "multidb (1s, read-local 0, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.270000",
+          "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-1s-0-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.420000",
+          "label": "multidb (1s, read-local 0, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.090000",
+          "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.270000",
+          "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-1s-1-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.390000",
+          "label": "multidb (1s, read-local 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-1s-1-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.420000",
+          "label": "multidb (1s, read-local 1, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.090000",
+          "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-2s-0-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.320000",
+          "label": "multidb (2s, read-local 0, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-2s-0-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.310000",
+          "label": "multidb (2s, read-local 0, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.270000",
+          "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-2s-1-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.280000",
+          "label": "multidb (2s, read-local 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "multidb-2s-1-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "4.290000",
+          "label": "multidb (2s, read-local 1, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.090000",
+          "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.270000",
+          "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+        }
+      ]
+    },
+    {
+      "job": "netcmd_units",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "netcmd regression build"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd streams regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "netcmd zpop regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd notify-oom regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "netcmd notify-retry regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd flush regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd output regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd pubsub regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd receive regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "netcmd config regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd wb-small-pipe regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "netcmd wb-complete-visits regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "netcmd hexpire-oom regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "encodingfix knob"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "encodingfix precedence"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "NET1 serverless bounds + scan + reclamation"
+        }
+      ]
+    },
+    {
+      "job": "notify",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "2.080000",
+          "label": "MULTI feature battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.520000",
+          "label": "blocking feature battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.880000",
+          "label": "pubsub feature battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "Lua feature battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "22.710000",
+          "label": "keyspace notification battery (atomic 0/1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "feature battery shutdown invariants"
+        }
+      ]
+    },
+    {
+      "job": "notify_aof",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "12.000000",
+          "label": "local script notification AOF vs Redis 7.4"
+        }
+      ]
+    },
+    {
+      "job": "notify_order",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "65.550000",
+          "label": "keyspace lazy-expiry order vs Redis 7.4"
+        }
+      ]
+    },
+    {
+      "job": "production_units",
+      "rows": []
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "75.790000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "release_batteries",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "6.660000",
+          "label": "torture battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.970000",
+          "label": "RYOW battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "ACL category runtime table"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "ACL LOAD/SAVE no-file errors"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.030000",
+          "label": "idle loop ceiling (LBSIGNALS, 1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "shutdown invariants (nothing stuck)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "direct-reply fired (direct=N)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "dispatched==executed (N)"
+        }
+      ]
+    },
+    {
+      "job": "reorder_engagement",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "13.200000",
+          "label": "R7 production engagement (both database runtimes)"
+        }
+      ]
+    },
+    {
+      "job": "reorder_identity",
+      "rows": [
+        {
+          "status": "FAIL",
+          "seconds": "68.310000",
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        }
+      ]
+    },
+    {
+      "job": "reorder_sync",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.900000",
+          "label": "R7 generated envelope parity"
+        }
+      ]
+    },
+    {
+      "job": "script_bounds",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "xscript limit control"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.540000",
+          "label": "xscript window control"
+        }
+      ]
+    },
+    {
+      "job": "scriptfix",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.120000",
+          "label": "scriptfix sandbox (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.130000",
+          "label": "scriptfix functions (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.710000",
+          "label": "scriptfix replies (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.830000",
+          "label": "scriptfix dump (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.120000",
+          "label": "scriptfix sandbox (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.120000",
+          "label": "scriptfix functions (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.700000",
+          "label": "scriptfix replies (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.840000",
+          "label": "scriptfix dump (2s)"
+        }
+      ]
+    },
+    {
+      "job": "snapshot-epoll",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.640000",
+          "label": "snapshot concurrent cut (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.200000",
+          "label": "snapshot cut reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.720000",
+          "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.290000",
+          "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot save (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.180000",
+          "label": "typed snapshot preimage race (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "typed snapshot race reload (epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.810000",
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.810000",
+          "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.020000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.020000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.840000",
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.870000",
+          "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.140000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.120000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+        }
+      ]
+    },
+    {
+      "job": "snapshot-uring",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.630000",
+          "label": "snapshot concurrent cut (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "snapshot cut reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "2.740000",
+          "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "5.270000",
+          "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot save (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "typed snapshot reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "typed snapshot preimage race (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "typed snapshot race reload (uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.800000",
+          "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.810000",
+          "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.000000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.020000",
+          "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.830000",
+          "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.830000",
+          "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.110000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.070000",
+          "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+        }
+      ]
+    },
+    {
+      "job": "storage_units",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage unlinked regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage randomkey regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage rehash regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "storage rollback regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage snapshot-eviction regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "storage flags regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage aof-eviction regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "storage intents regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "storage imported-hash regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage field-index-failure regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage hash-bytes regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "storage deadline-allocation-failure regression"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.010000",
+          "label": "storage flush-prepared-capacity regression"
+        }
+      ]
+    },
+    {
+      "job": "txn_group_fused",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "15.050000",
+          "label": "fused txngroup battery (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "txn_group_split",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "12.790000",
+          "label": "txngroup battery (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder-fused-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "46.170000",
+          "label": "txnorder battery (fused, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder-fused-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "46.260000",
+          "label": "txnorder battery (fused, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder-split-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "45.920000",
+          "label": "txnorder battery (split, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder-split-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "45.940000",
+          "label": "txnorder battery (split, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder2",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R1"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R2"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R3"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R4"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R5"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R6"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R7"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "txnorder2 writer episode R8"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R9"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R10"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R11"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.580000",
+          "label": "txnorder2 writer episode R12"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "txnorder2 direct RENAME owner join"
+        },
+        {
+          "status": "ok",
+          "seconds": "22.660000",
+          "label": "txnorder2 WATCH serve"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.190000",
+          "label": "txnorder2 WATCH flush"
+        },
+        {
+          "status": "ok",
+          "seconds": "27.300000",
+          "label": "txnorder2 WATCH readonly"
+        }
+      ]
+    },
+    {
+      "job": "txnorder_wake",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "txnorder2 busy owner inbox wake"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 518,
+  "fail_rows": 2
+}

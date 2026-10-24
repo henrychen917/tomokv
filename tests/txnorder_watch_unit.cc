@@ -45,13 +45,16 @@ void served_watch(Server& server) {
 }
 
 void same_owner_rename(Server& server) {
-    const auto a=key_on(server,0,"rename-a-"), b=key_on(server,2,"rename-b-");
-    require(server.worker_of_shard(0)==server.worker_of_shard(2),"two shards on one owner");
+    int destination=1;
+    while (destination<int(server.nshards()) &&
+           server.worker_of_shard(destination)!=server.worker_of_shard(0)) ++destination;
+    require(destination<int(server.nshards()),"two shards on one owner");
+    const auto a=key_on(server,0,"rename-a-"), b=key_on(server,destination,"rename-b-");
     require(local(server,{"SET",a,"value"})=="+OK\r\n","RENAME source seeded");
     Client client{-1};client.set_id(640);Request request({"RENAME",a,b});
     ScatterArenaPool pool;ScatterDispatch dispatch;
-    require(xshard_prepare(server,request.op,pool,0,client.id(),dispatch)==ScatterPrepare::Ready,
-            "bare atomic direct RENAME prepared");
+    require(xshard_prepare(server,request.op,pool,0,client.id(),dispatch,!server.atomic_enabled())==ScatterPrepare::Ready,
+            "atomic direct RENAME prepared (forced EXEC-child path at atomic=0)");
     auto* state=dispatch.state;state->now_cut_ms=now_realtime_ms();
     require(state->atomic_direct && state->nsub==2,"two source/destination fragments");
     bool done[16]={};bool queued=false;Ring ring;
@@ -66,7 +69,7 @@ void same_owner_rename(Server& server) {
             queued |= result==ScatterFinish::CommitQueued;
         }
     }
-    require(done[0]&&done[2]&&queued&&state->pending.load()==0,
+    require(done[0]&&done[destination]&&queued&&state->pending.load()==0,
             "last owner must queue commit after both shards finish");
     state->epoch.store(server.atomic_commit());
     require(local(server,{"GET",a})=="$-1\r\n" &&
@@ -106,8 +109,8 @@ void readonly_watch(Server& server, bool handshake=false) {
         require(!multi_plain_write_ready(server.shard(1),write.op),
                 "D10 validation blocks writer in real EXEC CAS/start window");
     } else {
-        require(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
-                server.worker_of_shard(0),0,nullptr)==MultiTaskResult::Retry,"lead runs; late read held");
+        require(multi_task_retry(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
+                server.worker_of_shard(0),0,nullptr)),"lead runs; late read held");
         require(!state->finalized.load() && !state->execution_joined[1],"held read window exists");
         local(server,{"SET",b,"new"},631);
         multi_plain_write_committed(server.shard(1),write.op);
@@ -119,7 +122,7 @@ void readonly_watch(Server& server, bool handshake=false) {
         for(int sid:state->shards) if(!done[sid]) {
             const auto result=multi_execute_task(server,multi_make_task(&client,0,sid,state),
                 server.shard(sid),server.worker_of_shard(sid),0,nullptr);
-            done[sid]=result!=MultiTaskResult::Retry; all &= done[sid];
+            done[sid]=!multi_task_retry(result); all &= done[sid];
         }
         if(all) break;
     }
@@ -135,11 +138,11 @@ void readonly_watch(Server& server, bool handshake=false) {
 }
 }
 int main(int argc,char** argv) {
-    require(argc==3,"serve|readonly and 1s|2s");
+    require(argc==3 || argc==4,"serve|readonly and 1s|2s [atomic]");
     require(command_registry_init(false),"registry");
     Config cfg;cfg.databases=1;cfg.shards=16;cfg.even_ifid=6;cfg.even_ex=2;
     cfg.thread_mode=std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
-    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
+    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=argc==4 ? std::atoi(argv[3]) : 1;
     Server server;require(server.prepare_boot(cfg)&&server.init(cfg),"owner geometry");
     command_bind_server(&server);
     std::string error;require(acl_initialize(server,cfg,error),"default ACL");

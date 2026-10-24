@@ -2688,7 +2688,8 @@ void cmd_info(Shard&, Op& op) {
             "atomic_group_dooms", "atomic_group_retries",
             "atomic_group_barriers", "atomic_txn_executed", "atomic_txn_place_waits",
             "atomic_txn_writer_waits", "atomic_txn_writer_marks", "atomic_txn_blind_restarts",
-            "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds"
+            "atomic_txn_readonly", "atomic_txn_order_violations", "atomic_group_wounds",
+            "atomic_txn_fast_polls", "atomic_txn_poll_skips"
         };
         static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
         for (unsigned i = 0; i < std::size(txn_fields); ++i)

@@ -1,0 +1,5 @@
+ORACLE 7.4.10
+ORACLE {"absent": [], "all": [[{"bytes": "312d30"}, {"bytes": ""}, 1], [{"bytes": "322d30"}, {"bytes": "63"}, 1], [{"bytes": "332d30"}, {"bytes": "63007461696c"}, 1]], "binary": [[{"bytes": "332d30"}, {"bytes": "63007461696c"}, 1]], "empty": [[{"bytes": "312d30"}, {"bytes": ""}, 1]], "idle-empty": [[{"bytes": "312d30"}, {"bytes": ""}, 1]], "named": [[{"bytes": "322d30"}, {"bytes": "63"}, 1]]}
+GEOMETRY {"thread_mode": "1s", "net_io": "epoll", "atomic": "0", "read_local": "0", "shards": "16"}
+TARGET {"absent": [], "all": [[{"bytes": "312d30"}, {"bytes": ""}, 1], [{"bytes": "322d30"}, {"bytes": "63"}, 1], [{"bytes": "332d30"}, {"bytes": "63007461696c"}, 1]], "binary": [[{"bytes": "332d30"}, {"bytes": "63007461696c"}, 1]], "empty": [[{"bytes": "312d30"}, {"bytes": ""}, 1]], "idle-empty": [[{"bytes": "312d30"}, {"bytes": ""}, 1]], "named": [[{"bytes": "322d30"}, {"bytes": "63"}, 1]]}
+PASS pending

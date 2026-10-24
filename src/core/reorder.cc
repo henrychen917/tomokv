@@ -555,8 +555,13 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         if (!srv_->lb_acked(self_->id())) {
             did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
             did += drain_releases(true);
+#ifdef TOMO_EXECFAIR_WRITERS_FIRST
+            did += service_atomic_deferred<IofusedPrivateQueue>();
+            did += service_multi_retries<IofusedPrivateQueue>();
+#else
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
+#endif
             did += service_xshard_retries<IofusedPrivateQueue>();
             if (xshard_retries_.empty())
                 did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
@@ -575,8 +580,13 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
         did += drain_releases();
         if (!snapshot_blocks_tasks()) {
+#ifdef TOMO_EXECFAIR_WRITERS_FIRST
+            did += service_atomic_deferred<IofusedPrivateQueue>();
+            did += service_multi_retries<IofusedPrivateQueue>();
+#else
             did += service_multi_retries<IofusedPrivateQueue>();
             did += service_atomic_deferred<IofusedPrivateQueue>();
+#endif
             did += service_xshard_retries<IofusedPrivateQueue>();
             if (xshard_retries_.empty())
                 did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
@@ -710,8 +720,13 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
                  service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
                  drain_releases(true);
     if (!snapshot_blocks_tasks()) {
+#ifdef TOMO_EXECFAIR_WRITERS_FIRST
+        n += service_atomic_deferred<IofusedPrivateQueue>();
+        n += service_multi_retries<IofusedPrivateQueue>();
+#else
         n += service_multi_retries<IofusedPrivateQueue>();
         n += service_atomic_deferred<IofusedPrivateQueue>();
+#endif
         n += service_xshard_retries<IofusedPrivateQueue>();
         if (xshard_retries_.empty())
             n += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();

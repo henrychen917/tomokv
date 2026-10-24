@@ -1,0 +1,447 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.rq66kr",
+  "gate_log_sha256": "bc36dd2a8c3485597e101074062762e291200dff87a75e4ca00cbbac7fac2013",
+  "jobs": [
+    {
+      "job": "aclfix",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix sort (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix streams-name (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "aclfix save-load (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.980000",
+          "label": "aclfix capacity (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.080000",
+          "label": "aclfix wake-pop (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix wake-scatter (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix sort (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix streams-name (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix save-load (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.820000",
+          "label": "aclfix capacity (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.080000",
+          "label": "aclfix wake-pop (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.070000",
+          "label": "aclfix wake-scatter (2s)"
+        }
+      ]
+    },
+    {
+      "job": "asan",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "75.160000",
+          "label": "ASAN build"
+        }
+      ]
+    },
+    {
+      "job": "asan_batteries",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "6.930000",
+          "label": "torture under ASAN"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.980000",
+          "label": "RYOW under ASAN"
+        },
+        {
+          "status": "ok",
+          "seconds": "25.050000",
+          "label": "atomic torn/window under ASAN"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.070000",
+          "label": "atomic RYOW under ASAN"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "ASAN clean"
+        }
+      ]
+    },
+    {
+      "job": "atomic_batteries",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "32.540000",
+          "label": "atomic torn/window battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.070000",
+          "label": "atomic RYOW/mixed-write battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.240000",
+          "label": "atomic owner-local hazard battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "atomic shutdown invariants"
+        }
+      ]
+    },
+    {
+      "job": "bplus",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "2.140000",
+          "label": "B+ held-group GET/MGET filter battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.140000",
+          "label": "read-local lane admission battery"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "read-local MGET fence battery (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.900000",
+          "label": "read-local GET miss battery (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "read-local one-key delete battery (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.280000",
+          "label": "read-local MGET fence battery (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.890000",
+          "label": "read-local GET miss battery (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "read-local one-key delete battery (2s)"
+        }
+      ]
+    },
+    {
+      "job": "compat3",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "33.500000",
+          "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": "33.390000",
+          "label": "compat3 CC4.13 pending vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": "33.320000",
+          "label": "compat3 CC4.14 history vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": "33.510000",
+          "label": "compat3 CC4.16 grammar vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": "33.580000",
+          "label": "compat3 CC4.5 glob vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": "33.740000",
+          "label": "compat3 CC4.17 flags vs Redis 7.4"
+        }
+      ]
+    },
+    {
+      "job": "debug-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "9.170000",
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.480000",
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.470000",
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "11.870000",
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.430000",
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.110000",
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.750000",
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.480000",
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.360000",
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.310000",
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.860000",
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.940000",
+          "label": "txn_nx battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "8.660000",
+          "label": "txniso battery (atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "debug-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "6.160000",
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.170000",
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.490000",
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "14.470000",
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "11.870000",
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.440000",
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.100000",
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.730000",
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.480000",
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.370000",
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.310000",
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.870000",
+          "label": "xscript battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.910000",
+          "label": "txn_nx battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": "9.040000",
+          "label": "txniso battery (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "production_units",
+      "rows": []
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "replyoff",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "1.230000",
+          "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "1.240000",
+          "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "script_bounds",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "xscript limit control"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.530000",
+          "label": "xscript window control"
+        }
+      ]
+    },
+    {
+      "job": "sort",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.120000",
+          "label": "cross-owner SORT battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.120000",
+          "label": "cross-owner SORT battery (atomic 1)"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 75,
+  "fail_rows": 0
+}

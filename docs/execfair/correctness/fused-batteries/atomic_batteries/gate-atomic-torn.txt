@@ -1,0 +1,28 @@
+  ok   DEBUG SHARD/LBSIGNALS geometry resolved same_shard=10 source_owner=2 destination_owner=5
+  ok   OFF control exposes torn MSET-8 torn=43082 reads=43101 errors=[] threads_still_alive=False
+  ok   ON MSET-8/MGET-8 torn-free torn=0 reads=2491 errors=[] threads_still_alive=False
+  ok   ON commit-delay window held a read cut delta=1869
+  ok   ON exercised predecessor resolution delta=19920
+  ok   ON exercised promotion delta=9968
+  ok   ON promotion drains within release budget promotion-drain=0.000s holds=1869 predecessors=19920 promotions=9968
+  ok   atomic_inflight returns to idle value=0
+  ok   same-owner atomic MSET-2 localfast is torn-free keys=('at:geometry:0001', 'at:geometry:0015') torn=0 reads=91751 localfast=44568 errors=[] threads_still_alive=False
+  ok   overlapping atomic writers never mix torn=0 reads=92819 errors=[] threads_still_alive=False
+  ok   promotion leaves one exact final group final=b'at:overlap:w1:17768' completed=36414 threads_still_alive=False
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001309 witness_s=0.0012556333094835281 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=135281 final=True errors=[] threads_still_alive=False hold_s=0.001291 witness_s=0.0012392038479447365 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes impossible SINTERSTORE image invalid=16 reads=36998 errors=[] threads_still_alive=False
+  ok   ON SINTERSTORE image matches one source cut invalid=0 reads=29816 final=True errors=[] threads_still_alive=False
+  ok   OFF LMPOP racers preserve element accounting popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   ON LMPOP racers pop every element exactly once popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes RENAMENX losing race anomalies=17 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes COPY losing race anomalies=12 errors=[] threads_still_alive=False
+  ok   ON COPY loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  note atomic-window window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=9 stalls=10 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.006 resume_replies/s=96459.2
+  ok   derived atomic window stalls and resumes window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=9 stalls=10 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.006 resume_replies/s=96459.2 credits=256 observed_attempts=1/1
+  note atomic-window reconfigure attempt=1/4 outcome=armed limit=256 groups=641 peak=256 held_stalls=14 stalls=14 carried=1 held_replies=328 arm_s=0.006 held_replies/s=55136.0 released=True replies=641/641 resume_s=9.996 resume_replies/s=10.7 lease_pool=255 lease_reclaims=0
+  ok   atomic reconfiguration preserves derived bound and reclaims leases reconfigure attempt=1/4 outcome=armed limit=256 groups=641 peak=256 held_stalls=14 stalls=14 carried=1 held_replies=328 arm_s=0.006 held_replies/s=55136.0 released=True replies=641/641 resume_s=9.996 resume_replies/s=10.7 lease_pool=255 lease_reclaims=0 credits=256 observed_attempts=1/1
+  ok   CONFIG SET atomic flip under load errors=[] final=b'flip:final'
+  ok   atomic connection churn drains retained entries entries=5754 inflight=0 pending=0
+ATOMIC_TORN PASS

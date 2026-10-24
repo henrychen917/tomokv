@@ -1,0 +1,6 @@
+{
+  "/tmp/claude-1000/generic_merit_cells.txt": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+  "tests/execfix_cells.txt": "c462a761dc62f84e03c0297e1b1b35c2fb5d04fe370e63e96948027a770398be",
+  "tests/mkprobe_cells.txt": "0f786dec1a647fa10334dc418e62b1aea702a4f2ebb269cce488c6b5b31bba03",
+  "/home/user/Projects/calib/exec-merit.py": "91bebec6d2b0d66013e2111bf0b6a9784176593782d4f98080835867eff14a8b"
+}

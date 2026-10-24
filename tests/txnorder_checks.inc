@@ -50,6 +50,45 @@ void txnorder_checks(Server& server, const std::string& name) {
         shard.watch_finish_unit(oldest->claims[0], oldest.get());
         require(!young->watch_refs.load() && !old->watch_refs.load() &&
                 !oldest->watch_refs.load() && !shard.has_watches(), "claims and waiter marks retire");
+        // A cached blocker is a real watch_refs pin, including after its registry
+        // claim is retired. The first poll after its decision must rescan.
+        auto holder = make(base + 10), waiter = make(base + 11);
+        require(place(*holder), "execfair holder placed");
+        require(!place(*waiter) && holder->watch_refs.load() == 2,
+                "execfair refused scan pins older holder");
+        const auto skipped = server.txn_counter(TxnCounter::PollSkips);
+        require(!place(*waiter) && server.txn_counter(TxnCounter::PollSkips) == skipped + 1,
+                "execfair live blocker skips exactly one full placement scan");
+        holder->decision.epoch.store(server.atomic_commit());
+        shard.watch_finish_unit(holder->claims[0], holder.get());
+        require(holder->watch_refs.load() == 1, "execfair cache outlives retired registry entry");
+        require(place(*waiter) && holder->watch_refs.load() == 0,
+                "execfair decided blocker unpins and placement resumes");
+        waiter->decision.aborted.store(true);
+        shard.watch_finish_unit(waiter->claims[0], waiter.get());
+
+        // A full scan must still wound a younger placing claim even if an
+        // older conflicting holder already refused this unit on another key.
+        auto older = make(base + 20), middle = make(base + 21), younger = make(base + 22);
+        younger->claims[0].clear();
+        txn_add_claim(younger->claims[0], slice(dst), TxnClaimMode::Write);
+        txn_add_claim(middle->claims[0], slice(dst), TxnClaimMode::Write);
+        require(place(*older) && place(*younger), "execfair disjoint holders placed");
+        require(!place(*middle) && younger->decision.epoch.load() == kAtomicCancelledEpoch,
+                "execfair refused scan still wounds younger claim");
+        require(!middle->place_blockers[0].refs,
+                "execfair scan seeing younger placing claim cannot arm skip");
+        const auto before_rescan = server.txn_counter(TxnCounter::PollSkips);
+        require(!place(*middle) && server.txn_counter(TxnCounter::PollSkips) == before_rescan &&
+                middle->place_blockers[0].refs, "execfair next full scan can arm older blocker");
+        middle->decision.aborted.store(true);
+        require(place(*middle) && !middle->place_blockers[0].refs,
+                "execfair own cancellation releases cached blocker");
+        older->decision.aborted.store(true);
+        for (auto* state : {older.get(), middle.get(), younger.get()})
+            shard.watch_finish_unit(state->claims[0], state);
+        require(!older->watch_refs.load() && !middle->watch_refs.load() &&
+                !younger->watch_refs.load() && !shard.has_watches(), "execfair all pins drained");
     } else if (name == "txnorder_claims") {
         std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
         std::vector<MultiQueuedCommand> queue;

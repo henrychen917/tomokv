@@ -124,12 +124,32 @@ def fliplisten_inventory(binary, namespaces):
                 f'missing fliplisten parser body: {namespace}: {name}'
 
 
+def execfair_inventory(binary, namespaces):
+    """Exactly three owner-local promotion callback bodies per runtime.
+
+    They are ordinary execute callbacks, not armed R7-only bodies. Keep each
+    physical body in the strict byte comparison and reject a missing clone.
+    """
+    for namespace in namespaces:
+        expected = {
+            f'{namespace}::ExLoopT<{fused}>::execute<false, {no_evict}>'
+            f'({namespace}::Task const&)::{{lambda(void*, {namespace}::Task const&)#1}}'
+            f'::_FUN(void*, {namespace}::Task const&)'
+            for fused, no_evict in (('false', 'false'), ('true', 'false'), ('true', 'true'))
+        }
+        found = {name for name in binary.groups
+                 if name.startswith(namespace + '::ExLoopT<') and '::execute<' in name
+                 and '::{lambda(void*, ' + namespace + '::Task const&)#1}::_FUN(' in name}
+        assert found == expected and all(len(binary.groups[name]) == 1 for name in expected), \
+            f'missing execfair promotion callback: {namespace}: expected={expected}, found={found}'
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -143,7 +163,7 @@ if __name__ == '__main__':
     # the old single-runtime audit had 169. Later inventory deltas are explicit.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
-    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe', 'wave5'):
+    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair'):
         assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
         # wbrule carries SplitLocal through flush_ready. These sixteen additional
         # instantiations per runtime keep physical 2s writeback separate from 1s.
@@ -156,13 +176,13 @@ if __name__ == '__main__':
                 found = {name for name in binary.groups if name in added}
                 assert found == added, f'missing physical split-local WB bodies: {added - found}'
             expected[namespace] += len(added)
-    if args.inventory in ('splitlocal', 'overlapaxe', 'wave5'):
+    if args.inventory in ('splitlocal', 'overlapaxe', 'wave5', 'execfair'):
         for binary in (pre, post):
-            splitlocal_inventory(binary, expected, overlap_removed=args.inventory in ('overlapaxe', 'wave5'),
-                                 fliplisten=args.inventory == 'wave5')
+            splitlocal_inventory(binary, expected, overlap_removed=args.inventory in ('overlapaxe', 'wave5', 'execfair'),
+                                 fliplisten=args.inventory in ('wave5', 'execfair'))
         for namespace in expected:
             expected[namespace] += 14
-    if args.inventory in ('overlapaxe', 'wave5'):
+    if args.inventory in ('overlapaxe', 'wave5', 'execfair'):
         # 198 -> 147 physical bodies per runtime: -32 IO envelopes, -14 parser
         # bodies/closures, -4 retired WB helpers, -1 scheduler body. The renamed
         # fused owner prefetch remains in the audit; only split prefetch is gone.
@@ -190,11 +210,14 @@ if __name__ == '__main__':
         # See docs/moverfix2/README.md for symbols, IPA decisions and trials.
         # wave4: both edits compose additively: normal 146+1-1 = 146, DB0 146+1 = 147.
         expected['tomo'] -= 1
-    if args.inventory == 'wave5':
+    if args.inventory in ('wave5', 'execfair'):
         # All seven frozen lane links are inventoried in docs/wave5/r7-inventory.
         # Only fliplisten adds bodies: headline 146/147 + 6/6 = merged 152/153.
         for binary in (pre, post): fliplisten_inventory(binary, expected)
         for namespace in expected: expected[namespace] += 6
+    if args.inventory == 'execfair':
+        for binary in (pre, post): execfair_inventory(binary, expected)
+        for namespace in expected: expected[namespace] += 3
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

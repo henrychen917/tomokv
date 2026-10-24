@@ -1,0 +1,2 @@
+  row budget: 900s; median=20.14s; correctness-plan-fallback; EXEC fast-lane polls
+  EXEC fast-lane polls                                 ok

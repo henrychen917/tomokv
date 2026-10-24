@@ -306,8 +306,11 @@ public:
     bool watch_group_write_ready(Slice key, const void* token = nullptr);
     bool watch_key_ready(const std::string& key, const void* token, bool all_units);
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
-                          WatchReservation unit);
-    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);
+                          WatchReservation unit, const struct MultiRetryPromoter* promoter = nullptr);
+    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token,
+                           const struct MultiRetryPromoter* promoter = nullptr);
+    void watch_promote_unit_waiter(const std::string& key,
+                                   const struct MultiRetryPromoter* promoter);
     bool watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp);
     uint64_t watch_writer_stamp(Slice key, const void* token, bool whole = false) const;
     void watch_writer_forget(const void* token);

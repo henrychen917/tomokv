@@ -1,0 +1,12 @@
+[
+  {
+    "file": "src/cmd/atomics_glue.inc",
+    "unchanged": true,
+    "sha256": "0a79c030f4672d6646da86a6bd7d08f7aea9cf799199edbec9aeba86c78dcc57"
+  },
+  {
+    "file": "src/cmd/t_string.cc",
+    "unchanged": true,
+    "sha256": "cf3c43d54359bbd540aaf6dc14531ff752ec819deff0af522a40c9cfb9267b1b"
+  }
+]

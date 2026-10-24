@@ -28,6 +28,7 @@ struct EpisodeUnit {
         group.watch_refs.store(ScatterState::kGroupAttemptRef);
         group.group_attempt_storage = &attempt;
         attempt.arrived.resize(server.nshards());
+        attempt.place_blockers = std::make_unique<TxnPlaceBlocker[]>(server.nshards());
     }
     auto& phase() { return is_group ? attempt.phase : exec->decision.phase; }
     auto& epoch() { return is_group ? group.epoch : exec->decision.epoch; }
@@ -275,7 +276,9 @@ void controls(Server& server, const std::string& name) {
         require(!shard.watch_writer_stamp(slice(b),&writer.op) &&
                 !shard.watch_writer_stamp(slice(c),&writer.op), "gate pass removes complete episode");
         ScatterRun predecessor(server,{"MSET",b,"predecessor",
-            key_on(server,0,"episode-own-"),"predecessor"},false);
+            key_on(server,0,"episode-own-"),"predecessor"},!server.atomic_enabled());
+        // At atomic=0 use the forced child path that EXEC itself uses; the
+        // default bare MSET intentionally has no undecided group in that mode.
         require(predecessor.state->atomic_write && !predecessor.state->group_attempt(),
                 "own undecided predecessor is a real blind group");
         require(xshard_execute(Task{&predecessor.client,0,1,predecessor.state},shard,
@@ -369,10 +372,11 @@ void controls(Server& server, const std::string& name) {
 }
 
 int main(int argc,char** argv) {
-    require(argc==2,"one R-family case required");
+    require(argc==2 || argc==4,"R-family case [1s|2s atomic]");
     require(command_registry_init(false),"command registry");
     Config cfg; cfg.databases=1; cfg.shards=16; cfg.even_ifid=6; cfg.even_ex=2;
-    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
+    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=argc==4 ? std::atoi(argv[3]) : 1;
+    cfg.thread_mode=argc==4 && std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
     Server server; require(server.prepare_boot(cfg)&&server.init(cfg),"owner-only boot");
     command_bind_server(&server);
     const std::string name=argv[1];

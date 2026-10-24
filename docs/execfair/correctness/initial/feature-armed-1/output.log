@@ -1,0 +1,70 @@
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed boot line (atomic 1)
+  fused+armed boot line (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed s6 battery (atomic 1)
+  fused+armed s6 battery (atomic 1)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed multi_exec battery (atomic 1)
+  fused+armed multi_exec battery (atomic 1)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed blocking battery (atomic 1)
+  fused+armed blocking battery (atomic 1)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed blockmulti battery (atomic 1)
+  fused+armed blockmulti battery (atomic 1)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed stream battery (atomic 1)
+  fused+armed stream battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed streamgroups battery (atomic 1)
+  fused+armed streamgroups battery (atomic 1)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed pubsub battery (atomic 1)
+  fused+armed pubsub battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed lua_scripting battery (atomic 1)
+  fused+armed lua_scripting battery (atomic 1)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed scriptsurf battery (atomic 1)
+  fused+armed scriptsurf battery (atomic 1)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed limits battery (atomic 1)
+  fused+armed limits battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed resp3 battery (atomic 1)
+  fused+armed resp3 battery (atomic 1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed bitfield battery (atomic 1)
+  fused+armed bitfield battery (atomic 1)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed dumprestore battery (atomic 1)
+  fused+armed dumprestore battery (atomic 1)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed zsetops battery (atomic 1)
+  fused+armed zsetops battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed geo battery (atomic 1)
+  fused+armed geo battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed climon battery (atomic 1)
+  fused+armed climon battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed climon2 battery (atomic 1)
+  fused+armed climon2 battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed tracking battery (atomic 1)
+  fused+armed tracking battery (atomic 1)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed hexpire battery (atomic 1)
+  fused+armed hexpire battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed servertail battery (atomic 1)
+  fused+armed servertail battery (atomic 1)            ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed lcs battery (atomic 1)
+  fused+armed lcs battery (atomic 1)                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed concur battery (atomic 1)
+  fused+armed concur battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed edgeproto battery (atomic 1)
+  fused+armed edgeproto battery (atomic 1)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed edgeenc battery (atomic 1)
+  fused+armed edgeenc battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed edgetime battery (atomic 1)
+  fused+armed edgetime battery (atomic 1)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed arity battery (atomic 1)
+  fused+armed arity battery (atomic 1)                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed contarity battery (atomic 1)
+  fused+armed contarity battery (atomic 1)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed cmdgap battery (atomic 1)
+  fused+armed cmdgap battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed aclsel battery (atomic 1)
+  fused+armed aclsel battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed expwide battery (atomic 1)
+  fused+armed expwide battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed infofix battery (atomic 1)
+  fused+armed infofix battery (atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed pushtear battery (atomic 1)
+  fused+armed pushtear battery (atomic 1)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed netcmd battery (atomic 1)
+  fused+armed netcmd battery (atomic 1)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed shutdown report + lane fired (hits=N, atomic 1)
+  fused+armed shutdown report + lane fired (hits=816083, atomic 1) ok

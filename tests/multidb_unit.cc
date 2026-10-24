@@ -327,7 +327,7 @@ static std::string transaction(Server& server, Client& client,
                 server.shard(s), server.worker_of_shard(s), 0, nullptr);
             require(server.databases().capture().epoch == before_epoch || state->decision.epoch.load() != 0,
                     "map publication shares the MVCC decision");
-            if (result != MultiTaskResult::Retry) { done[i] = true; --remaining; }
+            if (!multi_task_retry(result)) { done[i] = true; --remaining; }
         }
     }
     require(!remaining, "transaction phases made bounded progress");

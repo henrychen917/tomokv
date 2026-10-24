@@ -459,6 +459,7 @@ struct TxnGroupAttempt {
     std::vector<std::vector<TxnClaim>> claims;
     std::vector<std::vector<TxnClaim>> retire_claims; // exact keys when placement is capped
     std::unique_ptr<ShardGroup[]> placement_groups;
+    std::unique_ptr<TxnPlaceBlocker[]> place_blockers;
 };
 
 struct ScatterState : SnapshotCut {

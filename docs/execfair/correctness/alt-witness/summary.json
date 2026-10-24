@@ -1,0 +1,28 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.XGWlcG",
+  "gate_log_sha256": "e1daa62a5fe3d97bc4599db943d4f4d4ca0b53ac0e06e6c24c2e24ead69a5aa9",
+  "jobs": [
+    {
+      "job": "execfair",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "20.030000",
+          "label": "EXEC fast-lane polls"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 2,
+  "fail_rows": 0
+}

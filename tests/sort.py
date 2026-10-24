@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Cross-owner SORT BY/GET battery.
 
-Usage: tests/sort.py HOST PORT [SEED]
+Usage: tests/sort.py HOST PORT [SEED [1s|2s]]
 
 Required server geometry (the gate boot):
 
   --shards 16 --ratio 6:2 --enable-debug-command yes
 
-The battery fails on any other geometry. The default shard-home map assigns shard `sid` to executor
-slot `sid % 2`; the test walks candidate names and asks DEBUG SHARD for every source/derived key. It
+The default split leg fails on any other geometry. The explicit 1s leg requires eight fused
+threads, 16 shards and disabled balancing. The default shard-home map assigns shard `sid` to owner
+slot `sid % owners`; the test walks candidate names and asks DEBUG SHARD for every source/derived key. It
 will not run the semantic checks until it has proved that at least one concrete BY key and one
 concrete GET key live on the executor opposite the source. STORE uses a destination found by the
 same search. A hash seed or placement that collapses the geometry is a loud failure, never a skip.
@@ -24,6 +25,8 @@ import sys
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 SEED = int(sys.argv[3]) if len(sys.argv) > 3 else 17
+MODE = sys.argv[4] if len(sys.argv) > 4 else "2s"
+assert MODE in ("1s", "2s"), "expected thread mode must be 1s or 2s"
 failures = []
 checks = 0
 
@@ -109,12 +112,17 @@ def stats(c):
 
 
 def placement(c):
-    """I/O and executor thread counts from the server's own placement report."""
+    """Client-role and owner-role counts; fused roles share the same threads."""
     found = {}
     for line in str(c.cmd("INFO", "LB")).split("\r\n"):
-        if line.startswith("lb_io_threads:") or line.startswith("lb_ex_threads:"):
+        if line.startswith(("lb_io_threads:", "lb_ex_threads:", "lb_fused_threads:")):
             key, value = line.split(":", 1)
             found[key] = int(value)
+    if MODE == "1s":
+        assert found.get("lb_fused_threads") == 8, ("eight fused threads required", found)
+        for knob in ("key-lb", "client-lb", "flip-auto"):
+            assert c.cmd("CONFIG", "GET", knob) == [knob, "0"], ("fixed fused placement required", knob)
+        return 8, 8
     if "lb_io_threads" not in found or "lb_ex_threads" not in found:
         raise AssertionError("INFO LB did not report I/O and executor thread counts")
     return found["lb_io_threads"], found["lb_ex_threads"]
@@ -174,14 +182,20 @@ def find_cross_owner_key(c, source, stem, executors):
 def required_geometry(c):
     io_threads, ex_threads = placement(c)
     shards = observed_shards(c)
-    if (io_threads, ex_threads) != (6, 2) or shards != set(range(16)):
+    expected = (8, 8) if MODE == "1s" else (6, 2)
+    if (io_threads, ex_threads) != expected or shards != set(range(16)):
         raise AssertionError(
-            "sort battery requires --shards 16 --ratio 6:2; got observed shards=%r ratio=%d:%d"
-            % (sorted(shards), io_threads, ex_threads))
+            "sort battery requires 16 shards and %s roles %r; got shards=%r roles=%r"
+            % (MODE, expected, sorted(shards), (io_threads, ex_threads)))
     elements = ["3", "1", "2"]
     by = find_cross_owner_pattern(c, "s:L", "s:xby", elements, ex_threads)
     get = find_cross_owner_pattern(c, "s:L", "s:xget", elements, ex_threads)
     store = find_cross_owner_key(c, "s:L", "s:xstore", ex_threads)
+    # Check actual owners as well as the fixed-home map. The witness cannot
+    # pass just because two keys have different shard numbers.
+    routes = c.cmd("DEBUG", "SHARDS", "s:L", by[2], get[2], store[0])
+    assert isinstance(routes, list) and len(routes) == 4, ("DEBUG SHARDS required", routes)
+    assert all(route[1] != routes[0][1] for route in routes[1:]), ("different owners required", routes)
     print("  geometry: source shard %d -> BY shard %d (%s -> %s)"
           % (by[3], by[4], by[1], by[2]))
     print("  geometry: source shard %d -> GET shard %d (%s -> %s)"
@@ -527,7 +541,7 @@ def main():
     rng = random.Random(SEED)
     c = Conn()
     geometry = required_geometry(c)
-    print("sort battery: %s:%d, --shards 16 --ratio 6:2" % (HOST, PORT))
+    print("sort battery: %s:%d, --shards 16, mode=%s" % (HOST, PORT, MODE))
     fixture(c)
     phase_no_deref(c)
     phase_deref(c)

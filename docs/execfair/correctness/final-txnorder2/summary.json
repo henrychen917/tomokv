@@ -1,0 +1,107 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.TLQbRK",
+  "gate_log_sha256": "0e696fc6889a643da7df51cf4bb6838a7fc0a90fc0b54ee1397344c904863eb6",
+  "jobs": [
+    {
+      "job": "production_units",
+      "rows": []
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "txnorder2",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R1"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R2"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R3"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R4"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R5"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R6"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R7"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.060000",
+          "label": "txnorder2 writer episode R8"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R9"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.020000",
+          "label": "txnorder2 writer episode R10"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "txnorder2 writer episode R11"
+        },
+        {
+          "status": "ok",
+          "seconds": "4.560000",
+          "label": "txnorder2 writer episode R12"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.040000",
+          "label": "txnorder2 direct RENAME owner join"
+        },
+        {
+          "status": "ok",
+          "seconds": "22.610000",
+          "label": "txnorder2 WATCH serve"
+        },
+        {
+          "status": "ok",
+          "seconds": "30.110000",
+          "label": "txnorder2 WATCH flush"
+        },
+        {
+          "status": "ok",
+          "seconds": "27.410000",
+          "label": "txnorder2 WATCH readonly"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 17,
+  "fail_rows": 0
+}

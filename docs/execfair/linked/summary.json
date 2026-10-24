@@ -1,0 +1,9 @@
+{
+  "pre_sha256": "8d49d8a91079415bccc5447633f6ba9bba65b3669192d497f9975a392343d948",
+  "post_sha256": "df6bef840806e18cb0cd3e42bc926eef6cb7a52e0412e4f75479eb8afdf50c2c",
+  "total": 9183,
+  "changed": 457,
+  "equal": 8726,
+  "normalizer": "tests/reorder_noop.py Binary(literal_pools=True)",
+  "strict_diffs": "build/execfair-linked/changed-diffs.json.gz"
+}
