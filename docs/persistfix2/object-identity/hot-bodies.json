@@ -220,9 +220,9 @@
     "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
     "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
     "pre_size": 606,
-    "post_size": 606,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 647,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/cmd/scripting.o",
@@ -6403,9 +6403,9 @@
     "symbol": "_ZN4tomo9FlatStore22insert_into_read_localEimPNS_5KvObjEb",
     "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
     "pre_size": 1990,
-    "post_size": 1990,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 2086,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/cmd/scripting.o",
@@ -6430,9 +6430,9 @@
     "symbol": "_ZN4tomo9FlatStore5eraseEmNS_5SliceE",
     "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
     "pre_size": 2799,
-    "post_size": 2799,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 2840,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/cmd/serialize.o",

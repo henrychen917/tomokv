@@ -6,17 +6,17 @@
   },
   "POST": {
     "binary": "build/tomokv",
-    "sha256": "0ed778a80c61ece49bad82066c0680c609575e51ba8b04382d994bf25ace4d02",
-    "bytes": 210091536
+    "sha256": "edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43",
+    "bytes": 210096344
   },
   "PAD-A": {
     "binary": "build/tomokv-persistfix2-pad-a",
-    "sha256": "e24d7f81694cbc3c32a96e4be311aebfc9a50add7ee93f10aa8485ddc8e7e9b8",
+    "sha256": "2a444235324881c04d1740615c9c5ae02e4c6bf6217ffc4adf858140eb850550",
     "bytes": 209937296
   },
   "D8 planted control": {
     "binary": "build/tomokv-persistfix2-control-d8",
-    "sha256": "5fac79af676b22c54eda6f7b5bd6fc1aab7200ebc4d63f3d1dc093ecc8989853",
-    "bytes": 210093328
+    "sha256": "45146dfab18e1a64b8907457d6e6a387f05e5fdcf4bbb01405cf3c8f9919d56a",
+    "bytes": 210098136
   }
 }
