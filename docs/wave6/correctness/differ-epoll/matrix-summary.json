@@ -1,0 +1,79 @@
+[
+  {
+    "job": "differ-armed-0",
+    "done": "0\t1\t0",
+    "declarations": [
+      "DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor",
+      "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1 --net-io epoll)",
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-wave6/build/gate-run.prHg5o/jobs/differ-armed-0/differ"
+    ],
+    "summaries": [
+      "DIFFER GATE: pass=231 fail=0 runtime=8m43s"
+    ],
+    "skips": [
+      "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+    ]
+  },
+  {
+    "job": "differ-armed-1",
+    "done": "0\t1\t0",
+    "declarations": [
+      "DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor",
+      "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1 --net-io epoll)",
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-wave6/build/gate-run.prHg5o/jobs/differ-armed-1/differ"
+    ],
+    "summaries": [
+      "DIFFER GATE: pass=235 fail=0 runtime=8m46s"
+    ],
+    "skips": [
+      "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+    ]
+  },
+  {
+    "job": "differ-equivalence",
+    "done": "0\t1\t0",
+    "declarations": [
+      "DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor",
+      "DIFFER geometry: split (--ratio 6:2 --net-io epoll)",
+      "DIFFER matrix: atomic={} seeds={7 19 20 23 22} legs=0 logs=/home/user/Projects/cx-wave6/build/gate-run.prHg5o/jobs/differ-equivalence/differ"
+    ],
+    "summaries": [
+      "DIFFER GATE: pass=1 fail=0 runtime=0m21s"
+    ],
+    "skips": []
+  },
+  {
+    "job": "differ-split-0",
+    "done": "0\t1\t0",
+    "declarations": [
+      "DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor",
+      "DIFFER geometry: split (--ratio 6:2 --net-io epoll)",
+      "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-wave6/build/gate-run.prHg5o/jobs/differ-split-0/differ"
+    ],
+    "summaries": [
+      "DIFFER GATE: pass=235 fail=0 runtime=8m50s"
+    ],
+    "skips": []
+  },
+  {
+    "job": "differ-split-1",
+    "done": "0\t1\t0",
+    "declarations": [
+      "DIFFER suites (47): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi encodingfix edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel aclkeys cmdmeta s6fix ccfix psfix monitor",
+      "DIFFER geometry: split (--ratio 6:2 --net-io epoll)",
+      "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=235 logs=/home/user/Projects/cx-wave6/build/gate-run.prHg5o/jobs/differ-split-1/differ"
+    ],
+    "summaries": [
+      "DIFFER GATE: pass=239 fail=0 runtime=8m51s"
+    ],
+    "skips": []
+  }
+]
