@@ -34,9 +34,12 @@ for folder in sorted((run/'jobs').iterdir()):
         for source in (folder/'differ').glob('*.log'):
             if source.name.startswith(('target-', 'oracle')):
                 shutil.copy2(source,dd/source.name)
-    if folder.name in ('txnorder2','txnorder_wake','execfair') or folder.name.startswith('txnorder-'):
+    if folder.name in ('txnorder2','txnorder_wake','execfair','debug-0','debug-1',
+                       'atomic_units','atomic_batteries','asan_batteries','sort',
+                       'script_bounds','compat3','aclfix','bplus','replyoff') or folder.name.startswith('txnorder-'):
         for source in folder.rglob('*'):
-            if source.is_file() and source.suffix in ('.json','.log','.txt'):
+            if source.is_file() and (source.suffix in ('.json','.log','.txt')
+                                     or source.name.startswith('gate-srv-')):
                 target=dest/source.relative_to(folder)
                 target.parent.mkdir(parents=True,exist_ok=True)
                 shutil.copy2(source,target)

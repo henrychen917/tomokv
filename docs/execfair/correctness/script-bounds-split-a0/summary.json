@@ -1,0 +1,33 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.PQhswU",
+  "gate_log_sha256": "9dea43cad5b675c12cd7c33cb22ffec3d7c44e5c1d3c69ea5f50ec69f303bd44",
+  "jobs": [
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "script_bounds",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "xscript limit control"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.530000",
+          "label": "xscript window control"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 3,
+  "fail_rows": 0
+}

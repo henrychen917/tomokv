@@ -1,0 +1,7 @@
+[
+  {
+    "path": "build/gate-cache/obj-asan",
+    "bytes": 381166085,
+    "reason": "Additional sanitizer-server build objects; completed runtime evidence, cached server binary and build receipt retained. Required production-unit objects are untouched."
+  }
+]

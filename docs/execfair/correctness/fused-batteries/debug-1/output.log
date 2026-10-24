@@ -1,0 +1,32 @@
+  row budget: 900s; median=6.17s; correctness-plan-fallback; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=14.465s; correctness-plan-fallback; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=11.87s; correctness-plan-fallback; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=0.44s; correctness-plan-fallback; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.105s; correctness-plan-fallback; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=0.735s; correctness-plan-fallback; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=30.48s; correctness-plan-fallback; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=0.365s; correctness-plan-fallback; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=0.315s; correctness-plan-fallback; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=1.87s; correctness-plan-fallback; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=1.905s; correctness-plan-fallback; txn_nx battery (atomic 1)
+  txn_nx battery (atomic 1)                            ok
+  row budget: 900s; median=9.115s; correctness-plan-fallback; txniso battery (atomic 1)
+  txniso battery (atomic 1)                            ok

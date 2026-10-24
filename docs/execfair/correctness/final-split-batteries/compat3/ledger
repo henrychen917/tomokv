@@ -1,0 +1,6 @@
+ok	33.500000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.390000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.320000	compat3 CC4.14 history vs Redis 7.4
+ok	33.510000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.580000	compat3 CC4.5 glob vs Redis 7.4
+ok	33.740000	compat3 CC4.17 flags vs Redis 7.4

@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.12s; correctness-plan-fallback; cross-owner SORT battery (atomic 0)
+  cross-owner SORT battery (atomic 0)                  ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; cross-owner SORT battery (atomic 1)
+  cross-owner SORT battery (atomic 1)                  ok

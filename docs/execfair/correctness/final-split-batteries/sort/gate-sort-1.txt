@@ -1,0 +1,16 @@
+  geometry: source shard 12 -> BY shard 3 (2 -> s:xby:0000:2)
+  geometry: source shard 12 -> GET shard 5 (2 -> s:xget:0000:2)
+  geometry: source shard 12 -> STORE shard 1 (s:xstore:0001)
+sort battery: 127.0.0.1:30800, --shards 16, mode=2s
+-- forms that dereference nothing --
+-- full BY/GET surface across owners --
+-- DEBUG SHARD-proven cross-owner BY/GET/STORE --
+-- set/STORE determinism rule --
+-- cross-shard arm --
+  cross-shard arm ran 12 times
+-- read-your-own-writes through BY/GET --
+-- dereference inside MULTI/EXEC --
+-- randomised model comparison --
+  counters: {'sort_deref_lookups': 3551, 'sort_deref_refusals': 0, 'sort_scatter_general': 309, 'sort_deref_escapes': 0}
+
+sort: 402 checks, 0 failures -> PASS
