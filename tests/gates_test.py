@@ -1496,12 +1496,15 @@ class PersistfixWiring(unittest.TestCase):
     def test_live_rows_receive_reaped_slot_and_private_artifacts(self):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
+        boot_helper = gate[gate.index('\ntxn_proof_boot(){'):
+                           gate.index('\nstop(){', gate.index('\ntxn_proof_boot(){'))]
         body = gate[gate.index('# ---- AOF sync policies,'):
                     gate.index('\nAOF_EVERY_DIR=')]
         stub = r'''set -eu
 CORES=112-119; GATE_RATIO=6:2; PORT=19000; CANDIDATE_BINARY=/unused-candidate
 owned=0; SRV=0
-boot(){ [ "$owned" = 0 ]; owned=1; SRV=1; }
+boot(){ [ "$GATE_TXN_FUSED" = 0 ]; [ "$owned" = 0 ]; owned=1; SRV=1; }
+boot_fused(){ [ "$GATE_TXN_FUSED" = 1 ]; [ "$owned" = 0 ]; owned=1; SRV=1; }
 kill(){ [ "$owned" = 1 ]; }
 wait(){ [ "$owned" = 1 ]; owned=0; }
 stop(){ wait "$SRV"; SRV=0; }
@@ -1520,16 +1523,17 @@ python3(){
 '''
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
-            for engine in ('epoll', 'uring'):
-                result = subprocess.run(['bash', '-c', stub + body], cwd=root,
-                    env=dict(os.environ, TMPDIR=temporary, NET_IO=engine),
-                    text=True, capture_output=True, timeout=5)
-                self.assertEqual(result.returncode, 0, result.stderr)
+            for fused in ('0', '1'):
+                for engine in ('epoll', 'uring'):
+                    result = subprocess.run(['bash', '-c', stub + boot_helper + '\n' + body], cwd=root,
+                        env=dict(os.environ, TMPDIR=temporary, NET_IO=engine, GATE_TXN_FUSED=fused),
+                        text=True, capture_output=True, timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
             calls = [shlex.split(line) for line in (directory / 'drivers').read_text().splitlines()]
             expected = [['tests/persistfix.py', '--binary', '/unused-candidate', '--mode', mode,
                          '--case', case, '--net-io', engine, '--cores', '112-119',
                          '--ratio', '6:2', '--port', '19000', '--artifacts', temporary + '/persistfix']
-                        for engine in ('epoll', 'uring') for mode in ('2s', '1s')
+                        for fused in ('0', '1') for engine in ('epoll', 'uring') for mode in ('2s', '1s')
                         for case in ('kill', 'term')]
             self.assertEqual(calls, expected)
 
