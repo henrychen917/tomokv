@@ -2118,8 +2118,9 @@ def gen_edgeenc(rng):
         started under en_US.UTF-8 orders "-5" after "42" while this tree uses byte order. That is
         an oracle-environment difference, not a target defect: LC_ALL=C on the oracle makes the
         two agree. Nothing here should depend on which locale the oracle happened to inherit.
-      * XINFO STREAM. radix-tree-keys/radix-tree-nodes are counters of a structure this tree does
-        not have and answers with a fixed stub.
+      * XINFO STREAM. Node packing and tombstone retention differ between Compact and listpack.
+        The blockfix gate compares real index topology with matched node limits and inputs;
+        this random encoding ladder cannot assume identical macro-node boundaries.
       * A key touched twice inside one MULTI, and any list op inside MULTI. Both re-open the
         pre-existing epoch-0 MVCC resolver defect written up in NOTES-EXECISO.md section 10 (a)
         and (c); NOTES-EDGEENC.md carries the size-independent reproducer for it. Generating them

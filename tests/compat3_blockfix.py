@@ -73,6 +73,37 @@ def mapping(reply):
     return dict(zip(reply[::2], reply[1::2]))
 
 
+def structure(c):
+    out = {}
+    for resp in (2, 3):
+        c.cmd("HELLO", resp)
+        for byte_limit, entry_limit in ((0, 1), (0, 2), (0, 100), (1, 0), (0, 0), (4096, 100)):
+            c.cmd("CONFIG", "SET", "stream-node-max-bytes", byte_limit)
+            c.cmd("CONFIG", "SET", "stream-node-max-entries", entry_limit)
+            for grouped in (False, True):
+                for ids in ([f"{i}-0" for i in range(1, 251)],
+                            [f"1-{i}" for i in range(1, 8)],
+                            ["1-0", "256-0", "65536-0", "4294967296-0", "18446744073709551615-0"]):
+                    c.cmd("DEL", "structure")
+                    if grouped:
+                        c.cmd("XGROUP", "CREATE", "structure", "g", "0", "MKSTREAM")
+                        empty = mapping(c.cmd("XINFO", "STREAM", "structure"))
+                        equal((empty[b"radix-tree-keys"], empty[b"radix-tree-nodes"]), (0, 1), "empty root")
+                    for ident in ids:
+                        equal(c.cmd("XADD", "structure", ident, "f", "v"), ident.encode(), "structure append")
+                    label = str((resp, byte_limit, entry_limit, grouped, len(ids)))
+                    out[label] = [c.cmd("XINFO", "STREAM", "structure"),
+                                  c.cmd("XINFO", "STREAM", "structure", "FULL", "COUNT", 1)]
+                    # Full-node trim removes keys from the index; empty streams retain a root.
+                    c.cmd("XTRIM", "structure", "MAXLEN", 0)
+                    out[label + " trimmed"] = [c.cmd("XINFO", "STREAM", "structure"),
+                                                c.cmd("XINFO", "STREAM", "structure", "FULL")]
+    c.cmd("HELLO", 2)
+    c.cmd("CONFIG", "SET", "stream-node-max-bytes", 4096)
+    c.cmd("CONFIG", "SET", "stream-node-max-entries", 100)
+    return out
+
+
 def mkstream(c):
     observations = {}
     # Each axis alone, both disabled, and the default combination. Small byte
@@ -120,8 +151,8 @@ def mkstream(c):
 
 
 def probe(c, case):
-    return {"registry": registry, "mkstream": mkstream}[case](c)
+    return {"registry": registry, "mkstream": mkstream, "structure": structure}[case](c)
 
 
 if __name__ == "__main__":
-    run(probe, ("mkstream", "registry"))
+    run(probe, ("mkstream", "registry", "structure"))

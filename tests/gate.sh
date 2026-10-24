@@ -1128,7 +1128,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(blockfix_registry blockfix_mkstream aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+  JOB_NAMES+=(blockfix_structure blockfix_registry blockfix_mkstream aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
@@ -3441,6 +3441,12 @@ job_blockfix_registry(){
   else bad "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4" "see $TMPDIR/{instructions,registry-*}.log"; fi
 }
 
+job_blockfix_structure(){
+  row_begin "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+  compat3_case blockfix structure && ok "blockfix CC4.19 XINFO structural counts vs Redis 7.4" \
+      || bad "blockfix CC4.19 XINFO structural counts vs Redis 7.4" "see $TMPDIR/structure-*.log"
+}
+
 job_blockfix_mkstream(){
   row_begin "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
   compat3_case blockfix mkstream && ok "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4" \
@@ -5215,6 +5221,7 @@ collect_job compat3
 # blockfix: counted here before the quick exit; EXPECT remains owner-maintained.
 collect_job blockfix_registry
 collect_job blockfix_mkstream
+collect_job blockfix_structure
 collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children

@@ -1,0 +1,2 @@
+tests/compat3_blockfix.py:91:                        equal((empty[b"radix-tree-keys"], empty[b"radix-tree-nodes"]), (0, 1), "empty root")
+tests/differ.py:2121:      * XINFO STREAM. radix-tree-keys/radix-tree-nodes are counters of a structure this tree does
