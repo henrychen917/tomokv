@@ -1,0 +1,30 @@
+ok	0.000000	release build (+footprint locks)
+ok	1.810000	datafix1 RAND/SCAN errors (both engines and modes)
+ok	1.670000	datafix1 HEXPIRE precedence (both engines and modes)
+ok	1.700000	datafix1 BITFIELD bounds (both engines and modes)
+ok	5.530000	datafix1 SORT locale (both engines and modes)
+ok	2.990000	datafix1 list demotion (both engines and modes)
+ok	1.690000	datafix1 SPOP encodings (both engines and modes)
+ok	3.280000	datafix1 GEO grammar (both engines and modes)
+ok	0.830000	dispatchfix EX4.10 container outer arity
+ok	0.880000	dispatchfix EX4.11 container errors
+ok	0.940000	dispatchfix EX4.4 advertised children
+ok	15.300000	dispatchfix CC4.15 ACL subcommand grants
+ok	4.200000	dispatchfix EX4.17 uniform routing and legacy recovery
+ok	8.400000	serverfix CG4.3 physical config lines
+ok	19.760000	serverfix CG4.4 shared scalar grammar
+ok	0.960000	serverfix SV4.6 CONFIG validation matrix
+ok	0.780000	serverfix SV4.7 HELLO canonical protocol
+ok	6.870000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	6.300000	serverfix SV4.8 HyperLogLog self-test controls
+ok	13.110000	serverfix SV4.14 disabled slowlog allocation
+ok	13.950000	serverfix CC4.26 disabled ACL log allocation
+ok	22.830000	notification compatibility setbit vs Redis 7.4
+ok	42.930000	notification compatibility setpast vs Redis 7.4
+ok	50.620000	notification compatibility emptystore vs Redis 7.4
+ok	42.930000	notification compatibility writemiss vs Redis 7.4
+ok	43.740000	notification compatibility objectmiss vs Redis 7.4
+ok	144.550000	notification compatibility expiredstore vs Redis 7.4
+ok	56.840000	notification compatibility flush vs Redis 7.4
+ok	37.590000	tracking REDIRECT close vs Redis 7.4
+FAIL	20.680000	EXEC fast-lane polls

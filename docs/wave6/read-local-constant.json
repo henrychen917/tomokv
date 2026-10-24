@@ -1,0 +1,12 @@
+{
+  "headline": {
+    "address": "0x7f79c8",
+    "bytes": "0000000001000000",
+    "instruction": "0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x944>"
+  },
+  "post": {
+    "address": "0x80e060",
+    "bytes": "0000000001000000",
+    "instruction": "0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x91c>"
+  }
+}

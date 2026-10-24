@@ -1,0 +1,1791 @@
+{
+  "touched": [
+    {
+      "file": "tests/_serverfix.py",
+      "jobs": [
+        "job_serverfix_acllog",
+        "job_serverfix_config",
+        "job_serverfix_hello",
+        "job_serverfix_hll",
+        "job_serverfix_lines",
+        "job_serverfix_scalar",
+        "job_serverfix_slowlog",
+        "job_serverfix_waitaof"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/_serverfix_alloc.py",
+      "jobs": [
+        "job_serverfix_acllog",
+        "job_serverfix_slowlog"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/_serverfix_mutant.py",
+      "jobs": [
+        "job_serverfix_hll"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/acl.py",
+      "jobs": [
+        "job_auth",
+        "job_release_batteries"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/acl_subcommands.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/at15_unit.cc",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/atomic_survivors_unit.cc",
+      "jobs": [
+        "job_atomic_units",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_production_units",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_bitfield.py",
+      "jobs": [
+        "job_datafix1_bitfield"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_common.py",
+      "jobs": [
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_geo.py",
+      "jobs": [
+        "job_datafix1_geo"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_hexpire.py",
+      "jobs": [
+        "job_datafix1_hexpire"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_lists.py",
+      "jobs": [
+        "job_datafix1_lists"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_locale.py",
+      "jobs": [
+        "job_datafix1_locale"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_randscan.py",
+      "jobs": [
+        "job_datafix1_randscan"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/datafix1_spop.py",
+      "jobs": [
+        "job_datafix1_spop"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/debug.py",
+      "jobs": [
+        "job_auth"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/differ.py",
+      "jobs": [
+        "job_differ"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/differ_gate.sh",
+      "jobs": [
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/dispatch_arity.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/dispatch_children.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/dispatch_errors.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/edgeenc.py",
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/execabort_watch_unit.cc",
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/execfair.py",
+      "jobs": [
+        "job_execfair"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/execfix_unit.cc",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/dispatchfix-pre/appendonlydir/appendonly.aof.1.incr.tomo.gz",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/dispatchfix-pre/checks.json",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/dispatchfix-pre/commands.json",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/dispatchfix-pre/dump.tomo.gz",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/dispatchfix-pre/origin.json",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/fixtures/nullrefresh-ledger-labels.json",
+      "jobs": [
+        "job_abba_selftest"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/flushfix_unit.cc",
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/gate.sh",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": "Scheduler/collector interface: all correctness consumer jobs selected; measurement jobs reserved to maintainer."
+    },
+    {
+      "file": "tests/mode_equivalence.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/multidb_unit.cc",
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/netcmd_config_unit.cc",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/notify.py",
+      "jobs": [
+        "job_notify"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/notifycompat.py",
+      "jobs": [
+        "job_notifycompat",
+        "job_tracking_redirect"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/r7shadow_noop.py",
+      "jobs": [
+        "job_reorder_engagement",
+        "job_reorder_identity"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/reorder_receipt.py",
+      "jobs": [
+        "job_reorder_engagement",
+        "job_reorder_identity"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/router_uniform.py",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_acllog.py",
+      "jobs": [
+        "job_serverfix_acllog"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_alloc.cc",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_config.py",
+      "jobs": [
+        "job_serverfix_config"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_hello.py",
+      "jobs": [
+        "job_serverfix_hello"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_hll.py",
+      "jobs": [
+        "job_serverfix_hll"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_lines.py",
+      "jobs": [
+        "job_serverfix_lines"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_scalar.py",
+      "jobs": [
+        "job_serverfix_scalar"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_slowlog.py",
+      "jobs": [
+        "job_serverfix_slowlog"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/serverfix_waitaof.py",
+      "jobs": [
+        "job_serverfix_waitaof"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/shutdown_client_checks.inc",
+      "jobs": [],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/sort.py",
+      "jobs": [
+        "job_sort"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/tracking_redirect.py",
+      "jobs": [
+        "job_tracking_redirect"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/txnorder_checks.inc",
+      "jobs": [
+        "job_atomic_units",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_production_units",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/txnorder_episodes.cc",
+      "jobs": [
+        "job_txnorder2",
+        "job_txnorder_wake"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/txnorder_watch_unit.cc",
+      "jobs": [
+        "job_txnorder2",
+        "job_txnorder_wake"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    }
+  ],
+  "protocol_sweep": [
+    {
+      "token": " HELP.",
+      "tests": [
+        "tests/arity.py",
+        "tests/edgeproto.py",
+        "tests/servertail.py",
+        "tests/pubsub.py",
+        "tests/auth.py",
+        "tests/slowlog.py",
+        "tests/contarity.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_notify"
+      ]
+    },
+    {
+      "token": "'. Try PUBSUB HELP.",
+      "tests": [
+        "tests/pubsub.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_notify"
+      ]
+    },
+    {
+      "token": "CLIENT",
+      "tests": [
+        "tests/acl.py",
+        "tests/_gate_process.py",
+        "tests/aclkeys_wake.py",
+        "tests/multidb.py",
+        "tests/multi_exec.py",
+        "tests/aoffix2.py",
+        "tests/storesize_unit.cc",
+        "tests/aclkeys_test.py",
+        "tests/netcmd.py",
+        "tests/stream.py",
+        "tests/respresume_flip.py",
+        "tests/perf_gate.py",
+        "tests/tracking.py",
+        "tests/fliplisten.py",
+        "tests/connreset_repro.py",
+        "tests/lottery_test_driver.py",
+        "tests/netfix_idle_buffers.py",
+        "tests/evict_battery_test.py",
+        "tests/flipfix_abort_probe.py",
+        "tests/climon.py",
+        "tests/gate.sh",
+        "tests/climon_128.py",
+        "tests/resp3.py",
+        "tests/tls.py",
+        "tests/clientfix_widths.py",
+        "tests/tracking_redirect.py",
+        "tests/core_concurrency_unit.cc",
+        "tests/pubsub.py",
+        "tests/gate_process_test.py",
+        "tests/climon2.py",
+        "tests/netcmd_unit.cc",
+        "tests/barrier.py",
+        "tests/limits.py",
+        "tests/serverfix_waitaof.py",
+        "tests/netcap.py",
+        "tests/atomic_plain.py",
+        "tests/aclfix.py",
+        "tests/serverfix_hello.py",
+        "tests/netcap_unit.cc",
+        "tests/auth.py",
+        "tests/notify_order.py",
+        "tests/flakeaudit_test.py",
+        "tests/_client_wait.py",
+        "tests/serverfix_slowlog.py",
+        "tests/blockmulti.py",
+        "tests/replyoff_xshard.py",
+        "tests/slowlog_identity.py",
+        "tests/replyschema.py",
+        "tests/streamgroups.py",
+        "tests/_serverfix_alloc.py",
+        "tests/trackfix.py",
+        "tests/flipfix.py",
+        "tests/aclkeys_wake_state.py",
+        "tests/read_local_lfu.py",
+        "tests/racefix.py",
+        "tests/_differ_aclkeys.py",
+        "tests/slowlog.py",
+        "tests/netio.py",
+        "tests/aclkeys_wake_unit.cc",
+        "tests/clientfix.py",
+        "tests/pushtear.py",
+        "tests/respresume.py",
+        "tests/aclreply.py",
+        "tests/acl_subcommands.py",
+        "tests/respcompat.py",
+        "tests/differ.py",
+        "tests/blocking.py",
+        "tests/evict_battery.py",
+        "tests/flip_under_load.py",
+        "tests/lb_stationary.py",
+        "tests/aclsel.py",
+        "tests/txnfix_audit/resp.py",
+        "tests/txnfix_audit/t14_exec_window.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_metadata",
+        "job_acl_recheck",
+        "job_acl_subcommands",
+        "job_aclfix",
+        "job_aof",
+        "job_aof_frame",
+        "job_aoforder",
+        "job_asan",
+        "job_asan_batteries",
+        "job_atomic_batteries",
+        "job_atomic_floor",
+        "job_atomic_units",
+        "job_auth",
+        "job_authfix",
+        "job_body",
+        "job_boot_grammar",
+        "job_bplus",
+        "job_bugs5",
+        "job_clientfix",
+        "job_climonfix",
+        "job_cmd_metadata",
+        "job_compat2",
+        "job_compat3",
+        "job_config_unit",
+        "job_core_tsan_build",
+        "job_core_units",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_dbdefault",
+        "job_debug",
+        "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_children",
+        "job_dispatch_errors",
+        "job_dump_restore",
+        "job_efficiency",
+        "job_exbatch_live",
+        "job_exbatch_units",
+        "job_execfair",
+        "job_feature_cell",
+        "job_filter_unit",
+        "job_finalize",
+        "job_flip",
+        "job_flip_saturated",
+        "job_flip_unit",
+        "job_flipfix_units",
+        "job_fliplisten",
+        "job_fused",
+        "job_globcase",
+        "job_hexpread",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep",
+        "job_lb_stationary",
+        "job_lbplanner_units",
+        "job_moverfix",
+        "job_multidb",
+        "job_netcap",
+        "job_netcmd_units",
+        "job_netfix_config",
+        "job_netfix_idle_buffers",
+        "job_netfix_query_stats",
+        "job_netfix_tls",
+        "job_netfix_unix",
+        "job_netio",
+        "job_notify",
+        "job_notify_aof",
+        "job_notify_order",
+        "job_notifycompat",
+        "job_ntfix_input",
+        "job_ntnew4_live",
+        "job_perfex_live",
+        "job_perfex_units",
+        "job_perfio_stream",
+        "job_persistfix_units",
+        "job_production_units",
+        "job_racefix_climon",
+        "job_racefix_counters",
+        "job_racefix_tsan_build",
+        "job_readonly",
+        "job_recover",
+        "job_release",
+        "job_release_batteries",
+        "job_reorder_engagement",
+        "job_reorder_identity",
+        "job_reorder_sync",
+        "job_replyoff",
+        "job_respcompat",
+        "job_respresume",
+        "job_ring_unit",
+        "job_rlcache",
+        "job_rldbg",
+        "job_router_uniform",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_serverfix_acllog",
+        "job_serverfix_config",
+        "job_serverfix_hello",
+        "job_serverfix_hll",
+        "job_serverfix_lines",
+        "job_serverfix_scalar",
+        "job_serverfix_slowlog",
+        "job_serverfix_waitaof",
+        "job_snapshot",
+        "job_sort",
+        "job_splitlocal_units",
+        "job_storage_units",
+        "job_tailgen_build",
+        "job_tls",
+        "job_trackfix_accounting",
+        "job_trackfix_order",
+        "job_tracking_redirect",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2",
+        "job_txnorder_wake",
+        "job_wait_units",
+        "job_waits_tsan_build",
+        "job_wb_policy",
+        "job_wb_rule_units",
+        "job_wbland_units"
+      ]
+    },
+    {
+      "token": "ERR CONFIG SET failed (possibly related to argument '",
+      "tests": [
+        "tests/notify.py",
+        "tests/serverfix_config.py",
+        "tests/debug.py",
+        "tests/netcap_unit.cc",
+        "tests/auth.py",
+        "tests/netcmd_config_unit.cc",
+        "tests/differ_test.py",
+        "tests/differ.py",
+        "tests/knobs.py"
+      ],
+      "jobs": [
+        "job_aof",
+        "job_auth",
+        "job_body",
+        "job_differ",
+        "job_notify",
+        "job_serverfix_config"
+      ]
+    },
+    {
+      "token": "ERR NOVALUES option can only be used in HSCAN",
+      "tests": [
+        "tests/edgeproto.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR Unknown option or number of arguments for CONFIG SET - '",
+      "tests": [
+        "tests/netcmd_config_unit.cc",
+        "tests/knobs.py"
+      ],
+      "jobs": [
+        "job_aof",
+        "job_body"
+      ]
+    },
+    {
+      "token": "ERR need numeric radius",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/doubles.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR out of memory",
+      "tests": [
+        "tests/atomic_survivors_unit.cc",
+        "tests/aclfix.py",
+        "tests/hexpire_oom_checks.inc"
+      ],
+      "jobs": [
+        "job_aclfix",
+        "job_atomic_units",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_production_units",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder"
+      ]
+    },
+    {
+      "token": "ERR parameter is immutable at runtime",
+      "tests": [
+        "tests/atomic_plain.py",
+        "tests/netcmd_config_unit.cc"
+      ],
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ]
+    },
+    {
+      "token": "ERR radius cannot be negative",
+      "tests": [
+        "tests/doubles.py"
+      ],
+      "jobs": []
+    },
+    {
+      "token": "ERR timeout is negative",
+      "tests": [
+        "tests/servertail.py",
+        "tests/s6.py",
+        "tests/climon2.py",
+        "tests/doubles.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR timeout is not an integer or out of range",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/climon2.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR timeout is out of range",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/doubles.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR unknown subcommand '",
+      "tests": [
+        "tests/arity.py",
+        "tests/edgeproto.py",
+        "tests/servertail.py",
+        "tests/pubsub.py",
+        "tests/auth.py",
+        "tests/slowlog.py",
+        "tests/contarity.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_notify"
+      ]
+    },
+    {
+      "token": "ERR unknown subcommand or wrong number of arguments for '",
+      "tests": [
+        "tests/arity.py",
+        "tests/pubsub.py",
+        "tests/debug.py",
+        "tests/aclkeys_wake_unit.cc"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_notify"
+      ]
+    },
+    {
+      "token": "ERR value is not a valid float",
+      "tests": [
+        "tests/doubles.py"
+      ],
+      "jobs": []
+    },
+    {
+      "token": "ERR value is not an integer or out of range",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/tracking.py",
+        "tests/servertail.py",
+        "tests/cmdgap.py",
+        "tests/edgetime.py",
+        "tests/climon2.py",
+        "tests/aclfix.py",
+        "tests/dumprestore.py",
+        "tests/hexpire.py",
+        "tests/aclkeys_wake_unit.cc",
+        "tests/lcs.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_aclfix",
+        "job_body",
+        "job_dump_restore",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR value is out of range",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/s6.py",
+        "tests/multidb_unit.cc"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_atomic_units",
+        "job_body",
+        "job_fused",
+        "job_production_units"
+      ]
+    },
+    {
+      "token": "ERR value is out of range, must be positive",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/s6.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "ERR wrong number of arguments for '",
+      "tests": [
+        "tests/cmdgap2.py",
+        "tests/arity.py",
+        "tests/edgeproto.py",
+        "tests/storesize_unit.cc",
+        "tests/respresume_flip.py",
+        "tests/servertail.py",
+        "tests/cmdgap.py",
+        "tests/pubsub.py",
+        "tests/climon2.py",
+        "tests/auth.py",
+        "tests/hexpire.py",
+        "tests/respresume.py",
+        "tests/lcs.py",
+        "tests/contarity.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_fused",
+        "job_notify",
+        "job_respresume"
+      ]
+    },
+    {
+      "token": "FUNCTION",
+      "tests": [
+        "tests/atomic_survivors_unit.cc",
+        "tests/scriptfix.py",
+        "tests/aof.py",
+        "tests/xscript.py",
+        "tests/replyschema.py",
+        "tests/compat3_functions.py",
+        "tests/scriptsurf.py",
+        "tests/clientfix.py",
+        "tests/respresume.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_aof",
+        "job_atomic_units",
+        "job_body",
+        "job_clientfix",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_production_units",
+        "job_respresume",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder"
+      ]
+    },
+    {
+      "token": "HELP",
+      "tests": [
+        "tests/arity.py",
+        "tests/edgeproto.py",
+        "tests/servertail.py",
+        "tests/aclkeys_unit.cc",
+        "tests/dispatch_errors.py",
+        "tests/mdbstamp_checks.cc",
+        "tests/pubsub.py",
+        "tests/climon2.py",
+        "tests/dispatch_arity.py",
+        "tests/gates_test.py",
+        "tests/auth.py",
+        "tests/replyschema.py",
+        "tests/scriptsurf.py",
+        "tests/slowlog.py",
+        "tests/acl_subcommands.py",
+        "tests/differ.py",
+        "tests/contarity.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_auth",
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_notify"
+      ]
+    },
+    {
+      "token": "HISTOGRAM",
+      "tests": [
+        "tests/dispatch_children.py",
+        "tests/replyschema.py"
+      ],
+      "jobs": []
+    },
+    {
+      "token": "LIST",
+      "tests": [
+        "tests/acl.py",
+        "tests/cmdgap2.py",
+        "tests/arity.py",
+        "tests/cmdmeta_test.py",
+        "tests/xshard_dispatch_scale.sh",
+        "tests/aclkeys_test.py",
+        "tests/respresume_flip.py",
+        "tests/matrix.sh",
+        "tests/servertail.py",
+        "tests/scriptfix.py",
+        "tests/lottery_test_driver.py",
+        "tests/cmdgap.py",
+        "tests/watchlive_gate.sh",
+        "tests/netfix_idle_buffers.py",
+        "tests/cd13b_wire.py",
+        "tests/climon.py",
+        "tests/redisgap.py",
+        "tests/gate.sh",
+        "tests/cmdmeta.py",
+        "tests/resp3.py",
+        "tests/tracking_redirect.py",
+        "tests/pubsub.py",
+        "tests/barrier.py",
+        "tests/watchlive.py",
+        "tests/serverfix_waitaof.py",
+        "tests/gates_test.py",
+        "tests/netcap.py",
+        "tests/auth.py",
+        "tests/flakeaudit_test.py",
+        "tests/_client_wait.py",
+        "tests/slowlog_identity.py",
+        "tests/replyschema.py",
+        "tests/compat3_functions.py",
+        "tests/aclkeys_wake_state.py",
+        "tests/scriptsurf.py",
+        "tests/_differ_aclkeys.py",
+        "tests/abba_binaries.py",
+        "tests/clientfix.py",
+        "tests/respresume.py",
+        "tests/acl_subcommands.py",
+        "tests/differ.py",
+        "tests/aclsel.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_metadata",
+        "job_acl_recheck",
+        "job_acl_subcommands",
+        "job_aclfix",
+        "job_aof",
+        "job_aof_frame",
+        "job_aoforder",
+        "job_asan",
+        "job_asan_batteries",
+        "job_atomic_batteries",
+        "job_atomic_floor",
+        "job_atomic_units",
+        "job_auth",
+        "job_authfix",
+        "job_body",
+        "job_boot_grammar",
+        "job_bplus",
+        "job_bugs5",
+        "job_clientfix",
+        "job_climonfix",
+        "job_cmd_metadata",
+        "job_compat2",
+        "job_compat3",
+        "job_config_unit",
+        "job_core_tsan_build",
+        "job_core_units",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_dbdefault",
+        "job_debug",
+        "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_children",
+        "job_dispatch_errors",
+        "job_dump_restore",
+        "job_efficiency",
+        "job_exbatch_live",
+        "job_exbatch_units",
+        "job_execfair",
+        "job_feature_cell",
+        "job_filter_unit",
+        "job_finalize",
+        "job_flip",
+        "job_flip_saturated",
+        "job_flip_unit",
+        "job_fliplisten",
+        "job_fused",
+        "job_globcase",
+        "job_hexpread",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep",
+        "job_lb_stationary",
+        "job_lbplanner_units",
+        "job_moverfix",
+        "job_multidb",
+        "job_netcap",
+        "job_netcmd_units",
+        "job_netfix_config",
+        "job_netfix_idle_buffers",
+        "job_netfix_query_stats",
+        "job_netfix_tls",
+        "job_netfix_unix",
+        "job_netio",
+        "job_notify",
+        "job_notify_aof",
+        "job_notify_order",
+        "job_notifycompat",
+        "job_ntfix_input",
+        "job_ntnew4_live",
+        "job_perfex_live",
+        "job_perfex_units",
+        "job_perfio_stream",
+        "job_persistfix_units",
+        "job_production_units",
+        "job_racefix_climon",
+        "job_racefix_counters",
+        "job_racefix_tsan_build",
+        "job_readonly",
+        "job_recover",
+        "job_release",
+        "job_release_batteries",
+        "job_reorder_engagement",
+        "job_reorder_identity",
+        "job_reorder_sync",
+        "job_replyoff",
+        "job_respcompat",
+        "job_respresume",
+        "job_ring_unit",
+        "job_rlcache",
+        "job_rldbg",
+        "job_router_uniform",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_serverfix_acllog",
+        "job_serverfix_config",
+        "job_serverfix_hello",
+        "job_serverfix_hll",
+        "job_serverfix_lines",
+        "job_serverfix_scalar",
+        "job_serverfix_slowlog",
+        "job_serverfix_waitaof",
+        "job_snapshot",
+        "job_sort",
+        "job_splitlocal_units",
+        "job_storage_units",
+        "job_tailgen_build",
+        "job_tls",
+        "job_trackfix_accounting",
+        "job_trackfix_order",
+        "job_tracking_redirect",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2",
+        "job_txnorder_wake",
+        "job_wait_units",
+        "job_waits_tsan_build",
+        "job_wb_policy",
+        "job_wb_rule_units",
+        "job_wbland_units"
+      ]
+    },
+    {
+      "token": "LOAD",
+      "tests": [
+        "tests/aof_rewrite_matrix.sh",
+        "tests/atomic_survivors_unit.cc",
+        "tests/acl.py",
+        "tests/lottery_attempt.py",
+        "tests/dumpttl.py",
+        "tests/multidb.py",
+        "tests/arity.py",
+        "tests/gate_history.py",
+        "tests/flipctl.py",
+        "tests/rlcache_churn.py",
+        "tests/xshard_dispatch_scale.sh",
+        "tests/scriptfix.py",
+        "tests/benchfeat.py",
+        "tests/txnorder_checks.inc",
+        "tests/debug_load_test.py",
+        "tests/loading_ready_test.py",
+        "tests/gate.sh",
+        "tests/aof_rewrite_trigger_matrix.sh",
+        "tests/tailgen_stall.py",
+        "tests/abba_ceiling.py",
+        "tests/perfex_checks.py",
+        "tests/atomic_hazards.py",
+        "tests/ntnew4_clock.py",
+        "tests/aof.py",
+        "tests/netcmd_unit.cc",
+        "tests/read_local_lane.py",
+        "tests/gateplan.py",
+        "tests/_differ_ccfix.py",
+        "tests/publishfix_e2e.py",
+        "tests/gates_test.py",
+        "tests/perfio.py",
+        "tests/aclfix.py",
+        "tests/debug.py",
+        "tests/xscript.py",
+        "tests/hexpread.py",
+        "tests/writer_atomic_campaign.py",
+        "tests/txnorder.py",
+        "tests/notify_order.py",
+        "tests/txniso.py",
+        "tests/flakeaudit_test.py",
+        "tests/cd13b_oracle.sh",
+        "tests/aoforder.py",
+        "tests/replyschema.py",
+        "tests/differ_fanout_test.py",
+        "tests/_serverfix_alloc.py",
+        "tests/compat3_functions.py",
+        "tests/xacct.py",
+        "tests/hexpire.py",
+        "tests/scriptsurf.py",
+        "tests/netcmd_config_unit.cc",
+        "tests/edgeenc.py",
+        "tests/_lib.py",
+        "tests/load_calibration.py",
+        "tests/differ_test.py",
+        "tests/_nullrefresh_test.py",
+        "tests/acl_subcommands.py",
+        "tests/abbagate.py",
+        "tests/differ.py",
+        "tests/expwide.py",
+        "tests/debug_load.py",
+        "tests/lua_scripting.py",
+        "tests/differ_gate.sh",
+        "tests/txngroup.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_metadata",
+        "job_acl_recheck",
+        "job_acl_subcommands",
+        "job_aclfix",
+        "job_aof",
+        "job_aof_frame",
+        "job_aoforder",
+        "job_asan",
+        "job_asan_batteries",
+        "job_atomic_batteries",
+        "job_atomic_floor",
+        "job_atomic_units",
+        "job_auth",
+        "job_authfix",
+        "job_body",
+        "job_boot_grammar",
+        "job_bplus",
+        "job_bugs5",
+        "job_clientfix",
+        "job_climonfix",
+        "job_cmd_metadata",
+        "job_compat2",
+        "job_compat3",
+        "job_config_unit",
+        "job_core_tsan_build",
+        "job_core_units",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_dbdefault",
+        "job_debug",
+        "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_children",
+        "job_dispatch_errors",
+        "job_dump_restore",
+        "job_efficiency",
+        "job_exbatch_live",
+        "job_exbatch_units",
+        "job_execfair",
+        "job_feature_cell",
+        "job_filter_unit",
+        "job_finalize",
+        "job_flip",
+        "job_flip_saturated",
+        "job_flip_unit",
+        "job_fliplisten",
+        "job_fused",
+        "job_globcase",
+        "job_hexpread",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep",
+        "job_lb_stationary",
+        "job_lbplanner_units",
+        "job_moverfix",
+        "job_multidb",
+        "job_netcap",
+        "job_netcmd_units",
+        "job_netfix_config",
+        "job_netfix_idle_buffers",
+        "job_netfix_query_stats",
+        "job_netfix_tls",
+        "job_netfix_unix",
+        "job_netio",
+        "job_notify",
+        "job_notify_aof",
+        "job_notify_order",
+        "job_notifycompat",
+        "job_ntfix_input",
+        "job_ntnew4_live",
+        "job_perfex_live",
+        "job_perfex_units",
+        "job_perfio_stream",
+        "job_persistfix_units",
+        "job_production_units",
+        "job_racefix_climon",
+        "job_racefix_counters",
+        "job_racefix_tsan_build",
+        "job_readonly",
+        "job_recover",
+        "job_release",
+        "job_release_batteries",
+        "job_reorder_engagement",
+        "job_reorder_identity",
+        "job_reorder_sync",
+        "job_replyoff",
+        "job_respcompat",
+        "job_respresume",
+        "job_ring_unit",
+        "job_rlcache",
+        "job_rldbg",
+        "job_router_uniform",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_serverfix_acllog",
+        "job_serverfix_config",
+        "job_serverfix_hello",
+        "job_serverfix_hll",
+        "job_serverfix_lines",
+        "job_serverfix_scalar",
+        "job_serverfix_slowlog",
+        "job_serverfix_waitaof",
+        "job_snapshot",
+        "job_sort",
+        "job_splitlocal_units",
+        "job_storage_units",
+        "job_tailgen_build",
+        "job_tls",
+        "job_trackfix_accounting",
+        "job_trackfix_order",
+        "job_tracking_redirect",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2",
+        "job_txnorder_wake",
+        "job_wait_units",
+        "job_waits_tsan_build",
+        "job_wb_policy",
+        "job_wb_rule_units",
+        "job_wbland_units"
+      ]
+    },
+    {
+      "token": "PUBSUB",
+      "tests": [
+        "tests/climon.py",
+        "tests/pubsub.py",
+        "tests/replyschema.py",
+        "tests/clientfix.py",
+        "tests/respresume.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_clientfix",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_differ",
+        "job_notify",
+        "job_respresume"
+      ]
+    },
+    {
+      "token": "SAVE",
+      "tests": [
+        "tests/acl.py",
+        "tests/lottery_attempt.py",
+        "tests/snap_cut_battery.py",
+        "tests/flushfix_unit.cc",
+        "tests/arity.py",
+        "tests/aoffix2.py",
+        "tests/shutdown_unit.cc",
+        "tests/edgetime_persist.sh",
+        "tests/climonfix_artifacts.py",
+        "tests/router_uniform.py",
+        "tests/servertail.py",
+        "tests/shutsave_test.py",
+        "tests/shutdown_persist.py",
+        "tests/abba_experiments.py",
+        "tests/flush_capture.py",
+        "tests/at15.py",
+        "tests/execabort_watch_unit.cc",
+        "tests/s6.py",
+        "tests/gate.sh",
+        "tests/iofix_signal.py",
+        "tests/hexpire_persist.sh",
+        "tests/aof.py",
+        "tests/netcmd_stream_unit.cc",
+        "tests/notify_order_checks.inc",
+        "tests/psfix.py",
+        "tests/shutsave_unit.cc",
+        "tests/ccfix_instr.cc",
+        "tests/_save_timeout.py",
+        "tests/aclfix.py",
+        "tests/at15_unit.cc",
+        "tests/dumprestore.py",
+        "tests/savefix.py",
+        "tests/replyschema.py",
+        "tests/hexpire.py",
+        "tests/boot_failures.py",
+        "tests/shutsave.py",
+        "tests/snap_typed_roundtrip.py",
+        "tests/differ_test.py",
+        "tests/respresume.py",
+        "tests/acl_subcommands.py",
+        "tests/differ.py",
+        "tests/snap_typed_race.py",
+        "tests/psfix_test.py",
+        "tests/shutdown_client_checks.inc"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aclfix",
+        "job_aof",
+        "job_aoforder",
+        "job_atomic_units",
+        "job_auth",
+        "job_body",
+        "job_climonfix",
+        "job_differ",
+        "job_dump_restore",
+        "job_fused",
+        "job_hexpread",
+        "job_production_units",
+        "job_release_batteries",
+        "job_respresume",
+        "job_snapshot"
+      ]
+    },
+    {
+      "token": "SCRIPT",
+      "tests": [
+        "tests/mutants.py",
+        "tests/scriptfix.py",
+        "tests/aof_torn_group.py",
+        "tests/gate.sh",
+        "tests/aof.py",
+        "tests/scriptatomic.py",
+        "tests/aof_frame_order.py",
+        "tests/xscript.py",
+        "tests/txnorder.py",
+        "tests/replyschema.py",
+        "tests/scriptsurf.py",
+        "tests/clientfix.py",
+        "tests/differ.py",
+        "tests/expwide.py",
+        "tests/lua_scripting.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_aof",
+        "job_aof_frame",
+        "job_body",
+        "job_clientfix",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_debug",
+        "job_differ",
+        "job_notify",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_txnorder"
+      ]
+    },
+    {
+      "token": "SRANDMEMBER",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/netcmd_zset_unit.cc",
+        "tests/datafix1_randscan.py",
+        "tests/replyschema.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_datafix1_randscan",
+        "job_differ",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "UNBLOCKED client unblocked via CLIENT UNBLOCK",
+      "tests": [
+        "tests/climon2.py",
+        "tests/serverfix_waitaof.py",
+        "tests/aclkeys_wake_unit.cc"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_serverfix_waitaof"
+      ]
+    },
+    {
+      "token": "USERS",
+      "tests": [
+        "tests/acl.py",
+        "tests/arity.py",
+        "tests/replyschema.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_differ",
+        "job_release_batteries"
+      ]
+    },
+    {
+      "token": "WAITAOF",
+      "tests": [
+        "tests/aclkeys_unit.cc",
+        "tests/s6.py",
+        "tests/gate.sh",
+        "tests/serverfix_waitaof.py",
+        "tests/replyschema.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_differ",
+        "job_fused",
+        "job_serverfix_waitaof"
+      ]
+    },
+    {
+      "token": "WHOAMI",
+      "tests": [
+        "tests/acl.py",
+        "tests/arity.py",
+        "tests/replyschema.py",
+        "tests/respresume.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_auth",
+        "job_body",
+        "job_differ",
+        "job_release_batteries",
+        "job_respresume"
+      ]
+    },
+    {
+      "token": "XINFO",
+      "tests": [
+        "tests/exbatch_unit.cc",
+        "tests/edgeproto.py",
+        "tests/aclkeys_unit.cc",
+        "tests/dispatch_errors.py",
+        "tests/mdbstamp_checks.cc",
+        "tests/gate.sh",
+        "tests/dispatch_arity.py",
+        "tests/perfio.py",
+        "tests/replyschema.py",
+        "tests/streamgroups.py",
+        "tests/acl_subcommands.py",
+        "tests/differ.py",
+        "tests/contarity.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_differ",
+        "job_exbatch_units",
+        "job_flip",
+        "job_fused",
+        "job_perfio_stream",
+        "job_production_units"
+      ]
+    },
+    {
+      "token": "ZRANDMEMBER",
+      "tests": [
+        "tests/edgeproto.py",
+        "tests/resp3.py",
+        "tests/netcmd_zset_unit.cc",
+        "tests/datafix1_randscan.py",
+        "tests/replyschema.py",
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
+        "job_datafix1_randscan",
+        "job_differ",
+        "job_fused"
+      ]
+    },
+    {
+      "token": "argument couldn't be parsed into an integer",
+      "tests": [
+        "tests/netcmd_config_unit.cc"
+      ],
+      "jobs": []
+    },
+    {
+      "token": "argument must be 'yes' or 'no'",
+      "tests": [
+        "tests/auth.py",
+        "tests/netcmd_config_unit.cc"
+      ],
+      "jobs": [
+        "job_auth"
+      ]
+    },
+    {
+      "token": "argument must be a memory value",
+      "tests": [
+        "tests/netcap_unit.cc",
+        "tests/knobs.py"
+      ],
+      "jobs": [
+        "job_aof",
+        "job_body"
+      ]
+    },
+    {
+      "token": "argument must be between ",
+      "tests": [
+        "tests/config_parser_test.cc",
+        "tests/netcap_unit.cc",
+        "tests/netcmd_config_unit.cc",
+        "tests/knobs.py"
+      ],
+      "jobs": [
+        "job_aof",
+        "job_body",
+        "job_config_unit"
+      ]
+    },
+    {
+      "token": "atomic_group_wounds",
+      "tests": [
+        "tests/moverfix.py",
+        "tests/differ.py",
+        "tests/txngroup.py"
+      ],
+      "jobs": [
+        "job_differ",
+        "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split"
+      ]
+    },
+    {
+      "token": "atomic_txn_fast_polls",
+      "tests": [
+        "tests/execfair.py"
+      ],
+      "jobs": [
+        "job_execfair"
+      ]
+    },
+    {
+      "token": "atomic_txn_order_violations",
+      "tests": [
+        "tests/moverfix.py",
+        "tests/txnorder.py",
+        "tests/txniso.py",
+        "tests/differ.py",
+        "tests/execfair.py",
+        "tests/txngroup.py"
+      ],
+      "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_execfair",
+        "job_fused",
+        "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2"
+      ]
+    },
+    {
+      "token": "atomic_txn_readonly",
+      "tests": [
+        "tests/differ.py"
+      ],
+      "jobs": [
+        "job_differ"
+      ]
+    }
+  ]
+}

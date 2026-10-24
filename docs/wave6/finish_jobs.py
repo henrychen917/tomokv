@@ -26,6 +26,8 @@ def job(name, jobs, *options):
     print(name, result.returncode, flush=True)
 
 
+job('integration-fixtures', ['reorder_identity', 'atomic_units'])
+
 # Keep scheduler controls away from concurrent builds and servers. The first
 # attempt used two load CPUs and an incomplete copy; neither is passing evidence.
 env = dict(os.environ, GATE_TEST_PORT='26897')

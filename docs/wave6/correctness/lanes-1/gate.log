@@ -1,0 +1,66 @@
+GATE(full): 32 physical cores; 3 correctness slots = min(24/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 24 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave6/build/gate-run.Gwz0oA
+PARTIAL jobs (including prerequisites): release datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notifycompat tracking_redirect execfair
+PARTIAL jobs (including prerequisites): release datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notifycompat tracking_redirect execfair
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 RAND/SCAN errors (both engines and modes)
+  datafix1 RAND/SCAN errors (both engines and modes)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 HEXPIRE precedence (both engines and modes)
+  datafix1 HEXPIRE precedence (both engines and modes) ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 BITFIELD bounds (both engines and modes)
+  datafix1 BITFIELD bounds (both engines and modes)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 SORT locale (both engines and modes)
+  datafix1 SORT locale (both engines and modes)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 list demotion (both engines and modes)
+  datafix1 list demotion (both engines and modes)      ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 SPOP encodings (both engines and modes)
+  datafix1 SPOP encodings (both engines and modes)     ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix1 GEO grammar (both engines and modes)
+  datafix1 GEO grammar (both engines and modes)        ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix EX4.10 container outer arity
+  dispatchfix EX4.10 container outer arity             ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix EX4.11 container errors
+  dispatchfix EX4.11 container errors                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix EX4.4 advertised children
+  dispatchfix EX4.4 advertised children                ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix CC4.15 ACL subcommand grants
+  dispatchfix CC4.15 ACL subcommand grants             ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix EX4.17 uniform routing and legacy recovery
+  dispatchfix EX4.17 uniform routing and legacy recovery ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix CG4.3 physical config lines
+  serverfix CG4.3 physical config lines                ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix CG4.4 shared scalar grammar
+  serverfix CG4.4 shared scalar grammar                ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.6 CONFIG validation matrix
+  serverfix SV4.6 CONFIG validation matrix             ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.7 HELLO canonical protocol
+  serverfix SV4.7 HELLO canonical protocol             ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.5 WAITAOF wait lifecycle
+  serverfix SV4.5 WAITAOF wait lifecycle               ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.8 HyperLogLog self-test controls
+  serverfix SV4.8 HyperLogLog self-test controls       ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix SV4.14 disabled slowlog allocation
+  serverfix SV4.14 disabled slowlog allocation         ok
+  row budget: 900s; median=-s; no-history-conservative-default; serverfix CC4.26 disabled ACL log allocation
+  serverfix CC4.26 disabled ACL log allocation         ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility setbit vs Redis 7.4
+  notification compatibility setbit vs Redis 7.4       ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility setpast vs Redis 7.4
+  notification compatibility setpast vs Redis 7.4      ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility emptystore vs Redis 7.4
+  notification compatibility emptystore vs Redis 7.4   ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility writemiss vs Redis 7.4
+  notification compatibility writemiss vs Redis 7.4    ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility objectmiss vs Redis 7.4
+  notification compatibility objectmiss vs Redis 7.4   ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility expiredstore vs Redis 7.4
+  notification compatibility expiredstore vs Redis 7.4 ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility flush vs Redis 7.4
+  notification compatibility flush vs Redis 7.4        ok
+  row budget: 900s; median=-s; no-history-conservative-default; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls
+shutdown report: dirty shutdown: {'live_conns': 1}
+  EXEC fast-lane polls                                 FAIL (see /home/user/Projects/cx-wave6/build/gate-run.Gwz0oA/jobs/execfair/execfair-*)
+GATE(PARTIAL): 29 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave6/docs/wave6/correctness/lanes-1/ledger.partial

@@ -1,0 +1,43 @@
+tomo_db0::ExLoopT<false>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))
+--- headline
+
++++ post
+
+@@ -0,0 +1,36 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 4] sub $0x38,%rsp
++CLONE 0 0008 [ 3] mov %rcx,%r8
++CLONE 0 000b [ 3] mov %rdi,%rax
++CLONE 0 000e [ 9] mov %fs:0x28,%rcx
++CLONE 0 0017 [ 5] mov %rcx,0x28(%rsp)
++CLONE 0 001c [ 4] mov 0x8(%rdi),%rcx
++CLONE 0 0020 [ 4] lea 0x10(%rax),%r10
++CLONE 0 0024 [ 7] lea 0x3c0(%rcx),%r9
++CLONE 0 002b [ 2] mov (%rcx),%edi
++CLONE 0 002d [ 4] mov %rax,(%rsp)
++CLONE 0 0031 [ 5] vmovq %r10,%xmm0
++CLONE 0 0036 [ 5] mov %r8,0x8(%rsp)
++CLONE 0 003b [ 5] lea 0x10(%rsp),%r8
++CLONE 0 0040 [ 6] vpinsrq $0x1,%r9,%xmm0,%xmm0
++CLONE 0 0046 [ 7] mov 0x180(%rax),%r9
++CLONE 0 004d [ 3] mov (%rax),%rax
++CLONE 0 0050 [ 6] vmovdqu %xmm0,0x18(%rsp)
++CLONE 0 0056 [ 4] mov %edi,0x10(%rsp)
++CLONE 0 005a [ 3] test %r9,%r9
++CLONE 0 005d [ 4] cmovne %r8,%r9
++CLONE 0 0061 [ 4] mov 0x44(%rcx),%r8d
++CLONE 0 0065 [ 4] sub $0x8,%rsp
++CLONE 0 0069 [ 5] lea 0x8(%rsp),%rcx
++CLONE 0 006e [ 1] push %rcx
++CLONE 0 006f [ 2] mov %edi,%ecx
++CLONE 0 0071 [ 3] mov %rax,%rdi
++CLONE 0 0074 [ 5] call <tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)>
++CLONE 0 0079 [ 1] pop %rdx
++CLONE 0 007a [ 1] pop %rcx
++CLONE 0 007b [ 5] mov 0x28(%rsp),%rdx
++CLONE 0 0080 [ 9] sub %fs:0x28,%rdx
++CLONE 0 0089 [ 2] jne <+0x90>
++CLONE 0 008b [ 4] add $0x38,%rsp
++CLONE 0 008f [ 1] ret
++CLONE 0 0090 [ 5] call <__stack_chk_fail@plt>

@@ -1,0 +1,795 @@
+{
+  "function_groups": 9413,
+  "unchanged": 7652,
+  "changed": 1761,
+  "lane_equal": 1235,
+  "residual": 526,
+  "hot_groups": 535,
+  "hot_headline": 396,
+  "hot_lane": 103,
+  "command_hot_groups": 12,
+  "command_hot_headline": 8,
+  "command_hot_lane": 4,
+  "hot_residual": [
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9164
+      ],
+      "post_sizes": [
+        8653
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "notifycompat",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of notifycompat, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8149
+      ],
+      "post_sizes": [
+        8443
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20688
+      ],
+      "post_sizes": [
+        20094
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        277
+      ],
+      "post_sizes": [
+        280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21378
+      ],
+      "post_sizes": [
+        20553
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9949,
+        12153,
+        10045,
+        10767
+      ],
+      "post_sizes": [
+        10013,
+        11841,
+        10013,
+        10877
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20837,
+        19202
+      ],
+      "post_sizes": [
+        20325,
+        19184
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        284,
+        289
+      ],
+      "post_sizes": [
+        284,
+        289
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21031
+      ],
+      "post_sizes": [
+        20489
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18382
+      ],
+      "post_sizes": [
+        18368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8881
+      ],
+      "post_sizes": [
+        8368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        7865
+      ],
+      "post_sizes": [
+        8123
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18807
+      ],
+      "post_sizes": [
+        18709
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21303
+      ],
+      "post_sizes": [
+        20884
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        272
+      ],
+      "post_sizes": [
+        276
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21764
+      ],
+      "post_sizes": [
+        21313
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9840,
+        12318,
+        9840,
+        10771
+      ],
+      "post_sizes": [
+        9885,
+        12025,
+        9885,
+        10582
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18634
+      ],
+      "post_sizes": [
+        18517
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21381,
+        19078
+      ],
+      "post_sizes": [
+        20976,
+        19097
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289,
+        293
+      ],
+      "post_sizes": [
+        279,
+        293
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21650
+      ],
+      "post_sizes": [
+        21224
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18556
+      ],
+      "post_sizes": [
+        18473
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18455
+      ],
+      "post_sizes": [
+        18439
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "dispatchfix",
+        "datafix1",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of serverfix, dispatchfix, datafix1, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3954
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1776
+      ],
+      "post_sizes": [
+        1568
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5364
+      ],
+      "post_sizes": [
+        5297
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5374
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5423
+      ],
+      "post_sizes": [
+        5328
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5382
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5479
+      ],
+      "post_sizes": [
+        5361
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5467
+      ],
+      "post_sizes": [
+        5368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5504
+      ],
+      "post_sizes": [
+        5386
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5467
+      ],
+      "post_sizes": [
+        5368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "dispatchfix",
+        "datafix1"
+      ],
+      "reason": "Composition of execfair, dispatchfix, datafix1; residual instructions/layout require merit review."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-ef5204b2e",
+      "sha256": "95798c8e28a01583c83f434a6ecc8e8e0602e7fc1d877a94ae58ec16bebbad41"
+    },
+    "execfair": {
+      "path": "/home/user/Projects/bins/execfair-post-df6bef84",
+      "sha256": "df6bef840806e18cb0cd3e42bc926eef6cb7a52e0412e4f75479eb8afdf50c2c"
+    },
+    "notifycompat": {
+      "path": "/home/user/Projects/bins/notifycompat-post-76f31351",
+      "sha256": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59"
+    },
+    "serverfix": {
+      "path": "/home/user/Projects/bins/serverfix-post-c0b52731",
+      "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57"
+    },
+    "dispatchfix": {
+      "path": "/home/user/Projects/bins/dispatchfix-post-e7385e0c",
+      "sha256": "e7385e0c625594aac5cdf36f2b20969aad237cd06ebdc7f039b2e728cbdcc723"
+    },
+    "datafix1": {
+      "path": "/home/user/Projects/bins/datafix1-post-b05021db",
+      "sha256": "b05021db6b4f7369b0cad5b7009b8a1918332860f92b03f029394c23e4d61dec"
+    },
+    "prefetch_delete": {
+      "path": "/home/user/Projects/bins/prefetch-del-b90cff5e",
+      "sha256": "b90cff5ede08b5c6c30e832cb44afaf4fcaed6dac5a3238805fda33dd39d4aff"
+    }
+  },
+  "post": {
+    "path": "build/tomokv",
+    "sha256": "7db08133073eaecd1820cd64429d7395fb88ef1b4f720ca0ab2d7e572d3df684"
+  }
+}

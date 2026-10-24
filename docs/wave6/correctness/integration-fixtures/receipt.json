@@ -1,0 +1,92 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave6/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave6",
+  "start": 1792833269.4364276,
+  "commit": "173d42a1bb4367cbd580bf5bca7f6bd1d09585fa",
+  "binary_sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "gate_sha256": "eab6dbb88c8bcdefe48c51d2bcebd6bb599b35c4c35bd192202458366cc992f8",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave6/build/wave6/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "reorder_identity atomic_units",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave6/docs/wave6/correctness/integration-fixtures/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792833378.627539,
+  "binary_sha256_after": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "run_dir": "/home/user/Projects/cx-wave6/build/gate-run.xqg77k",
+  "jobs": {
+    "atomic_units": {
+      "done": "0\t27\t0",
+      "rows": [
+        "ok\t0.010000\tatomic commit publication catches up at quiescence",
+        "ok\t2.120000\tflushfix flush witnesses",
+        "ok\t0.060000\tflushfix headers witnesses",
+        "ok\t3.400000\tmultidb serverless owners",
+        "ok\t0.050000\tmultidb global namespace boundary",
+        "ok\t12.220000\tstoresize published monitoring",
+        "ok\t0.230000\tMULTI admin command replies",
+        "ok\t0.070000\tEXECABORT releases WATCH reservation",
+        "ok\t0.000000\tatomic survivors unit build",
+        "ok\t0.020000\tatomic survivor: admission",
+        "ok\t0.000000\tatomic survivor: closure",
+        "ok\t0.010000\tatomic survivor: script_keys",
+        "ok\t0.010000\tatomic survivor: rename_overlay",
+        "ok\t0.010000\tatomic survivor: write_latest",
+        "ok\t0.010000\tatomic survivor: script_apply",
+        "ok\t0.000000\tatomic survivor: post_apply_probe",
+        "ok\t0.010000\tatomic survivor: lua_conversion",
+        "ok\t0.010000\tatomic survivor: watch_parent",
+        "ok\t0.010000\tatomic survivor: watch_cycle",
+        "ok\t0.010000\tatomic survivor: mset_arity",
+        "ok\t0.000000\tatomic survivor: watch_oom",
+        "ok\t0.000000\tatomic survivor: lua_lines",
+        "ok\t0.010000\tatomic survivor: library_limit",
+        "ok\t0.020000\tatomic survivor: stage_flag",
+        "ok\t0.010000\tatomic survivor: instruction_limit",
+        "ok\t0.000000\tarmed resize retirement: atomic-growth",
+        "ok\t0.010000\tarmed resize retirement: flush-prepared"
+      ]
+    },
+    "production_units": {
+      "done": "0\t0\t0",
+      "rows": []
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    "reorder_identity": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t107.040000\tR7 FIFO twin off-path identity + negative controls"
+      ]
+    }
+  }
+}

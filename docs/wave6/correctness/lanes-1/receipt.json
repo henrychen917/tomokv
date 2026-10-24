@@ -1,0 +1,194 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave6/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave6",
+  "start": 1792829872.2167172,
+  "commit": "8a1ccffa1c88abc3a3ba51e98844b33cfe0ffcda",
+  "binary_sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "gate_sha256": "fb4c6c0dcb3868ebb0fe4b1cfb3f6341fd7a0dd054379ff8b01657024be08b5e",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave6/build/wave6/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "execfair notifycompat tracking_redirect serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform datafix1_geo datafix1_spop datafix1_lists datafix1_locale datafix1_bitfield datafix1_hexpire datafix1_randscan",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave6/docs/wave6/correctness/lanes-1/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 1,
+  "end": 1792830313.316632,
+  "binary_sha256_after": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "run_dir": "/home/user/Projects/cx-wave6/build/gate-run.Gwz0oA",
+  "jobs": {
+    "acl_subcommands": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t15.300000\tdispatchfix CC4.15 ACL subcommand grants"
+      ]
+    },
+    "datafix1_bitfield": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t1.700000\tdatafix1 BITFIELD bounds (both engines and modes)"
+      ]
+    },
+    "datafix1_geo": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t3.280000\tdatafix1 GEO grammar (both engines and modes)"
+      ]
+    },
+    "datafix1_hexpire": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t1.670000\tdatafix1 HEXPIRE precedence (both engines and modes)"
+      ]
+    },
+    "datafix1_lists": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t2.990000\tdatafix1 list demotion (both engines and modes)"
+      ]
+    },
+    "datafix1_locale": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t5.530000\tdatafix1 SORT locale (both engines and modes)"
+      ]
+    },
+    "datafix1_randscan": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t1.810000\tdatafix1 RAND/SCAN errors (both engines and modes)"
+      ]
+    },
+    "datafix1_spop": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t1.690000\tdatafix1 SPOP encodings (both engines and modes)"
+      ]
+    },
+    "dispatch_arity": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.830000\tdispatchfix EX4.10 container outer arity"
+      ]
+    },
+    "dispatch_children": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.940000\tdispatchfix EX4.4 advertised children"
+      ]
+    },
+    "dispatch_errors": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.880000\tdispatchfix EX4.11 container errors"
+      ]
+    },
+    "execfair": {
+      "done": "0\t0\t1",
+      "rows": [
+        "FAIL\t20.680000\tEXEC fast-lane polls"
+      ]
+    },
+    "notifycompat": {
+      "done": "0\t7\t0",
+      "rows": [
+        "ok\t22.830000\tnotification compatibility setbit vs Redis 7.4",
+        "ok\t42.930000\tnotification compatibility setpast vs Redis 7.4",
+        "ok\t50.620000\tnotification compatibility emptystore vs Redis 7.4",
+        "ok\t42.930000\tnotification compatibility writemiss vs Redis 7.4",
+        "ok\t43.740000\tnotification compatibility objectmiss vs Redis 7.4",
+        "ok\t144.550000\tnotification compatibility expiredstore vs Redis 7.4",
+        "ok\t56.840000\tnotification compatibility flush vs Redis 7.4"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    "router_uniform": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t4.200000\tdispatchfix EX4.17 uniform routing and legacy recovery"
+      ]
+    },
+    "serverfix_acllog": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t13.950000\tserverfix CC4.26 disabled ACL log allocation"
+      ]
+    },
+    "serverfix_config": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.960000\tserverfix SV4.6 CONFIG validation matrix"
+      ]
+    },
+    "serverfix_hello": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.780000\tserverfix SV4.7 HELLO canonical protocol"
+      ]
+    },
+    "serverfix_hll": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t6.300000\tserverfix SV4.8 HyperLogLog self-test controls"
+      ]
+    },
+    "serverfix_lines": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t8.400000\tserverfix CG4.3 physical config lines"
+      ]
+    },
+    "serverfix_scalar": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t19.760000\tserverfix CG4.4 shared scalar grammar"
+      ]
+    },
+    "serverfix_slowlog": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t13.110000\tserverfix SV4.14 disabled slowlog allocation"
+      ]
+    },
+    "serverfix_waitaof": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t6.870000\tserverfix SV4.5 WAITAOF wait lifecycle"
+      ]
+    },
+    "tracking_redirect": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t37.590000\ttracking REDIRECT close vs Redis 7.4"
+      ]
+    }
+  }
+}

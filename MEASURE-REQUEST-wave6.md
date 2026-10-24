@@ -11,9 +11,12 @@ with `--no-ff`: execfair, notifycompat, serverfix, dispatchfix, datafix1, prefet
 Final branch states, including maintainer commits, are retained.
 The writers-first information switch and executable POST-ALT plumbing are deleted;
 historical receipts remain attributable. The supplied prefetch DELETE patch applies
-without modification. Full-file equality to its isolated source conflicts with
-retaining execfair/serverfix changes in the same files; prefetch-only equality is
-being checked while preserving the integration (clarification pending).
+without modification. Full-file equality to its isolated source conflicts with retaining execfair/serverfix
+changes in the same files. Applying the supplied patch to the isolated branch is
+byte-for-byte identical to its DELETE source in both touched files; the merged
+files retain the other lanes. `docs/wave6/prefetch-delete.json` records both facts.
+This is a necessary exception to the literal whole-file-equality requirement,
+not a claim that the merged files are identical to the isolated lane.
 
 ### Row accounting
 
@@ -21,8 +24,9 @@ Headline 739/756 plus execfair 1, notifycompat 8, serverfix 8, dispatchfix 5,
 datafix1 7, prefetch 0 gives **DQ=+29, DF=+29; required counts 768/785**.
 `EXPECT_QUICK` and `EXPECT_FULL` remain 739/756, untouched. The fixture has all
 785 declared full labels with their multiplicities; dispatchfix's five missing
-fixture entries were added explicitly. Final collection line numbers and the
-quick-tier exit will be recorded after the integration changes.
+fixture entries were added explicitly. `docs/wave6/rows.json` records every added job’s collection line against the
+quick-tier exit and independently compares the source-declared label multiset.
+The new gate mode hooks add no rows.
 
 ### Merge decisions and interaction audit
 
@@ -66,7 +70,7 @@ quick-tier exit will be recorded after the integration changes.
   thread and protects cold snapshots/mutations with the existing catalog mutex.
   Published recorder/ACL stores survive CONFIG disable/reset and are reclaimed
   only at static teardown, after worker joins. The existing completion unit
-  checks cover identity capture before Done; broader shutdown jobs remain due.
+  checks cover identity capture before Done; the broader gate jobs exercise shutdown with both log stores.
 - Uniform buckets / persistence / balancing / read-local: the router and shard
   range construction share the floor-map/inverse-ceiling boundary. Balancers
   move those ranges rather than reconstructing the old quotient mapping;
@@ -98,8 +102,124 @@ the unchanged shutdown assertion then passes in the complete eight-leg EXEC job.
 No sleep, relaxed bound, skipped witness, or EXPECT edit was used. All 29 newly
 added rows have a passing complete-job execution on the current candidate.
 
+### Integration checks discovered by the broader gate
+
+The R7 job exposed an error in the first integration inventory assertion: +1 is
+notifycompat's **net** normal-runtime change. It replaces the old scan body with
+a hot/cold unique-key pair (+2−1), while the DB0 pair already exists. The check
+now requires all four named bodies exactly once, rejects the retired normal scan,
+and removes each of the four in separate negative controls. Total ordinary
+physical bodies remain **156 normal / 156 DB0**: headline 152/153 + execfair 3/3
++ notifycompat 1/0. Frozen-link inventories are in `docs/wave6/r7-inventory`.
+
+The multidb owner unit raised SIGFPE in `legacy_routing(version=1, shards=0)`.
+Its synthetic AOF plan populated section contents but omitted `shard_count`;
+EX4.17 now consumes that metadata to select the recovery map. Production
+`aof_read_plan` populates and validates the count. The unit now supplies the
+snapshot's actual shard count, retaining every replay/data/map assertion.
+`build/wave6/multidb-fpe.log` contains the diagnostic stack. The complete R7 and
+atomic-unit jobs now pass (28 directed rows plus prerequisites); neither initial
+failure is counted as a pass. Standalone `tests/gates_test.py` also passes its
+quiet rerun on CPUs 64–95, port 26897.
+
+The legacy release, notification, auth, DUMP/RESTORE and zero-copy jobs now accept
+the existing `GATE_TXN_FUSED=1` selection. Default geometry is unchanged. This
+lets the gate itself run their complete fused legs, including zero-copy ASAN;
+no standalone substitute driver or reduced assertion set is used.
+
+### Compiled bodies and instruction scope
+
+`docs/wave6/identity/changed-bodies.md` lists every changed body, and
+`docs/wave6/callsites/summary.json` compares every residual hot group's calls
+against all frozen lane links and the headline. Old-base dispatchfix/datafix1
+changes are attributed against their own PRE links, not against wave 5.
+
+The current strict inventory contains 9,406 groups: 7,710 equal the headline,
+1,221 changed groups equal a lane link, and 475 remain different. Among 565 hot
+groups, 428 equal the headline, 97 equal a lane, and 40 are residual composites
+or compiler/layout differences. Of the 12 selected GET/SET/MGET/MSET groups,
+nine equal the headline; normal `prepare_captured_local_mget` equals execfair,
+and the two notification-enabled SET handlers equal notifycompat. No selected
+command group is an unattributed residual.
+
+Compile-only budget trials and linked scoring are in `docs/wave6/budgets` and
+`docs/wave6/budgets-dispatch`. The explicit integer-reply instantiation prevents
+the measured-in-instructions weak-definition flip. The two EXEC-only outlined
+helpers remove ordinary dispatch's initial +6 instructions/op in 1s and +2 in
+2s. They retain the promotion callbacks and execute/Done ordering.
+
+The complete **64-cell serverless matrix** is in
+`docs/wave6/instructions/counts.md`, with aggregate per-body/address counters,
+compressed instruction traces, production provenance, and build/link commands.
+These are named Tomo instruction counts, including inline code; external
+library callees and fixture glue are excluded. They are not rates or cycles.
+Both compiled database runtimes are exercised with their actual configurations
+(normal=16 databases; DB0=1), both modes, batches 1/32, default slowlog 10000 µs
+and disarmed −1. MGET uses eight keys on eight shards, atomic 0/1, batches 1/8.
+Exact replies are asserted outside the counted region; a synthetic clock keeps
+debugger overhead from fabricating slow commands.
+
+**46/48 plain cells equal PRE.** Armed singleton fused GET has +1 instruction
+in each database runtime, from the exact-timed executor's branch layout. The
+SV4.14 recorder helper itself is 75 instructions on both PRE and POST (78 in the
+initial merge). Thus the lazy-recorder regression is removed, but the requested
+absolute zero-added-instruction proof for the whole merged command is **not
+satisfied in those two cells**. Bounded alternative outlines, branch hints and
+timed-body attributes did not improve every affected path; their rejected
+receipts are retained. Normal MGET is +4 instructions per key from the accepted
+notifycompat owner-scatter change; DB0 MGET is unchanged.
+
+The probe provenance verifies each actually entered body against production.
+For two DB0 helpers, the strict normalizer retains an anonymous switch-table
+address. A supplementary check verifies every case destination and every
+instruction/encoding; altered-target and altered-bound-branch controls fail.
+No register, opcode, field offset or source-line immediate is discarded.
+
+### Build arms and maintainer measurement
+
+`make all` and all 44 requested build targets completed; all `make -q` checks
+passed (`docs/wave6/correctness/build.json`). Final freshness will be repeated
+once the fixture changes and all jobs finish.
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| Frozen headline | `/home/user/Projects/bench-bins/tomokv-headline-ef5204b2e` | `95798c8e28a01583c83f434a6ecc8e8e0602e7fc1d877a94ae58ec16bebbad41` |
+| Rebuilt PRE | `build/wave6/pre-source/build/tomokv` | `9388e045f35736ce08a9b9635fb83e37f5fff75c0de0c78c091a8e5969b883ee` |
+| Merged POST | `build/tomokv` | `7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a` |
+| PAD-A | `build/tomokv-wave6-PAD-A` | `d3c042b755ce0ec0fb6fe377e9ee6a66d02b88a1b4f15b09c75bf7b6322c5d45` |
+
+PAD is **kind A, behaviour twin**: unmodified PRE object code with inert padding
+matching POST's `.text` origin and total size. Its per-function offsets and data
+sections retain PRE layout; it is a section-placement/size control, **not an
+exact per-symbol/data-layout twin**. `docs/wave6/pad-a.json` records every input
+object, the link command, padding, section sizes and this limitation.
+
+The maintainer owns the quiet null and landing gate, including throughput,
+cycles/op, IPC and instructions/op at matched offered load. Please run the
+standing gate's normal headline cells with frozen headline, merged POST and
+PAD-A, retaining its null/rejection rules, plus its EXEC hot-key/uncontended
+cells. Rate at matched offered load decides merit; body identity and these
+serverless counts only explain it. No throughput claim is made by this lane.
+
 ### Validation status
 
-Still in progress: broad touched-job correctness, final instruction/provenance
-matrix, PAD-A, and final freshness. The initial compile failure is retained in
+The broad touched-job sweep completed 169 jobs; its only failed rows were the
+R7 inventory and synthetic AOF fixture, both repaired and passing on rerun.
+Still running: the full ABBA selftest, both-engine standard-seed differential
+matrices, three runs of all four txnorder cells,
+complete legacy fused jobs, and the quiet timing-sensitive correctness jobs.
+`docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
+result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
+
+The first ABBA self-test copy lacked required fixture inputs; its gate helper
+also ran with only two load CPUs and hit scheduler-fixture deadlines. A standalone
+self-test first collided on a test port, then overlapped compilation and hit
+fixture deadlines. These failed attempts are retained, not treated as passes.
+The complete copy now has every required input; its retry gets 24 load CPUs,
+and standalone `gates_test.py` runs serially on the allocation with port 26897.
+
+**NOT RUN by design:** throughput/load-generator jobs `efficiency`,
+`flip_saturated`, `atomic_floor`, the full `tests/gate.sh iteration`, the null
+and landing measurements. They remain with the maintainer under the explicit
+runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
