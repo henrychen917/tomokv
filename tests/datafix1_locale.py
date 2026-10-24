@@ -5,13 +5,26 @@ from datafix1_common import main, Conn
 
 
 def battery(p):
-    p.cmd('CONFIG', 'GET', 'locale-collate')
+    defaults = p.cmd('CONFIG', 'GET', 'locale-collate')
+    p.check(all(value == [b'locale-collate', b''] for value in defaults), defaults)
     values = ['b', 'A', 'a', 'B', 'c', 'C', '_x', 'é', 'z']
     p.cmd('RPUSH', 'l', *values)
     p.cmd('SADD', 's', *values)
     for i, value in enumerate(values):
         p.cmd('SET', 'weight:'+value, value)
         p.cmd('ZADD', 'z', i, value)
+    # The common boot helper explicitly sets en_US.UTF-8 for both processes.
+    # Prove that the empty setting follows that environment even when the gate
+    # itself exports C; comparing two accidentally C-pinned boots would be vacuous.
+    inherited = p.cmd('SORT_RO', 'l', 'ALPHA')
+    p.cmd('CONFIG', 'SET', 'locale-collate', 'C')
+    binary = p.cmd('SORT_RO', 'l', 'ALPHA')
+    p.cmd('CONFIG', 'SET', 'locale-collate', 'en_US.UTF-8')
+    explicit = p.cmd('SORT_RO', 'l', 'ALPHA')
+    p.check(inherited == explicit and all(a != b for a, b in zip(inherited, binary)),
+            ('environment default must be en_US.UTF-8, distinct from C', inherited, binary, explicit))
+    p.cmd('CONFIG', 'SET', 'locale-collate', '')
+    p.check(p.cmd('SORT_RO', 'l', 'ALPHA') == inherited, 'empty locale restores environment')
     for locale in ('', 'C', 'en_US.UTF-8', 'C.UTF-8', 'not_a_locale', 'C\x00suffix', ''):
         p.cmd('CONFIG', 'SET', 'locale-collate', locale)
         p.cmd('CONFIG', 'GET', 'locale-collate')

@@ -2,6 +2,8 @@
 # Full-tier differential matrix against the pinned vanilla Redis 7.4 oracle.
 # Usage: tests/differ_gate.sh TARGET_BIN TARGET_PORT ORACLE_PORT TARGET_CORES TARGET_RATIO
 set -u
+# Match oracle collation on every target boot, including standalone equivalence.
+export LC_ALL=C
 cd "$(dirname "$0")/.."
 
 TARGET_BIN=${1:-${GATE_CANDIDATE_BINARY:-./build/tomokv}}

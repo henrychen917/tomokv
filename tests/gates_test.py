@@ -2013,6 +2013,34 @@ CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
                     self.assertEqual(argv, [word.encode() for word in expected])
 
 
+class GateLocaleInheritance(unittest.TestCase):
+    def test_gate_and_standalone_differ_pin_child_collation(self):
+        root = Path(__file__).resolve().parents[1]
+        # Run each real startup prefix and let a child initialize collation from
+        # its environment. No server or gate job is started by this check.
+        child = """import json, locale, os
+locale.setlocale(locale.LC_COLLATE, '')
+print(json.dumps([os.environ.get('LC_ALL'),
+                  sorted(['char-lie050', 'Echo!068'], key=locale.strxfrm)]))
+"""
+        for filename, boundary in (('gate.sh', 'GATE_SELF_TEST=0'),
+                                   ('differ_gate.sh', 'TARGET_BIN=')):
+            script = root / 'tests' / filename
+            prefix = script.read_text().split(boundary, 1)[0]
+            for inherited in (None, 'en_US.UTF-8'):
+                with self.subTest(script=filename, LC_ALL=inherited):
+                    env = dict(os.environ, LANG='en_US.UTF-8', LC_COLLATE='en_US.UTF-8')
+                    if inherited is None:
+                        env.pop('LC_ALL', None)
+                    else:
+                        env['LC_ALL'] = inherited
+                    result = subprocess.run(
+                        ['bash', '-uc', prefix + '\nexec python3 -c ' + shlex.quote(child), str(script)],
+                        env=env, capture_output=True, text=True, timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
+
+
 class EarlyGateDispatch(unittest.TestCase):
     def test_perf_self_test_reaches_abba_and_common_options_reach_planner(self):
         root = Path(__file__).resolve().parent.parent

@@ -58,6 +58,9 @@
 # (counters, accepts, direct>0), not merely that nothing crashed. A gate that can pass while
 # testing nothing is worse than no gate.
 set -u
+# Make every ordinary server/oracle child independent of the caller's locale.
+# Locale-specific batteries (CD4.6) explicitly override their child environment.
+export LC_ALL=C
 cd "$(dirname "$0")/.."
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
