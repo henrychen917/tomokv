@@ -27,7 +27,9 @@ def job(name, jobs, *options):
 
 
 job('integration-fixtures-final', ['reorder_identity', 'atomic_units'])
-job('tailgen-build', ['tailgen_build'])
+# tailgen_build is refused by GATE_ONLY_JOBS: its only consumer is a full-gate
+# load-generator row. Record that attempted selection; compile the target with
+# the final freshness check, without launching the generator.
 
 # Keep scheduler controls away from concurrent builds and servers. The first
 # attempt used two load CPUs and an incomplete copy; neither is passing evidence.

@@ -290,5 +290,8 @@ linked netcmd/AT15/shutdown units, and the lazy-allocation shim. See
 or gate job. `doubles.py` and `replyschema.py` also have no gate-job entry point;
 those standalone programs are **NOT RUN**. Matching gate consumers and standard
 differential families run through the gate interface. Their absence is not
-counted as a passing standalone check. The tailgen build-only job is selected;
-its full-gate-only live load-generator row remains with the maintainer.
+counted as a passing standalone check. The attempted `tailgen_build` selection
+was explicitly refused by `GATE_ONLY_JOBS` (exit 2: build-only prerequisite,
+select its consuming correctness job). Its only consumer is the full-gate-only
+live load-generator row reserved to the maintainer. Thus the job is **NOT RUN**;
+the build target will be checked separately without launching the generator.

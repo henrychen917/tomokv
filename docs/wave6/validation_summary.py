@@ -18,7 +18,8 @@ names = ['broad-final', 'integration-fixtures-final', 'tailgen-build',
 digest = hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest()
 manifest = json.loads((ROOT / 'docs/wave6/job-manifest.json').read_text())
 excluded = {'efficiency', 'flip_saturated', 'atomic_floor'}
-required = set(manifest['available']) - excluded
+unavailable = {'tailgen_build': 'Build-only prerequisite explicitly refused by GATE_ONLY_JOBS; its full-gate-only load-generator consumer is reserved to the maintainer.'}
+required = set(manifest['available']) - excluded - set(unavailable)
 completed = defaultdict(list)
 summary = []
 problems = []
@@ -34,6 +35,12 @@ for name in names:
     assert receipt['binary_sha256'] == receipt['binary_sha256_after'] == digest, name
     assert receipt['netfix_tls_oracle'].startswith('unset:'), name
     assert 'NETFIX_TLS_ORACLE' not in receipt['environment'], name
+    if name == 'tailgen-build':
+        assert receipt['exit'] == 2 and not receipt['jobs']
+        assert 'tailgen_build is a build-only prerequisite; select its consuming correctness job' in (path.parent / 'gate.log').read_text()
+        summary.append(dict(name=name, status='NOT RUN: interface refusal',
+                            exit=receipt['exit'], receipt=str(path.relative_to(ROOT))))
+        continue
     jobs = receipt['jobs']
     assert not excluded & set(jobs), name
     counts = Counter()
@@ -66,6 +73,7 @@ result = dict(candidate_sha256=digest,
     available_jobs=len(manifest['available']), required_correctness_jobs=len(required),
     completed_unique_jobs=len(set(completed) & required), missing_jobs=missing,
     excluded_performance_jobs=sorted(excluded),
+    unavailable_jobs=unavailable,
     txnorder_repetitions=txn, job_receipts=dict(sorted(completed.items())),
     touched_test_files=len(coverage['touched']),
     matched_protocol_literals=len(coverage['protocol_sweep']))
