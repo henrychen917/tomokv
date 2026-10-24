@@ -150,6 +150,8 @@ def identity():
             reason = 'PS4.12 and persistence telemetry: canonical signal policies in existing Config padding and INFO rewrite state.'
         elif any(x in name for x in ('multi_', 'Multi', 'command_metadata_write')):
             reason = 'D8: write classification and refusal of a queued write transaction, including WATCH retirement.'
+        elif any(x in name for x in ('FunctionRegistry', 'invoke_fcall', 'function_metadata_write')):
+            reason = 'D8: use registered no-writes flags for FCALL admission and recheck the selected callback after library replacement.'
         elif any(x in name for x in ('IoLoop', 'ExLoop', 'Server', 'ThreadCtx', 'main')):
             reason = 'Owner-loop integration for cold persistence commands/error admission; compiler propagation through existing inlined owner helpers.'
         else:

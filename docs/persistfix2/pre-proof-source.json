@@ -2,14 +2,15 @@
   "source": "build/persistfix2/pre-proof-source",
   "production_tree_equal_to": "05a5e01a9",
   "test_commit": "66f4a3c04ea7b979daa4fb8aca10aad2be289d26",
-  "private_commit": "1ff55f11a3d6e95fd4546a4fca9ea822e4e3e9d2",
+  "private_commit": "00d9df6e27546c225c2f739252e8a32c0b91f206",
   "object_root": "build/persistfix2/pre",
   "purpose": "Run the real gate jobs and current shutdown fixture against PRE source and implementation objects.",
   "fixture_followups": [
     "tests/aof_rewrite_triggers.py: require both attempt and inactive rewrite before completion assertions",
     "tests/dispatch_arity.py",
     "tests/dispatch_errors.py",
-    "tests/router_uniform.py"
+    "tests/router_uniform.py",
+    "tests/persistfix2.py: declared read-only/writable FCALL and FCALL_RO after AOF error"
   ],
   "object_root_physical": "build/persistfix2/pre-proof-source/build",
   "object_root_alias": "build/persistfix2/pre",

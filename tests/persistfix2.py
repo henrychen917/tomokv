@@ -463,7 +463,15 @@ def errors(args):
             if not args.oracle:
                 extra += ['--reorder', str(reorder), '--read-local', str(reorder if args.mode == '1s' else 0)]
             with boot(args, f'write-error-{policy}-{reorder}', extra, fsize=131072) as (process, conn, data):
+                library = """#!lua name=persistfix2
+redis.register_function{function_name='persistfix2_read', flags={'no-writes'},
+ callback=function(keys, args) return redis.call('GET', keys[1]) end}
+redis.register_function('persistfix2_write',
+ function(keys, args) return redis.call('SET', keys[1], 'refused') end)
+"""
+                assert command(conn, 'FUNCTION', 'LOAD', library) == b'persistfix2'
                 assert conn.must('SET', 'acknowledged-write', 'before') == b'OK'
+                assert command(conn, 'FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'before'
                 def persisted_increment():
                     files = list((data / 'appendonlydir').glob('*.incr.*'))
                     return files[0] if len(files) == 1 and files[0].stat().st_size > (0 if args.oracle else 80) else None
@@ -479,6 +487,7 @@ def errors(args):
                     assert queued.must('SET', 'queued-write', 'value') == b'QUEUED'
                     assert read_only.must('MULTI') == b'OK'
                     assert read_only.must('GET', 'acknowledged-write') == b'QUEUED'
+                    assert read_only.must('FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'QUEUED'
                     conn.send('SET', 'durability-window', b'v' * 200000)
                     emit('durability window', policy=policy, initial_reply=conn.read())
                     wait(lambda: persistence(conn)['aof_last_write_status'] == 'err',
@@ -492,11 +501,16 @@ def errors(args):
                     assert command(conn, 'GET', 'acknowledged-write') == b'before'
                     assert command(conn, 'MGET', 'refused-write', 'refused-one', 'refused-two') == [None] * 3
                     assert command(conn, 'PFCOUNT', 'absent-hll') == 0
+                    assert command(conn, 'EVAL_RO', "return redis.call('GET', KEYS[1])", '1', 'acknowledged-write') == b'before'
+                    for verb in ('FCALL', 'FCALL_RO'):
+                        assert command(conn, verb, 'persistfix2_read', '1', 'acknowledged-write') == b'before'
+                        assert command(conn, verb, 'persistfix2_write', '1', 'refused-function-write') == expected
+                    assert command(conn, 'GET', 'refused-function-write') is None
                     assert command(queued, 'EXEC') == RespError(
                         'EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large')
                     assert command(queued, 'EXEC') == RespError('ERR EXEC without MULTI')
                     assert command(conn, 'GET', 'queued-write') is None
-                    assert command(read_only, 'EXEC') == [b'before']
+                    assert command(read_only, 'EXEC') == [b'before', b'before']
                     assert conn.must('MULTI') == b'OK'
                     assert command(conn, 'SET', 'queue-error', 'value') == expected
                     assert command(conn, 'EXEC') == RespError('EXECABORT Transaction discarded because of previous errors.')

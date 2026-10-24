@@ -4,6 +4,7 @@
 
 #include "acl_categories_generated.h"
 #include "command.h"
+#include "scripting.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../base/exbatch_control.h"
@@ -293,10 +294,12 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
 }
 
 bool command_metadata_write(Op& op) {
-    // EVAL/FCALL have dynamic Redis flags; their writable entry points carry
-    // Write in the execution table. Containers use the resolved child flags.
-    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute))
+    // FCALL's declaration overrides the command flag, including FCALL_RO.
+    // EVAL's supported forms use the execution flags. Containers resolve children.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute)) {
+        if (function_is_fcall(op)) return function_metadata_write(op);
         return op.spec->flags & CmdFlags::Write;
+    }
     static constexpr uint64_t mask = [] {
         for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i)
             if (std::string_view(kGeneratedCommandFlagNames[i]) == "write") return uint64_t{1} << i;
