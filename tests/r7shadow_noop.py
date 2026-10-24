@@ -145,12 +145,22 @@ def execfair_inventory(binary, namespaces):
 
 
 def notifycompat_inventory(binary):
-    """NO-A7 emits one ordinary normal-runtime scatter scan; DB0 stays inlined."""
-    expected = 'void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]'
+    """NO-A7 replaces one normal scan by two unique-key bodies: net +1/0.
+
+    The DB0 hot/cold pair already exists on the headline. Require all four
+    physical bodies, and the disappearance of the superseded normal scan.
+    """
+    normal = 'void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]'
+    expected = {normal.replace('tomo::', namespace + '::') + suffix
+                for namespace in ('tomo', 'tomo_db0')
+                for suffix in ('', ' [clone .cold]')}
     found = {name for name in binary.groups if 'FlatStore::atomic_for_each_unique_key<' in name
              and 'xshard_execute(' in name and audit.category(name)}
-    assert found == {expected} and len(binary.groups[expected]) == 1, \
+    retired = {name for name in binary.groups if 'tomo::FlatStore::scan<' in name
+               and 'tomo::xshard_execute(' in name and audit.category(name)}
+    assert found == expected and all(len(binary.groups[name]) == 1 for name in expected) and not retired, \
         f'missing notifycompat scatter scan: expected={expected}, found={found}'
+    return expected
 
 
 if __name__ == '__main__':

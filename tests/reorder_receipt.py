@@ -64,16 +64,16 @@ def controls(binary, output):
     else:
         raise AssertionError('missing execfair promotion callback control passed')
     post.groups = copy.deepcopy(binary.groups)
-    r7shadow_noop.notifycompat_inventory(post)
-    scan = next(name for name in post.groups if 'FlatStore::atomic_for_each_unique_key<' in name
-                and 'xshard_execute(' in name and audit.category(name))
-    del post.groups[scan]
-    try:
-        r7shadow_noop.notifycompat_inventory(post)
-    except AssertionError as error:
-        assert 'missing notifycompat scatter scan' in str(error), str(error)
-    else:
-        raise AssertionError('missing notifycompat scatter scan control passed')
+    scans = r7shadow_noop.notifycompat_inventory(post)
+    for scan in scans:
+        post.groups = copy.deepcopy(binary.groups)
+        del post.groups[scan]
+        try:
+            r7shadow_noop.notifycompat_inventory(post)
+        except AssertionError as error:
+            assert 'missing notifycompat scatter scan' in str(error), str(error)
+        else:
+            raise AssertionError('missing notifycompat scatter scan control passed: ' + scan)
     post.groups = copy.deepcopy(binary.groups)
     name = next(n for n in post.groups if audit.category(n) == 'commands')
     post.groups[name][0]['encodings'][0] += ' ff'
