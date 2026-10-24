@@ -2895,6 +2895,7 @@ job_execfair(){
         --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
       py tests/execfair.py 127.0.0.1 "$PORT" --witness --seconds 1 \
           --output "$log.json" >"$log.log" 2>&1 || passed=0
+      py tests/wave6_exec.py "$PORT" >"$log-wave6.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0
