@@ -29,7 +29,10 @@ units={
  'atomic-survivors-unit':['atomic_survivors_unit.cc','txnorder_checks.inc'],
  'exbatch-unit':['exbatch_unit.cc'], 'exbatch-db0-unit':['exbatch_unit.cc'],
  'multidb-unit':['multidb_unit.cc'], 'multidb-boundary-unit':['multidb_boundary_unit.cc'],
- 'netcmd-unit':['netcmd_unit.cc'], 'store-regression':['store_regression.cc'],
+ 'netcmd-unit':['netcmd_unit.cc','netcmd_stream_unit.cc','netcmd_zset_unit.cc','netcmd_config_unit.cc'],
+ 'store-regression':['store_regression.cc'],
+ 'at15-unit':['at15_unit.cc'], 'at15-db0-unit':['at15_unit.cc'],
+ 'shutdown-unit':['shutdown_unit.cc','shutdown_client_checks.inc'],
  'core-concurrency-unit':['core_concurrency_unit.cc','slowlog_completion_checks.inc','wave5_dispatch_checks.inc'],
  'execabort-watch-unit':['execabort_watch_unit.cc'], 'flushfix-unit':['flushfix_unit.cc'],
  'netcmd-config-unit':['netcmd_config_unit.cc'],
@@ -39,6 +42,11 @@ for name,body in blocks.items():
  for target,sources in units.items():
   if target in body: jobfiles[name].update(sources)
 jobfiles['job_differ'] = closure({'differ.py','_differ_ccfix.py'})
+jobfiles['job_differ'].add('mode_equivalence.py')
+for battery in ('dispatch_arity','dispatch_errors','dispatch_children','acl_subcommands','router_uniform'):
+ jobfiles['job_'+battery].update(closure({battery+'.py'}))
+for job in ('job_serverfix_slowlog','job_serverfix_acllog'):
+ jobfiles[job].add('serverfix_alloc.cc')
 for _ in range(len(blocks)):
  changed=False
  for name,body in blocks.items():
@@ -63,6 +71,9 @@ for f in touched:
  if name in ['core_concurrency_unit.cc','slowlog_completion_checks.inc','wave5_dispatch_checks.inc']:jobs+=['job_core_units','job_flipfix_units']
  if name=='fixtures/nullrefresh-ledger-labels.json' or name=='nullrefresh-ledger-labels.json':jobs+=['job_abba_selftest']
  note=''
+ if 'fixtures/dispatchfix-pre/' in f:
+  jobs+=['job_router_uniform'];note='EX4.17 old-file recovery input; both modes and engines.'
+ if name=='execfix_unit.cc':note='Historical standalone unit with no Makefile target or gate job; current EXEC/WATCH units and all execfair legs run.'
  if 'txnfix_audit/' in f:note='Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run.'
  if name=='watchlive_gate.sh':note='Standalone WATCH stress gate; no tests/gate.sh job. Directed WATCH/EXEC and differential rows run.'
  if name=='infofields_test.py':note='Standalone serverless differential self-test; run separately.'
@@ -85,5 +96,7 @@ for token in sorted(tokens):
  hits=[str(p.relative_to(ROOT)) for p in tests.rglob('*') if p.is_file() and p.suffix in ['.py','.cc','.inc','.sh'] and token in p.read_text(errors='replace')]
  if hits:
   matching=sorted({j for f in hits for j,fs in jobfiles.items() if Path(f).name in fs})
-  sweep.append(dict(token=token,tests=hits,jobs=matching))
+  standalone=[f for f in hits if not any(Path(f).name in fs for fs in jobfiles.values())]
+  sweep.append(dict(token=token,tests=hits,jobs=matching,
+                    standalone_without_gate_job=standalone))
 out=ROOT/'docs/wave6/coverage.json';out.write_text(json.dumps(dict(touched=rows,protocol_sweep=sweep),indent=2)+'\n');print('touched',len(rows),'protocol tokens',len(sweep))

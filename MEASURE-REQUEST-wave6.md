@@ -229,3 +229,13 @@ and landing measurements, and the full-gate-only tailgen load-generator row
 (which has no selectable `GATE_ONLY_JOBS` job). They remain with the maintainer under the explicit
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
+
+The source sweep maps 57 touched test files and 43 changed protocol literals to
+their actual gate consumers, including variable-selected dispatch batteries,
+linked netcmd/AT15/shutdown units, and the lazy-allocation shim. See
+`docs/wave6/coverage.json`. Historical `execfix_unit.cc` has no Makefile target
+or gate job. `doubles.py` and `replyschema.py` also have no gate-job entry point;
+those standalone programs are **NOT RUN**. Matching gate consumers and standard
+differential families run through the gate interface. Their absence is not
+counted as a passing standalone check. The tailgen build-only job is selected;
+its full-gate-only live load-generator row remains with the maintainer.

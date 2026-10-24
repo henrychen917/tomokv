@@ -27,6 +27,7 @@ def job(name, jobs, *options):
 
 
 job('integration-fixtures', ['reorder_identity', 'atomic_units'])
+job('tailgen-build', ['tailgen_build'])
 
 # Keep scheduler controls away from concurrent builds and servers. The first
 # attempt used two load CPUs and an incomplete copy; neither is passing evidence.

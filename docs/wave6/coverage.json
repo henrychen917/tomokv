@@ -43,13 +43,18 @@
     },
     {
       "file": "tests/acl_subcommands.py",
-      "jobs": [],
+      "jobs": [
+        "job_acl_subcommands"
+      ],
       "standalone_audit": false,
       "note": ""
     },
     {
       "file": "tests/at15_unit.cc",
-      "jobs": [],
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -164,19 +169,25 @@
     },
     {
       "file": "tests/dispatch_arity.py",
-      "jobs": [],
+      "jobs": [
+        "job_dispatch_arity"
+      ],
       "standalone_audit": false,
       "note": ""
     },
     {
       "file": "tests/dispatch_children.py",
-      "jobs": [],
+      "jobs": [
+        "job_dispatch_children"
+      ],
       "standalone_audit": false,
       "note": ""
     },
     {
       "file": "tests/dispatch_errors.py",
-      "jobs": [],
+      "jobs": [
+        "job_dispatch_errors"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -211,37 +222,47 @@
       "file": "tests/execfix_unit.cc",
       "jobs": [],
       "standalone_audit": false,
-      "note": ""
+      "note": "Historical standalone unit with no Makefile target or gate job; current EXEC/WATCH units and all execfair legs run."
     },
     {
       "file": "tests/fixtures/dispatchfix-pre/appendonlydir/appendonly.aof.1.incr.tomo.gz",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
-      "note": ""
+      "note": "EX4.17 old-file recovery input; both modes and engines."
     },
     {
       "file": "tests/fixtures/dispatchfix-pre/checks.json",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
-      "note": ""
+      "note": "EX4.17 old-file recovery input; both modes and engines."
     },
     {
       "file": "tests/fixtures/dispatchfix-pre/commands.json",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
-      "note": ""
+      "note": "EX4.17 old-file recovery input; both modes and engines."
     },
     {
       "file": "tests/fixtures/dispatchfix-pre/dump.tomo.gz",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
-      "note": ""
+      "note": "EX4.17 old-file recovery input; both modes and engines."
     },
     {
       "file": "tests/fixtures/dispatchfix-pre/origin.json",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
-      "note": ""
+      "note": "EX4.17 old-file recovery input; both modes and engines."
     },
     {
       "file": "tests/fixtures/nullrefresh-ledger-labels.json",
@@ -268,7 +289,9 @@
     },
     {
       "file": "tests/mode_equivalence.py",
-      "jobs": [],
+      "jobs": [
+        "job_differ"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -283,7 +306,10 @@
     },
     {
       "file": "tests/netcmd_config_unit.cc",
-      "jobs": [],
+      "jobs": [
+        "job_netcmd_units",
+        "job_production_units"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -324,7 +350,9 @@
     },
     {
       "file": "tests/router_uniform.py",
-      "jobs": [],
+      "jobs": [
+        "job_router_uniform"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -338,7 +366,10 @@
     },
     {
       "file": "tests/serverfix_alloc.cc",
-      "jobs": [],
+      "jobs": [
+        "job_serverfix_acllog",
+        "job_serverfix_slowlog"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -400,7 +431,10 @@
     },
     {
       "file": "tests/shutdown_client_checks.inc",
-      "jobs": [],
+      "jobs": [
+        "job_climonfix",
+        "job_production_units"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -453,6 +487,14 @@
       ],
       "standalone_audit": false,
       "note": ""
+    },
+    {
+      "file": "tests/wave6_exec.py",
+      "jobs": [
+        "job_execfair"
+      ],
+      "standalone_audit": false,
+      "note": ""
     }
   ],
   "protocol_sweep": [
@@ -475,7 +517,8 @@
         "job_debug",
         "job_fused",
         "job_notify"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "'. Try PUBSUB HELP.",
@@ -487,7 +530,8 @@
         "feature_split_job",
         "job_body",
         "job_notify"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "CLIENT",
@@ -697,6 +741,26 @@
         "job_wb_policy",
         "job_wb_rule_units",
         "job_wbland_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_wake.py",
+        "tests/storesize_unit.cc",
+        "tests/aclkeys_test.py",
+        "tests/respresume_flip.py",
+        "tests/connreset_repro.py",
+        "tests/lottery_test_driver.py",
+        "tests/evict_battery_test.py",
+        "tests/flipfix_abort_probe.py",
+        "tests/gate.sh",
+        "tests/climon_128.py",
+        "tests/clientfix_widths.py",
+        "tests/barrier.py",
+        "tests/netcap_unit.cc",
+        "tests/flakeaudit_test.py",
+        "tests/replyschema.py",
+        "tests/aclkeys_wake_unit.cc",
+        "tests/txnfix_audit/resp.py",
+        "tests/txnfix_audit/t14_exec_window.py"
       ]
     },
     {
@@ -717,8 +781,14 @@
         "job_auth",
         "job_body",
         "job_differ",
+        "job_netcmd_units",
         "job_notify",
+        "job_production_units",
         "job_serverfix_config"
+      ],
+      "standalone_without_gate_job": [
+        "tests/netcap_unit.cc",
+        "tests/differ_test.py"
       ]
     },
     {
@@ -731,7 +801,8 @@
         "feature_split_job",
         "job_body",
         "job_fused"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR Unknown option or number of arguments for CONFIG SET - '",
@@ -741,8 +812,11 @@
       ],
       "jobs": [
         "job_aof",
-        "job_body"
-      ]
+        "job_body",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR need numeric radius",
@@ -755,6 +829,9 @@
         "feature_split_job",
         "job_body",
         "job_fused"
+      ],
+      "standalone_without_gate_job": [
+        "tests/doubles.py"
       ]
     },
     {
@@ -774,6 +851,9 @@
         "job_txn_group_fused",
         "job_txn_group_split",
         "job_txnorder"
+      ],
+      "standalone_without_gate_job": [
+        "tests/hexpire_oom_checks.inc"
       ]
     },
     {
@@ -784,15 +864,21 @@
       ],
       "jobs": [
         "job_body",
-        "job_debug"
-      ]
+        "job_debug",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR radius cannot be negative",
       "tests": [
         "tests/doubles.py"
       ],
-      "jobs": []
+      "jobs": [],
+      "standalone_without_gate_job": [
+        "tests/doubles.py"
+      ]
     },
     {
       "token": "ERR timeout is negative",
@@ -807,6 +893,9 @@
         "feature_split_job",
         "job_body",
         "job_fused"
+      ],
+      "standalone_without_gate_job": [
+        "tests/doubles.py"
       ]
     },
     {
@@ -820,7 +909,8 @@
         "feature_split_job",
         "job_body",
         "job_fused"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR timeout is out of range",
@@ -833,6 +923,9 @@
         "feature_split_job",
         "job_body",
         "job_fused"
+      ],
+      "standalone_without_gate_job": [
+        "tests/doubles.py"
       ]
     },
     {
@@ -854,7 +947,8 @@
         "job_debug",
         "job_fused",
         "job_notify"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR unknown subcommand or wrong number of arguments for '",
@@ -870,6 +964,9 @@
         "job_auth",
         "job_body",
         "job_notify"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_wake_unit.cc"
       ]
     },
     {
@@ -877,7 +974,10 @@
       "tests": [
         "tests/doubles.py"
       ],
-      "jobs": []
+      "jobs": [],
+      "standalone_without_gate_job": [
+        "tests/doubles.py"
+      ]
     },
     {
       "token": "ERR value is not an integer or out of range",
@@ -901,6 +1001,9 @@
         "job_body",
         "job_dump_restore",
         "job_fused"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_wake_unit.cc"
       ]
     },
     {
@@ -917,7 +1020,8 @@
         "job_body",
         "job_fused",
         "job_production_units"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR value is out of range, must be positive",
@@ -930,7 +1034,8 @@
         "feature_split_job",
         "job_body",
         "job_fused"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "ERR wrong number of arguments for '",
@@ -958,6 +1063,11 @@
         "job_fused",
         "job_notify",
         "job_respresume"
+      ],
+      "standalone_without_gate_job": [
+        "tests/cmdgap2.py",
+        "tests/storesize_unit.cc",
+        "tests/respresume_flip.py"
       ]
     },
     {
@@ -990,6 +1100,7 @@
         "job_datafix1_spop",
         "job_debug",
         "job_differ",
+        "job_execfair",
         "job_fused",
         "job_production_units",
         "job_respresume",
@@ -998,6 +1109,10 @@
         "job_txn_group_fused",
         "job_txn_group_split",
         "job_txnorder"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py",
+        "tests/compat3_functions.py"
       ]
     },
     {
@@ -1025,12 +1140,20 @@
         "feature_armed_job",
         "feature_split_job",
         "job_abba_selftest",
+        "job_acl_subcommands",
         "job_auth",
         "job_body",
         "job_debug",
         "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_errors",
         "job_fused",
         "job_notify"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_unit.cc",
+        "tests/mdbstamp_checks.cc",
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1039,7 +1162,12 @@
         "tests/dispatch_children.py",
         "tests/replyschema.py"
       ],
-      "jobs": []
+      "jobs": [
+        "job_dispatch_children"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
+      ]
     },
     {
       "token": "LIST",
@@ -1217,6 +1345,23 @@
         "job_wb_policy",
         "job_wb_rule_units",
         "job_wbland_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/cmdgap2.py",
+        "tests/cmdmeta_test.py",
+        "tests/aclkeys_test.py",
+        "tests/respresume_flip.py",
+        "tests/matrix.sh",
+        "tests/lottery_test_driver.py",
+        "tests/watchlive_gate.sh",
+        "tests/redisgap.py",
+        "tests/gate.sh",
+        "tests/cmdmeta.py",
+        "tests/barrier.py",
+        "tests/watchlive.py",
+        "tests/flakeaudit_test.py",
+        "tests/replyschema.py",
+        "tests/compat3_functions.py"
       ]
     },
     {
@@ -1416,6 +1561,22 @@
         "job_wb_policy",
         "job_wb_rule_units",
         "job_wbland_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/lottery_attempt.py",
+        "tests/dumpttl.py",
+        "tests/benchfeat.py",
+        "tests/debug_load_test.py",
+        "tests/loading_ready_test.py",
+        "tests/gate.sh",
+        "tests/publishfix_e2e.py",
+        "tests/writer_atomic_campaign.py",
+        "tests/flakeaudit_test.py",
+        "tests/cd13b_oracle.sh",
+        "tests/replyschema.py",
+        "tests/differ_fanout_test.py",
+        "tests/compat3_functions.py",
+        "tests/differ_test.py"
       ]
     },
     {
@@ -1441,8 +1602,12 @@
         "job_datafix1_randscan",
         "job_datafix1_spop",
         "job_differ",
+        "job_execfair",
         "job_notify",
         "job_respresume"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1497,6 +1662,7 @@
         "feature_armed_job",
         "feature_split_job",
         "job_abba_selftest",
+        "job_acl_subcommands",
         "job_aclfix",
         "job_aof",
         "job_aoforder",
@@ -1508,10 +1674,32 @@
         "job_dump_restore",
         "job_fused",
         "job_hexpread",
+        "job_netcmd_units",
         "job_production_units",
         "job_release_batteries",
         "job_respresume",
+        "job_router_uniform",
         "job_snapshot"
+      ],
+      "standalone_without_gate_job": [
+        "tests/lottery_attempt.py",
+        "tests/edgetime_persist.sh",
+        "tests/climonfix_artifacts.py",
+        "tests/shutsave_test.py",
+        "tests/abba_experiments.py",
+        "tests/flush_capture.py",
+        "tests/gate.sh",
+        "tests/iofix_signal.py",
+        "tests/hexpire_persist.sh",
+        "tests/notify_order_checks.inc",
+        "tests/psfix.py",
+        "tests/shutsave_unit.cc",
+        "tests/ccfix_instr.cc",
+        "tests/replyschema.py",
+        "tests/boot_failures.py",
+        "tests/shutsave.py",
+        "tests/differ_test.py",
+        "tests/psfix_test.py"
       ]
     },
     {
@@ -1549,10 +1737,16 @@
         "job_datafix1_spop",
         "job_debug",
         "job_differ",
+        "job_execfair",
         "job_notify",
         "job_script_bounds",
         "job_scriptfix",
         "job_txnorder"
+      ],
+      "standalone_without_gate_job": [
+        "tests/mutants.py",
+        "tests/gate.sh",
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1570,7 +1764,12 @@
         "job_body",
         "job_datafix1_randscan",
         "job_differ",
-        "job_fused"
+        "job_fused",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1585,6 +1784,9 @@
         "feature_split_job",
         "job_body",
         "job_serverfix_waitaof"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_wake_unit.cc"
       ]
     },
     {
@@ -1602,6 +1804,9 @@
         "job_body",
         "job_differ",
         "job_release_batteries"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1621,6 +1826,11 @@
         "job_differ",
         "job_fused",
         "job_serverfix_waitaof"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_unit.cc",
+        "tests/gate.sh",
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1640,6 +1850,9 @@
         "job_differ",
         "job_release_batteries",
         "job_respresume"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1650,6 +1863,7 @@
         "tests/aclkeys_unit.cc",
         "tests/dispatch_errors.py",
         "tests/mdbstamp_checks.cc",
+        "tests/wave6_exec.py",
         "tests/gate.sh",
         "tests/dispatch_arity.py",
         "tests/perfio.py",
@@ -1662,13 +1876,23 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_acl_subcommands",
         "job_body",
         "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_errors",
         "job_exbatch_units",
+        "job_execfair",
         "job_flip",
         "job_fused",
         "job_perfio_stream",
         "job_production_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/aclkeys_unit.cc",
+        "tests/mdbstamp_checks.cc",
+        "tests/gate.sh",
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1687,7 +1911,12 @@
         "job_body",
         "job_datafix1_randscan",
         "job_differ",
-        "job_fused"
+        "job_fused",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1695,7 +1924,11 @@
       "tests": [
         "tests/netcmd_config_unit.cc"
       ],
-      "jobs": []
+      "jobs": [
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "argument must be 'yes' or 'no'",
@@ -1704,8 +1937,11 @@
         "tests/netcmd_config_unit.cc"
       ],
       "jobs": [
-        "job_auth"
-      ]
+        "job_auth",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "argument must be a memory value",
@@ -1716,6 +1952,9 @@
       "jobs": [
         "job_aof",
         "job_body"
+      ],
+      "standalone_without_gate_job": [
+        "tests/netcap_unit.cc"
       ]
     },
     {
@@ -1729,7 +1968,12 @@
       "jobs": [
         "job_aof",
         "job_body",
-        "job_config_unit"
+        "job_config_unit",
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_without_gate_job": [
+        "tests/netcap_unit.cc"
       ]
     },
     {
@@ -1744,7 +1988,8 @@
         "job_moverfix",
         "job_txn_group_fused",
         "job_txn_group_split"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "atomic_txn_fast_polls",
@@ -1753,7 +1998,8 @@
       ],
       "jobs": [
         "job_execfair"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "atomic_txn_order_violations",
@@ -1776,7 +2022,8 @@
         "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
-      ]
+      ],
+      "standalone_without_gate_job": []
     },
     {
       "token": "atomic_txn_readonly",
@@ -1785,7 +2032,8 @@
       ],
       "jobs": [
         "job_differ"
-      ]
+      ],
+      "standalone_without_gate_job": []
     }
   ]
 }
