@@ -274,6 +274,159 @@
       "GATE_SHUTDOWN_NET_IO": "epoll"
     },
     "expected_exit": 0,
-    "started": 1792883164.3175147
+    "started": 1792883164.3175147,
+    "exit": 0,
+    "finished": 1792883357.476468
+  },
+  {
+    "name": "final-serverless-gates_test.py",
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883359.5581143,
+    "exit": 0,
+    "finished": 1792883482.5327864
+  },
+  {
+    "name": "final-serverless-psfix_test.py",
+    "command": [
+      "python3",
+      "tests/psfix_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.5332012,
+    "exit": 0,
+    "finished": 1792883482.6147947
+  },
+  {
+    "name": "final-serverless-shutsave_test.py",
+    "command": [
+      "python3",
+      "tests/shutsave_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.6152942,
+    "exit": 0,
+    "finished": 1792883482.697428
+  },
+  {
+    "name": "final-serverless-differ_test.py",
+    "command": [
+      "python3",
+      "tests/differ_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.6978683,
+    "exit": 0,
+    "finished": 1792883488.3812673
+  },
+  {
+    "name": "final-serverless-aof_frame_order_test.py",
+    "command": [
+      "python3",
+      "tests/aof_frame_order_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.3817666,
+    "exit": 0,
+    "finished": 1792883488.478352
+  },
+  {
+    "name": "final-serverless-debug_load_test.py",
+    "command": [
+      "python3",
+      "tests/debug_load_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.478806,
+    "exit": 0,
+    "finished": 1792883488.560425
+  },
+  {
+    "name": "final-serverless-flakeaudit_test.py",
+    "command": [
+      "python3",
+      "tests/flakeaudit_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.5608726,
+    "exit": 0,
+    "finished": 1792883488.6683571
+  },
+  {
+    "name": "differ-final-post-epoll-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-epoll-split"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.6701968
+  },
+  {
+    "name": "differ-final-pre-epoll-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-split"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.6706731
   }
 ]
