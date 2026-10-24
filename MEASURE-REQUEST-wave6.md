@@ -281,10 +281,11 @@ not a full gate or landing receipt. The earlier 169-job sweep had only the
 R7 inventory and synthetic AOF fixture failures described above; both are
 repaired and pass on the final candidate.
 
-The follow-up sequence is running both-engine standard-seed differential
-matrices, the second and third run of all four txnorder cells, complete legacy
-split/fused jobs, final scheduler/ABBA selftests, and the quiet timing-sensitive
-correctness jobs.
+Both-engine standard-seed differential matrices are complete, and every one
+of the four txnorder cells has three passing runs on the final POST (broad
+sweep plus `txnorder-round-2` and `txnorder-round-3`). The follow-up sequence
+is running complete legacy split/fused jobs, final scheduler/ABBA selftests,
+and the quiet timing-sensitive correctness jobs.
 `docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
 result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
 
