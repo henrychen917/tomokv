@@ -313,6 +313,18 @@ assertions in both engines. The focused check passes; a full standalone suite
 and complete ABBA job are queued again. The failed final attempts remain
 separate from their repaired receipts.
 
+The complete fused release job exposed a second mode-hook assumption: its
+historical `dispatched==executed (N)` row requested split-only fields that the
+fused shutdown schema intentionally omits. Split keeps the exact old equality
+assertion. The optional fused leg, tagged `fused=1` in the row context, instead
+requires a nonzero unified count and an exact sum over valid, unique fused
+thread rows. This is fused report consistency, not a claim that fused exposes
+two independent dispatch/execute counters. Nine directed corruptions fail the
+new check. The complete eight-row release job passes on rerun in both modes;
+the old failed fused receipt remains. Other full fused legacy jobs pass,
+including both debug atomic settings and all five ASAN rows. Quiet perfio and
+atomic batteries also pass, with the atomic battery run in both modes.
+
 **NOT RUN by design:** throughput/load-generator jobs `efficiency`,
 `flip_saturated`, `atomic_floor`, the full `tests/gate.sh iteration`, the null
 and landing measurements, and the full-gate-only tailgen load-generator row
@@ -320,7 +332,7 @@ and landing measurements, and the full-gate-only tailgen load-generator row
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
 
-The source sweep traces 61 touched test files and 43 changed protocol literals
+The source sweep traces 62 touched test files and 43 changed protocol literals
 through script references, imports, declared unit objects and gate helpers,
 including variable-selected dispatch batteries, linked netcmd/AT15/shutdown
 checks, and the lazy-allocation shim. See `docs/wave6/coverage.json`. This is a

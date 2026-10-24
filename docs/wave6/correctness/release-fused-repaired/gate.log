@@ -1,0 +1,24 @@
+GATE(full): 32 physical cores; 3 correctness slots = min(24/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 24 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave6/build/gate-run.jXKMls
+PARTIAL jobs (including prerequisites): release release_batteries
+PARTIAL jobs (including prerequisites): release release_batteries
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=6.64s; correctness-plan-fallback; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=1.05s; correctness-plan-fallback; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=1.03s; correctness-plan-fallback; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 8, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; direct-reply fired (direct=N)
+  direct-reply fired (direct=993)                      ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; dispatched==executed (N)
+  fused unified work agrees with thread totals (112070) ok
+GATE(PARTIAL): 9 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave6/docs/wave6/correctness/release-fused-repaired/ledger.partial

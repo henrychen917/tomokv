@@ -510,6 +510,22 @@
       "note": ""
     },
     {
+      "file": "tests/shutdown_report.py",
+      "jobs": [
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
+        "job_debug",
+        "job_lb_stationary",
+        "job_persistfix_units",
+        "job_release_batteries",
+        "job_scriptfix",
+        "job_snapshot"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/sort.py",
       "jobs": [
         "job_sort"

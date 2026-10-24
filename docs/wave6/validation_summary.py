@@ -14,7 +14,8 @@ args = parser.parse_args()
 names = ['broad-final', 'integration-fixtures-final', 'tailgen-build',
          'abba-selftest-repaired', 'differ-uring', 'differ-epoll',
          'txnorder-round-2', 'txnorder-round-3', 'legacy-split-final',
-         'legacy-fused', 'perfio-quiet', 'atomic-split-quiet', 'atomic-fused-quiet']
+         'legacy-fused', 'perfio-quiet', 'atomic-split-quiet', 'atomic-fused-quiet',
+         'release-split-repaired', 'release-fused-repaired']
 digest = hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest()
 manifest = json.loads((ROOT / 'docs/wave6/job-manifest.json').read_text())
 excluded = {'efficiency', 'flip_saturated', 'atomic_floor'}
@@ -52,9 +53,18 @@ for name in names:
             continue
         counts['rows'] += int(done[1])
         completed[job].append(name)
-    if receipt['exit'] or failed:
+    superseded_release = False
+    repair_path = OUT / 'release-fused-repaired/receipt.json'
+    if name == 'legacy-fused' and receipt['exit'] == 1 and failed == ['release_batteries'] and repair_path.exists():
+        repair = json.loads(repair_path.read_text())
+        superseded_release = (repair.get('exit') == 0 and repair['binary_sha256'] == digest and
+            repair['environment']['GATE_TXN_FUSED'] == '1' and
+            repair.get('jobs', {}).get('release_batteries', {}).get('done', '').split() == ['0', '8', '0'])
+    if (receipt['exit'] or failed) and not superseded_release:
         problems.append(dict(suite=name, exit=receipt['exit'], jobs=failed))
-    summary.append(dict(name=name, status='FAIL' if receipt['exit'] or failed else 'PASS',
+    status = ('SUPERSEDED release_batteries failure; complete job rerun passed' if superseded_release
+              else 'FAIL' if receipt['exit'] or failed else 'PASS')
+    summary.append(dict(name=name, status=status,
                         jobs=len(jobs), passing_rows=counts['rows'],
                         seconds=round(receipt['end'] - receipt['start'], 2),
                         receipt=str(path.relative_to(ROOT))))
@@ -76,6 +86,8 @@ for rel in ('gates-test-final.json', 'abba-selftest-final/receipt.json'):
         old = json.loads(path.read_text())
         superseded.append(dict(receipt=str(path.relative_to(ROOT)), exit=old.get('exit'),
             reason='Persistence fixture omitted the newly used boot selector; fixed by 9ff3f7c39. Complete standalone suite and whole ABBA job rerun; no assertion relaxed.'))
+superseded.append(dict(receipt='docs/wave6/correctness/legacy-fused/receipt.json',
+    job='release_batteries', reason='Historical row requested absent split-only counters in fused mode. 6d8173edd preserves the split assertion and validates nonzero fused work against all thread totals, with negative controls; whole release job rerun in both modes.'))
 result = dict(candidate_sha256=digest,
     scope='Whole correctness jobs through GATE_ONLY_JOBS; NOT a full gate/landing receipt.',
     suites=summary, standalone=standalone, freshness=freshness, problems=problems, pending=pending,

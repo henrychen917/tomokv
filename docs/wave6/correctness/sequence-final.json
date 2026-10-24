@@ -1,0 +1,54 @@
+[
+  {
+    "name": "integration-fixtures-final",
+    "exit": 0
+  },
+  {
+    "name": "tailgen-build",
+    "exit": 2
+  },
+  {
+    "name": "gates-test-final",
+    "exit": 1
+  },
+  {
+    "name": "abba-selftest-final",
+    "exit": 1
+  },
+  {
+    "name": "differ-uring",
+    "exit": 0
+  },
+  {
+    "name": "differ-epoll",
+    "exit": 0
+  },
+  {
+    "name": "txnorder-round-2",
+    "exit": 0
+  },
+  {
+    "name": "txnorder-round-3",
+    "exit": 0
+  },
+  {
+    "name": "legacy-split-final",
+    "exit": 0
+  },
+  {
+    "name": "legacy-fused",
+    "exit": 1
+  },
+  {
+    "name": "perfio-quiet",
+    "exit": 0
+  },
+  {
+    "name": "atomic-split-quiet",
+    "exit": 0
+  },
+  {
+    "name": "atomic-fused-quiet",
+    "exit": 0
+  }
+]
