@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; dispatchfix EX4.10 container outer arity
+  dispatchfix EX4.10 container outer arity             ok

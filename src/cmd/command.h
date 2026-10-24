@@ -200,6 +200,8 @@ bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
 // to the cold AUTH/ACL hook (or the normal container handler), which emits the lookup error
 // before checking authentication, matching Redis's processCommand order.
 bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec);
+// Cold Redis subcommand lookup/syntax errors, including bounded binary names.
+void command_reply_subcommand_error(Op& op, const char* container, bool unknown = true);
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
                                          const char* subcommand);
 // The outer registry still owns each container's broad bound so malformed requests fail before

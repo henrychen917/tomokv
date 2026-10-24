@@ -292,26 +292,6 @@ void append_ascii_lower(std::string& out, const char* text) {
     }
 }
 
-void reply_unknown_subcommand(Op& op, const char* container) {
-    const Slice subcommand = op.arg(1);
-    std::string message = "ERR unknown subcommand '";
-    message.append(subcommand.p, subcommand.n);
-    message += "'. Try ";
-    message += container;
-    message += " HELP.";
-    reply_err(op.sink(), message.c_str());
-}
-
-void reply_unknown_or_wrong_subcommand(Op& op, const char* container) {
-    const Slice subcommand = op.arg(1);
-    std::string message = "ERR unknown subcommand or wrong number of arguments for '";
-    message.append(subcommand.p, subcommand.n);
-    message += "'. Try ";
-    message += container;
-    message += " HELP.";
-    reply_err(op.sink(), message.c_str());
-}
-
 void reply_metadata_subcommand_wrong_args(Op& op, const CommandSpec& spec,
                                           const CommandMetadata& metadata) {
     const char* separator = std::strchr(command_metadata_name(metadata).p, '|');
@@ -320,6 +300,21 @@ void reply_metadata_subcommand_wrong_args(Op& op, const CommandSpec& spec,
 }
 
 }  // namespace
+
+void command_reply_subcommand_error(Op& op, const char* container, bool unknown) {
+    // Redis formats argv[1] with %.128s, then sanitizes CR/LF in the complete
+    // error. Bound the echoed bytes and stop at NUL without truncating HELP.
+    const Slice subcommand = op.arg(1);
+    size_t length = 0;
+    while (length < subcommand.n && length < 128 && subcommand.p[length]) ++length;
+    std::string message = unknown ? "ERR unknown subcommand '"
+        : "ERR unknown subcommand or wrong number of arguments for '";
+    message.append(subcommand.p, length);
+    message += "'. Try ";
+    message += container;
+    message += " HELP.";
+    reply_err(op.sink(), message.c_str());
+}
 
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
                                          const char* subcommand) {
@@ -342,14 +337,14 @@ bool command_validate_subcommand(Op& op, const char* container,
                             op.argc() <= static_cast<uint32_t>(entry.max_arity));
         if (valid) return true;
         if (entry.error == SubcommandArityError::UnknownOrWrong)
-            reply_unknown_or_wrong_subcommand(op, container);
+            command_reply_subcommand_error(op, container, false);
         else if (entry.error == SubcommandArityError::Syntax)
             reply_syntax(op.sink());
         else
             command_reply_subcommand_wrong_args(op, container, entry.name);
         return false;
     }
-    reply_unknown_subcommand(op, container);
+    command_reply_subcommand_error(op, container);
     return false;
 }
 
@@ -357,7 +352,7 @@ bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
                                            int16_t& first_key) {
     const CommandMetadata* metadata = command_metadata_resolve(op, 0);
     if (!metadata || !command_metadata_is_subcommand(*metadata)) {
-        reply_unknown_subcommand(op, spec.name);
+        command_reply_subcommand_error(op, spec.name);
         return false;
     }
     if (!command_metadata_arity_ok(*metadata, op.argc())) {
@@ -384,8 +379,9 @@ bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
         int16_t first_key = 0;
         // Reaching this hook means the broad top-level row rejected the request. Usually the
         // generated child rejects it too and supplies the precise child name. The one remaining
-        // shape is a variadic child crossing a finite container maximum (MEMORY USAGE and XINFO
-        // STREAM); those tails are handler grammar, for which Redis reports syntax error.
+        // shape is MEMORY USAGE crossing its finite container maximum. Its handler grammar
+        // precedes key lookup and Redis reports syntax error for those tails. XINFO STREAM
+        // has no outer maximum: its handler must look up the key before parsing the tail.
         if (command_validate_container_subcommand(op, spec, first_key))
             reply_syntax(op.sink());
         return true;

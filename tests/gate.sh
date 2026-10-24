@@ -1129,7 +1129,7 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -1656,6 +1656,41 @@ job_compat2(){
     if [ "$failed" = 0 ]; then ok "compat2 $case";
     else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
   done
+}
+
+# Each dispatchfix feature owns one scored row with all four correctness legs.
+# The scripts retain the oracle replies and both listener command lines.
+dispatchfix_job(){
+  local battery=$1 label=$2 mode engine failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    py "tests/$battery.py" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --mode "$mode" --engine "$engine" --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+        --output "$TMPDIR/$battery-$mode-$engine" \
+        >"$TMPDIR/$battery-$mode-$engine.log" 2>&1 || failed=1
+  done; done
+  if [ "$failed" = 0 ]; then ok "$label";
+  else bad "$label" "see $TMPDIR/$battery-*.log"; fi
+}
+job_dispatch_arity(){
+  row_begin 'dispatchfix EX4.10 container outer arity'
+  dispatchfix_job dispatch_arity 'dispatchfix EX4.10 container outer arity'
+}
+job_dispatch_errors(){
+  row_begin 'dispatchfix EX4.11 container errors'
+  dispatchfix_job dispatch_errors 'dispatchfix EX4.11 container errors'
+}
+job_dispatch_children(){
+  row_begin 'dispatchfix EX4.4 advertised children'
+  dispatchfix_job dispatch_children 'dispatchfix EX4.4 advertised children'
+}
+job_acl_subcommands(){
+  row_begin 'dispatchfix CC4.15 ACL subcommand grants'
+  dispatchfix_job acl_subcommands 'dispatchfix CC4.15 ACL subcommand grants'
+}
+
+job_router_uniform(){
+  row_begin 'dispatchfix EX4.17 uniform routing and legacy recovery'
+  dispatchfix_job router_uniform 'dispatchfix EX4.17 uniform routing and legacy recovery'
 }
 
 job_hexpread(){
@@ -3080,6 +3115,24 @@ py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES"
     || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
 }
 
+# The existing two ACL rows retain their labels and now own all mode/engine legs.
+acl_battery_legs(){
+  local atomic=$1 mode engine acl_file boot_fn failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    acl_file="$TMPDIR/acl-$atomic-$mode-$engine.acl"
+    : > "$acl_file"
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --aclfile "$acl_file" --atomic "$atomic" \
+        --net-io "$engine" --read-local 1 &&
+       py tests/acl.py 127.0.0.1 "$PORT" "$acl_file" \
+         >"$TMPDIR/acl-$atomic-$mode-$engine.log" 2>&1; then :
+    else failed=1; fi
+    stop
+  done; done
+  return "$failed"
+}
+
 job_auth(){
 # ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
 row_begin "reject bad protected-mode"
@@ -3093,21 +3146,12 @@ row_begin "AUTH/HELLO/protected state machine"
 py tests/auth.py 127.0.0.1 $PORT gatepass >$TMPDIR/gate-auth.txt 2>&1 \
     && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see $TMPDIR/gate-auth.txt"
 stop
-ACL_DIR=$(mktemp -d $TMPDIR/gate-acl.XXXXXX)
-ACL_FILE="$ACL_DIR/users.acl"
-: > "$ACL_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_FILE" || bad "ACL purpose boot"
 row_begin "ACL battery (atomic off)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_FILE" >$TMPDIR/gate-acl.txt 2>&1 \
-    && ok "ACL battery (atomic off)" || bad "ACL battery (atomic off)" "see $TMPDIR/gate-acl.txt"
-stop
-ACL_ATOMIC_FILE="$ACL_DIR/users-atomic.acl"
-: > "$ACL_ATOMIC_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_ATOMIC_FILE" --atomic 1 || bad "ACL atomic purpose boot"
+acl_battery_legs 0 && ok "ACL battery (atomic off)" \
+    || bad "ACL battery (atomic off)" "see $TMPDIR/acl-0-*.log"
 row_begin "ACL battery (atomic on)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_ATOMIC_FILE" >$TMPDIR/gate-acl-atomic.txt 2>&1 \
-    && ok "ACL battery (atomic on)" || bad "ACL battery (atomic on)" "see $TMPDIR/gate-acl-atomic.txt"
-stop
+acl_battery_legs 1 && ok "ACL battery (atomic on)" \
+    || bad "ACL battery (atomic on)" "see $TMPDIR/acl-1-*.log"
 DEBUG_DIR=$(mktemp -d $TMPDIR/gate-debug.XXXXXX)
 boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
     || bad "DEBUG purpose boot"
@@ -5073,6 +5117,11 @@ collect_job compat2
 collect_job bugs5
 # Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.
 collect_job compat3
+collect_job dispatch_arity
+collect_job dispatch_errors
+collect_job dispatch_children
+collect_job acl_subcommands
+collect_job router_uniform
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

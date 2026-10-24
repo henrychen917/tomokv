@@ -37,6 +37,8 @@ const CommandMetadata* command_metadata_lookup(Slice name);
 const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argument);
 uint32_t command_metadata_size();
 const CommandMetadata* command_metadata_at(uint32_t index);
+uint32_t command_metadata_index(const CommandMetadata& metadata);
+const CommandMetadata* command_metadata_subcommand(const CommandSpec& spec, Slice child);
 
 Slice command_metadata_name(const CommandMetadata& metadata);
 int16_t command_metadata_first_key(const CommandMetadata& metadata);

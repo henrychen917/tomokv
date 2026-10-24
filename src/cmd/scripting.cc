@@ -1403,10 +1403,7 @@ void cmd_script(Shard&, Op& op) {
         reply_script_help(op);
         return;
     }
-    char text[128];
-    std::snprintf(text, sizeof(text), "unknown subcommand '%.*s'. Try SCRIPT HELP.",
-                  static_cast<int>(std::min<uint32_t>(subcommand.n, 64)), subcommand.p);
-    reply_text_error(op, "ERR", text);
+    command_reply_subcommand_error(op, "SCRIPT");
 }
 
 static const CommandSpec kTable[] = {

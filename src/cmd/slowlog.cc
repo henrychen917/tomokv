@@ -382,6 +382,9 @@ const char* const kLatencyHelp[] = {
     "RESET [<event> ...]",
     "    Reset latency data of one or more <event> classes.",
     "    (default: reset all data for all event classes)",
+    "HISTOGRAM [COMMAND ...]",
+    "    Return a cumulative distribution of latencies in the format of a histogram for the specified command names.",
+    "    If no commands are specified then all histograms are replied.",
     "HELP",
     "    Print this help.",
 };
@@ -390,6 +393,7 @@ constexpr SubcommandArity kLatencySubcommands[] = {
     {"doctor",  2,  2},
     {"graph",   3,  3},
     {"history", 3,  3},
+    {"histogram", 2, -1},
     {"latest",  2,  2},
     {"reset",   2, -1},
     {"help",    2,  2},
@@ -400,6 +404,13 @@ void cmd_latency(Shard&, Op& op) {
                                      sizeof(kLatencySubcommands) /
                                          sizeof(kLatencySubcommands[0]))) return;
     const Slice sub = op.arg(1);
+    if (eq_icase(sub, "HISTOGRAM")) {
+        // The batch/escalation recorder does not collect per-command latency
+        // histograms. Redis returns an empty map when no histograms exist;
+        // do not invent a distribution from the sampled slow-log entries.
+        reply_map_header(op.sink(), 0, op.resp3());
+        return;
+    }
     if (eq_icase(sub, "HELP") && op.argc() == 2) {
         reply_help_lines(op, kLatencyHelp, sizeof(kLatencyHelp) / sizeof(kLatencyHelp[0]));
         return;

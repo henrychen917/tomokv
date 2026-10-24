@@ -1,0 +1,8 @@
+{
+  "removed_after_archiving": [
+    "build/gate-run.A5grWD",
+    "build/gate-run.mguX2p",
+    "build/dispatchfix-pre-objects"
+  ],
+  "retained": "PRE, POST, PAD-A executables, source recipes, production unit targets and freshness prerequisites"
+}

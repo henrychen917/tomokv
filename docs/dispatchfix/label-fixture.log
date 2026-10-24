@@ -1,0 +1,4 @@
+RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=702, source declarations=707
+Missing fixture labels: 'dispatchfix CC4.15 ACL subcommand grants' (x1); 'dispatchfix EX4.10 container outer arity' (x1); 'dispatchfix EX4.11 container errors' (x1); 'dispatchfix EX4.17 uniform routing and legacy recovery' (x1); 'dispatchfix EX4.4 advertised children' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.

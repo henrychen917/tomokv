@@ -1,0 +1,8 @@
+{
+  "tests/differ_fanout.py": true,
+  "tests/differ_fanout_test.py": true,
+  "mode_equivalence_cells_identical_to_PRE": true,
+  "cells_definition": "CELLS = [f'{mode}-{r}-{q}-{a}' for mode in ('1s', '2s')\n         for r, q, a in itertools.product((0, 1), repeat=3)]",
+  "observed_self_test_failure": "32 != 64: two seeds times the unchanged 16-cell matrix; tests/differ_fanout_test.py line 205 still expects 64",
+  "assertion_untouched": true
+}

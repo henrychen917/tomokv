@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; dispatchfix EX4.10 container outer arity
+  dispatchfix EX4.10 container outer arity             FAIL (see /home/user/Projects/cx-dispatchfix/build/gate-run.DpuVXx/jobs/dispatch_arity/dispatch_arity-*.log)

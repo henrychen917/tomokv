@@ -1,0 +1,1 @@
+{"pre": "build/tomokv-PRE", "post": "build/dispatchfix-pre-objects/tomokv", "pre_sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd", "post_sha256": "7aaa0785d694c8a0db30081362631acec68517c1b19fe403ac60612757d36679", "runtime_sections_equal": true, "differences": []}

@@ -1,0 +1,83 @@
+{
+  "reason": "Oracle C-string first-argument grant/SAVE-LOAD boundary requires final ACL correction. Superseded POST cohorts stopped before relink; partial evidence is not a complete proof.",
+  "processes": [
+    {
+      "pid": 420613,
+      "role": "reschedule final-validation-after-candidate.log"
+    },
+    {
+      "pid": 268663,
+      "argv": [
+        "/bin/bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-103",
+        "--load-cores",
+        "104-111",
+        "--ports",
+        "28820-28839",
+        "--candidate-binary",
+        "build/tomokv"
+      ]
+    },
+    {
+      "pid": 268819,
+      "argv": [
+        "/bin/bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "104-111",
+        "--load-cores",
+        "96-103",
+        "--ports",
+        "28880-28898",
+        "--candidate-binary",
+        "build/tomokv"
+      ]
+    },
+    {
+      "pid": 292207,
+      "argv": [
+        "/bin/bash",
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "96-103",
+        "--load-cores",
+        "104-111",
+        "--ports",
+        "28870-28879",
+        "--candidate-binary",
+        "build/tomokv"
+      ]
+    }
+  ],
+  "archives": [
+    {
+      "log": "differ-candidate-POST-uring.log",
+      "root": "/home/user/Projects/cx-dispatchfix/build/gate-run.2SCj3P",
+      "archive": "docs/dispatchfix/proof/gate-run.2SCj3P-interrupted.tar.gz",
+      "files": 809,
+      "complete": false,
+      "sha256": "63b6dbf0a1e490e0e8908668eb638dd3a515e32cc350f66a842dec81b8f4c8aa"
+    },
+    {
+      "log": "differ-candidate-POST-epoll.log",
+      "root": "/home/user/Projects/cx-dispatchfix/build/gate-run.eue9Ei",
+      "archive": "docs/dispatchfix/proof/gate-run.eue9Ei-interrupted.tar.gz",
+      "files": 833,
+      "complete": false,
+      "sha256": "15352a3786cabde374b0c49f58459de9cce507c366843fbfec6413579761950a"
+    },
+    {
+      "log": "final-broad-POST.log",
+      "root": "/home/user/Projects/cx-dispatchfix/build/gate-run.p0gRxu",
+      "archive": "docs/dispatchfix/proof/gate-run.p0gRxu-interrupted.tar.gz",
+      "files": 218,
+      "complete": false,
+      "sha256": "56db6e3bf8b7f16b50ae45d5757e5668fd69e93d07c7fc6874aa04ab3d3f4ae8"
+    }
+  ]
+}

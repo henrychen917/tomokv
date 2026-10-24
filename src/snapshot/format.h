@@ -18,7 +18,8 @@ struct KvObj;
 struct TypeLimits;
 enum class Type : uint8_t;
 
-inline constexpr uint32_t kSnapshotFormatVersion = 1;
+// v1 uses the legacy shard map; v2 uses balanced ranges at non-divisor geometries.
+inline constexpr uint32_t kSnapshotFormatVersion = 2;
 inline constexpr uint32_t kSnapshotChunkBytes = 64 * 1024;
 
 enum SnapshotFrameFlags : uint32_t {

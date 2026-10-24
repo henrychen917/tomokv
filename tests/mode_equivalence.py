@@ -230,6 +230,7 @@ def main(argv=None):
     parser.add_argument('--server-cpus', default='0-7')
     parser.add_argument('--load-cpus', default='8-15')
     parser.add_argument('--port', type=int, default=8950)
+    parser.add_argument('--net-io', choices=('epoll', 'uring'), default='uring')
     parser.add_argument('--seed', type=int, default=7)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--self-test', action='store_true')
@@ -250,7 +251,7 @@ def main(argv=None):
                     os.sched_setaffinity(0, affinity)
                     failed += main(['--_single-seed', '--binary', args.binary,
                                     '--server-cpus', args.server_cpus, '--load-cpus', args.load_cpus,
-                                    '--port', str(args.port), '--seed', str(seed),
+                                    '--port', str(args.port), '--net-io', args.net_io, '--seed', str(seed),
                                     '--output', str(args.output / f'seed-{seed}')])
             finally:
                 os.sched_setaffinity(0, affinity)
@@ -274,6 +275,8 @@ def main(argv=None):
     for cell in CELLS:
         start = time.monotonic()
         knobs, argv = configuration(cell)
+        knobs['net-io'] = args.net_io
+        argv += ['--net-io', args.net_io]
         report = dict(cell=cell, knobs=knobs, verdict='FAIL', reached=False)
         try:
             with server(args.binary, args.server_cpus, args.port, args.output / cell / 'replay', argv) as (admin, _process):

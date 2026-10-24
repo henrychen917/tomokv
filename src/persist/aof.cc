@@ -1,3 +1,4 @@
+#include "routing_compat.h"
 #include "aof.h"
 #include "../cmd/xshard.h"
 
@@ -35,7 +36,7 @@ namespace tomo {
 namespace {
 
 constexpr uint8_t kFileMagic[8] = {'T','O','M','O','A','O','F','\0'};
-constexpr uint32_t kFileVersion = 1;
+// File versions 1/2 distinguish legacy and evenly distributed shard maps.
 static_assert(DatabaseMap::kPayloadBytes == 256,
               "AOF version 1 stores mapping bytes only, excluding Map::epoch");
 constexpr uint32_t kFileHeaderBytes = 80;
@@ -1072,7 +1073,7 @@ bool AofManager::seed_snapshot(const Config& config, const std::string& path,
     if (seed.fd_ < 0) { error = "could not create AOF snapshot import increment"; return false; }
     uint8_t header[kFileHeaderBytes] = {};
     std::memcpy(header, kFileMagic, sizeof(kFileMagic));
-    snapshot_put_u32(header + 8, kFileVersion);
+    snapshot_put_u32(header + 8, persistence_routing_version(snapshot.shard_count));
     snapshot_put_u32(header + 12, kFileHeaderBytes);
     snapshot_put_u32(header + 16, snapshot.shard_count);
     snapshot_put_u32(header + 20, snapshot.hash_kind);
@@ -1150,6 +1151,7 @@ void AofManager::init(Server& server, const Config& config, uint32_t nthreads, u
     if (replay && replay->next_sequence.size() == nshards_)
         next_sequence_ = replay->next_sequence;
     if (replay) {
+        routing_upgrade_ = legacy_routing(replay->routing_version, nshards_);
         replayed_records_.store(replay->replayed_records, std::memory_order_relaxed);
         groups_skipped_.store(replay->groups_skipped, std::memory_order_relaxed);
         groups_committed_.store(replay->committed_groups.size(), std::memory_order_relaxed);
@@ -1248,7 +1250,7 @@ void AofManager::fail(const char* message) {
 bool AofManager::write_header_normal() {
     uint8_t header[kFileHeaderBytes] = {};
     std::memcpy(header, kFileMagic, sizeof(kFileMagic));
-    snapshot_put_u32(header + 8, kFileVersion);
+    snapshot_put_u32(header + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(header + 12, kFileHeaderBytes);
     snapshot_put_u32(header + 16, nshards_);
     snapshot_put_u32(header + 20, static_cast<uint32_t>(g_hash_kind));
@@ -1287,7 +1289,7 @@ bool AofManager::wait_control_write(ThreadCtx& writer, Ring& ring, int fd,
 bool AofManager::write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint64_t& offset) {
     uint8_t header[kFileHeaderBytes] = {};
     std::memcpy(header, kFileMagic, sizeof(kFileMagic));
-    snapshot_put_u32(header + 8, kFileVersion);
+    snapshot_put_u32(header + 8, persistence_routing_version(nshards_));
     snapshot_put_u32(header + 12, kFileHeaderBytes);
     snapshot_put_u32(header + 16, nshards_);
     snapshot_put_u32(header + 20, static_cast<uint32_t>(g_hash_kind));
@@ -1336,8 +1338,22 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         return false;
     }
     cleanup_unreferenced_files();
+    if (routing_upgrade_) {
+        // Anchor even a manifest-less v1 file before creating a new segment.
+        // A crash at any subsequent step leaves an intact, recoverable v1 set.
+        if (!persist_manifest(base_name_, base_sequence_, base_epoch_, base_commit_,
+                              base_size(), rewrite_base_size(), increments_, increment_starts_, error)) {
+            fail(error.c_str()); return false;
+        }
+        ++active_incr_sequence_;
+        increments_.emplace_back(active_incr_sequence_,
+                                 aof_segment_name(appendfilename_, active_incr_sequence_));
+        increment_starts_.push_back(next_sequence_);
+        file_path_ = directory_path_ + "/" + increments_.back().second;
+    }
     const int append_flag = engine_ == PersistIoEngine::Normal ? O_APPEND : 0;
-    fd_ = ::open(file_path_.c_str(), O_CREAT | O_RDWR | append_flag | O_CLOEXEC, 0600);
+    fd_ = ::open(file_path_.c_str(), O_CREAT | O_RDWR | append_flag | O_CLOEXEC |
+                  (routing_upgrade_ ? O_EXCL : 0), 0600);
     if (fd_ < 0) {
         error = "could not open AOF file";
         fail(error.c_str());
@@ -1357,6 +1373,16 @@ bool AofManager::bind_writer(ThreadCtx& writer, Ring& ring, std::string& error) 
         error = "could not write AOF header";
         fail(error.c_str());
         return false;
+    }
+    if (routing_upgrade_) {
+        const bool synced = engine_ == PersistIoEngine::Normal
+            ? ::fsync(fd_) == 0 : wait_control_sync(writer, ring, fd_);
+        if (!synced || !persist_manifest(base_name_, base_sequence_, base_epoch_, base_commit_,
+                                        base_size(), rewrite_base_size(), increments_, increment_starts_, error)) {
+            if (error.empty()) error = "could not persist AOF routing upgrade";
+            fail(error.c_str()); return false;
+        }
+        routing_upgrade_ = false;
     }
     last_good_offset_ = file_offset_;
     const uint64_t current = base_size() + file_offset_;
@@ -2714,7 +2740,7 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
     if (!read_file(fd, file, error)) { ::close(fd); return nullptr; }
     if (file.size() < kFileHeaderBytes ||
         std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
-        snapshot_get_u32(file.data() + 8) != kFileVersion ||
+        (snapshot_get_u32(file.data() + 8) != 1 && snapshot_get_u32(file.data() + 8) != 2) ||
         snapshot_get_u32(file.data() + 12) != kFileHeaderBytes ||
         snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
         error = "invalid AOF header";
@@ -2722,6 +2748,7 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
         return nullptr;
     }
     auto plan = std::make_unique<AofReplayPlan>();
+    plan->routing_version = snapshot_get_u32(file.data() + 8);
     plan->shard_count = snapshot_get_u32(file.data() + 16);
     if (plan->shard_count != expected_shards) {
         error = "AOF shard count does not match --shards";
@@ -3057,67 +3084,74 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
     if (sid >= plan.sections.size()) { error = "AOF shard section is missing"; return false; }
     const int64_t now = now_realtime_ms();
     shard.set_cached_now_ms(now);
-    const std::vector<uint8_t>& section = plan.sections[sid];
-    size_t pos = 0;
-    while (pos < section.size()) {
-        AofRecordKind kind;
-        uint8_t type = 0, encoding = 0;
-        uint32_t key_len = 0;
-        uint64_t payload_len = 0, group = 0;
-        int64_t expire = -1;
-        size_t next = 0;
-        if (!parse_record_bounds(section, pos, kind, type, encoding, key_len, payload_len,
-                                 expire, group, next, error)) return false;
-        const size_t data = pos + kRecordHeaderBytes;
-        const Slice key(reinterpret_cast<const char*>(section.data() + data), key_len, section[pos + 14]);
-        if (section[pos + 14] >= server.cfg().databases) { error = "AOF database is out of range"; return false; }
-        const Slice payload(reinterpret_cast<const char*>(section.data() + data + key_len),
-                            static_cast<uint32_t>(payload_len));
-        pos = next;
-        if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
-        if (kind == AofRecordKind::GroupDatabaseMap && !plan.committed_groups.count(group)) continue;
-        if (kind == AofRecordKind::DatabaseMap || kind == AofRecordKind::GroupDatabaseMap) {
-            if (sid != 0 || key_len || payload_len != DatabaseMap::kPayloadBytes ||
-                !server.databases().restore(reinterpret_cast<const uint8_t*>(payload.p))) {
-                error = "invalid AOF database mapping"; return false;
+    const RecoverySections sources(plan.routing_version, plan.shard_count, shard);
+    for (uint32_t source = sources.first; source < sources.end; ++source) {
+        const std::vector<uint8_t>& section = plan.sections[source];
+        size_t pos = 0;
+        while (pos < section.size()) {
+            AofRecordKind kind;
+            uint8_t type = 0, encoding = 0;
+            uint32_t key_len = 0;
+            uint64_t payload_len = 0, group = 0;
+            int64_t expire = -1;
+            size_t next = 0;
+            if (!parse_record_bounds(section, pos, kind, type, encoding, key_len, payload_len,
+                                     expire, group, next, error)) return false;
+            const size_t data = pos + kRecordHeaderBytes;
+            const Slice key(reinterpret_cast<const char*>(section.data() + data), key_len, section[pos + 14]);
+            if (section[pos + 14] >= server.cfg().databases) { error = "AOF database is out of range"; return false; }
+            const Slice payload(reinterpret_cast<const char*>(section.data() + data + key_len),
+                                static_cast<uint32_t>(payload_len));
+            pos = next;
+            if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
+            if (kind == AofRecordKind::GroupDatabaseMap && !plan.committed_groups.count(group)) continue;
+            if (kind == AofRecordKind::DatabaseMap || kind == AofRecordKind::GroupDatabaseMap) {
+                if (source != 0 || key_len || payload_len != DatabaseMap::kPayloadBytes ||
+                    (sid == 0 && !server.databases().restore(reinterpret_cast<const uint8_t*>(payload.p)))) {
+                    error = "invalid AOF database mapping"; return false;
+                }
+                continue;
             }
-            continue;
+            if (kind == AofRecordKind::Flush) {
+                if (sources.legacy)
+                    legacy_recovery_flush(shard, source, plan.shard_count, type == 1 ? key.ns : -1);
+                else if (type == 1) multidb_flush(shard, key.ns);
+                else shard.store().clear();
+                continue;
+            }
+            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&
+                !plan.committed_groups.count(group)) continue;
+            const uint64_t hash = FlatStore::hash_key(key);
+            const uint32_t destination = server.router().shard_of(hash);
+            if ((sources.legacy ? legacy_shard(hash, plan.shard_count) : destination) != source) {
+                error = "AOF key is in the wrong shard stream";
+                return false;
+            }
+            if (destination != sid) continue;
+            if (kind == AofRecordKind::Del || kind == AofRecordKind::GroupDel ||
+                (expire >= 0 && expire < now)) {
+                shard.store().erase(hash, key);
+                continue;
+            }
+            if ((kind != AofRecordKind::Put && kind != AofRecordKind::GroupPut) ||
+                type > static_cast<uint8_t>(Type::Stream)) {
+                error = "invalid AOF value record";
+                return false;
+            }
+            KvObj* object = nullptr;
+            const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type)).load(
+                key, encoding, expire, payload, shard.type_limits(), object);
+            if (status != SnapshotHookStatus::Ok || !object) {
+                error = hook_error(status);
+                return false;
+            }
+            if (shard.store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
+                kvobj_free(object);
+                error = "could not insert AOF value";
+                return false;
+            }
+            shard.store().note_loaded_object(hash, object);
         }
-        if (kind == AofRecordKind::Flush) {
-            if (type == 1) multidb_flush(shard, key.ns);
-            else shard.store().clear();
-            continue;
-        }
-        if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&
-            !plan.committed_groups.count(group)) continue;
-        const uint64_t hash = FlatStore::hash_key(key);
-        if (server.router().shard_of(hash) != shard.id()) {
-            error = "AOF key is in the wrong shard stream";
-            return false;
-        }
-        if (kind == AofRecordKind::Del || kind == AofRecordKind::GroupDel ||
-            (expire >= 0 && expire < now)) {
-            shard.store().erase(hash, key);
-            continue;
-        }
-        if ((kind != AofRecordKind::Put && kind != AofRecordKind::GroupPut) ||
-            type > static_cast<uint8_t>(Type::Stream)) {
-            error = "invalid AOF value record";
-            return false;
-        }
-        KvObj* object = nullptr;
-        const SnapshotHookStatus status = snapshot_type_hooks(static_cast<Type>(type)).load(
-            key, encoding, expire, payload, shard.type_limits(), object);
-        if (status != SnapshotHookStatus::Ok || !object) {
-            error = hook_error(status);
-            return false;
-        }
-        if (shard.store().insert(hash, object) != FlatStore::InsertResult::Inserted) {
-            kvobj_free(object);
-            error = "could not insert AOF value";
-            return false;
-        }
-        shard.store().note_loaded_object(hash, object);
     }
     shard.publish_size();
     return true;

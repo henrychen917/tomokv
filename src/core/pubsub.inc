@@ -1195,12 +1195,7 @@
     // Redis reports arity failures on a PUBSUB arm through the subcommand-syntax reply, echoing
     // the subcommand token exactly as the client spelled it. Probed against redis 7.4.
     void pubsub_reply_bad_subcommand(Op& op, bool unknown) {
-        const Slice name = op.arg(1);
-        std::string message = unknown ? "ERR unknown subcommand '"
-                                      : "ERR unknown subcommand or wrong number of arguments for '";
-        message.append(name.p, name.n);
-        message += "'. Try PUBSUB HELP.";
-        reply_err(op.sink(), message.c_str());
+        command_reply_subcommand_error(op, "PUBSUB", unknown);
     }
 
     void pubsub_reply_bad_arity(Op& op, const char* arm) {

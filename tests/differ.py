@@ -4990,12 +4990,17 @@ def climon_tracking_conn(h, p):
     return conn_mode(h, p, False, buffering=0)
 
 def climon_reader_control():
+    import os
     # Exercise the actual reader before every climon stream, so reverting to buffered reads
     # turns the existing differential row red even when the live server's timing is benign.
     # A reply and push written together force the old read-ahead window without any sleeps.
     push = b">2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n"
     with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0)); listener.listen()
+        # The gate owns three consecutive ports: target, oracle, and controls.
+        # Keep this real reader control inside that reservation too.
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        control_port = TP + 2 if TP else int(os.environ.get('GATE_TEST_PORT', '0'))
+        listener.bind(("127.0.0.1", control_port)); listener.listen()
         client, file = climon_tracking_conn(*listener.getsockname())
         with client, file, listener.accept()[0] as sender:
             sender.sendall(b"$1\r\nv\r\n" + push)
