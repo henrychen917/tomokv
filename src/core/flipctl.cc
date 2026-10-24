@@ -1003,11 +1003,12 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         return false;
     }
     if (refining_) { refine_decision_ = "move"; refine_steps_++; }
-    // MOVE: the hypothesis. R0 is the origin window's mean; the prediction is kappa-scaled; the
-    // target window is judged against the origin's noise and sample count from here on.
+    // MOVE: retain the raw model prediction for record_outcome. Cost and verification
+    // above use the calibrated forecast; feeding that forecast back into kappa
+    // would calibrate an already calibrated prediction on every subsequent move.
     model_last_decision_ = debug_force ? "move-forced" : "move";
     origin_rate_ = origin_window_.mean > 0 ? origin_window_.mean : rate;
-    hyp_predicted_ = model_kappa_ * choice.gain_mean;
+    hyp_predicted_ = (ctlfix_correctness() ? 1.0 : model_kappa_) * choice.gain_mean;
     // The origin's noise for the verification: the window's own sigma or the long-window sigma,
     // whichever is larger -- two quiet readings inside one phase of a periodic load say nothing
     // about the swing the target reading will be compared across.
@@ -1037,7 +1038,11 @@ void FlipController::begin_refinement(Server& server, uint64_t now_ms) {
     refining_ = true;
     refine_decision_ = "measuring";
     // The model's error on the step that just landed is the bar its next projection must clear.
-    refine_bar_ = flip_refine_bar(hyp_predicted_, hyp_delivered_);
+    // model_kappa_ is the pre-outcome calibration saved with the hypothesis.
+    // Keep the refinement bar in delivered-gain units, independently of the
+    // learner's raw-input contract. cost_.kappa() has already learned this hit.
+    refine_bar_ = flip_refine_bar(
+        (ctlfix_correctness() ? model_kappa_ : 1.0) * hyp_predicted_, hyp_delivered_);
     phase_ = Phase::Measuring;
     demand_window_.reset();
     origin_window_.reset();

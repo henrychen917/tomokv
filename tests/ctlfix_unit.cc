@@ -225,6 +225,80 @@ struct FlipControllerTest {
         }
         std::puts("CT4.2 boot measurement samples PASS");
     }
+    static void calibration() {
+        Fixture f(false);
+        FlipController c;
+        require(c.init(true, 8), "calibration controller initialized");
+        uint64_t now = 1000;
+        constexpr double baseline = 1000000, delivery = 0.25;
+        double delivered_sum = 0, maximum_error = 0;
+        bool raw_predictions = true, refinement_units = true;
+        // A miss first biases kappa. Then a constant quarter-delivery stream
+        // must converge to 1/4, not sqrt(1/4). A final biased miss exercises the
+        // separate anchor() record_outcome call, as well as the hit path.
+        constexpr unsigned count = 129;
+        for (unsigned move = 0; move != count; ++move) {
+            if (f.server.role_count(Role::Ifid) != 6) {
+                manual(f.server, 6);
+                c.tick(f.server, ++now);
+            }
+            c.start_maneuver(f.server, FlipctlTriggerReason::Forced, ++now);
+            c.debug_seek_io_ = 4;
+            c.debug_seek_force_ = true;
+            bool issued = false;
+            for (unsigned draw = 0; draw != 2; ++draw) {
+                unsigned active_io = 0;
+                for (uint32_t tid = 0; tid != 8; ++tid) {
+                    auto& signal = f.server.thread(tid).sig();
+                    const auto role = f.server.thread(tid).role();
+                    if (role == Role::Ex || (role == Role::Ifid && active_io++ < 2)) signal.ops += 1000;
+                    else signal.idle_ns += 1000000000;
+                }
+                now += 1000;
+                c.observe_rate(1000000, 1000);
+                issued = c.decide_placement(f.server, 0, now, baseline);
+            }
+            if (!issued || c.model_gain_mean_ != 1.0 || c.model_target_io_ != 4) {
+                std::printf("CT4.7 arm move=%u issued=%u raw=%.17g target=%u demand=%u phase=%s decision=%s\n",
+                            move + 1, issued, c.model_gain_mean_, c.model_target_io_,
+                            c.demand_window_.samples, c.phase_name(c.phase_), c.model_last_decision_);
+                std::fflush(stdout);
+            }
+            require(issued && std::abs(c.model_gain_mean_ - 1.0) < 1e-12 && c.model_target_io_ == 4,
+                    "calibration arms actual raw +100% model hypothesis");
+            raw_predictions &= std::abs(c.hyp_predicted_ - 1.0) < 1e-12;
+            const double forecast = c.model_kappa_ * c.model_gain_mean_;
+            complete(f.server);
+            c.tick(f.server, ++now);
+            const bool miss = move == 0 || move + 1 == count;
+            const bool returned = c.seek_after_reading(f.server, 0, ++now,
+                                                      baseline * (miss ? 1.0 : 1.0 + delivery));
+            if (miss) {
+                require(returned && c.pending_miss_, "miss actually takes return path");
+                complete(f.server);
+                c.tick(f.server, ++now);
+                c.anchor(f.server, baseline);
+            } else {
+                require(!returned && c.refining_, "hit actually enters refinement");
+                delivered_sum += delivery;
+                refinement_units &= std::abs(c.refine_bar_ - std::max(0.0, forecast - delivery)) < 1e-12;
+            }
+            const double expected = (delivered_sum + 1.0) / (move + 2.0);
+            maximum_error = std::max(maximum_error, std::abs(c.cost_.kappa() - expected));
+            if (move < 3 || move + 1 == count)
+                std::printf("CT4.7 move=%u raw=1 forecast=%.9f delivered=%.2f kappa=%.9f expected=%.9f\n",
+                            move + 1, forecast, miss ? 0.0 : delivery, c.cost_.kappa(), expected);
+        }
+        std::printf("CT4.7 moves=%u misses=%u predicted_sum=%.9f maximum_error=%.9f\n",
+                    c.cost_.moves, c.cost_.misses, c.cost_.predicted_sum, maximum_error);
+        std::fflush(stdout);
+        require(c.cost_.moves == count && c.cost_.misses == 2, "all synthetic outcomes recorded");
+        require(raw_predictions && std::abs(c.cost_.predicted_sum - count) < 1e-9 && maximum_error < 1e-12 &&
+                std::abs(c.cost_.kappa() - delivery) < 0.01,
+                "CT4.7 learner converges on raw predictions after biased hits and misses");
+        require(refinement_units, "refinement compares delivered gain with saved calibrated forecast");
+        std::puts("CT4.7 raw-model calibration PASS");
+    }
 };
 }
 
@@ -233,5 +307,6 @@ int main(int argc, char** argv) {
     tomo::CoreConcurrencyTest::require(argc == 2, "select a controller regression");
     if (std::strcmp(argv[1], "completions") == 0) tomo::FlipControllerTest::completions();
     else if (std::strcmp(argv[1], "boot") == 0) tomo::FlipControllerTest::boot_samples();
+    else if (std::strcmp(argv[1], "calibration") == 0) tomo::FlipControllerTest::calibration();
     else tomo::CoreConcurrencyTest::require(false, "unknown controller regression");
 }

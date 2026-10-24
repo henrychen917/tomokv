@@ -1391,7 +1391,7 @@ g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomo
 pausable taskset -c "$BUILD_CORES" make -f tests/ctlfix.mk -j"$BUILD_JOBS" build/ctlfix-unit \
     >>$TMPDIR/gate-flipctl-unit.txt 2>&1 || controller_ok=0
 if make -f tests/ctlfix.mk -q build/ctlfix-unit; then
-  for regression in completions boot; do
+  for regression in completions boot calibration; do
     taskset -c "$CORES" build/ctlfix-unit "$regression" >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
         || controller_ok=0
   done

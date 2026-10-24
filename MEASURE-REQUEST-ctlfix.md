@@ -66,6 +66,27 @@ IO-only, intermittent executor work, and continuous executor work, and requires
 Anchored plus the maneuver sampling arm off. The cap remains a count of accepted
 readings, not a promise about elapsed time during unstable/invalid windows.
 
+### CT4.7 raw-model calibration
+
+REPRODUCED on frozen PRE through the gate job with 129 synthetic production
+hypotheses, each raw gain +1: first miss, 127 hits delivering +0.25, final miss.
+The first miss makes kappa 0.5. PRE then feeds calibrated predictions back into
+the learner and finishes at **0.496022121**, instead of **0.251923077**.
+POST feeds raw gain to both the hit and returned-miss call sites and matches the
+raw-unit formula at every prefix (maximum error below 1e-12). Its predicted sum
+is 129; PRE's is 64.517398655. With increasing quarter-delivery evidence, POST
+converges to one quarter; PRE approaches one half before the final miss.
+
+The verification/cost model still uses the calibrated forecast. Refinement also
+retains its original units by comparing delivery to the *saved pre-outcome*
+kappa times the raw prediction; using the newly learned kappa here would change
+that independent policy. The test checks this on every successful hypothesis.
+
+The initial calibration attempts failed their arming guard: role IDs change
+across real FLIP planning, so a fixed physical-thread demand pattern ceased to
+provide executor operations. The final fixture follows each thread's actual
+role on each fresh draw. No failed arming attempt counts as reproduction.
+
 ### Gate accounting
 
 The existing `flip controller model unit` row is extended with deterministic
