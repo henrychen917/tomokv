@@ -2368,7 +2368,7 @@ done
 }
 
 job_release_batteries(){
-boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "release boot"
+txn_proof_boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "release boot"
 row_begin "torture battery"
 py tests/torture.py 127.0.0.1 $PORT >$TMPDIR/gate-tort.txt 2>&1 \
     && ok "torture battery" || bad "torture battery" "see $TMPDIR/gate-tort.txt"
@@ -3047,7 +3047,7 @@ XDS_PORT=$PORT XDS_CPUS=$CORES XDS_BIN="$CANDIDATE_BINARY" bash tests/xshard_dis
 job_dump_restore(){
 # ---- Redis-wire DUMP/RESTORE survives the native snapshot/restart boundary -------------------
 DUMPRESTORE_DIR=$(mktemp -d $TMPDIR/gate-dumprestore.XXXXXX)
-boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
     || bad "DUMP/RESTORE restart preparation boot"
 row_begin "DUMP/RESTORE prepare + native SAVE"
 py tests/dumprestore.py 127.0.0.1 $PORT prepare_restart \
@@ -3055,7 +3055,7 @@ py tests/dumprestore.py 127.0.0.1 $PORT prepare_restart \
     && ok "DUMP/RESTORE prepare + native SAVE" \
     || bad "DUMP/RESTORE restart preparation" "see $TMPDIR/gate-dumprestore-restart.txt"
 stop
-boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" \
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" \
     --dbfilename dumprestore.tomo \
     || bad "DUMP/RESTORE snapshot reload boot"
 row_begin "DUMP/RESTORE cross-restart round-trip"
@@ -3199,7 +3199,7 @@ reject_boot --protected-mode maybe 2>&1 | grep -q "protected-mode wants" \
 row_begin "reject bad enable-debug-command"
 reject_boot --enable-debug-command maybe 2>&1 | grep -q "enable-debug-command wants" \
     && ok "reject bad enable-debug-command" || bad "reject bad enable-debug-command"
-boot "$CANDIDATE_BINARY" --requirepass gatepass || bad "auth purpose boot"
+txn_proof_boot "$CANDIDATE_BINARY" --requirepass gatepass || bad "auth purpose boot"
 row_begin "AUTH/HELLO/protected state machine"
 py tests/auth.py 127.0.0.1 $PORT gatepass >$TMPDIR/gate-auth.txt 2>&1 \
     && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see $TMPDIR/gate-auth.txt"
@@ -3211,7 +3211,7 @@ row_begin "ACL battery (atomic on)"
 acl_battery_legs 1 && ok "ACL battery (atomic on)" \
     || bad "ACL battery (atomic on)" "see $TMPDIR/acl-1-*.log"
 DEBUG_DIR=$(mktemp -d $TMPDIR/gate-debug.XXXXXX)
-boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
+txn_proof_boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
     || bad "DEBUG purpose boot"
 row_begin "DEBUG toggle/reload battery"
 py tests/debug.py 127.0.0.1 $PORT >$TMPDIR/gate-debug.txt 2>&1 \
@@ -3866,7 +3866,7 @@ fi
 
 job_notify(){
 # ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------
-boot "$CANDIDATE_BINARY" --notify-keyspace-events KEAmn --enable-debug-command yes \
+txn_proof_boot "$CANDIDATE_BINARY" --notify-keyspace-events KEAmn --enable-debug-command yes \
     || bad "feature battery boot + notify CLI knob"   # armed: multi_exec.py needs DEBUG SHARD
                                                        # to locate a same-owner key pair, and it
                                                        # FAILS rather than skips without it
@@ -4706,7 +4706,9 @@ zcboot(){
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
-  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
+  local shape=(--ratio "$GATE_RATIO")
+  [ "${GATE_TXN_FUSED:-0}" != 1 ] || shape=(--thread-mode fused)
+  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 "${shape[@]}" \
       --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 \
       --net-io "${GATE_ZC_NET_IO:-uring}" > "$SRVLOG" 2>&1 &
   SRV=$!
