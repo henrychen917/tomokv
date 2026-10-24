@@ -1,0 +1,82 @@
+{
+  "summary": {
+    "feature": "CD4.6",
+    "legs": 12,
+    "failures": []
+  },
+  "legs": [
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-2s-rl0-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-2s-rl0-a1",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-1s-rl0-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-1s-rl0-a1",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-1s-rl1-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "epoll-1s-rl1-a1",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-2s-rl0-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-2s-rl0-a1",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-1s-rl0-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-1s-rl0-a1",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-1s-rl1-a0",
+      "checks": 397,
+      "failures": 0
+    },
+    {
+      "feature": "CD4.6",
+      "leg": "uring-1s-rl1-a1",
+      "checks": 397,
+      "failures": 0
+    }
+  ],
+  "checks": 4764
+}

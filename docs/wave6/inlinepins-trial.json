@@ -1,0 +1,1236 @@
+{
+  "source": "three read-local helper always_inline attributes; only both genthread objects replaced for bounded rejection trial",
+  "score": [
+    0,
+    65,
+    504
+  ],
+  "hot": [
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3807
+      ],
+      "post_sizes": [
+        3756
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2634
+      ],
+      "post_sizes": [
+        2605
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3560
+      ],
+      "post_sizes": [
+        3514
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3394
+      ],
+      "post_sizes": [
+        3366
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2780
+      ],
+      "post_sizes": [
+        2587
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2609
+      ],
+      "post_sizes": [
+        2426
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3806
+      ],
+      "post_sizes": [
+        3755
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2633
+      ],
+      "post_sizes": [
+        2604
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3559
+      ],
+      "post_sizes": [
+        3513
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3393
+      ],
+      "post_sizes": [
+        3365
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2779
+      ],
+      "post_sizes": [
+        2586
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2608
+      ],
+      "post_sizes": [
+        2425
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<false>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9164
+      ],
+      "post_sizes": [
+        8653
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        553,
+        976
+      ],
+      "post_sizes": [
+        553,
+        976
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ExLoopT<true>::fused_baseline_sweep() [clone .part.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        66,
+        74
+      ],
+      "post_sizes": [
+        91,
+        74
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "notifycompat",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8149
+      ],
+      "post_sizes": [
+        8443
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18750
+      ],
+      "post_sizes": [
+        18692
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20688
+      ],
+      "post_sizes": [
+        20676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        277
+      ],
+      "post_sizes": [
+        280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9949,
+        12153,
+        10045,
+        10767
+      ],
+      "post_sizes": [
+        10013,
+        12161,
+        10013,
+        10877
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18705
+      ],
+      "post_sizes": [
+        18653
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20837,
+        19202
+      ],
+      "post_sizes": [
+        20830,
+        19184
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        284,
+        289
+      ],
+      "post_sizes": [
+        284,
+        289
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21031
+      ],
+      "post_sizes": [
+        21014
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18382
+      ],
+      "post_sizes": [
+        18368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8881
+      ],
+      "post_sizes": [
+        8368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        553,
+        976
+      ],
+      "post_sizes": [
+        553,
+        976
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::fused_baseline_sweep() [clone .part.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        66,
+        74
+      ],
+      "post_sizes": [
+        91,
+        74
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        7865
+      ],
+      "post_sizes": [
+        8123
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9840,
+        12318,
+        9840,
+        10771
+      ],
+      "post_sizes": [
+        9773,
+        12232,
+        9885,
+        10582
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21381,
+        19078
+      ],
+      "post_sizes": [
+        21387,
+        19097
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289,
+        293
+      ],
+      "post_sizes": [
+        289,
+        293
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18556
+      ],
+      "post_sizes": [
+        18473
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18455
+      ],
+      "post_sizes": [
+        18439
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3699
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4520
+      ],
+      "post_sizes": [
+        4167
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1301
+      ],
+      "post_sizes": [
+        1118
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3969
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4822
+      ],
+      "post_sizes": [
+        4435
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1301
+      ],
+      "post_sizes": [
+        1310
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1776
+      ],
+      "post_sizes": [
+        1568
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5604
+      ],
+      "post_sizes": [
+        5617
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5694
+      ],
+      "post_sizes": [
+        5697
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5677
+      ],
+      "post_sizes": [
+        5677
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5694
+      ],
+      "post_sizes": [
+        5697
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5738
+      ],
+      "post_sizes": [
+        5735
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5722
+      ],
+      "post_sizes": [
+        5725
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5767
+      ],
+      "post_sizes": [
+        5793
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5722
+      ],
+      "post_sizes": [
+        5725
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5364
+      ],
+      "post_sizes": [
+        5354
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5441
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5423
+      ],
+      "post_sizes": [
+        5400
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5441
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5479
+      ],
+      "post_sizes": [
+        5466
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5467
+      ],
+      "post_sizes": [
+        5469
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5504
+      ],
+      "post_sizes": [
+        5481
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5467
+      ],
+      "post_sizes": [
+        5469
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ]
+    }
+  ],
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "build/db0/src/main.o",
+    "build/db0/src/net/tls.o",
+    "build/db0/src/cmd/commands.o",
+    "build/db0/src/cmd/glob.o",
+    "build/db0/src/cmd/xshard.o",
+    "build/db0/src/cmd/acl.o",
+    "build/db0/src/cmd/hll.o",
+    "build/db0/src/cmd/t_server.o",
+    "build/db0/src/cmd/t_string.o",
+    "build/db0/src/cmd/t_string_notify.o",
+    "build/db0/src/cmd/t_hash.o",
+    "build/db0/src/cmd/t_hash_ttl.o",
+    "build/db0/src/cmd/t_list.o",
+    "build/db0/src/cmd/t_set.o",
+    "build/db0/src/cmd/t_zset.o",
+    "build/db0/src/cmd/t_zset_ops.o",
+    "build/db0/src/cmd/geo.o",
+    "build/db0/src/cmd/t_stream.o",
+    "build/db0/src/cmd/t_stream_groups.o",
+    "build/db0/src/cmd/scripting.o",
+    "build/db0/src/cmd/functions.o",
+    "build/db0/src/cmd/serialize.o",
+    "build/db0/src/snapshot/snapshot.o",
+    "build/db0/src/persist/aof.o",
+    "build/db0/src/cmd/climon.o",
+    "build/db0/src/cmd/tracking.o",
+    "build/db0/src/cmd/server_tail.o",
+    "build/db0/src/cmd/slowlog.o",
+    "build/db0/src/cmd/lcs.o",
+    "build/db0/src/cmd/info_stats.o",
+    "build/db0/src/cmd/lbsignals.o",
+    "build/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave6/build/wave6/inlinepins/db0_src_core_genthread.o",
+    "build/db0/src/core/rl2s.o",
+    "build/db0/src/core/lbstall.o",
+    "build/db0/src/core/lbplanner.o",
+    "build/db0/src/cmd/l4prebuild.o",
+    "build/db0/src/cmd/cmdgap.o",
+    "build/db0/src/cmd/pfdebug.o",
+    "build/db0/src/cmd/cmdmeta.o",
+    "build/db0/src/cmd/t_sort.o",
+    "build/db0/src/cmd/multidb.o",
+    "build/db0/src/cmd/storesize.o",
+    "build/db0/src/cmd/multi_admin.o",
+    "build/db0/src/core/reorder.o",
+    "build/db0/src/cmd/geo_store.o",
+    "build/db0/src/persist/aof_frame_debug.o",
+    "build/db0/src/cmd/aclkeys.o",
+    "build/db0/src/cmd/blocking_debug.o",
+    "build/db0/src/cmd/objectpread.o",
+    "build/db0/src/cmd/hexpread.o",
+    "build/db0/src/cmd/autharity.o",
+    "build/db0/src/core/fliplisten.o",
+    "build/db0/src/core/shutdown.o",
+    "build/db0/src/core/version.o",
+    "build/src/main.o",
+    "build/src/net/tls.o",
+    "build/src/cmd/commands.o",
+    "build/src/cmd/glob.o",
+    "build/src/cmd/xshard.o",
+    "build/src/cmd/acl.o",
+    "build/src/cmd/hll.o",
+    "build/src/cmd/t_server.o",
+    "build/src/cmd/t_string.o",
+    "build/src/cmd/t_string_notify.o",
+    "build/src/cmd/t_hash.o",
+    "build/src/cmd/t_hash_ttl.o",
+    "build/src/cmd/t_list.o",
+    "build/src/cmd/t_set.o",
+    "build/src/cmd/t_zset.o",
+    "build/src/cmd/t_zset_ops.o",
+    "build/src/cmd/geo.o",
+    "build/src/cmd/t_stream.o",
+    "build/src/cmd/t_stream_groups.o",
+    "build/src/cmd/scripting.o",
+    "build/src/cmd/functions.o",
+    "build/src/cmd/serialize.o",
+    "build/src/snapshot/snapshot.o",
+    "build/src/persist/aof.o",
+    "build/src/cmd/climon.o",
+    "build/src/cmd/tracking.o",
+    "build/src/cmd/server_tail.o",
+    "build/src/cmd/slowlog.o",
+    "build/src/cmd/lcs.o",
+    "build/src/cmd/info_stats.o",
+    "build/src/cmd/lbsignals.o",
+    "build/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave6/build/wave6/inlinepins/src_core_genthread.o",
+    "build/src/core/rl2s.o",
+    "build/src/core/lbstall.o",
+    "build/src/core/lbplanner.o",
+    "build/src/cmd/l4prebuild.o",
+    "build/src/cmd/cmdgap.o",
+    "build/src/cmd/pfdebug.o",
+    "build/src/cmd/cmdmeta.o",
+    "build/src/cmd/t_sort.o",
+    "build/src/cmd/multidb.o",
+    "build/src/cmd/storesize.o",
+    "build/src/cmd/multi_admin.o",
+    "build/src/core/reorder.o",
+    "build/src/cmd/geo_store.o",
+    "build/src/persist/aof_frame_debug.o",
+    "build/src/cmd/aclkeys.o",
+    "build/src/cmd/blocking_debug.o",
+    "build/src/cmd/objectpread.o",
+    "build/src/cmd/hexpread.o",
+    "build/src/cmd/autharity.o",
+    "build/src/core/fliplisten.o",
+    "build/src/core/shutdown.o",
+    "build/src/core/version.o",
+    "-o",
+    "/home/user/Projects/cx-wave6/build/wave6/inlinepins/tomokv",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm"
+  ],
+  "baseline_sha256": "402bdf8376a4ff316c2eb544b604a73743561b8b05f154626f5566b8a5f8e658",
+  "baseline_residual_hot": 40,
+  "baseline_residual_all": 476,
+  "source_diffs": {
+    "src/core/server.h": "--- unscoped hazard baseline\n+++ src/core/server.h\n@@ -743,7 +743,7 @@\n         return cfg.read_local != 0;\n     }\n     bool read_local_enabled() const { return read_local_enabled(cfg_); }\n-    uint64_t read_local_epoch() const {\n+    __attribute__((always_inline)) uint64_t read_local_epoch() const {\n         if (!read_local_state_) std::abort();\n         return read_local_state_->epoch.load(std::memory_order_seq_cst);\n     }\n",
+    "src/core/thread.h": "--- unscoped hazard baseline\n+++ src/core/thread.h\n@@ -895,12 +895,12 @@\n     // never per operation. Parked shares this word with the tick so a grace scan cannot accept a\n     // stale separate parked=true after the thread has resumed probing foreign stores. Sequential\n     // consistency orders the park/resume edge with that scan; it is paid only at rotation/park.\n-    void publish_read_local_tick(uint64_t tick) {\n+    __attribute__((always_inline)) void publish_read_local_tick(uint64_t tick) {\n         if (tick & kReadLocalParkedBit) std::abort();\n         if (!read_local_state_) std::abort();\n         read_local_state_->tick.store(tick, std::memory_order_seq_cst);\n     }\n-    void publish_read_local_parked(uint64_t tick) {\n+    __attribute__((always_inline)) void publish_read_local_parked(uint64_t tick) {\n         if (tick & kReadLocalParkedBit) std::abort();\n         if (!read_local_state_) std::abort();\n         read_local_state_->tick.store(tick | kReadLocalParkedBit, std::memory_order_seq_cst);\n"
+  }
+}

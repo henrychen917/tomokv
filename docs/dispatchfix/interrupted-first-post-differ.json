@@ -1,0 +1,57 @@
+{
+  "reason": "Final EX4.11 oracle boundary table found long/NUL/CRLF error formatting differences; cancel old POST before rebuilding so a cohort never mixes binaries. PRE cohorts continue. These incomplete POST runs are not proof.",
+  "processes": [
+    {
+      "pid": 3503955,
+      "argv": [
+        "/bin/bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-103",
+        "--load-cores",
+        "104-111",
+        "--ports",
+        "28820-28839",
+        "--candidate-binary",
+        "build/tomokv"
+      ]
+    },
+    {
+      "pid": 3503957,
+      "argv": [
+        "/bin/bash",
+        "tests/gate.sh",
+        "full",
+        "--server-cores",
+        "96-103",
+        "--load-cores",
+        "104-111",
+        "--ports",
+        "28880-28898",
+        "--candidate-binary",
+        "build/tomokv"
+      ]
+    },
+    {
+      "pid": 3518264,
+      "role": "quiet validation driver; reschedule after final POST"
+    }
+  ],
+  "archives": [
+    {
+      "root": "build/gate-run.0tN8VW",
+      "archive": "docs/dispatchfix/proof/gate-run.0tN8VW-interrupted.tar.gz",
+      "status": "Interrupted before formatter fix; not a complete differential cohort",
+      "files": 1336,
+      "sha256": "50c057b246a1209b3f7b52fa95f45188cc6bb5820b38d16f38cafd9f8c2b30b3"
+    },
+    {
+      "root": "build/gate-run.aqE2Wp",
+      "archive": "docs/dispatchfix/proof/gate-run.aqE2Wp-interrupted.tar.gz",
+      "status": "Interrupted before formatter fix; not a complete differential cohort",
+      "files": 1338,
+      "sha256": "95f60d9187b3eb9044b02c0577010d66250bada07b1372f4af217a18beb88579"
+    }
+  ]
+}

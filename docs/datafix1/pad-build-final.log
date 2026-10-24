@@ -1,0 +1,9 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE objects unchanged",
+  "layout": "POST total .text size; existing layout lock sizes/offsets; function addresses may differ",
+  "limitation": "Not an exact placement twin. Config locale pointer occupies PRE reserved bytes.",
+  "padding_bytes": 30400,
+  "text_bytes": 7777926,
+  "sha256": "75ea5fd78496a4e2de15f4178731627aecdeb6ae2db6765f8a9fc14619142b9c"
+}

@@ -1,0 +1,146 @@
+Search: (?i)(CONFIG.{0,10}SET.{0,25}(maxmemory|maxclients|protected-mode|timeout|tcp-keepalive|aof-timestamp-enabled|aof-load-truncated|slowlog|acllog|appendfsync|acl-pubsub-default|dynamic-hz|hz))|slowlog_identity|PFSELFTEST
+
+tests/aclsel.py:157:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "allchannels"), b"OK",
+tests/aclsel.py:166:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "resetchannels"), b"OK",
+tests/serverfix_hll.py:2:"""SV4.8 PFSELFTEST, including an oracle-backed broken-estimator control."""
+tests/serverfix_hll.py:13:            run.check(label + ' selftest ' + str(limit), c.cmd('PFSELFTEST'), b'OK')
+tests/serverfix_hll.py:23:            reply = c.cmd('PFSELFTEST')
+tests/acl.py:157:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "allchannels"), b"OK",
+tests/acl.py:164:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "resetchannels"), b"OK",
+tests/acl.py:342:expect(admin.command("CONFIG", "SET", "acllog-max-len", 0), b"OK", "disable ACL LOG")
+tests/acl.py:345:expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore ACL LOG")
+tests/slowlog_identity.py:12:        admin.must('CONFIG', 'SET', 'slowlog-log-slower-than', 0)
+tests/slowlog_identity.py:13:        admin.must('CONFIG', 'SET', 'slowlog-max-len', 128)
+tests/slowlog_identity.py:47:        admin.must('CONFIG', 'SET', 'slowlog-log-slower-than', 10000)
+tests/serverfix_slowlog.py:20:            run.check(label + ' enable', c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', 0), b'OK')
+tests/serverfix_slowlog.py:40:            run.check(label + ' disable', c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', -1), b'OK')
+tests/streamgroups.py:91:admin.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/arity.py:73:    ("CONFIG SET below", ["CONFIG", "SET", "maxmemory"], wrong("config|set")),
+tests/authfix.py:264:                (('CONFIG', 'SET', 'timeout', '0', 'requirepass', 'audit-password'),
+tests/authfix.py:265:                 [b'CONFIG', b'SET', b'timeout', b'0', b'requirepass', redacted]),
+tests/replyschema.py:673:add("pfselftest", "PFSELFTEST")
+tests/replyschema.py:1140:    setup=(("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu"), ("SET", "{p}:k", "v")))
+tests/replyschema.py:1143:    setup=(("CONFIG", "SET", "maxmemory-policy", "noeviction"), ("SET", "{p}:k", "v")))
+tests/slowlog.py:127:    check("disable slowlog", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "-1"), "OK")
+tests/slowlog.py:149:    check("restore default", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000"), "OK")
+tests/slowlog.py:178:    check("threshold 0", c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "0"), "OK")
+tests/slowlog.py:197:    check("set max-len 5", c.cmd("CONFIG", "SET", "slowlog-max-len", "5"), "OK")
+tests/slowlog.py:208:          (c.cmd("CONFIG", "SET", "slowlog-max-len", "1"), c.cmd("SLOWLOG", "LEN"))[1],
+tests/slowlog.py:210:    check("max-len 0 keeps nothing", c.cmd("CONFIG", "SET", "slowlog-max-len", "0"), "OK")
+tests/slowlog.py:215:    c.cmd("CONFIG", "SET", "slowlog-max-len", "128")
+tests/slowlog.py:250:    c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000")
+tests/slowlog.py:257:          c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000"), "OK")
+tests/slowlog.py:297:    c.cmd("CONFIG", "SET", "slowlog-log-slower-than", "10000")
+tests/stream.py:111:admin.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/netcmd_config_unit.cc:62:        set({"CONFIG", "SET", "aof-load-truncated", value}, true);
+tests/netcmd_config_unit.cc:71:            reject({"CONFIG", "SET", "aof-load-truncated", invalid},
+tests/netcmd_config_unit.cc:76:            reject({"CONFIG", "SET", "aof-load-truncated", changed, duplicate, changed},
+tests/lru_slow.sh:48:cmd("CONFIG","SET","maxmemory","1048576"); cmd("CONFIG","SET","maxmemory-policy","allkeys-lru")
+tests/read_local_lfu.py:36:        ctl.must('CONFIG', 'SET', 'maxmemory', 1024*1024*1024)
+tests/read_local_lfu.py:37:        ctl.must('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lfu')
+tests/read_local_lfu.py:96:        ctl.must('CONFIG', 'SET', 'maxmemory', 0)
+tests/redisgap.py:159:            assert c.command('CONFIG', 'SET', 'aof-load-truncated', policy) == 'OK'
+tests/redisgap.py:216:            assert 'error' in c.command('CONFIG', 'SET', 'timeout', 17, 'does-not-exist', 1)
+tests/notify.py:504:    admin.command("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/notify.py:505:    admin.command("CONFIG", "SET", "maxmemory", "16384")
+tests/notify.py:524:    admin.command("CONFIG", "SET", "maxmemory", "0")
+tests/notify.py:636:        admin.command("CONFIG", "SET", "maxmemory", "0")
+tests/gate.sh:2624:  for test in scancompact slowlog_identity read_local_lfu; do
+tests/gate.sh:2628:      slowlog_identity) battery=slowlog;;
+tests/abba_workloads.py:90:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", "0")
+tests/abba_workloads.py:117:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", original)
+tests/compat3_lib.py:55:            equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "clear cap")
+tests/compat3_lib.py:61:            c.cmd("CONFIG", "SET", "maxmemory", 0)
+tests/climon2.py:236:    expect(admin.command("CONFIG", "SET", "maxmemory", "268435456"), b"OK", "arm maxmemory")
+tests/climon2.py:265:    admin.command("CONFIG", "SET", "maxmemory", maxmem_before.decode())
+tests/aof.py:648:        expect(("CONFIG", "SET", "aof-load-truncated", "no"), b"+OK\r\n")
+tests/aof.py:658:        expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")
+tests/aof.py:664:        expect(("CONFIG", "SET", "aof-load-truncated", config["aof-load-truncated"]), b"+OK\r\n")
+tests/xscript.py:744:        client.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/xscript.py:745:        client.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/xscript.py:763:        client.cmd("CONFIG", "SET", "maxmemory", "1048576")
+tests/xscript.py:799:        client.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/txnorder.py:365:                reply = self.transaction(c, [("CONFIG", "SET", "timeout", timeout), ("INCR", keys[0])])
+tests/servertail.py:6:Covers scope A (TIME/LOLWUT/ROLE/WAIT/FAILOVER/REPLICAOF/SLAVEOF/PFSELFTEST/SUBSTR/SORT_RO/
+tests/servertail.py:167:    check("PFSELFTEST", c.cmd("PFSELFTEST"), "OK")
+tests/servertail.py:307:    c.cmd("CONFIG", "SET", "maxmemory", "100mb")
+tests/servertail.py:308:    c.cmd("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+tests/servertail.py:313:    c.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/servertail.py:314:    c.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/servertail.py:456:    check("CONFIG SET before rewrite", c.cmd("CONFIG", "SET", "maxmemory", "64mb"), "OK")
+tests/servertail.py:457:    check("CONFIG SET slowlog knob", c.cmd("CONFIG", "SET", "slowlog-max-len", "77"), "OK")
+tests/at15_unit.cc:294:        queue(f, {"CONFIG", "SET", "maxmemory", "123456"});
+tests/at15_unit.cc:296:        queue(f, {"CONFIG", "SET", "maxmemory", "0"});
+tests/auth.py:95:    expect(admin.command("CONFIG", "SET", "protected-mode", numeric),
+tests/auth.py:98:expect(admin.command("CONFIG", "SET", "protected-mode", "no"), b"OK", "protected-mode live no")
+tests/auth.py:101:expect(admin.command("CONFIG", "SET", "protected-mode", "yes"), b"OK", "protected-mode live yes")
+tests/blocking.py:103:admin.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/blocking.py:244:        admin.cmd("CONFIG", "SET", "maxmemory", "1")
+tests/blocking.py:257:        admin.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/evict_battery.py:98:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/evict_battery.py:110:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:139:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-lru")
+tests/evict_battery.py:147:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-ttl")
+tests/evict_battery.py:166:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+tests/evict_battery.py:182:    # DO NOT "fix" a flake here with CONFIG SET maxmemory-samples 64. Because the decay is per
+tests/evict_battery.py:242:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:249:    must("CONFIG", "SET", "maxmemory-samples", "64")
+tests/evict_battery.py:350:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/evict_battery.py:364:    must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:377:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:379:    must("CONFIG", "SET", "maxmemory", "0")     # live-disable
+tests/evict_battery.py:383:    check("samples: rejects 0", cmd("CONFIG", "SET", "maxmemory-samples", "0").startswith(b"-"))
+tests/evict_battery.py:384:    check("samples: rejects 65", cmd("CONFIG", "SET", "maxmemory-samples", "65").startswith(b"-"))
+tests/evict_battery.py:385:    check("samples: accepts 64", cmd("CONFIG", "SET", "maxmemory-samples", "64") == b"+OK")
+tests/evict_battery.py:386:    check("policy: rejects junk", cmd("CONFIG", "SET", "maxmemory-policy", "zzz").startswith(b"-"))
+tests/evict_battery.py:389:    multi = cmd("CONFIG", "SET", "maxmemory", "4194304", "maxmemory-policy", "volatile-ttl")
+tests/iofix_hz.py:30:    assert control.cmd('CONFIG', 'SET', 'hz', '1', 'dynamic-hz', 'no') == b'OK'
+tests/iofix_hz.py:34:    assert control.cmd('CONFIG', 'SET', 'timeout', '1') == b'OK'
+tests/iofix_hz.py:61:        commands += [('CONFIG', 'SET', 'hz', value), ('CONFIG', 'GET', 'hz')]
+tests/iofix_hz.py:63:        commands += [('CONFIG', 'SET', 'dynamic-hz', value), ('CONFIG', 'GET', 'dynamic-hz')]
+tests/iofix_hz.py:64:    commands += [('CONFIG', 'SET', 'hz', '10', 'HZ', '30'),
+tests/iofix_hz.py:65:                 ('CONFIG', 'SET', 'dynamic-hz', 'yes', 'DYNAMIC-HZ', 'no'),
+tests/iofix_hz.py:66:                 ('CONFIG', 'SET', 'HZ', 'junk'),
+tests/iofix_hz.py:67:                 ('CONFIG', 'SET', 'DYNAMIC-HZ', 'junk'),
+tests/iofix_hz.py:68:                 ('CONFIG', 'SET', 'hz', '20', 'dynamic-hz', 'invalid'),
+tests/iofix_hz.py:82:                assert c.cmd('CONFIG', 'SET', 'hz', '1', 'dynamic-hz', 'yes') == b'OK'
+tests/iofix_hz.py:88:                assert c.cmd('CONFIG', 'SET', 'dynamic-hz', 'no') == b'OK'
+tests/iofix_hz.py:98:                assert t.cmd('CONFIG', 'SET', 'hz', hz) == b'OK'
+tests/iofix_hz.py:117:                assert c.cmd('CONFIG', 'SET', 'hz', '2147483647', 'dynamic-hz', 'yes') == b'OK'
+tests/differ.py:2459:    ops.append(["PFSELFTEST"])
+tests/differ.py:2487:        ["CONFIG", "GET"], ["CONFIG", "SET", "maxmemory"],
+tests/differ.py:5345:            both(["CONFIG", "SET", "timeout", timeout, "tcp-keepalive", keepalive],
+tests/differ.py:5351:            both(["CONFIG", "SET", "timeout", "17", "ci-no-such-knob", "x"],
+tests/differ.py:5356:    both(["CONFIG", "SET", "timeout", "0", "tcp-keepalive", "300"], "CONFIG restore")
+tests/differ.py:6268:                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/differ.py:6271:                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+tests/differ.py:6273:            assert both(["CONFIG", "SET", "AOF-LOAD-TRUNCATED", "0"]).startswith(b"-ERR ")
+tests/differ.py:6274:            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+tests/differ.py:6280:                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/serverfix_acllog.py:24:            run.check(label + ' enable', admin.cmd('CONFIG', 'SET', 'acllog-max-len', 8), b'OK')
+tests/serverfix_acllog.py:30:            run.check(label + ' disable', admin.cmd('CONFIG', 'SET', 'acllog-max-len', 0), b'OK')
+tests/bitfield.py:204:expect(client.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction"), b"+OK", "noeviction")
+tests/bitfield.py:205:expect(client.cmd("CONFIG", "SET", "maxmemory", "65536"), b"+OK", "small maxmemory")
+tests/bitfield.py:211:    expect(client.cmd("CONFIG", "SET", "maxmemory", "0"), b"+OK", "restore maxmemory")
+tests/serverfix_config.py:49:                      ('CONFIG', 'SET', name, value, 'timeout', bad)),
+tests/serverfix_config.py:51:                      ('CONFIG', 'SET', name.upper(), value, 'TIMEOUT', bad)),
+tests/serverfix_config.py:54:                     ('atomic-head', ('CONFIG', 'SET', 'timeout', bad, witness, witness_new, name, value))]
+tests/serverfix_config.py:78:            reply = c.cmd('CONFIG', 'SET', 'slowlog-max-len', '17', name, bad)
+tests/limits.py:198:        expect(admin.command("CONFIG", "SET", "tcp-keepalive", "1"), b"OK",
+tests/limits.py:206:        expect(admin.command("CONFIG", "SET", "maxclients", "3"), b"OK",
+tests/limits.py:226:        expect(admin.command("CONFIG", "SET", "maxclients", "10000"), b"OK",
+tests/limits.py:241:        expect(admin.command("CONFIG", "SET", "maxclients", "20"), b"OK",
+tests/limits.py:292:        expect(admin.command("CONFIG", "SET", "maxclients", "10000"), b"OK",
+tests/limits.py:297:        expect(admin.command("CONFIG", "SET", "timeout", "1"), b"OK", "timeout live enable")
+tests/limits.py:354:        expect(admin.command("CONFIG", "SET", "timeout", "0"), b"OK", "timeout disable")
+tests/limits.py:468:            admin.command("CONFIG", "SET", "maxclients", original["maxclients"])
+tests/limits.py:469:            admin.command("CONFIG", "SET", "timeout", original["timeout"])
+tests/limits.py:470:            admin.command("CONFIG", "SET", "tcp-keepalive", original["tcp-keepalive"])
+tests/txniso.py:454:        commands = [("INCR", a), ("MGET", a, b), ("CONFIG", "SET", "timeout", timeout), ("INCR", b)]
+tests/compat3_functions.py:61:    equal(c.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction"), b"OK", "policy")
+tests/compat3_functions.py:62:    equal(c.cmd("CONFIG", "SET", "maxmemory", 1), b"OK", "cap")
+tests/compat3_functions.py:92:    equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "remove cap")
+tests/compat3_functions.py:99:        equal(c.cmd("CONFIG", "SET", "maxmemory", cap), b"OK", "EXEC cap")
+tests/compat3_functions.py:123:    equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "restore after EXEC")
+tests/knobs.py:82:        conn.must("CONFIG", "SET", "aof-load-truncated", policy)
+tests/knobs.py:85:    conn.must("CONFIG", "SET", "aof-load-truncated", values[b"aof-load-truncated"])

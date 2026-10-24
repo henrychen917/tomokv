@@ -1,0 +1,8 @@
+Hot bodies: 1216; raw byte equal: 1209; bytes + resolved relocation targets equal: 1209
+DIFF db0/src/cmd/t_set.o 446 346 tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const
+DIFF db0/src/cmd/t_set.o 806 774 tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)
+DIFF db0/src/cmd/t_set.o 1242 1190 tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)
+DIFF db0/src/cmd/t_set.o 1033 976 tomo_db0::FlatStore::insert(unsigned long, tomo_db0::KvObj*)
+DIFF src/cmd/t_set.o 1242 1190 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/cmd/t_set.o 1376 1319 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+DIFF src/cmd/t_set.o 737 689 tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)

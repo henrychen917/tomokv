@@ -1,0 +1,58 @@
+[
+  {
+    "file": "execfair-1s-0-epoll.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5394924
+  },
+  {
+    "file": "execfair-1s-1-uring.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5195301
+  },
+  {
+    "file": "execfair-2s-0-uring.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5766793
+  },
+  {
+    "file": "execfair-1s-0-uring.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5449366
+  },
+  {
+    "file": "execfair-1s-1-epoll.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5946710
+  },
+  {
+    "file": "execfair-2s-0-epoll.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 10600919
+  },
+  {
+    "file": "execfair-2s-1-epoll.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 5815898
+  },
+  {
+    "file": "execfair-2s-1-uring.json",
+    "passed": true,
+    "windows": 1,
+    "counter_match": true,
+    "fast_polls": 9410045
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave6/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave6",
+  "start": 1792837148.1661255,
+  "commit": "08e6d097d6b7ef55764eb92391cf0d0ffd515c63",
+  "binary_sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+  "gate_sha256": "3f8fcadedb5c1c4cf981f705feb43e10a2a0d718e4c4c3f954107a72386d3bed",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave6/build/wave6/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "tailgen_build",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave6/docs/wave6/correctness/tailgen-build/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 2,
+  "end": 1792837148.8151064,
+  "binary_sha256_after": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+  "run_dir": "/home/user/Projects/cx-wave6/build/gate-run.0cX4pO",
+  "jobs": {}
+}

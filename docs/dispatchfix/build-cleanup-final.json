@@ -1,0 +1,15 @@
+{
+  "reason": "Final object/body inventories and frozen-arm receipts retained; discard duplicate PRE/PAD object trees after successful builds and identity comparison. POST production-unit prerequisites remain for make -q.",
+  "removed": [
+    {
+      "path": "build/dispatchfix-pre-objects",
+      "bytes": 742774712,
+      "files": 107
+    },
+    {
+      "path": "build/dispatchfix-pad/objects",
+      "bytes": 740872696,
+      "files": 107
+    }
+  ]
+}

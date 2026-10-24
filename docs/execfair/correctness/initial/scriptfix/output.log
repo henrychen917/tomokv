@@ -1,0 +1,16 @@
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix sandbox (1s)
+  scriptfix sandbox (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix functions (1s)
+  scriptfix functions (1s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix replies (1s)
+  scriptfix replies (1s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix dump (1s)
+  scriptfix dump (1s)                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix sandbox (2s)
+  scriptfix sandbox (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix functions (2s)
+  scriptfix functions (2s)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix replies (2s)
+  scriptfix replies (2s)                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; scriptfix dump (2s)
+  scriptfix dump (2s)                                  ok

@@ -75,7 +75,8 @@ if mode not in ([b"enable-debug-command", b"yes"],
                 [b"enable-debug-command", b"local"]):
     raise AssertionError("DEBUG test was not purpose-booted; toggle reply=%r" % (mode,))
 expect(client.command("CONFIG", "SET", "enable-debug-command", "no"),
-       "ERR parameter is immutable at runtime", "boot-only config")
+       "ERR CONFIG SET failed (possibly related to argument 'enable-debug-command') - "
+       "can't set immutable config", "boot-only config")
 expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
 
 # Redis 7.4 blocks every connection for DEBUG SLEEP, including another client on this IO.

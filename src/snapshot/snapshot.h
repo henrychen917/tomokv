@@ -23,6 +23,7 @@ class ThreadCtx;
 
 class SnapshotLoadPlan {
 public:
+    uint32_t routing_version = 1;
     DatabaseMap::Map database_map;
     uint32_t shard_count = 0;
     uint32_t hash_kind = 0;

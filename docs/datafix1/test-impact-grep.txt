@@ -1,0 +1,427 @@
+tests/edgeproto.py:103:POSITIVE_ERR = b"-ERR value is out of range, must be positive\r\n"
+tests/edgeproto.py:207:    bounds = (b"-ERR value is out of range, value must between "
+tests/edgeproto.py:325:    expect(c, ["SSCAN", "ep:s", "0", "NOVALUES"],
+tests/edgeproto.py:326:           b"-ERR NOVALUES option can only be used in HSCAN\r\n")
+tests/edgeproto.py:336:           b"-ERR value is out of range, value must between -2147483648 and 2147483647\r\n")
+tests/encodingfix.py:20:    "hash-max-listpack-entries": 512, "hash-max-listpack-value": 64,
+tests/encodingfix.py:21:    "list-max-listpack-size": -2, "set-max-intset-entries": 512,
+tests/encodingfix.py:22:    "set-max-listpack-entries": 128, "set-max-listpack-value": 64,
+tests/encodingfix.py:23:    "zset-max-listpack-entries": 128, "zset-max-listpack-value": 64,
+tests/encodingfix.py:42:            setting(**{"hash-max-listpack-entries": h, "hash-max-listpack-value": v,
+tests/encodingfix.py:43:                       "set-max-intset-entries": si, "set-max-listpack-entries": sl,
+tests/encodingfix.py:44:                       "set-max-listpack-value": v, "zset-max-listpack-entries": z,
+tests/encodingfix.py:45:                       "zset-max-listpack-value": v})
+tests/encodingfix.py:47:                                          ("intset", si, "SADD", "SREM"),
+tests/encodingfix.py:53:                member = str(i) if kind == "intset" else f"m{i}"
+tests/encodingfix.py:58:                mutation(key, remove, str(i) if kind == "intset" else f"m{i}")
+tests/encodingfix.py:84:    # Fresh hints choose intset/listpack/HT; existing hints promote directly to HT,
+tests/encodingfix.py:94:    setting(**{"set-max-intset-entries": 5})
+tests/encodingfix.py:96:    setting(**{"set-max-intset-entries": 2})
+tests/encodingfix.py:101:        setting(**{"set-max-intset-entries": integer, "set-max-listpack-entries": pack})
+tests/encodingfix.py:106:    name = "set-max-intset-entries"
+tests/encodingfix.py:154:                             ("intset300", 300, "SADD"), ("stringset64", 64, "SADD")):
+tests/encodingfix.py:160:            members = [str(i) if shape == "intset300" else f"m{i:03d}" for i in range(count)]
+tests/servertail.py:267:    c.cmd("SADD", "ob:intset", "1", "2", "3")
+tests/servertail.py:276:        "ob:list": "listpack",
+tests/servertail.py:277:        "ob:hash": "listpack",
+tests/servertail.py:278:        "ob:intset": "intset",
+tests/servertail.py:279:        "ob:lpset": "listpack",
+tests/servertail.py:280:        "ob:zset": "listpack",
+tests/servertail.py:459:          "hash-max-listpack-value", "1kb", "list-max-ziplist-size", "4"), "OK")
+tests/servertail.py:468:          lambda v: "hash-max-listpack-entries 9\n" in v and
+tests/servertail.py:469:                    "hash-max-listpack-value 1024\n" in v and
+tests/servertail.py:470:                    "list-max-listpack-size 4\n" in v and "max-ziplist" not in v)
+tests/servertail.py:486:    for name, value in (("hash-max-listpack-entries", "9"), ("hash-max-ziplist-entries", "9"),
+tests/servertail.py:487:                        ("hash-max-listpack-value", "1024"), ("list-max-listpack-size", "4")):
+tests/servertail.py:491:    check("reboot applies list count mode", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "listpack")
+tests/servertail.py:493:    check("reboot applies list promotion", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "quicklist")
+tests/knobs.py:135:    encoding_names = ["%s-max-listpack-%s" % (kind, axis)
+tests/knobs.py:137:    encoding_names.append("list-max-listpack-size")
+tests/knobs.py:138:    encoding_names.append("set-max-intset-entries")
+tests/knobs.py:157:            entries, size = (kind + "-max-listpack-" + axis for axis in ("entries", "value"))
+tests/knobs.py:163:                encoding(key, b"listpack")
+tests/knobs.py:170:                encoding(key, b"listpack")
+tests/knobs.py:176:                encoding(key, b"listpack")
+tests/knobs.py:186:        # Integer and listpack limits are independent, and CONFIG must reach every owner.
+tests/knobs.py:187:        conn.must("CONFIG", "SET", "set-max-listpack-entries", 0, "set-max-listpack-value", 0,
+tests/knobs.py:188:                  "set-max-intset-entries", 9)
+tests/knobs.py:192:            encoding(key, b"intset")
+tests/knobs.py:195:        conn.must("CONFIG", "SET", "set-max-intset-entries", original["set-max-intset-entries"])
+tests/knobs.py:198:        count = int(original["set-max-intset-entries"])
+tests/knobs.py:200:        encoding(key, b"intset")
+tests/knobs.py:205:            conn.must("CONFIG", "SET", "list-max-listpack-size", fill)
+tests/knobs.py:209:                encoding(key, b"listpack")
+tests/knobs.py:211:                encoding(key, b"quicklist")
+tests/knobs.py:219:            conn.must("CONFIG", "SET", "list-max-listpack-size", fill)
+tests/knobs.py:224:            encoding(key, b"quicklist")
+tests/knobs.py:229:        for canonical, alias in (("hash-max-listpack-entries", "hash-max-ziplist-entries"),
+tests/knobs.py:230:                                 ("hash-max-listpack-value", "hash-max-ziplist-value"),
+tests/knobs.py:231:                                 ("zset-max-listpack-entries", "zset-max-ziplist-entries"),
+tests/knobs.py:232:                                 ("zset-max-listpack-value", "zset-max-ziplist-value"),
+tests/knobs.py:233:                                 ("list-max-listpack-size", "list-max-ziplist-size"),
+tests/knobs.py:234:                                 ("hash-max-listpack-entries", "hash-max-compact-entries"),
+tests/knobs.py:235:                                 ("hash-max-listpack-value", "hash-max-compact-value"),
+tests/knobs.py:236:                                 ("zset-max-listpack-entries", "zset-max-compact-entries"),
+tests/knobs.py:237:                                 ("zset-max-listpack-value", "zset-max-compact-value")):
+tests/knobs.py:250:        for name, value, expected in (("hash-max-listpack-value", "1kb", b"1024"),
+tests/knobs.py:251:                                      ("zset-max-listpack-value", "2k", b"2000"),
+tests/knobs.py:252:                                      ("hash-max-listpack-entries", "9223372036854775807",
+tests/knobs.py:254:                                      ("list-max-listpack-size", "-2147483648", b"-2147483648")):
+tests/knobs.py:258:        for name, bad in (("set-max-listpack-value", "1kb"),
+tests/knobs.py:259:                          ("set-max-listpack-entries", "01"),
+tests/knobs.py:260:                          ("hash-max-listpack-entries", "9223372036854775808"),
+tests/knobs.py:261:                          ("list-max-listpack-size", "2147483648")):
+tests/s6.py:158:          ErrorReply(b"ERR value is out of range, must be positive"))
+tests/datafix1_hexpire.py:1:"""CD4.11: expire-value validation precedes optional condition/FIELDS parsing."""
+tests/datafix1_hexpire.py:11:                for tail in [('FIELDS', 2, 'f'), ('FIELDS', 0, 'f'),
+tests/datafix1_hexpire.py:12:                             ('FIELD', 1, 'f'), ('NX', 'XX', 'FIELDS', 1, 'f'),
+tests/datafix1_hexpire.py:13:                             ('FIELDS', 1, 'f'), ('FIELDS', 'x', 'f')]:
+tests/datafix1_hexpire.py:19:            p.cmd(command, 'bound', value, 'FIELDS', 1, 'f')
+tests/redisgap.py:143:    config.write_text('hash-max-ziplist-entries 3\nhash-max-listpack-value 1kb\n'
+tests/redisgap.py:144:                      'zset-max-listpack-entries 3\nzset-max-ziplist-value 1KB\n'
+tests/redisgap.py:148:                         '--hash-max-listpack-entries', '2'], config) as (c, _, _):
+tests/redisgap.py:167:                     for spelling in ('listpack', 'ziplist', 'compact')]
+tests/redisgap.py:169:            assert get(c, family + '-max-listpack-value') == '1024'
+tests/redisgap.py:176:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:181:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:184:            for spelling in ('listpack', 'ziplist'):
+tests/redisgap.py:187:                for size, encoding in [(4, 'listpack'), (5, 'hashtable' if family == 'hash' else 'skiplist')]:
+tests/redisgap.py:218:            values = c.command('CONFIG', 'GET', 'hash-max-*', '*-listpack-*')
+tests/redisgap.py:222:        assert 'hash-max-listpack-entries 0\n' in text
+tests/redisgap.py:223:        assert 'zset-max-listpack-entries 0\n' in text
+tests/redisgap.py:247:    for flag, value, error in [('hash-max-listpack-entries', '01', 'invalid encoding limit'),
+tests/climon.py:130:EXPECTED_FIELDS = [
+tests/climon.py:151:    expect(fields(info_line), EXPECTED_FIELDS, "CLIENT INFO vanilla field order")
+tests/climon.py:159:    if not listed or any(fields(line) != EXPECTED_FIELDS for line in listed):
+tests/expwide.py:378:    # MSETNX refuses when ANY target exists, so it folds the liveness of all eight owners into one
+tests/dumpttl.py:86:    return client.cmd("HPEXPIRETIME", key, "FIELDS", len(fields), *fields)
+tests/dumpttl.py:115:               client.cmd("HPEXPIREAT", key, deadline, "FIELDS", len(names), *names),
+tests/dumpttl.py:199:    # Compact Redis hashes with TTLs use the observed listpackex RDB type (25).
+tests/dumpttl.py:200:    seed_hash(oracle, "dt:o:listpackex", [("a", "1"), ("b", "2"), ("c", "3")],
+tests/dumpttl.py:202:    oracle_packed = dump(oracle, "dt:o:listpackex", 25)
+tests/dumpttl.py:203:    expect("reference listpackex -> target RESTORE",
+tests/dumpttl.py:204:           target.cmd("RESTORE", "dt:o:listpackex:rest", 0, oracle_packed, "REPLACE"), b"OK")
+tests/dumpttl.py:205:    expect("reference listpackex values", pairs(target, "dt:o:listpackex:rest"),
+tests/dumpttl.py:207:    expect("reference listpackex deadlines",
+tests/dumpttl.py:208:           field_times(target, "dt:o:listpackex:rest", "a", "b", "c"), [far, -1, farther])
+tests/bitfield.py:96:offset_error = b"-ERR bit offset is not an integer or out of range"
+tests/geo.py:108:                     "BYBOX", "400", "400", "km", "COUNT", "1", "ANY"),
+tests/geo.py:109:           [b"Palermo"], "COUNT ANY early exit fired")
+tests/infofields_test.py:26:                  for section, names in differ.INFOFIELDS_REQUIRED.items()}
+tests/infofields_test.py:28:        for section, required in differ.INFOFIELDS_REQUIRED.items():
+tests/infofields_test.py:55:        oracle = {name: b"0" for name in differ.INFOFIELDS_REQUIRED[b"Server"]}
+tests/infofields_test.py:67:        for name in differ.INFOFIELDS_REQUIRED[b"Server"]:
+tests/cd13b_window_test.py:70:            return bulk('listpack' if args[2] in self.stored else 'skiplist')
+tests/multirace.py:29:    MGET v0 v1                                  -> pre-fix: "hello" "hello", from ANY connection
+tests/datafix1_spop.py:8:        ('int16', list(range(100)), b'intset'),
+tests/datafix1_spop.py:9:        ('int32', list(range(100000, 100100)), b'intset'),
+tests/datafix1_spop.py:10:        ('int64', list(range(2**40, 2**40+100)), b'intset'),
+tests/datafix1_spop.py:11:        ('text', [f'm{i:03d}' for i in range(100)], b'listpack'),
+tests/datafix1_spop.py:39:    p.cmd('CONFIG', 'SET', 'set-max-intset-entries', 2)
+tests/datafix1_spop.py:42:    p.cmd('CONFIG', 'SET', 'set-max-intset-entries', 512)
+tests/cd13b_wire.py:143:                        assert encoding == b"$8\r\nlistpack\r\n", encoding
+tests/ntnew4_clock.py:274:                ("HPEXPIREAT", h, origin + 30, "FIELDS", 1, "f")]))
+tests/datafix1_randscan.py:29:             ('NOVALUES',), ('NOVALUES', 'COUNT', 'x'),
+tests/datafix1_randscan.py:30:             ('COUNT', 'x', 'NOVALUES'), ('TYPE', 'hash')]
+tests/wiredump.py:136:    # Lists are quicklist2 in Redis 7.4: packed, LZF-packed, plain, and multi-node forms.
+tests/wiredump.py:145:    add("list-lzf-listpack", "list", 18, ("RPUSH", "src", b"x" * 1000, b"x" * 1000))
+tests/wiredump.py:150:    # Hashes: listpack and hashtable thresholds, including compressed outer strings.
+tests/wiredump.py:164:    # Sets: all intset widths, set-listpack, and hashtable promotion paths.
+tests/wiredump.py:169:    add("set-intset-lzf", "set", 11, ("SADD", "src", *[str(i).encode() for i in range(500)]))
+tests/wiredump.py:170:    add("set-listpack", "set", 20, ("SADD", "src", b"a", b"bb", b"hello"))
+tests/wiredump.py:171:    add("set-listpack-binary", "set", 20, ("SADD", "src", b"\x00", b"a\xffb"))
+tests/wiredump.py:172:    add("set-listpack-value64", "set", 20, ("SADD", "src", stable_bytes(64, 9), b"a"))
+tests/wiredump.py:177:    # Sorted sets: listpack numeric encodings and zset2 binary-double bodies.
+tests/resp3.py:172:    # resp3:z is small, so it is a COMPACT (listpack) zset -- and a score entering compact storage
+tests/resp3.py:173:    # loses the sign of a zero, exactly as the oracle's listpack does. This row read b"-0" until
+tests/resp3.py:174:    # the zsetfix lane probed redis 7.4.2: `ZADD k -0 m; ZSCORE k m` answers "0" on a listpack and
+tests/resp3.py:187:    expect(encoding.value == b"listpack", "score cases really ran on a compact zset", encoding)
+tests/zsetops.py:72:    """Build `key` holding exactly `pairs`, in the compact (listpack) or expanded (skiplist) form.
+tests/zsetops.py:92:    wanted = b"skiplist" if expanded else b"listpack"
+tests/zsetops.py:103:      oracle's listpack holds scores as text whose zero form is unsigned. The EXPANDED form keeps
+tests/zsetops.py:116:        tag = "skiplist" if expanded else "listpack"
+tests/zsetops.py:156:    expect(c.command("OBJECT", "ENCODING", "nz:fresh"), b"listpack",
+tests/zsetops.py:257:        expect(c.command("OBJECT", "ENCODING", "nz:dst"), b"listpack",
+tests/zsetops.py:442:        tag = "skiplist" if expanded else "listpack"
+tests/zsetops.py:484:        expect(c.command("OBJECT", "ENCODING", "zrs:sorted"), b"listpack",
+tests/docs_drift.py:89:        "hash-max-listpack-entries": "Compact hash entry ceiling",
+tests/docs_drift.py:90:        "hash-max-listpack-value": "Compact hash field/value byte ceiling",
+tests/docs_drift.py:91:        "list-max-listpack-size": "-1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element",
+tests/docs_drift.py:92:        "set-max-listpack-entries": "Compact string-set entry ceiling",
+tests/docs_drift.py:93:        "set-max-listpack-value": "Compact string-set element byte ceiling",
+tests/docs_drift.py:94:        "set-max-intset-entries": "Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824",
+tests/docs_drift.py:95:        "zset-max-listpack-entries": "Compact sorted-set entry ceiling",
+tests/docs_drift.py:96:        "zset-max-listpack-value": "Compact sorted-set member byte ceiling",
+tests/docs_drift.py:106:                "Canonical signed 32-bit decimal" if name == "list-max-listpack-size" else
+tests/docs_drift.py:108:                "Count64, no memory suffix" if name == "set-max-listpack-value" else "Count64")
+tests/docs_drift.py:113:    first = document.index("| `hash-max-listpack-entries` |"); last = document.index("| `hll-sparse-max-bytes` |", first)
+tests/docs_drift.py:123:        "`set-max-intset-entries` limit. Fresh sets prefer intset, then listpack, then\n"
+tests/docs_drift.py:124:        "hashtable according to the first member and size hint. An existing intset\n"
+tests/docs_drift.py:126:        "insertion can instead select listpack when both listpack limits fit. Removal\n"
+tests/docs_drift.py:173:             re.sub(r'(^\| `set-max-intset-entries` \|.*?)`512`', r'\g<1>`128`', markdown, flags=re.M),
+tests/edgetime.py:531:          conn.cmd("HPEXPIREAT", "hwhole", str(future), "FIELDS", "1", "a"), [1])
+tests/edgetime.py:535:          conn.cmd("HPEXPIRETIME", "hwhole", "FIELDS", "2", "a", "b"), [future, -1])
+tests/edgetime.py:541:          conn.cmd("HPEXPIREAT", "hlast", "1", "FIELDS", "1", "only"), [2])
+tests/edgetime.py:546:    conn.cmd("HPEXPIREAT", "hmix", "1", "FIELDS", "1", "x")
+tests/edgetime.py:550:          conn.cmd("HPEXPIRETIME", "hmix", "FIELDS", "2", "x", "y"), [-2, -1])
+tests/edgetime.py:551:    check("HPERSIST on an elapsed field", conn.cmd("HPERSIST", "hmix", "FIELDS", "1", "x"), [-2])
+tests/edgetime.py:554:          conn.cmd("HPEXPIRETIME", "hmix", "FIELDS", "1", "x"), [-1])
+tests/edgetime.py:809:    conn.cmd("HPEXPIREAT", "persist:hash", str(future), "FIELDS", "1", "a")
+tests/edgetime.py:828:        ("field deadline", conn.cmd("HPEXPIRETIME", "persist:hash", "FIELDS", "2", "a", "b"),
+tests/differ.py:300:                at = next(i for i in range(3, len(args)) if args[i].upper() == b"FIELDS")
+tests/differ.py:406:            if (len(args) < 5 or args[2].upper() != b"FIELDS" or
+tests/differ.py:509:        ["DEL", "iv"], ["SADD", "iv"] + [str(i) for i in range(200)], ["SCARD", "iv"],   # remains intset (default 512)
+tests/differ.py:833:    # A radius STORE is a replacement and CAN become listpack again, even when dest == source.
+tests/differ.py:999:                check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",
+tests/differ.py:1263:            ops.append([cmd, K(), str(at)] + rng.choice(conds) + ["FIELDS", str(n)] + fs)
+tests/differ.py:1266:            ops.append([rng.choice(readers), K(), "FIELDS", str(n)] + flist(n))
+tests/differ.py:1269:            ops.append(["HPERSIST", K(), "FIELDS", str(n)] + flist(n))
+tests/differ.py:1302:        ["HEXPIRE", "hxstr", "100", "FIELDS", "1", "a"],
+tests/differ.py:1303:        ["HTTL", "hxstr", "FIELDS", "1", "a"],
+tests/differ.py:1304:        ["HPERSIST", "hxstr", "FIELDS", "1", "a"],
+tests/differ.py:1305:        ["HEXPIREAT", "hxmissing", "99999999", "FIELDS", "2", "a", "b"],
+tests/differ.py:1306:        ["HTTL", "hxmissing", "FIELDS", "3", "a", "b", "c"],
+tests/differ.py:1307:        ["HPEXPIREAT", "hxe", "abc", "FIELDS", "1", "a"],
+tests/differ.py:1308:        ["HPEXPIREAT", "hxe", "-1", "FIELDS", "1", "a"],
+tests/differ.py:1309:        ["HPEXPIREAT", "hxe", "70368744177664", "FIELDS", "1", "a"],
+tests/differ.py:1310:        ["HEXPIREAT", "hxe", "70368744178", "FIELDS", "1", "a"],
+tests/differ.py:1311:        ["HEXPIRE", "hxe", "1000000000000", "FIELDS", "1", "a"],
+tests/differ.py:1312:        ["HPEXPIRE", "hxe", "70368744177664", "FIELDS", "1", "a"],
+tests/differ.py:1313:        ["HEXPIREAT", "hxe", "100", "FIELDS", "2", "a"],
+tests/differ.py:1314:        ["HEXPIREAT", "hxe", "100", "FIELDS", "1", "a", "b"],
+tests/differ.py:1315:        ["HEXPIREAT", "hxe", "100", "FIELDS", "0", "a"],
+tests/differ.py:1316:        ["HEXPIREAT", "hxe", "100", "FIELDS", "-3", "a"],
+tests/differ.py:1317:        ["HEXPIREAT", "hxe", "100", "FIELDS", "zz", "a"],
+tests/differ.py:1318:        ["HTTL", "hxe", "FIELDS", "zz", "a"], ["HTTL", "hxe", "FIELDS", "0", "a"],
+tests/differ.py:1319:        ["HEXPIREAT", "hxe", "100", "NX", "XX", "FIELDS", "1", "a"],
+tests/differ.py:1320:        ["HEXPIREAT", "hxe", "100", "GT", "LT", "FIELDS", "1", "a"],
+tests/differ.py:1325:        ["HPEXPIREAT", "hxsmall", far, "FIELDS", "1", "solo"],
+tests/differ.py:1326:        ["HGET", "hxsmall", "solo"], ["HPEXPIRETIME", "hxsmall", "FIELDS", "1", "solo"],
+tests/differ.py:1327:        ["HPERSIST", "hxsmall", "FIELDS", "1", "solo"],
+tests/differ.py:1328:        ["HPEXPIRETIME", "hxsmall", "FIELDS", "1", "solo"],
+tests/differ.py:1331:        ["HEXPIREAT", "hxlast", "1", "FIELDS", "1", "a"],
+tests/differ.py:1333:        ["HEXPIREAT", "hxlast", "1", "FIELDS", "1", "b"],
+tests/differ.py:1337:        ["HPEXPIREAT", "hxw", far, "FIELDS", "2", "a", "n"],
+tests/differ.py:1338:        ["HSET", "hxw", "a", "2"], ["HPEXPIRETIME", "hxw", "FIELDS", "2", "a", "n"],
+tests/differ.py:1339:        ["HINCRBY", "hxw", "n", "1"], ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+tests/differ.py:1340:        ["HSETNX", "hxw", "n", "9"], ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+tests/differ.py:1342:        ["HPEXPIRETIME", "hxw", "FIELDS", "1", "n"],
+tests/differ.py:1345:        ["HPEXPIREAT", "hxc", far, "FIELDS", "1", "a"],
+tests/differ.py:1346:        ["COPY", "hxc", "hxc2"], ["HPEXPIRETIME", "hxc2", "FIELDS", "2", "a", "b"],
+tests/differ.py:1347:        ["HPERSIST", "hxc2", "FIELDS", "1", "a"],
+tests/differ.py:1348:        ["HPEXPIRETIME", "hxc", "FIELDS", "1", "a"],
+tests/differ.py:1349:        ["RENAME", "hxc", "hxc3"], ["HPEXPIRETIME", "hxc3", "FIELDS", "2", "a", "b"],
+tests/differ.py:1353:        ["HPEXPIREAT", "hxbig", far, "FIELDS", "3", "g0", "g100", "g199"],
+tests/differ.py:1354:        ["HPEXPIRETIME", "hxbig", "FIELDS", "4", "g0", "g100", "g199", "g5"],
+tests/differ.py:1356:        ["HEXPIREAT", "hxbig", "1", "FIELDS", "2", "g0", "g5"],
+tests/differ.py:1360:        ["HPEXPIREAT", "hxbin", far, "FIELDS", "2", "a\x00b", ""],
+tests/differ.py:1361:        ["HPEXPIRETIME", "hxbin", "FIELDS", "2", "a\x00b", ""],
+tests/differ.py:1487:            ops.append(["HPEXPIREAT", hk(), str(future_ms), "FIELDS", "1", rng.choice(fields)])
+tests/differ.py:1489:            ops.append(["HPEXPIREAT", hk(), str(past_ms), "FIELDS", "1", rng.choice(fields)])
+tests/differ.py:1495:            ops.append(["HPEXPIRETIME", hk(), "FIELDS", "2",
+tests/differ.py:1498:            ops.append(["HPERSIST", hk(), "FIELDS", "1", rng.choice(fields)])
+tests/differ.py:1563:        ["HPEXPIREAT", "et:hwhole", str(future_ms), "FIELDS", "1", "a"],
+tests/differ.py:1566:        ["HPEXPIRETIME", "et:hwhole", "FIELDS", "2", "a", "b"],
+tests/differ.py:1571:        ["HPEXPIREAT", "et:hlast", "1", "FIELDS", "1", "only"],
+tests/differ.py:1675:      * SORT is numeric over integer lists (never ALPHA, whose order is locale-collated on redis),
+tests/differ.py:1896:        ["HSCAN", "s:missing", "0", "NOVALUES"], ["HSCAN", "s:hbig", "0", "NOVALUES", "BADOPT"],
+tests/differ.py:1908:        ["HSCAN", "s:htiny", "0", "NOVALUES"],
+tests/differ.py:2426:    ops.append(["DEL", "st:enc:intset"])
+tests/differ.py:2428:        ops.append(["SADD", "st:enc:intset", str(i)])
+tests/differ.py:2429:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:2430:    ops.append(["SADD", "st:enc:intset", "notanint"])
+tests/differ.py:2431:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:3563:        ["HSCAN", "ep:h", "0", "NOPE", "x"], ["SSCAN", "ep:set", "0", "NOVALUES"],
+tests/differ.py:4552:    #   (2) one-at-a-time publishes across MANY channels arrive in publish order (a home queues its
+tests/differ.py:4653:            # (2) one at a time across MANY channels -- ordering owned by the delivery fence.
+tests/differ.py:4849:                          ["HPEXPIRETIME", key, "FIELDS", str(len(ttl_fields))] + ttl_fields)
+tests/differ.py:4859:            if not replies_equal(["HPEXPIRETIME", key, "FIELDS", str(len(ttl_fields))] + ttl_fields,
+tests/differ.py:4877:          ["HPEXPIREAT", "wd:hash-ttl-some", far, "FIELDS", "1", "a"],
+tests/differ.py:4878:          ["HPEXPIREAT", "wd:hash-ttl-some", farther, "FIELDS", "1", "c"]],
+tests/differ.py:4882:          ["HPEXPIREAT", "wd:hash-ttl-all", far, "FIELDS", "2", "a", "b"]],
+tests/differ.py:6032:    compare(["SCAN", "0", "NOVALUES"], "SCAN NOVALUES")
+tests/differ.py:6055:            argv = ["SCAN", "0", "NOVALUES"]
+tests/differ.py:6334:INFOFIELDS_REQUIRED = {
+tests/differ.py:6371:    for section, required in INFOFIELDS_REQUIRED.items():
+tests/differ.py:6397:    required = INFOFIELDS_REQUIRED[b"Server"]
+tests/differ.py:6465:        for section, required in INFOFIELDS_REQUIRED.items():
+tests/differ.py:6881:# Encoding defaults now match the pinned Redis 7.4 oracle, including intsets.
+tests/hexpread.py:129:            assert admin.cmd('HPEXPIRE', keep, 60000, 'FIELDS', 1, 'f') == [1]
+tests/hexpread.py:131:        assert admin.cmd('HPEXPIREAT', a, deadline, 'FIELDS', 1, 'f') == [1]
+tests/hexpread.py:133:            assert admin.cmd('HPEXPIREAT', b, deadline, 'FIELDS', 1, 'f') == [1]
+tests/hexpread.py:171:        checks.append(([cmd, a, 'FIELDS', 3, 'f', 'g', 'missing'],
+tests/hexpread.py:177:    for options in ([], ['NOVALUES'], ['MATCH', 'f']):
+tests/hexpread.py:187:            [b'g'] if options == ['NOVALUES'] else [b'g', b'keep'])
+tests/hexpread.py:200:        assert admin.cmd('CONFIG', 'SET', 'hash-max-listpack-entries', limit) == b'OK'
+tests/clientfix.py:301:        # Explicit descending order and ANY remain valid independent options.
+tests/clientfix.py:304:        assert len(conn.cmd(*query, 'COUNT', 5, 'ANY')) == 5
+tests/clientfix.py:307:    assert not failures, 'COUNT without ANY did not select the nearest members'
+tests/lbsignals.py:32:AGE_FIELDS = ("queue_delay_ewma_us", "oldest_age_us", "oldest_age_ewma_us",
+tests/lbsignals.py:34:ROLLUP_AGE_FIELDS = ("queue_delay_ewma_us", "oldest_age_min_us", "oldest_age_max_us",
+tests/lbsignals.py:96:   all(0 <= r[field] <= SANE_AGE_US for r in t1 for field in AGE_FIELDS))
+tests/lbsignals.py:152:       all(0 <= roll_b["fused"][field] <= SANE_AGE_US for field in ROLLUP_AGE_FIELDS))
+tests/lbsignals.py:163:           for field in ROLLUP_AGE_FIELDS))
+tests/datafix1_locale.py:1:"""CD4.6: environment default, live locale-collate, and binary STORE ordering."""
+tests/datafix1_locale.py:8:    p.cmd('CONFIG', 'GET', 'locale-collate')
+tests/datafix1_locale.py:16:        p.cmd('CONFIG', 'SET', 'locale-collate', locale)
+tests/datafix1_locale.py:17:        p.cmd('CONFIG', 'GET', 'locale-collate')
+tests/datafix1_locale.py:25:    p.cmd('CONFIG', 'SET', 'locale-collate', 'C', 'LOCALE-COLLATE', '')
+tests/datafix1_locale.py:26:    p.cmd('CONFIG', 'GET', 'locale-collate')
+tests/datafix1_locale.py:28:    p.cmd('CONFIG', 'GET', 'locale-collate')
+tests/datafix1_locale.py:35:            c.cmd('CONFIG', 'SET', 'locale-collate', locale)
+tests/datafix1_locale.py:49:                p.check(c.cmd('CONFIG', 'SET', 'locale-collate',
+tests/hexpire.py:148:    fields_missing = (b"-ERR Mandatory argument FIELDS is missing or not at the right position"
+tests/hexpire.py:154:        check("%s wrongtype" % cmd, c.raw(cmd, "str", "100", "FIELDS", "1", "a"), wrongtype)
+tests/hexpire.py:156:              c.raw(cmd, "str", "abc", "FIELDS", "1", "a"), wrongtype)
+tests/hexpire.py:157:        check("%s bad ttl" % cmd, c.raw(cmd, "h", "abc", "FIELDS", "1", "a"),
+tests/hexpire.py:159:        check("%s negative ttl" % cmd, c.raw(cmd, "h", "-1", "FIELDS", "1", "a"),
+tests/hexpire.py:161:        check("%s numfields mismatch" % cmd, c.raw(cmd, "h", "100", "FIELDS", "2", "a"),
+tests/hexpire.py:163:        check("%s numfields extra" % cmd, c.raw(cmd, "h", "100", "FIELDS", "1", "a", "b"),
+tests/hexpire.py:165:        check("%s numfields zero" % cmd, c.raw(cmd, "h", "100", "FIELDS", "0", "a"),
+tests/hexpire.py:167:        check("%s numfields negative" % cmd, c.raw(cmd, "h", "100", "FIELDS", "-1", "a"),
+tests/hexpire.py:169:        check("%s numfields not a number" % cmd, c.raw(cmd, "h", "100", "FIELDS", "x", "a"),
+tests/hexpire.py:171:        check("%s FIELDS missing" % cmd, c.raw(cmd, "h", "100", "NOPE", "1", "a"), fields_missing)
+tests/hexpire.py:172:        check("%s two conditions" % cmd, c.raw(cmd, "h", "100", "NX", "XX", "FIELDS", "1", "a"),
+tests/hexpire.py:176:        check("%s wrongtype" % cmd, c.raw(cmd, "str", "FIELDS", "1", "a"), wrongtype)
+tests/hexpire.py:177:        check("%s numfields mismatch" % cmd, c.raw(cmd, "h", "FIELDS", "2", "a"),
+tests/hexpire.py:179:        check("%s numfields not a number" % cmd, c.raw(cmd, "h", "FIELDS", "x", "a"),
+tests/hexpire.py:181:        check("%s numfields zero" % cmd, c.raw(cmd, "h", "FIELDS", "0", "a"), read_numfields)
+tests/hexpire.py:182:        check("%s FIELDS missing" % cmd, c.raw(cmd, "h", "NOPE", "1", "a"), fields_missing)
+tests/hexpire.py:186:                                               "FIELDS", "1", "a"), [1])
+tests/hexpire.py:188:                                            "FIELDS", "1", "a"),
+tests/hexpire.py:191:                                              "FIELDS", "1", "a"), [1])
+tests/hexpire.py:193:                                           "FIELDS", "1", "a"),
+tests/hexpire.py:195:    check("HEXPIRE above ceiling", c.raw("HEXPIRE", "h", "1000000000000", "FIELDS", "1", "a"),
+tests/hexpire.py:198:                                          "FIELDS", "1", "a"),
+tests/hexpire.py:202:    check("HEXPIRE arity", c.raw("HEXPIRE", "h", "100", "FIELDS", "1"),
+tests/hexpire.py:204:    check("HTTL arity", c.raw("HTTL", "h", "FIELDS", "1"),
+tests/hexpire.py:208:    check("HEXPIRE missing key", c.cmd("HEXPIRE", "nokey", "100", "FIELDS", "2", "a", "b"),
+tests/hexpire.py:210:    check("HTTL missing key", c.cmd("HTTL", "nokey", "FIELDS", "3", "a", "b", "c"), [-2, -2, -2])
+tests/hexpire.py:211:    check("HPERSIST missing key", c.cmd("HPERSIST", "nokey", "FIELDS", "1", "a"), [-2])
+tests/hexpire.py:226:            check("setup ttl", c.cmd("HPEXPIREAT", "k", str(ttl), "FIELDS", "1", field), [1])
+tests/hexpire.py:232:              c.cmd("HEXPIRE", "k", "100", cond, "FIELDS", "1", "f"), [want])
+tests/hexpire.py:234:              c.cmd("HTTL", "k", "FIELDS", "1", "f"), [100 if want else -1])
+tests/hexpire.py:241:        got = c.cmd("HPEXPIREAT", "k", str(far + delta), cond, "FIELDS", "1", "f")
+tests/hexpire.py:245:              c.cmd("HPEXPIRETIME", "k", "FIELDS", "1", "f"), [expected])
+tests/hexpire.py:249:    check("past+NX blocked by condition", c.cmd("HEXPIREAT", "k", "1", "NX", "FIELDS", "1", "f"),
+tests/hexpire.py:252:    check("past+XX deletes", c.cmd("HEXPIREAT", "k", "1", "XX", "FIELDS", "1", "f"), [2])
+tests/hexpire.py:257:          c.cmd("HEXPIREAT", "k", "1", "XX", "FIELDS", "1", "f"), [0])
+tests/hexpire.py:259:          c.cmd("HEXPIREAT", "k", "1", "GT", "FIELDS", "1", "f"), [0])
+tests/hexpire.py:262:          c.cmd("HEXPIREAT", "k", "1", "LT", "FIELDS", "1", "f"), [2])
+tests/hexpire.py:267:    c.cmd("HPEXPIREAT", "m", str(far), "FIELDS", "1", "a")
+tests/hexpire.py:268:    check("mixed results", c.cmd("HEXPIRE", "m", "100", "NX", "FIELDS", "4",
+tests/hexpire.py:271:    check("duplicate fields", c.cmd("HTTL", "m", "FIELDS", "2", "b", "b"), [100, 100])
+tests/hexpire.py:281:    check("set absolute deadline", c.cmd("HPEXPIREAT", "k", str(deadline), "FIELDS", "1", "a"), [1])
+tests/hexpire.py:282:    check("HPEXPIRETIME is exact", c.cmd("HPEXPIRETIME", "k", "FIELDS", "1", "a"), [deadline])
+tests/hexpire.py:283:    check("HEXPIRETIME rounds up", c.cmd("HEXPIRETIME", "k", "FIELDS", "1", "a"),
+tests/hexpire.py:285:    pttl = c.cmd("HPTTL", "k", "FIELDS", "1", "a")[0]
+tests/hexpire.py:288:    ttl = c.cmd("HTTL", "k", "FIELDS", "1", "a")[0]
+tests/hexpire.py:291:    check("read family: no ttl / no field", c.cmd("HTTL", "k", "FIELDS", "3", "a", "b", "zz"),
+tests/hexpire.py:294:        got = c.cmd(cmd, "k", "FIELDS", "3", "a", "b", "zz")
+tests/hexpire.py:297:    check("HPERSIST codes", c.cmd("HPERSIST", "k", "FIELDS", "3", "a", "b", "zz"), [1, -1, -2])
+tests/hexpire.py:298:    check("HPERSIST is idempotent", c.cmd("HPERSIST", "k", "FIELDS", "1", "a"), [-1])
+tests/hexpire.py:299:    check("HTTL after HPERSIST", c.cmd("HTTL", "k", "FIELDS", "1", "a"), [-1])
+tests/hexpire.py:308:    c.cmd("HEXPIRE", "k", "100", "FIELDS", "2", "a", "n")
+tests/hexpire.py:311:                                           c.cmd("HTTL", "k", "FIELDS", "1", "a")], [0, [-1]])
+tests/hexpire.py:312:    check("HSET left the other field's ttl", c.cmd("HTTL", "k", "FIELDS", "1", "n"), [100])
+tests/hexpire.py:314:                                    c.cmd("HTTL", "k", "FIELDS", "1", "n")], [6, [100]])
+tests/hexpire.py:315:    check("HINCRBYFLOAT keeps the ttl", c.cmd("HTTL", "k", "FIELDS", "1", "n"), [100])
+tests/hexpire.py:317:    check("HINCRBYFLOAT keeps the ttl (after)", c.cmd("HTTL", "k", "FIELDS", "1", "n"), [100])
+tests/hexpire.py:319:          [c.cmd("HSETNX", "k", "n", "0"), c.cmd("HTTL", "k", "FIELDS", "1", "n")], [0, [100]])
+tests/hexpire.py:322:    c.cmd("HEXPIRE", "k", "100", "FIELDS", "1", "a")
+tests/hexpire.py:324:                                   c.cmd("HTTL", "k", "FIELDS", "1", "a")], ["OK", [-1]])
+tests/hexpire.py:327:    c.cmd("HEXPIRE", "k", "100", "FIELDS", "1", "n")
+tests/hexpire.py:330:    check("re-added field has no ttl", c.cmd("HTTL", "k", "FIELDS", "1", "n"), [-1])
+tests/hexpire.py:335:    c.cmd("HEXPIRE", "solo", "100", "FIELDS", "1", "f")
+tests/hexpire.py:346:    check("past deadline deletes", c.cmd("HEXPIREAT", "k", "1", "FIELDS", "2", "a", "b"), [2, 2])
+tests/hexpire.py:348:    check("past deadline on a missing field", c.cmd("HEXPIREAT", "k", "1", "FIELDS", "1", "zz"),
+tests/hexpire.py:350:    check("last field takes the key", c.cmd("HEXPIREAT", "k", "1", "FIELDS", "1", "c"), [2])
+tests/hexpire.py:356:    check("deadline == now deletes", c.cmd("HPEXPIREAT", "e", str(now), "FIELDS", "1", "f"), [2])
+tests/hexpire.py:385:        assert c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields) == "QUEUED"
+tests/hexpire.py:386:        assert c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields) == "QUEUED"
+tests/hexpire.py:431:    check("HTTL filters", c.cmd("HTTL", "k", "FIELDS", "2", "a", "b"), [-2, -2])
+tests/hexpire.py:454:    check("active setup", c.cmd("HPEXPIRE", "act", "200", "FIELDS", "1", "a"), [1])
+tests/hexpire.py:469:    c.cmd("HEXPIRE", "future", "600", "FIELDS", "1", "a")
+tests/hexpire.py:485:    check("small hash starts listpack (redis encoding name)", c.cmd("OBJECT", "ENCODING", "small"), b"listpack")
+tests/hexpire.py:486:    check("first deadline on a small hash", c.cmd("HEXPIRE", "small", "100", "FIELDS", "1", "f"),
+tests/hexpire.py:489:    check("deadline readable", c.cmd("HTTL", "small", "FIELDS", "1", "f"), [100])
+tests/hexpire.py:493:    check("no such field", c.cmd("HEXPIRE", "untouched", "100", "FIELDS", "1", "zz"), [-2])
+tests/hexpire.py:494:    check("condition not met", c.cmd("HEXPIRE", "untouched", "100", "XX", "FIELDS", "1", "f"), [0])
+tests/hexpire.py:495:    check("still ttl-free", c.cmd("HTTL", "untouched", "FIELDS", "1", "f"), [-1])
+tests/hexpire.py:504:    got = c.cmd("HPEXPIREAT", "big", str(far), "FIELDS", str(len(picked)), *picked)
+tests/hexpire.py:507:          c.cmd("HPEXPIRETIME", "big", "FIELDS", "3", "f0", "f3", "f1"), [far, far, -1])
+tests/hexpire.py:510:    check("wide persist", set(c.cmd("HPERSIST", "big", "FIELDS", str(len(picked)), *picked)), {1})
+tests/hexpire.py:511:    check("wide persist took", c.cmd("HTTL", "big", "FIELDS", "2", "f0", "f3"), [-1, -1])
+tests/hexpire.py:515:    check("binary field deadline", c.cmd("HPEXPIREAT", "bin", str(far), "FIELDS", "2",
+tests/hexpire.py:517:    check("binary field readable", c.cmd("HPEXPIRETIME", "bin", "FIELDS", "2", "a\x00b", ""),
+tests/hexpire.py:519:    check("binary field persist", c.cmd("HPERSIST", "bin", "FIELDS", "1", "a\x00b"), [1])
+tests/hexpire.py:520:    check("empty field keeps its deadline", c.cmd("HPEXPIRETIME", "bin", "FIELDS", "1", ""), [far])
+tests/hexpire.py:535:        c.cmd("HPEXPIREAT", "mix", str(past), "FIELDS", "1", "gone")
+tests/hexpire.py:537:        c.cmd("HPEXPIREAT", "allgone", str(past), "FIELDS", "1", "x")
+tests/hexpire.py:548:    c.cmd("HPEXPIREAT", "src", str(far), "FIELDS", "1", "a")
+tests/hexpire.py:551:                                        c.cmd("HPEXPIRETIME", "cp", "FIELDS", "2", "a", "b")],
+tests/hexpire.py:553:    check("COPY made an independent table", c.cmd("HPERSIST", "cp", "FIELDS", "1", "a"), [1])
+tests/hexpire.py:554:    check("source deadline untouched", c.cmd("HPEXPIRETIME", "src", "FIELDS", "1", "a"), [far])
+tests/hexpire.py:557:                                          c.cmd("HPEXPIRETIME", "ren", "FIELDS", "2", "a", "b")],
+tests/hexpire.py:567:           c.cmd("HPEXPIRETIME", "restttl", "FIELDS", "2", "a", "b")],
+tests/hexpire.py:582:          c.cmd("HPEXPIRETIME", "ren", "FIELDS", "2", "a", "b"), [far, -1])
+tests/hexpire.py:610:    c.cmd("HPEXPIREAT", "p:small", str(far), "FIELDS", "1", "a")
+tests/hexpire.py:616:    c.cmd("HPEXPIREAT", "p:big", str(far), "FIELDS", str(len(picked)), *picked)
+tests/hexpire.py:618:    check("build: small deadline", c.cmd("HPEXPIRETIME", "p:small", "FIELDS", "2", "a", "b"),
+tests/hexpire.py:624:    check("restart: small deadline", c.cmd("HPEXPIRETIME", "p:small", "FIELDS", "2", "a", "b"),
+tests/hexpire.py:630:          c.cmd("HPEXPIRETIME", "p:big", "FIELDS", "3", "f0", "f5", "f1"), [far, far, -1])
+tests/hexpire.py:631:    check("restart: ttl-free hash unchanged", c.cmd("HTTL", "p:none", "FIELDS", "1", "a"), [-1])
+tests/globcase.py:189:# ---------------------------------------------------------------- D5: NOVALUES only on HSCAN
+tests/globcase.py:191:# would pass while never reaching the NOVALUES check at all.
+tests/globcase.py:192:differential("ZSCAN rejects NOVALUES", "ZSCAN", "gzset", "0", "NOVALUES")
+tests/globcase.py:193:differential("SSCAN rejects NOVALUES", "SSCAN", "gset", "0", "NOVALUES")
+tests/globcase.py:194:differential("SCAN  rejects NOVALUES", "SCAN", "0", "NOVALUES")
+tests/globcase.py:195:differential("HSCAN accepts NOVALUES", "HSCAN", "ghash", "0", "NOVALUES")
+tests/differ_fanout_test.py:199:                self.assertNotIn('--set-max-intset-entries', boots[0],
+tests/edgeenc.py:28:  * a hash carrying field TTLs reports listpack/hashtable, never redis 7.4's listpackex.
+tests/edgeenc.py:137:    name = ("list-max-listpack-size" if kind == "list" else
+tests/edgeenc.py:138:            "%s-max-listpack-%s" % (kind, axis))
+tests/edgeenc.py:158:    ("hash", "hash", b"listpack", b"hashtable",
+tests/edgeenc.py:160:    ("set", "set", b"listpack", b"hashtable",
+tests/edgeenc.py:162:    ("zset", "zset", b"listpack", b"skiplist",
+tests/edgeenc.py:164:    ("list", "list", b"listpack", b"quicklist",
+tests/edgeenc.py:225:for name, knob, small, big in (("hash", "hash", b"listpack", b"hashtable"),
+tests/edgeenc.py:226:                               ("set", "set", b"listpack", b"hashtable"),
+tests/edgeenc.py:227:                               ("zset", "zset", b"listpack", b"skiplist")):
+tests/edgeenc.py:259:check("list under the aggregate byte budget is listpack", c.cmd("OBJECT", "ENCODING", k),
+tests/edgeenc.py:260:      b"listpack")
+tests/edgeenc.py:263:    if c.cmd("OBJECT", "ENCODING", k) == b"quicklist":
+tests/edgeenc.py:269:      b"quicklist")
+tests/edgeenc.py:564:check("all-integer set is intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:566:check("set stays intset over the 32-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:568:check("set stays intset over the 64-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:569:check("intset content across both width steps", sorted(c.cmd("SMEMBERS", "int:set")),
+tests/edgeenc.py:572:check("a non-integer member leaves intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/edgeenc.py:573:check("intset content survives leaving intset", sorted(c.cmd("SMEMBERS", "int:set")),
+tests/edgeenc.py:577:check("removing it does NOT go back to intset (promotion is one-way)",
+tests/edgeenc.py:578:      c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/notify_order.py:226:                    equal(peer.driver.cmd('HPEXPIRE', key, 100, 'FIELDS', 1, 'f'), [1], 'field TTL')
+tests/notify_order.py:228:                    deadline = peer.driver.cmd('HPEXPIRETIME', key, 'FIELDS', 1, 'f')[0]
+tests/datafix1_lists.py:1:"""CD4.5: shrinking quicklists, half-limit boundary, and every pop/mover path."""
+tests/datafix1_lists.py:8:        p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill)
+tests/datafix1_lists.py:20:                # Raising the live threshold leaves a one-node quicklist eligible
+tests/datafix1_lists.py:22:                p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill*2)
+tests/datafix1_lists.py:24:                p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill)
+tests/datafix1_lists.py:36:        p.cmd('CONFIG', 'SET', 'list-max-listpack-size', -2)
+tests/datafix1_lists.py:43:    p.cmd('CONFIG', 'SET', 'list-max-listpack-size', -2)
+tests/datafix1_geo.py:16:            ['ANY', 'COUNT', 10], ['COUNT', 10, 'ASC', 'ANY'], ['STORE', 'dst'],
+tests/datafix1_geo.py:20:            ['BYRADIUS', 2, 'km'], ['WITHDIST', 'STOREDIST'], ['ANY', 'bad'],
+tests/datafix1_geo.py:44:            for opts in [['ANY', 'COUNT', 10, 'ASC'], ['ANY'], ['COUNT', '01'],
+tests/replyschema.py:760:    add(name, command, "{p}:h", amount, "FIELDS", "2", "a", "missing", setup=HASH)
+tests/replyschema.py:766:    add(name, command, "{p}:h", "FIELDS", "3", "a", "b", "missing",
+tests/replyschema.py:767:        setup=HASH + ((setter, "{p}:h", amount, "FIELDS", "1", "a"),))
+tests/replyschema.py:768:add("hpersist", "HPERSIST", "{p}:h", "FIELDS", "3", "a", "b", "missing",
+tests/replyschema.py:769:    setup=HASH + (("HEXPIRE", "{p}:h", "60", "FIELDS", "1", "a"),))
+tests/respresume.py:90:        [('HSET', 'h', 'f', 'v'), ('HGETALL', 'h')], [('HSET', 'h', 'f', 'v'), ('HTTL', 'h', 'FIELDS', 1, 'f')],
+tests/differ_test.py:50:        argv = ['HPEXPIREAT', 'key', '100000', 'FIELDS', '2', 'a', 'b'] if fields else \
+tests/differ_test.py:59:            argv += ['FIELDS', '2', 'a', 'b']
+tests/differ_test.py:169:            state.observe([name, 'key', '20', 'FIELDS', '2', 'a', 'b'], array(1, -2), self.window())
+tests/differ_test.py:170:            self.assertEqual(state.expected(['HPTTL', 'key', 'FIELDS', '2', 'a', 'b']),
+tests/differ_test.py:212:        query = ['HPTTL', 'key', 'FIELDS', '3', 'b', 'a', 'b']
+tests/differ_test.py:221:        state.observe(['HPERSIST', 'key', 'FIELDS', '1', 'b'], array(1), self.window())
+tests/differ_test.py:225:        state.observe(['HPEXPIREAT', 'copy', '1', 'FIELDS', '2', 'b', 'a'], array(2, 0), self.window())

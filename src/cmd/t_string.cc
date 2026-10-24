@@ -476,16 +476,8 @@ void cmd_set(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    // Redis treats an already elapsed (now > at) SET deadline as set-then-expire: the old value is
-    // removed, no dead replacement is left for DBSIZE/active expiry, and GET (if requested) keeps
-    // the reply copied above (never EX/PX). A deadline equal to now stays live until the next ms.
-    if (expire >= 0 && expire < sh.now_ms()) {
-        if (old) sh.store_erase<kNotify>(op.hash, op.key());
-        else if constexpr (kNotify)
-            notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
-        if (!options.get) reply_ok(op.sink());
-        return;
-    }
+    // An elapsed SET still installs a value and deadline. Redis emits set/expire
+    // here; the later lazy/active expiry owns expired and its accounting.
     const StoreResult result =
         store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), expire, true,
                                   reserve_ttl_slot);
@@ -494,6 +486,7 @@ void cmd_set(Shard& sh, Op& op) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         if (options.expire_kind != ExpireKind::None)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Expire, op.key());
+        if (expire >= 0 && expire < sh.now_ms()) notify_elapsed_set(sh, op, op.key());
     }
     if (!options.get) reply_ok(op.sink());
 }
@@ -805,8 +798,6 @@ void cmd_setbit(Shard& sh, Op& op) {
     // Redis materializes integer-encoded strings before a bit write, even when the selected bit
     // already has the requested value. Raw values with no growth and no change remain untouched.
     if (o && !o->is_int() && new_length == old.n && old_bit == bit_value) {
-        if constexpr (kNotify)
-            notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
         reply_int(op.sink(), old_bit);
         return;
     }
@@ -824,8 +815,11 @@ void cmd_setbit(Shard& sh, Op& op) {
                                   o && o->has_ttl_slot());
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
-    if constexpr (kNotify)
-        notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
+    if constexpr (kNotify) {
+        // Integer materialisation alone is not a Redis mutation fire point.
+        if (new_length != old.n || old_bit != bit_value)
+            notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
+    }
     reply_int(op.sink(), old_bit);
 }
 

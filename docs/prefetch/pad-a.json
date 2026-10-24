@@ -1,0 +1,64 @@
+{
+  "kind": "A: behaviour twin",
+  "prefetches": "fallback only; fused owner hints retained",
+  "post_sha256": "2361590f215dc452078b758223a77a826ec93821c7958da53e3aa2456f5587d9",
+  "pad_sha256": "8523bfbe50cc0e61f3d1474fc5c2e89e9e6e5a0194e44656a68514037ed4be33",
+  "sites": [
+    {
+      "body": "tomo_db0::ExLoopT<false>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "address": "0xca27e",
+      "offset": 828030,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo_db0::ExLoopT<false>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "address": "0xca2d3",
+      "offset": 828115,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo_db0::ExLoopT<true>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "address": "0x32bfde",
+      "offset": 3325918,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo_db0::ExLoopT<true>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "address": "0x32c033",
+      "offset": 3326003,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo::ExLoopT<false>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "address": "0x47a65e",
+      "offset": 4695646,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo::ExLoopT<false>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "address": "0x47a6b3",
+      "offset": 4695731,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo::ExLoopT<true>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "address": "0x6f185e",
+      "offset": 7280734,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    },
+    {
+      "body": "tomo::ExLoopT<true>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "address": "0x6f18b3",
+      "offset": 7280819,
+      "before": "410f180cc1",
+      "after": "410f1f04c1"
+    }
+  ]
+}

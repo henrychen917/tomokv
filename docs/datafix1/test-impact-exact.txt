@@ -1,0 +1,308 @@
+PATTERN ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name
+
+PATTERN ERR COUNT must be > 0
+
+PATTERN ERR NOVALUES option can only be used in HSCAN
+tests/edgeproto.py:326:           b"-ERR NOVALUES option can only be used in HSCAN\r\n")
+
+PATTERN ERR could not decode requested zset member
+
+PATTERN ERR exactly one of BYRADIUS and BYBOX can be specified for 
+
+PATTERN ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for 
+
+PATTERN ERR need numeric radius
+tests/edgeproto.py:426:               b"-ERR need numeric radius\r\n")
+tests/doubles.py:367:           b"-ERR need numeric radius\r\n", "GEOSEARCH refuses an out-of-range radius")
+tests/doubles.py:378:           b"-ERR need numeric radius\r\n", "GEOSEARCHSTORE refuses an out-of-range radius")
+
+PATTERN ERR out of memory
+tests/atomic_survivors_unit.cc:383:            require(action == MultiIoAction::LocalDone && watch.reply().starts_with("-ERR out of memory"),
+tests/aclfix.py:247:    expected = b"OK" if args.oracle else RespError(b"ERR out of memory")
+
+PATTERN ERR radius cannot be negative
+tests/doubles.py:369:           b"-ERR radius cannot be negative\r\n",
+
+PATTERN ERR the ANY argument requires COUNT argument
+
+PATTERN ERR value is not a valid float
+tests/debug.py:139:       "ERR value is not a valid float", "DEBUG SLEEP timeout-derived ceiling")
+tests/doubles.py:213:        expect(c.command("ZADD", "d:neg", value, "m"), b"-ERR value is not a valid float\r\n",
+tests/doubles.py:225:           b"-ERR value is not a valid float\r\n", "ZINCRBY refuses a leading space")
+tests/doubles.py:322:    expect(c.command("INCRBYFLOAT", "d:lf", " 1"), b"-ERR value is not a valid float\r\n",
+tests/doubles.py:324:    expect(c.command("INCRBYFLOAT", "d:lf", "nan"), b"-ERR value is not a valid float\r\n",
+tests/doubles.py:333:           b"-ERR value is not a valid float\r\n", "HINCRBYFLOAT refuses a leading tab")
+tests/doubles.py:341:    expect(c.command("INCRBYFLOAT", "d:lf3", "1"), b"-ERR value is not a valid float\r\n",
+tests/doubles.py:355:           b"-ERR value is not a valid float\r\n", "GEOADD refuses an out-of-range longitude")
+tests/doubles.py:357:           b"-ERR value is not a valid float\r\n", "GEOADD refuses a leading space")
+
+PATTERN ERR value is not an integer or out of range
+tests/edgeproto.py:102:INT_ERR = b"-ERR value is not an integer or out of range\r\n"
+tests/cmdgap.py:135:               RespError(b"ERR value is not an integer or out of range"))
+tests/tracking.py:212:               "ERR value is not an integer or out of range", "REDIRECT abc")
+tests/servertail.py:157:          err("ERR value is not an integer or out of range"))
+tests/climon2.py:341:               "ERR value is not an integer or out of range", "UNBLOCK notanint")
+tests/aclfix.py:82:    integer = RespError(b"ERR value is not an integer or out of range")
+tests/edgetime.py:222:    not_integer = b"-ERR value is not an integer or out of range\r\n"
+tests/hexpire.py:158:              b"-ERR value is not an integer or out of range\r\n")
+tests/dumprestore.py:228:           b"-ERR value is not an integer or out of range", "TTL integer grammar")
+tests/aclkeys_wake_unit.cc:98:            "-ERR value is not an integer or out of range\r\n", "reject invalid DEBUG stage");
+tests/lcs.py:180:          err("ERR value is not an integer or out of range"))
+
+PATTERN ERR value is out of range
+tests/edgeproto.py:103:POSITIVE_ERR = b"-ERR value is out of range, must be positive\r\n"
+tests/edgeproto.py:207:    bounds = (b"-ERR value is out of range, value must between "
+tests/edgeproto.py:336:           b"-ERR value is out of range, value must between -2147483648 and 2147483647\r\n")
+tests/s6.py:158:          ErrorReply(b"ERR value is out of range, must be positive"))
+tests/multidb_unit.cc:504:            "-ERR value is out of range, value must between -2147483648 and 2147483647\r\n",
+
+PATTERN ERR bit offset is not an integer or out of range
+tests/bitfield.py:96:offset_error = b"-ERR bit offset is not an integer or out of range"
+
+PATTERN ERR value is out of range
+tests/edgeproto.py:103:POSITIVE_ERR = b"-ERR value is out of range, must be positive\r\n"
+tests/edgeproto.py:207:    bounds = (b"-ERR value is out of range, value must between "
+tests/edgeproto.py:336:           b"-ERR value is out of range, value must between -2147483648 and 2147483647\r\n")
+tests/s6.py:158:          ErrorReply(b"ERR value is out of range, must be positive"))
+tests/multidb_unit.cc:504:            "-ERR value is out of range, value must between -2147483648 and 2147483647\r\n",
+
+PATTERN NOVALUES option can only be used in HSCAN
+tests/edgeproto.py:326:           b"-ERR NOVALUES option can only be used in HSCAN\r\n")
+
+PATTERN listpack
+tests/dumpttl.py:199:    # Compact Redis hashes with TTLs use the observed listpackex RDB type (25).
+tests/dumpttl.py:200:    seed_hash(oracle, "dt:o:listpackex", [("a", "1"), ("b", "2"), ("c", "3")],
+tests/dumpttl.py:202:    oracle_packed = dump(oracle, "dt:o:listpackex", 25)
+tests/dumpttl.py:203:    expect("reference listpackex -> target RESTORE",
+tests/dumpttl.py:204:           target.cmd("RESTORE", "dt:o:listpackex:rest", 0, oracle_packed, "REPLACE"), b"OK")
+tests/dumpttl.py:205:    expect("reference listpackex values", pairs(target, "dt:o:listpackex:rest"),
+tests/dumpttl.py:207:    expect("reference listpackex deadlines",
+tests/dumpttl.py:208:           field_times(target, "dt:o:listpackex:rest", "a", "b", "c"), [far, -1, farther])
+tests/servertail.py:276:        "ob:list": "listpack",
+tests/servertail.py:277:        "ob:hash": "listpack",
+tests/servertail.py:279:        "ob:lpset": "listpack",
+tests/servertail.py:280:        "ob:zset": "listpack",
+tests/servertail.py:459:          "hash-max-listpack-value", "1kb", "list-max-ziplist-size", "4"), "OK")
+tests/servertail.py:468:          lambda v: "hash-max-listpack-entries 9\n" in v and
+tests/servertail.py:469:                    "hash-max-listpack-value 1024\n" in v and
+tests/servertail.py:470:                    "list-max-listpack-size 4\n" in v and "max-ziplist" not in v)
+tests/servertail.py:486:    for name, value in (("hash-max-listpack-entries", "9"), ("hash-max-ziplist-entries", "9"),
+tests/servertail.py:487:                        ("hash-max-listpack-value", "1024"), ("list-max-listpack-size", "4")):
+tests/servertail.py:491:    check("reboot applies list count mode", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "listpack")
+tests/config_parser_test.cc:341:                                "--set-max-listpack-entries", "6",
+tests/config_parser_test.cc:342:                                "--set-max-listpack-value", "20",
+tests/config_parser_test.cc:355:    if (tomo::parse_config_args({"--hash-max-listpack-entries", "512",
+tests/config_parser_test.cc:356:                                "--list-max-listpack-size", "4"},
+tests/config_parser_test.cc:399:        if (tomo::parse_config_args({"--list-max-listpack-size", probe.first},
+tests/config_parser_test.cc:404:    if (tomo::parse_config_args({"--list-max-listpack-size", "0",
+tests/config_parser_test.cc:405:                                "--hash-max-listpack-entries", "9223372036854775807",
+tests/config_parser_test.cc:406:                                "--hash-max-listpack-value", "4294967296"},
+tests/config_parser_test.cc:412:        !rejects({"--list-max-listpack-size", "-2147483649"}) ||
+tests/config_parser_test.cc:413:        !rejects({"--list-max-listpack-size", "2147483648"}) ||
+tests/config_parser_test.cc:414:        !rejects({"--list-max-listpack-size", "1kb"}) ||
+tests/config_parser_test.cc:415:        !rejects({"--set-max-listpack-value", "1kb"}) ||
+tests/config_parser_test.cc:416:        !rejects({"--set-max-listpack-value", "01"}))
+tests/datafix1_spop.py:11:        ('text', [f'm{i:03d}' for i in range(100)], b'listpack'),
+tests/knobs.py:135:    encoding_names = ["%s-max-listpack-%s" % (kind, axis)
+tests/knobs.py:137:    encoding_names.append("list-max-listpack-size")
+tests/knobs.py:157:            entries, size = (kind + "-max-listpack-" + axis for axis in ("entries", "value"))
+tests/knobs.py:163:                encoding(key, b"listpack")
+tests/knobs.py:170:                encoding(key, b"listpack")
+tests/knobs.py:176:                encoding(key, b"listpack")
+tests/knobs.py:186:        # Integer and listpack limits are independent, and CONFIG must reach every owner.
+tests/knobs.py:187:        conn.must("CONFIG", "SET", "set-max-listpack-entries", 0, "set-max-listpack-value", 0,
+tests/knobs.py:205:            conn.must("CONFIG", "SET", "list-max-listpack-size", fill)
+tests/knobs.py:209:                encoding(key, b"listpack")
+tests/knobs.py:219:            conn.must("CONFIG", "SET", "list-max-listpack-size", fill)
+tests/knobs.py:229:        for canonical, alias in (("hash-max-listpack-entries", "hash-max-ziplist-entries"),
+tests/knobs.py:230:                                 ("hash-max-listpack-value", "hash-max-ziplist-value"),
+tests/knobs.py:231:                                 ("zset-max-listpack-entries", "zset-max-ziplist-entries"),
+tests/knobs.py:232:                                 ("zset-max-listpack-value", "zset-max-ziplist-value"),
+tests/knobs.py:233:                                 ("list-max-listpack-size", "list-max-ziplist-size"),
+tests/knobs.py:234:                                 ("hash-max-listpack-entries", "hash-max-compact-entries"),
+tests/knobs.py:235:                                 ("hash-max-listpack-value", "hash-max-compact-value"),
+tests/knobs.py:236:                                 ("zset-max-listpack-entries", "zset-max-compact-entries"),
+tests/knobs.py:237:                                 ("zset-max-listpack-value", "zset-max-compact-value")):
+tests/knobs.py:250:        for name, value, expected in (("hash-max-listpack-value", "1kb", b"1024"),
+tests/knobs.py:251:                                      ("zset-max-listpack-value", "2k", b"2000"),
+tests/knobs.py:252:                                      ("hash-max-listpack-entries", "9223372036854775807",
+tests/knobs.py:254:                                      ("list-max-listpack-size", "-2147483648", b"-2147483648")):
+tests/knobs.py:258:        for name, bad in (("set-max-listpack-value", "1kb"),
+tests/knobs.py:259:                          ("set-max-listpack-entries", "01"),
+tests/knobs.py:260:                          ("hash-max-listpack-entries", "9223372036854775808"),
+tests/knobs.py:261:                          ("list-max-listpack-size", "2147483648")):
+tests/redisgap.py:143:    config.write_text('hash-max-ziplist-entries 3\nhash-max-listpack-value 1kb\n'
+tests/redisgap.py:144:                      'zset-max-listpack-entries 3\nzset-max-ziplist-value 1KB\n'
+tests/redisgap.py:148:                         '--hash-max-listpack-entries', '2'], config) as (c, _, _):
+tests/redisgap.py:167:                     for spelling in ('listpack', 'ziplist', 'compact')]
+tests/redisgap.py:169:            assert get(c, family + '-max-listpack-value') == '1024'
+tests/redisgap.py:176:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:181:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:184:            for spelling in ('listpack', 'ziplist'):
+tests/redisgap.py:187:                for size, encoding in [(4, 'listpack'), (5, 'hashtable' if family == 'hash' else 'skiplist')]:
+tests/redisgap.py:218:            values = c.command('CONFIG', 'GET', 'hash-max-*', '*-listpack-*')
+tests/redisgap.py:222:        assert 'hash-max-listpack-entries 0\n' in text
+tests/redisgap.py:223:        assert 'zset-max-listpack-entries 0\n' in text
+tests/redisgap.py:247:    for flag, value, error in [('hash-max-listpack-entries', '01', 'invalid encoding limit'),
+tests/cd13b_wire.py:143:                        assert encoding == b"$8\r\nlistpack\r\n", encoding
+tests/wiredump.py:145:    add("list-lzf-listpack", "list", 18, ("RPUSH", "src", b"x" * 1000, b"x" * 1000))
+tests/wiredump.py:150:    # Hashes: listpack and hashtable thresholds, including compressed outer strings.
+tests/wiredump.py:164:    # Sets: all intset widths, set-listpack, and hashtable promotion paths.
+tests/wiredump.py:170:    add("set-listpack", "set", 20, ("SADD", "src", b"a", b"bb", b"hello"))
+tests/wiredump.py:171:    add("set-listpack-binary", "set", 20, ("SADD", "src", b"\x00", b"a\xffb"))
+tests/wiredump.py:172:    add("set-listpack-value64", "set", 20, ("SADD", "src", stable_bytes(64, 9), b"a"))
+tests/wiredump.py:177:    # Sorted sets: listpack numeric encodings and zset2 binary-double bodies.
+tests/resp3.py:172:    # resp3:z is small, so it is a COMPACT (listpack) zset -- and a score entering compact storage
+tests/resp3.py:173:    # loses the sign of a zero, exactly as the oracle's listpack does. This row read b"-0" until
+tests/resp3.py:174:    # the zsetfix lane probed redis 7.4.2: `ZADD k -0 m; ZSCORE k m` answers "0" on a listpack and
+tests/resp3.py:187:    expect(encoding.value == b"listpack", "score cases really ran on a compact zset", encoding)
+tests/encodingfix.py:20:    "hash-max-listpack-entries": 512, "hash-max-listpack-value": 64,
+tests/encodingfix.py:21:    "list-max-listpack-size": -2, "set-max-intset-entries": 512,
+tests/encodingfix.py:22:    "set-max-listpack-entries": 128, "set-max-listpack-value": 64,
+tests/encodingfix.py:23:    "zset-max-listpack-entries": 128, "zset-max-listpack-value": 64,
+tests/encodingfix.py:42:            setting(**{"hash-max-listpack-entries": h, "hash-max-listpack-value": v,
+tests/encodingfix.py:43:                       "set-max-intset-entries": si, "set-max-listpack-entries": sl,
+tests/encodingfix.py:44:                       "set-max-listpack-value": v, "zset-max-listpack-entries": z,
+tests/encodingfix.py:45:                       "zset-max-listpack-value": v})
+tests/encodingfix.py:84:    # Fresh hints choose intset/listpack/HT; existing hints promote directly to HT,
+tests/encodingfix.py:101:        setting(**{"set-max-intset-entries": integer, "set-max-listpack-entries": pack})
+tests/cdfix_unit.cc:181:        require(f.run({"OBJECT", "ENCODING", "geo"}) == bulk("listpack"), "STORE must allow compaction");
+tests/docs_drift.py:89:        "hash-max-listpack-entries": "Compact hash entry ceiling",
+tests/docs_drift.py:90:        "hash-max-listpack-value": "Compact hash field/value byte ceiling",
+tests/docs_drift.py:91:        "list-max-listpack-size": "-1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element",
+tests/docs_drift.py:92:        "set-max-listpack-entries": "Compact string-set entry ceiling",
+tests/docs_drift.py:93:        "set-max-listpack-value": "Compact string-set element byte ceiling",
+tests/docs_drift.py:95:        "zset-max-listpack-entries": "Compact sorted-set entry ceiling",
+tests/docs_drift.py:96:        "zset-max-listpack-value": "Compact sorted-set member byte ceiling",
+tests/docs_drift.py:106:                "Canonical signed 32-bit decimal" if name == "list-max-listpack-size" else
+tests/docs_drift.py:108:                "Count64, no memory suffix" if name == "set-max-listpack-value" else "Count64")
+tests/docs_drift.py:113:    first = document.index("| `hash-max-listpack-entries` |"); last = document.index("| `hll-sparse-max-bytes` |", first)
+tests/docs_drift.py:123:        "`set-max-intset-entries` limit. Fresh sets prefer intset, then listpack, then\n"
+tests/docs_drift.py:126:        "insertion can instead select listpack when both listpack limits fit. Removal\n"
+tests/cd13b_window_test.py:70:            return bulk('listpack' if args[2] in self.stored else 'skiplist')
+tests/datafix1_lists.py:8:        p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill)
+tests/datafix1_lists.py:22:                p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill*2)
+tests/datafix1_lists.py:24:                p.cmd('CONFIG', 'SET', 'list-max-listpack-size', fill)
+tests/datafix1_lists.py:36:        p.cmd('CONFIG', 'SET', 'list-max-listpack-size', -2)
+tests/datafix1_lists.py:43:    p.cmd('CONFIG', 'SET', 'list-max-listpack-size', -2)
+tests/zsetops.py:72:    """Build `key` holding exactly `pairs`, in the compact (listpack) or expanded (skiplist) form.
+tests/zsetops.py:92:    wanted = b"skiplist" if expanded else b"listpack"
+tests/zsetops.py:103:      oracle's listpack holds scores as text whose zero form is unsigned. The EXPANDED form keeps
+tests/zsetops.py:116:        tag = "skiplist" if expanded else "listpack"
+tests/zsetops.py:156:    expect(c.command("OBJECT", "ENCODING", "nz:fresh"), b"listpack",
+tests/zsetops.py:257:        expect(c.command("OBJECT", "ENCODING", "nz:dst"), b"listpack",
+tests/zsetops.py:442:        tag = "skiplist" if expanded else "listpack"
+tests/zsetops.py:484:        expect(c.command("OBJECT", "ENCODING", "zrs:sorted"), b"listpack",
+tests/hexpread.py:200:        assert admin.cmd('CONFIG', 'SET', 'hash-max-listpack-entries', limit) == b'OK'
+tests/differ.py:833:    # A radius STORE is a replacement and CAN become listpack again, even when dest == source.
+tests/differ.py:999:                check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",
+tests/encodingfix_unit.cc:73:                 "set-max-listpack-entries", "5", "set-max-listpack-value", "8"}) == "+OK\r\n",
+tests/encodingfix_unit.cc:82:    encoding(f, "fresh", "listpack");
+tests/encodingfix_unit.cc:86:    encoding(f, "mixed", "listpack");
+tests/encodingfix_unit.cc:89:    check(f.run({"SADD", "wide", "x"}) == ":1\r\n", "remaining integers fit listpack");
+tests/encodingfix_unit.cc:90:    encoding(f, "wide", "listpack");
+tests/encodingfix_unit.cc:92:    encoding(f, "mixed", "listpack");
+tests/encodingfix_unit.cc:98:    encoding(f, "zero", "listpack");
+tests/encodingfix_unit.cc:99:    check(f.run({"CONFIG", "SET", "set-max-listpack-entries", "0"}) == "+OK\r\n", "disable listpacks");
+tests/hexpire.py:485:    check("small hash starts listpack (redis encoding name)", c.cmd("OBJECT", "ENCODING", "small"), b"listpack")
+tests/netcmd_config_unit.cc:88:        {"hash-max-listpack-entries", "hash-max-ziplist-entries", "hash-max-compact-entries", "5", "5"},
+tests/netcmd_config_unit.cc:89:        {"hash-max-listpack-value", "hash-max-ziplist-value", "hash-max-compact-value", "1kb", "1024"},
+tests/netcmd_config_unit.cc:90:        {"list-max-listpack-size", "list-max-ziplist-size", nullptr, "-3", "-3"},
+tests/netcmd_config_unit.cc:91:        {"set-max-listpack-entries", nullptr, nullptr, "6", "6"},
+tests/netcmd_config_unit.cc:92:        {"set-max-listpack-value", nullptr, nullptr, "20", "20"},
+tests/netcmd_config_unit.cc:94:        {"zset-max-listpack-entries", "zset-max-ziplist-entries", "zset-max-compact-entries", "8", "8"},
+tests/netcmd_config_unit.cc:95:        {"zset-max-listpack-value", "zset-max-ziplist-value", "zset-max-compact-value", "2k", "2000"},
+tests/netcmd_config_unit.cc:127:    set({"CONFIG", "SET", "hash-max-listpack-entries", "9223372036854775807",
+tests/netcmd_config_unit.cc:128:         "zset-max-listpack-value", "4294967296"}, true);
+tests/netcmd_config_unit.cc:133:    for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value"}) {
+tests/netcmd_config_unit.cc:214:    for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",
+tests/netcmd_config_unit.cc:215:                             "zset-max-listpack-entries", "zset-max-listpack-value",
+tests/edgeenc.py:28:  * a hash carrying field TTLs reports listpack/hashtable, never redis 7.4's listpackex.
+tests/edgeenc.py:137:    name = ("list-max-listpack-size" if kind == "list" else
+tests/edgeenc.py:138:            "%s-max-listpack-%s" % (kind, axis))
+tests/edgeenc.py:158:    ("hash", "hash", b"listpack", b"hashtable",
+tests/edgeenc.py:160:    ("set", "set", b"listpack", b"hashtable",
+tests/edgeenc.py:162:    ("zset", "zset", b"listpack", b"skiplist",
+tests/edgeenc.py:164:    ("list", "list", b"listpack", b"quicklist",
+tests/edgeenc.py:225:for name, knob, small, big in (("hash", "hash", b"listpack", b"hashtable"),
+tests/edgeenc.py:226:                               ("set", "set", b"listpack", b"hashtable"),
+tests/edgeenc.py:227:                               ("zset", "zset", b"listpack", b"skiplist")):
+tests/edgeenc.py:259:check("list under the aggregate byte budget is listpack", c.cmd("OBJECT", "ENCODING", k),
+tests/edgeenc.py:260:      b"listpack")
+tests/edgeenc.py:572:check("a non-integer member leaves intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/edgeenc.py:578:      c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+
+PATTERN quicklist
+tests/knobs.py:211:                encoding(key, b"quicklist")
+tests/knobs.py:224:            encoding(key, b"quicklist")
+tests/servertail.py:493:    check("reboot applies list promotion", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "quicklist")
+tests/wiredump.py:136:    # Lists are quicklist2 in Redis 7.4: packed, LZF-packed, plain, and multi-node forms.
+tests/datafix1_lists.py:1:"""CD4.5: shrinking quicklists, half-limit boundary, and every pop/mover path."""
+tests/datafix1_lists.py:20:                # Raising the live threshold leaves a one-node quicklist eligible
+tests/edgeenc.py:164:    ("list", "list", b"listpack", b"quicklist",
+tests/edgeenc.py:263:    if c.cmd("OBJECT", "ENCODING", k) == b"quicklist":
+tests/edgeenc.py:269:      b"quicklist")
+
+PATTERN intset
+tests/datafix1_spop.py:8:        ('int16', list(range(100)), b'intset'),
+tests/datafix1_spop.py:9:        ('int32', list(range(100000, 100100)), b'intset'),
+tests/datafix1_spop.py:10:        ('int64', list(range(2**40, 2**40+100)), b'intset'),
+tests/datafix1_spop.py:39:    p.cmd('CONFIG', 'SET', 'set-max-intset-entries', 2)
+tests/datafix1_spop.py:42:    p.cmd('CONFIG', 'SET', 'set-max-intset-entries', 512)
+tests/knobs.py:138:    encoding_names.append("set-max-intset-entries")
+tests/knobs.py:188:                  "set-max-intset-entries", 9)
+tests/knobs.py:192:            encoding(key, b"intset")
+tests/knobs.py:195:        conn.must("CONFIG", "SET", "set-max-intset-entries", original["set-max-intset-entries"])
+tests/knobs.py:198:        count = int(original["set-max-intset-entries"])
+tests/knobs.py:200:        encoding(key, b"intset")
+tests/docs_drift.py:94:        "set-max-intset-entries": "Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824",
+tests/docs_drift.py:123:        "`set-max-intset-entries` limit. Fresh sets prefer intset, then listpack, then\n"
+tests/docs_drift.py:124:        "hashtable according to the first member and size hint. An existing intset\n"
+tests/docs_drift.py:173:             re.sub(r'(^\| `set-max-intset-entries` \|.*?)`512`', r'\g<1>`128`', markdown, flags=re.M),
+tests/config_parser_test.cc:336:    if (defaults.hash.max_entries != 512 || defaults.set_intset_max_entries != 512)
+tests/config_parser_test.cc:337:        fail("hash/intset defaults differ from the pinned Redis 7.4.10 oracle");
+tests/config_parser_test.cc:343:                                "--set-max-intset-entries", "9",
+tests/config_parser_test.cc:352:        limits.set_intset_max_entries != 9 ||
+tests/servertail.py:267:    c.cmd("SADD", "ob:intset", "1", "2", "3")
+tests/servertail.py:278:        "ob:intset": "intset",
+tests/encodingfix.py:21:    "list-max-listpack-size": -2, "set-max-intset-entries": 512,
+tests/encodingfix.py:43:                       "set-max-intset-entries": si, "set-max-listpack-entries": sl,
+tests/encodingfix.py:47:                                          ("intset", si, "SADD", "SREM"),
+tests/encodingfix.py:53:                member = str(i) if kind == "intset" else f"m{i}"
+tests/encodingfix.py:58:                mutation(key, remove, str(i) if kind == "intset" else f"m{i}")
+tests/encodingfix.py:84:    # Fresh hints choose intset/listpack/HT; existing hints promote directly to HT,
+tests/encodingfix.py:94:    setting(**{"set-max-intset-entries": 5})
+tests/encodingfix.py:96:    setting(**{"set-max-intset-entries": 2})
+tests/encodingfix.py:101:        setting(**{"set-max-intset-entries": integer, "set-max-listpack-entries": pack})
+tests/encodingfix.py:106:    name = "set-max-intset-entries"
+tests/encodingfix.py:154:                             ("intset300", 300, "SADD"), ("stringset64", 64, "SADD")):
+tests/encodingfix.py:160:            members = [str(i) if shape == "intset300" else f"m{i:03d}" for i in range(count)]
+tests/wiredump.py:164:    # Sets: all intset widths, set-listpack, and hashtable promotion paths.
+tests/wiredump.py:169:    add("set-intset-lzf", "set", 11, ("SADD", "src", *[str(i).encode() for i in range(500)]))
+tests/differ.py:509:        ["DEL", "iv"], ["SADD", "iv"] + [str(i) for i in range(200)], ["SCARD", "iv"],   # remains intset (default 512)
+tests/differ.py:2426:    ops.append(["DEL", "st:enc:intset"])
+tests/differ.py:2428:        ops.append(["SADD", "st:enc:intset", str(i)])
+tests/differ.py:2429:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:2430:    ops.append(["SADD", "st:enc:intset", "notanint"])
+tests/differ.py:2431:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:6881:# Encoding defaults now match the pinned Redis 7.4 oracle, including intsets.
+tests/differ_fanout_test.py:199:                self.assertNotIn('--set-max-intset-entries', boots[0],
+tests/netcmd_config_unit.cc:93:        {"set-max-intset-entries", nullptr, nullptr, "9", "9"},
+tests/netcmd_config_unit.cc:111:          limits.set_intset_max_entries == 9,
+tests/netcmd_config_unit.cc:216:                             "set-max-intset-entries"})
+tests/edgeenc.py:564:check("all-integer set is intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:566:check("set stays intset over the 32-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:568:check("set stays intset over the 64-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:569:check("intset content across both width steps", sorted(c.cmd("SMEMBERS", "int:set")),
+tests/edgeenc.py:572:check("a non-integer member leaves intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/edgeenc.py:573:check("intset content survives leaving intset", sorted(c.cmd("SMEMBERS", "int:set")),
+tests/edgeenc.py:577:check("removing it does NOT go back to intset (promotion is one-way)",
+tests/encodingfix_unit.cc:52:    const std::string name = "set-max-intset-entries";
+tests/encodingfix_unit.cc:54:          "Redis default intset limit");
+tests/encodingfix_unit.cc:56:        check(fixture.run({"CONFIG", "SET", name, value}) == "+OK\r\n", "intset SET accepted");
+tests/encodingfix_unit.cc:60:            if constexpr (requires { limits.set_intset_max_entries; }) return limits.set_intset_max_entries;
+tests/encodingfix_unit.cc:72:    check(f.run({"CONFIG", "SET", "set-max-intset-entries", "3",
+tests/encodingfix_unit.cc:76:    encoding(f, "grow", "intset");
+tests/encodingfix_unit.cc:84:    encoding(f, "mixed", "intset");
+tests/encodingfix_unit.cc:96:    check(f.run({"CONFIG", "SET", "set-max-intset-entries", "0"}) == "+OK\r\n", "disable intsets");
+tests/encodingfix_unit.cc:97:    check(f.run({"SADD", "zero", "1"}) == ":1\r\n", "zero intset limit insertion");

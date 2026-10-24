@@ -1,0 +1,33 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.EGrgve",
+  "gate_log_sha256": "625b85006078f497f7b4b28bf24aecb5b7eaea36870104d9243b6c985e69d649",
+  "jobs": [
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "script_bounds",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.050000",
+          "label": "xscript limit control"
+        },
+        {
+          "status": "ok",
+          "seconds": "0.540000",
+          "label": "xscript window control"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 3,
+  "fail_rows": 0
+}

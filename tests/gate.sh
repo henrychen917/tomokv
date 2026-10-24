@@ -58,6 +58,9 @@
 # (counters, accepts, direct>0), not merely that nothing crashed. A gate that can pass while
 # testing nothing is worse than no gate.
 set -u
+# Make every ordinary server/oracle child independent of the caller's locale.
+# Locale-specific batteries (CD4.6) explicitly override their child environment.
+export LC_ALL=C
 cd "$(dirname "$0")/.."
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
@@ -344,8 +347,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the
 # quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.
 # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
-EXPECT_QUICK=739
-EXPECT_FULL=756                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=768
+EXPECT_FULL=785                 # ABBA reports only; self-test remains counted.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
 # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
@@ -827,6 +830,15 @@ boot_log_tail(){ # a boot that failed is a defect report, not a filename: SHOW t
 boot(){ local bin=$1; shift; launch main "$bin" --ratio $GATE_RATIO "$@"; }
 boot_fused(){ # deliberately omits --ratio, which fused mode rejects
   local bin=$1; shift; launch fused "$bin" --thread-mode fused "$@"; }
+txn_proof_boot(){
+  # Run the same complete transaction/scatter jobs in the other thread mode.
+  # The default retains their established split boots and row counts.
+  case "${GATE_TXN_FUSED:-0}" in
+    0) boot "$@";;
+    1) boot_fused "$@";;
+    *) echo 'GATE_TXN_FUSED must be 0 or 1' >&2; return 2;;
+  esac
+}
 stop(){
   if [ "$SRV" -gt 0 ]; then
     kill -TERM "$SRV" 2>/dev/null
@@ -1093,7 +1105,7 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -1120,10 +1132,10 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus acl_recheck aclfix sort script_bounds scriptfix
+              efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -1647,6 +1659,41 @@ job_compat2(){
     if [ "$failed" = 0 ]; then ok "compat2 $case";
     else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
   done
+}
+
+# Each dispatchfix feature owns one scored row with all four correctness legs.
+# The scripts retain the oracle replies and both listener command lines.
+dispatchfix_job(){
+  local battery=$1 label=$2 mode engine failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    py "tests/$battery.py" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --mode "$mode" --engine "$engine" --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+        --output "$TMPDIR/$battery-$mode-$engine" \
+        >"$TMPDIR/$battery-$mode-$engine.log" 2>&1 || failed=1
+  done; done
+  if [ "$failed" = 0 ]; then ok "$label";
+  else bad "$label" "see $TMPDIR/$battery-*.log"; fi
+}
+job_dispatch_arity(){
+  row_begin 'dispatchfix EX4.10 container outer arity'
+  dispatchfix_job dispatch_arity 'dispatchfix EX4.10 container outer arity'
+}
+job_dispatch_errors(){
+  row_begin 'dispatchfix EX4.11 container errors'
+  dispatchfix_job dispatch_errors 'dispatchfix EX4.11 container errors'
+}
+job_dispatch_children(){
+  row_begin 'dispatchfix EX4.4 advertised children'
+  dispatchfix_job dispatch_children 'dispatchfix EX4.4 advertised children'
+}
+job_acl_subcommands(){
+  row_begin 'dispatchfix CC4.15 ACL subcommand grants'
+  dispatchfix_job acl_subcommands 'dispatchfix CC4.15 ACL subcommand grants'
+}
+
+job_router_uniform(){
+  row_begin 'dispatchfix EX4.17 uniform routing and legacy recovery'
+  dispatchfix_job router_uniform 'dispatchfix EX4.17 uniform routing and legacy recovery'
 }
 
 job_hexpread(){
@@ -2324,7 +2371,7 @@ done
 }
 
 job_release_batteries(){
-boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "release boot"
+txn_proof_boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "release boot"
 row_begin "torture battery"
 py tests/torture.py 127.0.0.1 $PORT >$TMPDIR/gate-tort.txt 2>&1 \
     && ok "torture battery" || bad "torture battery" "see $TMPDIR/gate-tort.txt"
@@ -2352,10 +2399,18 @@ shutdown_clean && py tests/lbsignals.py --shutdown "$SRVLOG" \
 row_begin "direct-reply fired (direct=N)"
 D=$(shutdown_value wb.direct)
 [ -n "$D" ] && [ "$D" -gt 0 ] && ok "direct-reply fired (direct=$D)" || bad "direct-reply fired"
-row_begin "dispatched==executed (N)"
-R=$(shutdown_value work.dispatched)
-E=$(shutdown_value work.executed)
-[ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+row_begin "dispatched==executed (N)" "fused=${GATE_TXN_FUSED:-0}"
+if [ "${GATE_TXN_FUSED:-0}" = 1 ]; then
+  # Retain the historical row identity; its optional fused leg has one work
+  # counter, whose nonzero total and complete per-thread sum must agree.
+  R=$(py tests/shutdown_report.py "$SRVLOG" fused-work) \
+      && ok "fused unified work agrees with thread totals ($R)" \
+      || bad "fused work accounting" "see $SRVLOG"
+else
+  R=$(shutdown_value work.dispatched)
+  E=$(shutdown_value work.executed)
+  [ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+fi
 }
 
 # moverfix: eight conservation rows before the quick exit (DQ=DF=+8).
@@ -2399,7 +2454,7 @@ job_moverfix(){
 job_atomic_batteries(){
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
 # predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
-boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
 row_begin "atomic torn/window battery"
 py tests/atomic_torn.py 127.0.0.1 $PORT --release-build >$TMPDIR/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see $TMPDIR/gate-atomic-torn.txt"
@@ -2601,16 +2656,78 @@ job_aclfix(){
   done
 }
 
+# datafix1: one aggregate row per issue; each battery owns every declared engine/mode leg.
+job_datafix1_geo(){
+  row_begin "datafix1 GEO grammar (both engines and modes)"
+  py tests/datafix1_geo.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 GEO grammar (both engines and modes)" \
+      || bad "datafix1 GEO grammar (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_spop(){
+  row_begin "datafix1 SPOP encodings (both engines and modes)"
+  py tests/datafix1_spop.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 SPOP encodings (both engines and modes)" \
+      || bad "datafix1 SPOP encodings (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_lists(){
+  row_begin "datafix1 list demotion (both engines and modes)"
+  py tests/datafix1_lists.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 list demotion (both engines and modes)" \
+      || bad "datafix1 list demotion (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_locale(){
+  row_begin "datafix1 SORT locale (both engines and modes)"
+  py tests/datafix1_locale.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 SORT locale (both engines and modes)" \
+      || bad "datafix1 SORT locale (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_bitfield(){
+  row_begin "datafix1 BITFIELD bounds (both engines and modes)"
+  py tests/datafix1_bitfield.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 BITFIELD bounds (both engines and modes)" \
+      || bad "datafix1 BITFIELD bounds (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_hexpire(){
+  row_begin "datafix1 HEXPIRE precedence (both engines and modes)"
+  py tests/datafix1_hexpire.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 HEXPIRE precedence (both engines and modes)" \
+      || bad "datafix1 HEXPIRE precedence (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_randscan(){
+  row_begin "datafix1 RAND/SCAN errors (both engines and modes)"
+  py tests/datafix1_randscan.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 RAND/SCAN errors (both engines and modes)" \
+      || bad "datafix1 RAND/SCAN errors (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
 job_sort(){
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
-# tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with
-# DEBUG SHARD, and requires concrete BY and GET keys plus STORE destination on the executor slot
-# opposite the source. No same-owner or one-executor run can satisfy this row.
+# The default SORT leg requires 16 shards at 6:2; GATE_TXN_FUSED=1 selects its explicit
+# eight-thread fused leg. Both prove actual distinct BY/GET/STORE owners with DEBUG SHARDS.
+# No same-owner or one-owner run can satisfy this row.
+local sort_mode=2s sort_geometry=(--ratio 6:2)
+if [ "${GATE_TXN_FUSED:-0}" = 1 ]; then
+  sort_mode=1s
+  sort_geometry=(--key-lb 0 --client-lb 0 --flip-auto 0)
+fi
 for AT in 0 1; do
-  boot "$CANDIDATE_BINARY" --ratio 6:2 --atomic "$AT" --enable-debug-command yes \
+  txn_proof_boot "$CANDIDATE_BINARY" "${sort_geometry[@]}" --atomic "$AT" --enable-debug-command yes \
       || bad "cross-owner SORT boot (atomic $AT)"
   row_begin "cross-owner SORT battery (atomic $AT)"
-  py tests/sort.py 127.0.0.1 "$PORT" >$TMPDIR/gate-sort-$AT.txt 2>&1 \
+  py tests/sort.py 127.0.0.1 "$PORT" 17 "$sort_mode" >$TMPDIR/gate-sort-$AT.txt 2>&1 \
       && ok "cross-owner SORT battery (atomic $AT)" \
       || bad "cross-owner SORT battery (atomic $AT)" "see $TMPDIR/gate-sort-$AT.txt"
   stop
@@ -2658,8 +2775,9 @@ job_bugs5(){
 
 job_debug(){
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
-local AT=${1##*-}
-  boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
+local AT=${1##*-} mode=2s
+  [ "${GATE_TXN_FUSED:-0}" != 1 ] || mode=1s
+  txn_proof_boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 \
       || bad "debug-surface boot (atomic $AT)"
   # AT1/AT2: exact owner interleavings plus live, witnessed EXEC/hop/wakeup races. Both
@@ -2711,7 +2829,7 @@ local AT=${1##*-}
     [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     if [ "$t" = txniso ]; then
-      txniso_checks 2s "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
+      txniso_checks "$mode" "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
           && ok "txniso battery (atomic $AT)" \
           || bad "txniso battery (atomic $AT)" "see $TMPDIR/gate-txniso-$AT.txt"
     else
@@ -2775,6 +2893,27 @@ job_txnorder(){
 # A' schedules, WATCH defects, RENAME join and busy-owner wake: seventeen rows before quick exit.
 # R12 also runs allocation and invariant/retirement falsifiers. The WATCH rows
 # aggregate both thread modes, both databases images and both network engines.
+# execfair: one aggregate witness row before quick exit, DQ=DF=+1.
+# Both engines, modes and atomic settings must observe actual fast-lane polls.
+job_execfair(){
+  local label="EXEC fast-lane polls" passed=1 mode atomic engine boot_fn log
+  row_begin "$label"
+  for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    log="$TMPDIR/execfair-$mode-$atomic-$engine"
+    if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --net-io "$engine" \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
+      py tests/execfair.py 127.0.0.1 "$PORT" --witness --seconds 1 \
+          --output "$log.json" >"$log.log" 2>&1 || passed=0
+      py tests/wave6_exec.py "$PORT" >"$log-wave6.log" 2>&1 || passed=0
+    else passed=0; fi
+    stop
+    shutdown_clean || passed=0
+  done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/execfair-*"
+}
+
 job_txnorder_wake(){
   local label passed mode unit_root
   unit_root=$(dirname "$CANDIDATE_BINARY")
@@ -2788,51 +2927,57 @@ job_txnorder_wake(){
 }
 
 job_txnorder2(){
-  local case_name label passed mode engine databases boot_fn unit unit_root log
+  local case_name label passed mode atomic engine databases boot_fn unit unit_root log
   unit_root=$(dirname "$CANDIDATE_BINARY")
   for case_name in R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12; do
     label="txnorder2 writer episode $case_name"
     row_begin "$label"
     passed=1
     log="$TMPDIR/$case_name.log"
-    taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >"$log" 2>&1 || passed=0
+    for mode in 1s 2s; do for atomic in 0 1; do
+      taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+    done; done
     if [ "$case_name" = R8 ]; then
-      for mode in 1s 2s; do
+      for mode in 1s 2s; do for atomic in 0 1; do
         for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
-          taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" >>"$log" 2>&1 || passed=0
+          taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" "$atomic" >>"$log" 2>&1 || passed=0
         done
-      done
+      done; done
     fi
     if [ "$case_name" = R12 ]; then
-      for case_name in invariant failure; do
-        taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >>"$log" 2>&1 || passed=0
-      done
-      taskset -c "$CORES" "$unit_root/txnorder-episodes-debug" retirement >>"$log" 2>&1 || passed=0
+      for mode in 1s 2s; do for atomic in 0 1; do
+        for case_name in invariant failure; do
+          taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+        done
+        taskset -c "$CORES" "$unit_root/txnorder-episodes-debug" retirement "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+      done; done
     fi
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $log"
   done
   label="txnorder2 direct RENAME owner join"
   row_begin "$label"
   passed=1
-  for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
-    taskset -c "$CORES" "$unit_root/$unit" rename 2s >>"$TMPDIR/rename.log" 2>&1 || passed=0
-  done
+  for mode in 1s 2s; do for atomic in 0 1; do
+    for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
+      taskset -c "$CORES" "$unit_root/$unit" rename "$mode" "$atomic" >>"$TMPDIR/rename.log" 2>&1 || passed=0
+    done
+  done; done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/rename.log"
   for case_name in serve flush readonly; do
     label="txnorder2 WATCH $case_name"
     row_begin "$label"
     passed=1
-    for mode in 1s 2s; do for engine in uring epoll; do for databases in 1 16; do
-      log="$TMPDIR/$case_name-$mode-$engine-$databases.log"
+    for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do for databases in 1 16; do
+      log="$TMPDIR/$case_name-$mode-$atomic-$engine-$databases.log"
       unit="$unit_root/txnorder-watch-unit"
       [ "$databases" != 1 ] || unit="$unit_root/txnorder-watch-db0-unit"
       if [ "$case_name" != flush ]; then
-        taskset -c "$CORES" "$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
+        taskset -c "$CORES" "$unit" "$case_name" "$mode" "$atomic" >"$log" 2>&1 || passed=0
       fi
       boot_fn=boot
       [ "$mode" != 1s ] || boot_fn=boot_fused
       if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --databases "$databases" \
-          --read-local "$([ "$mode" = 1s ] && echo 1 || echo 0)" --atomic 1 \
+          --read-local "$([ "$mode" = 1s ] && echo 1 || echo 0)" --atomic "$atomic" \
           --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
         if [ "$case_name" != readonly ]; then
           py tests/txnorder_watch.py 127.0.0.1 "$PORT" --databases "$databases" --only "$case_name" >>"$log" 2>&1 || passed=0
@@ -2842,7 +2987,7 @@ job_txnorder2(){
       else passed=0; fi
       stop
       shutdown_clean || passed=0
-    done; done; done
+    done; done; done; done
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*.log"
   done
 }
@@ -2850,7 +2995,7 @@ job_txnorder2(){
 job_script_bounds(){
 # ---- cross-owner script bounds: production auto budgets and four cut slots per IO ----------
 for XS_MODE in limit window; do
-  boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+  txn_proof_boot "$CANDIDATE_BINARY" --atomic "${GATE_TXN_ATOMIC:-1}" --enable-debug-command yes \
       || bad "xscript $XS_MODE control boot"
   row_begin "xscript $XS_MODE control"
   py tests/xscript.py 127.0.0.1 $PORT "$XS_MODE" >$TMPDIR/gate-xscript-$XS_MODE.txt 2>&1 \
@@ -2913,7 +3058,7 @@ XDS_PORT=$PORT XDS_CPUS=$CORES XDS_BIN="$CANDIDATE_BINARY" bash tests/xshard_dis
 job_dump_restore(){
 # ---- Redis-wire DUMP/RESTORE survives the native snapshot/restart boundary -------------------
 DUMPRESTORE_DIR=$(mktemp -d $TMPDIR/gate-dumprestore.XXXXXX)
-boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" --dbfilename dumprestore.tomo \
     || bad "DUMP/RESTORE restart preparation boot"
 row_begin "DUMP/RESTORE prepare + native SAVE"
 py tests/dumprestore.py 127.0.0.1 $PORT prepare_restart \
@@ -2921,7 +3066,7 @@ py tests/dumprestore.py 127.0.0.1 $PORT prepare_restart \
     && ok "DUMP/RESTORE prepare + native SAVE" \
     || bad "DUMP/RESTORE restart preparation" "see $TMPDIR/gate-dumprestore-restart.txt"
 stop
-boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" \
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --dir "$DUMPRESTORE_DIR" \
     --dbfilename dumprestore.tomo \
     || bad "DUMP/RESTORE snapshot reload boot"
 row_begin "DUMP/RESTORE cross-restart round-trip"
@@ -2934,6 +3079,79 @@ row_begin "DUMP/RESTORE restart shutdown invariants"
 shutdown_clean \
     && ok "DUMP/RESTORE restart shutdown invariants" \
     || bad "DUMP/RESTORE restart shutdown invariants"
+}
+
+# CG4.3: one row, four mode/engine legs plus the Redis oracle. Collected before quick exit.
+job_serverfix_lines(){
+  local label="serverfix CG4.3 physical config lines"
+  row_begin "$label"
+  py tests/serverfix_lines.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-lines" \
+      >"$TMPDIR/serverfix-lines.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-lines.log"
+}
+
+job_serverfix_scalar(){
+  local label="serverfix CG4.4 shared scalar grammar"
+  row_begin "$label"
+  py tests/serverfix_scalar.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-scalar" \
+      >"$TMPDIR/serverfix-scalar.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-scalar.log"
+}
+
+job_serverfix_config(){
+  local label="serverfix SV4.6 CONFIG validation matrix"
+  row_begin "$label"
+  py tests/serverfix_config.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-config" \
+      >"$TMPDIR/serverfix-config.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-config.log"
+}
+
+job_serverfix_hello(){
+  local label="serverfix SV4.7 HELLO canonical protocol"
+  row_begin "$label"
+  py tests/serverfix_hello.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-hello" \
+      >"$TMPDIR/serverfix-hello.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-hello.log"
+}
+
+job_serverfix_waitaof(){
+  local label="serverfix SV4.5 WAITAOF wait lifecycle"
+  row_begin "$label"
+  py tests/serverfix_waitaof.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-waitaof" \
+      >"$TMPDIR/serverfix-waitaof.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-waitaof.log"
+}
+
+job_serverfix_hll(){
+  local label="serverfix SV4.8 HyperLogLog self-test controls"
+  row_begin "$label"
+  py tests/serverfix_hll.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-hll" \
+      >"$TMPDIR/serverfix-hll.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-hll.log"
+}
+
+job_serverfix_slowlog(){
+  local label="serverfix SV4.14 disabled slowlog allocation"
+  row_begin "$label"
+  py tests/serverfix_slowlog.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-slowlog" \
+      >"$TMPDIR/serverfix-slowlog.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-slowlog.log"
+}
+
+job_serverfix_acllog(){
+  local label="serverfix CC4.26 disabled ACL log allocation"
+  row_begin "$label"
+  py tests/serverfix_acllog.py --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/serverfix-acllog" \
+      >"$TMPDIR/serverfix-acllog.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/serverfix-acllog.log"
 }
 
 job_authfix(){
@@ -2966,6 +3184,24 @@ py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES"
     || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
 }
 
+# The existing two ACL rows retain their labels and now own all mode/engine legs.
+acl_battery_legs(){
+  local atomic=$1 mode engine acl_file boot_fn failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    acl_file="$TMPDIR/acl-$atomic-$mode-$engine.acl"
+    : > "$acl_file"
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --aclfile "$acl_file" --atomic "$atomic" \
+        --net-io "$engine" --read-local 1 &&
+       py tests/acl.py 127.0.0.1 "$PORT" "$acl_file" \
+         >"$TMPDIR/acl-$atomic-$mode-$engine.log" 2>&1; then :
+    else failed=1; fi
+    stop
+  done; done
+  return "$failed"
+}
+
 job_auth(){
 # ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
 row_begin "reject bad protected-mode"
@@ -2974,28 +3210,19 @@ reject_boot --protected-mode maybe 2>&1 | grep -q "protected-mode wants" \
 row_begin "reject bad enable-debug-command"
 reject_boot --enable-debug-command maybe 2>&1 | grep -q "enable-debug-command wants" \
     && ok "reject bad enable-debug-command" || bad "reject bad enable-debug-command"
-boot "$CANDIDATE_BINARY" --requirepass gatepass || bad "auth purpose boot"
+txn_proof_boot "$CANDIDATE_BINARY" --requirepass gatepass || bad "auth purpose boot"
 row_begin "AUTH/HELLO/protected state machine"
 py tests/auth.py 127.0.0.1 $PORT gatepass >$TMPDIR/gate-auth.txt 2>&1 \
     && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see $TMPDIR/gate-auth.txt"
 stop
-ACL_DIR=$(mktemp -d $TMPDIR/gate-acl.XXXXXX)
-ACL_FILE="$ACL_DIR/users.acl"
-: > "$ACL_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_FILE" || bad "ACL purpose boot"
 row_begin "ACL battery (atomic off)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_FILE" >$TMPDIR/gate-acl.txt 2>&1 \
-    && ok "ACL battery (atomic off)" || bad "ACL battery (atomic off)" "see $TMPDIR/gate-acl.txt"
-stop
-ACL_ATOMIC_FILE="$ACL_DIR/users-atomic.acl"
-: > "$ACL_ATOMIC_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_ATOMIC_FILE" --atomic 1 || bad "ACL atomic purpose boot"
+acl_battery_legs 0 && ok "ACL battery (atomic off)" \
+    || bad "ACL battery (atomic off)" "see $TMPDIR/acl-0-*.log"
 row_begin "ACL battery (atomic on)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_ATOMIC_FILE" >$TMPDIR/gate-acl-atomic.txt 2>&1 \
-    && ok "ACL battery (atomic on)" || bad "ACL battery (atomic on)" "see $TMPDIR/gate-acl-atomic.txt"
-stop
+acl_battery_legs 1 && ok "ACL battery (atomic on)" \
+    || bad "ACL battery (atomic on)" "see $TMPDIR/acl-1-*.log"
 DEBUG_DIR=$(mktemp -d $TMPDIR/gate-debug.XXXXXX)
-boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
+txn_proof_boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
     || bad "DEBUG purpose boot"
 row_begin "DEBUG toggle/reload battery"
 py tests/debug.py 127.0.0.1 $PORT >$TMPDIR/gate-debug.txt 2>&1 \
@@ -3015,7 +3242,7 @@ job_snapshot(){
 # ---- snapshot data/sync engines: cut, typed round-trip, and typed preimage race ----------------
 local NET_IO=${1##*-}
   SNAP_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$SNAP_DIR" --dbfilename cut.tomo \
       || bad "snapshot cut boot ($NET_IO)"
   row_begin "snapshot concurrent cut ($NET_IO)"
@@ -3025,7 +3252,7 @@ local NET_IO=${1##*-}
       || bad "snapshot concurrent cut ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-cut-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$SNAP_DIR" --dbfilename cut.tomo \
       || bad "snapshot cut reload boot ($NET_IO)"
   row_begin "snapshot cut reload ($NET_IO)"
@@ -3042,7 +3269,7 @@ local NET_IO=${1##*-}
   # cuts_waited counter that separates a real group drain from a vacuous one. Both arms were
   # confirmed to FAIL on the pre-fix tree (44-53 and 10-13 torn groups per cut respectively).
   GROUP_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-groups-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 1 \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 1 \
       --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
       || bad "atomic group cut boot ($NET_IO, atomic 1)"
   row_begin "snapshot never tears a cross-shard MSET group ($NET_IO, atomic 1)"
@@ -3055,7 +3282,7 @@ local NET_IO=${1##*-}
   stop
   # CONTROL ARM: the DEFAULT --atomic 0. EXEC force-admits a group at either setting, so a
   # transaction is atomic to readers here too and the file must agree with them.
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 0 \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 0 \
       --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
       || bad "atomic group cut boot ($NET_IO, atomic 0)"
   row_begin "snapshot never tears a MULTI/EXEC group ($NET_IO, default atomic 0)"
@@ -3068,7 +3295,7 @@ local NET_IO=${1##*-}
   stop
 
   TYPED_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-typed-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$TYPED_DIR" --dbfilename typed.tomo \
       || bad "typed snapshot boot ($NET_IO)"
   row_begin "typed snapshot save ($NET_IO)"
@@ -3078,7 +3305,7 @@ local NET_IO=${1##*-}
       || bad "typed snapshot save ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-typed-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$TYPED_DIR" --dbfilename typed.tomo \
       || bad "typed snapshot reload boot ($NET_IO)"
   row_begin "typed snapshot reload ($NET_IO)"
@@ -3090,7 +3317,7 @@ local NET_IO=${1##*-}
   stop
 
   RACE_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-race-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$RACE_DIR" --dbfilename race.tomo --save '' --enable-debug-command yes \
       || bad "typed snapshot race boot ($NET_IO)"
   row_begin "typed snapshot preimage race ($NET_IO)"
@@ -3102,7 +3329,7 @@ local NET_IO=${1##*-}
       || bad "typed snapshot preimage race ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-race-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$RACE_DIR" --dbfilename race.tomo.cut \
       || bad "typed snapshot race reload boot ($NET_IO)"
   row_begin "typed snapshot race reload ($NET_IO)"
@@ -3365,6 +3592,158 @@ else
 fi
 }
 
+job_notifycompat(){
+# Seven counted rows; every declared leg runs even when an earlier leg fails.
+local mode atomic engine read_local compatible=1 booted oracle_ready=0 nc_case databases
+local oracle_port=$((PORT+1)) oracle_dir
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/notifycompat-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_NOTIFY_ORACLE_CORES:-${GATE_DIFFER_ORACLE_CORES:-$CORES}}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no \
+      --enable-debug-command yes --dir "$oracle_dir" >"$TMPDIR/oracle.log" 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep .1
+  done
+fi
+for nc_case in setbit setpast emptystore writemiss objectmiss expiredstore flush; do
+compatible=1
+row_begin "notification compatibility $nc_case vs Redis 7.4"
+if [ "$oracle_ready" = 1 ]; then
+  local dbcounts=16
+  [ "$nc_case" != flush ] || dbcounts="1 16"
+  for databases in $dbcounts; do
+  for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
+    local reads="1 0"
+    [ "$mode" = 1s ] || reads=0
+    for read_local in $reads; do
+      booted=0
+      local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      [ "$nc_case" != flush ] || options+=(--appendonly yes --appendfsync always)
+      if [ "$mode" = 1s ]; then
+        boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
+      else
+        boot "$CANDIDATE_BINARY" --thread-mode 2s "${options[@]}" && booted=1
+      fi
+      if [ "$booted" != 1 ] || ! py tests/notifycompat.py 127.0.0.1 "$PORT" \
+          --oracle 127.0.0.1 "$oracle_port" --case "$nc_case" \
+          --databases "$databases" --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/compat-$nc_case-db$databases-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+        compatible=0
+      fi
+      stop
+    done
+  done; done; done
+  done
+else
+  compatible=0
+fi
+if [ "$compatible" = 1 ]; then
+  ok "notification compatibility $nc_case vs Redis 7.4"
+else
+  bad "notification compatibility $nc_case vs Redis 7.4" "see $TMPDIR/compat-$nc_case-*.log"
+fi
+done
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+}
+
+job_tracking_redirect(){
+# One counted row; every declared leg runs even when an earlier leg fails.
+local mode atomic engine read_local compatible=1 booted oracle_ready=0
+local oracle_port=$((PORT+1)) oracle_dir
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+row_begin "tracking REDIRECT close vs Redis 7.4"
+local scheduled="$PWD/build/notifycompat/scheduled-${GATE_NOTIFYCOMPAT_ARM:-POST}"
+local schedule_args=(--objects "${GATE_NOTIFYCOMPAT_OBJECTS:-build}" --output "$scheduled")
+[ -z "${GATE_NOTIFYCOMPAT_REF:-}" ] || schedule_args+=(--ref "$GATE_NOTIFYCOMPAT_REF")
+if ! taskset -c "$BUILD_CORES" python3 tools/notifycompat_schedule.py "${schedule_args[@]}" \
+    >"$TMPDIR/schedule-build.log" 2>&1; then
+  bad "tracking REDIRECT close vs Redis 7.4" "see $TMPDIR/schedule-build.log"
+  return
+fi
+local CANDIDATE_BINARY="$scheduled/tomokv"
+
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/redirect-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_NOTIFY_ORACLE_CORES:-${GATE_DIFFER_ORACLE_CORES:-$CORES}}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no \
+      --enable-debug-command yes --dir "$oracle_dir" >"$TMPDIR/oracle.log" 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep .1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+  for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
+    local reads="1 0"
+    [ "$mode" = 1s ] || reads=0
+    for read_local in $reads; do
+      export TOMO_NOTIFYCOMPAT_SCHEDULE_DIR="$TMPDIR/schedule-$mode-$engine-a$atomic-rl$read_local"
+      mkdir -p "$TOMO_NOTIFYCOMPAT_SCHEDULE_DIR"
+      booted=0
+      local options=(--atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      if [ "$mode" = 1s ]; then
+        boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
+      else
+        boot "$CANDIDATE_BINARY" --thread-mode 2s "${options[@]}" && booted=1
+      fi
+      if [ "$booted" != 1 ] || ! py tests/tracking_redirect.py 127.0.0.1 "$PORT" \
+          --oracle 127.0.0.1 "$oracle_port" --schedule "$TOMO_NOTIFYCOMPAT_SCHEDULE_DIR" \
+          --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/redirect-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+        compatible=0
+      fi
+      stop
+    done
+  done; done; done
+else
+  compatible=0
+fi
+unset TOMO_NOTIFYCOMPAT_SCHEDULE_DIR
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+if [ "$compatible" = 1 ]; then
+  ok "tracking REDIRECT close vs Redis 7.4"
+else
+  bad "tracking REDIRECT close vs Redis 7.4" "see $TMPDIR/redirect-*.log and $TMPDIR/oracle.log"
+fi
+}
+
 job_notify_order(){
 # One counted row; every declared leg runs even when an earlier leg fails.
 local mode atomic engine read_local compatible=1 booted oracle_ready=0
@@ -3498,7 +3877,7 @@ fi
 
 job_notify(){
 # ---- notify lane: integrated owner/retire seams plus both live atomic settings -----------------
-boot "$CANDIDATE_BINARY" --notify-keyspace-events KEAmn --enable-debug-command yes \
+txn_proof_boot "$CANDIDATE_BINARY" --notify-keyspace-events KEAmn --enable-debug-command yes \
     || bad "feature battery boot + notify CLI knob"   # armed: multi_exec.py needs DEBUG SHARD
                                                        # to locate a same-owner key pair, and it
                                                        # FAILS rather than skips without it
@@ -3515,9 +3894,13 @@ row_begin "Lua feature battery"
 py tests/lua_scripting.py 127.0.0.1 $PORT >$TMPDIR/gate-lua.txt 2>&1 \
     && ok "Lua feature battery" || bad "Lua feature battery" "see $TMPDIR/gate-lua.txt"
 row_begin "keyspace notification battery (atomic 0/1)"
-py tests/notify.py 127.0.0.1 $PORT >$TMPDIR/gate-notify.txt 2>&1 \
-    && ok "keyspace notification battery (atomic 0/1)" \
-    || bad "keyspace notification battery" "see $TMPDIR/gate-notify.txt"
+local notify_atomic notify_compatible=1
+for notify_atomic in 0 1; do
+  py tests/notify.py 127.0.0.1 "$PORT" "$notify_atomic" \
+      >"$TMPDIR/gate-notify-$notify_atomic.txt" 2>&1 || notify_compatible=0
+done
+[ "$notify_compatible" = 1 ] && ok "keyspace notification battery (atomic 0/1)" \
+    || bad "keyspace notification battery" "see $TMPDIR/gate-notify-*.txt"
 stop
 row_begin "feature battery shutdown invariants"
 shutdown_clean \
@@ -3696,16 +4079,17 @@ stop
 
 job_aof(){
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
-local NET_IO=${1##*-}
+local NET_IO=${1##*-} AOF_MODE=2s
+[ "${GATE_TXN_FUSED:-0}" != 1 ] || AOF_MODE=1s
 for AOF_ATOMIC in 0 1; do
 AOF_DIR=$(mktemp -d "$TMPDIR/gate-aof-${NET_IO}-atomic${AOF_ATOMIC}.XXXXXX")
 AOF_STATE=$AOF_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_ATOMIC" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_ATOMIC" \
     --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_DIR" \
     || bad "AOF purpose boot ($NET_IO, atomic $AOF_ATOMIC)"
 row_begin "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)"
-py tests/knobs.py 127.0.0.1 "$PORT" "$NET_IO" "$AOF_ATOMIC" \
+py tests/knobs.py 127.0.0.1 "$PORT" "$NET_IO" "$AOF_ATOMIC" "$AOF_MODE" \
     >"$TMPDIR/gate-knobs-${NET_IO}-${AOF_ATOMIC}.txt" 2>&1 \
     && ok "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)" \
     || bad "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)"
@@ -3724,7 +4108,7 @@ AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --appendonly yes --appendfsync no \
     --atomic "$AOF_ATOMIC" --net-io "$NET_IO" \
     --enable-debug-command yes --dir "$AOF_DIR" \
     || bad "AOF replay boot ($NET_IO, atomic $AOF_ATOMIC)"
@@ -3750,7 +4134,7 @@ done
 # ---- AOF atomic-group bracketing + directed interrupted-process recovery ---------------------
 AOF_GROUP_DIR=$(mktemp -d "$TMPDIR/gate-aof-group-${NET_IO}.XXXXXX")
 AOF_GROUP_STATE=$AOF_GROUP_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
     || bad "AOF group purpose boot ($NET_IO)"
 row_begin "AOF directed group interruption fired"
@@ -3760,7 +4144,7 @@ py tests/aof_torn_group.py 127.0.0.1 $PORT prepare "$AOF_GROUP_STATE" \
     || bad "AOF directed group interruption" "see $TMPDIR/gate-aof-group.txt"
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
     || bad "AOF group recovery boot ($NET_IO)"
 row_begin "AOF atomic-group recovery + writer order"
@@ -3779,7 +4163,7 @@ shutdown_clean \
 # ---- AOF sync policies, reply gate, idle sync, and durability-window recovery ----------------
 AOF_ALWAYS_DIR=$(mktemp -d "$TMPDIR/gate-aof-always-${NET_IO}.XXXXXX")
 AOF_ALWAYS_STATE=$AOF_ALWAYS_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always purpose boot ($NET_IO)"
 row_begin "AOF always sync + reply gate fired"
@@ -3790,7 +4174,7 @@ py tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_ALWAYS_STATE" always 512 \
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always recovery boot ($NET_IO)"
 row_begin "AOF always recovery after quiescent SIGKILL"
@@ -3840,7 +4224,7 @@ done
 AOF_EVERY_DIR=$(mktemp -d "$TMPDIR/gate-aof-everysec-${NET_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
 AOF_EVERY_FILE=$AOF_EVERY_DIR/appendonlydir/appendonly.aof.1.incr.tomo
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
     --net-io "$NET_IO" --dir "$AOF_EVERY_DIR" \
     || bad "AOF everysec purpose boot ($NET_IO)"
 row_begin "AOF everysec write gate + idle sync fired"
@@ -3857,7 +4241,7 @@ case "$AOF_EVERY_FILE" in
   *) bad "AOF everysec tail target" ;;
 esac
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
     --net-io "$NET_IO" --dir "$AOF_EVERY_DIR" \
     || bad "AOF everysec recovery boot ($NET_IO)"
 row_begin "AOF everysec durability window + tail warning"
@@ -3869,7 +4253,7 @@ py tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_EVERY_STATE" everysec 512 \
 stop
 
 AOF_NO_DIR=$(mktemp -d "$TMPDIR/gate-aof-no-sync-${NET_IO}.XXXXXX")
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --dir "$AOF_NO_DIR" \
     || bad "AOF no-sync purpose boot ($NET_IO)"
 row_begin "AOF no-sync bypassed sync + reply gate"
@@ -3894,7 +4278,7 @@ NET_IO=$NET_IO GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_trigger_matri
     || bad "AOF rewrite triggers" "see $TMPDIR/gate-aof-rewrite-trigger.txt"
 
 AOF_OFF_DIR=$(mktemp -d "$TMPDIR/gate-aof-off-${NET_IO}.XXXXXX")
-boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
     --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"
 row_begin "AOF-off negative-control seed landed"
@@ -3907,7 +4291,7 @@ AOF_OFF_PRE_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
     --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control reboot"
 row_begin "AOF-off negative control lost data"
@@ -3973,7 +4357,7 @@ job_aof_frame(){
 # both writer budgets. Stable owners and connection placement keep that schedule deterministic.
 for AOF_FRAME_ATOMIC in 0 1; do
 AOF_FRAME_DIR=$(mktemp -d "$TMPDIR/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
     --appendfsync no --net-io epoll --auto-aof-rewrite-percentage 0 \
     --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
     --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
@@ -4277,7 +4661,7 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 
 job_asan_batteries(){
 # ---- 4. full tier: torture under ASAN ---------------------------------------------------------
-boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
+txn_proof_boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
 row_begin "torture under ASAN"
 py tests/torture.py 127.0.0.1 $PORT >$TMPDIR/gate-tort-asan.txt 2>&1 \
     && ok "torture under ASAN" || bad "torture under ASAN"
@@ -4313,7 +4697,7 @@ job_replyoff(){
 # ---- CLIENT REPLY OFF/SKIP + cross-shard MGET on a zero-copy boot: suppressed replies leave nothing on the
 # wire and release their borrows (regression for the partial-array leak fixed on the netwb lane) ------------
 for RA in 0 1; do
-  boot "$CANDIDATE_BINARY" --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
+  txn_proof_boot "$CANDIDATE_BINARY" --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
   row_begin "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)"
   py tests/replyoff_xshard.py 127.0.0.1 $PORT >$TMPDIR/gate-replyoff-$RA.txt 2>&1 \
       && ok "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" \
@@ -4334,7 +4718,9 @@ zcboot(){
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
-  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
+  local shape=(--ratio "$GATE_RATIO")
+  [ "${GATE_TXN_FUSED:-0}" != 1 ] || shape=(--thread-mode fused)
+  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 "${shape[@]}" \
       --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 \
       --net-io "${GATE_ZC_NET_IO:-uring}" > "$SRVLOG" 2>&1 &
   SRV=$!
@@ -4803,6 +5189,11 @@ collect_job compat2
 collect_job bugs5
 # Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.
 collect_job compat3
+collect_job dispatch_arity
+collect_job dispatch_errors
+collect_job dispatch_children
+collect_job acl_subcommands
+collect_job router_uniform
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done
@@ -4835,9 +5226,17 @@ collect_job acl_recheck
 collect_job aclfix
 
 collect_job sort
+collect_job datafix1_geo
+collect_job datafix1_spop
+collect_job datafix1_lists
+collect_job datafix1_locale
+collect_job datafix1_bitfield
+collect_job datafix1_randscan
+collect_job datafix1_hexpire
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
+collect_job execfair
 collect_job txnorder2
 collect_job txnorder_wake
 for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
@@ -4851,6 +5250,14 @@ collect_job dump_restore
 
 collect_job auth
 collect_job authfix
+collect_job serverfix_lines
+collect_job serverfix_scalar
+collect_job serverfix_config
+collect_job serverfix_hello
+collect_job serverfix_waitaof
+collect_job serverfix_hll
+collect_job serverfix_slowlog
+collect_job serverfix_acllog
 
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 
@@ -4858,6 +5265,9 @@ collect_job notify
 # trackfix CC4.4: one row before the quick exit; EXPECT remains maintainer-owned.
 collect_job trackfix_order
 collect_job trackfix_accounting
+# notifycompat: one row per item here, before the quick exit; EXPECT is maintainer-owned.
+collect_job notifycompat
+collect_job tracking_redirect
 collect_job notify_order
 collect_job notify_aof
 

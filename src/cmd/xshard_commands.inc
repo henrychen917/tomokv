@@ -1518,6 +1518,10 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 return true;
             }
             const GeoBuildResult built = geo_build_store(op, input, output);
+            if (built == GeoBuildResult::Invalid) {
+                state.final_reply = FinalReply::Prepared;
+                return true;
+            }
             if (built != GeoBuildResult::Ok) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = built == GeoBuildResult::MissingMember
@@ -1858,6 +1862,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                 reply_err(op.sink(), "ERR cross-shard second hop queue is full"); break;
             case FinalReply::Internal:
                 reply_err(op.sink(), "ERR internal cross-shard completion error"); break;
+            case FinalReply::Prepared: // GEO parser already emitted its error after source lookup.
             case FinalReply::None: break;
         }
         return;
@@ -2140,10 +2145,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             shard, op.arg(1), FlatStore::hash_key(op.arg(1)), destination, true);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, selected.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
-                              selected.empty() ? NotifyEventId::Del : NotifyEventId::Zrangestore,
-                              op.arg(1));
+            if constexpr (kNotify) if (!selected.empty())
+                notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zrangestore, op.arg(1));
             reply_int(op.sink(), static_cast<long long>(selected.size()));
         }
         return;
@@ -2189,9 +2192,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             shard, key, FlatStore::hash_key(key), destination, true);
         if (stored != WorkError::None) reply_work_error(op, stored);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, values.empty() ? NOTIFY_GENERIC : NOTIFY_LIST,
-                              values.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
+            if constexpr (kNotify) if (!values.empty())
+                notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Sortstore, key);
             reply_int(op.sink(), static_cast<long long>(values.size()));
         }
         return;
@@ -2395,7 +2397,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         const Slice destination = op.arg(2);
         const uint64_t hash = FlatStore::hash_key(destination);
         if (!output.present) {
-            shard.store_erase<kNotify>(hash, destination, FlatStore::EraseEvent::None);
+            if constexpr (kNotify) notify_erase_image(shard, hash, destination, true);
+            else shard.store().erase_resident(hash, destination);
         } else {
             // Same contract as the scatter hop-2 arm: -1 clears TTL, raw encoding only.
             error = store_xstring<kNotify>(
@@ -2406,9 +2409,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         }
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, output.present ? NOTIFY_STRING : NOTIFY_GENERIC,
-                              output.present ? NotifyEventId::Set : NotifyEventId::Del, destination);
+            if constexpr (kNotify) if (output.present)
+                notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, destination);
             reply_int(op.sink(), output_length);
         }
         return;
@@ -2454,12 +2456,11 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         local_apply<kNotify>(shard, op, apply, {1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify) {
+            if constexpr (kNotify) if (!output.empty()) {
                 const NotifyEventId event = kind == Kind::Zunionstore
                     ? NotifyEventId::Zunionstore : kind == Kind::Zinterstore
                     ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
-                notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
-                              output.empty() ? NotifyEventId::Del : event, op.arg(1));
+                notify_record(shard, op, NOTIFY_ZSET, event, op.arg(1));
             }
             reply_int(op.sink(), static_cast<long long>(output.size()));
         }
@@ -2498,9 +2499,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             NotifyEventId event = NotifyEventId::Sinterstore;
             if (kind == Kind::Sunionstore) event = NotifyEventId::Sunionstore;
             else if (kind == Kind::Sdiffstore) event = NotifyEventId::Sdiffstore;
-            if constexpr (kNotify)
-                notify_record(shard, op, members.empty() ? NOTIFY_GENERIC : NOTIFY_SET,
-                              members.empty() ? NotifyEventId::Del : event, op.arg(1));
+            if constexpr (kNotify) if (!members.empty())
+                notify_record(shard, op, NOTIFY_SET, event, op.arg(1));
             reply_int(op.sink(), static_cast<long long>(members.size()));
         }
         return;

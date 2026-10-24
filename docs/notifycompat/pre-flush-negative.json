@@ -1,0 +1,10 @@
+{
+  "receipt": "pre-related-jobs",
+  "failures": [
+    {
+      "job": "atomic_units",
+      "row": "FAIL\t2.200000\tflushfix flush witnesses"
+    }
+  ],
+  "exact_unit_output": "FAIL flushfix: FLUSHDB removes elapsed residents without expiry side effects (Redis 7.4)\nFAIL receipt flushfix-unit semantics exit=1\nPASS flushfix memory: db0 FLUSHDB keys=65536 key-bytes=2048 headroom=2097152 cap=206647296 peak-rss-kib=204836->204836\nPASS receipt flushfix-unit memory-db0 exit=0\nPASS flushfix memory: multi FLUSHDB keys=65536 key-bytes=2048 headroom=2097152 cap=206647296 peak-rss-kib=205360->205360\nPASS receipt flushfix-unit memory-multi exit=0\nPASS flushfix memory: db0 FLUSHALL keys=65536 key-bytes=2048 headroom=2097152 cap=206647296 peak-rss-kib=205360->205360\nPASS receipt flushfix-unit memory-all exit=0\n"
+}

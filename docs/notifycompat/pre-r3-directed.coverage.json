@@ -1,0 +1,1892 @@
+{
+  "arm": "PRE",
+  "sha256": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+  "legs": 108,
+  "scenarios": 1320,
+  "rows": [
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 5,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "raw unchanged",
+        "integer unchanged"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 14,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "SET elapsed nc:past:EXAT:False",
+        "lazy expiry nc:past:EXAT:False",
+        "SET elapsed nc:past:EXAT:True",
+        "lazy expiry nc:past:EXAT:True",
+        "SET elapsed nc:past:PXAT:False",
+        "lazy expiry nc:past:PXAT:False",
+        "SET elapsed nc:past:PXAT:True",
+        "lazy expiry nc:past:PXAT:True",
+        "active SET expiry",
+        "active SET expiry"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 17,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=0",
+        "live destination layout=0",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "absent destination layout=1",
+        "live destination layout=1",
+        "wide BITOP source order"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "write read miss nc:readwrite:SET:False",
+        "write read miss nc:readwrite:SET:True",
+        "write read miss nc:readwrite:GETSET:False",
+        "write read miss nc:readwrite:GETSET:True",
+        "write read miss nc:readwrite:GETDEL:False",
+        "write read miss nc:readwrite:GETDEL:True",
+        "write read miss nc:readwrite:GETEX:False",
+        "write read miss nc:readwrite:GETEX:True",
+        "SET XX GET misses before condition"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "OBJECT read nc:object:IDLETIME:True",
+        "OBJECT read nc:object:FREQ:True",
+        "absent before policy error",
+        "absent before policy error"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 44,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=0",
+        "expired destination layout=0",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "expired destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1",
+        "absent STORE destination layout=1"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a0-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a0-rl1",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a0-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a0-rl1",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-epoll-a0-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-uring-a0-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a1-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a1-rl1",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a1-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a1-rl1",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-epoll-a1-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-uring-a1-rl0",
+      "scenarios": 2,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "wire_or_reply_mismatches": [
+        "event-free nc:flush:0:FLUSHDB",
+        "event-free nc:flush:1:FLUSHDB"
+      ]
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a0-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a0-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a1-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a1-rl1",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": false,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    }
+  ]
+}

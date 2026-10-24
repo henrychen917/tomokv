@@ -1,0 +1,10 @@
+{
+  "source_sha256": "377487f8c0b46631706b69a78e4756f759afca7efe4547005cc60cd34ea6922c",
+  "copied_sha256": "f701923e4e57555a913c32f1d589098b67d81d426ee8777d62e242553ed72958",
+  "gates_test_sha256": "6ad0dc7f0fb4a5bae67211902233a1b7bb34cbf1d76e93b9d7dbe1352559347c",
+  "edits": [
+    "EXPECT_QUICK 739->768",
+    "EXPECT_FULL 756->785"
+  ],
+  "fixture": "Unmodified merged 785-row label fixture"
+}

@@ -124,12 +124,51 @@ def fliplisten_inventory(binary, namespaces):
                 f'missing fliplisten parser body: {namespace}: {name}'
 
 
+def execfair_inventory(binary, namespaces):
+    """Exactly three owner-local promotion callback bodies per runtime.
+
+    They are ordinary execute callbacks, not armed R7-only bodies. Keep each
+    physical body in the strict byte comparison and reject a missing clone.
+    """
+    for namespace in namespaces:
+        expected = {
+            f'{namespace}::ExLoopT<{fused}>::execute<false, {no_evict}>'
+            f'({namespace}::Task const&)::{{lambda(void*, {namespace}::Task const&)#1}}'
+            f'::_FUN(void*, {namespace}::Task const&)'
+            for fused, no_evict in (('false', 'false'), ('true', 'false'), ('true', 'true'))
+        }
+        found = {name for name in binary.groups
+                 if name.startswith(namespace + '::ExLoopT<') and '::execute<' in name
+                 and '::{lambda(void*, ' + namespace + '::Task const&)#1}::_FUN(' in name}
+        assert found == expected and all(len(binary.groups[name]) == 1 for name in expected), \
+            f'missing execfair promotion callback: {namespace}: expected={expected}, found={found}'
+
+
+def notifycompat_inventory(binary):
+    """NO-A7 replaces one normal scan by two unique-key bodies: net +1/0.
+
+    The DB0 hot/cold pair already exists on the headline. Require all four
+    physical bodies, and the disappearance of the superseded normal scan.
+    """
+    normal = 'void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]'
+    expected = {normal.replace('tomo::', namespace + '::') + suffix
+                for namespace in ('tomo', 'tomo_db0')
+                for suffix in ('', ' [clone .cold]')}
+    found = {name for name in binary.groups if 'FlatStore::atomic_for_each_unique_key<' in name
+             and 'xshard_execute(' in name and audit.category(name)}
+    retired = {name for name in binary.groups if 'tomo::FlatStore::scan<' in name
+               and 'tomo::xshard_execute(' in name and audit.category(name)}
+    assert found == expected and all(len(binary.groups[name]) == 1 for name in expected) and not retired, \
+        f'missing notifycompat scatter scan: expected={expected}, found={found}'
+    return expected
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -143,7 +182,7 @@ if __name__ == '__main__':
     # the old single-runtime audit had 169. Later inventory deltas are explicit.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
-    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe', 'wave5'):
+    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6'):
         assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
         # wbrule carries SplitLocal through flush_ready. These sixteen additional
         # instantiations per runtime keep physical 2s writeback separate from 1s.
@@ -156,13 +195,13 @@ if __name__ == '__main__':
                 found = {name for name in binary.groups if name in added}
                 assert found == added, f'missing physical split-local WB bodies: {added - found}'
             expected[namespace] += len(added)
-    if args.inventory in ('splitlocal', 'overlapaxe', 'wave5'):
+    if args.inventory in ('splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6'):
         for binary in (pre, post):
-            splitlocal_inventory(binary, expected, overlap_removed=args.inventory in ('overlapaxe', 'wave5'),
-                                 fliplisten=args.inventory == 'wave5')
+            splitlocal_inventory(binary, expected, overlap_removed=args.inventory in ('overlapaxe', 'wave5', 'execfair', 'wave6'),
+                                 fliplisten=args.inventory in ('wave5', 'execfair', 'wave6'))
         for namespace in expected:
             expected[namespace] += 14
-    if args.inventory in ('overlapaxe', 'wave5'):
+    if args.inventory in ('overlapaxe', 'wave5', 'execfair', 'wave6'):
         # 198 -> 147 physical bodies per runtime: -32 IO envelopes, -14 parser
         # bodies/closures, -4 retired WB helpers, -1 scheduler body. The renamed
         # fused owner prefetch remains in the audit; only split prefetch is gone.
@@ -190,11 +229,18 @@ if __name__ == '__main__':
         # See docs/moverfix2/README.md for symbols, IPA decisions and trials.
         # wave4: both edits compose additively: normal 146+1-1 = 146, DB0 146+1 = 147.
         expected['tomo'] -= 1
-    if args.inventory == 'wave5':
+    if args.inventory in ('wave5', 'execfair', 'wave6'):
         # All seven frozen lane links are inventoried in docs/wave5/r7-inventory.
         # Only fliplisten adds bodies: headline 146/147 + 6/6 = merged 152/153.
         for binary in (pre, post): fliplisten_inventory(binary, expected)
         for namespace in expected: expected[namespace] += 6
+    if args.inventory in ('execfair', 'wave6'):
+        for binary in (pre, post): execfair_inventory(binary, expected)
+        for namespace in expected: expected[namespace] += 3
+    if args.inventory == 'wave6':
+        for binary in (pre, post): notifycompat_inventory(binary)
+        # Headline 152/153 + execfair 3/3 + notifycompat 1/0 = 156/156.
+        expected['tomo'] += 1
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

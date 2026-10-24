@@ -1,0 +1,410 @@
+{
+  "binary_sha256": "194bcfa235f0255304b9d774134f28a9fe7beaf61ba6f10861484404c17dc615",
+  "gate_run": "/home/user/Projects/cx-datafix1/build/gate-run.ZqFhKD",
+  "features": [
+    {
+      "feature": "geo",
+      "legs": [
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-2s-rl0-a1",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-1s-rl0-a1",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "epoll-1s-rl1-a1",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-2s-rl0-a1",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-1s-rl0-a1",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 377,
+          "failures": 283
+        },
+        {
+          "feature": "CD4.3",
+          "leg": "uring-1s-rl1-a1",
+          "checks": 377,
+          "failures": 283
+        }
+      ],
+      "checks": 4524
+    },
+    {
+      "feature": "spop",
+      "legs": [
+        {
+          "feature": "CD4.4",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 756,
+          "failures": 53
+        },
+        {
+          "feature": "CD4.4",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 756,
+          "failures": 53
+        },
+        {
+          "feature": "CD4.4",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 756,
+          "failures": 53
+        },
+        {
+          "feature": "CD4.4",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 756,
+          "failures": 53
+        },
+        {
+          "feature": "CD4.4",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 756,
+          "failures": 53
+        },
+        {
+          "feature": "CD4.4",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 756,
+          "failures": 53
+        }
+      ],
+      "checks": 4536
+    },
+    {
+      "feature": "lists",
+      "legs": [
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 308,
+          "failures": 43
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-2s-rl0-a1",
+          "checks": 308,
+          "failures": 31
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 308,
+          "failures": 42
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-1s-rl0-a1",
+          "checks": 308,
+          "failures": 31
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 308,
+          "failures": 43
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "epoll-1s-rl1-a1",
+          "checks": 308,
+          "failures": 31
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 308,
+          "failures": 43
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-2s-rl0-a1",
+          "checks": 308,
+          "failures": 31
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 308,
+          "failures": 42
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-1s-rl0-a1",
+          "checks": 308,
+          "failures": 31
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 308,
+          "failures": 42
+        },
+        {
+          "feature": "CD4.5",
+          "leg": "uring-1s-rl1-a1",
+          "checks": 308,
+          "failures": 31
+        }
+      ],
+      "checks": 3696
+    },
+    {
+      "feature": "locale",
+      "legs": [
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-2s-rl0-a1",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-1s-rl0-a1",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "epoll-1s-rl1-a1",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-2s-rl0-a1",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-1s-rl0-a1",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 387,
+          "failures": 103
+        },
+        {
+          "feature": "CD4.6",
+          "leg": "uring-1s-rl1-a1",
+          "checks": 387,
+          "failures": 103
+        }
+      ],
+      "checks": 4644
+    },
+    {
+      "feature": "bitfield",
+      "legs": [
+        {
+          "feature": "CD4.10",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 147,
+          "failures": 47
+        },
+        {
+          "feature": "CD4.10",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 147,
+          "failures": 47
+        },
+        {
+          "feature": "CD4.10",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 147,
+          "failures": 47
+        },
+        {
+          "feature": "CD4.10",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 147,
+          "failures": 47
+        },
+        {
+          "feature": "CD4.10",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 147,
+          "failures": 47
+        },
+        {
+          "feature": "CD4.10",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 147,
+          "failures": 47
+        }
+      ],
+      "checks": 882
+    },
+    {
+      "feature": "hexpire",
+      "legs": [
+        {
+          "feature": "CD4.11",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 785,
+          "failures": 160
+        },
+        {
+          "feature": "CD4.11",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 785,
+          "failures": 160
+        },
+        {
+          "feature": "CD4.11",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 785,
+          "failures": 160
+        },
+        {
+          "feature": "CD4.11",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 785,
+          "failures": 160
+        },
+        {
+          "feature": "CD4.11",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 785,
+          "failures": 160
+        },
+        {
+          "feature": "CD4.11",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 785,
+          "failures": 160
+        }
+      ],
+      "checks": 4710
+    },
+    {
+      "feature": "randscan",
+      "legs": [
+        {
+          "feature": "CD4.12",
+          "leg": "epoll-2s-rl0-a0",
+          "checks": 1056,
+          "failures": 223
+        },
+        {
+          "feature": "CD4.12",
+          "leg": "epoll-1s-rl0-a0",
+          "checks": 1056,
+          "failures": 223
+        },
+        {
+          "feature": "CD4.12",
+          "leg": "epoll-1s-rl1-a0",
+          "checks": 1056,
+          "failures": 223
+        },
+        {
+          "feature": "CD4.12",
+          "leg": "uring-2s-rl0-a0",
+          "checks": 1056,
+          "failures": 223
+        },
+        {
+          "feature": "CD4.12",
+          "leg": "uring-1s-rl0-a0",
+          "checks": 1056,
+          "failures": 223
+        },
+        {
+          "feature": "CD4.12",
+          "leg": "uring-1s-rl1-a0",
+          "checks": 1056,
+          "failures": 223
+        }
+      ],
+      "checks": 6336
+    }
+  ],
+  "legs": 60,
+  "checks": 29328
+}

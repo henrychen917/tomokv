@@ -8,6 +8,12 @@ CORES=${GATE_CORES:-224-231}
 NCORES=$(taskset -c "$CORES" nproc)
 if [ "$NCORES" -ge 8 ]; then RATIO=4:4
 else RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
+MODE_ARGS=(--ratio "$RATIO")
+case "${GATE_TXN_FUSED:-0}" in
+  0) ;;
+  1) MODE_ARGS=(--thread-mode fused);;
+  *) echo "GATE_TXN_FUSED must be 0 or 1" >&2; exit 2;;
+esac
 CLI=${REDIS_CLI:-redis-cli}
 BIN=${GATE_CANDIDATE_BINARY:-${TOMO_BIN:-./build/tomokv}}
 NET_IO=${NET_IO:-uring}
@@ -46,7 +52,7 @@ boot_server() {
   [ "$debug" = yes ] && debug_args=(--enable-debug-command yes)
   [ -z "$(listener_pid)" ] || { echo "AOF rewrite: port $PORT already listening" >&2; return 1; }
   taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
-    --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
+    --shards 16 "${MODE_ARGS[@]}" --protected-mode no --atomic "$atomic" \
     --net-io "$NET_IO" --appendonly yes --appendfsync everysec --save '' \
     --dir "$directory" "${debug_args[@]}" \
     >"$log" 2>&1 &
@@ -141,7 +147,7 @@ for kind in manifest base record-length group-vector; do
   cp -a "$normal_atomic1"/. "$directory"/
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" corrupt "$directory" "$kind" >/dev/null
   if taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
-      --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+      --shards 16 "${MODE_ARGS[@]}" --protected-mode no --appendonly yes \
       --net-io "$NET_IO" --appendfsync everysec \
       --dir "$directory" >"$directory/refusal.log" 2>&1; then
     exit 1
@@ -157,7 +163,7 @@ first_path="$interior/appendonlydir/$first_incr"
 first_size=$(stat -c %s "$first_path")
 truncate -s $((first_size-7)) "$first_path"
 if taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
-    --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
+    --shards 16 "${MODE_ARGS[@]}" --protected-mode no --appendonly yes \
     --net-io "$NET_IO" --appendfsync everysec \
     --dir "$interior" >"$interior/refusal.log" 2>&1; then
   exit 1

@@ -1,0 +1,32 @@
+{
+  "reviewed_head": "3d2aec59c13c8f3f2fab8451888478618a2ac81d",
+  "production_source_commit": "f1f9dc18e",
+  "production_source_and_makefile_unchanged_since_commit": true,
+  "arms": {
+    "POST": {
+      "path": "/home/user/Projects/cx-wave6/build/tomokv",
+      "sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+      "bytes": 209924960
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-wave6/build/tomokv-wave6-PAD-A",
+      "sha256": "d3c042b755ce0ec0fb6fe377e9ee6a66d02b88a1b4f15b09c75bf7b6322c5d45",
+      "bytes": 10500736
+    },
+    "rebuilt_PRE": {
+      "path": "/home/user/Projects/cx-wave6/build/wave6/pre-source/build/tomokv",
+      "sha256": "9388e045f35736ce08a9b9635fb83e37f5fff75c0de0c78c091a8e5969b883ee",
+      "bytes": 208299264
+    },
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-ef5204b2e",
+      "sha256": "95798c8e28a01583c83f434a6ecc8e8e0602e7fc1d877a94ae58ec16bebbad41",
+      "bytes": 208299240
+    }
+  },
+  "protected_counts": [
+    "EXPECT_QUICK=739",
+    "EXPECT_FULL=756"
+  ],
+  "active_writers_first_switch_absent": true
+}

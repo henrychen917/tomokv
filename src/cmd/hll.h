@@ -45,6 +45,10 @@ uint64_t count(Slice image, bool& corrupt);
 bool merge_registers(Slice image, std::array<uint8_t, kRegisters>& maximum);
 uint64_t count_registers(const std::array<uint8_t, kRegisters>& registers);
 
+// Redis PFSELFTEST's register isolation, representation and six-sigma checks.
+// Empty means success; failures contain the complete Redis error text.
+std::string selftest();
+
 // Shape PFMERGE exactly like Redis: begin with the destination's current image (or a fresh sparse
 // image), force dense if any input was dense, otherwise update registers in ascending order through
 // the sparse mutation algorithm. The caller must already have merged and validated every input.

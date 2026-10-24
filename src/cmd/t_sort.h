@@ -18,6 +18,10 @@
 
 namespace tomo {
 
+// Cold CONFIG/boot publication; SORT owns a locale snapshot for its whole comparison context.
+bool sort_locale_valid(const char* name);
+bool sort_locale_set(const char* name);
+
 struct SortPattern {
     Slice raw;
     Slice prefix;            // bytes before the first '*'

@@ -1,0 +1,130 @@
+[
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-1s-0-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 768946,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-1s-0-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 700391,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-1s-1-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 697865,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-1s-1-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 674864,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-2s-0-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 352578,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-2s-0-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 330174,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-2s-1-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 354266,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "POST-ALT",
+    "cell": "execfair-2s-1-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 325165,
+    "expected_counter_pass": true
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-1s-0-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-1s-0-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-1s-1-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-1s-1-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-2s-0-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-2s-0-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-2s-1-epoll",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  },
+  {
+    "arm": "PAD-A",
+    "cell": "execfair-2s-1-uring",
+    "exact_counters": true,
+    "positive_progress": true,
+    "fast_polls": 0,
+    "expected_counter_pass": false
+  }
+]

@@ -6,6 +6,9 @@ import _lib
 
 
 host, port, engine, atomic = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+mode = sys.argv[5] if len(sys.argv) > 5 else "2s"
+if mode not in ("1s", "2s"):
+    raise ValueError("geometry mode must be 1s or 2s")
 retired = (
     "read-local-prefetch-capture", "read-local-atomic-filter", "read-local-interleave",
     "flip-auto-band", "l3-domains", "smt-mode", "genthread-schedule",
@@ -63,7 +66,7 @@ try:
             raise AssertionError("duplicate query-buffer SET changed the limit")
     finally:
         conn.must("CONFIG", "SET", query_name, values[query_name.encode()])
-    for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
+    for name, expected in (("thread-mode", mode), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
                            ("flip-auto", "0"), ("reorder", "0"),
                            ("wb-policy", "1"), ("wb-small-pipe", "16"),
@@ -88,7 +91,7 @@ try:
         if writeback.get(name) != expected:
             raise AssertionError("INFO WRITEBACK %s differs: %r" % (name, writeback))
     server = _lib.info(conn, "server")
-    for name, expected in (("thread_mode", "2s"), ("shards", "16"),
+    for name, expected in (("thread_mode", mode), ("shards", "16"),
                            ("read_local", "0"), ("atomic", atomic), ("reorder", "0"),
                            ("key_lb", "1"), ("client_lb", "1"), ("flip_auto", "0"),
                            ("flip_fingerprint_window", "0"), ("net_io", engine), ("hash", "mix64"),
@@ -104,15 +107,24 @@ try:
         mapping = dict(entries)
         if len(entries) != len(mapping) or set(mapping) != set(range(int(server["shards"]))):
             raise AssertionError("INFO %s is not a complete shard map" % field)
-        if any(owner not in {t.tid for t in snapshot.threads if t.role == "ex"}
+        owner_role = "fused" if mode == "1s" else "ex"
+        if any(owner not in {t.tid for t in snapshot.threads if t.role == owner_role}
                for owner in mapping.values()):
             raise AssertionError("INFO %s names a non-executor" % field)
     lb = _lib.info(conn, "lb")
     if (lb.get("tomokv_keylb_enabled") != "1" or
             lb.get("tomokv_clientlb_enabled") != "1" or "tomokv_lb_enabled" in lb):
         raise AssertionError("INFO LB does not report the independent switches")
-    if (sum(t.role == "io" for t in snapshot.threads) != int(server["io_threads"]) or
-            sum(t.role == "ex" for t in snapshot.threads) != int(server["ex_threads"])):
+    if mode == "1s":
+        if not snapshot.threads or any(t.role != "fused" for t in snapshot.threads):
+            raise AssertionError("fused boot has a missing or split thread inventory")
+        if any(int(server[name]) != len(snapshot.threads)
+               for name in ("fused_threads", "client_threads", "owner_threads")):
+            raise AssertionError("INFO fused role counts differ from actual thread inventory")
+        if "io_threads" in server or "ex_threads" in server:
+            raise AssertionError("fused INFO exposes split role counts")
+    elif (sum(t.role == "io" for t in snapshot.threads) != int(server["io_threads"]) or
+          sum(t.role == "ex" for t in snapshot.threads) != int(server["ex_threads"])):
         raise AssertionError("INFO role counts differ from actual thread inventory")
     # A boot-only echo would pass the initial comparison. Prove INFO follows a completed live
     # update too, including zero-copy's zero/off arm, and restore the caller's setting.

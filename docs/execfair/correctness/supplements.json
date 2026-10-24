@@ -1,0 +1,118 @@
+[
+  {
+    "name": "final-split-batteries",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries asan_batteries replyoff bplus script_bounds sort aclfix compat3",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-final-split-batteries.tsv"
+    },
+    "log": "build/execfair-final-split-batteries.log",
+    "exit_code": 0
+  },
+  {
+    "name": "fused-batteries",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "debug-0 debug-1 atomic_batteries asan_batteries replyoff script_bounds sort",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "1",
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-fused-batteries.tsv"
+    },
+    "log": "build/execfair-fused-batteries.log",
+    "exit_code": 0
+  },
+  {
+    "name": "script-bounds-split-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_TXN_FUSED": "0",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-script-bounds-split-a0.tsv"
+    },
+    "log": "build/execfair-script-bounds-split-a0.log",
+    "exit_code": 0
+  },
+  {
+    "name": "script-bounds-fused-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "script_bounds",
+      "GATE_TXN_FUSED": "1",
+      "GATE_TXN_ATOMIC": "0",
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-script-bounds-fused-a0.tsv"
+    },
+    "log": "build/execfair-script-bounds-fused-a0.log",
+    "exit_code": 0
+  }
+]

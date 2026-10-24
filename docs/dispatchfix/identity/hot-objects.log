@@ -1,0 +1,27 @@
+Hot bodies: 1216; raw byte equal: 1165; bytes + resolved relocation targets equal: 1190
+DIFF db0/src/cmd/scripting.o 606 647 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/core/genthread.o 10014 9970 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 166 166 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/reorder.o 984 1212 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1016 1244 tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 984 1212 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 18480 18480 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/persist/aof.o 606 520 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/persist/aof.o 692 564 tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/persist/aof.o 543 479 tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)
+DIFF src/core/reorder.o 1412 1614 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF src/core/reorder.o 1412 1614 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+DIFF src/core/rl2s.o 21185 21256 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 197 197 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/rl2s.o 21049 21042 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 190 190 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/rl2s.o 21239 21319 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 21252 21278 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+DIFF src/persist/aof.o 1405 1200 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/persist/aof.o 1511 1274 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/persist/aof.o 1589 1376 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+DIFF src/persist/aof.o 1005 806 tomo::FlatStore::find(unsigned long, tomo::Slice)
+DIFF src/snapshot/snapshot.o 540 346 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/snapshot/snapshot.o 621 580 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+DIFF src/snapshot/snapshot.o 1527 1511 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/snapshot/snapshot.o 1589 1593 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)

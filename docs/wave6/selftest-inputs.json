@@ -1,0 +1,8 @@
+[
+  "docs/CONFIGURATION.md",
+  "docs/cd13b/audit.json",
+  "docs/dispatchfix/pre-sha256.txt",
+  "docs/flakeaudit2/triage.json",
+  "docs/lbplanner/generic-cells.txt",
+  "docs/lbplanner/multidb-cells.txt"
+]

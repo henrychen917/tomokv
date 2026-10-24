@@ -1,0 +1,10 @@
+{
+  "source": 764,
+  "fixture": 764,
+  "same_multiset": true,
+  "protected_count_guard": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=756, fixture=764, source declarations=764\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.",
+  "dq": 8,
+  "df": 8,
+  "required_quick": 747,
+  "required_full": 764
+}

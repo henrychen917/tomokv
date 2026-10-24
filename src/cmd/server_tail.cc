@@ -6,7 +6,7 @@
 // question.
 //
 // Semantics were taken from the documented protocol and from byte-probing a vanilla redis 7.4
-// binary. No redis source was read or copied.
+// binary and the Redis 7.4 reference source; the implementation is local.
 #include "server_tail.h"
 #include "cmdmeta.h"
 
@@ -14,6 +14,7 @@
 #include "acl.h"
 #include "acl_categories_generated.h"
 #include "slowlog.h"
+#include "hll.h"
 #include "../base/alloc.h"
 #include "../core/config.h"
 #include "../core/server.h"
@@ -170,56 +171,13 @@ void cmd_wait(Shard&, Op& op) {
     reply_int(op.sink(), 0);
 }
 
-// WAITAOF numlocal numreplicas timeout.
-//
-// SCOPE, STATED PLAINLY. The grammar, the validation and every reply for numlocal == 0 are exact
-// against vanilla redis. The numlocal == 1 form -- "block until my writes are covered by a local
-// fsync" -- is NOT implemented and returns an explicit error rather than a plausible number.
-//
-// Why it is not implemented here, and what it needs:
-// a connection-local handler runs at PARSE time, before the ops ahead of it on the same connection
-// have executed, so the AOF sequence it could sample does not yet cover the caller's own writes.
-// Waiting synchronously cannot fix that: retiring those older ops requires this very IO thread, so
-// the wait would deadlock against them. The correct construction is the deferred reply the CLIENT
-// LIST scatter already uses (PubSubStartResult::Async + a per-loop pending map): publish the ROB
-// slot without a reply, wait for the connection's older ops to retire, force the owning producers
-// to post, then poll AofManager's durable frontier against the timeout. That is a real feature, not
-// a tweak, and shipping a guess in the meantime would hand a client a durability claim we cannot
-// stand behind.
+// MULTI shares validation but cannot block. Ordinary WAITAOF uses WAIT's
+// deferred connection timer, including an infinite deadline when timeout is zero.
+// Local fsync acknowledgements remain explicitly unsupported.
 void cmd_waitaof(Shard&, Op& op) {
-    int64_t numlocal = 0, numreplicas = 0, timeout = 0;
-    if (!parse_i64(op.arg(1), numlocal) || !parse_i64(op.arg(2), numreplicas) ||
-        !parse_i64(op.arg(3), timeout)) {
-        reply_invalid_integer(op);
-        return;
-    }
-    if (numlocal < 0 || numlocal > 1) {
-        reply_err(op.sink(), "ERR value is out of range, value must between 0 and 1");
-        return;
-    }
-    if (numreplicas < 0) {
-        reply_err(op.sink(), "ERR value is out of range, must be positive");
-        return;
-    }
-    if (timeout < 0) { reply_err(op.sink(), "ERR timeout is negative"); return; }
-
-    Server* server = command_server();
-    const bool appendonly = server && server->aof().configured();
-    if (numlocal && !appendonly) {
-        reply_err(op.sink(),
-                  "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled.");
-        return;
-    }
-    if (numlocal) {
-        reply_err(op.sink(),
-                  "ERR WAITAOF with numlocal > 0 is not implemented by tomokv: the local fsync wait needs the deferred-reply path, see NOTES-SERVERTAIL.md");
-        return;
-    }
-    // Standalone: nothing is asked of the local fsync, and there are no replicas to acknowledge.
-    auto sink = op.sink();
-    reply_array_header(sink, 2);
-    reply_int(sink, 0);
-    reply_int(sink, 0);
+    uint64_t timeout_ms = 0;
+    if (server_tail_prepare_wait(op, timeout_ms) != WaitCommandResult::Error)
+        server_tail_reply_wait(op);
 }
 
 void cmd_failover(Shard&, Op& op) {
@@ -238,9 +196,11 @@ void cmd_replicaof(Shard&, Op& op) {
     reply_err(op.sink(), "ERR replication is not supported by tomokv");
 }
 
-// Our HyperLogLog carries no encoding the command could exercise beyond what PFADD/PFCOUNT already
-// validate on every call, so the self test has nothing left to find and reports success.
-void cmd_pfselftest(Shard&, Op& op) { reply_ok(op.sink()); }
+void cmd_pfselftest(Shard&, Op& op) {
+    const std::string error = hll::selftest();
+    if (error.empty()) reply_ok(op.sink());
+    else reply_err(op.sink(), error.c_str());
+}
 
 // SHUTDOWN. On success redis sends NO reply -- the connection simply closes as the process goes
 // away -- so the only replies here are the refusals.
@@ -415,9 +375,16 @@ void cmd_object_impl(Shard& shard, Op& op) {
     const bool idletime = eq_icase(sub, "IDLETIME");
     const bool freq     = eq_icase(sub, "FREQ");
 
+    // Redis uses LOOKUP_NOTOUCH|LOOKUP_NONOTIFY for every OBJECT lookup.
+    // Lazy expiry still has its physical event; a missing key has no keymiss.
+    const uint64_t expired_before = shard.stats().expired;
+    KvObj* object = object_read_no_touch(shard, op.hash, op.arg(2));
+    if constexpr (kNotify) notify_overwrite_expiry(shard, expired_before, op.arg(2));
+    if (!object) { reply_null(op.sink(), op.resp3()); return; }
+
     const MaxmemoryPolicy policy = shard.store().maxmemory_policy();
     const bool lfu = maxmemory_policy_is_lfu(policy);
-    // These two gates are policy checks, not key checks, and redis applies them before the lookup.
+    // Policy errors follow the key lookup, including its lazy-expiry effects.
     if (freq && !lfu) {
         reply_err(op.sink(),
                   "ERR An LFU maxmemory policy is not selected, access frequency not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
@@ -429,12 +396,6 @@ void cmd_object_impl(Shard& shard, Op& op) {
         return;
     }
 
-    // ENCODING/REFCOUNT go through the notify-aware lookup so an armed keymiss event still fires.
-    // IDLETIME/FREQ must not touch the metadata they are about to report.
-    KvObj* object = (idletime || freq)
-        ? object_read_no_touch(shard, op.hash, op.arg(2))
-        : shard.store_find_read<kNotify>(op.hash, op.arg(2));
-    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (encoding) {
         const char* name = encoding_name(object);
         reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));
@@ -911,6 +872,45 @@ bool command_list(Op& op) {
 }  // namespace
 
 WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms) {
+    if (op.argc() == 4) {
+        int64_t local = 0, replicas = 0, timeout = 0;
+        if (!cfg_parse_integer(op.arg(1), local)) {
+            reply_invalid_integer(op); return WaitCommandResult::Error;
+        }
+        if (local < 0 || local > 1) {
+            reply_err(op.sink(), "ERR value is out of range, value must between 0 and 1");
+            return WaitCommandResult::Error;
+        }
+        if (!cfg_parse_integer(op.arg(2), replicas)) {
+            reply_invalid_integer(op); return WaitCommandResult::Error;
+        }
+        if (replicas < 0) {
+            reply_err(op.sink(), "ERR value is out of range, must be positive");
+            return WaitCommandResult::Error;
+        }
+        if (!cfg_parse_integer(op.arg(3), timeout)) {
+            reply_err(op.sink(), "ERR timeout is not an integer or out of range");
+            return WaitCommandResult::Error;
+        }
+        if (timeout < 0) {
+            reply_err(op.sink(), "ERR timeout is negative"); return WaitCommandResult::Error;
+        }
+        timespec now{};
+        ::clock_gettime(CLOCK_REALTIME, &now);
+        const int64_t now_ms = static_cast<int64_t>(now.tv_sec) * 1000 + now.tv_nsec / 1000000;
+        if (timeout > INT64_MAX - now_ms) {
+            reply_err(op.sink(), "ERR timeout is out of range"); return WaitCommandResult::Error;
+        }
+        Server* server = command_server();
+        if (local) {
+            reply_err(op.sink(), server && server->aof().configured() ?
+                "ERR WAITAOF with numlocal > 0 is not implemented by tomokv: the local fsync wait needs the deferred-reply path, see NOTES-SERVERTAIL.md" :
+                "ERR WAITAOF cannot be used when numlocal is set but appendonly is disabled.");
+            return WaitCommandResult::Error;
+        }
+        timeout_ms = static_cast<uint64_t>(timeout);
+        return replicas ? WaitCommandResult::Unsatisfied : WaitCommandResult::Immediate;
+    }
     int64_t replicas = 0, timeout = 0;
     if (!parse_i64(op.arg(1), replicas)) {
         reply_invalid_integer(op);
@@ -935,6 +935,15 @@ WaitCommandResult server_tail_prepare_wait(Op& op, uint64_t& timeout_ms) {
     }
     timeout_ms = static_cast<uint64_t>(timeout);
     return replicas > 0 ? WaitCommandResult::Unsatisfied : WaitCommandResult::Immediate;
+}
+
+void server_tail_reply_wait(Op& op) {
+    auto sink = op.sink();
+    if (op.argc() == 4) {
+        reply_array_header(sink, 2);
+        reply_int(sink, 0);
+    }
+    reply_int(sink, 0);
 }
 
 bool server_tail_config_subcommand(Op& op) {
@@ -1005,7 +1014,7 @@ static const CommandSpec kTable[] = {
     {"ROLE",        1,  1, CmdFlags::ConnLocal,                                  cmd_role,       0,  0, 0},
     {"WAIT",        3,  3, CmdFlags::ConnLocal | CmdFlags::OrderedLocal |
                                 CmdFlags::DeferredLocal,                           cmd_wait,       0,  0, 0},
-    {"WAITAOF",     4,  4, CmdFlags::ConnLocal,                                  cmd_waitaof,    0,  0, 0},
+    {"WAITAOF",     4,  4, CmdFlags::ConnLocal | CmdFlags::OrderedLocal | CmdFlags::DeferredLocal,                                  cmd_waitaof,    0,  0, 0},
     {"FAILOVER",    1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_failover,   0,  0, 0},
     {"REPLICAOF",   3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
     {"SLAVEOF",     3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},

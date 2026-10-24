@@ -1,0 +1,82 @@
+{
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    25
+  ],
+  "arms": {
+    "post-epoll": {
+      "legs": 938,
+      "failures": 0,
+      "cells": 16,
+      "inventory": "post-epoll-differ-inventory.json",
+      "archive": "post-epoll-differ-serial-proof.tar.gz",
+      "observed_engines": [
+        "epoll"
+      ],
+      "observed_executables": [
+        "/home/user/Projects/cx-datafix1/build/tomokv"
+      ],
+      "strict_folds": {
+        "split": true,
+        "armed": true
+      }
+    },
+    "pre-epoll": {
+      "legs": 938,
+      "failures": 0,
+      "cells": 16,
+      "inventory": "pre-epoll-differ-inventory.json",
+      "archive": "pre-epoll-differ-serial-proof.tar.gz",
+      "observed_engines": [
+        "epoll"
+      ],
+      "observed_executables": [
+        "/home/user/Projects/cx-datafix1/build/datafix1/pre-src/build/tomokv"
+      ],
+      "strict_folds": {
+        "split": true,
+        "armed": true
+      }
+    },
+    "post-uring": {
+      "legs": 938,
+      "failures": 0,
+      "cells": 16,
+      "inventory": "post-uring-differ-inventory.json",
+      "archive": "post-uring-differ-serial-proof.tar.gz",
+      "observed_engines": [
+        "io_uring"
+      ],
+      "observed_executables": [
+        "/home/user/Projects/cx-datafix1/build/tomokv"
+      ],
+      "strict_folds": {
+        "split": true,
+        "armed": true
+      }
+    },
+    "pre-uring": {
+      "legs": 938,
+      "failures": 0,
+      "cells": 16,
+      "inventory": "pre-uring-differ-inventory.json",
+      "archive": "pre-uring-differ-serial-proof.tar.gz",
+      "observed_engines": [
+        "io_uring"
+      ],
+      "observed_executables": [
+        "/home/user/Projects/cx-datafix1/build/datafix1/pre-src/build/tomokv"
+      ],
+      "strict_folds": {
+        "split": true,
+        "armed": true
+      }
+    }
+  },
+  "differential_legs": 3752,
+  "mode_equivalence_cells": 64,
+  "mode_equivalence_owned_boots": 128
+}

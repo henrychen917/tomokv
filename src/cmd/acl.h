@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace tomo {
@@ -44,6 +45,10 @@ struct AclSelector {
     std::vector<std::string> key_patterns;
     std::vector<std::string> channel_patterns;
     std::vector<std::string> command_rules;
+    // Allocated only by rules that address children. The bitmap is sized from
+    // the generated metadata; an empty bitmap inherits the +/-@all baseline.
+    std::vector<uint64_t> allowed_subcommands;
+    std::vector<std::pair<uint32_t, std::string>> allowed_firstargs;
 };
 
 struct AclPerm : AclSelector {

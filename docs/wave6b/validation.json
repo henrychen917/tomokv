@@ -1,0 +1,92 @@
+{
+  "caller_environment": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": null
+  },
+  "runs": {
+    "locale-post": {
+      "run": "build/gate-run.B6FjPw",
+      "rows": 197,
+      "jobs": {
+        "release": 1,
+        "datafix1_locale": 1,
+        "production_units": 0,
+        "differ-split-0": 1,
+        "differ-split-1": 1,
+        "differ-equivalence": 1,
+        "feature-split-0": 34,
+        "feature-armed-0": 35,
+        "feature-split-1": 34,
+        "feature-armed-1": 35,
+        "debug-0": 16,
+        "debug-1": 16,
+        "aclfix": 12,
+        "sort": 2,
+        "script_bounds": 2,
+        "notify": 6
+      },
+      "fold": {
+        "schema": 1,
+        "group": "split",
+        "parts": [
+          "split-0",
+          "split-1",
+          "equivalence"
+        ],
+        "start": 1792864865.207239,
+        "end": 1792865617.66966,
+        "seconds": 752.4624211788177,
+        "comparisons": 678,
+        "complete": true
+      }
+    },
+    "differ-armed-post": {
+      "run": "build/gate-run.zJ5qt6",
+      "rows": 3,
+      "jobs": {
+        "release": 1,
+        "differ-armed-0": 1,
+        "differ-armed-1": 1
+      },
+      "fold": {
+        "schema": 1,
+        "group": "armed",
+        "parts": [
+          "armed-0",
+          "armed-1"
+        ],
+        "start": 1792865417.9332132,
+        "end": 1792866156.9550915,
+        "seconds": 739.0218782424927,
+        "comparisons": 648,
+        "complete": true
+      }
+    }
+  },
+  "proof_archive": {
+    "path": "docs/wave6b/locale-and-related-proof.tar.gz",
+    "files": 4343,
+    "sha256": "5e73a4c6f729b87137153ec4117cd56570c39f4446c529cb5903d1ae50c68281"
+  },
+  "txnorder": {
+    "battery_rows": 40,
+    "passes": 40,
+    "rounds_per_job": 10,
+    "receipt": "docs/wave6b/txnorder.json"
+  },
+  "gates_test": {
+    "tests": 72,
+    "failures": 0,
+    "receipt": "docs/wave6b/gates-test.log"
+  },
+  "locale_battery": {
+    "feature": "CD4.6",
+    "legs": 12,
+    "failures": []
+  },
+  "server_binary_sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+  "not_run": {
+    "full_iteration": "Reserved to maintainer; individual correctness jobs only.",
+    "performance_ABBA_NIC": "Outside lane authorization; unchanged server binary."
+  }
+}

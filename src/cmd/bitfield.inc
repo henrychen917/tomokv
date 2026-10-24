@@ -113,15 +113,15 @@ bool parse_bitfield_offset(Op& op, Slice argument, uint8_t bits, uint64_t& offse
     const bool indexed = argument.n && argument.p[0] == '#';
     const Slice number(argument.p + indexed, argument.n - indexed);
     int64_t parsed = 0;
-    if (!bitfield_parse_i64(number, parsed) || parsed < 0 ||
-        (indexed && static_cast<uint64_t>(parsed) >
-                        static_cast<uint64_t>(INT64_MAX) / bits)) {
+    if (!bitfield_parse_i64(number, parsed)) {
         reply_err(op.sink(), "ERR bit offset is not an integer or out of range");
         return false;
     }
     uint64_t result = static_cast<uint64_t>(parsed);
+    // The oracle multiplies # offsets in the signed machine word before checking
+    // their range. Express the same two's-complement wrap without signed overflow.
     if (indexed) result *= bits;
-    if (((result + bits - 1) >> 3) >= command_proto_max_bulk_len()) {
+    if (result > INT64_MAX || (result >> 3) >= command_proto_max_bulk_len()) {
         reply_err(op.sink(), "ERR bit offset is not an integer or out of range");
         return false;
     }
@@ -285,6 +285,11 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
         return;
     }
 
+    // Redis grows through the final bit (lookupStringForBitCommand), with no
+    // second proto-max-bulk-len check. A 64-bit field starting in the last valid
+    // byte needs at most eight extra bytes. The representable string cap reserves
+    // 64 KiB below UINT32_MAX, so both this cast and every bit store remain safe.
+    static_assert(kProtoMaxBulkLenRepresentable + 8 <= UINT32_MAX);
     const uint32_t new_length = static_cast<uint32_t>(
         std::max<uint64_t>(old.n, (highest_write_offset >> 3) + 1));
     uint8_t* image = static_cast<uint8_t*>(std::malloc(new_length));

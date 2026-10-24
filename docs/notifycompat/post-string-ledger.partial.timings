@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	22.460000	notification compatibility setbit vs Redis 7.4
+FAIL	32.280000	notification compatibility setpast vs Redis 7.4

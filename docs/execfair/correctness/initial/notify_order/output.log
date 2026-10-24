@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; keyspace lazy-expiry order vs Redis 7.4
+  keyspace lazy-expiry order vs Redis 7.4              ok

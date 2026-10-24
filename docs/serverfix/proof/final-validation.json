@@ -1,0 +1,117 @@
+{
+  "verified_source_tree": "ae3daf768531ed116c7b22472755592b6ab2446f",
+  "verified_tests_tree": "4c40226cf4aead927d8ac42a6e59103b15fd4b53",
+  "verified_makefile_blob": "7fdf24b86f38d62083874a5461a32b4c9eba3d32",
+  "cpus": [
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "freshness": {
+    "all": 0,
+    "build/expire-notify-unit": 0,
+    "build/ktls-lifetime-unit": 0,
+    "build/moverfix-unit": 0,
+    "build/moverfix-db0-unit": 0,
+    "build/publishfix-unit": 0,
+    "build/at15-unit": 0,
+    "build/at15-db0-unit": 0,
+    "build/execabort-watch-unit": 0,
+    "build/execabort-watch-db0-unit": 0,
+    "build/core-concurrency-unit": 0,
+    "build/atomic-survivors-unit": 0,
+    "build/txnorder-wake-unit": 0,
+    "build/txnorder-episodes": 0,
+    "build/txnorder-episodes-debug": 0,
+    "build/txnorder-watch-unit": 0,
+    "build/txnorder-watch-db0-unit": 0,
+    "build/netcmd-unit": 0,
+    "build/encodingfix-unit": 0,
+    "build/netcap-unit": 0,
+    "build/waits-unit": 0,
+    "build/rehash-waits-unit": 0,
+    "build/multidb-unit": 0,
+    "build/multidb-boundary-unit": 0,
+    "build/storesize-unit": 0,
+    "build/respresume-unit": 0,
+    "build/respresume-migration": 0,
+    "build/exbatch-unit": 0,
+    "build/exbatch-db0-unit": 0,
+    "build/wb-rule-units": 0,
+    "build/wbland-units": 0,
+    "build/rltopo-unit": 0,
+    "build/lbplanner-units": 0,
+    "build/shutdown-unit": 0,
+    "build/persistfix-units": 0,
+    "build/ktls-keyupdate": 0,
+    "build/ktls-keyupdate-unit": 0,
+    "build/flushfix-units": 0,
+    "build/splitlocal-unit": 0,
+    "build/reorder-engagement-unit": 0,
+    "build/reorder-engagement-unit-db0": 0,
+    "build/racefix-climon": 0,
+    "build/aoforder-scheduled": 0,
+    "mdbqsbr-live-arms": 0
+  },
+  "binaries": {
+    "build/tomokv": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "build/tomokv-serverfix-pre": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "build/tomokv-serverfix-pad-a": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12"
+  },
+  "diff_check": 0,
+  "label_guard_exit": 1,
+  "retained_instruction_diff_sha256": "e64c59910cd4b51d90df5cf24ab24d9e3dc17d01a8ec61934e4bb54a17421fa5",
+  "no_lane_port_listeners": true,
+  "label_guard": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=756, fixture=764, source declarations=764\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.\n",
+  "unchanged_expect_constants": [
+    "EXPECT_QUICK=739",
+    "EXPECT_FULL=756                 # ABBA reports only; self-test remains counted."
+  ],
+  "new_rows": [
+    [
+      4927,
+      "collect_job serverfix_lines"
+    ],
+    [
+      4928,
+      "collect_job serverfix_scalar"
+    ],
+    [
+      4929,
+      "collect_job serverfix_config"
+    ],
+    [
+      4930,
+      "collect_job serverfix_hello"
+    ],
+    [
+      4931,
+      "collect_job serverfix_waitaof"
+    ],
+    [
+      4932,
+      "collect_job serverfix_hll"
+    ],
+    [
+      4933,
+      "collect_job serverfix_slowlog"
+    ],
+    [
+      4934,
+      "collect_job serverfix_acllog"
+    ]
+  ]
+}

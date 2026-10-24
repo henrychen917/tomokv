@@ -327,7 +327,7 @@ static std::string transaction(Server& server, Client& client,
                 server.shard(s), server.worker_of_shard(s), 0, nullptr);
             require(server.databases().capture().epoch == before_epoch || state->decision.epoch.load() != 0,
                     "map publication shares the MVCC decision");
-            if (result != MultiTaskResult::Retry) { done[i] = true; --remaining; }
+            if (!multi_task_retry(result)) { done[i] = true; --remaining; }
         }
     }
     require(!remaining, "transaction phases made bounded progress");
@@ -401,6 +401,9 @@ static void persistence(Server& server) {
         require(!store.snapshot_active() && !store.snapshot_failed(), "snapshot capture completed");
     }
     AofReplayPlan aof;
+    // Match the validated header metadata supplied by aof_read_plan. EX4.17's
+    // compatibility loader now uses this count to choose old/new section maps.
+    aof.shard_count = snapshot.shard_count;
     aof.sections.resize(server.nshards());
     unsigned namespaces = 0;
     // Feed the real AOF loader matching native records. The gate separately exercises

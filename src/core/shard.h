@@ -306,8 +306,11 @@ public:
     bool watch_group_write_ready(Slice key, const void* token = nullptr);
     bool watch_key_ready(const std::string& key, const void* token, bool all_units);
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
-                          WatchReservation unit);
-    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);
+                          WatchReservation unit, const struct MultiRetryPromoter* promoter = nullptr);
+    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token,
+                           const struct MultiRetryPromoter* promoter = nullptr);
+    void watch_promote_unit_waiter(const std::string& key,
+                                   const struct MultiRetryPromoter* promoter);
     bool watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp);
     uint64_t watch_writer_stamp(Slice key, const void* token, bool whole = false) const;
     void watch_writer_forget(const void* token);
@@ -621,12 +624,16 @@ public:
 
     enum class TransferPhase : uint8_t { Idle = 0, Preparing = 1, Committed = 2 };
 
+    // ceil(sid * buckets / shards) is the inverse of floor(bucket * shards / buckets).
+    // Sharing the boundary with Shard::init keeps migration and LB signal ranges exact.
+    static constexpr uint32_t uniform_begin(uint32_t sid, uint32_t nshards) {
+        return (sid * kNumBuckets + nshards - 1) / nshards;
+    }
+
     void build_uniform(int32_t nshards) {
         nshards_ = nshards;
-        const uint32_t per = kNumBuckets / nshards;
         for (uint32_t b = 0; b < kNumBuckets; b++) {
-            int32_t s = static_cast<int32_t>(b / per);
-            if (s >= nshards) s = nshards - 1;      // remainder buckets go to the last shard
+            const int32_t s = static_cast<int32_t>(b * nshards / kNumBuckets);
             owner_[b].store(pack(s, kNoOwner), std::memory_order_relaxed);
         }
     }

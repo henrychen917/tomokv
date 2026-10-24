@@ -1,0 +1,377 @@
+{"argv": ["GEOADD", "g", 0, 0, "a", 0.01, 0.01, "b"], "oracle": 2, "target": 2}
+{"argv": ["SET", "wrong", "v"], "oracle": "OK", "target": "OK"}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "ASC", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "ASC", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "COUNT", 1, "BYRADIUS", 10, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "COUNT", 1, "ASC", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "ASC", "FROMMEMBER", "a", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "ASC", "COUNT", 1, "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "COUNT", 1, "FROMMEMBER", "a", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "COUNT", 1, "ASC", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMMEMBER", "a", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYRADIUS", 10, "km", "COUNT", 1, "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "FROMMEMBER", "a", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "BYRADIUS", 10, "km", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMMEMBER", "a", "ASC", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYRADIUS", 10, "km", "FROMMEMBER", "a", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYRADIUS", 10, "km", "ASC", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "FROMMEMBER", "a", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "BYRADIUS", 10, "km", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "ASC", "FROMMEMBER", "a", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1, "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMMEMBER", "a", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMMEMBER", "a", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "FROMMEMBER", "a", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMMEMBER", "a", "ASC", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "FROMMEMBER", "a", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km", "FROMMEMBER", "a"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "ASC", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "BYRADIUS", 10, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 10, "km", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYRADIUS", 10, "km", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC", "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYRADIUS", 10, "km", "ASC", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "ASC", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "BYBOX", 20, 20, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC", "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "ASC"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km"], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0], "oracle": ["a"], "target": ["a"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ANY", "COUNT", 10], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 10, "ASC", "ANY"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "STORE", "dst"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "STOREDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "9223372036854775808"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 0], "oracle": {"error": "ERR COUNT must be > 0"}, "target": {"error": "ERR COUNT must be > 0"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", -1], "oracle": {"error": "ERR COUNT must be > 0"}, "target": {"error": "ERR COUNT must be > 0"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "FROMMEMBER", "b"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "BYBOX", 1, 1, "km"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "BYRADIUS", 2, "km"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "WITHDIST", "STOREDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ANY", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCH", "g", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEOSEARCH", "g", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCH", "g", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "ERR need numeric height"}, "target": {"error": "ERR need numeric height"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "ERR height or width cannot be negative"}, "target": {"error": "ERR height or width cannot be negative"}}
+{"argv": ["GEOSEARCH", "g", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "ERR radius cannot be negative"}, "target": {"error": "ERR radius cannot be negative"}}
+{"argv": ["GEOSEARCH", "missing", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "missing", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "missing", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCH"}}
+{"argv": ["GEOSEARCH", "missing", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCH", "missing", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCH", "missing", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEOSEARCH", "missing", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "ERR need numeric height"}, "target": {"error": "ERR need numeric height"}}
+{"argv": ["GEOSEARCH", "missing", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "ERR height or width cannot be negative"}, "target": {"error": "ERR height or width cannot be negative"}}
+{"argv": ["GEOSEARCH", "missing", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "ERR radius cannot be negative"}, "target": {"error": "ERR radius cannot be negative"}}
+{"argv": ["GEOSEARCH", "wrong", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCH", "wrong", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "ASC", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "ASC", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "COUNT", 1, "BYRADIUS", 10, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "COUNT", 1, "ASC", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "ASC", "FROMMEMBER", "a", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "ASC", "COUNT", 1, "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "COUNT", 1, "FROMMEMBER", "a", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "COUNT", 1, "ASC", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMMEMBER", "a", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYRADIUS", 10, "km", "FROMMEMBER", "a", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYRADIUS", 10, "km", "COUNT", 1, "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "FROMMEMBER", "a", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "BYRADIUS", 10, "km", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMMEMBER", "a", "ASC", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYRADIUS", 10, "km", "FROMMEMBER", "a", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYRADIUS", 10, "km", "ASC", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "FROMMEMBER", "a", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "BYRADIUS", 10, "km", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "ASC", "FROMMEMBER", "a", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1, "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMMEMBER", "a", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMMEMBER", "a", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "FROMMEMBER", "a", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMMEMBER", "a", "BYBOX", 20, 20, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMMEMBER", "a", "ASC", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMMEMBER", "a", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "FROMMEMBER", "a", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km", "FROMMEMBER", "a"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "ASC", "BYRADIUS", 10, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "BYRADIUS", 10, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 10, "km", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYRADIUS", 10, "km", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC", "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYRADIUS", 10, "km", "ASC", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0, "BYRADIUS", 10, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "ASC", "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "BYBOX", 20, 20, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "ASC", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "COUNT", 1, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYBOX", 20, 20, "km", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "FROMLONLAT", 0, 0, "COUNT", 1, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "COUNT", 1], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "BYBOX", 20, 20, "km", "COUNT", 1, "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "ASC", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km", "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "FROMLONLAT", 0, 0, "ASC", "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0, "ASC"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "BYBOX", 20, 20, "km", "ASC", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "FROMLONLAT", 0, 0, "BYBOX", 20, 20, "km"], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "COUNT", 1, "ASC", "BYBOX", 20, 20, "km", "FROMLONLAT", 0, 0], "oracle": 1, "target": 1}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ANY", "COUNT", 10], "oracle": 2, "target": 2}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 10, "ASC", "ANY"], "oracle": 2, "target": 2}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "STORE", "dst"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "STOREDIST"], "oracle": 2, "target": 2}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", "9223372036854775808"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", 0], "oracle": {"error": "ERR COUNT must be > 0"}, "target": {"error": "ERR COUNT must be > 0"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "COUNT", -1], "oracle": {"error": "ERR COUNT must be > 0"}, "target": {"error": "ERR COUNT must be > 0"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "FROMMEMBER", "b"], "oracle": 2, "target": 2}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "FROMLONLAT", 0, 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "BYBOX", 1, 1, "km"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "BYRADIUS", 2, "km"], "oracle": 2, "target": 2}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "WITHDIST", "STOREDIST"], "oracle": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", 10, "km", "ANY", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCHSTORE"}, "target": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCHSTORE"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCHSTORE"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCHSTORE"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "ERR need numeric height"}, "target": {"error": "ERR need numeric height"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "ERR height or width cannot be negative"}, "target": {"error": "ERR height or width cannot be negative"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "g", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "ERR radius cannot be negative"}, "target": {"error": "ERR radius cannot be negative"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCHSTORE"}, "target": {"error": "ERR exactly one of BYRADIUS and BYBOX can be specified for GEOSEARCHSTORE"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCHSTORE"}, "target": {"error": "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for GEOSEARCHSTORE"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "ERR need numeric radius"}, "target": {"error": "ERR need numeric radius"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "ERR need numeric height"}, "target": {"error": "ERR need numeric height"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "ERR height or width cannot be negative"}, "target": {"error": "ERR height or width cannot be negative"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "missing", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "ERR radius cannot be negative"}, "target": {"error": "ERR radius cannot be negative"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "WITHDIST", "WITHHASH", "WITHCOORD", "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMLONLAT", 0, 0, "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "BYRADIUS", 1, "km", "ASC", "DESC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMMEMBER", "absent", "BYRADIUS", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "BYRADIUS", "bad", "unit", "FROMMEMBER", "absent"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMLONLAT", 181, 91, "BYRADIUS", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMMEMBER", "a", "BYBOX", -1, "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMMEMBER", "a", "BYBOX", -1, 1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEOSEARCHSTORE", "dst", "wrong", "FROMMEMBER", "a", "BYRADIUS", -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "g", 181, 91, 1, "km"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "g", 181, 91, "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "g", 181, 91, -1, "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "g", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEORADIUS", "g", 0, 0, 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUS", "g", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUS", "g", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEORADIUS", "g", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": 2, "target": 2}
+{"argv": ["GEORADIUS", "missing", 181, 91, 1, "km"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "missing", 181, 91, "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "missing", 181, 91, -1, "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS", "missing", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": [], "target": []}
+{"argv": ["GEORADIUS", "missing", 0, 0, 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUS", "missing", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUS", "missing", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEORADIUS", "missing", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": 0, "target": 0}
+{"argv": ["GEORADIUS", "wrong", 181, 91, 1, "km"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 181, 91, "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 181, 91, -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 0, 0, 10, "km", "ANY"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS", "wrong", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "g", 181, 91, 1, "km"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "g", 181, 91, "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "g", 181, 91, -1, "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "g", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEORADIUS_RO", "g", 0, 0, 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUS_RO", "g", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUS_RO", "g", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUS_RO", "g", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUS_RO", "missing", 181, 91, 1, "km"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "missing", 181, 91, "bad", "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "missing", 181, 91, -1, "unit"], "oracle": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}, "target": {"error": "ERR invalid longitude,latitude pair 181.000000,91.000000"}}
+{"argv": ["GEORADIUS_RO", "missing", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": [], "target": []}
+{"argv": ["GEORADIUS_RO", "missing", 0, 0, 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUS_RO", "missing", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUS_RO", "missing", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUS_RO", "missing", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUS_RO", "wrong", 181, 91, 1, "km"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 181, 91, "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 181, 91, -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 0, 0, 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 0, 0, 10, "km", "ANY"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 0, 0, 10, "km", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 0, 0, 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUS_RO", "wrong", 0, 0, 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "absent", 1, "km"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "absent", "bad", "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "absent", -1, "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEORADIUSBYMEMBER", "g", "a", 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEORADIUSBYMEMBER", "g", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": 2, "target": 2}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "absent", 1, "km"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "absent", "bad", "unit"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "absent", -1, "unit"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "a", 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}, "target": {"error": "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options"}}
+{"argv": ["GEORADIUSBYMEMBER", "missing", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": 0, "target": 0}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "absent", 1, "km"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "absent", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "absent", -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "a", 10, "km", "ANY"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER", "wrong", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "absent", 1, "km"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "absent", "bad", "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "absent", -1, "unit"], "oracle": {"error": "ERR could not decode requested zset member"}, "target": {"error": "ERR could not decode requested zset member"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": ["a", "b"], "target": ["a", "b"]}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "a", 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "g", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "absent", 1, "km"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "absent", "bad", "unit"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "absent", -1, "unit"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": [], "target": []}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "a", 10, "km", "ANY"], "oracle": {"error": "ERR the ANY argument requires COUNT argument"}, "target": {"error": "ERR the ANY argument requires COUNT argument"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "missing", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "absent", 1, "km"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "absent", "bad", "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "absent", -1, "unit"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "a", 10, "km", "ANY", "COUNT", 10, "ASC"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "a", 10, "km", "ANY"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "a", 10, "km", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "a", 10, "km", "STORE", "dst", "WITHDIST"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["GEORADIUSBYMEMBER_RO", "wrong", "a", 10, "km", "STORE", "d1", "STOREDIST", "d2"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANGE", "dst", 0, -1, "WITHSCORES"], "oracle": ["a", "3377699720527872", "b", "3377699728864449"], "target": ["a", "3377699720527872", "b", "3377699728864449"]}

@@ -1,0 +1,7 @@
+{
+  "commit": "a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e",
+  "sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd",
+  "mode": "1s",
+  "engine": "epoll",
+  "shards": 200
+}

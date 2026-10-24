@@ -1,0 +1,10 @@
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 142373, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/src_cmd_xshard.o-post-142373.o", "changed": 47, "spillover": 31, "hot": 2}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 142711, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/src_cmd_xshard.o-post-142711.o", "changed": 34, "spillover": 19, "hot": 2}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 142727, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/src_cmd_xshard.o-post-142727.o", "changed": 30, "spillover": 16, "hot": 2}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 142743, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/src_cmd_xshard.o-post-142743.o", "changed": 34, "spillover": 19, "hot": 2}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 141220, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/db0_src_cmd_xshard.o-post-141220.o", "changed": 54, "spillover": 40, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 141554, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/db0_src_cmd_xshard.o-post-141554.o", "changed": 43, "spillover": 28, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 141570, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/db0_src_cmd_xshard.o-post-141570.o", "changed": 42, "spillover": 28, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 141586, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/trials/db0_src_cmd_xshard.o-post-141586.o", "changed": 43, "spillover": 29, "hot": 1}
+BEST src/cmd/xshard.o 142727 hot 2 spillover 16
+BEST db0/src/cmd/xshard.o 141570 hot 1 spillover 28

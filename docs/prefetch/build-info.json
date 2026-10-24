@@ -1,0 +1,14 @@
+{
+  "base": "ef5204b2e9650693228cc105b34625516898b82d",
+  "production_commit": "a3e90a3ea",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "flags": "-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread; unchanged per-object Makefile IPA budgets; jemalloc; dual namespace",
+  "fixtures": {
+    "build/prefetch/counts-post": "60d645ae96d3038033843e29614a1eb3a82caae6550d473a002e5ac74f0c8da4",
+    "build/prefetch/counts-post-db0": "3f34df992f50fcf978f96b59371800e3495db772ca56c85a3fa89773ff2ed92f",
+    "build/prefetch/counts-pre": "56e6a90a367b7cff97703d2b6ec6cbf41413c62835f5fe1f956f84d11f5f94f7",
+    "build/prefetch/counts-pre-db0": "21afa4728a778ced2abd1677422595048d37e98f657c0a316748da0547dff969"
+  },
+  "cpus": "builds and tools 80-95; serverless PMU fixture 88; servers 80-87; clients 89-95",
+  "ports": "23800-23899"
+}

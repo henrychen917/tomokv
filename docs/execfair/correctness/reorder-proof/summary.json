@@ -1,0 +1,42 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.XaU2ME",
+  "gate_log_sha256": "a72339d76d68a97798e0b450995a73ba9defd9a5b120afa58841df921a2fdcb4",
+  "jobs": [
+    {
+      "job": "production_units",
+      "rows": []
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    },
+    {
+      "job": "reorder_engagement",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "13.460000",
+          "label": "R7 production engagement (both database runtimes)"
+        }
+      ]
+    },
+    {
+      "job": "reorder_identity",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "102.670000",
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 3,
+  "fail_rows": 0
+}

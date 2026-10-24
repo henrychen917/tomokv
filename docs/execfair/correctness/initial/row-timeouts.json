@@ -1,0 +1,30 @@
+{
+  "created_at": 1792793704.0752633,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "EXEC fast-lane polls": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 20.14,
+      "median_seconds": 20.14,
+      "min_seconds": 20.14,
+      "samples": 1,
+      "timeout_seconds": 81
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}

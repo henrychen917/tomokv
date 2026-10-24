@@ -1,0 +1,3 @@
+All four differential gates finished; running scheduler self-tests without lane server traffic.
+gates_test returncode 0
+fresh targets 38 / 40

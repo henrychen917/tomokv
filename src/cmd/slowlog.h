@@ -106,6 +106,7 @@ inline constexpr uint32_t kSlowlogEscalateBatches = 64;
 
 // Boot seeding from the parsed config, and the live CONFIG SET path.
 void slowlog_configure(const Config& config);
+void slowlog_set_threshold(int64_t threshold);
 void slowlog_set_max_len(uint64_t max_len);
 
 // Mechanism counters. The vacuous-validation rule is load-bearing: a test that cannot see the

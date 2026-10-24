@@ -1,0 +1,147 @@
+{"argv": ["CONFIG", "SET", "proto-max-bulk-len", 1048576], "oracle": "OK", "target": "OK"}
+{"argv": ["BITFIELD_RO", "bits:u1:8388544", "GET", "u1", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u1:8388544", "SET", "u1", 8388544, 1, "GET", "u1", 8388544], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u1:8388544"], "oracle": 1048569, "target": 1048569}
+{"argv": ["BITFIELD", "bits:u1:8388544", "INCRBY", "u1", 8388544, 1], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "bits:u1:8388544", "GET", "u1", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["GETRANGE", "bits:u1:8388544", 1048568, 1048584], "oracle": "\u0000", "target": "\u0000"}
+{"argv": ["BITFIELD_RO", "bits:u1:8388600", "GET", "u1", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u1:8388600", "SET", "u1", 8388600, 1, "GET", "u1", 8388600], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u1:8388600"], "oracle": 1048576, "target": 1048576}
+{"argv": ["BITFIELD", "bits:u1:8388600", "INCRBY", "u1", 8388600, 1], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "bits:u1:8388600", "GET", "u1", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["GETRANGE", "bits:u1:8388600", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"argv": ["BITFIELD_RO", "bits:u1:8388607", "GET", "u1", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u1:8388607", "SET", "u1", 8388607, 1, "GET", "u1", 8388607], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u1:8388607"], "oracle": 1048576, "target": 1048576}
+{"argv": ["BITFIELD", "bits:u1:8388607", "INCRBY", "u1", 8388607, 1], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "bits:u1:8388607", "GET", "u1", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["GETRANGE", "bits:u1:8388607", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}
+{"argv": ["BITFIELD_RO", "bits:u1:8388608", "GET", "u1", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "bits:u1:8388608", "SET", "u1", 8388608, 1, "GET", "u1", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["STRLEN", "bits:u1:8388608"], "oracle": 0, "target": 0}
+{"argv": ["BITFIELD", "bits:u1:8388608", "INCRBY", "u1", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "bits:u1:8388608", "GET", "u1", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETRANGE", "bits:u1:8388608", 1048568, 1048584], "oracle": "", "target": ""}
+{"argv": ["BITFIELD_RO", "bits:u8:8388544", "GET", "u8", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u8:8388544", "SET", "u8", 8388544, 1, "GET", "u8", 8388544], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u8:8388544"], "oracle": 1048569, "target": 1048569}
+{"argv": ["BITFIELD", "bits:u8:8388544", "INCRBY", "u8", 8388544, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u8:8388544", "GET", "u8", 8388544], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u8:8388544", 1048568, 1048584], "oracle": "\u0002", "target": "\u0002"}
+{"argv": ["BITFIELD_RO", "bits:u8:8388600", "GET", "u8", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u8:8388600", "SET", "u8", 8388600, 1, "GET", "u8", 8388600], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u8:8388600"], "oracle": 1048576, "target": 1048576}
+{"argv": ["BITFIELD", "bits:u8:8388600", "INCRBY", "u8", 8388600, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u8:8388600", "GET", "u8", 8388600], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u8:8388600", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002"}
+{"argv": ["BITFIELD_RO", "bits:u8:8388607", "GET", "u8", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u8:8388607", "SET", "u8", 8388607, 1, "GET", "u8", 8388607], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u8:8388607"], "oracle": 1048577, "target": 1048577}
+{"argv": ["BITFIELD", "bits:u8:8388607", "INCRBY", "u8", 8388607, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u8:8388607", "GET", "u8", 8388607], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u8:8388607", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004"}
+{"argv": ["BITFIELD_RO", "bits:u8:8388608", "GET", "u8", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "bits:u8:8388608", "SET", "u8", 8388608, 1, "GET", "u8", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["STRLEN", "bits:u8:8388608"], "oracle": 0, "target": 0}
+{"argv": ["BITFIELD", "bits:u8:8388608", "INCRBY", "u8", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "bits:u8:8388608", "GET", "u8", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETRANGE", "bits:u8:8388608", 1048568, 1048584], "oracle": "", "target": ""}
+{"argv": ["BITFIELD_RO", "bits:u16:8388544", "GET", "u16", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u16:8388544", "SET", "u16", 8388544, 1, "GET", "u16", 8388544], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u16:8388544"], "oracle": 1048570, "target": 1048570}
+{"argv": ["BITFIELD", "bits:u16:8388544", "INCRBY", "u16", 8388544, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u16:8388544", "GET", "u16", 8388544], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u16:8388544", 1048568, 1048584], "oracle": "\u0000\u0002", "target": "\u0000\u0002"}
+{"argv": ["BITFIELD_RO", "bits:u16:8388600", "GET", "u16", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u16:8388600", "SET", "u16", 8388600, 1, "GET", "u16", 8388600], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u16:8388600"], "oracle": 1048577, "target": 1048577}
+{"argv": ["BITFIELD", "bits:u16:8388600", "INCRBY", "u16", 8388600, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u16:8388600", "GET", "u16", 8388600], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u16:8388600", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002"}
+{"argv": ["BITFIELD_RO", "bits:u16:8388607", "GET", "u16", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u16:8388607", "SET", "u16", 8388607, 1, "GET", "u16", 8388607], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u16:8388607"], "oracle": 1048578, "target": 1048578}
+{"argv": ["BITFIELD", "bits:u16:8388607", "INCRBY", "u16", 8388607, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u16:8388607", "GET", "u16", 8388607], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u16:8388607", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004"}
+{"argv": ["BITFIELD_RO", "bits:u16:8388608", "GET", "u16", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "bits:u16:8388608", "SET", "u16", 8388608, 1, "GET", "u16", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["STRLEN", "bits:u16:8388608"], "oracle": 0, "target": 0}
+{"argv": ["BITFIELD", "bits:u16:8388608", "INCRBY", "u16", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "bits:u16:8388608", "GET", "u16", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETRANGE", "bits:u16:8388608", 1048568, 1048584], "oracle": "", "target": ""}
+{"argv": ["BITFIELD_RO", "bits:u63:8388544", "GET", "u63", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u63:8388544", "SET", "u63", 8388544, 1, "GET", "u63", 8388544], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u63:8388544"], "oracle": 1048576, "target": 1048576}
+{"argv": ["BITFIELD", "bits:u63:8388544", "INCRBY", "u63", 8388544, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u63:8388544", "GET", "u63", 8388544], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u63:8388544", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004"}
+{"argv": ["BITFIELD_RO", "bits:u63:8388600", "GET", "u63", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u63:8388600", "SET", "u63", 8388600, 1, "GET", "u63", 8388600], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u63:8388600"], "oracle": 1048583, "target": 1048583}
+{"argv": ["BITFIELD", "bits:u63:8388600", "INCRBY", "u63", 8388600, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u63:8388600", "GET", "u63", 8388600], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u63:8388600", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004"}
+{"argv": ["BITFIELD_RO", "bits:u63:8388607", "GET", "u63", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:u63:8388607", "SET", "u63", 8388607, 1, "GET", "u63", 8388607], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:u63:8388607"], "oracle": 1048584, "target": 1048584}
+{"argv": ["BITFIELD", "bits:u63:8388607", "INCRBY", "u63", 8388607, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:u63:8388607", "GET", "u63", 8388607], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:u63:8388607", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b"}
+{"argv": ["BITFIELD_RO", "bits:u63:8388608", "GET", "u63", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "bits:u63:8388608", "SET", "u63", 8388608, 1, "GET", "u63", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["STRLEN", "bits:u63:8388608"], "oracle": 0, "target": 0}
+{"argv": ["BITFIELD", "bits:u63:8388608", "INCRBY", "u63", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "bits:u63:8388608", "GET", "u63", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETRANGE", "bits:u63:8388608", 1048568, 1048584], "oracle": "", "target": ""}
+{"argv": ["BITFIELD_RO", "bits:i64:8388544", "GET", "i64", 8388544], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:i64:8388544", "SET", "i64", 8388544, 1, "GET", "i64", 8388544], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:i64:8388544"], "oracle": 1048576, "target": 1048576}
+{"argv": ["BITFIELD", "bits:i64:8388544", "INCRBY", "i64", 8388544, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:i64:8388544", "GET", "i64", 8388544], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:i64:8388544", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002"}
+{"argv": ["BITFIELD_RO", "bits:i64:8388600", "GET", "i64", 8388600], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:i64:8388600", "SET", "i64", 8388600, 1, "GET", "i64", 8388600], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:i64:8388600"], "oracle": 1048583, "target": 1048583}
+{"argv": ["BITFIELD", "bits:i64:8388600", "INCRBY", "i64", 8388600, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:i64:8388600", "GET", "i64", 8388600], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:i64:8388600", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0002"}
+{"argv": ["BITFIELD_RO", "bits:i64:8388607", "GET", "i64", 8388607], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD", "bits:i64:8388607", "SET", "i64", 8388607, 1, "GET", "i64", 8388607], "oracle": [0, 1], "target": [0, 1]}
+{"argv": ["STRLEN", "bits:i64:8388607"], "oracle": 1048584, "target": 1048584}
+{"argv": ["BITFIELD", "bits:i64:8388607", "INCRBY", "i64", 8388607, 1], "oracle": [2], "target": [2]}
+{"argv": ["BITFIELD_RO", "bits:i64:8388607", "GET", "i64", 8388607], "oracle": [2], "target": [2]}
+{"argv": ["GETRANGE", "bits:i64:8388607", 1048568, 1048584], "oracle": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004", "target": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0004"}
+{"argv": ["BITFIELD_RO", "bits:i64:8388608", "GET", "i64", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "bits:i64:8388608", "SET", "i64", 8388608, 1, "GET", "i64", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["STRLEN", "bits:i64:8388608"], "oracle": 0, "target": 0}
+{"argv": ["BITFIELD", "bits:i64:8388608", "INCRBY", "i64", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "bits:i64:8388608", "GET", "i64", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETRANGE", "bits:i64:8388608", 1048568, 1048584], "oracle": "", "target": ""}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "#131071", 123], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "#131071"], "oracle": [123], "target": [123]}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "#131072", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "#131072"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "#288230376151711744", 123], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "#288230376151711744"], "oracle": [123], "target": [123]}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "#-288230376151711744", 123], "oracle": [123], "target": [123]}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "#-288230376151711744"], "oracle": [123], "target": [123]}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "#9223372036854775807", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "#9223372036854775807"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "-1", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "-1"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "01", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "01"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "+1", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "+1"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD", "indexed", "SET", "i64", "9223372036854775808", 123], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["BITFIELD_RO", "indexed", "GET", "i64", "9223372036854775808"], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["SET", "keep", "original"], "oracle": "OK", "target": "OK"}
+{"argv": ["BITFIELD", "keep", "SET", "u8", 0, 5, "SET", "i64", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GET", "keep"], "oracle": "original", "target": "original"}
+{"argv": ["SETBIT", "single", 8388608, 1], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["GETBIT", "single", 8388608], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}
+{"argv": ["CONFIG", "SET", "proto-max-bulk-len", 4294901759], "oracle": "OK", "target": "OK"}
+{"argv": ["BITFIELD_RO", "missing", "GET", "i64", 34359214071], "oracle": [0], "target": [0]}
+{"argv": ["BITFIELD_RO", "missing", "GET", "i64", 34359214072], "oracle": {"error": "ERR bit offset is not an integer or out of range"}, "target": {"error": "ERR bit offset is not an integer or out of range"}}

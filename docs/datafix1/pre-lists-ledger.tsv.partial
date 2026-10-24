@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_lists; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	3.180000	datafix1 list demotion (both engines and modes)

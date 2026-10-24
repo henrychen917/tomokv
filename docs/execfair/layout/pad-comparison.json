@@ -1,0 +1,170 @@
+[
+  {
+    "type": "tomo::Op",
+    "post_size": 336,
+    "pad_size": 336,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::Client",
+    "post_size": 1984,
+    "pad_size": 1984,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::ThreadCtx",
+    "post_size": 1408,
+    "pad_size": 1408,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::Shard",
+    "post_size": 1440,
+    "pad_size": 1440,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::FlatStore",
+    "post_size": 944,
+    "pad_size": 944,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::Rob<64>",
+    "post_size": 192,
+    "pad_size": 192,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::AtomicEntry",
+    "post_size": 144,
+    "pad_size": 144,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::Config",
+    "post_size": 624,
+    "pad_size": 624,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::ExLoopT<false>",
+    "post_size": 5856,
+    "pad_size": 5856,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::ExLoopT<true>",
+    "post_size": 5864,
+    "pad_size": 5864,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::MultiExecState",
+    "post_size": 1592,
+    "pad_size": 1592,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::TxnGroupAttempt",
+    "post_size": 168,
+    "pad_size": 168,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::TxnOwnerCounters",
+    "post_size": 192,
+    "pad_size": 192,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo::ScatterState",
+    "post_size": 896,
+    "pad_size": 896,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::Op",
+    "post_size": 336,
+    "pad_size": 336,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::Client",
+    "post_size": 1984,
+    "pad_size": 1984,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::ThreadCtx",
+    "post_size": 1408,
+    "pad_size": 1408,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::Shard",
+    "post_size": 1440,
+    "pad_size": 1440,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::FlatStore",
+    "post_size": 944,
+    "pad_size": 944,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::Rob<64>",
+    "post_size": 192,
+    "pad_size": 192,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::AtomicEntry",
+    "post_size": 144,
+    "pad_size": 144,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::Config",
+    "post_size": 624,
+    "pad_size": 624,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::ExLoopT<false>",
+    "post_size": 5856,
+    "pad_size": 5856,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::ExLoopT<true>",
+    "post_size": 5864,
+    "pad_size": 5864,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::MultiExecState",
+    "post_size": 1592,
+    "pad_size": 1592,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::TxnGroupAttempt",
+    "post_size": 168,
+    "pad_size": 168,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::TxnOwnerCounters",
+    "post_size": 192,
+    "pad_size": 192,
+    "pre_offsets_preserved": true
+  },
+  {
+    "type": "tomo_db0::ScatterState",
+    "post_size": 896,
+    "pad_size": 896,
+    "pre_offsets_preserved": true
+  }
+]

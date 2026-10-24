@@ -53,11 +53,33 @@ def controls(binary, output):
     else:
         raise AssertionError('missing fliplisten clone control passed')
     post.groups = copy.deepcopy(binary.groups)
+    r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'))
+    callback = next(name for name in post.groups if name.startswith('tomo::ExLoopT<')
+                    and '::execute<' in name and '::{lambda(void*, tomo::Task const&)#1}::_FUN(' in name)
+    del post.groups[callback]
+    try:
+        r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'))
+    except AssertionError as error:
+        assert 'missing execfair promotion callback' in str(error), str(error)
+    else:
+        raise AssertionError('missing execfair promotion callback control passed')
+    post.groups = copy.deepcopy(binary.groups)
+    scans = r7shadow_noop.notifycompat_inventory(post)
+    for scan in scans:
+        post.groups = copy.deepcopy(binary.groups)
+        del post.groups[scan]
+        try:
+            r7shadow_noop.notifycompat_inventory(post)
+        except AssertionError as error:
+            assert 'missing notifycompat scatter scan' in str(error), str(error)
+        else:
+            raise AssertionError('missing notifycompat scatter scan control passed: ' + scan)
+    post.groups = copy.deepcopy(binary.groups)
     name = next(n for n in post.groups if audit.category(n) == 'commands')
     post.groups[name][0]['encodings'][0] += ' ff'
     rows = audit.compare(binary, post, output)
     assert any(not row['equal'] and row['name'] == name for row in rows), 'changed-opcode negative control passed'
-    print('PASS missing policy symbol, missing split-local parser, missing fliplisten clone and changed opcode fail strict identity')
+    print('PASS missing policy symbol, missing split-local parser, missing fliplisten clone, missing execfair callback, missing notifycompat scan and changed opcode fail strict identity')
 
 
 def engagement(binary, output):
@@ -94,7 +116,7 @@ if __name__ == '__main__':
     (args.output / 'twin.json').write_text(json.dumps(receipt, indent=2) + '\n')
     subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
                     str(pad), str(args.binary), str(args.output / 'identity'),
-                    '--inventory', 'wave5'], check=True)
+                    '--inventory', 'wave6'], check=True)
     negative = args.output / 'negative'
     negative.mkdir(exist_ok=True)
     binary = audit.Binary(args.binary, negative, literal_pools=True)

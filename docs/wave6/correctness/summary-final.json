@@ -1,0 +1,1210 @@
+{
+  "candidate_sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+  "scope": "Whole correctness jobs through GATE_ONLY_JOBS; NOT a full gate/landing receipt.",
+  "suites": [
+    {
+      "name": "broad-final",
+      "status": "PASS",
+      "jobs": 192,
+      "passing_rows": 767,
+      "seconds": 1752.33,
+      "receipt": "docs/wave6/correctness/broad-final/receipt.json"
+    },
+    {
+      "name": "integration-fixtures-final",
+      "status": "PASS",
+      "jobs": 4,
+      "passing_rows": 29,
+      "seconds": 109.92,
+      "receipt": "docs/wave6/correctness/integration-fixtures-final/receipt.json"
+    },
+    {
+      "name": "tailgen-build",
+      "status": "NOT RUN: interface refusal",
+      "exit": 2,
+      "receipt": "docs/wave6/correctness/tailgen-build/receipt.json"
+    },
+    {
+      "name": "abba-selftest-final-controls",
+      "status": "PASS",
+      "jobs": 1,
+      "passing_rows": 1,
+      "seconds": 378.09,
+      "receipt": "docs/wave6/correctness/abba-selftest-final-controls/receipt.json"
+    },
+    {
+      "name": "differ-uring",
+      "status": "PASS",
+      "jobs": 6,
+      "passing_rows": 6,
+      "seconds": 1056.63,
+      "receipt": "docs/wave6/correctness/differ-uring/receipt.json"
+    },
+    {
+      "name": "differ-epoll",
+      "status": "PASS",
+      "jobs": 6,
+      "passing_rows": 6,
+      "seconds": 1052.69,
+      "receipt": "docs/wave6/correctness/differ-epoll/receipt.json"
+    },
+    {
+      "name": "txnorder-round-2",
+      "status": "PASS",
+      "jobs": 6,
+      "passing_rows": 5,
+      "seconds": 97.95,
+      "receipt": "docs/wave6/correctness/txnorder-round-2/receipt.json"
+    },
+    {
+      "name": "txnorder-round-3",
+      "status": "PASS",
+      "jobs": 6,
+      "passing_rows": 5,
+      "seconds": 97.75,
+      "receipt": "docs/wave6/correctness/txnorder-round-3/receipt.json"
+    },
+    {
+      "name": "legacy-split-final",
+      "status": "PASS",
+      "jobs": 16,
+      "passing_rows": 178,
+      "seconds": 126.41,
+      "receipt": "docs/wave6/correctness/legacy-split-final/receipt.json"
+    },
+    {
+      "name": "legacy-fused",
+      "status": "SUPERSEDED release_batteries failure; complete job rerun passed",
+      "jobs": 19,
+      "passing_rows": 207,
+      "seconds": 191.75,
+      "receipt": "docs/wave6/correctness/legacy-fused/receipt.json"
+    },
+    {
+      "name": "perfio-quiet",
+      "status": "PASS",
+      "jobs": 2,
+      "passing_rows": 3,
+      "seconds": 3.06,
+      "receipt": "docs/wave6/correctness/perfio-quiet/receipt.json"
+    },
+    {
+      "name": "atomic-split-quiet",
+      "status": "PASS",
+      "jobs": 2,
+      "passing_rows": 5,
+      "seconds": 44.84,
+      "receipt": "docs/wave6/correctness/atomic-split-quiet/receipt.json"
+    },
+    {
+      "name": "atomic-fused-quiet",
+      "status": "PASS",
+      "jobs": 2,
+      "passing_rows": 5,
+      "seconds": 44.83,
+      "receipt": "docs/wave6/correctness/atomic-fused-quiet/receipt.json"
+    },
+    {
+      "name": "release-split-repaired",
+      "status": "PASS",
+      "jobs": 2,
+      "passing_rows": 9,
+      "seconds": 13.54,
+      "receipt": "docs/wave6/correctness/release-split-repaired/receipt.json"
+    },
+    {
+      "name": "release-fused-repaired",
+      "status": "PASS",
+      "jobs": 2,
+      "passing_rows": 9,
+      "seconds": 13.46,
+      "receipt": "docs/wave6/correctness/release-fused-repaired/receipt.json"
+    }
+  ],
+  "standalone": {
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "affinity": [
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "port": 26897,
+    "start": 1792840893.9945016,
+    "end": 1792841014.7915144,
+    "exit": 0,
+    "log": "docs/wave6/correctness/gates-test-final-controls.log"
+  },
+  "freshness": {
+    "command": [
+      "make",
+      "-j32",
+      "all",
+      "build/expire-notify-unit",
+      "build/ktls-lifetime-unit",
+      "build/moverfix-unit",
+      "build/moverfix-db0-unit",
+      "build/publishfix-unit",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/txnorder-wake-unit",
+      "build/txnorder-episodes",
+      "build/txnorder-episodes-debug",
+      "build/txnorder-watch-unit",
+      "build/txnorder-watch-db0-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/respresume-unit",
+      "build/respresume-migration",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon",
+      "build/aoforder-scheduled",
+      "mdbqsbr-live-arms",
+      "build/tailgen"
+    ],
+    "affinity": [
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "start": 1792841393.2213426,
+    "end": 1792841394.8336928,
+    "exit": 0,
+    "freshness": [
+      {
+        "target": "all",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/expire-notify-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/ktls-lifetime-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/moverfix-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/moverfix-db0-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/publishfix-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/at15-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/at15-db0-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/execabort-watch-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/execabort-watch-db0-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/core-concurrency-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/atomic-survivors-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/txnorder-wake-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/txnorder-episodes",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/txnorder-episodes-debug",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/txnorder-watch-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/txnorder-watch-db0-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/netcmd-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/encodingfix-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/netcap-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/waits-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/rehash-waits-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/multidb-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/multidb-boundary-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/storesize-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/respresume-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/respresume-migration",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/exbatch-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/exbatch-db0-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/wb-rule-units",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/wbland-units",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/rltopo-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/lbplanner-units",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/shutdown-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/persistfix-units",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/ktls-keyupdate",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/ktls-keyupdate-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/flushfix-units",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/splitlocal-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/reorder-engagement-unit",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/reorder-engagement-unit-db0",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/racefix-climon",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "build/aoforder-scheduled",
+        "exit": 0,
+        "output": ""
+      },
+      {
+        "target": "mdbqsbr-live-arms",
+        "exit": 0,
+        "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-wave6'\nmake[1]: Leaving directory '/home/user/Projects/cx-wave6'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-wave6'\nmake[1]: Leaving directory '/home/user/Projects/cx-wave6'\n"
+      },
+      {
+        "target": "build/tailgen",
+        "exit": 0,
+        "output": ""
+      }
+    ],
+    "binary_sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+    "binary_sha256_after": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+    "tailgen_note": "Compile only; build-only gate job selection was refused; generator never launched."
+  },
+  "problems": [],
+  "pending": [],
+  "available_jobs": 204,
+  "required_correctness_jobs": 200,
+  "completed_unique_jobs": 200,
+  "missing_jobs": [],
+  "excluded_performance_jobs": [
+    "atomic_floor",
+    "efficiency",
+    "flip_saturated"
+  ],
+  "unavailable_jobs": {
+    "tailgen_build": "Build-only prerequisite explicitly refused by GATE_ONLY_JOBS; its full-gate-only load-generator consumer is reserved to the maintainer."
+  },
+  "superseded_attempts": [
+    {
+      "receipt": "docs/wave6/correctness/gates-test-final.json",
+      "exit": 1,
+      "reason": "Persistence fixture omitted the newly used boot selector; fixed by 9ff3f7c39. Complete standalone suite and whole ABBA job rerun; no assertion relaxed."
+    },
+    {
+      "receipt": "docs/wave6/correctness/abba-selftest-final/receipt.json",
+      "exit": 1,
+      "reason": "Persistence fixture omitted the newly used boot selector; fixed by 9ff3f7c39. Complete standalone suite and whole ABBA job rerun; no assertion relaxed."
+    },
+    {
+      "receipt": "docs/wave6/correctness/legacy-fused/receipt.json",
+      "job": "release_batteries",
+      "reason": "Historical row requested absent split-only counters in fused mode. 6d8173edd preserves the split assertion and validates nonzero fused work against all thread totals, with negative controls; whole release job rerun in both modes."
+    }
+  ],
+  "txnorder_repetitions": {
+    "txnorder-fused-0": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-fused-1": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-split-0": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-split-1": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ]
+  },
+  "job_receipts": {
+    "abba_selftest": [
+      "abba-selftest-final-controls"
+    ],
+    "acl_metadata": [
+      "broad-final"
+    ],
+    "acl_recheck": [
+      "broad-final"
+    ],
+    "acl_subcommands": [
+      "broad-final"
+    ],
+    "aclfix": [
+      "broad-final"
+    ],
+    "aof-epoll": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "aof-uring": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "aof_frame": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "aoforder": [
+      "broad-final"
+    ],
+    "asan": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "asan_batteries": [
+      "broad-final",
+      "legacy-fused"
+    ],
+    "atomic_batteries": [
+      "atomic-split-quiet",
+      "atomic-fused-quiet"
+    ],
+    "atomic_units": [
+      "broad-final",
+      "integration-fixtures-final"
+    ],
+    "auth": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "authfix": [
+      "broad-final"
+    ],
+    "boot_grammar": [
+      "broad-final"
+    ],
+    "bplus": [
+      "broad-final"
+    ],
+    "bugs5": [
+      "broad-final"
+    ],
+    "clientfix": [
+      "broad-final"
+    ],
+    "climonfix": [
+      "broad-final"
+    ],
+    "cmd_metadata": [
+      "broad-final"
+    ],
+    "compat2": [
+      "broad-final"
+    ],
+    "compat3": [
+      "broad-final"
+    ],
+    "config_unit": [
+      "broad-final"
+    ],
+    "core_tsan_build": [
+      "broad-final"
+    ],
+    "core_units": [
+      "broad-final"
+    ],
+    "datafix1_bitfield": [
+      "broad-final"
+    ],
+    "datafix1_geo": [
+      "broad-final"
+    ],
+    "datafix1_hexpire": [
+      "broad-final"
+    ],
+    "datafix1_lists": [
+      "broad-final"
+    ],
+    "datafix1_locale": [
+      "broad-final"
+    ],
+    "datafix1_randscan": [
+      "broad-final"
+    ],
+    "datafix1_spop": [
+      "broad-final"
+    ],
+    "dbdefault": [
+      "broad-final"
+    ],
+    "debug-0": [
+      "broad-final",
+      "legacy-fused"
+    ],
+    "debug-1": [
+      "broad-final",
+      "legacy-fused"
+    ],
+    "differ-armed-0": [
+      "differ-uring",
+      "differ-epoll"
+    ],
+    "differ-armed-1": [
+      "differ-uring",
+      "differ-epoll"
+    ],
+    "differ-equivalence": [
+      "differ-uring",
+      "differ-epoll"
+    ],
+    "differ-split-0": [
+      "differ-uring",
+      "differ-epoll"
+    ],
+    "differ-split-1": [
+      "differ-uring",
+      "differ-epoll"
+    ],
+    "dispatch_arity": [
+      "broad-final"
+    ],
+    "dispatch_children": [
+      "broad-final"
+    ],
+    "dispatch_errors": [
+      "broad-final"
+    ],
+    "dump_restore": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "evict-lfu-armed-0": [
+      "broad-final"
+    ],
+    "evict-lfu-armed-1": [
+      "broad-final"
+    ],
+    "evict-lfu-split-0": [
+      "broad-final"
+    ],
+    "evict-lfu-split-1": [
+      "broad-final"
+    ],
+    "evict-lruclock-armed-0": [
+      "broad-final"
+    ],
+    "evict-lruclock-armed-1": [
+      "broad-final"
+    ],
+    "evict-lruclock-split-0": [
+      "broad-final"
+    ],
+    "evict-lruclock-split-1": [
+      "broad-final"
+    ],
+    "exbatch_live": [
+      "broad-final"
+    ],
+    "exbatch_units": [
+      "broad-final"
+    ],
+    "execfair": [
+      "broad-final"
+    ],
+    "feature-armed-0": [
+      "broad-final"
+    ],
+    "feature-armed-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-0-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-0-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-0-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-0-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-1-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-1-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-1-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-0-1-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-0-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-0-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-0-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-0-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-1-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-1-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-1-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-1s-1-1-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-0-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-0-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-0-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-0-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-1-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-1-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-1-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-0-1-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-0-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-0-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-0-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-0-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-1-0-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-1-0-1": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-1-1-0": [
+      "broad-final"
+    ],
+    "feature-cell-2s-1-1-1-1": [
+      "broad-final"
+    ],
+    "feature-cell-fused-home-max-nopin": [
+      "broad-final"
+    ],
+    "feature-cell-split-home-min": [
+      "broad-final"
+    ],
+    "feature-cell-split-shards-auto": [
+      "broad-final"
+    ],
+    "feature-split-0": [
+      "broad-final"
+    ],
+    "feature-split-1": [
+      "broad-final"
+    ],
+    "filter_unit": [
+      "broad-final"
+    ],
+    "flip": [
+      "broad-final"
+    ],
+    "flip_unit": [
+      "broad-final"
+    ],
+    "flipctl": [
+      "broad-final"
+    ],
+    "flipfix_units": [
+      "broad-final"
+    ],
+    "fliplisten": [
+      "broad-final"
+    ],
+    "fused-0": [
+      "broad-final"
+    ],
+    "fused-1": [
+      "broad-final"
+    ],
+    "globcase": [
+      "broad-final"
+    ],
+    "hexpread": [
+      "broad-final"
+    ],
+    "iofix-hz": [
+      "broad-final"
+    ],
+    "iofix-signal": [
+      "broad-final"
+    ],
+    "iofix-sleep": [
+      "broad-final"
+    ],
+    "lb-stationary-1s": [
+      "broad-final"
+    ],
+    "lb-stationary-2s": [
+      "broad-final"
+    ],
+    "lbplanner_units": [
+      "broad-final"
+    ],
+    "moverfix": [
+      "broad-final"
+    ],
+    "multidb-1s-0-0": [
+      "broad-final"
+    ],
+    "multidb-1s-0-1": [
+      "broad-final"
+    ],
+    "multidb-1s-1-0": [
+      "broad-final"
+    ],
+    "multidb-1s-1-1": [
+      "broad-final"
+    ],
+    "multidb-2s-0-0": [
+      "broad-final"
+    ],
+    "multidb-2s-0-1": [
+      "broad-final"
+    ],
+    "multidb-2s-1-0": [
+      "broad-final"
+    ],
+    "multidb-2s-1-1": [
+      "broad-final"
+    ],
+    "netcap": [
+      "broad-final"
+    ],
+    "netcmd_units": [
+      "broad-final"
+    ],
+    "netfix_config": [
+      "broad-final"
+    ],
+    "netfix_idle_buffers": [
+      "broad-final"
+    ],
+    "netfix_query_stats": [
+      "broad-final"
+    ],
+    "netfix_tls": [
+      "broad-final"
+    ],
+    "netfix_unix": [
+      "broad-final"
+    ],
+    "netio-1s": [
+      "broad-final"
+    ],
+    "netio-2s": [
+      "broad-final"
+    ],
+    "notify": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "notify_aof": [
+      "broad-final"
+    ],
+    "notify_order": [
+      "broad-final"
+    ],
+    "notifycompat": [
+      "broad-final"
+    ],
+    "ntfix_input": [
+      "broad-final"
+    ],
+    "ntnew4_live": [
+      "broad-final"
+    ],
+    "perfex_live": [
+      "broad-final"
+    ],
+    "perfex_units": [
+      "broad-final"
+    ],
+    "perfio_stream": [
+      "perfio-quiet"
+    ],
+    "persistfix_units": [
+      "broad-final"
+    ],
+    "production_units": [
+      "broad-final",
+      "integration-fixtures-final",
+      "txnorder-round-2",
+      "txnorder-round-3",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "racefix_climon": [
+      "broad-final"
+    ],
+    "racefix_counters": [
+      "broad-final"
+    ],
+    "racefix_tsan_build": [
+      "broad-final"
+    ],
+    "readonly": [
+      "broad-final"
+    ],
+    "release": [
+      "broad-final",
+      "integration-fixtures-final",
+      "differ-uring",
+      "differ-epoll",
+      "txnorder-round-2",
+      "txnorder-round-3",
+      "legacy-split-final",
+      "legacy-fused",
+      "perfio-quiet",
+      "atomic-split-quiet",
+      "atomic-fused-quiet",
+      "release-split-repaired",
+      "release-fused-repaired"
+    ],
+    "release_batteries": [
+      "broad-final",
+      "legacy-split-final",
+      "release-split-repaired",
+      "release-fused-repaired"
+    ],
+    "reorder_engagement": [
+      "broad-final"
+    ],
+    "reorder_identity": [
+      "broad-final",
+      "integration-fixtures-final"
+    ],
+    "reorder_sync": [
+      "broad-final"
+    ],
+    "replyoff": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "respcompat": [
+      "broad-final"
+    ],
+    "respresume-cpu-1s-epoll": [
+      "broad-final"
+    ],
+    "respresume-cpu-1s-uring": [
+      "broad-final"
+    ],
+    "respresume-cpu-2s-epoll": [
+      "broad-final"
+    ],
+    "respresume-cpu-2s-uring": [
+      "broad-final"
+    ],
+    "respresume-fragment-1s-epoll": [
+      "broad-final"
+    ],
+    "respresume-fragment-1s-uring": [
+      "broad-final"
+    ],
+    "respresume-fragment-2s-epoll": [
+      "broad-final"
+    ],
+    "respresume-fragment-2s-uring": [
+      "broad-final"
+    ],
+    "respresume-neighbour-1s-epoll": [
+      "broad-final"
+    ],
+    "respresume-neighbour-1s-uring": [
+      "broad-final"
+    ],
+    "respresume-neighbour-2s-epoll": [
+      "broad-final"
+    ],
+    "respresume-neighbour-2s-uring": [
+      "broad-final"
+    ],
+    "ring_unit": [
+      "broad-final"
+    ],
+    "rlcache": [
+      "broad-final"
+    ],
+    "rldbg": [
+      "broad-final"
+    ],
+    "router_uniform": [
+      "broad-final"
+    ],
+    "script_bounds": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "scriptfix": [
+      "broad-final"
+    ],
+    "serverfix_acllog": [
+      "broad-final"
+    ],
+    "serverfix_config": [
+      "broad-final"
+    ],
+    "serverfix_hello": [
+      "broad-final"
+    ],
+    "serverfix_hll": [
+      "broad-final"
+    ],
+    "serverfix_lines": [
+      "broad-final"
+    ],
+    "serverfix_scalar": [
+      "broad-final"
+    ],
+    "serverfix_slowlog": [
+      "broad-final"
+    ],
+    "serverfix_waitaof": [
+      "broad-final"
+    ],
+    "snapshot-epoll": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "snapshot-uring": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "sort": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ],
+    "splitlocal_units": [
+      "broad-final"
+    ],
+    "storage_units": [
+      "broad-final"
+    ],
+    "tls": [
+      "broad-final"
+    ],
+    "trackfix_accounting": [
+      "broad-final"
+    ],
+    "trackfix_order": [
+      "broad-final"
+    ],
+    "tracking_redirect": [
+      "broad-final"
+    ],
+    "txn_group_fused": [
+      "broad-final"
+    ],
+    "txn_group_split": [
+      "broad-final"
+    ],
+    "txnorder-fused-0": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-fused-1": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-split-0": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder-split-1": [
+      "broad-final",
+      "txnorder-round-2",
+      "txnorder-round-3"
+    ],
+    "txnorder2": [
+      "broad-final"
+    ],
+    "txnorder_wake": [
+      "broad-final"
+    ],
+    "wait_units": [
+      "broad-final"
+    ],
+    "waits_tsan_build": [
+      "broad-final"
+    ],
+    "wb_policy": [
+      "broad-final"
+    ],
+    "wb_rule_units": [
+      "broad-final"
+    ],
+    "wbland_units": [
+      "broad-final"
+    ],
+    "zc": [
+      "broad-final",
+      "legacy-split-final",
+      "legacy-fused"
+    ]
+  },
+  "touched_test_files": 62,
+  "matched_protocol_literals": 43,
+  "complete": true
+}

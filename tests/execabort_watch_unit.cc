@@ -82,7 +82,7 @@ struct Fixture {
                 const auto result = multi_execute_task(server,
                     multi_make_task(&client, 0, sid, state), server.shard(sid),
                     server.worker_of_shard(sid), 0, nullptr);
-                if (result == MultiTaskResult::Retry) ++i;
+                if (multi_task_retry(result)) ++i;
                 else remaining.erase(remaining.begin() + i);
             }
         }

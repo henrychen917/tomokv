@@ -1,0 +1,16 @@
+{
+  "total": 12644,
+  "functions": {
+    "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)": 1312,
+    "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 1568,
+    "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 3392,
+    "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 868,
+    "tomo_db0::(anonymous namespace)::reply_string_bulk(tomo_db0::Op&, tomo_db0::KvObj const*)": 2208,
+    "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 2336,
+    "tomo_db0::Op::Sink::reserve(unsigned long)": 768,
+    "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&)": 192
+  },
+  "excluded": {
+    "memcpy@plt": 32
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "total": 8697,
+  "equal": 7947,
+  "changed": 750,
+  "hot": 489,
+  "hot_equal": 473,
+  "command_hot": 12,
+  "command_hot_equal": 12,
+  "changed_hot": [
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21049
+      ],
+      "post_sizes": [
+        21042
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        190
+      ],
+      "post_sizes": [
+        190
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21239
+      ],
+      "post_sizes": [
+        21319
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21185
+      ],
+      "post_sizes": [
+        21256
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        197
+      ],
+      "post_sizes": [
+        197
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21252
+      ],
+      "post_sizes": [
+        21278
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10014,
+        12450,
+        9794
+      ],
+      "post_sizes": [
+        9970,
+        12450,
+        9794
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        170,
+        166
+      ],
+      "post_sizes": [
+        166,
+        170,
+        166
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18480
+      ],
+      "post_sizes": [
+        18480
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1412
+      ],
+      "post_sizes": [
+        1614
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        865
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1223
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        891
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+    }
+  ],
+  "changed_command_hot": [],
+  "pre_sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd",
+  "post_sha256": "e7385e0c625594aac5cdf36f2b20969aad237cd06ebdc7f039b2e728cbdcc723"
+}

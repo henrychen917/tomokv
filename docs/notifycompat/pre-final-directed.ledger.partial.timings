@@ -1,0 +1,9 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	20.490000	notification compatibility setbit vs Redis 7.4
+FAIL	282.690000	notification compatibility setpast vs Redis 7.4
+FAIL	96.000000	notification compatibility emptystore vs Redis 7.4
+FAIL	260.700000	notification compatibility writemiss vs Redis 7.4
+FAIL	93.170000	notification compatibility objectmiss vs Redis 7.4
+FAIL	188.580000	notification compatibility expiredstore vs Redis 7.4
+FAIL	52.420000	notification compatibility flush vs Redis 7.4
+FAIL	93.220000	tracking REDIRECT close vs Redis 7.4

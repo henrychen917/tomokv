@@ -1,0 +1,91 @@
+. all 0
+. build/expire-notify-unit 0
+. build/ktls-lifetime-unit 0
+. build/moverfix-unit 0
+. build/moverfix-db0-unit 0
+. build/publishfix-unit 0
+. build/at15-unit 0
+. build/at15-db0-unit 0
+. build/execabort-watch-unit 0
+. build/execabort-watch-db0-unit 0
+. build/core-concurrency-unit 0
+. build/atomic-survivors-unit 0
+. build/netcmd-unit 0
+. build/encodingfix-unit 0
+. build/netcap-unit 0
+. build/waits-unit 0
+. build/rehash-waits-unit 0
+. build/multidb-unit 0
+. build/multidb-boundary-unit 0
+. build/storesize-unit 0
+. build/respresume-unit 0
+. build/respresume-migration 0
+. build/exbatch-unit 0
+. build/exbatch-db0-unit 0
+. build/wb-rule-units 0
+. build/wbland-units 0
+. build/rltopo-unit 0
+. build/lbplanner-units 0
+. build/shutdown-unit 0
+. build/persistfix-units 0
+. build/ktls-keyupdate 0
+. build/ktls-keyupdate-unit 0
+. build/flushfix-units 0
+. build/splitlocal-unit 0
+. build/reorder-engagement-unit 0
+. build/reorder-engagement-unit-db0 0
+. build/racefix-climon 0
+. build/aoforder-scheduled 0
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1'
+. mdbqsbr-live-arms 0
+build/datafix1/pre-src all 0
+build/datafix1/pre-src build/expire-notify-unit 0
+build/datafix1/pre-src build/ktls-lifetime-unit 0
+build/datafix1/pre-src build/moverfix-unit 0
+build/datafix1/pre-src build/moverfix-db0-unit 0
+build/datafix1/pre-src build/publishfix-unit 0
+build/datafix1/pre-src build/at15-unit 0
+build/datafix1/pre-src build/at15-db0-unit 0
+build/datafix1/pre-src build/execabort-watch-unit 0
+build/datafix1/pre-src build/execabort-watch-db0-unit 0
+build/datafix1/pre-src build/core-concurrency-unit 0
+build/datafix1/pre-src build/atomic-survivors-unit 0
+build/datafix1/pre-src build/netcmd-unit 0
+build/datafix1/pre-src build/encodingfix-unit 0
+build/datafix1/pre-src build/netcap-unit 0
+build/datafix1/pre-src build/waits-unit 0
+build/datafix1/pre-src build/rehash-waits-unit 0
+build/datafix1/pre-src build/multidb-unit 0
+build/datafix1/pre-src build/multidb-boundary-unit 0
+build/datafix1/pre-src build/storesize-unit 0
+build/datafix1/pre-src build/respresume-unit 0
+build/datafix1/pre-src build/respresume-migration 0
+build/datafix1/pre-src build/exbatch-unit 0
+build/datafix1/pre-src build/exbatch-db0-unit 0
+build/datafix1/pre-src build/wb-rule-units 0
+build/datafix1/pre-src build/wbland-units 0
+build/datafix1/pre-src build/rltopo-unit 0
+build/datafix1/pre-src build/lbplanner-units 0
+build/datafix1/pre-src build/shutdown-unit 0
+build/datafix1/pre-src build/persistfix-units 0
+build/datafix1/pre-src build/ktls-keyupdate 0
+build/datafix1/pre-src build/ktls-keyupdate-unit 0
+build/datafix1/pre-src build/flushfix-units 0
+build/datafix1/pre-src build/splitlocal-unit 0
+build/datafix1/pre-src build/reorder-engagement-unit 0
+build/datafix1/pre-src build/reorder-engagement-unit-db0 0
+build/datafix1/pre-src build/racefix-climon 0
+build/datafix1/pre-src build/aoforder-scheduled 0
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1/build/datafix1/pre-src'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1/build/datafix1/pre-src'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1/build/datafix1/pre-src'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1/build/datafix1/pre-src'
+build/datafix1/pre-src mdbqsbr-live-arms 0
+Every production target fresh in PRE and POST: 37 plus all and mdbqsbr-live-arms

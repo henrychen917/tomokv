@@ -1,0 +1,33 @@
+ok	0.000000	release build (+footprint locks)
+ok	14.530000	RESP resumable fragment (1s, epoll)
+ok	14.820000	RESP resumable fragment (1s, uring)
+ok	14.480000	RESP resumable fragment (2s, epoll)
+ok	14.420000	RESP resumable fragment (2s, uring)
+ok	2.600000	RESP resumable cpu (1s, epoll)
+ok	2.610000	RESP resumable cpu (1s, uring)
+ok	2.600000	RESP resumable cpu (2s, epoll)
+ok	2.610000	RESP resumable cpu (2s, uring)
+ok	0.790000	RESP resumable neighbour (1s, epoll)
+ok	0.790000	RESP resumable neighbour (1s, uring)
+ok	0.780000	RESP resumable neighbour (2s, epoll)
+ok	0.790000	RESP resumable neighbour (2s, uring)
+ok	15.260000	perfex TTL sampler beat (1s)
+ok	15.250000	perfex TTL sampler beat (2s)
+ok	2.160000	netfix NT4.8 network CONFIG error parity
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.030000	read-local MGET fence battery (1s)
+ok	1.900000	read-local GET miss battery (1s)
+ok	0.040000	read-local one-key delete battery (1s)
+ok	0.280000	read-local MGET fence battery (2s)
+ok	1.890000	read-local GET miss battery (2s)
+ok	0.050000	read-local one-key delete battery (2s)
+ok	0.150000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.170000	FLIP close during FLIP (uring)
+ok	2.130000	FLIP close during FLIP (epoll)
+ok	1.180000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	9.210000	perfio stale epoll registration (epoll-lb)

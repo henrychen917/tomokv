@@ -1,0 +1,10 @@
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 142373, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/src_cmd_xshard.o-post-142373.o", "changed": 211, "spillover": 138, "hot": 3}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 144888, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/src_cmd_xshard.o-post-144888.o", "changed": 135, "spillover": 59, "hot": 4}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 144904, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/src_cmd_xshard.o-post-144904.o", "changed": 131, "spillover": 57, "hot": 3}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 144920, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/src_cmd_xshard.o-post-144920.o", "changed": 131, "spillover": 57, "hot": 3}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 141220, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/db0_src_cmd_xshard.o-post-141220.o", "changed": 232, "spillover": 156, "hot": 6}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 143730, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/db0_src_cmd_xshard.o-post-143730.o", "changed": 142, "spillover": 70, "hot": 2}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 143746, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/db0_src_cmd_xshard.o-post-143746.o", "changed": 142, "spillover": 70, "hot": 2}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 143762, "start_size": null, "object": "/home/user/Projects/cx-notifycompat/build/notifycompat-budgets/final-trials/db0_src_cmd_xshard.o-post-143762.o", "changed": 140, "spillover": 68, "hot": 2}
+BEST src/cmd/xshard.o 144904 hot 3 spillover 57
+BEST db0/src/cmd/xshard.o 143762 hot 2 spillover 68

@@ -1,0 +1,32 @@
+{
+  "base": "925e8f7ebb86e16298e03d4e8cce9fd2334eac2e",
+  "implementation_commits": [
+    "187785969",
+    "5e86ceee5"
+  ],
+  "server_source_and_makefile_unchanged": true,
+  "binary_sha256": "6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036",
+  "make_log": "build/wave6b/make.log",
+  "expected_literals_unchanged": {
+    "EXPECT_QUICK": "739",
+    "EXPECT_FULL": "756"
+  },
+  "row_delta_quick": 0,
+  "row_delta_full": 0,
+  "required_inventory": {
+    "quick": 768,
+    "full": 785
+  },
+  "quick_exit_line": 5338,
+  "gate_change_is_only_environment_prelude": true,
+  "implementation_and_request_files": [
+    "MEASURE-REQUEST-wave6.md",
+    "tests/datafix1_locale.py",
+    "tests/differ_gate.sh",
+    "tests/gate.sh",
+    "tests/gates_test.py",
+    "tests/txnorder.py"
+  ],
+  "make_final_log": "docs/wave6b/make-final.log",
+  "server_binary_after_live_validation": "docs/wave6b/cleanup-final.json"
+}

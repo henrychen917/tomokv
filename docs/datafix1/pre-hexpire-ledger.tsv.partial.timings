@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	1.790000	datafix1 HEXPIRE precedence (both engines and modes)

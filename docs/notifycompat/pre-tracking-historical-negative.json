@@ -1,0 +1,14 @@
+[
+  {
+    "receipt": "pre-feature-epoll",
+    "job": "feature-armed-1",
+    "label": "fused+armed tracking battery (atomic 1)",
+    "mode": "1s",
+    "engine": "epoll",
+    "read_local": 1,
+    "atomic": 1,
+    "exact_output": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-notifycompat/tests/tracking.py\", line 510, in <module>\n    assert info[1] == [b\"on\", b\"broken_redirect\"], f\"broken_redirect not reported: {info!r}\"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: broken_redirect not reported: [b'flags', [b'on'], b'redirect', 941, b'prefixes', []]\n",
+    "classification": "Additional historical PRE failure: missing broken_redirect flag; same symptom as TRK-REDIR-1. No assertion changed; POST same whole job passes.",
+    "deterministic_oracle_control": "pre-r3-directed / post-r3-directed tracking_redirect RESP2 legs"
+  }
+]

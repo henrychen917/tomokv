@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "group": "split",
+  "parts": [
+    "split-0",
+    "split-1",
+    "equivalence"
+  ],
+  "start": 1792864865.207239,
+  "end": 1792865617.66966,
+  "seconds": 752.4624211788177,
+  "comparisons": 678,
+  "complete": true
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "archive": "pre-existing-uring-proof.tar.gz",
+    "member": "jobs/feature-split-1/gate-tracking-1.txt",
+    "failure": [
+      "    assert info[1] == [b\"on\", b\"broken_redirect\"], f\"broken_redirect not reported: {info!r}\"",
+      "AssertionError: broken_redirect not reported: [b'flags', [b'on'], b'redirect', 807, b'prefixes', []]"
+    ]
+  }
+]

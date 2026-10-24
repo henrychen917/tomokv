@@ -17,9 +17,9 @@ struct GeoRoute {
     uint32_t destination_arg = 0;
 };
 
-enum class GeoBuildResult : uint8_t { Ok, MissingMember, Oom };
+enum class GeoBuildResult : uint8_t { Ok, MissingMember, Oom, Invalid };
 
-// Shared with the scatter lowering. Validation writes Redis-compatible errors into the op.
+// Routing extracts keys only. Build validates after lookup and writes exact errors into the op.
 bool geo_prepare_route(Op& op, GeoRoute& route);
 GeoBuildResult geo_build_store(Op& op, const std::vector<ZsetEntry>& source,
                                std::vector<ZsetEntry>& destination);

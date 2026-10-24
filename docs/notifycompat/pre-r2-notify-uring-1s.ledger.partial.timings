@@ -1,0 +1,7 @@
+ok	0.000000	release build (+footprint locks)
+ok	2.260000	MULTI feature battery
+ok	1.580000	blocking feature battery
+ok	0.960000	pubsub feature battery
+ok	0.060000	Lua feature battery
+FAIL	2.850000	keyspace notification battery
+ok	0.020000	feature battery shutdown invariants

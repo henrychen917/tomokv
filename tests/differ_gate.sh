@@ -2,6 +2,8 @@
 # Full-tier differential matrix against the pinned vanilla Redis 7.4 oracle.
 # Usage: tests/differ_gate.sh TARGET_BIN TARGET_PORT ORACLE_PORT TARGET_CORES TARGET_RATIO
 set -u
+# Match oracle collation on every target boot, including standalone equivalence.
+export LC_ALL=C
 cd "$(dirname "$0")/.."
 
 TARGET_BIN=${1:-${GATE_CANDIDATE_BINARY:-./build/tomokv}}
@@ -25,6 +27,10 @@ case "$TARGET_GEOMETRY" in
   armed-fused) TARGET_SHAPE=(--thread-mode fused --read-local 1);;
   *) echo "unknown GATE_DIFFER_GEOMETRY: $TARGET_GEOMETRY (want split|armed-fused)" >&2; exit 2;;
 esac
+# The explicit engine applies to every target leg; the default matrix is unchanged.
+TARGET_NET_IO=${GATE_DIFFER_NET_IO:-uring}
+case "$TARGET_NET_IO" in epoll|uring) :;; *) echo 'invalid GATE_DIFFER_NET_IO' >&2; exit 2;; esac
+TARGET_SHAPE+=(--net-io "$TARGET_NET_IO")
 ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$TARGET_CORES}
 REDIS_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 ORACLE_BIN=${GATE_DIFFER_ORACLE_BIN:-$REDIS_ROOT/src/redis-server}
@@ -435,7 +441,7 @@ ORACLE_ALIGNMENT=()
 if [ "$PART" != equivalence ]; then run_matrix || FAIL=$((FAIL+1)); fi
 # One existing differential gate row now also requires exact mode equivalence.
 # Keep every Redis leg above intact. The split job runs this once, after both
-# listeners close: its private target port is reused across all 32 fresh boots.
+# listeners close: its private target port is reused across all 16 cells.
 # The armed job need not repeat the identical matrix. The new per-run seed also
 # rotates the equivalence stream; discovered counterexamples remain permanent.
 if { [ "$PART" = all ] && [ -z "$PROOF_SUITES" ] && [ "$TARGET_GEOMETRY" = split ]; } ||
@@ -450,19 +456,19 @@ PY
     EQUIVALENCE_SEEDS=("$EQUIVALENCE_SEED")
   else
     # The frozen list includes this run's rotating stream and every recorded failure of this
-    # generator. Every invocation still executes all32 cells; the fold rejects a missing stream.
+    # generator. Every invocation executes all 16 cells; the fold rejects a missing stream.
     EQUIVALENCE_FLAGS=(--_single-seed)
   fi
   for EQUIVALENCE_SEED in "${EQUIVALENCE_SEEDS[@]}"; do
     EQ_OUT="$OUT/mode-equivalence"
     [ "$PART" = all ] || EQ_OUT="$OUT/mode-equivalence-$EQUIVALENCE_SEED"
   if python3 tests/mode_equivalence.py "${EQUIVALENCE_FLAGS[@]}" --binary "$TARGET_BIN" --server-cpus "$TARGET_CORES" \
-      --load-cpus "$LOAD_CORES" --port "$TARGET_PORT" --seed "$EQUIVALENCE_SEED" \
+      --load-cpus "$LOAD_CORES" --port "$TARGET_PORT" --net-io "$TARGET_NET_IO" --seed "$EQUIVALENCE_SEED" \
       --output "$EQ_OUT" >"$EQ_OUT.log" 2>&1; then
-    say 'mode equivalence: all 32 execution/knob combinations' 'ok (exact replies and mechanism witnesses)'
+    say 'mode equivalence: all execution/knob combinations' 'ok (exact replies and mechanism witnesses)'
     PASS=$((PASS+1))
   else
-    say 'mode equivalence: all 32 execution/knob combinations' "FAIL (see $EQ_OUT.log)"
+    say 'mode equivalence: all execution/knob combinations' "FAIL (see $EQ_OUT.log)"
     FAIL=$((FAIL+1))
   fi
   done

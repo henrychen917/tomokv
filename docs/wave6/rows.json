@@ -1,0 +1,154 @@
+{
+  "expected_unchanged": [
+    "EXPECT_QUICK=739",
+    "EXPECT_FULL=756"
+  ],
+  "source_quick": 768,
+  "source_full": 785,
+  "fixture": 785,
+  "missing": {},
+  "extra": {},
+  "quick_exit_line": 5335,
+  "lane_collections": [
+    {
+      "job": "execfair",
+      "rows": 1,
+      "line": 5236,
+      "before_quick_exit": true
+    },
+    {
+      "job": "notifycompat",
+      "rows": 7,
+      "line": 5266,
+      "before_quick_exit": true
+    },
+    {
+      "job": "tracking_redirect",
+      "rows": 1,
+      "line": 5267,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_lines",
+      "rows": 1,
+      "line": 5250,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_scalar",
+      "rows": 1,
+      "line": 5251,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_config",
+      "rows": 1,
+      "line": 5252,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_hello",
+      "rows": 1,
+      "line": 5253,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_waitaof",
+      "rows": 1,
+      "line": 5254,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_hll",
+      "rows": 1,
+      "line": 5255,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_slowlog",
+      "rows": 1,
+      "line": 5256,
+      "before_quick_exit": true
+    },
+    {
+      "job": "serverfix_acllog",
+      "rows": 1,
+      "line": 5257,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_arity",
+      "rows": 1,
+      "line": 5189,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_errors",
+      "rows": 1,
+      "line": 5190,
+      "before_quick_exit": true
+    },
+    {
+      "job": "dispatch_children",
+      "rows": 1,
+      "line": 5191,
+      "before_quick_exit": true
+    },
+    {
+      "job": "acl_subcommands",
+      "rows": 1,
+      "line": 5192,
+      "before_quick_exit": true
+    },
+    {
+      "job": "router_uniform",
+      "rows": 1,
+      "line": 5193,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_geo",
+      "rows": 1,
+      "line": 5226,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_spop",
+      "rows": 1,
+      "line": 5227,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_lists",
+      "rows": 1,
+      "line": 5228,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_locale",
+      "rows": 1,
+      "line": 5229,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_bitfield",
+      "rows": 1,
+      "line": 5230,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_hexpire",
+      "rows": 1,
+      "line": 5232,
+      "before_quick_exit": true
+    },
+    {
+      "job": "datafix1_randscan",
+      "rows": 1,
+      "line": 5231,
+      "before_quick_exit": true
+    }
+  ],
+  "DQ": 29,
+  "DF": 29
+}

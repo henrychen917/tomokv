@@ -164,6 +164,8 @@ class OrderBattery(Battery):
         counts = collections.Counter()
         lock = threading.Lock()
         latencies = []
+        bystander_ready = threading.Event()
+        min_bystander_samples = 20
         completed_execs = [0]
 
         def worker(index):
@@ -189,18 +191,21 @@ class OrderBattery(Battery):
             while not stop.is_set():
                 at = time.monotonic()
                 reply = self.transaction(c, [("INCR", key) for key in quiet])
-                latencies.append(time.monotonic() - at)
-                assert len(reply) == 2
+                elapsed = time.monotonic() - at
+                assert len(reply) == 2 and all(isinstance(v, int) for v in reply), reply
+                latencies.append(elapsed)
+                if len(latencies) >= min_bystander_samples:
+                    bystander_ready.set()
 
         with concurrent.futures.ThreadPoolExecutor(25) as pool:
             futures = [pool.submit(worker, i) for i in range(24)] + [pool.submit(bystander)]
             try:
-                # origin/cpp predates the new counters. Observe acknowledged
-                # EXEC replies there so an absent counter cannot fake a failure.
-                progress = (lambda: completed_execs[0]) if self.args.pre else (
-                    lambda: self.delta(before, "atomic_txn_executed"))
-                self.wait(lambda: progress() >= 16,
-                          "younger-unit storm did not start", timeout=5)
+                # A fast victim can finish before the bystander's first EXEC.
+                # Require acknowledged progress from BOTH workers before timing it;
+                # the server's EXEC total also includes the bystander and cannot
+                # by itself prove that the younger-unit storm has started.
+                self.wait(lambda: completed_execs[0] >= 16 and bystander_ready.is_set(),
+                          "storm or bystander did not start (16 EXECs / 20 samples)", timeout=5)
                 victim = self.conn(timeout=1)
                 at = time.monotonic()
                 reply = self.transaction(victim, [("INCR", key) for key in keys])
@@ -215,13 +220,17 @@ class OrderBattery(Battery):
                 stop.set()
                 for f in futures:
                     f.result(timeout=6)
-        assert latencies and max(latencies) < .2, latencies[-10:]
+        assert len(latencies) >= min_bystander_samples and max(latencies) < .2, latencies[-10:]
+        assert self.admin.must("MGET", *quiet) == [str(len(latencies)).encode()] * len(quiet)
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_executed") == completed_execs[0] + len(latencies) + 1
         assert self.admin.must("MGET", *keys) == [str(counts[k]).encode() for k in keys], counts
         self.clean(before)
         after = self.snapshot()
         assert after.get("atomic_txn_exclusive", 0) - before.get("atomic_txn_exclusive", 0) == 0
         self.report("b1", before, victim_seconds=elapsed, victim_attempts=attempts,
-                    bystander_max_seconds=max(latencies), owners=self.args.owners)
+                    bystander_max_seconds=max(latencies), bystander_samples=len(latencies),
+                    storm_executions=completed_execs[0], owners=self.args.owners)
         self.writer_bound()
 
     def writer_bound(self):
@@ -264,13 +273,14 @@ class OrderBattery(Battery):
         churn = [self.same_shard(key) for key in keys]
         self.admin.must("MSET", *[part for key in keys for part in (key, 0)])
         before = self.snapshot()
-        end = time.monotonic() + 30
+        end = None  # The 30-second storm starts after the PING watcher is ready.
+        stop = threading.Event()
         counts = collections.Counter()
         lock = threading.Lock()
         executions = [0]
         config_count = [0]
         script_refusals = dict.fromkeys(SCRIPT_REFUSALS.values(), 0)
-        ping_max = [0.0]
+        ping_latencies = []
         # WATCH and plain multi-key writers share the EXEC churn keys. Keeping
         # these on a separate keyspace would miss validation/placement cycles.
         watch_pairs = [churn[:2], churn[2:4]]
@@ -370,11 +380,11 @@ class OrderBattery(Battery):
 
         def ping():
             c = self.conn(timeout=1)
-            while time.monotonic() < end:
+            while not stop.is_set():
                 at = time.monotonic()
                 assert c.must("PING") == b"PONG"
-                ping_max[0] = max(ping_max[0], time.monotonic() - at)
-                time.sleep(.1)
+                ping_latencies.append(time.monotonic() - at)
+                stop.wait(.1)
 
         def move(index):
             c = self.conn(timeout=5)
@@ -412,16 +422,26 @@ class OrderBattery(Battery):
         jobs = [(exec_worker, (i,)) for i in range(16)]
         jobs += [(watched, (pair, reverse)) for pair in watch_pairs for reverse in (False, True)]
         jobs += [(plain, (i,)) for i in range(8)]
-        jobs += [(script, ()), (script, ()), (producer, ()), (consumer, ()), (admin_unit, ()), (ping, ())]
+        jobs += [(script, ()), (script, ()), (producer, ()), (consumer, ()), (admin_unit, ())]
         jobs += [(move, (0,)), (move, (1,))]  # atomic-0 mover fix is also an invariant
         if self.atomic:
             jobs.append((nx, ()))
         if int(self.admin.must("CONFIG", "GET", "databases")[1]) == 16:
             jobs.append((databases, ()))
-        with concurrent.futures.ThreadPoolExecutor(len(jobs)) as pool:
-            futures = [pool.submit(fn, *args) for fn, args in jobs]
-            for future in futures:
-                future.result(timeout=36)
+        with concurrent.futures.ThreadPoolExecutor(len(jobs) + 1) as pool:
+            watcher = pool.submit(ping)
+            try:
+                self.wait(lambda: len(ping_latencies) >= 20,
+                          "PING watcher did not collect 20 samples", timeout=5)
+                ping_samples_before = len(ping_latencies)
+                end = time.monotonic() + 30
+                futures = [pool.submit(fn, *args) for fn, args in jobs]
+                for future in futures:
+                    future.result(timeout=36)
+                ping_samples_after = len(ping_latencies)
+            finally:
+                stop.set()
+                watcher.result(timeout=2)
         # Only `keys` carry increments recorded in counts. The watched churn
         # keys deliberately receive SET markers and DEL; Redis returns those
         # strings/null, never this nonexistent count (oracle-sequencing receipt).
@@ -435,10 +455,13 @@ class OrderBattery(Battery):
         assert sorted(mover_results) == [0, 1] and config_count[0] > 0
         if not self.args.pre:
             assert self.delta(before, "atomic_txn_executed") == executions[0], (executions, config_count)
-        assert ping_max[0] < 1
+        assert ping_samples_after > ping_samples_before, "PING watcher missed the storm"
+        assert max(ping_latencies) < 1
         self.clean(before)
         self.report("c", before, executions=executions[0], config_executions=config_count[0],
-                    ping_max_seconds=ping_max[0], produced=len(sent), delivered=len(delivered),
+                    ping_max_seconds=max(ping_latencies),
+                    ping_samples=ping_samples_after - ping_samples_before,
+                    produced=len(sent), delivered=len(delivered),
                     script_refusals=script_refusals)
 
     def armed_witness(self):

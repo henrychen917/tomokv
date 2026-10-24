@@ -1,0 +1,46 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-63",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--ports",
+    "32800-32889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat/arms/pre-r3-directed-tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-notifycompat",
+  "jobs": [
+    "notifycompat",
+    "tracking_redirect"
+  ],
+  "arm": "PRE",
+  "engine": null,
+  "fused": false,
+  "binary": "/home/user/Projects/cx-notifycompat/build/notifycompat/arms/pre-r3-directed-tomokv",
+  "source_binary": "/home/user/Projects/cx-notifycompat/build/tomokv-pre",
+  "sha256": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_ONLY_JOBS": "notifycompat tracking_redirect",
+    "GATE_NOTIFYCOMPAT_ARM": "PRE",
+    "GATE_NOTIFYCOMPAT_OBJECTS": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre",
+    "GATE_LEDGER": "/home/user/Projects/cx-notifycompat/docs/notifycompat/pre-r3-directed.ledger",
+    "GATE_NOTIFYCOMPAT_REF": "ef5204b2e"
+  },
+  "exit": 1,
+  "artifacts": "/home/user/Projects/cx-notifycompat/build/gate-run.ReDBih",
+  "archive_refreshed_to_include_boot_logs": true,
+  "directed_sources_verified_after_run": {
+    "tests/notifycompat.py": "e5aa32acf10aaf4381f062d00fa58c67acefd3ea85084121a2e5938acc5177cd",
+    "tests/tracking_redirect.py": "213e54f0f669d6db6104bfe787e960cdc910c4e84247f6cccce74b54cd84ad2a",
+    "tools/notifycompat_schedule.py": "81e510e4abef8c724919a1f669b0b9b64cc97c1f5f4258b5a273ebce25ba0877"
+  }
+}

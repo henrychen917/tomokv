@@ -41,6 +41,12 @@
 
 using namespace tomo;
 
+// WAIT's cold reply moved out of the parser, but main.o must keep supplying the
+// ordinary integer reply template. Otherwise the linker selects xshard.o's
+// differently inlined weak definition and charges every INCR eleven instructions.
+// Preserve the established link-order choice in both database runtimes.
+template void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long);
+
 // Signal-handler state. A handler may only touch lock-free atomics, so the thread table is a
 // fixed array of atomics published through an atomic count: arm() fills the slots, then stores the
 // count (release); the handler loads the count (acquire) and walks exactly that many entries. No

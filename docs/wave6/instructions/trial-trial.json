@@ -1,0 +1,94 @@
+[
+  {
+    "file": "trial-db0-GET-2s-1-1--1.json",
+    "total": 1077,
+    "functions": {
+      "void tomo_db0::ExLoopT<false>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 121,
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": 194,
+      "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+      "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 77,
+      "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 106,
+      "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 29,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 96,
+      "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+      "tomo_db0::ExLoopT<false>::notify_sender(tomo_db0::Client*)": 28,
+      "tomo_db0::ExLoopT<false>::flush_notify_batch()": 94,
+      "tomo_db0::Shard::publish_size()": 216,
+      "tomo_db0::FlatStore::publish_database_counts() const": 88
+    },
+    "excluded": {
+      "memcpy@plt": 1
+    },
+    "clock_calls": 1
+  },
+  {
+    "file": "trial-db0-GET-1s-1-1--1.json",
+    "total": 839,
+    "functions": {
+      "void tomo_db0::ExLoopT<true>::exec_batch_prefetched<false>(tomo_db0::Task const*, unsigned int)": 91,
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": 188,
+      "tomo_db0::multi_task_tagged(tomo_db0::Task const&)": 4,
+      "tomo_db0::ThreadCtx::note_command(unsigned short)": 15,
+      "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)": 77,
+      "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)": 106,
+      "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const": 29,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 96,
+      "tomo_db0::Op::Sink::reserve(unsigned long)": 24,
+      "tomo_db0::ExLoopT<true>::note_lb_hash(tomo_db0::Shard&, unsigned long)": 5,
+      "tomo_db0::ExLoopT<true>::notify_sender(tomo_db0::Client*)": 34,
+      "tomo_db0::ExLoopT<true>::flush_notify_batch()": 94,
+      "tomo_db0::Shard::publish_size()": 54,
+      "tomo_db0::FlatStore::publish_database_counts() const": 22
+    },
+    "excluded": {
+      "memcpy@plt": 1
+    },
+    "clock_calls": 1
+  },
+  {
+    "file": "trial-normal-GET-2s-1-1--1.json",
+    "total": 1575,
+    "functions": {
+      "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 194,
+      "tomo::multi_task_tagged(tomo::Task const&)": 4,
+      "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+      "tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+      "tomo::KvObj::key() const": 13,
+      "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+      "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+      "tomo::ExLoopT<false>::notify_sender(tomo::Client*)": 28,
+      "tomo::ExLoopT<false>::flush_notify_batch()": 94,
+      "tomo::Shard::publish_size()": 232,
+      "tomo::FlatStore::publish_database_counts() const": 588
+    },
+    "excluded": {
+      "memcpy@plt": 1
+    },
+    "clock_calls": 1
+  },
+  {
+    "file": "trial-normal-GET-1s-1-1--1.json",
+    "total": 950,
+    "functions": {
+      "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91,
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 188,
+      "tomo::multi_task_tagged(tomo::Task const&)": 4,
+      "tomo::ThreadCtx::note_command(unsigned short)": 15,
+      "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+      "tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+      "tomo::KvObj::key() const": 13,
+      "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+      "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+      "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 5,
+      "tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 34,
+      "tomo::ExLoopT<true>::flush_notify_batch()": 94,
+      "tomo::Shard::publish_size()": 58,
+      "tomo::FlatStore::publish_database_counts() const": 147
+    },
+    "excluded": {
+      "memcpy@plt": 1
+    },
+    "clock_calls": 1
+  }
+]

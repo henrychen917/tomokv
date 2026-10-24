@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	18.180000	RESP resumable fragment (1s, epoll)
+ok	17.400000	RESP resumable fragment (1s, uring)
+ok	15.900000	RESP resumable fragment (2s, epoll)
+ok	15.200000	RESP resumable fragment (2s, uring)

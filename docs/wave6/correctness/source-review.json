@@ -1,0 +1,34 @@
+{
+  "diff_checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "ef5204b2e",
+        "HEAD"
+      ],
+      "exit": 2,
+      "output": "docs/datafix1/test-impact-exact.txt:10: trailing whitespace.\n+PATTERN ERR exactly one of BYRADIUS and BYBOX can be specified for \ndocs/datafix1/test-impact-exact.txt:12: trailing whitespace.\n+PATTERN ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for \ndocs/execfair/correctness/final-split-batteries/bplus/gate-read-local-lane.txt:5: trailing whitespace.\n+  mixed order + RYOW across deferral: every expected reply ok \ndocs/execfair/correctness/final-split-batteries/bplus/gate-read-local-lane.txt:8: trailing whitespace.\n+  mixed cap reset: local, ordered and live             ok \n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "ef5204b2e",
+        "HEAD",
+        "--",
+        "src",
+        "tests",
+        "Makefile",
+        "docs/wave6",
+        "MEASURE-REQUEST-wave6.md"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  ],
+  "protected_counts_unchanged": true,
+  "whitespace_note": "Four inherited raw receipt/pattern lines retain their original trailing spaces; source and integration files are clean."
+}

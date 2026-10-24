@@ -3721,7 +3721,7 @@ subscriber_checks_done:
                             break;
                         }
                     } else if (wait == WaitCommandResult::Immediate) {
-                        reply_int(op->sink(), 0);
+                        server_tail_reply_wait(*op);
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
@@ -4717,7 +4717,7 @@ ordinary_shard_ready:
             Client* client = timer.client;
             Op& op = client->rob().at(timer.op_id);
             if (timer.kind == DeferredTimerKind::WaitZero) {
-                reply_int(op.sink(), 0);
+                server_tail_reply_wait(op);
             } else {
                 reply_ok(op.sink());
                 if (timer.slowlog_arm.armed()) {

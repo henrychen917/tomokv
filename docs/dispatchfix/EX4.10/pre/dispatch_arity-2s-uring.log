@@ -1,0 +1,16 @@
+{'argv': ('XINFO', 'STREAM', 'stream', 'FULL', 'COUNT', '1', 'extra'), 'target': b'-ERR syntax error\r\n', 'oracle': b"-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"}
+{'argv': ('XINFO', 'STREAM', 'stream', 'FULL', 'COUNT', '1', 'extra', 'more'), 'target': b'-ERR syntax error\r\n', 'oracle': b"-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"}
+{'argv': ('XINFO', 'STREAM', 'stream', 'full', 'count', '1', 'x', 'y', 'z'), 'target': b'-ERR syntax error\r\n', 'oracle': b"-ERR unknown subcommand or wrong number of arguments for 'STREAM'. Try XINFO HELP.\r\n"}
+{'argv': ('XINFO', 'STREAM', 'string', 'FULL', 'COUNT', '1', 'extra'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-WRONGTYPE Operation against a key holding the wrong kind of value\r\n'}
+{'argv': ('XINFO', 'STREAM', 'string', 'FULL', 'COUNT', '1', 'extra', 'more'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-WRONGTYPE Operation against a key holding the wrong kind of value\r\n'}
+{'argv': ('XINFO', 'STREAM', 'string', 'full', 'count', '1', 'x', 'y', 'z'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-WRONGTYPE Operation against a key holding the wrong kind of value\r\n'}
+{'argv': ('XINFO', 'STREAM', 'missing', 'FULL', 'COUNT', '1', 'extra'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-ERR no such key\r\n'}
+{'argv': ('XINFO', 'STREAM', 'missing', 'FULL', 'COUNT', '1', 'extra', 'more'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-ERR no such key\r\n'}
+{'argv': ('XINFO', 'STREAM', 'missing', 'full', 'count', '1', 'x', 'y', 'z'), 'target': b'-ERR syntax error\r\n', 'oracle': b'-ERR no such key\r\n'}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-dispatchfix/tests/dispatch_arity.py", line 46, in <module>
+    run(p.parse_args())
+  File "/home/user/Projects/cx-dispatchfix/tests/dispatch_arity.py", line 38, in run
+    assert not failures, f'{len(failures)}/{len(rows)} outer-arity replies differ'
+           ^^^^^^^^^^^^
+AssertionError: 9/17 outer-arity replies differ

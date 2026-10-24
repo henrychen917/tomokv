@@ -1,0 +1,122 @@
+{
+  "candidate_sha256": "2361590f215dc452078b758223a77a826ec93821c7958da53e3aa2456f5587d9",
+  "command": "taskset -c 89-95 bash docs/prefetch/run-differ.sh",
+  "servers": "80-87",
+  "clients": "89-95",
+  "ports": [
+    23800,
+    23801
+  ],
+  "matrices": [
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "exit": 0,
+      "passed": 475,
+      "failed": 0,
+      "runtime": "21m50s",
+      "compared_commands": 232,
+      "registered_commands": 245,
+      "comparison_witnesses": 2149691,
+      "differential_legs": 474,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "skipped": [],
+      "artifact": "docs/prefetch/differ-uring-split.json.gz"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "exit": 0,
+      "passed": 466,
+      "failed": 0,
+      "runtime": "17m35s",
+      "compared_commands": 232,
+      "registered_commands": 245,
+      "comparison_witnesses": 2098740,
+      "differential_legs": 464,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "skipped": [
+        "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "artifact": "docs/prefetch/differ-uring-armed-fused.json.gz"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "exit": 0,
+      "passed": 475,
+      "failed": 0,
+      "runtime": "18m03s",
+      "compared_commands": 232,
+      "registered_commands": 245,
+      "comparison_witnesses": 2145143,
+      "differential_legs": 474,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "skipped": [],
+      "artifact": "docs/prefetch/differ-epoll-split.json.gz"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "exit": 0,
+      "passed": 466,
+      "failed": 0,
+      "runtime": "17m32s",
+      "compared_commands": 232,
+      "registered_commands": 245,
+      "comparison_witnesses": 2098677,
+      "differential_legs": 464,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "skipped": [
+        "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "artifact": "docs/prefetch/differ-epoll-armed-fused.json.gz"
+    }
+  ],
+  "total_passed_rows": 1882,
+  "total_failed_rows": 0,
+  "total_differential_legs": 1876,
+  "total_comparison_witnesses": 8492251
+}

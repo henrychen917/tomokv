@@ -1,0 +1,266 @@
+[
+  {
+    "case": "normal-GET-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 188,
+        "post": 194
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-GET-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 6016,
+        "post": 6208
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-GET-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 194,
+        "post": 196
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-GET-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 6208,
+        "post": 6272
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-SET-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 210,
+        "post": 216
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-SET-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 6720,
+        "post": 6912
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-SET-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 216,
+        "post": 218
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-SET-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 6912,
+        "post": 6976
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-INCR-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 210,
+        "post": 216
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-INCR-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+        "pre": 6720,
+        "post": 6912
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-INCR-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 216,
+        "post": 218
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "normal-INCR-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+        "pre": 6912,
+        "post": 6976
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-GET-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 188,
+        "post": 194
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-GET-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6016,
+        "post": 6208
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-GET-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 194,
+        "post": 196
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-GET-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6208,
+        "post": 6272
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-SET-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 210,
+        "post": 216
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-SET-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6720,
+        "post": 6912
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-SET-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 216,
+        "post": 218
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-SET-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6912,
+        "post": 6976
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-INCR-1s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 210,
+        "post": 216
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-INCR-1s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6720,
+        "post": 6912
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-INCR-2s-1",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 216,
+        "post": 218
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  },
+  {
+    "case": "db0-INCR-2s-32",
+    "changed_functions": [
+      {
+        "function": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 6912,
+        "post": 6976
+      }
+    ],
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
+  }
+]

@@ -1,0 +1,8 @@
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.030000	read-local MGET fence battery (1s)
+ok	1.900000	read-local GET miss battery (1s)
+ok	0.040000	read-local one-key delete battery (1s)
+ok	0.280000	read-local MGET fence battery (2s)
+ok	1.890000	read-local GET miss battery (2s)
+ok	0.050000	read-local one-key delete battery (2s)

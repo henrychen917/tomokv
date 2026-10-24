@@ -110,6 +110,27 @@ def require_persistence(report, enabled=None):
         fail('disabled persistence must have no producer allocation or work')
 
 
+def require_fused_work(report):
+    """Fused mode has one work count, rather than split dispatch/execute totals."""
+    work = report.get('work', {})
+    rows = report.get('threads', [])
+    if report.get('thread_mode') != '1s' or work.get('kind') != 'fused':
+        fail('expected fused work report')
+    if set(work) != {'kind', 'unified'}:
+        fail('fused work must expose only its unified counter')
+    if type(work['unified']) is not int or work['unified'] <= 0:
+        fail('fused work did not fire')
+    if not rows or any(row.get('role') != 'fused' or
+                       type(row.get('tid')) is not int or
+                       type(row.get('ops')) is not int or row['ops'] < 0 for row in rows):
+        fail('missing or invalid fused thread work')
+    if len({row['tid'] for row in rows}) != len(rows):
+        fail('duplicate fused thread')
+    if sum(row['ops'] for row in rows) != work['unified']:
+        fail('fused unified work differs from its thread totals')
+    return work['unified']
+
+
 def main():
     if len(sys.argv) < 3:
         fail("usage: LOG present|clean|get PATH|io [--edges]")
@@ -119,6 +140,9 @@ def main():
         return
     if action == "persistence":
         require_persistence(report)
+        return
+    if action == "fused-work":
+        print(require_fused_work(report))
         return
     if action in ("clean", "io"):
         require_io_conservation(report, edges="--edges" in sys.argv[3:])

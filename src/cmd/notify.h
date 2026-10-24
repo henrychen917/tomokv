@@ -138,10 +138,18 @@ struct NotifyOut {
     uint8_t db = 0;
     std::string key;
     uint64_t tracking_stamp = 0;
+    std::shared_ptr<std::atomic<bool>> after_set;
+};
+
+struct NotifyPendingExpiry {
+    std::string key;
+    uint8_t ns = 0;
+    std::shared_ptr<std::atomic<bool>> after_set;
 };
 
 struct NotifyShardState {
     std::deque<NotifyOut> keyless;
+    std::deque<NotifyPendingExpiry> elapsed_sets;
 };
 
 class NotifyExecutionScope {
@@ -201,6 +209,10 @@ inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
 }
 // A NotPossible overwrite probe can reap before insert_notify sees the old key.
 void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key);
+// Empty image application distinguishes explicit STORE deletion from expiry.
+void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_del);
+// An elapsed SET's active-expiry chain follows its set/expire publication chain.
+void notify_elapsed_set(Shard& shard, Op& op, Slice key);
 bool notify_flat_enabled(void* shard, uint32_t cls);
 void notify_flat_emit(void* shard, uint32_t cls, NotifyEventId event, Slice key);
 void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink);

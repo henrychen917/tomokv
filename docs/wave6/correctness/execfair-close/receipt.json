@@ -1,0 +1,56 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave6/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave6",
+  "start": 1792830332.6914306,
+  "commit": "2f2bf558ff6d889f1cec36a7f2c66678beb156f1",
+  "binary_sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "gate_sha256": "fb4c6c0dcb3868ebb0fe4b1cfb3f6341fd7a0dd054379ff8b01657024be08b5e",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave6/build/wave6/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "execfair",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave6/docs/wave6/correctness/execfair-close/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792830355.3634377,
+  "binary_sha256_after": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "run_dir": "/home/user/Projects/cx-wave6/build/gate-run.Ff0Vw7",
+  "jobs": {
+    "execfair": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t20.530000\tEXEC fast-lane polls"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}

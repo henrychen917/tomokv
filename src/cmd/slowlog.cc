@@ -63,7 +63,19 @@ struct SlowlogShard {
     std::deque<SlowlogEntry> entries;
 };
 
-std::array<SlowlogShard, kMaxThreads> g_slowlog;
+std::array<std::atomic<SlowlogShard*>, kMaxThreads> g_slowlog{};
+std::atomic<int64_t> g_slowlog_threshold{-1};
+
+SlowlogShard* recorder(uint32_t id) {
+    SlowlogShard* value = g_slowlog[id].load(std::memory_order_acquire);
+    if (value) return value;
+    try {
+        auto fresh = std::make_unique<SlowlogShard>();
+        if (g_slowlog[id].compare_exchange_strong(value, fresh.get(),
+                std::memory_order_release, std::memory_order_acquire)) value = fresh.release();
+    } catch (const std::bad_alloc&) {}
+    return value;
+}
 std::atomic<uint64_t> g_slowlog_max_len{128};
 std::atomic<uint64_t> g_slowlog_next_id{0};
 
@@ -118,17 +130,45 @@ struct ClientDirectoryShard {
     std::unordered_map<uint64_t, std::shared_ptr<const SlowlogIdentity>> entries;
 };
 
-std::array<ClientDirectoryShard, kDirectoryShards> g_directory;
+std::array<std::atomic<ClientDirectoryShard*>, kDirectoryShards> g_directory{};
+struct RecorderCleanup {
+    ~RecorderCleanup() {
+        // Workers have joined before static teardown; pointers are never reclaimed
+        // while a recorder or a CONFIG/SLOWLOG reader can still hold one.
+        for (auto& slot : g_slowlog) delete slot.load(std::memory_order_relaxed);
+        for (auto& slot : g_directory) delete slot.load(std::memory_order_relaxed);
+    }
+} g_recorder_cleanup;
 
-ClientDirectoryShard& directory_shard(uint64_t client_id) {
-    return g_directory[client_id % kDirectoryShards];
+bool directory_armed() {
+    return g_slowlog_threshold.load(std::memory_order_acquire) >= 0 &&
+           g_slowlog_max_len.load(std::memory_order_acquire) != 0;
+}
+
+ClientDirectoryShard* directory_shard(uint64_t client_id, bool create = false) {
+    auto& slot = g_directory[client_id % kDirectoryShards];
+    auto* value = slot.load(std::memory_order_acquire);
+    if (value || !create) return value;
+    auto fresh = std::make_unique<ClientDirectoryShard>();
+    if (slot.compare_exchange_strong(value, fresh.get(), std::memory_order_release,
+                                    std::memory_order_acquire)) value = fresh.release();
+    return value;
 }
 
 std::shared_ptr<const SlowlogIdentity> directory_lookup(uint64_t client_id) {
-    ClientDirectoryShard& shard = directory_shard(client_id);
-    std::lock_guard<std::mutex> lock(shard.mutex);
-    auto found = shard.entries.find(client_id);
-    return found == shard.entries.end() ? nullptr : found->second;
+    if (auto* shard = directory_shard(client_id)) {
+        std::lock_guard<std::mutex> lock(shard->mutex);
+        auto found = shard->entries.find(client_id);
+        if (found != shard->entries.end()) return found->second;
+    }
+    // A connection can predate the first enable. Snapshot its existing CLIENT
+    // metadata under the cold catalog lock; never read another owner's TLS map
+    // without synchronization, or allocate a directory entry while disarmed.
+    try {
+        SlowlogIdentity identity;
+        if (!command_client_slowlog_identity(client_id, identity.addr, identity.name)) return nullptr;
+        return std::make_shared<const SlowlogIdentity>(std::move(identity));
+    } catch (const std::bad_alloc&) { return nullptr; }
 }
 
 bool eq_icase(Slice s, const char* lit) {
@@ -215,7 +255,9 @@ void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_n
     if (!g_slowlog_max_len.load(std::memory_order_acquire) || thread_id >= g_slowlog.size()) return;
 
     entry.id = g_slowlog_next_id.fetch_add(1, std::memory_order_relaxed);
-    SlowlogShard& shard = g_slowlog[thread_id];
+    SlowlogShard* target = recorder(thread_id);
+    if (!target) return;
+    SlowlogShard& shard = *target;
     {
         std::lock_guard<std::mutex> lock(shard.mutex);
         // Re-read under the lock so a concurrent CONFIG SET slowlog-max-len 0 cannot be raced.
@@ -230,7 +272,10 @@ void slowlog_finish(uint32_t thread_id, SlowlogEntry& entry, uint64_t duration_n
 
 std::vector<SlowlogEntry> collect_slowlog(size_t limit) {
     std::vector<SlowlogEntry> all;
-    for (SlowlogShard& shard : g_slowlog) {
+    for (auto& slot : g_slowlog) {
+        auto* target = slot.load(std::memory_order_acquire);
+        if (!target) continue;
+        SlowlogShard& shard = *target;
         std::lock_guard<std::mutex> lock(shard.mutex);
         all.insert(all.end(), shard.entries.begin(), shard.entries.end());
     }
@@ -270,7 +315,10 @@ void cmd_slowlog(Shard&, Op& op) {
     const Slice sub = op.arg(1);
     if (eq_icase(sub, "LEN") && op.argc() == 2) {
         size_t total = 0;
-        for (SlowlogShard& shard : g_slowlog) {
+        for (auto& slot : g_slowlog) {
+        auto* target = slot.load(std::memory_order_acquire);
+        if (!target) continue;
+        SlowlogShard& shard = *target;
             std::lock_guard<std::mutex> lock(shard.mutex);
             total += shard.entries.size();
         }
@@ -278,7 +326,10 @@ void cmd_slowlog(Shard&, Op& op) {
         return;
     }
     if (eq_icase(sub, "RESET") && op.argc() == 2) {
-        for (SlowlogShard& shard : g_slowlog) {
+        for (auto& slot : g_slowlog) {
+        auto* target = slot.load(std::memory_order_acquire);
+        if (!target) continue;
+        SlowlogShard& shard = *target;
             std::lock_guard<std::mutex> lock(shard.mutex);
             shard.entries.clear();
         }
@@ -331,6 +382,9 @@ const char* const kLatencyHelp[] = {
     "RESET [<event> ...]",
     "    Reset latency data of one or more <event> classes.",
     "    (default: reset all data for all event classes)",
+    "HISTOGRAM [COMMAND ...]",
+    "    Return a cumulative distribution of latencies in the format of a histogram for the specified command names.",
+    "    If no commands are specified then all histograms are replied.",
     "HELP",
     "    Print this help.",
 };
@@ -339,6 +393,7 @@ constexpr SubcommandArity kLatencySubcommands[] = {
     {"doctor",  2,  2},
     {"graph",   3,  3},
     {"history", 3,  3},
+    {"histogram", 2, -1},
     {"latest",  2,  2},
     {"reset",   2, -1},
     {"help",    2,  2},
@@ -349,6 +404,13 @@ void cmd_latency(Shard&, Op& op) {
                                      sizeof(kLatencySubcommands) /
                                          sizeof(kLatencySubcommands[0]))) return;
     const Slice sub = op.arg(1);
+    if (eq_icase(sub, "HISTOGRAM")) {
+        // The batch/escalation recorder does not collect per-command latency
+        // histograms. Redis returns an empty map when no histograms exist;
+        // do not invent a distribution from the sampled slow-log entries.
+        reply_map_header(op.sink(), 0, op.resp3());
+        return;
+    }
     if (eq_icase(sub, "HELP") && op.argc() == 2) {
         reply_help_lines(op, kLatencyHelp, sizeof(kLatencyHelp) / sizeof(kLatencyHelp[0]));
         return;
@@ -579,7 +641,8 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
     const uint64_t duration_us = duration_ns / 1000;
     // Skip the capture entirely unless this op will actually be logged.
     const bool wants_entry = arm.slowlog_us >= 0 &&
-                             duration_us >= static_cast<uint64_t>(arm.slowlog_us);
+                             duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
+                             g_slowlog_max_len.load(std::memory_order_acquire);
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
     entry.duration_us = duration_us;
@@ -603,6 +666,7 @@ void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const Slo
     entry.duration_us = duration_us;
     entry.exact = true;
     if (arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
+        g_slowlog_max_len.load(std::memory_order_acquire) &&
         !build_argv(capture, entry.argv)) return;
     slowlog_finish(thread_id, entry, duration_ns, now_ms, arm);
 }
@@ -612,11 +676,19 @@ void slowlog_note_batch_timed() { g_batches_timed.fetch_add(1, std::memory_order
 
 void slowlog_configure(const Config& config) {
     g_slowlog_max_len.store(config.slowlog_max_len, std::memory_order_release);
+    g_slowlog_threshold.store(config.slowlog_log_slower_than, std::memory_order_release);
+}
+
+void slowlog_set_threshold(int64_t threshold) {
+    g_slowlog_threshold.store(threshold, std::memory_order_release);
 }
 
 void slowlog_set_max_len(uint64_t max_len) {
     g_slowlog_max_len.store(max_len, std::memory_order_release);
-    for (SlowlogShard& shard : g_slowlog) {
+    for (auto& slot : g_slowlog) {
+        auto* target = slot.load(std::memory_order_acquire);
+        if (!target) continue;
+        SlowlogShard& shard = *target;
         std::lock_guard<std::mutex> lock(shard.mutex);
         while (shard.entries.size() > max_len) shard.entries.pop_back();
     }
@@ -628,32 +700,33 @@ uint64_t slowlog_batches_timed() { return g_batches_timed.load(std::memory_order
 uint64_t latency_events_recorded() { return g_latency_events.load(std::memory_order_relaxed); }
 
 void slowlog_note_client(uint64_t client_id, const char* addr) {
-    ClientDirectoryShard& shard = directory_shard(client_id);
-    std::lock_guard<std::mutex> lock(shard.mutex);
+    if (!directory_armed()) return;
     try {
-        shard.entries[client_id] = std::make_shared<const SlowlogIdentity>(
+        auto* shard = directory_shard(client_id, true);
+        std::lock_guard<std::mutex> lock(shard->mutex);
+        shard->entries[client_id] = std::make_shared<const SlowlogIdentity>(
             SlowlogIdentity{addr ? addr : "unknown:0", std::string()});
-    }
-    catch (const std::bad_alloc&) {}
+    } catch (const std::bad_alloc&) {}
 }
 
 void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t name_len) {
-    ClientDirectoryShard& shard = directory_shard(client_id);
-    std::lock_guard<std::mutex> lock(shard.mutex);
-    auto found = shard.entries.find(client_id);
-    if (found == shard.entries.end()) return;
+    auto* shard = directory_shard(client_id);
+    if (!shard) return;
+    std::lock_guard<std::mutex> lock(shard->mutex);
+    auto found = shard->entries.find(client_id);
+    if (found == shard->entries.end()) return;
+    if (!directory_armed()) { shard->entries.erase(found); return; }
     try {
-        // Replacing the directory version cannot mutate any historical entry.
         found->second = std::make_shared<const SlowlogIdentity>(
             SlowlogIdentity{found->second->addr, std::string(name, name_len)});
-    }
-    catch (const std::bad_alloc&) {}
+    } catch (const std::bad_alloc&) {}
 }
 
 void slowlog_forget_client(uint64_t client_id) {
-    ClientDirectoryShard& shard = directory_shard(client_id);
-    std::lock_guard<std::mutex> lock(shard.mutex);
-    shard.entries.erase(client_id);
+    auto* shard = directory_shard(client_id);
+    if (!shard) return;
+    std::lock_guard<std::mutex> lock(shard->mutex);
+    shard->entries.erase(client_id);
 }
 
 CommandTable slowlog_command_table() {

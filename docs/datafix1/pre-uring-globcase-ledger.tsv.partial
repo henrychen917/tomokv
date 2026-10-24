@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=globcase; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	2.050000	glob/scan grammar parity vs Redis 7.4

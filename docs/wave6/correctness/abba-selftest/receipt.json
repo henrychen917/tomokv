@@ -1,0 +1,50 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave6/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave6/build/wave6/selftest-source",
+  "start": 1792830626.2081807,
+  "commit": "2f83f2082468a6856a4c22c12efd33f4d251d1f4",
+  "binary_sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "gate_sha256": "2b68d75e5ec06ed00f6164f2224cc099a8d307033799f959f5d271f511e46a5b",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave6/build/wave6/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "abba_selftest",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave6/docs/wave6/correctness/abba-selftest/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 1,
+  "end": 1792831385.1568394,
+  "binary_sha256_after": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "run_dir": "/home/user/Projects/cx-wave6/build/wave6/selftest-source/build/gate-run.k5I2P2",
+  "jobs": {
+    "abba_selftest": {
+      "done": "0\t0\t1",
+      "rows": [
+        "FAIL\t757.280000\tABBA comparison + saturation negative controls"
+      ]
+    }
+  }
+}

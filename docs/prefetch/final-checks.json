@@ -1,0 +1,21 @@
+{
+  "base": "ef5204b2e9650693228cc105b34625516898b82d",
+  "production_commit": "a3e90a3ea",
+  "production_files_changed": [
+    "src/core/ex_loop.h"
+  ],
+  "production_lines_added": 9,
+  "all_arm_sha256_values_match_manifest": true,
+  "all_report_links_resolve": true,
+  "git_diff_check_exit": 0,
+  "delete_patch_apply_check_exit": 0,
+  "tests_gate_sh_unchanged": true,
+  "DQ": 0,
+  "DF": 0,
+  "listening_tcp_ports_23800_through_23899": [],
+  "live_executables_under_worktree_build": [],
+  "performance_merit": "NOT RUN: reserved to maintainer",
+  "full_gate_iteration": "NOT RUN: reserved to maintainer",
+  "correctness_summary": "docs/prefetch/differ-summary.json and docs/prefetch/gate-summary.json",
+  "freshness_summary": "docs/prefetch/freshness.json"
+}

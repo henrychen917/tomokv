@@ -1,0 +1,597 @@
+{
+  "kind": "A: full PRE behavior with exact POST text size",
+  "limitation": "Total-text-size twin only; cold PRE server_tail uses -Os when needed; not POST function placement",
+  "pre_sha256": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+  "post_sha256": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59",
+  "pad_sha256": "638ecff86821cb4d84916382ae0f6baac9fe78e4b41e1fa660130196e81b94af",
+  "baseline_relink_identical": true,
+  "pre_text_bytes": 8124983,
+  "post_text_bytes": 8132311,
+  "pad_text_bytes": 8132311,
+  "padding_bytes": 7328,
+  "original_text_symbols": 10941,
+  "compact_pre_inputs": [],
+  "all_unpadded_twin_function_addresses_sizes_equal": true,
+  "added_functions": [
+    [
+      "notifycompat_size_pad_a",
+      8249895,
+      7328
+    ]
+  ],
+  "source": ".section .text.notifycompat_size_pad_a,\"ax\",@progbits\n.balign 1\n.globl notifycompat_size_pad_a\n.hidden notifycompat_size_pad_a\n.type notifycompat_size_pad_a,@function\nnotifycompat_size_pad_a:\nendbr64\nret\n.fill 7323,1,0x90\n.size notifycompat_size_pad_a,.-notifycompat_size_pad_a\n.section .note.GNU-stack,\"\",@progbits\n.section .note.gnu.property,\"a\",@note\n.p2align 3\n.byte 0x4,0x0,0x0,0x0,0x20,0x0,0x0,0x0,0x5,0x0,0x0,0x0,0x47,0x4e,0x55,0x0,0x2,0x0,0x0,0xc0,0x4,0x0,0x0,0x0,0x3,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x80,0x0,0xc0,0x4,0x0,0x0,0x0,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0\n",
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/main.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/net/tls.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/version.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/main.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/net/tls.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/commands.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/glob.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/xshard.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/acl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/hll.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_server.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_string.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_list.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_set.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/geo.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/scripting.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/functions.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/serialize.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/persist/aof.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/climon.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/tracking.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/lcs.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/flipctl.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/genthread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/rl2s.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/lbstall.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/lbplanner.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/multidb.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/storesize.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/reorder.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/autharity.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/fliplisten.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/shutdown.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/version.o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat/full-pad/size_pad.o",
+    "-o",
+    "/home/user/Projects/cx-notifycompat/build/notifycompat/full-pad/tomokv-pad-a.pending",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm"
+  ],
+  "cwd": "/home/user/Projects/cx-notifycompat",
+  "output": "/home/user/Projects/cx-notifycompat/build/tomokv-pad-a",
+  "inputs": [
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/main.o",
+      "sha256": "4367609609a80df4aaee3c9117b4fa63ecdd0f0bc6dd9634e9538a6548b094ca"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/net/tls.o",
+      "sha256": "e845425666fccd4d1d3e7c5fc4e5d28d7758d28b7e33a1e31a2bc26483be2dbd"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/commands.o",
+      "sha256": "cf1aa9f2433867f7c08185871a7c24a8f4fc9ee71ffc1738353eb2c0d052a835"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/glob.o",
+      "sha256": "55cc532a7c676993d7d6ccad37f2a5c1fb89f50b119f03af59e8646344d352d7"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/xshard.o",
+      "sha256": "e5acefe94b2b34769505c2a6bec0629e3701a8c8452d283f515564b92f9c6deb"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/acl.o",
+      "sha256": "8ad02cf247406d9b0119b48825c0ea9a27773e01763e350e510f7b0c2a2576ff"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/hll.o",
+      "sha256": "9bcc38d538b76508698d152d3f10045521b06a4c5d65abf3464352942a25b6a8"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_server.o",
+      "sha256": "521bc38bdfd8f44d57975d3fc30b6be1105a46caababf877101002741d9b2926"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_string.o",
+      "sha256": "45bf192893f9f3c13f46e1136d5331a7c372f82b1f994cfaba43362e0ccc2d1a"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_string_notify.o",
+      "sha256": "4343f3bcbdff82a4a6e38626c59b5731924eb5df32abda7eae41c0923236c8f5"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_hash.o",
+      "sha256": "934da83b2c742cb8bf2354872b74d9ace17d161847cf794f279607818c8f6181"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "248de17ce011cf72f2bbef3ab1274cc9f5621b73671af91ef90956128f0ec792"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_list.o",
+      "sha256": "fbb25c9f25ff284a8e28261d413c876118997016c323e5cd8cfde3baa54592d6"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_set.o",
+      "sha256": "678686236d2176ba0e44bc001d62bc4b7ec4372d9cd96c833d9d50e95bafeea0"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_zset.o",
+      "sha256": "0110705a3da9033b2a4133dedfb4c8102501e66c38abed1e26879ed04ca1bf7b"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_zset_ops.o",
+      "sha256": "de3d6f13556de3b8db3f52ca30b19b8f08d40ca089be58201afc853553901411"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/geo.o",
+      "sha256": "c4da3c6f5ceef3a3735e28406c962902dd4e16b46ea3cd7236ecd225272e97fd"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_stream.o",
+      "sha256": "eedf41845e6287b69021599c84983509b77e6a0852ee109ccdc6916ec7db2579"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_stream_groups.o",
+      "sha256": "710c80a641a6baf42ddfb1b45b9fe9cc117d017f9e617cfb8857be04ba528378"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/scripting.o",
+      "sha256": "3ca122f83e1bddb974225d9af30d88c4fb8134385b295850668a4e3e370c20e5"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/functions.o",
+      "sha256": "7e0d3295abe4c6c2587d3f439e80d67a10d67484d33e1910202c80f50969d1e0"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/serialize.o",
+      "sha256": "2eb4182e1df896fb21bec10f18663639a5d1f08a4467a242f4decb088c3b73b7"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/snapshot/snapshot.o",
+      "sha256": "696fdd9bda0dd3107a74047e5bc3550c43ab844204aa916dc201f3e20e87180e"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/persist/aof.o",
+      "sha256": "f560fbd837781d42beb52afb772c9670b876a29a2977da710a37c5324fd55419"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/climon.o",
+      "sha256": "d18eecd2de3dc94dc99fa636562ecc12d49a03955c7e7c3512767c5a1704c5b4"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/tracking.o",
+      "sha256": "89f3987514020bd4063ede31cacb02d162d9d928bbd47391cf7cf1f7b201fd3d"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/server_tail.o",
+      "sha256": "3bdcc05ac4106f951a9d2ef271fc4961571f7047a27d57974a63cdc851988338"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/slowlog.o",
+      "sha256": "79eeeafa689f160c65318253cc6f280925f35aa90fed9a5dd84c53d1d8dd842c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/lcs.o",
+      "sha256": "0b0d55b7021c4bbca3a6bdb60b71debfca6ca9eb05377d09ac1a310631c8606e"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/info_stats.o",
+      "sha256": "2f2978c689e86a29d1332310a08fc62b981a2d0b0328069ccfb617be9089c71c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/lbsignals.o",
+      "sha256": "549ea8062b9a229847114fbc12f8dfc310619b8353b9e91edd8dc67207c79f3c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/flipctl.o",
+      "sha256": "3be170436dce6c5b17c4ff3b2e3e7353273a11db0018b8d9c8bb4e9610e5a6f9"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/genthread.o",
+      "sha256": "a37b6557a2d5f2ce1cb4c164a15b6945cd670d57b6ca3f94ac9134ff0a45b047"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/rl2s.o",
+      "sha256": "ff9c8b5c546ec6b77627cf657edc398e686d774dcc786fe27d875e71bc4aa7c9"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/lbstall.o",
+      "sha256": "fe6090750f3a398ee4098b8d32cae089d410e3279b692b1ca4bc22b7ebe9c3f8"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/lbplanner.o",
+      "sha256": "93919447d15f66885e4f28200abd6c18d93f13f6ab2c4943699fc287b1edde5c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/l4prebuild.o",
+      "sha256": "4dea1dfae726024d887a8149c3d63f5bc0085bd934c824d9ee433a2738352a7d"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/cmdgap.o",
+      "sha256": "0ed3a07abd4389b302b1381b8b40ad0bafa5c656c8a2a4048cb2672bd7a43227"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/pfdebug.o",
+      "sha256": "237bc7a158fe7b9bf2c8da04e0efd13eb22709480303f01a290ffb240e857769"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/cmdmeta.o",
+      "sha256": "0755d94c567c6d482143e0cf85f49bb7624a7f36ce9490d64bd4690f55ceb55c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/t_sort.o",
+      "sha256": "21f9eef39eba23f659e507596174a29a46adaae16649f575fe70d975293aa83c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/multidb.o",
+      "sha256": "f03069b1675e1cb405938447d3e7e7a4f71e497cc9f689ef23fef43e704a989a"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/storesize.o",
+      "sha256": "22ae19c006db36357e00d5d1a5a211710a85aa14733cb166aedeae8a761607b2"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/multi_admin.o",
+      "sha256": "5cb8c20047a0ae6d1a255feaa5edaafe7e5b1d3bebdf6e688fb14679d07ee8bc"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/reorder.o",
+      "sha256": "6aef1f269663a165e487720f0cdac8f628571cfa8c2ad27dc11f00589485051c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/geo_store.o",
+      "sha256": "4a835ace4b3939f9e83785cb83130417ed30211f482fae3c13902747d5de90e9"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/persist/aof_frame_debug.o",
+      "sha256": "868e08e7ffdd59212cf82377e9d4b2f005528f0c5eb31ba80f537b50550f4a42"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/aclkeys.o",
+      "sha256": "e5f1b799fb26812ca9c31c7e16a5cc5dcaf0b45e8adb423651489aec6aa689d1"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/blocking_debug.o",
+      "sha256": "bb350f00db4e90c0eb7d01fd81329dab019a9e36a17405fde7bd59cd525fd6db"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/objectpread.o",
+      "sha256": "f304cb900327fede183886e413ec3c4f3987df23fdd6de6bb633d22dbd9ec462"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/hexpread.o",
+      "sha256": "ea46a91c14137f854b3628803c1a8dc1b6c10b0dff1f636dbc37a1289cb9bffc"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/cmd/autharity.o",
+      "sha256": "c3658c64fc555c38e16dbac3155ac68bb9c8c6d1df42334adeda10b698875538"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/fliplisten.o",
+      "sha256": "895f91b526e2a61ca64b37f150bd97385472146d1714a8ec6a4dafc2e1936f2e"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/shutdown.o",
+      "sha256": "6841a62b9f87721116d64d2acb1dd623daceae293b8d161a0dc46be66d11fde3"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/db0/src/core/version.o",
+      "sha256": "5a2e2dde5655da36a658dd9e256127e7b6e798066ba40f9f6ea7853ae4a2edf6"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/main.o",
+      "sha256": "32bfbad01bfc42c4b358339d39f5f7b7e588328056e20bd8acfc886dc38f55b2"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/net/tls.o",
+      "sha256": "fef91e6f7833a5690557af8b86c602c55efad88b228399c884d99575fb9265da"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/commands.o",
+      "sha256": "b76609d7a559701866b16e566bf9aa79f5dd4c1cd75f6d43702818930518cbb7"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/glob.o",
+      "sha256": "a73774d2eb9a5382ee7cb94e157dfcad752b10d048b75741f5a5ac75e2ed0501"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/xshard.o",
+      "sha256": "0c53fba25a1ecbfab0adf94a18996d0f0aca5e749ea289c578704b12768d5332"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/acl.o",
+      "sha256": "d6f3bd06d8493ce681b525fd334cd98e4d420667c31fcdb3724a36e26e755f05"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/hll.o",
+      "sha256": "63781ae797b8607977267f71d992d68d66300e8af029a881d9011a96910a5e58"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_server.o",
+      "sha256": "94e752df8e3a27e46adbf1c0ee578288460b88d083b2ed6b8b6fb39132c6d553"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_string.o",
+      "sha256": "226e131837c4f425a149abd2a74e8b8dfbc70260a3a150a48cfe84ee6dc79380"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_string_notify.o",
+      "sha256": "c1608401f1dd9343f8050b373736cbd69214dc8c178bfa8c57d43d788d422e10"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_hash.o",
+      "sha256": "ef6b52c10b643f4e07ff7964d33706eeaceff64cdc662f35b0c562ef1b93a58f"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_hash_ttl.o",
+      "sha256": "c210f90ddb5720720c3888e5c398c29d07ac12e687a3fe4bf02307ff37122061"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_list.o",
+      "sha256": "a260a386dd0cb841c9e02c5db5f15f3b4680c401f0147e3ba76f7fcfdba52ebf"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_set.o",
+      "sha256": "1f4e2953926c61134d100e06cf22499d14793709b43826c539f84978388f77a4"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_zset.o",
+      "sha256": "a250c323a3f34c8d58f7ee56b7cf275e681e5fa1a9aac8eeaa3d09d99f8ce002"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_zset_ops.o",
+      "sha256": "6182cdec5916052bc03808e33d086718665b4340f5226442ea5e1aee548158a8"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/geo.o",
+      "sha256": "93da98c2a7121169202f1b806a7d15f0982e95ddc1066b1617a10e97f86c575c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_stream.o",
+      "sha256": "f4bf78300b505de7af2819e6e3171bc150002bc1c91dbeb707f34a5bf572e511"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_stream_groups.o",
+      "sha256": "984b6d7869a0eb91519b1ddbec6e9984386ab73e52f1ba03f48229ce4c79088b"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/scripting.o",
+      "sha256": "f198617c5aa9811be7f67e4cabe6cad97289a8f554c63eff34ac354b4dccf57d"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/functions.o",
+      "sha256": "ce4b2cdaed628f9b8db4ba8d86ede129210eac09a98a293914f441b4bab8366d"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/serialize.o",
+      "sha256": "13557228689e3c9cf01b002696fc1f4f1f19963e5883d2eecce60c163feb5a26"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/snapshot/snapshot.o",
+      "sha256": "cc35b08a23ecde26bcbac88465e4c3467799d78f6cd5cc285f8b812704c137c6"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/persist/aof.o",
+      "sha256": "9266fd6bc63f6c446a900ef8efbd6d8fde4742402e0f9e36155123a19cd29e05"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/climon.o",
+      "sha256": "6a165f1b8e823c793cc9f7ce91a9d04ef61232280dea4468c958a4c221013c78"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/tracking.o",
+      "sha256": "f1a9edc05e2cfb27fdb872c261f97b5fcf6ccb13a95bd813a0aa60ca7ebcc7cf"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/server_tail.o",
+      "sha256": "dda23b8fbd4d05070fcb1b953ddbcce9fab96264ef88ac22948852752e6eeec3"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/slowlog.o",
+      "sha256": "21b91df60f747110318ee7142acdf91f79fee62e0565707ed2bd85063d92a546"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/lcs.o",
+      "sha256": "7466bd30c1f2110fc9afc841c1d07c2e60cb400eb7f210f0897b953a8eacb628"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/info_stats.o",
+      "sha256": "da8c1efa562cf80696f36d191f705361da2ae603c799ba690f9d7fb1dfce23e9"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/lbsignals.o",
+      "sha256": "32d700e5316c0e27bb52183f1e8567a63366b21e56d860fc4077aa627387db5b"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/flipctl.o",
+      "sha256": "034e1ffe4acce39df77570f89b2f0416f8a7f72e8d17bd3d0f986dc804ced57e"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/genthread.o",
+      "sha256": "50899afb91bcf4efe41e54f56df4061db5632d32cac48b5d8783865b78c17e1e"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/rl2s.o",
+      "sha256": "c394ae478e4b47ad6b0a349b31e2331604e324ca21d76d7211e7ec20de3cd68c"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/lbstall.o",
+      "sha256": "1c392786b3c73c69282520d953fd77c93c7be59e89860b81acfcfa6d92949ac9"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/lbplanner.o",
+      "sha256": "6ce654b1072449c0f6cb11805e8601cd6b611aa3d89d7b7e4c22fda36340334a"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/l4prebuild.o",
+      "sha256": "4e512d41ebe5656e856d02443b0732253d248a2625ba875c1d9ab3477063acbf"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/cmdgap.o",
+      "sha256": "b24b4e365d12121f69f862fdbc49e26a4796484e918e1821359d11b5e5a09049"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/pfdebug.o",
+      "sha256": "f043a23ef8af30d7a84da3cc7068ec974cfb5c2f9bd6b81a754d24bfc56660ab"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/cmdmeta.o",
+      "sha256": "7f65392cefbd39bcaf5bf48dd8eb4da730f4a6f94f2f08b1fae153fcaa763efb"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/t_sort.o",
+      "sha256": "fd6720d96f87b1dbef3948df02f4556be87e344135598163688bfd828090a64d"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/multidb.o",
+      "sha256": "bf64429b29b5cf0c29003b8255b38d5b67d47032e3a2ee60667c279951bf6b02"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/storesize.o",
+      "sha256": "df3b15d25eb505d43fafcaa89dffc51a22be0381a405cd0a6470b4c12331a11b"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/multi_admin.o",
+      "sha256": "cdf7ac0aeed4f34d44041c72221e44dc2c79716c5fe3d4bf282e781cd6295e58"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/reorder.o",
+      "sha256": "1249151cde9925130828ee6139786039250a3834dae25ace7a7a62e6d42beaae"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/geo_store.o",
+      "sha256": "79fb7a94a3c3d9e32a9f2de81d2fb571646cdf4d0adcd9a119029232678b8e78"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/persist/aof_frame_debug.o",
+      "sha256": "31bcb348e6fc79f5c250ce29579cda94eaafee1233f2d0c1f85deb1ad48e3ed4"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/aclkeys.o",
+      "sha256": "859c3b63033105ef1438b716684221d53a44522c2d41544042ccfc0f4ffdc0ce"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/blocking_debug.o",
+      "sha256": "fd598a76172fe21a52daa9b59b694ec7ca8e6ac6589f1a08a40dd2a632c51d73"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/objectpread.o",
+      "sha256": "7a31a8ad510069f0a8e2d47eff8443f1f4ea8b3d843b0ce5f81e85015d6bf155"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/hexpread.o",
+      "sha256": "cf2bc286faceea0f3266d6387bc1cd0695190772e15b980650084d8a83f1065f"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/cmd/autharity.o",
+      "sha256": "10a74f2a1e4bdec68072ac1f0ad63cc09f3751aefc17c36ddff274e7a0d0d904"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/fliplisten.o",
+      "sha256": "0e014c12faef2be2c12437f1d731359aa3e8917a5d2c7e6f43452cee98c0fba8"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/shutdown.o",
+      "sha256": "3bb9b7f660f0222c8825bb2547859001673d048c34d1fd748275f03813be2ea4"
+    },
+    {
+      "path": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre/src/core/version.o",
+      "sha256": "82497e7ac6a45613303252ce9f813d15cae996da35582654b782f5ef8bef67d1"
+    }
+  ]
+}

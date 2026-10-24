@@ -55,11 +55,15 @@
                 shard.set_no_touch(no_touch);
                 if (no_touch) srv_->climon_note_no_touch();
             }
-            AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
-            const MultiTaskResult result =
-                multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
-                                   aof_manager_ ? &aof_context : nullptr);
+            const MultiTaskResult result = execute_multi_unit(t, shard,
+                [](void* loop, const Task& next) {
+                    static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
+                });
             shard.publish_size();
+            if (result == MultiTaskResult::RetrySoon) {
+                queue_fast_multi_retry(t);
+                return true;
+            }
             if (result == MultiTaskResult::Retry) {
                 multi_retries_.push_back(t);
                 return true;
@@ -127,8 +131,11 @@
         // predicate here so ordinary commands do not enter its scatter frame.
         // A WATCH-blocked writer acquires the hazard bit below before retry;
         // scatter tasks still enter even without it (including debug holds).
+        // Pin the compact exact-timed fused body's no-hazard fallthrough.
         if (has_parked_predecessor(t, op, shard_id) ||
-            ((t.scatter || op.atomic_hazard()) &&
+            ((Timed && Fused
+                ? __builtin_expect(t.scatter || op.atomic_hazard(), false)
+                : (t.scatter || op.atomic_hazard())) &&
              xshard_task_should_defer(*srv_, sh, t, op))) {
             atomic_deferred_.push_back(t);
             return true;

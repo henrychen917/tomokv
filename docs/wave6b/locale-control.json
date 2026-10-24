@@ -1,0 +1,46 @@
+{
+  "caller_environment": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": null
+  },
+  "run": "build/gate-run.Cc9PyX",
+  "exit_code": 1,
+  "workers": {
+    "differ-split-0": {
+      "done": "0\t0\t1",
+      "executed_legs": 282,
+      "failed_legs": {
+        "sort-a0-s7.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a0-s19.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a0-s20.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a0-s23.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a0-s24.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a0-s25.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']"
+      },
+      "shutdown_lines": [
+        "target atomic=0 stop                                       ok (port 26800 free)",
+        "oracle stop                                                ok (port 26801 free)"
+      ]
+    },
+    "differ-split-1": {
+      "done": "0\t0\t1",
+      "executed_legs": 286,
+      "failed_legs": {
+        "sort-a1-s7.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a1-s19.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a1-s20.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a1-s23.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a1-s24.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']",
+        "sort-a1-s25.txt": "RuntimeError: sort differ requires C collation on target (boot Redis with LC_ALL=C), got [b'char-lie050', b'Echo!068']"
+      },
+      "shutdown_lines": [
+        "target atomic=1 stop                                       ok (port 26803 free)",
+        "oracle stop                                                ok (port 26804 free)"
+      ]
+    }
+  },
+  "scripts_match_base": {
+    "gate.sh": "377487f8c0b46631706b69a78e4756f759afca7efe4547005cc60cd34ea6922c",
+    "differ_gate.sh": "db476fc1ba6824c2f93e3cf7164630f27a71c3681df3d323f39328fd43d3b2e6"
+  }
+}

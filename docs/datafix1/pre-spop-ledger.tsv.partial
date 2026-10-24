@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_spop; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	1.780000	datafix1 SPOP encodings (both engines and modes)

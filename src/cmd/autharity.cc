@@ -19,12 +19,7 @@ bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
         // A recognized container with an unknown child fails command lookup,
         // before either arity or AUTH (Redis processCommand).
         if (op.argc() > 1 && command_metadata_for(spec)) {
-            std::string message = "ERR unknown subcommand '";
-            message.append(op.arg(1).p, op.arg(1).n);
-            message += "'. Try ";
-            message += spec.name;
-            message += " HELP.";
-            reply_err(op.sink(), message.c_str());
+            command_reply_subcommand_error(op, spec.name);
             return true;
         }
         return false;

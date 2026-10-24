@@ -1403,6 +1403,30 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_fused_shutdown_work_requires_complete_matching_counters(self):
+        import copy
+        from shutdown_report import require_fused_work
+
+        good = dict(thread_mode='1s', work=dict(kind='fused', unified=7),
+                    threads=[dict(tid=0, role='fused', ops=3), dict(tid=1, role='fused', ops=4)])
+        self.assertEqual(require_fused_work(good), 7)
+        mutants = []
+        for field, value in [('thread_mode', '2s'), ('threads', []),
+                             ('work', dict(kind='fused', unified=0)),
+                             ('work', dict(kind='fused', unified=8)),
+                             ('work', dict(kind='split', unified=7)),
+                             ('work', dict(kind='fused', unified=7, dispatched=7))]:
+            bad = copy.deepcopy(good)
+            bad[field] = value
+            mutants.append(bad)
+        for field, value in [('role', 'io'), ('ops', None), ('tid', 0)]:
+            bad = copy.deepcopy(good)
+            bad['threads'][1][field] = value
+            mutants.append(bad)
+        for bad in mutants:
+            with self.subTest(report=bad), self.assertRaises(SystemExit):
+                require_fused_work(bad)
+
     def test_driver_identity_and_recovery_diagnostics(self):
         import persistfix
         self.assertTrue(persistfix.self_test())
@@ -1496,12 +1520,15 @@ class PersistfixWiring(unittest.TestCase):
     def test_live_rows_receive_reaped_slot_and_private_artifacts(self):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
+        boot_helper = gate[gate.index('\ntxn_proof_boot(){'):
+                           gate.index('\nstop(){', gate.index('\ntxn_proof_boot(){'))]
         body = gate[gate.index('# ---- AOF sync policies,'):
                     gate.index('\nAOF_EVERY_DIR=')]
         stub = r'''set -eu
 CORES=112-119; GATE_RATIO=6:2; PORT=19000; CANDIDATE_BINARY=/unused-candidate
 owned=0; SRV=0
-boot(){ [ "$owned" = 0 ]; owned=1; SRV=1; }
+boot(){ [ "$GATE_TXN_FUSED" = 0 ] && [ "$owned" = 0 ] || return 1; owned=1; SRV=1; }
+boot_fused(){ [ "$GATE_TXN_FUSED" = 1 ] && [ "$owned" = 0 ] || return 1; owned=1; SRV=1; }
 kill(){ [ "$owned" = 1 ]; }
 wait(){ [ "$owned" = 1 ]; owned=0; }
 stop(){ wait "$SRV"; SRV=0; }
@@ -1520,18 +1547,28 @@ python3(){
 '''
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
-            for engine in ('epoll', 'uring'):
-                result = subprocess.run(['bash', '-c', stub + body], cwd=root,
-                    env=dict(os.environ, TMPDIR=temporary, NET_IO=engine),
-                    text=True, capture_output=True, timeout=5)
-                self.assertEqual(result.returncode, 0, result.stderr)
+            for fused in ('0', '1'):
+                for engine in ('epoll', 'uring'):
+                    result = subprocess.run(['bash', '-c', stub + boot_helper + '\n' + body], cwd=root,
+                        env=dict(os.environ, TMPDIR=temporary, NET_IO=engine, GATE_TXN_FUSED=fused),
+                        text=True, capture_output=True, timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
             calls = [shlex.split(line) for line in (directory / 'drivers').read_text().splitlines()]
             expected = [['tests/persistfix.py', '--binary', '/unused-candidate', '--mode', mode,
                          '--case', case, '--net-io', engine, '--cores', '112-119',
                          '--ratio', '6:2', '--port', '19000', '--artifacts', temporary + '/persistfix']
-                        for engine in ('epoll', 'uring') for mode in ('2s', '1s')
+                        for fused in ('0', '1') for engine in ('epoll', 'uring') for mode in ('2s', '1s')
                         for case in ('kill', 'term')]
             self.assertEqual(calls, expected)
+            for fused, before, after in [('0', '0) boot "$@"', '0) boot_fused "$@"'),
+                                         ('1', '1) boot_fused "$@"', '1) boot "$@"')]:
+                broken = boot_helper.replace(before, after)
+                self.assertNotEqual(broken, boot_helper)
+                result = subprocess.run(['bash', '-c', stub + broken + '\n' + body], cwd=root,
+                    env=dict(os.environ, TMPDIR=temporary, NET_IO='epoll', GATE_TXN_FUSED=fused),
+                    text=True, capture_output=True, timeout=5)
+                self.assertNotEqual(result.returncode, 0, 'wrong boot selector survived')
+                self.assertIn('AOF always purpose boot', result.stderr)
 
     def test_unit_row_requires_build_and_success_in_its_own_job(self):
         root = Path(__file__).resolve().parent.parent
@@ -1974,6 +2011,34 @@ CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
                                  '--tls-ca-cert-file', '/unused/tls/ca.crt',
                                  '--tls-auth-clients', args[0], *args[1:]]
                     self.assertEqual(argv, [word.encode() for word in expected])
+
+
+class GateLocaleInheritance(unittest.TestCase):
+    def test_gate_and_standalone_differ_pin_child_collation(self):
+        root = Path(__file__).resolve().parents[1]
+        # Run each real startup prefix and let a child initialize collation from
+        # its environment. No server or gate job is started by this check.
+        child = """import json, locale, os
+locale.setlocale(locale.LC_COLLATE, '')
+print(json.dumps([os.environ.get('LC_ALL'),
+                  sorted(['char-lie050', 'Echo!068'], key=locale.strxfrm)]))
+"""
+        for filename, boundary in (('gate.sh', 'GATE_SELF_TEST=0'),
+                                   ('differ_gate.sh', 'TARGET_BIN=')):
+            script = root / 'tests' / filename
+            prefix = script.read_text().split(boundary, 1)[0]
+            for inherited in (None, 'en_US.UTF-8'):
+                with self.subTest(script=filename, LC_ALL=inherited):
+                    env = dict(os.environ, LANG='en_US.UTF-8', LC_COLLATE='en_US.UTF-8')
+                    if inherited is None:
+                        env.pop('LC_ALL', None)
+                    else:
+                        env['LC_ALL'] = inherited
+                    result = subprocess.run(
+                        ['bash', '-uc', prefix + '\nexec python3 -c ' + shlex.quote(child), str(script)],
+                        env=env, capture_output=True, text=True, timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
 
 
 class EarlyGateDispatch(unittest.TestCase):

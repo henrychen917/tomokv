@@ -1,0 +1,1821 @@
+{
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-103",
+    "--load-cores",
+    "104-111",
+    "--ports",
+    "31800-31899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-serverfix/build/tomokv"
+  ],
+  "jobs": [
+    "config_unit",
+    "boot_grammar",
+    "netfix_config",
+    "auth",
+    "authfix",
+    "respcompat",
+    "acl_metadata",
+    "acl_recheck",
+    "aclfix",
+    "release_batteries",
+    "bugs5",
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "debug-0",
+    "debug-1",
+    "core_units",
+    "wait_units",
+    "netcmd_units",
+    "reorder_sync",
+    "reorder_identity",
+    "reorder_engagement",
+    "aof-epoll",
+    "aof-uring",
+    "netio-1s",
+    "netio-2s",
+    "compat2",
+    "compat3",
+    "iofix-hz",
+    "netcap",
+    "notify",
+    "differ-split",
+    "differ-armed",
+    "respresume-fragment-1s-epoll",
+    "respresume-fragment-1s-uring",
+    "respresume-fragment-2s-epoll",
+    "respresume-fragment-2s-uring",
+    "respresume-cpu-1s-epoll",
+    "respresume-cpu-1s-uring",
+    "respresume-cpu-2s-epoll",
+    "respresume-cpu-2s-uring",
+    "respresume-neighbour-1s-epoll",
+    "respresume-neighbour-1s-uring",
+    "respresume-neighbour-2s-epoll",
+    "respresume-neighbour-2s-uring",
+    "evict-lruclock-split-0",
+    "evict-lruclock-split-1",
+    "evict-lruclock-armed-0",
+    "evict-lruclock-armed-1",
+    "evict-lfu-split-0",
+    "evict-lfu-split-1",
+    "evict-lfu-armed-0",
+    "evict-lfu-armed-1",
+    "txnorder-fused-0",
+    "txnorder-fused-1",
+    "txnorder-split-0",
+    "txnorder-split-1",
+    "atomic_units"
+  ],
+  "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+  "exit": 1,
+  "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.lc0r60",
+  "completed_jobs": {
+    "acl_metadata": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.050000\tgenerated Redis 7.4 ACL categories"
+      ]
+    },
+    "acl_recheck": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.090000\tACL recheck one-reply battery (2s)",
+        "ok\t6.140000\tACL recheck one-reply battery (1s)"
+      ]
+    },
+    "aclfix": {
+      "exit": 0,
+      "passed": 12,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.070000\taclfix sort (1s)",
+        "ok\t0.070000\taclfix streams-name (1s)",
+        "ok\t0.070000\taclfix save-load (1s)",
+        "ok\t1.990000\taclfix capacity (1s)",
+        "ok\t0.080000\taclfix wake-pop (1s)",
+        "ok\t0.080000\taclfix wake-scatter (1s)",
+        "ok\t0.070000\taclfix sort (2s)",
+        "ok\t0.070000\taclfix streams-name (2s)",
+        "ok\t0.070000\taclfix save-load (2s)",
+        "ok\t1.830000\taclfix capacity (2s)",
+        "ok\t0.080000\taclfix wake-pop (2s)",
+        "ok\t0.070000\taclfix wake-scatter (2s)"
+      ]
+    },
+    "aof-epoll": {
+      "exit": 0,
+      "passed": 54,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 0)",
+        "ok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+        "ok\t0.040000\tAOF writer fired (records=N)",
+        "ok\t0.040000\tAOF process-restart script replay (epoll, atomic 0)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 1)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+        "ok\t0.040000\tAOF writer fired (records=N)",
+        "ok\t0.040000\tAOF process-restart script replay (epoll, atomic 1)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.000000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.060000\tAOF directed group interruption fired",
+        "ok\t0.050000\tAOF atomic-group recovery + writer order",
+        "ok\t0.020000\tAOF group shutdown invariants",
+        "ok\t0.030000\tAOF always sync + reply gate fired",
+        "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+        "ok\t0.830000\tAOF in-window kill recovery (2s, epoll)",
+        "ok\t2.040000\tAOF in-window term recovery (2s, epoll)",
+        "ok\t0.840000\tAOF in-window kill recovery (1s, epoll)",
+        "ok\t1.970000\tAOF in-window term recovery (1s, epoll)",
+        "ok\t1.730000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+        "ok\t1.780000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+        "ok\t1.860000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+        "ok\t2.030000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+        "ok\t1.300000\tAOF everysec write gate + idle sync fired",
+        "ok\t0.030000\tAOF everysec durability window + tail warning",
+        "ok\t0.030000\tAOF no-sync bypassed sync + reply gate",
+        "ok\t5.150000\tAOF rewrite atomic/stage/corruption matrix",
+        "ok\t5.560000\tAOF rewrite triggers + observability matrix",
+        "ok\t0.000000\tAOF-off negative-control seed landed",
+        "ok\t0.010000\tAOF-off negative control lost data",
+        "ok\t0.410000\taoffix2 snapshot (1s, epoll)",
+        "ok\t1.490000\taoffix2 filename (1s, epoll)",
+        "ok\t0.170000\taoffix2 error (1s, epoll)",
+        "ok\t0.530000\taoffix2 tickets (1s, epoll)",
+        "ok\t0.530000\taoffix2 exec_tickets (1s, epoll)",
+        "ok\t0.530000\taoffix2 resurrection (1s, epoll)",
+        "ok\t0.410000\taoffix2 rewrite_fail2 (1s, epoll)",
+        "ok\t0.300000\taoffix2 manifest_missing (1s, epoll)",
+        "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (1s, epoll)",
+        "ok\t0.410000\taoffix2 snapshot (2s, epoll)",
+        "ok\t1.500000\taoffix2 filename (2s, epoll)",
+        "ok\t0.160000\taoffix2 error (2s, epoll)",
+        "ok\t0.530000\taoffix2 tickets (2s, epoll)",
+        "ok\t0.530000\taoffix2 exec_tickets (2s, epoll)",
+        "ok\t0.540000\taoffix2 resurrection (2s, epoll)",
+        "ok\t0.410000\taoffix2 rewrite_fail2 (2s, epoll)",
+        "ok\t0.300000\taoffix2 manifest_missing (2s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (2s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (2s, epoll)",
+        "ok\t0.330000\taoffix2 large (1s, epoll)",
+        "ok\t0.190000\taoffix2 large_placed (1s, epoll)"
+      ]
+    },
+    "aof-uring": {
+      "exit": 0,
+      "passed": 54,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 0)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+        "ok\t0.040000\tAOF writer fired (records=N)",
+        "ok\t0.040000\tAOF process-restart script replay (uring, atomic 0)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.060000\tconfiguration reduction + actual geometry (uring, atomic 1)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+        "ok\t0.040000\tAOF writer fired (records=N)",
+        "ok\t0.040000\tAOF process-restart script replay (uring, atomic 1)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.000000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.070000\tAOF directed group interruption fired",
+        "ok\t0.050000\tAOF atomic-group recovery + writer order",
+        "ok\t0.020000\tAOF group shutdown invariants",
+        "ok\t0.030000\tAOF always sync + reply gate fired",
+        "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+        "ok\t0.870000\tAOF in-window kill recovery (2s, uring)",
+        "ok\t3.400000\tAOF in-window term recovery (2s, uring)",
+        "ok\t0.830000\tAOF in-window kill recovery (1s, uring)",
+        "ok\t2.870000\tAOF in-window term recovery (1s, uring)",
+        "ok\t1.740000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+        "ok\t1.800000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+        "ok\t1.870000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+        "ok\t1.970000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+        "ok\t1.300000\tAOF everysec write gate + idle sync fired",
+        "ok\t0.030000\tAOF everysec durability window + tail warning",
+        "ok\t0.020000\tAOF no-sync bypassed sync + reply gate",
+        "ok\t5.130000\tAOF rewrite atomic/stage/corruption matrix",
+        "ok\t5.400000\tAOF rewrite triggers + observability matrix",
+        "ok\t0.000000\tAOF-off negative-control seed landed",
+        "ok\t0.010000\tAOF-off negative control lost data",
+        "ok\t0.410000\taoffix2 snapshot (1s, uring)",
+        "ok\t1.490000\taoffix2 filename (1s, uring)",
+        "ok\t0.170000\taoffix2 error (1s, uring)",
+        "ok\t0.530000\taoffix2 tickets (1s, uring)",
+        "ok\t0.540000\taoffix2 exec_tickets (1s, uring)",
+        "ok\t0.540000\taoffix2 resurrection (1s, uring)",
+        "ok\t0.330000\taoffix2 rewrite_fail2 (1s, uring)",
+        "ok\t0.290000\taoffix2 manifest_missing (1s, uring)",
+        "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, uring)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (1s, uring)",
+        "ok\t0.410000\taoffix2 snapshot (2s, uring)",
+        "ok\t1.490000\taoffix2 filename (2s, uring)",
+        "ok\t0.170000\taoffix2 error (2s, uring)",
+        "ok\t0.530000\taoffix2 tickets (2s, uring)",
+        "ok\t0.530000\taoffix2 exec_tickets (2s, uring)",
+        "ok\t0.520000\taoffix2 resurrection (2s, uring)",
+        "ok\t0.410000\taoffix2 rewrite_fail2 (2s, uring)",
+        "ok\t0.290000\taoffix2 manifest_missing (2s, uring)",
+        "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (2s, uring)",
+        "ok\t0.270000\taoffix2 off-writer acknowledgement always (2s, uring)",
+        "ok\t0.330000\taoffix2 large (1s, uring)",
+        "ok\t0.200000\taoffix2 large_placed (1s, uring)"
+      ]
+    },
+    "atomic_units": {
+      "exit": 0,
+      "passed": 27,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\tatomic commit publication catches up at quiescence",
+        "ok\t2.370000\tflushfix flush witnesses",
+        "ok\t0.050000\tflushfix headers witnesses",
+        "ok\t3.420000\tmultidb serverless owners",
+        "ok\t0.040000\tmultidb global namespace boundary",
+        "ok\t10.710000\tstoresize published monitoring",
+        "ok\t0.210000\tMULTI admin command replies",
+        "ok\t0.070000\tEXECABORT releases WATCH reservation",
+        "ok\t0.000000\tatomic survivors unit build",
+        "ok\t0.010000\tatomic survivor: admission",
+        "ok\t0.010000\tatomic survivor: closure",
+        "ok\t0.000000\tatomic survivor: script_keys",
+        "ok\t0.010000\tatomic survivor: rename_overlay",
+        "ok\t0.000000\tatomic survivor: write_latest",
+        "ok\t0.010000\tatomic survivor: script_apply",
+        "ok\t0.000000\tatomic survivor: post_apply_probe",
+        "ok\t0.010000\tatomic survivor: lua_conversion",
+        "ok\t0.000000\tatomic survivor: watch_parent",
+        "ok\t0.010000\tatomic survivor: watch_cycle",
+        "ok\t0.000000\tatomic survivor: mset_arity",
+        "ok\t0.010000\tatomic survivor: watch_oom",
+        "ok\t0.000000\tatomic survivor: lua_lines",
+        "ok\t0.010000\tatomic survivor: library_limit",
+        "ok\t0.010000\tatomic survivor: stage_flag",
+        "ok\t0.010000\tatomic survivor: instruction_limit",
+        "ok\t0.010000\tarmed resize retirement: atomic-growth",
+        "ok\t0.000000\tarmed resize retirement: flush-prepared"
+      ]
+    },
+    "auth": {
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\treject bad protected-mode",
+        "ok\t0.010000\treject bad enable-debug-command",
+        "ok\t0.150000\tAUTH/HELLO/protected state machine",
+        "ok\t0.040000\tACL battery (atomic off)",
+        "ok\t0.030000\tACL battery (atomic on)",
+        "ok\t2.470000\tDEBUG toggle/reload battery",
+        "ok\t0.120000\ttyped snapshot round-trip incl stream"
+      ]
+    },
+    "authfix": {
+      "exit": 0,
+      "passed": 5,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.880000\tauthfix CG4.1 binary config requirepass",
+        "ok\t3.430000\tauthfix CG4.2 missing config value refuses boot",
+        "ok\t0.900000\tauthfix SV4.2 binary requirepass rewrite restart",
+        "ok\t0.290000\tauthfix SV4.1 slowlog credential redaction (1s)",
+        "ok\t0.290000\tauthfix SV4.1 slowlog credential redaction (2s)"
+      ]
+    },
+    "boot_grammar": {
+      "exit": 0,
+      "passed": 7,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.010000\treject --mode (flag deleted)",
+        "ok\t0.010000\treject --spread",
+        "ok\t0.010000\treject --nodes",
+        "ok\t0.010000\treject 3-part ratio",
+        "ok\t0.000000\treject missing conf",
+        "ok\t0.010000\treject bad conf key",
+        "ok\t0.010000\treject aclfile + conf user lines"
+      ]
+    },
+    "bugs5": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t44.110000\tbugs5 scancompact (both modes, both engines, atomic 0/1)",
+        "ok\t33.730000\tbugs5 slowlog_identity (both modes, both engines, atomic 0/1)",
+        "ok\t27.090000\tbugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+      ]
+    },
+    "compat2": {
+      "exit": 0,
+      "passed": 3,
+      "failed": 0,
+      "ledger": [
+        "ok\t1.640000\tcompat2 autharity",
+        "ok\t6.760000\tcompat2 expire_notify",
+        "ok\t2.040000\tcompat2 ktls_lifetime"
+      ]
+    },
+    "compat3": {
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "ledger": [
+        "ok\t33.500000\tcompat3 CC4.12 pubsub vs Redis 7.4",
+        "ok\t33.470000\tcompat3 CC4.13 pending vs Redis 7.4",
+        "ok\t33.450000\tcompat3 CC4.14 history vs Redis 7.4",
+        "ok\t33.560000\tcompat3 CC4.16 grammar vs Redis 7.4",
+        "ok\t33.620000\tcompat3 CC4.5 glob vs Redis 7.4",
+        "ok\t33.790000\tcompat3 CC4.17 flags vs Redis 7.4"
+      ]
+    },
+    "config_unit": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.390000\tconfiguration docs match parser",
+        "ok\t5.170000\tRedis config quoting + mid-value #"
+      ]
+    },
+    "core_tsan_build": {
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    "core_units": {
+      "exit": 0,
+      "passed": 9,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.110000\tcore concurrency watch",
+        "ok\t0.310000\tcore concurrency lifetime",
+        "ok\t0.100000\tcore concurrency drain",
+        "ok\t7.110000\tcore concurrency route",
+        "ok\t0.100000\tcore concurrency snapshot",
+        "ok\t0.170000\tcore concurrency config",
+        "ok\t0.160000\tcore concurrency notify",
+        "ok\t0.580000\tread-local topology demotion (1s)",
+        "ok\t0.560000\tread-local topology demotion (2s)"
+      ]
+    },
+    "debug-0": {
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t9.160000\tplain-write lost updates (atomic 0)",
+        "ok\t0.170000\tlbsignals battery (atomic 0)",
+        "ok\t1.480000\tslowlog battery (atomic 0)",
+        "ok\t0.040000\tatomfix battery (atomic 0)",
+        "ok\t0.040000\tscriptatomic battery (atomic 0)",
+        "ok\t14.460000\texecatomic battery (atomic 0)",
+        "ok\t11.870000\texeciso battery (atomic 0)",
+        "ok\t0.430000\texecfix battery (atomic 0)",
+        "ok\t0.110000\tmultires battery (atomic 0)",
+        "ok\t0.740000\tmultirace battery (atomic 0)",
+        "ok\t30.470000\tsession_monotonic battery (atomic 0)",
+        "ok\t0.370000\txacct battery (atomic 0)",
+        "ok\t0.320000\txmove battery (atomic 0)",
+        "ok\t1.870000\txscript battery (atomic 0)",
+        "ok\t1.920000\ttxn_nx battery (atomic 0)",
+        "ok\t9.510000\ttxniso battery (atomic 0)"
+      ]
+    },
+    "debug-1": {
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.160000\tplain-write lost updates (atomic 1)",
+        "ok\t0.170000\tlbsignals battery (atomic 1)",
+        "ok\t1.490000\tslowlog battery (atomic 1)",
+        "ok\t0.040000\tatomfix battery (atomic 1)",
+        "ok\t0.040000\tscriptatomic battery (atomic 1)",
+        "ok\t14.470000\texecatomic battery (atomic 1)",
+        "ok\t11.870000\texeciso battery (atomic 1)",
+        "ok\t0.420000\texecfix battery (atomic 1)",
+        "ok\t0.110000\tmultires battery (atomic 1)",
+        "ok\t0.730000\tmultirace battery (atomic 1)",
+        "ok\t30.460000\tsession_monotonic battery (atomic 1)",
+        "ok\t0.360000\txacct battery (atomic 1)",
+        "ok\t0.310000\txmove battery (atomic 1)",
+        "ok\t1.860000\txscript battery (atomic 1)",
+        "ok\t1.910000\ttxn_nx battery (atomic 1)",
+        "ok\t9.150000\ttxniso battery (atomic 1)"
+      ]
+    },
+    "differ-armed-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t628.990000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      ]
+    },
+    "differ-armed-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t630.620000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      ]
+    },
+    "differ-equivalence": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t21.490000\tmode equivalence part (all execution modes and knobs)"
+      ]
+    },
+    "differ-split-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t633.560000\tRedis 7.4 differential part (split, atomic 0)"
+      ]
+    },
+    "differ-split-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t642.190000\tRedis 7.4 differential part (split, atomic 1)"
+      ]
+    },
+    "evict-lfu-armed-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.310000\teviction lfu battery (fused+armed, atomic 0)"
+      ]
+    },
+    "evict-lfu-armed-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.310000\teviction lfu battery (fused+armed, atomic 1)"
+      ]
+    },
+    "evict-lfu-split-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.300000\teviction lfu battery (split, atomic 0)"
+      ]
+    },
+    "evict-lfu-split-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.300000\teviction lfu battery (split, atomic 1)"
+      ]
+    },
+    "evict-lruclock-armed-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t254.200000\teviction lruclock battery (fused+armed, atomic 0)"
+      ]
+    },
+    "evict-lruclock-armed-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t254.290000\teviction lruclock battery (fused+armed, atomic 1)"
+      ]
+    },
+    "evict-lruclock-split-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t122.980000\teviction lruclock battery (split, atomic 0)"
+      ]
+    },
+    "evict-lruclock-split-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t254.220000\teviction lruclock battery (split, atomic 1)"
+      ]
+    },
+    "feature-armed-0": {
+      "exit": 0,
+      "passed": 35,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.250000\tfused+armed boot line (atomic 0)",
+        "ok\t1.140000\tfused+armed s6 battery (atomic 0)",
+        "ok\t2.070000\tfused+armed multi_exec battery (atomic 0)",
+        "ok\t1.520000\tfused+armed blocking battery (atomic 0)",
+        "ok\t0.450000\tfused+armed blockmulti battery (atomic 0)",
+        "ok\t0.490000\tfused+armed stream battery (atomic 0)",
+        "ok\t0.030000\tfused+armed streamgroups battery (atomic 0)",
+        "ok\t0.880000\tfused+armed pubsub battery (atomic 0)",
+        "ok\t0.030000\tfused+armed lua_scripting battery (atomic 0)",
+        "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+        "ok\t14.990000\tfused+armed limits battery (atomic 0)",
+        "ok\t0.030000\tfused+armed resp3 battery (atomic 0)",
+        "ok\t0.030000\tfused+armed bitfield battery (atomic 0)",
+        "ok\t0.060000\tfused+armed dumprestore battery (atomic 0)",
+        "ok\t0.040000\tfused+armed zsetops battery (atomic 0)",
+        "ok\t0.020000\tfused+armed geo battery (atomic 0)",
+        "ok\t1.120000\tfused+armed climon battery (atomic 0)",
+        "ok\t3.350000\tfused+armed climon2 battery (atomic 0)",
+        "ok\t13.260000\tfused+armed tracking battery (atomic 0)",
+        "ok\t3.300000\tfused+armed hexpire battery (atomic 0)",
+        "ok\t0.550000\tfused+armed servertail battery (atomic 0)",
+        "ok\t0.160000\tfused+armed lcs battery (atomic 0)",
+        "ok\t2.780000\tfused+armed concur battery (atomic 0)",
+        "ok\t0.730000\tfused+armed edgeproto battery (atomic 0)",
+        "ok\t0.360000\tfused+armed edgeenc battery (atomic 0)",
+        "ok\t3.790000\tfused+armed edgetime battery (atomic 0)",
+        "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+        "ok\t0.020000\tfused+armed contarity battery (atomic 0)",
+        "ok\t0.020000\tfused+armed cmdgap battery (atomic 0)",
+        "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+        "ok\t55.920000\tfused+armed expwide battery (atomic 0)",
+        "ok\t4.190000\tfused+armed infofix battery (atomic 0)",
+        "ok\t2.960000\tfused+armed pushtear battery (atomic 0)",
+        "ok\t0.030000\tfused+armed netcmd battery (atomic 0)",
+        "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      ]
+    },
+    "feature-armed-1": {
+      "exit": 0,
+      "passed": 35,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.260000\tfused+armed boot line (atomic 1)",
+        "ok\t1.160000\tfused+armed s6 battery (atomic 1)",
+        "ok\t2.080000\tfused+armed multi_exec battery (atomic 1)",
+        "ok\t1.500000\tfused+armed blocking battery (atomic 1)",
+        "ok\t0.450000\tfused+armed blockmulti battery (atomic 1)",
+        "ok\t0.490000\tfused+armed stream battery (atomic 1)",
+        "ok\t0.030000\tfused+armed streamgroups battery (atomic 1)",
+        "ok\t0.880000\tfused+armed pubsub battery (atomic 1)",
+        "ok\t0.030000\tfused+armed lua_scripting battery (atomic 1)",
+        "ok\t0.050000\tfused+armed scriptsurf battery (atomic 1)",
+        "ok\t15.590000\tfused+armed limits battery (atomic 1)",
+        "ok\t0.030000\tfused+armed resp3 battery (atomic 1)",
+        "ok\t0.030000\tfused+armed bitfield battery (atomic 1)",
+        "ok\t0.060000\tfused+armed dumprestore battery (atomic 1)",
+        "ok\t0.050000\tfused+armed zsetops battery (atomic 1)",
+        "ok\t0.030000\tfused+armed geo battery (atomic 1)",
+        "ok\t1.120000\tfused+armed climon battery (atomic 1)",
+        "ok\t3.340000\tfused+armed climon2 battery (atomic 1)",
+        "ok\t13.260000\tfused+armed tracking battery (atomic 1)",
+        "ok\t3.050000\tfused+armed hexpire battery (atomic 1)",
+        "ok\t0.560000\tfused+armed servertail battery (atomic 1)",
+        "ok\t0.160000\tfused+armed lcs battery (atomic 1)",
+        "ok\t2.760000\tfused+armed concur battery (atomic 1)",
+        "ok\t0.740000\tfused+armed edgeproto battery (atomic 1)",
+        "ok\t0.370000\tfused+armed edgeenc battery (atomic 1)",
+        "ok\t3.850000\tfused+armed edgetime battery (atomic 1)",
+        "ok\t0.020000\tfused+armed arity battery (atomic 1)",
+        "ok\t0.030000\tfused+armed contarity battery (atomic 1)",
+        "ok\t0.020000\tfused+armed cmdgap battery (atomic 1)",
+        "ok\t0.030000\tfused+armed aclsel battery (atomic 1)",
+        "ok\t56.810000\tfused+armed expwide battery (atomic 1)",
+        "ok\t4.200000\tfused+armed infofix battery (atomic 1)",
+        "ok\t2.960000\tfused+armed pushtear battery (atomic 1)",
+        "ok\t0.030000\tfused+armed netcmd battery (atomic 1)",
+        "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 1)"
+      ]
+    },
+    "feature-split-0": {
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.440000\ts6 battery (atomic 0)",
+        "ok\t2.070000\tmulti_exec battery (atomic 0)",
+        "ok\t1.530000\tblocking battery (atomic 0)",
+        "ok\t0.460000\tblockmulti battery (atomic 0)",
+        "ok\t0.520000\tstream battery (atomic 0)",
+        "ok\t0.050000\tstreamgroups battery (atomic 0)",
+        "ok\t0.900000\tpubsub battery (atomic 0)",
+        "ok\t0.030000\tlua_scripting battery (atomic 0)",
+        "ok\t0.040000\tscriptsurf battery (atomic 0)",
+        "ok\t15.140000\tlimits battery (atomic 0)",
+        "ok\t0.030000\tresp3 battery (atomic 0)",
+        "ok\t0.030000\tbitfield battery (atomic 0)",
+        "ok\t0.050000\tdumprestore battery (atomic 0)",
+        "ok\t0.050000\tzsetops battery (atomic 0)",
+        "ok\t0.020000\tgeo battery (atomic 0)",
+        "ok\t1.110000\tclimon battery (atomic 0)",
+        "ok\t3.340000\tclimon2 battery (atomic 0)",
+        "ok\t13.520000\ttracking battery (atomic 0)",
+        "ok\t3.290000\thexpire battery (atomic 0)",
+        "ok\t0.560000\tservertail battery (atomic 0)",
+        "ok\t0.150000\tlcs battery (atomic 0)",
+        "ok\t2.770000\tconcur battery (atomic 0)",
+        "ok\t0.620000\tedgeproto battery (atomic 0)",
+        "ok\t0.340000\tedgeenc battery (atomic 0)",
+        "ok\t3.830000\tedgetime battery (atomic 0)",
+        "ok\t0.020000\tarity battery (atomic 0)",
+        "ok\t0.030000\tcontarity battery (atomic 0)",
+        "ok\t0.020000\tcmdgap battery (atomic 0)",
+        "ok\t0.030000\taclsel battery (atomic 0)",
+        "ok\t57.700000\texpwide battery (atomic 0)",
+        "ok\t4.200000\tinfofix battery (atomic 0)",
+        "ok\t5.430000\tpushtear battery (atomic 0)",
+        "ok\t0.030000\tnetcmd battery (atomic 0)",
+        "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+      ]
+    },
+    "feature-split-1": {
+      "exit": 0,
+      "passed": 34,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.430000\ts6 battery (atomic 1)",
+        "ok\t2.080000\tmulti_exec battery (atomic 1)",
+        "ok\t1.520000\tblocking battery (atomic 1)",
+        "ok\t0.450000\tblockmulti battery (atomic 1)",
+        "ok\t0.510000\tstream battery (atomic 1)",
+        "ok\t0.050000\tstreamgroups battery (atomic 1)",
+        "ok\t0.880000\tpubsub battery (atomic 1)",
+        "ok\t0.030000\tlua_scripting battery (atomic 1)",
+        "ok\t0.040000\tscriptsurf battery (atomic 1)",
+        "ok\t15.080000\tlimits battery (atomic 1)",
+        "ok\t0.030000\tresp3 battery (atomic 1)",
+        "ok\t0.030000\tbitfield battery (atomic 1)",
+        "ok\t0.060000\tdumprestore battery (atomic 1)",
+        "ok\t0.040000\tzsetops battery (atomic 1)",
+        "ok\t0.030000\tgeo battery (atomic 1)",
+        "ok\t1.120000\tclimon battery (atomic 1)",
+        "ok\t3.320000\tclimon2 battery (atomic 1)",
+        "ok\t13.210000\ttracking battery (atomic 1)",
+        "ok\t3.300000\thexpire battery (atomic 1)",
+        "ok\t0.560000\tservertail battery (atomic 1)",
+        "ok\t0.160000\tlcs battery (atomic 1)",
+        "ok\t2.760000\tconcur battery (atomic 1)",
+        "ok\t0.710000\tedgeproto battery (atomic 1)",
+        "ok\t0.330000\tedgeenc battery (atomic 1)",
+        "ok\t3.930000\tedgetime battery (atomic 1)",
+        "ok\t0.020000\tarity battery (atomic 1)",
+        "ok\t0.030000\tcontarity battery (atomic 1)",
+        "ok\t0.020000\tcmdgap battery (atomic 1)",
+        "ok\t0.020000\taclsel battery (atomic 1)",
+        "ok\t50.170000\texpwide battery (atomic 1)",
+        "ok\t4.250000\tinfofix battery (atomic 1)",
+        "ok\t5.430000\tpushtear battery (atomic 1)",
+        "ok\t0.030000\tnetcmd battery (atomic 1)",
+        "ok\t0.020000\tfeature shutdown invariants (atomic 1)"
+      ]
+    },
+    "iofix-hz": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t40.840000\tiofix IO4.9 Redis hz cron"
+      ]
+    },
+    "netcap": {
+      "exit": 0,
+      "passed": 4,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.300000\tNET1 inline + query cap (1s, uring)",
+        "ok\t0.290000\tNET1 inline + query cap (1s, epoll)",
+        "ok\t0.300000\tNET1 inline + query cap (2s, uring)",
+        "ok\t0.290000\tNET1 inline + query cap (2s, epoll)"
+      ]
+    },
+    "netcmd_units": {
+      "exit": 0,
+      "passed": 16,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\tnetcmd regression build",
+        "ok\t0.000000\tnetcmd streams regression",
+        "ok\t0.010000\tnetcmd zpop regression",
+        "ok\t0.000000\tnetcmd notify-oom regression",
+        "ok\t0.010000\tnetcmd notify-retry regression",
+        "ok\t0.010000\tnetcmd flush regression",
+        "ok\t0.010000\tnetcmd output regression",
+        "ok\t0.010000\tnetcmd pubsub regression",
+        "ok\t0.000000\tnetcmd receive regression",
+        "ok\t0.040000\tnetcmd config regression",
+        "ok\t0.000000\tnetcmd wb-small-pipe regression",
+        "ok\t0.010000\tnetcmd wb-complete-visits regression",
+        "ok\t0.000000\tnetcmd hexpire-oom regression",
+        "ok\t0.010000\tencodingfix knob",
+        "ok\t0.010000\tencodingfix precedence",
+        "ok\t0.010000\tNET1 serverless bounds + scan + reclamation"
+      ]
+    },
+    "netfix_config": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.110000\tnetfix NT4.8 network CONFIG error parity"
+      ]
+    },
+    "netio-1s": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.920000\tepoll directed correctness (1s)"
+      ]
+    },
+    "netio-2s": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.920000\tepoll directed correctness (2s)"
+      ]
+    },
+    "notify": {
+      "exit": 0,
+      "passed": 5,
+      "failed": 1,
+      "ledger": [
+        "ok\t2.080000\tMULTI feature battery",
+        "ok\t1.520000\tblocking feature battery",
+        "ok\t0.890000\tpubsub feature battery",
+        "ok\t0.030000\tLua feature battery",
+        "FAIL\t0.100000\tkeyspace notification battery (atomic 0/1)",
+        "ok\t0.020000\tfeature battery shutdown invariants"
+      ]
+    },
+    "production_units": {
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    },
+    "release": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    "release_batteries": {
+      "exit": 0,
+      "passed": 8,
+      "failed": 0,
+      "ledger": [
+        "ok\t6.650000\ttorture battery",
+        "ok\t0.970000\tRYOW battery",
+        "ok\t0.030000\tACL category runtime table",
+        "ok\t0.030000\tACL LOAD/SAVE no-file errors",
+        "ok\t1.020000\tidle loop ceiling (LBSIGNALS, 1s)",
+        "ok\t0.040000\tshutdown invariants (nothing stuck)",
+        "ok\t0.020000\tdirect-reply fired (direct=N)",
+        "ok\t0.040000\tdispatched==executed (N)"
+      ]
+    },
+    "reorder_engagement": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t13.370000\tR7 production engagement (both database runtimes)"
+      ]
+    },
+    "reorder_identity": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t98.690000\tR7 FIFO twin off-path identity + negative controls"
+      ]
+    },
+    "reorder_sync": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.900000\tR7 generated envelope parity"
+      ]
+    },
+    "respcompat": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t15.030000\tRESP protocol error compatibility"
+      ]
+    },
+    "respresume-cpu-1s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.600000\tRESP resumable cpu (1s, epoll)"
+      ]
+    },
+    "respresume-cpu-1s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.600000\tRESP resumable cpu (1s, uring)"
+      ]
+    },
+    "respresume-cpu-2s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.600000\tRESP resumable cpu (2s, epoll)"
+      ]
+    },
+    "respresume-cpu-2s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t2.600000\tRESP resumable cpu (2s, uring)"
+      ]
+    },
+    "respresume-fragment-1s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.530000\tRESP resumable fragment (1s, epoll)"
+      ]
+    },
+    "respresume-fragment-1s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.700000\tRESP resumable fragment (1s, uring)"
+      ]
+    },
+    "respresume-fragment-2s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.770000\tRESP resumable fragment (2s, epoll)"
+      ]
+    },
+    "respresume-fragment-2s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t14.750000\tRESP resumable fragment (2s, uring)"
+      ]
+    },
+    "respresume-neighbour-1s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.780000\tRESP resumable neighbour (1s, epoll)"
+      ]
+    },
+    "respresume-neighbour-1s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.780000\tRESP resumable neighbour (1s, uring)"
+      ]
+    },
+    "respresume-neighbour-2s-epoll": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.780000\tRESP resumable neighbour (2s, epoll)"
+      ]
+    },
+    "respresume-neighbour-2s-uring": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.790000\tRESP resumable neighbour (2s, uring)"
+      ]
+    },
+    "txnorder-fused-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t46.150000\ttxnorder battery (fused, atomic 0)"
+      ]
+    },
+    "txnorder-fused-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t46.060000\ttxnorder battery (fused, atomic 1)"
+      ]
+    },
+    "txnorder-split-0": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t45.770000\ttxnorder battery (split, atomic 0)"
+      ]
+    },
+    "txnorder-split-1": {
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "ledger": [
+        "ok\t45.820000\ttxnorder battery (split, atomic 1)"
+      ]
+    },
+    "wait_units": {
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "ledger": [
+        "ok\t0.050000\twaits config publication + admission unit",
+        "ok\t1.010000\treads never wait for retirement quiescence"
+      ]
+    },
+    "waits_tsan_build": {
+      "exit": 0,
+      "passed": 0,
+      "failed": 0,
+      "ledger": []
+    }
+  },
+  "main_ledger": [
+    "PARTIAL\t0\tGATE_ONLY_JOBS=config_unit boot_grammar netfix_config auth authfix respcompat acl_metadata acl_recheck aclfix release_batteries bugs5 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 core_units wait_units netcmd_units reorder_sync reorder_identity reorder_engagement aof-epoll aof-uring netio-1s netio-2s compat2 compat3 iofix-hz netcap notify differ-split differ-armed respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomic_units; NOT A RECEIPT",
+    "ok\t0.000000\trelease build (+footprint locks)",
+    "ok\t0.390000\tconfiguration docs match parser",
+    "ok\t5.170000\tRedis config quoting + mid-value #",
+    "ok\t0.050000\tgenerated Redis 7.4 ACL categories",
+    "ok\t44.110000\tbugs5 scancompact (both modes, both engines, atomic 0/1)",
+    "ok\t33.730000\tbugs5 slowlog_identity (both modes, both engines, atomic 0/1)",
+    "ok\t27.090000\tbugs5 read_local_lfu (both modes, both engines, atomic 0/1)",
+    "ok\t633.560000\tRedis 7.4 differential part (split, atomic 0)",
+    "ok\t642.190000\tRedis 7.4 differential part (split, atomic 1)",
+    "ok\t628.990000\tRedis 7.4 differential part (armed fused, atomic 0)",
+    "ok\t630.620000\tRedis 7.4 differential part (armed fused, atomic 1)",
+    "ok\t21.490000\tmode equivalence part (all execution modes and knobs)",
+    "ok\t122.980000\teviction lruclock battery (split, atomic 0)",
+    "ok\t254.200000\teviction lruclock battery (fused+armed, atomic 0)",
+    "ok\t254.220000\teviction lruclock battery (split, atomic 1)",
+    "ok\t254.290000\teviction lruclock battery (fused+armed, atomic 1)",
+    "ok\t0.300000\teviction lfu battery (split, atomic 0)",
+    "ok\t0.310000\teviction lfu battery (fused+armed, atomic 0)",
+    "ok\t0.300000\teviction lfu battery (split, atomic 1)",
+    "ok\t0.310000\teviction lfu battery (fused+armed, atomic 1)",
+    "ok\t14.530000\tRESP resumable fragment (1s, epoll)",
+    "ok\t14.700000\tRESP resumable fragment (1s, uring)",
+    "ok\t14.770000\tRESP resumable fragment (2s, epoll)",
+    "ok\t14.750000\tRESP resumable fragment (2s, uring)",
+    "ok\t2.600000\tRESP resumable cpu (1s, epoll)",
+    "ok\t2.600000\tRESP resumable cpu (1s, uring)",
+    "ok\t2.600000\tRESP resumable cpu (2s, epoll)",
+    "ok\t2.600000\tRESP resumable cpu (2s, uring)",
+    "ok\t0.780000\tRESP resumable neighbour (1s, epoll)",
+    "ok\t0.780000\tRESP resumable neighbour (1s, uring)",
+    "ok\t0.780000\tRESP resumable neighbour (2s, epoll)",
+    "ok\t0.790000\tRESP resumable neighbour (2s, uring)",
+    "ok\t2.440000\ts6 battery (atomic 0)",
+    "ok\t2.070000\tmulti_exec battery (atomic 0)",
+    "ok\t1.530000\tblocking battery (atomic 0)",
+    "ok\t0.460000\tblockmulti battery (atomic 0)",
+    "ok\t0.520000\tstream battery (atomic 0)",
+    "ok\t0.050000\tstreamgroups battery (atomic 0)",
+    "ok\t0.900000\tpubsub battery (atomic 0)",
+    "ok\t0.030000\tlua_scripting battery (atomic 0)",
+    "ok\t0.040000\tscriptsurf battery (atomic 0)",
+    "ok\t15.140000\tlimits battery (atomic 0)",
+    "ok\t0.030000\tresp3 battery (atomic 0)",
+    "ok\t0.030000\tbitfield battery (atomic 0)",
+    "ok\t0.050000\tdumprestore battery (atomic 0)",
+    "ok\t0.050000\tzsetops battery (atomic 0)",
+    "ok\t0.020000\tgeo battery (atomic 0)",
+    "ok\t1.110000\tclimon battery (atomic 0)",
+    "ok\t3.340000\tclimon2 battery (atomic 0)",
+    "ok\t13.520000\ttracking battery (atomic 0)",
+    "ok\t3.290000\thexpire battery (atomic 0)",
+    "ok\t0.560000\tservertail battery (atomic 0)",
+    "ok\t0.150000\tlcs battery (atomic 0)",
+    "ok\t2.770000\tconcur battery (atomic 0)",
+    "ok\t0.620000\tedgeproto battery (atomic 0)",
+    "ok\t0.340000\tedgeenc battery (atomic 0)",
+    "ok\t3.830000\tedgetime battery (atomic 0)",
+    "ok\t0.020000\tarity battery (atomic 0)",
+    "ok\t0.030000\tcontarity battery (atomic 0)",
+    "ok\t0.020000\tcmdgap battery (atomic 0)",
+    "ok\t0.030000\taclsel battery (atomic 0)",
+    "ok\t57.700000\texpwide battery (atomic 0)",
+    "ok\t4.200000\tinfofix battery (atomic 0)",
+    "ok\t5.430000\tpushtear battery (atomic 0)",
+    "ok\t0.030000\tnetcmd battery (atomic 0)",
+    "ok\t0.020000\tfeature shutdown invariants (atomic 0)",
+    "ok\t0.250000\tfused+armed boot line (atomic 0)",
+    "ok\t1.140000\tfused+armed s6 battery (atomic 0)",
+    "ok\t2.070000\tfused+armed multi_exec battery (atomic 0)",
+    "ok\t1.520000\tfused+armed blocking battery (atomic 0)",
+    "ok\t0.450000\tfused+armed blockmulti battery (atomic 0)",
+    "ok\t0.490000\tfused+armed stream battery (atomic 0)",
+    "ok\t0.030000\tfused+armed streamgroups battery (atomic 0)",
+    "ok\t0.880000\tfused+armed pubsub battery (atomic 0)",
+    "ok\t0.030000\tfused+armed lua_scripting battery (atomic 0)",
+    "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+    "ok\t14.990000\tfused+armed limits battery (atomic 0)",
+    "ok\t0.030000\tfused+armed resp3 battery (atomic 0)",
+    "ok\t0.030000\tfused+armed bitfield battery (atomic 0)",
+    "ok\t0.060000\tfused+armed dumprestore battery (atomic 0)",
+    "ok\t0.040000\tfused+armed zsetops battery (atomic 0)",
+    "ok\t0.020000\tfused+armed geo battery (atomic 0)",
+    "ok\t1.120000\tfused+armed climon battery (atomic 0)",
+    "ok\t3.350000\tfused+armed climon2 battery (atomic 0)",
+    "ok\t13.260000\tfused+armed tracking battery (atomic 0)",
+    "ok\t3.300000\tfused+armed hexpire battery (atomic 0)",
+    "ok\t0.550000\tfused+armed servertail battery (atomic 0)",
+    "ok\t0.160000\tfused+armed lcs battery (atomic 0)",
+    "ok\t2.780000\tfused+armed concur battery (atomic 0)",
+    "ok\t0.730000\tfused+armed edgeproto battery (atomic 0)",
+    "ok\t0.360000\tfused+armed edgeenc battery (atomic 0)",
+    "ok\t3.790000\tfused+armed edgetime battery (atomic 0)",
+    "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+    "ok\t0.020000\tfused+armed contarity battery (atomic 0)",
+    "ok\t0.020000\tfused+armed cmdgap battery (atomic 0)",
+    "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+    "ok\t55.920000\tfused+armed expwide battery (atomic 0)",
+    "ok\t4.190000\tfused+armed infofix battery (atomic 0)",
+    "ok\t2.960000\tfused+armed pushtear battery (atomic 0)",
+    "ok\t0.030000\tfused+armed netcmd battery (atomic 0)",
+    "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)",
+    "ok\t2.430000\ts6 battery (atomic 1)",
+    "ok\t2.080000\tmulti_exec battery (atomic 1)",
+    "ok\t1.520000\tblocking battery (atomic 1)",
+    "ok\t0.450000\tblockmulti battery (atomic 1)",
+    "ok\t0.510000\tstream battery (atomic 1)",
+    "ok\t0.050000\tstreamgroups battery (atomic 1)",
+    "ok\t0.880000\tpubsub battery (atomic 1)",
+    "ok\t0.030000\tlua_scripting battery (atomic 1)",
+    "ok\t0.040000\tscriptsurf battery (atomic 1)",
+    "ok\t15.080000\tlimits battery (atomic 1)",
+    "ok\t0.030000\tresp3 battery (atomic 1)",
+    "ok\t0.030000\tbitfield battery (atomic 1)",
+    "ok\t0.060000\tdumprestore battery (atomic 1)",
+    "ok\t0.040000\tzsetops battery (atomic 1)",
+    "ok\t0.030000\tgeo battery (atomic 1)",
+    "ok\t1.120000\tclimon battery (atomic 1)",
+    "ok\t3.320000\tclimon2 battery (atomic 1)",
+    "ok\t13.210000\ttracking battery (atomic 1)",
+    "ok\t3.300000\thexpire battery (atomic 1)",
+    "ok\t0.560000\tservertail battery (atomic 1)",
+    "ok\t0.160000\tlcs battery (atomic 1)",
+    "ok\t2.760000\tconcur battery (atomic 1)",
+    "ok\t0.710000\tedgeproto battery (atomic 1)",
+    "ok\t0.330000\tedgeenc battery (atomic 1)",
+    "ok\t3.930000\tedgetime battery (atomic 1)",
+    "ok\t0.020000\tarity battery (atomic 1)",
+    "ok\t0.030000\tcontarity battery (atomic 1)",
+    "ok\t0.020000\tcmdgap battery (atomic 1)",
+    "ok\t0.020000\taclsel battery (atomic 1)",
+    "ok\t50.170000\texpwide battery (atomic 1)",
+    "ok\t4.250000\tinfofix battery (atomic 1)",
+    "ok\t5.430000\tpushtear battery (atomic 1)",
+    "ok\t0.030000\tnetcmd battery (atomic 1)",
+    "ok\t0.020000\tfeature shutdown invariants (atomic 1)",
+    "ok\t0.260000\tfused+armed boot line (atomic 1)",
+    "ok\t1.160000\tfused+armed s6 battery (atomic 1)",
+    "ok\t2.080000\tfused+armed multi_exec battery (atomic 1)",
+    "ok\t1.500000\tfused+armed blocking battery (atomic 1)",
+    "ok\t0.450000\tfused+armed blockmulti battery (atomic 1)",
+    "ok\t0.490000\tfused+armed stream battery (atomic 1)",
+    "ok\t0.030000\tfused+armed streamgroups battery (atomic 1)",
+    "ok\t0.880000\tfused+armed pubsub battery (atomic 1)",
+    "ok\t0.030000\tfused+armed lua_scripting battery (atomic 1)",
+    "ok\t0.050000\tfused+armed scriptsurf battery (atomic 1)",
+    "ok\t15.590000\tfused+armed limits battery (atomic 1)",
+    "ok\t0.030000\tfused+armed resp3 battery (atomic 1)",
+    "ok\t0.030000\tfused+armed bitfield battery (atomic 1)",
+    "ok\t0.060000\tfused+armed dumprestore battery (atomic 1)",
+    "ok\t0.050000\tfused+armed zsetops battery (atomic 1)",
+    "ok\t0.030000\tfused+armed geo battery (atomic 1)",
+    "ok\t1.120000\tfused+armed climon battery (atomic 1)",
+    "ok\t3.340000\tfused+armed climon2 battery (atomic 1)",
+    "ok\t13.260000\tfused+armed tracking battery (atomic 1)",
+    "ok\t3.050000\tfused+armed hexpire battery (atomic 1)",
+    "ok\t0.560000\tfused+armed servertail battery (atomic 1)",
+    "ok\t0.160000\tfused+armed lcs battery (atomic 1)",
+    "ok\t2.760000\tfused+armed concur battery (atomic 1)",
+    "ok\t0.740000\tfused+armed edgeproto battery (atomic 1)",
+    "ok\t0.370000\tfused+armed edgeenc battery (atomic 1)",
+    "ok\t3.850000\tfused+armed edgetime battery (atomic 1)",
+    "ok\t0.020000\tfused+armed arity battery (atomic 1)",
+    "ok\t0.030000\tfused+armed contarity battery (atomic 1)",
+    "ok\t0.020000\tfused+armed cmdgap battery (atomic 1)",
+    "ok\t0.030000\tfused+armed aclsel battery (atomic 1)",
+    "ok\t56.810000\tfused+armed expwide battery (atomic 1)",
+    "ok\t4.200000\tfused+armed infofix battery (atomic 1)",
+    "ok\t2.960000\tfused+armed pushtear battery (atomic 1)",
+    "ok\t0.030000\tfused+armed netcmd battery (atomic 1)",
+    "ok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 1)",
+    "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 0)",
+    "ok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+    "ok\t0.040000\tAOF writer fired (records=N)",
+    "ok\t0.040000\tAOF process-restart script replay (epoll, atomic 0)",
+    "ok\t0.040000\tAOF native snapshot streams byte-exact",
+    "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+    "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 1)",
+    "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+    "ok\t0.040000\tAOF writer fired (records=N)",
+    "ok\t0.040000\tAOF process-restart script replay (epoll, atomic 1)",
+    "ok\t0.040000\tAOF native snapshot streams byte-exact",
+    "ok\t0.000000\tAOF replay fired (records=N skipped=N)",
+    "ok\t0.060000\tAOF directed group interruption fired",
+    "ok\t0.050000\tAOF atomic-group recovery + writer order",
+    "ok\t0.020000\tAOF group shutdown invariants",
+    "ok\t0.030000\tAOF always sync + reply gate fired",
+    "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+    "ok\t0.830000\tAOF in-window kill recovery (2s, epoll)",
+    "ok\t2.040000\tAOF in-window term recovery (2s, epoll)",
+    "ok\t0.840000\tAOF in-window kill recovery (1s, epoll)",
+    "ok\t1.970000\tAOF in-window term recovery (1s, epoll)",
+    "ok\t1.730000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+    "ok\t1.780000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+    "ok\t1.860000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+    "ok\t2.030000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+    "ok\t1.300000\tAOF everysec write gate + idle sync fired",
+    "ok\t0.030000\tAOF everysec durability window + tail warning",
+    "ok\t0.030000\tAOF no-sync bypassed sync + reply gate",
+    "ok\t5.150000\tAOF rewrite atomic/stage/corruption matrix",
+    "ok\t5.560000\tAOF rewrite triggers + observability matrix",
+    "ok\t0.000000\tAOF-off negative-control seed landed",
+    "ok\t0.010000\tAOF-off negative control lost data",
+    "ok\t0.410000\taoffix2 snapshot (1s, epoll)",
+    "ok\t1.490000\taoffix2 filename (1s, epoll)",
+    "ok\t0.170000\taoffix2 error (1s, epoll)",
+    "ok\t0.530000\taoffix2 tickets (1s, epoll)",
+    "ok\t0.530000\taoffix2 exec_tickets (1s, epoll)",
+    "ok\t0.530000\taoffix2 resurrection (1s, epoll)",
+    "ok\t0.410000\taoffix2 rewrite_fail2 (1s, epoll)",
+    "ok\t0.300000\taoffix2 manifest_missing (1s, epoll)",
+    "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, epoll)",
+    "ok\t0.280000\taoffix2 off-writer acknowledgement always (1s, epoll)",
+    "ok\t0.410000\taoffix2 snapshot (2s, epoll)",
+    "ok\t1.500000\taoffix2 filename (2s, epoll)",
+    "ok\t0.160000\taoffix2 error (2s, epoll)",
+    "ok\t0.530000\taoffix2 tickets (2s, epoll)",
+    "ok\t0.530000\taoffix2 exec_tickets (2s, epoll)",
+    "ok\t0.540000\taoffix2 resurrection (2s, epoll)",
+    "ok\t0.410000\taoffix2 rewrite_fail2 (2s, epoll)",
+    "ok\t0.300000\taoffix2 manifest_missing (2s, epoll)",
+    "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (2s, epoll)",
+    "ok\t0.280000\taoffix2 off-writer acknowledgement always (2s, epoll)",
+    "ok\t0.330000\taoffix2 large (1s, epoll)",
+    "ok\t0.190000\taoffix2 large_placed (1s, epoll)",
+    "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 0)",
+    "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+    "ok\t0.040000\tAOF writer fired (records=N)",
+    "ok\t0.040000\tAOF process-restart script replay (uring, atomic 0)",
+    "ok\t0.040000\tAOF native snapshot streams byte-exact",
+    "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+    "ok\t0.060000\tconfiguration reduction + actual geometry (uring, atomic 1)",
+    "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+    "ok\t0.040000\tAOF writer fired (records=N)",
+    "ok\t0.040000\tAOF process-restart script replay (uring, atomic 1)",
+    "ok\t0.040000\tAOF native snapshot streams byte-exact",
+    "ok\t0.000000\tAOF replay fired (records=N skipped=N)",
+    "ok\t0.070000\tAOF directed group interruption fired",
+    "ok\t0.050000\tAOF atomic-group recovery + writer order",
+    "ok\t0.020000\tAOF group shutdown invariants",
+    "ok\t0.030000\tAOF always sync + reply gate fired",
+    "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+    "ok\t0.870000\tAOF in-window kill recovery (2s, uring)",
+    "ok\t3.400000\tAOF in-window term recovery (2s, uring)",
+    "ok\t0.830000\tAOF in-window kill recovery (1s, uring)",
+    "ok\t2.870000\tAOF in-window term recovery (1s, uring)",
+    "ok\t1.740000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+    "ok\t1.800000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+    "ok\t1.870000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+    "ok\t1.970000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+    "ok\t1.300000\tAOF everysec write gate + idle sync fired",
+    "ok\t0.030000\tAOF everysec durability window + tail warning",
+    "ok\t0.020000\tAOF no-sync bypassed sync + reply gate",
+    "ok\t5.130000\tAOF rewrite atomic/stage/corruption matrix",
+    "ok\t5.400000\tAOF rewrite triggers + observability matrix",
+    "ok\t0.000000\tAOF-off negative-control seed landed",
+    "ok\t0.010000\tAOF-off negative control lost data",
+    "ok\t0.410000\taoffix2 snapshot (1s, uring)",
+    "ok\t1.490000\taoffix2 filename (1s, uring)",
+    "ok\t0.170000\taoffix2 error (1s, uring)",
+    "ok\t0.530000\taoffix2 tickets (1s, uring)",
+    "ok\t0.540000\taoffix2 exec_tickets (1s, uring)",
+    "ok\t0.540000\taoffix2 resurrection (1s, uring)",
+    "ok\t0.330000\taoffix2 rewrite_fail2 (1s, uring)",
+    "ok\t0.290000\taoffix2 manifest_missing (1s, uring)",
+    "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (1s, uring)",
+    "ok\t0.280000\taoffix2 off-writer acknowledgement always (1s, uring)",
+    "ok\t0.410000\taoffix2 snapshot (2s, uring)",
+    "ok\t1.490000\taoffix2 filename (2s, uring)",
+    "ok\t0.170000\taoffix2 error (2s, uring)",
+    "ok\t0.530000\taoffix2 tickets (2s, uring)",
+    "ok\t0.530000\taoffix2 exec_tickets (2s, uring)",
+    "ok\t0.520000\taoffix2 resurrection (2s, uring)",
+    "ok\t0.410000\taoffix2 rewrite_fail2 (2s, uring)",
+    "ok\t0.290000\taoffix2 manifest_missing (2s, uring)",
+    "ok\t0.270000\taoffix2 off-writer acknowledgement everysec (2s, uring)",
+    "ok\t0.270000\taoffix2 off-writer acknowledgement always (2s, uring)",
+    "ok\t0.330000\taoffix2 large (1s, uring)",
+    "ok\t0.200000\taoffix2 large_placed (1s, uring)",
+    "ok\t9.160000\tplain-write lost updates (atomic 0)",
+    "ok\t0.170000\tlbsignals battery (atomic 0)",
+    "ok\t1.480000\tslowlog battery (atomic 0)",
+    "ok\t0.040000\tatomfix battery (atomic 0)",
+    "ok\t0.040000\tscriptatomic battery (atomic 0)",
+    "ok\t14.460000\texecatomic battery (atomic 0)",
+    "ok\t11.870000\texeciso battery (atomic 0)",
+    "ok\t0.430000\texecfix battery (atomic 0)",
+    "ok\t0.110000\tmultires battery (atomic 0)",
+    "ok\t0.740000\tmultirace battery (atomic 0)",
+    "ok\t30.470000\tsession_monotonic battery (atomic 0)",
+    "ok\t0.370000\txacct battery (atomic 0)",
+    "ok\t0.320000\txmove battery (atomic 0)",
+    "ok\t1.870000\txscript battery (atomic 0)",
+    "ok\t1.920000\ttxn_nx battery (atomic 0)",
+    "ok\t9.510000\ttxniso battery (atomic 0)",
+    "ok\t6.160000\tplain-write lost updates (atomic 1)",
+    "ok\t0.170000\tlbsignals battery (atomic 1)",
+    "ok\t1.490000\tslowlog battery (atomic 1)",
+    "ok\t0.040000\tatomfix battery (atomic 1)",
+    "ok\t0.040000\tscriptatomic battery (atomic 1)",
+    "ok\t14.470000\texecatomic battery (atomic 1)",
+    "ok\t11.870000\texeciso battery (atomic 1)",
+    "ok\t0.420000\texecfix battery (atomic 1)",
+    "ok\t0.110000\tmultires battery (atomic 1)",
+    "ok\t0.730000\tmultirace battery (atomic 1)",
+    "ok\t30.460000\tsession_monotonic battery (atomic 1)",
+    "ok\t0.360000\txacct battery (atomic 1)",
+    "ok\t0.310000\txmove battery (atomic 1)",
+    "ok\t1.860000\txscript battery (atomic 1)",
+    "ok\t1.910000\ttxn_nx battery (atomic 1)",
+    "ok\t9.150000\ttxniso battery (atomic 1)",
+    "ok\t40.840000\tiofix IO4.9 Redis hz cron",
+    "ok\t2.920000\tepoll directed correctness (1s)",
+    "ok\t2.920000\tepoll directed correctness (2s)",
+    "ok\t0.900000\tR7 generated envelope parity",
+    "ok\t13.370000\tR7 production engagement (both database runtimes)",
+    "ok\t98.690000\tR7 FIFO twin off-path identity + negative controls",
+    "ok\t0.110000\tcore concurrency watch",
+    "ok\t0.310000\tcore concurrency lifetime",
+    "ok\t0.100000\tcore concurrency drain",
+    "ok\t7.110000\tcore concurrency route",
+    "ok\t0.100000\tcore concurrency snapshot",
+    "ok\t0.170000\tcore concurrency config",
+    "ok\t0.160000\tcore concurrency notify",
+    "ok\t0.580000\tread-local topology demotion (1s)",
+    "ok\t0.560000\tread-local topology demotion (2s)",
+    "ok\t0.010000\tatomic commit publication catches up at quiescence",
+    "ok\t2.370000\tflushfix flush witnesses",
+    "ok\t0.050000\tflushfix headers witnesses",
+    "ok\t3.420000\tmultidb serverless owners",
+    "ok\t0.040000\tmultidb global namespace boundary",
+    "ok\t10.710000\tstoresize published monitoring",
+    "ok\t0.210000\tMULTI admin command replies",
+    "ok\t0.070000\tEXECABORT releases WATCH reservation",
+    "ok\t0.000000\tatomic survivors unit build",
+    "ok\t0.010000\tatomic survivor: admission",
+    "ok\t0.010000\tatomic survivor: closure",
+    "ok\t0.000000\tatomic survivor: script_keys",
+    "ok\t0.010000\tatomic survivor: rename_overlay",
+    "ok\t0.000000\tatomic survivor: write_latest",
+    "ok\t0.010000\tatomic survivor: script_apply",
+    "ok\t0.000000\tatomic survivor: post_apply_probe",
+    "ok\t0.010000\tatomic survivor: lua_conversion",
+    "ok\t0.000000\tatomic survivor: watch_parent",
+    "ok\t0.010000\tatomic survivor: watch_cycle",
+    "ok\t0.000000\tatomic survivor: mset_arity",
+    "ok\t0.010000\tatomic survivor: watch_oom",
+    "ok\t0.000000\tatomic survivor: lua_lines",
+    "ok\t0.010000\tatomic survivor: library_limit",
+    "ok\t0.010000\tatomic survivor: stage_flag",
+    "ok\t0.010000\tatomic survivor: instruction_limit",
+    "ok\t0.010000\tarmed resize retirement: atomic-growth",
+    "ok\t0.000000\tarmed resize retirement: flush-prepared",
+    "ok\t0.000000\tnetcmd regression build",
+    "ok\t0.000000\tnetcmd streams regression",
+    "ok\t0.010000\tnetcmd zpop regression",
+    "ok\t0.000000\tnetcmd notify-oom regression",
+    "ok\t0.010000\tnetcmd notify-retry regression",
+    "ok\t0.010000\tnetcmd flush regression",
+    "ok\t0.010000\tnetcmd output regression",
+    "ok\t0.010000\tnetcmd pubsub regression",
+    "ok\t0.000000\tnetcmd receive regression",
+    "ok\t0.040000\tnetcmd config regression",
+    "ok\t0.000000\tnetcmd wb-small-pipe regression",
+    "ok\t0.010000\tnetcmd wb-complete-visits regression",
+    "ok\t0.000000\tnetcmd hexpire-oom regression",
+    "ok\t0.010000\tencodingfix knob",
+    "ok\t0.010000\tencodingfix precedence",
+    "ok\t0.010000\tNET1 serverless bounds + scan + reclamation",
+    "ok\t0.300000\tNET1 inline + query cap (1s, uring)",
+    "ok\t0.290000\tNET1 inline + query cap (1s, epoll)",
+    "ok\t0.300000\tNET1 inline + query cap (2s, uring)",
+    "ok\t0.290000\tNET1 inline + query cap (2s, epoll)",
+    "ok\t2.110000\tnetfix NT4.8 network CONFIG error parity",
+    "ok\t15.030000\tRESP protocol error compatibility",
+    "ok\t0.010000\treject --mode (flag deleted)",
+    "ok\t0.010000\treject --spread",
+    "ok\t0.010000\treject --nodes",
+    "ok\t0.010000\treject 3-part ratio",
+    "ok\t0.000000\treject missing conf",
+    "ok\t0.010000\treject bad conf key",
+    "ok\t0.010000\treject aclfile + conf user lines",
+    "ok\t0.050000\twaits config publication + admission unit",
+    "ok\t1.010000\treads never wait for retirement quiescence",
+    "ok\t6.650000\ttorture battery",
+    "ok\t0.970000\tRYOW battery",
+    "ok\t0.030000\tACL category runtime table",
+    "ok\t0.030000\tACL LOAD/SAVE no-file errors",
+    "ok\t1.020000\tidle loop ceiling (LBSIGNALS, 1s)",
+    "ok\t0.040000\tshutdown invariants (nothing stuck)",
+    "ok\t0.020000\tdirect-reply fired (direct=N)",
+    "ok\t0.040000\tdispatched==executed (N)",
+    "ok\t1.640000\tcompat2 autharity",
+    "ok\t6.760000\tcompat2 expire_notify",
+    "ok\t2.040000\tcompat2 ktls_lifetime",
+    "ok\t33.500000\tcompat3 CC4.12 pubsub vs Redis 7.4",
+    "ok\t33.470000\tcompat3 CC4.13 pending vs Redis 7.4",
+    "ok\t33.450000\tcompat3 CC4.14 history vs Redis 7.4",
+    "ok\t33.560000\tcompat3 CC4.16 grammar vs Redis 7.4",
+    "ok\t33.620000\tcompat3 CC4.5 glob vs Redis 7.4",
+    "ok\t33.790000\tcompat3 CC4.17 flags vs Redis 7.4",
+    "ok\t6.090000\tACL recheck one-reply battery (2s)",
+    "ok\t6.140000\tACL recheck one-reply battery (1s)",
+    "ok\t0.070000\taclfix sort (1s)",
+    "ok\t0.070000\taclfix streams-name (1s)",
+    "ok\t0.070000\taclfix save-load (1s)",
+    "ok\t1.990000\taclfix capacity (1s)",
+    "ok\t0.080000\taclfix wake-pop (1s)",
+    "ok\t0.080000\taclfix wake-scatter (1s)",
+    "ok\t0.070000\taclfix sort (2s)",
+    "ok\t0.070000\taclfix streams-name (2s)",
+    "ok\t0.070000\taclfix save-load (2s)",
+    "ok\t1.830000\taclfix capacity (2s)",
+    "ok\t0.080000\taclfix wake-pop (2s)",
+    "ok\t0.070000\taclfix wake-scatter (2s)",
+    "ok\t0.000000\treject bad protected-mode",
+    "ok\t0.010000\treject bad enable-debug-command",
+    "ok\t0.150000\tAUTH/HELLO/protected state machine",
+    "ok\t0.040000\tACL battery (atomic off)",
+    "ok\t0.030000\tACL battery (atomic on)",
+    "ok\t2.470000\tDEBUG toggle/reload battery",
+    "ok\t0.120000\ttyped snapshot round-trip incl stream",
+    "ok\t0.880000\tauthfix CG4.1 binary config requirepass",
+    "ok\t3.430000\tauthfix CG4.2 missing config value refuses boot",
+    "ok\t0.900000\tauthfix SV4.2 binary requirepass rewrite restart",
+    "ok\t0.290000\tauthfix SV4.1 slowlog credential redaction (1s)",
+    "ok\t0.290000\tauthfix SV4.1 slowlog credential redaction (2s)",
+    "ok\t2.080000\tMULTI feature battery",
+    "ok\t1.520000\tblocking feature battery",
+    "ok\t0.890000\tpubsub feature battery",
+    "ok\t0.030000\tLua feature battery",
+    "FAIL\t0.100000\tkeyspace notification battery (atomic 0/1)",
+    "ok\t0.020000\tfeature battery shutdown invariants",
+    "ok\t46.150000\ttxnorder battery (fused, atomic 0)",
+    "ok\t46.060000\ttxnorder battery (fused, atomic 1)",
+    "ok\t45.770000\ttxnorder battery (split, atomic 0)",
+    "ok\t45.820000\ttxnorder battery (split, atomic 1)"
+  ],
+  "gate_summary": [
+    "GATE(PARTIAL): 435 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-serverfix/build/serverfix/post-proof.partial"
+  ],
+  "archive": {
+    "path": "docs/serverfix/proof/post-existing-jobs.tar.gz",
+    "sha256": "fb42990afee94091eee3275976ae10f1b283c62e3ec29b801d4b69712a7f014f",
+    "bytes": 1857290
+  },
+  "plan": {
+    "schema": 1,
+    "manifest": {
+      "run": "full:gate-run.lc0r60",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        7,
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 22,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21,
+        22
+      ],
+      "history": "/home/user/Projects/cx-serverfix/.gate-history/differ"
+    },
+    "suites": [
+      "string",
+      "list",
+      "set",
+      "zset",
+      "hash",
+      "hexpire",
+      "edgetime",
+      "xshard",
+      "xmove",
+      "bitmap",
+      "hll",
+      "bitfield",
+      "cgaps",
+      "stream",
+      "script",
+      "streamgrp",
+      "zsetops",
+      "geo",
+      "doubles",
+      "scan",
+      "multi",
+      "encodingfix",
+      "edgeenc",
+      "edgeproto",
+      "cmdgap",
+      "cmdgap2",
+      "sort",
+      "servertail",
+      "arity",
+      "storeorder",
+      "infofix",
+      "multidb",
+      "blocking",
+      "pubsub",
+      "fanout",
+      "spubsub",
+      "notify",
+      "wiredump",
+      "climon",
+      "compatintro",
+      "aclsel",
+      "aclkeys",
+      "cmdmeta",
+      "s6fix",
+      "ccfix",
+      "psfix",
+      "monitor"
+    ],
+    "repeats": 4,
+    "equivalence_seeds": [
+      22
+    ]
+  },
+  "differential": [
+    {
+      "geometry": "split",
+      "expected_comparisons": 568,
+      "inventory_complete": true,
+      "passed": 568,
+      "failed": [],
+      "skipped": [],
+      "summary": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1276650 recorded comparison witnesses, 282 legs)",
+        "DIFFER GATE: pass=282 fail=0 runtime=10m33s",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1294056 recorded comparison witnesses, 286 legs)",
+        "DIFFER GATE: pass=286 fail=0 runtime=10m42s"
+      ],
+      "engine": "uring",
+      "fanout_completion": {
+        "0": true,
+        "1": true
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "expected_comparisons": 556,
+      "inventory_complete": true,
+      "passed": 556,
+      "failed": [],
+      "skipped": [
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 7,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 19,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 20,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 23,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 21,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 0,
+          "seed": 22,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 7,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 19,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 20,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 23,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 21,
+          "repeat": 0,
+          "status": "SKIP"
+        },
+        {
+          "suite": "sort",
+          "atomic": 1,
+          "seed": 22,
+          "repeat": 0,
+          "status": "SKIP"
+        }
+      ],
+      "summary": [
+        "  read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1248686 recorded comparison witnesses, 276 legs)",
+        "DIFFER GATE: pass=277 fail=0 runtime=10m29s",
+        "  read-local lane fired (atomic=1)                           ok (hits=1258 fallbacks=1 at peak; final_hits=20 final_fallbacks=240)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (1265486 recorded comparison witnesses, 280 legs)",
+        "DIFFER GATE: pass=281 fail=0 runtime=10m30s"
+      ],
+      "engine": "uring",
+      "fanout_completion": {
+        "0": true,
+        "1": true
+      }
+    }
+  ],
+  "epoll": [
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "command": [
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-serverfix/build/serverfix/tomokv-epoll",
+        "31800",
+        "31801",
+        "96-103",
+        "6:2"
+      ],
+      "exit": 0,
+      "binary": "/home/user/Projects/cx-serverfix/build/tomokv",
+      "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+      "wrapper": "#!/bin/sh\nexec /home/user/Projects/cx-serverfix/build/tomokv \"$@\" --net-io epoll\n",
+      "wrapper_sha256": "cf637b64a46bae9cc9b685d299c57c574f0eabb3866c50d40c063e101e387fe3",
+      "source_plan": "/home/user/Projects/cx-serverfix/build/gate-run.lc0r60/differ-plan.json",
+      "epoll_boot_witnesses": {
+        "/home/user/Projects/cx-serverfix/build/serverfix/differ-epoll-split/target-atomic-0.log": true,
+        "/home/user/Projects/cx-serverfix/build/serverfix/differ-epoll-split/target-atomic-1.log": true
+      },
+      "archive": {
+        "path": "docs/serverfix/proof/differ-epoll-split.tar.gz",
+        "sha256": "7210618e2fee1a5f4bcf2d378119fe04eb08227b5ae07823d086919c2765bc68",
+        "bytes": 224313
+      },
+      "differential": {
+        "geometry": "split",
+        "expected_comparisons": 568,
+        "inventory_complete": true,
+        "passed": 568,
+        "failed": [],
+        "skipped": [],
+        "summary": [
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2570370 recorded comparison witnesses, 568 legs)",
+          "  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)",
+          "DIFFER GATE: pass=569 fail=0 runtime=21m28s"
+        ]
+      }
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "command": [
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-serverfix/build/serverfix/tomokv-epoll",
+        "31800",
+        "31801",
+        "96-103",
+        "6:2"
+      ],
+      "exit": 0,
+      "binary": "/home/user/Projects/cx-serverfix/build/tomokv",
+      "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+      "wrapper": "#!/bin/sh\nexec /home/user/Projects/cx-serverfix/build/tomokv \"$@\" --net-io epoll\n",
+      "wrapper_sha256": "cf637b64a46bae9cc9b685d299c57c574f0eabb3866c50d40c063e101e387fe3",
+      "source_plan": "/home/user/Projects/cx-serverfix/build/gate-run.lc0r60/differ-plan.json",
+      "epoll_boot_witnesses": {
+        "/home/user/Projects/cx-serverfix/build/serverfix/differ-epoll-armed-fused/target-atomic-0.log": true,
+        "/home/user/Projects/cx-serverfix/build/serverfix/differ-epoll-armed-fused/target-atomic-1.log": true
+      },
+      "archive": {
+        "path": "docs/serverfix/proof/differ-epoll-armed-fused.tar.gz",
+        "sha256": "eccdf95603789a9eedf28ef70562f55a3073243b12f08c3bcd4eca54c7be0ec8",
+        "bytes": 93120
+      },
+      "differential": {
+        "geometry": "armed-fused",
+        "expected_comparisons": 556,
+        "inventory_complete": true,
+        "passed": 556,
+        "failed": [],
+        "skipped": [
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 7,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 19,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 20,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 23,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 21,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 0,
+            "seed": 22,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 7,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 19,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 20,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 23,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 21,
+            "repeat": 0,
+            "status": "SKIP"
+          },
+          {
+            "suite": "sort",
+            "atomic": 1,
+            "seed": 22,
+            "repeat": 0,
+            "status": "SKIP"
+          }
+        ],
+        "summary": [
+          "  read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+          "  read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=18 final_fallbacks=242)",
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2514802 recorded comparison witnesses, 556 legs)",
+          "DIFFER GATE: pass=558 fail=0 runtime=20m57s"
+        ]
+      }
+    }
+  ],
+  "mode_equivalence": [
+    {
+      "engine": "uring",
+      "cells": 16,
+      "fresh_boots": 32,
+      "all_reached": true,
+      "all_verdicts": "ok",
+      "reply_sha256": "cfeac3877ffde2d10486db0ce7e1df852a2f2d31a9154b5a0924cd18d60ce3a8",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.lc0r60/jobs/differ-equivalence/differ/mode-equivalence-22",
+      "note": "Existing driver label says 32 combinations; actual inventory is 16 cells, each with replay and witness boots."
+    },
+    {
+      "engine": "epoll",
+      "cells": 16,
+      "fresh_boots": 32,
+      "all_reached": true,
+      "all_verdicts": "ok",
+      "reply_sha256": "cfeac3877ffde2d10486db0ce7e1df852a2f2d31a9154b5a0924cd18d60ce3a8",
+      "receipt": "/home/user/Projects/cx-serverfix/build/serverfix/differ-epoll-split/mode-equivalence",
+      "note": "Existing driver label says 32 combinations; actual inventory is 16 cells, each with replay and witness boots."
+    }
+  ]
+}

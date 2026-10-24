@@ -1,0 +1,785 @@
+{
+  "function_groups": 9406,
+  "unchanged": 7708,
+  "changed": 1698,
+  "lane_equal": 1222,
+  "residual": 476,
+  "hot_groups": 565,
+  "hot_headline": 427,
+  "hot_lane": 98,
+  "command_hot_groups": 12,
+  "command_hot_headline": 9,
+  "command_hot_lane": 3,
+  "hot_residual": [
+    {
+      "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3807
+      ],
+      "post_sizes": [
+        3756
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2634
+      ],
+      "post_sizes": [
+        2605
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3560
+      ],
+      "post_sizes": [
+        3514
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3394
+      ],
+      "post_sizes": [
+        3366
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2780
+      ],
+      "post_sizes": [
+        2587
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2609
+      ],
+      "post_sizes": [
+        2426
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3806
+      ],
+      "post_sizes": [
+        3755
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2633
+      ],
+      "post_sizes": [
+        2604
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3559
+      ],
+      "post_sizes": [
+        3513
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3393
+      ],
+      "post_sizes": [
+        3365
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2779
+      ],
+      "post_sizes": [
+        2586
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2608
+      ],
+      "post_sizes": [
+        2425
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9164
+      ],
+      "post_sizes": [
+        8653
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "notifycompat",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of notifycompat, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8149
+      ],
+      "post_sizes": [
+        8443
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20688
+      ],
+      "post_sizes": [
+        20676
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        277
+      ],
+      "post_sizes": [
+        280
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9949,
+        12153,
+        10045,
+        10767
+      ],
+      "post_sizes": [
+        10013,
+        12161,
+        10013,
+        10877
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20837,
+        19202
+      ],
+      "post_sizes": [
+        20830,
+        19184
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        284,
+        289
+      ],
+      "post_sizes": [
+        284,
+        289
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21031
+      ],
+      "post_sizes": [
+        21014
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18382
+      ],
+      "post_sizes": [
+        18368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of serverfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        8881
+      ],
+      "post_sizes": [
+        8368
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::execute_multi_unit(tomo_db0::Task const&, tomo_db0::Shard&, void (*)(void*, tomo_db0::Task const&))",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        149
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        7865
+      ],
+      "post_sizes": [
+        8123
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9840,
+        12318,
+        9840,
+        10771
+      ],
+      "post_sizes": [
+        9773,
+        12232,
+        9885,
+        10582
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21381,
+        19078
+      ],
+      "post_sizes": [
+        21387,
+        19097
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix"
+      ],
+      "reason": "Composition of execfair, serverfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289,
+        293
+      ],
+      "post_sizes": [
+        289,
+        293
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix"
+      ],
+      "reason": "Composition of execfair, serverfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18556
+      ],
+      "post_sizes": [
+        18473
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair",
+        "serverfix",
+        "dispatchfix"
+      ],
+      "reason": "Composition of execfair, serverfix, dispatchfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18455
+      ],
+      "post_sizes": [
+        18439
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "serverfix",
+        "prefetch_delete"
+      ],
+      "reason": "Composition of serverfix, prefetch_delete; residual instructions/layout require merit review."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3954
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4822
+      ],
+      "post_sizes": [
+        4420
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4324
+      ],
+      "post_sizes": [
+        3807
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1776
+      ],
+      "post_sizes": [
+        1568
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5677
+      ],
+      "post_sizes": [
+        5591
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "execfair"
+      ],
+      "reason": "execfair changes this body; merged compiler propagation differs from isolated POST."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-ef5204b2e",
+      "sha256": "95798c8e28a01583c83f434a6ecc8e8e0602e7fc1d877a94ae58ec16bebbad41"
+    },
+    "execfair": {
+      "path": "/home/user/Projects/bins/execfair-post-df6bef84",
+      "sha256": "df6bef840806e18cb0cd3e42bc926eef6cb7a52e0412e4f75479eb8afdf50c2c"
+    },
+    "notifycompat": {
+      "path": "/home/user/Projects/bins/notifycompat-post-76f31351",
+      "sha256": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59"
+    },
+    "serverfix": {
+      "path": "/home/user/Projects/bins/serverfix-post-c0b52731",
+      "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57"
+    },
+    "dispatchfix": {
+      "path": "/home/user/Projects/bins/dispatchfix-post-e7385e0c",
+      "sha256": "e7385e0c625594aac5cdf36f2b20969aad237cd06ebdc7f039b2e728cbdcc723"
+    },
+    "datafix1": {
+      "path": "/home/user/Projects/bins/datafix1-post-b05021db",
+      "sha256": "b05021db6b4f7369b0cad5b7009b8a1918332860f92b03f029394c23e4d61dec"
+    },
+    "prefetch_delete": {
+      "path": "/home/user/Projects/bins/prefetch-del-b90cff5e",
+      "sha256": "b90cff5ede08b5c6c30e832cb44afaf4fcaed6dac5a3238805fda33dd39d4aff"
+    },
+    "baseline_dispatchfix": {
+      "path": "/home/user/Projects/bins/dispatchfix-pre-2d8265e5",
+      "sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd"
+    },
+    "baseline_datafix1": {
+      "path": "/home/user/Projects/bins/datafix1-pre-194bcfa2",
+      "sha256": "194bcfa235f0255304b9d774134f28a9fe7beaf61ba6f10861484404c17dc615"
+    }
+  },
+  "post": {
+    "path": "build/tomokv",
+    "sha256": "402bdf8376a4ff316c2eb544b604a73743561b8b05f154626f5566b8a5f8e658"
+  }
+}

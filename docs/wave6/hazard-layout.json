@@ -1,0 +1,2686 @@
+{
+  "before_hint_candidate": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
+  "headline": {
+    "GET": [
+      [
+        324752,
+        "endbr64"
+      ],
+      [
+        324756,
+        "push   %rbp"
+      ],
+      [
+        324757,
+        "mov    %rsp,%rbp"
+      ],
+      [
+        324760,
+        "push   %r15"
+      ],
+      [
+        324762,
+        "push   %r14"
+      ],
+      [
+        324764,
+        "push   %r13"
+      ],
+      [
+        324766,
+        "push   %r12"
+      ],
+      [
+        324768,
+        "push   %rbx"
+      ],
+      [
+        324769,
+        "mov    %rsi,%r14"
+      ],
+      [
+        324772,
+        "mov    %rdi,%rbx"
+      ],
+      [
+        324775,
+        "sub    $0x78,%rsp"
+      ],
+      [
+        324779,
+        "mov    (%rdi),%rsi"
+      ],
+      [
+        324782,
+        "lea    0x28(%rsp),%rcx"
+      ],
+      [
+        324787,
+        "mov    %fs:0x28,%rax"
+      ],
+      [
+        324796,
+        "mov    %rax,0x68(%rsp)"
+      ],
+      [
+        324801,
+        "mov    0x8(%rdi),%rax"
+      ],
+      [
+        324805,
+        "mov    %rcx,0x8(%rsp)"
+      ],
+      [
+        324810,
+        "mov    (%rax),%edx"
+      ],
+      [
+        324812,
+        "mov    %rcx,%rdi"
+      ],
+      [
+        324815,
+        "call   0x55555598a1e0 <_ZN4tomo6Server15ClientWorkScopeC2ERS0_j>"
+      ],
+      [
+        324820,
+        "mov    %r14,%rsi"
+      ],
+      [
+        324823,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        324826,
+        "call   0x555555c40290 <_ZN4tomo7ExLoopTILb1EE18forward_stale_taskILb0EEEbRKNS_4TaskE>"
+      ],
+      [
+        324831,
+        "test   %al,%al"
+      ],
+      [
+        324833,
+        "jne    0x5555555a39d9 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1353>"
+      ],
+      [
+        324839,
+        "mov    %r14,%rdi"
+      ],
+      [
+        324842,
+        "call   0x555555a28450 <_ZN4tomo17multi_task_taggedERKNS_4TaskE>"
+      ],
+      [
+        324847,
+        "mov    %eax,%r15d"
+      ],
+      [
+        324850,
+        "mov    0x10(%r14),%eax"
+      ],
+      [
+        324854,
+        "mov    %eax,0x18(%rsp)"
+      ],
+      [
+        324858,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        324861,
+        "mov    0x103c8(%rax),%rax"
+      ],
+      [
+        324868,
+        "test   %r15b,%r15b"
+      ],
+      [
+        324871,
+        "je     0x5555555a37a5 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+789>"
+      ],
+      [
+        325541,
+        "mov    (%r14),%rcx"
+      ],
+      [
+        325544,
+        "test   %rcx,%rcx"
+      ],
+      [
+        325547,
+        "je     0x5555555a39e1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1361>"
+      ],
+      [
+        325553,
+        "mov    0x8(%r14),%r12"
+      ],
+      [
+        325557,
+        "mov    %r12d,%edx"
+      ],
+      [
+        325560,
+        "and    $0x7,%r12d"
+      ],
+      [
+        325564,
+        "shr    $0x3,%edx"
+      ],
+      [
+        325567,
+        "and    $0x7,%edx"
+      ],
+      [
+        325570,
+        "imul   $0x150,%r12,%r12"
+      ],
+      [
+        325577,
+        "add    0x80(%rcx,%rdx,8),%r12"
+      ],
+      [
+        325585,
+        "cmpl   $0x0,0x18(%rsp)"
+      ],
+      [
+        325590,
+        "jns    0x5555555a37e1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+849>"
+      ],
+      [
+        325592,
+        "mov    0x8(%r12),%ecx"
+      ],
+      [
+        325597,
+        "mov    %ecx,0x18(%rsp)"
+      ],
+      [
+        325601,
+        "movslq 0x18(%rsp),%rdx"
+      ],
+      [
+        325606,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        325613,
+        "mov    (%rax,%rdx,8),%r13"
+      ],
+      [
+        325617,
+        "jne    0x5555555a3a38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1448>"
+      ],
+      [
+        325623,
+        "mov    0x18a(%rbx),%dl"
+      ],
+      [
+        325629,
+        "mov    0x158(%rbx),%rax"
+      ],
+      [
+        325636,
+        "mov    %dl,0x1c8(%r13)"
+      ],
+      [
+        325643,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        325650,
+        "mov    %rax,0x10(%r13)"
+      ],
+      [
+        325654,
+        "mov    %rax,0x1c0(%r13)"
+      ],
+      [
+        325661,
+        "jne    0x5555555a3a95 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1541>"
+      ],
+      [
+        325667,
+        "cmpq   $0x0,0xa8(%r12)"
+      ],
+      [
+        325676,
+        "jne    0x5555555a3abd <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1581>"
+      ],
+      [
+        325682,
+        "call   0x5555559797d0 <_ZN4tomo23atomic_tripwire_enabledEv>"
+      ],
+      [
+        325687,
+        "test   %al,%al"
+      ],
+      [
+        325689,
+        "jne    0x5555555a3b25 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1685>"
+      ],
+      [
+        325695,
+        "lea    0x230(%rbx),%rax"
+      ],
+      [
+        325702,
+        "mov    %rax,0x10(%rsp)"
+      ],
+      [
+        325707,
+        "mov    0x240(%rbx),%rax"
+      ],
+      [
+        325714,
+        "cmp    %rax,0x260(%rbx)"
+      ],
+      [
+        325721,
+        "jne    0x5555555a3b38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1704>"
+      ],
+      [
+        325727,
+        "mov    0x2e0(%rbx),%rax"
+      ],
+      [
+        325734,
+        "cmp    %rax,0x300(%rbx)"
+      ],
+      [
+        325741,
+        "jne    0x5555555a3b38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1704>"
+      ],
+      [
+        325747,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325752,
+        "jne    0x5555555a3b7f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1775>"
+      ],
+      [
+        325758,
+        "testb  $0x1,0x1c(%r12)"
+      ],
+      [
+        325764,
+        "jne    0x5555555a3b7f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1775>"
+      ],
+      [
+        325770,
+        "mov    (%r12),%rax"
+      ],
+      [
+        325774,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        325781,
+        "jne    0x5555555a3ba4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1812>"
+      ],
+      [
+        325787,
+        "mov    0x8(%rbx),%rdi"
+      ],
+      [
+        325791,
+        "mov    0x18(%r13),%edx"
+      ],
+      [
+        325795,
+        "mov    0x44(%rdi),%eax"
+      ],
+      [
+        325798,
+        "incq   0x3e8(%r13)"
+      ],
+      [
+        325805,
+        "cmp    $0xffffffff,%edx"
+      ],
+      [
+        325808,
+        "jne    0x5555555a3be6 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1878>"
+      ],
+      [
+        326630,
+        "cmp    %eax,%edx"
+      ],
+      [
+        326632,
+        "je     0x5555555a38ba <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1066>"
+      ],
+      [
+        326638,
+        "incq   0x410(%r13)"
+      ],
+      [
+        326645,
+        "jmp    0x5555555a38ba <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1066>"
+      ],
+      [
+        325818,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325823,
+        "jne    0x5555555a38ce <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1086>"
+      ],
+      [
+        325825,
+        "mov    (%r12),%rax"
+      ],
+      [
+        325829,
+        "movzwl 0x26(%rax),%esi"
+      ],
+      [
+        325833,
+        "call   0x555555c34660 <_ZN4tomo9ThreadCtx12note_commandEt>"
+      ],
+      [
+        325838,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        325841,
+        "mov    0x14c18(%rax),%eax"
+      ],
+      [
+        325847,
+        "test   $0x2,%al"
+      ],
+      [
+        325849,
+        "jne    0x5555555a3bfa <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1898>"
+      ],
+      [
+        325855,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325860,
+        "je     0x5555555a3cae <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2078>"
+      ],
+      [
+        326830,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326834,
+        "testb  $0x1,0x11(%rax)"
+      ],
+      [
+        326838,
+        "jne    0x5555555a3cc4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2100>"
+      ],
+      [
+        326840,
+        "cmpq   $0x0,0x16d8(%rbx)"
+      ],
+      [
+        326848,
+        "jne    0x5555555a3d12 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2178>"
+      ],
+      [
+        326850,
+        "jmp    0x5555555a3d38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2216>"
+      ],
+      [
+        326968,
+        "mov    0x100(%r13),%rax"
+      ],
+      [
+        326975,
+        "test   %rax,%rax"
+      ],
+      [
+        326978,
+        "je     0x5555555a3d4e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2238>"
+      ],
+      [
+        326990,
+        "test   %r15b,%r15b"
+      ],
+      [
+        326993,
+        "jne    0x5555555a3d65 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2261>"
+      ],
+      [
+        326995,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326999,
+        "mov    %r12,%rsi"
+      ],
+      [
+        327002,
+        "mov    %r13,%rdi"
+      ],
+      [
+        327005,
+        "call   *0x18(%rax)"
+      ],
+      [
+        327008,
+        "jmp    0x5555555a398f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1279>"
+      ],
+      [
+        326031,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        326036,
+        "je     0x5555555a3e0a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2426>"
+      ],
+      [
+        327178,
+        "mov    0x10(%r12),%rdx"
+      ],
+      [
+        327183,
+        "mov    %r13,%rsi"
+      ],
+      [
+        327186,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        327189,
+        "call   0x555555c40230 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>"
+      ],
+      [
+        327194,
+        "mov    (%r12),%rax"
+      ],
+      [
+        327198,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        327205,
+        "jne    0x5555555a3e37 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2471>"
+      ],
+      [
+        327207,
+        "cmpq   $0x0,0x180(%rbx)"
+      ],
+      [
+        327215,
+        "je     0x5555555a399a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1290>"
+      ],
+      [
+        326042,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326046,
+        "testb  $0x1,0x12(%rax)"
+      ],
+      [
+        326050,
+        "jne    0x5555555a3ebf <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2607>"
+      ],
+      [
+        326056,
+        "mov    %r12,%rdi"
+      ],
+      [
+        326059,
+        "call   0x5555555a0b59 <_ZN4tomo16slowlog_completeERKNS_2OpE>"
+      ],
+      [
+        326064,
+        "mov    0x180(%rbx),%rdi"
+      ],
+      [
+        326071,
+        "test   %rdi,%rdi"
+      ],
+      [
+        326074,
+        "je     0x5555555a3ecc <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2620>"
+      ],
+      [
+        327372,
+        "movb   $0x2,0xb8(%r12)"
+      ],
+      [
+        327381,
+        "mov    (%r14),%rsi"
+      ],
+      [
+        327384,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        327387,
+        "call   0x555555c40750 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>"
+      ],
+      [
+        327392,
+        "jmp    0x5555555a39d9 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1353>"
+      ],
+      [
+        326105,
+        "mov    $0x1,%r15b"
+      ],
+      [
+        326108,
+        "jmp    0x5555555a3ee5 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2645>"
+      ],
+      [
+        327397,
+        "mov    0x8(%rsp),%rdi"
+      ],
+      [
+        327402,
+        "call   0x55555598a230 <_ZN4tomo6Server15ClientWorkScopeD2Ev>"
+      ],
+      [
+        327407,
+        "mov    0x68(%rsp),%rax"
+      ],
+      [
+        327412,
+        "sub    %fs:0x28,%rax"
+      ],
+      [
+        327421,
+        "je     0x5555555a3f5a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2762>"
+      ],
+      [
+        327514,
+        "add    $0x78,%rsp"
+      ],
+      [
+        327518,
+        "mov    %r15d,%eax"
+      ],
+      [
+        327521,
+        "pop    %rbx"
+      ],
+      [
+        327522,
+        "pop    %r12"
+      ],
+      [
+        327524,
+        "pop    %r13"
+      ],
+      [
+        327526,
+        "pop    %r14"
+      ],
+      [
+        327528,
+        "pop    %r15"
+      ],
+      [
+        327530,
+        "pop    %rbp"
+      ],
+      [
+        327531,
+        "ret"
+      ]
+    ],
+    "SET": [
+      [
+        324752,
+        "endbr64"
+      ],
+      [
+        324756,
+        "push   %rbp"
+      ],
+      [
+        324757,
+        "mov    %rsp,%rbp"
+      ],
+      [
+        324760,
+        "push   %r15"
+      ],
+      [
+        324762,
+        "push   %r14"
+      ],
+      [
+        324764,
+        "push   %r13"
+      ],
+      [
+        324766,
+        "push   %r12"
+      ],
+      [
+        324768,
+        "push   %rbx"
+      ],
+      [
+        324769,
+        "mov    %rsi,%r14"
+      ],
+      [
+        324772,
+        "mov    %rdi,%rbx"
+      ],
+      [
+        324775,
+        "sub    $0x78,%rsp"
+      ],
+      [
+        324779,
+        "mov    (%rdi),%rsi"
+      ],
+      [
+        324782,
+        "lea    0x28(%rsp),%rcx"
+      ],
+      [
+        324787,
+        "mov    %fs:0x28,%rax"
+      ],
+      [
+        324796,
+        "mov    %rax,0x68(%rsp)"
+      ],
+      [
+        324801,
+        "mov    0x8(%rdi),%rax"
+      ],
+      [
+        324805,
+        "mov    %rcx,0x8(%rsp)"
+      ],
+      [
+        324810,
+        "mov    (%rax),%edx"
+      ],
+      [
+        324812,
+        "mov    %rcx,%rdi"
+      ],
+      [
+        324815,
+        "call   0x55555598a1e0 <_ZN4tomo6Server15ClientWorkScopeC2ERS0_j>"
+      ],
+      [
+        324820,
+        "mov    %r14,%rsi"
+      ],
+      [
+        324823,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        324826,
+        "call   0x555555c40290 <_ZN4tomo7ExLoopTILb1EE18forward_stale_taskILb0EEEbRKNS_4TaskE>"
+      ],
+      [
+        324831,
+        "test   %al,%al"
+      ],
+      [
+        324833,
+        "jne    0x5555555a39d9 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1353>"
+      ],
+      [
+        324839,
+        "mov    %r14,%rdi"
+      ],
+      [
+        324842,
+        "call   0x555555a28450 <_ZN4tomo17multi_task_taggedERKNS_4TaskE>"
+      ],
+      [
+        324847,
+        "mov    %eax,%r15d"
+      ],
+      [
+        324850,
+        "mov    0x10(%r14),%eax"
+      ],
+      [
+        324854,
+        "mov    %eax,0x18(%rsp)"
+      ],
+      [
+        324858,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        324861,
+        "mov    0x103c8(%rax),%rax"
+      ],
+      [
+        324868,
+        "test   %r15b,%r15b"
+      ],
+      [
+        324871,
+        "je     0x5555555a37a5 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+789>"
+      ],
+      [
+        325541,
+        "mov    (%r14),%rcx"
+      ],
+      [
+        325544,
+        "test   %rcx,%rcx"
+      ],
+      [
+        325547,
+        "je     0x5555555a39e1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1361>"
+      ],
+      [
+        325553,
+        "mov    0x8(%r14),%r12"
+      ],
+      [
+        325557,
+        "mov    %r12d,%edx"
+      ],
+      [
+        325560,
+        "and    $0x7,%r12d"
+      ],
+      [
+        325564,
+        "shr    $0x3,%edx"
+      ],
+      [
+        325567,
+        "and    $0x7,%edx"
+      ],
+      [
+        325570,
+        "imul   $0x150,%r12,%r12"
+      ],
+      [
+        325577,
+        "add    0x80(%rcx,%rdx,8),%r12"
+      ],
+      [
+        325585,
+        "cmpl   $0x0,0x18(%rsp)"
+      ],
+      [
+        325590,
+        "jns    0x5555555a37e1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+849>"
+      ],
+      [
+        325592,
+        "mov    0x8(%r12),%ecx"
+      ],
+      [
+        325597,
+        "mov    %ecx,0x18(%rsp)"
+      ],
+      [
+        325601,
+        "movslq 0x18(%rsp),%rdx"
+      ],
+      [
+        325606,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        325613,
+        "mov    (%rax,%rdx,8),%r13"
+      ],
+      [
+        325617,
+        "jne    0x5555555a3a38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1448>"
+      ],
+      [
+        325623,
+        "mov    0x18a(%rbx),%dl"
+      ],
+      [
+        325629,
+        "mov    0x158(%rbx),%rax"
+      ],
+      [
+        325636,
+        "mov    %dl,0x1c8(%r13)"
+      ],
+      [
+        325643,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        325650,
+        "mov    %rax,0x10(%r13)"
+      ],
+      [
+        325654,
+        "mov    %rax,0x1c0(%r13)"
+      ],
+      [
+        325661,
+        "jne    0x5555555a3a95 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1541>"
+      ],
+      [
+        325667,
+        "cmpq   $0x0,0xa8(%r12)"
+      ],
+      [
+        325676,
+        "jne    0x5555555a3abd <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1581>"
+      ],
+      [
+        325682,
+        "call   0x5555559797d0 <_ZN4tomo23atomic_tripwire_enabledEv>"
+      ],
+      [
+        325687,
+        "test   %al,%al"
+      ],
+      [
+        325689,
+        "jne    0x5555555a3b25 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1685>"
+      ],
+      [
+        325695,
+        "lea    0x230(%rbx),%rax"
+      ],
+      [
+        325702,
+        "mov    %rax,0x10(%rsp)"
+      ],
+      [
+        325707,
+        "mov    0x240(%rbx),%rax"
+      ],
+      [
+        325714,
+        "cmp    %rax,0x260(%rbx)"
+      ],
+      [
+        325721,
+        "jne    0x5555555a3b38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1704>"
+      ],
+      [
+        325727,
+        "mov    0x2e0(%rbx),%rax"
+      ],
+      [
+        325734,
+        "cmp    %rax,0x300(%rbx)"
+      ],
+      [
+        325741,
+        "jne    0x5555555a3b38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1704>"
+      ],
+      [
+        325747,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325752,
+        "jne    0x5555555a3b7f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1775>"
+      ],
+      [
+        325758,
+        "testb  $0x1,0x1c(%r12)"
+      ],
+      [
+        325764,
+        "jne    0x5555555a3b7f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1775>"
+      ],
+      [
+        325770,
+        "mov    (%r12),%rax"
+      ],
+      [
+        325774,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        325781,
+        "jne    0x5555555a3ba4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1812>"
+      ],
+      [
+        326564,
+        "nopl   0x0(%rax,%rax,1)"
+      ],
+      [
+        326569,
+        "cmpb   $0x0,0x8(%r13)"
+      ],
+      [
+        326574,
+        "je     0x5555555a389b <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1035>"
+      ],
+      [
+        325787,
+        "mov    0x8(%rbx),%rdi"
+      ],
+      [
+        325791,
+        "mov    0x18(%r13),%edx"
+      ],
+      [
+        325795,
+        "mov    0x44(%rdi),%eax"
+      ],
+      [
+        325798,
+        "incq   0x3e8(%r13)"
+      ],
+      [
+        325805,
+        "cmp    $0xffffffff,%edx"
+      ],
+      [
+        325808,
+        "jne    0x5555555a3be6 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1878>"
+      ],
+      [
+        326630,
+        "cmp    %eax,%edx"
+      ],
+      [
+        326632,
+        "je     0x5555555a38ba <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1066>"
+      ],
+      [
+        326638,
+        "incq   0x410(%r13)"
+      ],
+      [
+        326645,
+        "jmp    0x5555555a38ba <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1066>"
+      ],
+      [
+        325818,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325823,
+        "jne    0x5555555a38ce <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1086>"
+      ],
+      [
+        325825,
+        "mov    (%r12),%rax"
+      ],
+      [
+        325829,
+        "movzwl 0x26(%rax),%esi"
+      ],
+      [
+        325833,
+        "call   0x555555c34660 <_ZN4tomo9ThreadCtx12note_commandEt>"
+      ],
+      [
+        325838,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        325841,
+        "mov    0x14c18(%rax),%eax"
+      ],
+      [
+        325847,
+        "test   $0x2,%al"
+      ],
+      [
+        325849,
+        "jne    0x5555555a3bfa <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1898>"
+      ],
+      [
+        325855,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        325860,
+        "je     0x5555555a3cae <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2078>"
+      ],
+      [
+        326830,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326834,
+        "testb  $0x1,0x11(%rax)"
+      ],
+      [
+        326838,
+        "jne    0x5555555a3cc4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2100>"
+      ],
+      [
+        326852,
+        "mov    0xc0(%r12),%rdx"
+      ],
+      [
+        326860,
+        "movswl 0x20(%rax),%eax"
+      ],
+      [
+        326864,
+        "lea    0x38(%r13),%rdi"
+      ],
+      [
+        326868,
+        "test   %rdx,%rdx"
+      ],
+      [
+        326871,
+        "je     0x5555555a3ce2 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2130>"
+      ],
+      [
+        326882,
+        "add    $0xd,%rax"
+      ],
+      [
+        326886,
+        "shl    $0x4,%rax"
+      ],
+      [
+        326890,
+        "add    %r12,%rax"
+      ],
+      [
+        326893,
+        "mov    (%rax),%rsi"
+      ],
+      [
+        326896,
+        "mov    0x8(%rax),%rdx"
+      ],
+      [
+        326900,
+        "call   0x5555559865b0 <_ZN4tomo9FlatStore12budget_admitENS_5SliceE>"
+      ],
+      [
+        326905,
+        "test   %al,%al"
+      ],
+      [
+        326907,
+        "jne    0x5555555a3cb8 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2088>"
+      ],
+      [
+        326840,
+        "cmpq   $0x0,0x16d8(%rbx)"
+      ],
+      [
+        326848,
+        "jne    0x5555555a3d12 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2178>"
+      ],
+      [
+        326850,
+        "jmp    0x5555555a3d38 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2216>"
+      ],
+      [
+        326968,
+        "mov    0x100(%r13),%rax"
+      ],
+      [
+        326975,
+        "test   %rax,%rax"
+      ],
+      [
+        326978,
+        "je     0x5555555a3d4e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2238>"
+      ],
+      [
+        326990,
+        "test   %r15b,%r15b"
+      ],
+      [
+        326993,
+        "jne    0x5555555a3d65 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2261>"
+      ],
+      [
+        326995,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326999,
+        "mov    %r12,%rsi"
+      ],
+      [
+        327002,
+        "mov    %r13,%rdi"
+      ],
+      [
+        327005,
+        "call   *0x18(%rax)"
+      ],
+      [
+        327008,
+        "jmp    0x5555555a398f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1279>"
+      ],
+      [
+        326031,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        326036,
+        "je     0x5555555a3e0a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2426>"
+      ],
+      [
+        327178,
+        "mov    0x10(%r12),%rdx"
+      ],
+      [
+        327183,
+        "mov    %r13,%rsi"
+      ],
+      [
+        327186,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        327189,
+        "call   0x555555c40230 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>"
+      ],
+      [
+        327194,
+        "mov    (%r12),%rax"
+      ],
+      [
+        327198,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        327205,
+        "jne    0x5555555a3e37 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2471>"
+      ],
+      [
+        327223,
+        "nopl   0x0(%rax,%rax,1)"
+      ],
+      [
+        327228,
+        "cmpb   $0x0,0x8(%r13)"
+      ],
+      [
+        327233,
+        "je     0x5555555a3e64 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2516>"
+      ],
+      [
+        327268,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        327273,
+        "je     0x5555555a3e27 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2455>"
+      ],
+      [
+        327207,
+        "cmpq   $0x0,0x180(%rbx)"
+      ],
+      [
+        327215,
+        "je     0x5555555a399a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1290>"
+      ],
+      [
+        326042,
+        "mov    (%r12),%rax"
+      ],
+      [
+        326046,
+        "testb  $0x1,0x12(%rax)"
+      ],
+      [
+        326050,
+        "jne    0x5555555a3ebf <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2607>"
+      ],
+      [
+        326056,
+        "mov    %r12,%rdi"
+      ],
+      [
+        326059,
+        "call   0x5555555a0b59 <_ZN4tomo16slowlog_completeERKNS_2OpE>"
+      ],
+      [
+        326064,
+        "mov    0x180(%rbx),%rdi"
+      ],
+      [
+        326071,
+        "test   %rdi,%rdi"
+      ],
+      [
+        326074,
+        "je     0x5555555a3ecc <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2620>"
+      ],
+      [
+        327372,
+        "movb   $0x2,0xb8(%r12)"
+      ],
+      [
+        327381,
+        "mov    (%r14),%rsi"
+      ],
+      [
+        327384,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        327387,
+        "call   0x555555c40750 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>"
+      ],
+      [
+        327392,
+        "jmp    0x5555555a39d9 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1353>"
+      ],
+      [
+        326105,
+        "mov    $0x1,%r15b"
+      ],
+      [
+        326108,
+        "jmp    0x5555555a3ee5 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2645>"
+      ],
+      [
+        327397,
+        "mov    0x8(%rsp),%rdi"
+      ],
+      [
+        327402,
+        "call   0x55555598a230 <_ZN4tomo6Server15ClientWorkScopeD2Ev>"
+      ],
+      [
+        327407,
+        "mov    0x68(%rsp),%rax"
+      ],
+      [
+        327412,
+        "sub    %fs:0x28,%rax"
+      ],
+      [
+        327421,
+        "je     0x5555555a3f5a <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2762>"
+      ],
+      [
+        327514,
+        "add    $0x78,%rsp"
+      ],
+      [
+        327518,
+        "mov    %r15d,%eax"
+      ],
+      [
+        327521,
+        "pop    %rbx"
+      ],
+      [
+        327522,
+        "pop    %r12"
+      ],
+      [
+        327524,
+        "pop    %r13"
+      ],
+      [
+        327526,
+        "pop    %r14"
+      ],
+      [
+        327528,
+        "pop    %r15"
+      ],
+      [
+        327530,
+        "pop    %rbp"
+      ],
+      [
+        327531,
+        "ret"
+      ]
+    ]
+  },
+  "before_hint": {
+    "GET": [
+      [
+        329540,
+        "endbr64"
+      ],
+      [
+        329544,
+        "push   %rbp"
+      ],
+      [
+        329545,
+        "mov    %rsp,%rbp"
+      ],
+      [
+        329548,
+        "push   %r15"
+      ],
+      [
+        329550,
+        "push   %r14"
+      ],
+      [
+        329552,
+        "push   %r13"
+      ],
+      [
+        329554,
+        "push   %r12"
+      ],
+      [
+        329556,
+        "push   %rbx"
+      ],
+      [
+        329557,
+        "mov    %rsi,%r14"
+      ],
+      [
+        329560,
+        "mov    %rdi,%rbx"
+      ],
+      [
+        329563,
+        "sub    $0x78,%rsp"
+      ],
+      [
+        329567,
+        "mov    (%rdi),%rsi"
+      ],
+      [
+        329570,
+        "lea    0x28(%rsp),%rcx"
+      ],
+      [
+        329575,
+        "mov    %fs:0x28,%rax"
+      ],
+      [
+        329584,
+        "mov    %rax,0x68(%rsp)"
+      ],
+      [
+        329589,
+        "mov    0x8(%rdi),%rax"
+      ],
+      [
+        329593,
+        "mov    %rcx,0x8(%rsp)"
+      ],
+      [
+        329598,
+        "mov    (%rax),%edx"
+      ],
+      [
+        329600,
+        "mov    %rcx,%rdi"
+      ],
+      [
+        329603,
+        "call   0x555555999980 <_ZN4tomo6Server15ClientWorkScopeC2ERS0_j>"
+      ],
+      [
+        329608,
+        "mov    %r14,%rsi"
+      ],
+      [
+        329611,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        329614,
+        "call   0x555555c5eca0 <_ZN4tomo7ExLoopTILb1EE18forward_stale_taskILb0EEEbRKNS_4TaskE>"
+      ],
+      [
+        329619,
+        "test   %al,%al"
+      ],
+      [
+        329621,
+        "jne    0x5555555a4a98 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+852>"
+      ],
+      [
+        329627,
+        "mov    %r14,%rdi"
+      ],
+      [
+        329630,
+        "call   0x555555a39250 <_ZN4tomo17multi_task_taggedERKNS_4TaskE>"
+      ],
+      [
+        329635,
+        "mov    %eax,%r15d"
+      ],
+      [
+        329638,
+        "mov    0x10(%r14),%eax"
+      ],
+      [
+        329642,
+        "mov    %eax,0x18(%rsp)"
+      ],
+      [
+        329646,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        329649,
+        "mov    0x103c8(%rax),%rax"
+      ],
+      [
+        329656,
+        "test   %r15b,%r15b"
+      ],
+      [
+        329659,
+        "je     0x5555555a4a3b <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+759>"
+      ],
+      [
+        330299,
+        "mov    (%r14),%rcx"
+      ],
+      [
+        330302,
+        "test   %rcx,%rcx"
+      ],
+      [
+        330305,
+        "jne    0x5555555a4aa0 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+860>"
+      ],
+      [
+        330400,
+        "mov    0x8(%r14),%r12"
+      ],
+      [
+        330404,
+        "mov    %r12d,%edx"
+      ],
+      [
+        330407,
+        "and    $0x7,%r12d"
+      ],
+      [
+        330411,
+        "shr    $0x3,%edx"
+      ],
+      [
+        330414,
+        "and    $0x7,%edx"
+      ],
+      [
+        330417,
+        "imul   $0x150,%r12,%r12"
+      ],
+      [
+        330424,
+        "add    0x80(%rcx,%rdx,8),%r12"
+      ],
+      [
+        330432,
+        "cmpl   $0x0,0x18(%rsp)"
+      ],
+      [
+        330437,
+        "jns    0x5555555a4ad0 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+908>"
+      ],
+      [
+        330439,
+        "mov    0x8(%r12),%ecx"
+      ],
+      [
+        330444,
+        "mov    %ecx,0x18(%rsp)"
+      ],
+      [
+        330448,
+        "movslq 0x18(%rsp),%rdx"
+      ],
+      [
+        330453,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        330460,
+        "mov    (%rax,%rdx,8),%r13"
+      ],
+      [
+        330464,
+        "je     0x5555555a4b03 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+959>"
+      ],
+      [
+        330499,
+        "mov    0x18a(%rbx),%dl"
+      ],
+      [
+        330505,
+        "mov    0x158(%rbx),%rax"
+      ],
+      [
+        330512,
+        "mov    %dl,0x1c8(%r13)"
+      ],
+      [
+        330519,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        330526,
+        "mov    %rax,0x10(%r13)"
+      ],
+      [
+        330530,
+        "mov    %rax,0x1c0(%r13)"
+      ],
+      [
+        330537,
+        "je     0x5555555a4b7c <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1080>"
+      ],
+      [
+        330620,
+        "cmpq   $0x0,0xa8(%r12)"
+      ],
+      [
+        330629,
+        "je     0x5555555a4b92 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1102>"
+      ],
+      [
+        330642,
+        "call   0x555555988eb0 <_ZN4tomo23atomic_tripwire_enabledEv>"
+      ],
+      [
+        330647,
+        "test   %al,%al"
+      ],
+      [
+        330649,
+        "je     0x5555555a4c04 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1216>"
+      ],
+      [
+        330756,
+        "lea    0x230(%rbx),%rax"
+      ],
+      [
+        330763,
+        "mov    %rax,0x10(%rsp)"
+      ],
+      [
+        330768,
+        "mov    0x240(%rbx),%rax"
+      ],
+      [
+        330775,
+        "cmp    %rax,0x260(%rbx)"
+      ],
+      [
+        330782,
+        "jne    0x5555555a4c39 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1269>"
+      ],
+      [
+        330784,
+        "mov    0x2e0(%rbx),%rax"
+      ],
+      [
+        330791,
+        "cmp    %rax,0x300(%rbx)"
+      ],
+      [
+        330798,
+        "jne    0x5555555a4c39 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1269>"
+      ],
+      [
+        330800,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        330805,
+        "jne    0x5555555a4c94 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1360>"
+      ],
+      [
+        330807,
+        "jmp    0x5555555a4c7d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1337>"
+      ],
+      [
+        330877,
+        "testb  $0x1,0x1c(%r12)"
+      ],
+      [
+        330883,
+        "jne    0x5555555a4c94 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1360>"
+      ],
+      [
+        330885,
+        "mov    (%r12),%rax"
+      ],
+      [
+        330889,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        330896,
+        "jne    0x5555555a4cd1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1421>"
+      ],
+      [
+        330898,
+        "jmp    0x5555555a4cb4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1392>"
+      ],
+      [
+        330932,
+        "mov    0x8(%rbx),%rdi"
+      ],
+      [
+        330936,
+        "mov    0x18(%r13),%edx"
+      ],
+      [
+        330940,
+        "mov    0x44(%rdi),%eax"
+      ],
+      [
+        330943,
+        "incq   0x3e8(%r13)"
+      ],
+      [
+        330950,
+        "cmp    $0xffffffff,%edx"
+      ],
+      [
+        330953,
+        "jne    0x5555555a4d07 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1475>"
+      ],
+      [
+        331015,
+        "cmp    %eax,%edx"
+      ],
+      [
+        331017,
+        "je     0x5555555a4d12 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1486>"
+      ],
+      [
+        331019,
+        "incq   0x410(%r13)"
+      ],
+      [
+        331026,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331031,
+        "jne    0x5555555a4d26 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1506>"
+      ],
+      [
+        331033,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331037,
+        "movzwl 0x26(%rax),%esi"
+      ],
+      [
+        331041,
+        "call   0x555555c4de40 <_ZN4tomo9ThreadCtx12note_commandEt>"
+      ],
+      [
+        331046,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        331049,
+        "mov    0x14c18(%rax),%eax"
+      ],
+      [
+        331055,
+        "test   $0x2,%al"
+      ],
+      [
+        331057,
+        "je     0x5555555a4d3e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1530>"
+      ],
+      [
+        331070,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331075,
+        "je     0x5555555a4e77 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1843>"
+      ],
+      [
+        331383,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331387,
+        "testb  $0x1,0x11(%rax)"
+      ],
+      [
+        331391,
+        "jne    0x5555555a4e8d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1865>"
+      ],
+      [
+        331393,
+        "cmpq   $0x0,0x16d8(%rbx)"
+      ],
+      [
+        331401,
+        "jne    0x5555555a4edb <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1943>"
+      ],
+      [
+        331403,
+        "jmp    0x5555555a4f01 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1981>"
+      ],
+      [
+        331521,
+        "mov    0x100(%r13),%rax"
+      ],
+      [
+        331528,
+        "test   %rax,%rax"
+      ],
+      [
+        331531,
+        "je     0x5555555a4f17 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2003>"
+      ],
+      [
+        331543,
+        "test   %r15b,%r15b"
+      ],
+      [
+        331546,
+        "jne    0x5555555a4f2e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2026>"
+      ],
+      [
+        331548,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331552,
+        "mov    %r12,%rsi"
+      ],
+      [
+        331555,
+        "mov    %r13,%rdi"
+      ],
+      [
+        331558,
+        "call   *0x18(%rax)"
+      ],
+      [
+        331561,
+        "jmp    0x5555555a4fce <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2186>"
+      ],
+      [
+        331726,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331731,
+        "jne    0x5555555a507f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2363>"
+      ],
+      [
+        331737,
+        "mov    0x10(%r12),%rdx"
+      ],
+      [
+        331742,
+        "mov    %r13,%rsi"
+      ],
+      [
+        331745,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        331748,
+        "call   0x555555c59b00 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>"
+      ],
+      [
+        331753,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331757,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        331764,
+        "jne    0x5555555a5002 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2238>"
+      ],
+      [
+        331766,
+        "cmpq   $0x0,0x180(%rbx)"
+      ],
+      [
+        331774,
+        "je     0x5555555a507f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2363>"
+      ],
+      [
+        331903,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331907,
+        "testb  $0x1,0x12(%rax)"
+      ],
+      [
+        331911,
+        "je     0x5555555a5091 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2381>"
+      ],
+      [
+        331921,
+        "mov    %r12,%rdi"
+      ],
+      [
+        331924,
+        "call   0x5555555a2138 <_ZN4tomo16slowlog_completeERKNS_2OpE>"
+      ],
+      [
+        331929,
+        "mov    0x180(%rbx),%rdi"
+      ],
+      [
+        331936,
+        "test   %rdi,%rdi"
+      ],
+      [
+        331939,
+        "jne    0x5555555a50be <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2426>"
+      ],
+      [
+        331941,
+        "movb   $0x2,0xb8(%r12)"
+      ],
+      [
+        331950,
+        "mov    (%r14),%rsi"
+      ],
+      [
+        331953,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        331956,
+        "call   0x555555c59f30 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>"
+      ],
+      [
+        331961,
+        "jmp    0x5555555a4a98 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+852>"
+      ],
+      [
+        330392,
+        "mov    $0x1,%r15b"
+      ],
+      [
+        330395,
+        "jmp    0x5555555a50d8 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2452>"
+      ],
+      [
+        331992,
+        "mov    0x8(%rsp),%rdi"
+      ],
+      [
+        331997,
+        "call   0x5555559999d0 <_ZN4tomo6Server15ClientWorkScopeD2Ev>"
+      ],
+      [
+        332002,
+        "mov    0x68(%rsp),%rax"
+      ],
+      [
+        332007,
+        "sub    %fs:0x28,%rax"
+      ],
+      [
+        332016,
+        "je     0x5555555a514d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2569>"
+      ],
+      [
+        332109,
+        "add    $0x78,%rsp"
+      ],
+      [
+        332113,
+        "mov    %r15d,%eax"
+      ],
+      [
+        332116,
+        "pop    %rbx"
+      ],
+      [
+        332117,
+        "pop    %r12"
+      ],
+      [
+        332119,
+        "pop    %r13"
+      ],
+      [
+        332121,
+        "pop    %r14"
+      ],
+      [
+        332123,
+        "pop    %r15"
+      ],
+      [
+        332125,
+        "pop    %rbp"
+      ],
+      [
+        332126,
+        "ret"
+      ]
+    ],
+    "SET": [
+      [
+        329540,
+        "endbr64"
+      ],
+      [
+        329544,
+        "push   %rbp"
+      ],
+      [
+        329545,
+        "mov    %rsp,%rbp"
+      ],
+      [
+        329548,
+        "push   %r15"
+      ],
+      [
+        329550,
+        "push   %r14"
+      ],
+      [
+        329552,
+        "push   %r13"
+      ],
+      [
+        329554,
+        "push   %r12"
+      ],
+      [
+        329556,
+        "push   %rbx"
+      ],
+      [
+        329557,
+        "mov    %rsi,%r14"
+      ],
+      [
+        329560,
+        "mov    %rdi,%rbx"
+      ],
+      [
+        329563,
+        "sub    $0x78,%rsp"
+      ],
+      [
+        329567,
+        "mov    (%rdi),%rsi"
+      ],
+      [
+        329570,
+        "lea    0x28(%rsp),%rcx"
+      ],
+      [
+        329575,
+        "mov    %fs:0x28,%rax"
+      ],
+      [
+        329584,
+        "mov    %rax,0x68(%rsp)"
+      ],
+      [
+        329589,
+        "mov    0x8(%rdi),%rax"
+      ],
+      [
+        329593,
+        "mov    %rcx,0x8(%rsp)"
+      ],
+      [
+        329598,
+        "mov    (%rax),%edx"
+      ],
+      [
+        329600,
+        "mov    %rcx,%rdi"
+      ],
+      [
+        329603,
+        "call   0x555555999980 <_ZN4tomo6Server15ClientWorkScopeC2ERS0_j>"
+      ],
+      [
+        329608,
+        "mov    %r14,%rsi"
+      ],
+      [
+        329611,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        329614,
+        "call   0x555555c5eca0 <_ZN4tomo7ExLoopTILb1EE18forward_stale_taskILb0EEEbRKNS_4TaskE>"
+      ],
+      [
+        329619,
+        "test   %al,%al"
+      ],
+      [
+        329621,
+        "jne    0x5555555a4a98 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+852>"
+      ],
+      [
+        329627,
+        "mov    %r14,%rdi"
+      ],
+      [
+        329630,
+        "call   0x555555a39250 <_ZN4tomo17multi_task_taggedERKNS_4TaskE>"
+      ],
+      [
+        329635,
+        "mov    %eax,%r15d"
+      ],
+      [
+        329638,
+        "mov    0x10(%r14),%eax"
+      ],
+      [
+        329642,
+        "mov    %eax,0x18(%rsp)"
+      ],
+      [
+        329646,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        329649,
+        "mov    0x103c8(%rax),%rax"
+      ],
+      [
+        329656,
+        "test   %r15b,%r15b"
+      ],
+      [
+        329659,
+        "je     0x5555555a4a3b <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+759>"
+      ],
+      [
+        330299,
+        "mov    (%r14),%rcx"
+      ],
+      [
+        330302,
+        "test   %rcx,%rcx"
+      ],
+      [
+        330305,
+        "jne    0x5555555a4aa0 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+860>"
+      ],
+      [
+        330400,
+        "mov    0x8(%r14),%r12"
+      ],
+      [
+        330404,
+        "mov    %r12d,%edx"
+      ],
+      [
+        330407,
+        "and    $0x7,%r12d"
+      ],
+      [
+        330411,
+        "shr    $0x3,%edx"
+      ],
+      [
+        330414,
+        "and    $0x7,%edx"
+      ],
+      [
+        330417,
+        "imul   $0x150,%r12,%r12"
+      ],
+      [
+        330424,
+        "add    0x80(%rcx,%rdx,8),%r12"
+      ],
+      [
+        330432,
+        "cmpl   $0x0,0x18(%rsp)"
+      ],
+      [
+        330437,
+        "jns    0x5555555a4ad0 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+908>"
+      ],
+      [
+        330439,
+        "mov    0x8(%r12),%ecx"
+      ],
+      [
+        330444,
+        "mov    %ecx,0x18(%rsp)"
+      ],
+      [
+        330448,
+        "movslq 0x18(%rsp),%rdx"
+      ],
+      [
+        330453,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        330460,
+        "mov    (%rax,%rdx,8),%r13"
+      ],
+      [
+        330464,
+        "je     0x5555555a4b03 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+959>"
+      ],
+      [
+        330499,
+        "mov    0x18a(%rbx),%dl"
+      ],
+      [
+        330505,
+        "mov    0x158(%rbx),%rax"
+      ],
+      [
+        330512,
+        "mov    %dl,0x1c8(%r13)"
+      ],
+      [
+        330519,
+        "cmpb   $0x0,0x188(%rbx)"
+      ],
+      [
+        330526,
+        "mov    %rax,0x10(%r13)"
+      ],
+      [
+        330530,
+        "mov    %rax,0x1c0(%r13)"
+      ],
+      [
+        330537,
+        "je     0x5555555a4b7c <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1080>"
+      ],
+      [
+        330620,
+        "cmpq   $0x0,0xa8(%r12)"
+      ],
+      [
+        330629,
+        "je     0x5555555a4b92 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1102>"
+      ],
+      [
+        330642,
+        "call   0x555555988eb0 <_ZN4tomo23atomic_tripwire_enabledEv>"
+      ],
+      [
+        330647,
+        "test   %al,%al"
+      ],
+      [
+        330649,
+        "je     0x5555555a4c04 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1216>"
+      ],
+      [
+        330756,
+        "lea    0x230(%rbx),%rax"
+      ],
+      [
+        330763,
+        "mov    %rax,0x10(%rsp)"
+      ],
+      [
+        330768,
+        "mov    0x240(%rbx),%rax"
+      ],
+      [
+        330775,
+        "cmp    %rax,0x260(%rbx)"
+      ],
+      [
+        330782,
+        "jne    0x5555555a4c39 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1269>"
+      ],
+      [
+        330784,
+        "mov    0x2e0(%rbx),%rax"
+      ],
+      [
+        330791,
+        "cmp    %rax,0x300(%rbx)"
+      ],
+      [
+        330798,
+        "jne    0x5555555a4c39 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1269>"
+      ],
+      [
+        330800,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        330805,
+        "jne    0x5555555a4c94 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1360>"
+      ],
+      [
+        330807,
+        "jmp    0x5555555a4c7d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1337>"
+      ],
+      [
+        330877,
+        "testb  $0x1,0x1c(%r12)"
+      ],
+      [
+        330883,
+        "jne    0x5555555a4c94 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1360>"
+      ],
+      [
+        330885,
+        "mov    (%r12),%rax"
+      ],
+      [
+        330889,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        330896,
+        "jne    0x5555555a4cd1 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1421>"
+      ],
+      [
+        330961,
+        "nopl   0x0(%rax,%rax,1)"
+      ],
+      [
+        330966,
+        "cmpb   $0x0,0x8(%r13)"
+      ],
+      [
+        330971,
+        "je     0x5555555a4cb4 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1392>"
+      ],
+      [
+        330932,
+        "mov    0x8(%rbx),%rdi"
+      ],
+      [
+        330936,
+        "mov    0x18(%r13),%edx"
+      ],
+      [
+        330940,
+        "mov    0x44(%rdi),%eax"
+      ],
+      [
+        330943,
+        "incq   0x3e8(%r13)"
+      ],
+      [
+        330950,
+        "cmp    $0xffffffff,%edx"
+      ],
+      [
+        330953,
+        "jne    0x5555555a4d07 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1475>"
+      ],
+      [
+        331015,
+        "cmp    %eax,%edx"
+      ],
+      [
+        331017,
+        "je     0x5555555a4d12 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1486>"
+      ],
+      [
+        331019,
+        "incq   0x410(%r13)"
+      ],
+      [
+        331026,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331031,
+        "jne    0x5555555a4d26 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1506>"
+      ],
+      [
+        331033,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331037,
+        "movzwl 0x26(%rax),%esi"
+      ],
+      [
+        331041,
+        "call   0x555555c4de40 <_ZN4tomo9ThreadCtx12note_commandEt>"
+      ],
+      [
+        331046,
+        "mov    (%rbx),%rax"
+      ],
+      [
+        331049,
+        "mov    0x14c18(%rax),%eax"
+      ],
+      [
+        331055,
+        "test   $0x2,%al"
+      ],
+      [
+        331057,
+        "je     0x5555555a4d3e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1530>"
+      ],
+      [
+        331070,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331075,
+        "je     0x5555555a4e77 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1843>"
+      ],
+      [
+        331383,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331387,
+        "testb  $0x1,0x11(%rax)"
+      ],
+      [
+        331391,
+        "jne    0x5555555a4e8d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1865>"
+      ],
+      [
+        331405,
+        "mov    0xc0(%r12),%rdx"
+      ],
+      [
+        331413,
+        "movswl 0x20(%rax),%eax"
+      ],
+      [
+        331417,
+        "lea    0x38(%r13),%rdi"
+      ],
+      [
+        331421,
+        "test   %rdx,%rdx"
+      ],
+      [
+        331424,
+        "je     0x5555555a4eab <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1895>"
+      ],
+      [
+        331435,
+        "add    $0xd,%rax"
+      ],
+      [
+        331439,
+        "shl    $0x4,%rax"
+      ],
+      [
+        331443,
+        "add    %r12,%rax"
+      ],
+      [
+        331446,
+        "mov    (%rax),%rsi"
+      ],
+      [
+        331449,
+        "mov    0x8(%rax),%rdx"
+      ],
+      [
+        331453,
+        "call   0x555555995c90 <_ZN4tomo9FlatStore12budget_admitENS_5SliceE>"
+      ],
+      [
+        331458,
+        "test   %al,%al"
+      ],
+      [
+        331460,
+        "jne    0x5555555a4e81 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1853>"
+      ],
+      [
+        331393,
+        "cmpq   $0x0,0x16d8(%rbx)"
+      ],
+      [
+        331401,
+        "jne    0x5555555a4edb <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1943>"
+      ],
+      [
+        331403,
+        "jmp    0x5555555a4f01 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+1981>"
+      ],
+      [
+        331521,
+        "mov    0x100(%r13),%rax"
+      ],
+      [
+        331528,
+        "test   %rax,%rax"
+      ],
+      [
+        331531,
+        "je     0x5555555a4f17 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2003>"
+      ],
+      [
+        331543,
+        "test   %r15b,%r15b"
+      ],
+      [
+        331546,
+        "jne    0x5555555a4f2e <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2026>"
+      ],
+      [
+        331548,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331552,
+        "mov    %r12,%rsi"
+      ],
+      [
+        331555,
+        "mov    %r13,%rdi"
+      ],
+      [
+        331558,
+        "call   *0x18(%rax)"
+      ],
+      [
+        331561,
+        "jmp    0x5555555a4fce <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2186>"
+      ],
+      [
+        331726,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331731,
+        "jne    0x5555555a507f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2363>"
+      ],
+      [
+        331737,
+        "mov    0x10(%r12),%rdx"
+      ],
+      [
+        331742,
+        "mov    %r13,%rsi"
+      ],
+      [
+        331745,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        331748,
+        "call   0x555555c59b00 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>"
+      ],
+      [
+        331753,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331757,
+        "testl  $0x401,0x10(%rax)"
+      ],
+      [
+        331764,
+        "jne    0x5555555a5002 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2238>"
+      ],
+      [
+        331778,
+        "nopl   0x0(%rax,%rax,1)"
+      ],
+      [
+        331783,
+        "cmpb   $0x0,0x8(%r13)"
+      ],
+      [
+        331788,
+        "je     0x5555555a502f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2283>"
+      ],
+      [
+        331823,
+        "cmpq   $0x0,0x18(%r14)"
+      ],
+      [
+        331828,
+        "je     0x5555555a4ff6 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2226>"
+      ],
+      [
+        331766,
+        "cmpq   $0x0,0x180(%rbx)"
+      ],
+      [
+        331774,
+        "je     0x5555555a507f <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2363>"
+      ],
+      [
+        331903,
+        "mov    (%r12),%rax"
+      ],
+      [
+        331907,
+        "testb  $0x1,0x12(%rax)"
+      ],
+      [
+        331911,
+        "je     0x5555555a5091 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2381>"
+      ],
+      [
+        331921,
+        "mov    %r12,%rdi"
+      ],
+      [
+        331924,
+        "call   0x5555555a2138 <_ZN4tomo16slowlog_completeERKNS_2OpE>"
+      ],
+      [
+        331929,
+        "mov    0x180(%rbx),%rdi"
+      ],
+      [
+        331936,
+        "test   %rdi,%rdi"
+      ],
+      [
+        331939,
+        "jne    0x5555555a50be <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2426>"
+      ],
+      [
+        331941,
+        "movb   $0x2,0xb8(%r12)"
+      ],
+      [
+        331950,
+        "mov    (%r14),%rsi"
+      ],
+      [
+        331953,
+        "mov    %rbx,%rdi"
+      ],
+      [
+        331956,
+        "call   0x555555c59f30 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>"
+      ],
+      [
+        331961,
+        "jmp    0x5555555a4a98 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+852>"
+      ],
+      [
+        330392,
+        "mov    $0x1,%r15b"
+      ],
+      [
+        330395,
+        "jmp    0x5555555a50d8 <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2452>"
+      ],
+      [
+        331992,
+        "mov    0x8(%rsp),%rdi"
+      ],
+      [
+        331997,
+        "call   0x5555559999d0 <_ZN4tomo6Server15ClientWorkScopeD2Ev>"
+      ],
+      [
+        332002,
+        "mov    0x68(%rsp),%rax"
+      ],
+      [
+        332007,
+        "sub    %fs:0x28,%rax"
+      ],
+      [
+        332016,
+        "je     0x5555555a514d <_ZN4tomo7ExLoopTILb1EE13execute_timedILb0ELb0EEEbRKNS_4TaskE+2569>"
+      ],
+      [
+        332109,
+        "add    $0x78,%rsp"
+      ],
+      [
+        332113,
+        "mov    %r15d,%eax"
+      ],
+      [
+        332116,
+        "pop    %rbx"
+      ],
+      [
+        332117,
+        "pop    %r12"
+      ],
+      [
+        332119,
+        "pop    %r13"
+      ],
+      [
+        332121,
+        "pop    %r14"
+      ],
+      [
+        332123,
+        "pop    %r15"
+      ],
+      [
+        332125,
+        "pop    %rbp"
+      ],
+      [
+        332126,
+        "ret"
+      ]
+    ]
+  },
+  "final_proof": "instructions/comparison-final.json",
+  "predicate": "has_parked_predecessor || ((scatter || atomic_hazard) && xshard_task_should_defer)",
+  "change": "Prediction hint only in the compile-time Timed && Fused instantiation; no decision predicate or ordering changes."
+}

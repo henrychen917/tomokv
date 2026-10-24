@@ -1,0 +1,17 @@
+{
+  "observation": "Initial uring differ-split-1, seed 7: psfix rejected SAVE with ERR Background save already in progress after its INFO idle barrier.",
+  "interpretation": "The test labels this a harness setup error. The wire error alone does not establish that a background save was active: snapshot_command maps every StartResult::Busy to that string, including placement-transition admission refusal. That mapping and snapshot implementation are unchanged from PRE. The exact observed Busy reason was not logged; no root-cause or regression conclusion is claimed.",
+  "action": "Retain the failed log and rerun the complete gate job without changing assertions, suites or seed selection.",
+  "sources": [
+    {
+      "file": "src/snapshot/snapshot.cc",
+      "unchanged_from_pre": true,
+      "sha256": "b9e480c0d75ceb7fe1ca520c3845c7a455f51d300c5c6224be4eed53888c362a"
+    },
+    {
+      "file": "src/snapshot/snapshot.h",
+      "unchanged_from_pre": true,
+      "sha256": "a772c191484d76b511e9d32b3c69014015655b3616ea5ced4525af7712c03b5f"
+    }
+  ]
+}

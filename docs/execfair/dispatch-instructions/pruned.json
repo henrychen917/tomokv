@@ -1,0 +1,22 @@
+[
+  {
+    "path": "build/pre/src",
+    "bytes": 300734272,
+    "reason": "Disposable object/probe tree; binaries, exact build recipes, compressed traces and count evidence retained."
+  },
+  {
+    "path": "build/pre/db0",
+    "bytes": 301044248,
+    "reason": "Disposable object/probe tree; binaries, exact build recipes, compressed traces and count evidence retained."
+  },
+  {
+    "path": "build/execfair-dispatch",
+    "bytes": 1042344388,
+    "reason": "Disposable object/probe tree; binaries, exact build recipes, compressed traces and count evidence retained."
+  },
+  {
+    "path": "build/pre/frozen-tomokv",
+    "bytes": 208299256,
+    "reason": "Identical temporary safety copy after deterministic PRE object restoration."
+  }
+]

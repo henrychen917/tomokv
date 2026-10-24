@@ -1,0 +1,12 @@
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.12 pubsub vs Redis 7.4
+  compat3 CC4.12 pubsub vs Redis 7.4                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.13 pending vs Redis 7.4
+  compat3 CC4.13 pending vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.14 history vs Redis 7.4
+  compat3 CC4.14 history vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.16 grammar vs Redis 7.4
+  compat3 CC4.16 grammar vs Redis 7.4                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.5 glob vs Redis 7.4
+  compat3 CC4.5 glob vs Redis 7.4                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.17 flags vs Redis 7.4
+  compat3 CC4.17 flags vs Redis 7.4                    ok

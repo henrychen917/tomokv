@@ -1,0 +1,50 @@
+[
+  {
+    "commit": "313677a95217abf53ba8e2227ea67731bde61a1f",
+    "parents": [
+      "ef5204b2e9650693228cc105b34625516898b82d",
+      "488131c37f9efa5ae74854bd7c91e3e6212faaf5"
+    ],
+    "subject": "Merge cx-execfair into wave6"
+  },
+  {
+    "commit": "82f6f783fb96a947348ace44d249219a6dd4d92d",
+    "parents": [
+      "313677a95217abf53ba8e2227ea67731bde61a1f",
+      "f6509e693fab4e6575e40b94b23ce38d88b60872"
+    ],
+    "subject": "Merge cx-notifycompat into wave6"
+  },
+  {
+    "commit": "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+    "parents": [
+      "82f6f783fb96a947348ace44d249219a6dd4d92d",
+      "673d283c54a9c56fd4858da149aaede3c70b9848"
+    ],
+    "subject": "Merge cx-serverfix into wave6"
+  },
+  {
+    "commit": "7395863c1a1780577e84172906d0d20736a1e394",
+    "parents": [
+      "3fd72af555aeee279d2a4bc2d6cdc52b09e068a3",
+      "0f33553d6243701a107195090c3e4810e8e6daec"
+    ],
+    "subject": "Merge cx-dispatchfix into wave6"
+  },
+  {
+    "commit": "129896874ae01ac6ad86d08c37e36c68e34c033a",
+    "parents": [
+      "7395863c1a1780577e84172906d0d20736a1e394",
+      "7ab8ce29c434935c6eea2c645c6c2665a7e91a73"
+    ],
+    "subject": "Merge cx-datafix1 into wave6"
+  },
+  {
+    "commit": "117e87887d3a638cd7962da19e532a290806e6cb",
+    "parents": [
+      "129896874ae01ac6ad86d08c37e36c68e34c033a",
+      "f7f2999642e5327d7f99d7fcc989cbdd85bcc1a7"
+    ],
+    "subject": "Merge cx-prefetch into wave6"
+  }
+]

@@ -1,0 +1,47 @@
+POST	all	0
+POST	build/expire-notify-unit	0
+POST	build/ktls-lifetime-unit	0
+POST	build/moverfix-unit	0
+POST	build/moverfix-db0-unit	0
+POST	build/publishfix-unit	0
+POST	build/at15-unit	0
+POST	build/at15-db0-unit	0
+POST	build/execabort-watch-unit	0
+POST	build/execabort-watch-db0-unit	0
+POST	build/core-concurrency-unit	0
+POST	build/atomic-survivors-unit	0
+POST	build/netcmd-unit	0
+POST	build/encodingfix-unit	0
+POST	build/netcap-unit	0
+POST	build/waits-unit	0
+POST	build/rehash-waits-unit	0
+POST	build/multidb-unit	0
+POST	build/multidb-boundary-unit	0
+POST	build/storesize-unit	0
+POST	build/respresume-unit	0
+POST	build/respresume-migration	0
+POST	build/exbatch-unit	0
+POST	build/exbatch-db0-unit	0
+POST	build/wb-rule-units	0
+POST	build/wbland-units	0
+POST	build/rltopo-unit	0
+POST	build/lbplanner-units	0
+POST	build/shutdown-unit	0
+POST	build/persistfix-units	0
+POST	build/ktls-keyupdate	0
+POST	build/ktls-keyupdate-unit	0
+POST	build/flushfix-units	0
+POST	build/splitlocal-unit	0
+POST	build/reorder-engagement-unit	0
+POST	build/reorder-engagement-unit-db0	0
+POST	build/racefix-climon	0
+POST	build/aoforder-scheduled	0
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-datafix1'
+make[1]: Leaving directory '/home/user/Projects/cx-datafix1'
+POST	mdbqsbr-live-arms	0
+PRE	all	0
+PRE fixture freshness is recorded in freshness-final.log, before lean-build pruning.
