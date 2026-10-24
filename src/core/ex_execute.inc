@@ -132,7 +132,7 @@
         // A WATCH-blocked writer acquires the hazard bit below before retry;
         // scatter tasks still enter even without it (including debug holds).
         if (has_parked_predecessor(t, op, shard_id) ||
-            ((t.scatter || op.atomic_hazard()) &&
+            (__builtin_expect(t.scatter || op.atomic_hazard(), false) &&
              xshard_task_should_defer(*srv_, sh, t, op))) {
             atomic_deferred_.push_back(t);
             return true;
