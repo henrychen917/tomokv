@@ -1,0 +1,212 @@
+{
+  "run": "build/persistfix2/pre-proof-source/build/gate-run.GcrWwA",
+  "rows": [
+    {
+      "job": "aof-epoll",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "aof-uring",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "aof_frame",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "job": "aoforder",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "job": "atomic_batteries",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "job": "atomic_units",
+      "exit": 0,
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "job": "auth",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "job": "climonfix",
+      "exit": 0,
+      "passed": 6,
+      "failed": 1
+    },
+    {
+      "job": "dbdefault",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "debug-0",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "debug-1",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "dispatch_arity",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "dispatch_errors",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "feature-armed-0",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "job": "feature-armed-1",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "job": "feature-split-0",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "job": "feature-split-1",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "job": "fused-0",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "job": "fused-1",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "job": "iofix-signal",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix2_commands",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_lastsave",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_shutdown",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix_units",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "release_batteries",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "job": "router_uniform",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_config",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_scalar",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_waitaof",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-epoll",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-uring",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    }
+  ],
+  "passed": 395,
+  "failed": 5,
+  "archive_sha256": "ffab85ff59f88016feb6a5d6df4a6fa641d6a568e49b518b8da1bdf153bca6ee"
+}
