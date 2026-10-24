@@ -2396,10 +2396,18 @@ shutdown_clean && py tests/lbsignals.py --shutdown "$SRVLOG" \
 row_begin "direct-reply fired (direct=N)"
 D=$(shutdown_value wb.direct)
 [ -n "$D" ] && [ "$D" -gt 0 ] && ok "direct-reply fired (direct=$D)" || bad "direct-reply fired"
-row_begin "dispatched==executed (N)"
-R=$(shutdown_value work.dispatched)
-E=$(shutdown_value work.executed)
-[ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+row_begin "dispatched==executed (N)" "fused=${GATE_TXN_FUSED:-0}"
+if [ "${GATE_TXN_FUSED:-0}" = 1 ]; then
+  # Retain the historical row identity; its optional fused leg has one work
+  # counter, whose nonzero total and complete per-thread sum must agree.
+  R=$(py tests/shutdown_report.py "$SRVLOG" fused-work) \
+      && ok "fused unified work agrees with thread totals ($R)" \
+      || bad "fused work accounting" "see $SRVLOG"
+else
+  R=$(shutdown_value work.dispatched)
+  E=$(shutdown_value work.executed)
+  [ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+fi
 }
 
 # moverfix: eight conservation rows before the quick exit (DQ=DF=+8).

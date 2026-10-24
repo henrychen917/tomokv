@@ -1403,6 +1403,30 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_fused_shutdown_work_requires_complete_matching_counters(self):
+        import copy
+        from shutdown_report import require_fused_work
+
+        good = dict(thread_mode='1s', work=dict(kind='fused', unified=7),
+                    threads=[dict(tid=0, role='fused', ops=3), dict(tid=1, role='fused', ops=4)])
+        self.assertEqual(require_fused_work(good), 7)
+        mutants = []
+        for field, value in [('thread_mode', '2s'), ('threads', []),
+                             ('work', dict(kind='fused', unified=0)),
+                             ('work', dict(kind='fused', unified=8)),
+                             ('work', dict(kind='split', unified=7)),
+                             ('work', dict(kind='fused', unified=7, dispatched=7))]:
+            bad = copy.deepcopy(good)
+            bad[field] = value
+            mutants.append(bad)
+        for field, value in [('role', 'io'), ('ops', None), ('tid', 0)]:
+            bad = copy.deepcopy(good)
+            bad['threads'][1][field] = value
+            mutants.append(bad)
+        for bad in mutants:
+            with self.subTest(report=bad), self.assertRaises(SystemExit):
+                require_fused_work(bad)
+
     def test_driver_identity_and_recovery_diagnostics(self):
         import persistfix
         self.assertTrue(persistfix.self_test())

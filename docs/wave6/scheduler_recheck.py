@@ -17,6 +17,12 @@ BUILD = ROOT / 'build/wave6'
 while not (OUT / 'sequence-final.json').exists():
     time.sleep(5)
 
+release_exits = []
+for name, options in [('release-split-repaired', []), ('release-fused-repaired', ['--fused'])]:
+    result = subprocess.run(['python3', 'docs/wave6/run_jobs.py', name,
+                             'release_batteries', *options])
+    release_exits.append(result.returncode)
+
 env = dict(os.environ, GATE_TEST_PORT='26897')
 env.pop('NETFIX_TLS_ORACLE', None)
 start = time.time()
@@ -79,4 +85,4 @@ receipt = dict(command=command, affinity=sorted(os.sched_getaffinity(0)), start=
 assert digest == after == previous['binary_sha256']
 assert result.returncode == 0 and all(row['exit'] == 0 for row in freshness)
 print('Final build/freshness passed; POST unchanged.', flush=True)
-assert scheduler_exit == abba_exit == 0
+assert scheduler_exit == abba_exit == 0 and not any(release_exits)
