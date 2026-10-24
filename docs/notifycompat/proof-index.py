@@ -19,6 +19,7 @@ def main():
     selected = json.loads((EVIDENCE / 'proof-selection.json').read_text())
     missing, runs, failures = [], [], []
     totals = collections.defaultdict(collections.Counter)
+    inventories = collections.defaultdict(collections.Counter)
     for selection in selected:
         name = selection['receipt']
         path = EVIDENCE / (name + '.json')
@@ -47,18 +48,32 @@ def main():
                     assert status in ('ok', 'FAIL'), (name, line)
                     rows.append(dict(status=status, seconds=float(duration), label=label))
                     totals[arm][status] += 1
+                    inventories[arm][job, receipt['engine'], receipt['fused'], label] += 1
                     if status == 'FAIL':
                         failures.append(dict(receipt=name, arm=arm, job=job, label=label))
                 assert rows, (name, job, 'requested job emitted no scored row')
                 result['jobs'].append(dict(name=job, family=family, rows=rows))
         result['evidence_sha256'] = hashlib.file_digest(archive_path.open('rb'), 'sha256').hexdigest()
         runs.append(result)
-    output = dict(missing=missing, totals=dict(totals), failures=failures, runs=runs)
+    same_inventory = inventories['PRE'] == inventories['POST']
+    output = dict(missing=missing, same_pre_post_row_inventory=same_inventory,
+                  totals=dict(totals), failures=failures, runs=runs)
     (EVIDENCE / 'proof-index.json').write_text(json.dumps(output, indent=2) + '\n')
     print(json.dumps(dict(missing=missing, totals=dict(totals), failures=failures), indent=2))
     # PRE/PAD failures are retained for explicit review, not automatically accepted.
     assert not missing, 'required receipt(s) still pending'
+    assert same_inventory, 'PRE and POST selected gate row inventories differ'
     assert not any(f['arm'] == 'POST' for f in failures), 'POST has a failed selected whole job'
+    expected_pre = collections.Counter({
+        ('notifycompat', 'notification compatibility ' + case + ' vs Redis 7.4'): 1
+        for case in ('setbit', 'setpast', 'emptystore', 'writemiss', 'objectmiss', 'expiredstore', 'flush')})
+    expected_pre.update({('tracking_redirect', 'tracking REDIRECT close vs Redis 7.4'): 1,
+                         ('notify', 'keyspace notification battery (atomic 0/1)'): 4,
+                         ('atomic_units', 'flushfix flush witnesses'): 1})
+    reviewed = json.loads((EVIDENCE / 'pre-tracking-historical-negative.json').read_text())
+    expected_pre.update((row['job'], row['label']) for row in reviewed)
+    actual_pre = collections.Counter((f['job'], f['label']) for f in failures if f['arm'] == 'PRE')
+    assert actual_pre == expected_pre, 'PRE failures do not match the reviewed negative controls'
 
 
 if __name__ == '__main__':

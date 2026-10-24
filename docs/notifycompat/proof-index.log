@@ -1,0 +1,149 @@
+{
+  "missing": [],
+  "totals": {
+    "PRE": {
+      "FAIL": 14,
+      "ok": 562
+    },
+    "POST": {
+      "ok": 576
+    },
+    "PAD-A": {
+      "FAIL": 8
+    }
+  },
+  "failures": [
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility setbit vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility setpast vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility emptystore vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility writemiss vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility objectmiss vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility expiredstore vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "notifycompat",
+      "label": "notification compatibility flush vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r3-directed",
+      "arm": "PRE",
+      "job": "tracking_redirect",
+      "label": "tracking REDIRECT close vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility setbit vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility setpast vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility emptystore vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility writemiss vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility objectmiss vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility expiredstore vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "notifycompat",
+      "label": "notification compatibility flush vs Redis 7.4"
+    },
+    {
+      "receipt": "pad-a-directed",
+      "arm": "PAD-A",
+      "job": "tracking_redirect",
+      "label": "tracking REDIRECT close vs Redis 7.4"
+    },
+    {
+      "receipt": "pre-r2-notify-epoll-1s",
+      "arm": "PRE",
+      "job": "notify",
+      "label": "keyspace notification battery (atomic 0/1)"
+    },
+    {
+      "receipt": "pre-r2-notify-epoll-2s",
+      "arm": "PRE",
+      "job": "notify",
+      "label": "keyspace notification battery (atomic 0/1)"
+    },
+    {
+      "receipt": "pre-r2-notify-uring-1s",
+      "arm": "PRE",
+      "job": "notify",
+      "label": "keyspace notification battery (atomic 0/1)"
+    },
+    {
+      "receipt": "pre-r2-notify-uring-2s",
+      "arm": "PRE",
+      "job": "notify",
+      "label": "keyspace notification battery (atomic 0/1)"
+    },
+    {
+      "receipt": "pre-related-jobs",
+      "arm": "PRE",
+      "job": "atomic_units",
+      "label": "flushfix flush witnesses"
+    },
+    {
+      "receipt": "pre-feature-epoll",
+      "arm": "PRE",
+      "job": "feature-armed-1",
+      "label": "fused+armed tracking battery (atomic 1)"
+    }
+  ]
+}

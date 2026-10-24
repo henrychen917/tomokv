@@ -2,14 +2,16 @@
 
 Branch `cx-notifycompat`, PRE `ef5204b2e`. Eight requested items have implementation
 commits. The final directed POST run passes all eight rows in all 108 declared legs
-(1320 scenarios); PRE rejects all eight in every leg. Broader proof is still
-running; the final receipt index below will be updated before handoff. No push, throughput claim, benchmark, ABBA run, NIC
+(1320 scenarios); PRE rejects all eight in every leg. The requested
+correctness/build runs are complete; binary merit remains with the maintainer.
+No push, throughput claim, benchmark, ABBA run, NIC
 measurement, or full gate iteration is part of this lane's execution.
 
 Builds and correctness processes are pinned to CPUs 48–63. Gate servers use
 48–55 and clients 56–63; the independent POST differential queue reverses those
 two eight-core sets. Directed boots use 16 shards, split 6 io + 2 ex or eight fused
-threads; historical jobs retain their own declared geometries. Server/oracle/battery listener ports are configured within 32800–32899. Redis oracle:
+threads; historical jobs retain their own declared geometries. Server/oracle/
+battery listener ports are configured within 32800–32899. Redis oracle:
 `/home/user/Projects/redis74/src/redis-server`, version 7.4.10; reference source:
 `/home/user/Projects/redis/src`. The requested external trackfix report path was
 absent; the same REDIRECT finding was read in this worktree's existing
@@ -21,7 +23,8 @@ absent; the same REDIRECT finding was read in this worktree's existing
 bytes. Lists are compared in arrival order, never sorted. With `KEAm`, each event
 below means the keyspace `pmessage` first and the keyevent `pmessage` second.
 Both use their actual DB number. A subscriber PING barrier and quiet interval
-reject extra events; absence is an assertion. Oracle logs precede the fixes.
+reject extra events; absence is an assertion. Oracle command sequences and wire
+bytes are retained.
 
 | Item / first commit | Exact event result and directed controls |
 | --- | --- |
@@ -63,6 +66,11 @@ receipts prove this window. Re-arming uses fresh connections/keys, at most 64
 attempts; failure to open the window fails. Redis has no cross-IO queue, so its
 oracle projection closes the target before attempting delivery. Both endpoints
 compare exact RESP2/3 results, using each endpoint's own target ID.
+The disposable scheduled binaries and their exact compile/link commands have
+separate hashes in `docs/notifycompat/scheduled-arms.json`. They are not the
+frozen merit executables. The PAD-labelled scheduled build uses the PRE objects
+without the unreachable merit padding, so that tracking result is another PRE
+behavior control, not a runtime check of PAD-A's text placement.
 
 ### Gate rows and proof
 
@@ -88,8 +96,21 @@ confirms all 108 legs and 1320 scenarios, with a semantic wire/reply mismatch
 in every notification leg and all four tracking subcases attempted per leg.
 POST `post-r3-directed` passes the same 108 legs and 1320 scenarios, verified
 against oracle wire bytes by `audit-directed.py`; both `.coverage.json` files
-are retained. Final broader gate receipt index: **PENDING**. During broader runs, Linux
-automatically selected even listener ports as client source ports. Captured
+are retained. The final receipt index is `docs/notifycompat/proof-index.json`
+(audit exit 0).
+Its 29 selections cover identical PRE/POST inventories of **576 scored row
+instances**: **POST 576 pass / 0 fail; PRE 562 pass / 14 reviewed failures**.
+These are selected job executions, excluding prerequisite rows, not a full-gate
+EXPECT tally. PRE's failures are the eight new rows, the updated notification
+battery in four engine/mode runs, the updated FLUSH witness, and one historical
+tracking row with the missing broken_redirect flag. All remaining selected PRE
+rows pass. Every standard differential fold and equivalence job passes on both
+arms, both engines, split/fused and atomic 0/1. `proof-selection.json` identifies
+whole successful jobs retained from earlier runs and their complete reruns;
+`proof-superseded.json` records the rejected harness attempts.
+
+During broader runs, Linux automatically selected even listener ports as client
+source ports. Captured
 TIME_WAIT sockets included 32800→32840 and 32800→another lane's 30800; subsequent
 boots failed EADDRINUSE. Noninteractive sudo cannot reserve the range, and
 unprivileged network namespaces are disabled. The affected whole jobs are
@@ -100,7 +121,7 @@ automatic ephemeral allocation between boots while allowing both servers' real
 listeners; it neither accepts traffic nor joins the REUSEPORT listener group.
 The eight-listener probe is in `port-guard-probe.json`. No host setting changed.
 `proof-superseded.json` retains the replacement map; no failed boot is counted
-as semantic proof. The post fused/uring notification rerun is already green. Standard differential seeds run through
+as semantic proof. All POST whole-job reruns are green. Standard differential seeds run through
 `differ-split-0`, `differ-split-1`, `differ-armed-0`, `differ-armed-1` and
 `differ-equivalence`, for epoll and uring, without a reduced suite/seed override.
 The affected historical job selections include notify_order, notify_aof,
@@ -119,6 +140,18 @@ expects no expiry side effects from FLUSH. The legacy oracle commands and bytes
 are in `docs/notifycompat/legacy_oracle.py` and `oracle-legacy.log`. PRE production
 units are compiled from archived PRE sources/Makefile plus the current test files
 in `build/notifycompat-pre-proof`; their gate jobs do not substitute POST units.
+`pre-source-verification.json` verifies all 174 production source/Makefile files
+against `git archive ef5204b2e`. After those jobs finished, their duplicate build
+tree was removed; source overlay, baseline objects/binary and complete archived
+gate evidence remain. The live allocation sample in `runtime-allocation.json`
+checks 91 threads and 35 listeners, with no CPU or listener-port violations.
+
+The historical PRE epoll feature job also caught the missing `broken_redirect`
+flag in fused/read-local=1/atomic=1 (`tests/tracking.py:510`). Its exact failure
+is retained in `pre-tracking-historical-negative.json`; the POST counterpart
+passes. This is an additional baseline symptom, not a weakened assertion or a
+failed boot. The new scheduled REDIRECT row remains the deterministic proof of
+the in-flight window.
 
 Early failures remain as evidence, superseded by the final receipts: a missing
 armed-string source dependency; an 80-byte value that was embstr rather than raw;
@@ -128,9 +161,9 @@ launch; and a partially written scheduled receipt. These led to code/harness
 repairs, not tolerance changes. The first supplemental epoll feature run also
 exposed a wrapper grammar error: prepending an engine option moved the config
 file out of argv[1]. The corrected wrapper preserves that position, and the
-whole feature jobs are rerun. Early `gates_test.py` runs are also retained;
+whole feature job reruns pass. Early `gates_test.py` runs are also retained;
 the first was stopped after an ephemeral-port configuration was noticed, and a
-port-bound run had two scheduler timeouts during builds. Final run with builds finished and `GATE_TEST_PORT=32891`: PASS, exit 0
+port-bound run had two scheduler timeouts during builds. Final run with builds finished and `GATE_TEST_PORT=32891`: 70 tests PASS, exit 0
 (`gates-test-final.log` and `.rc`). The initial unbound-port attempt is an
 explicit exception to the intended port restriction, not hidden by this rerun.
 
@@ -139,7 +172,9 @@ explicit exception to the intended port restriction, not hidden by this rerun.
 `make all` completed. Every target from `job_production_units`, including its
 mdbqsbr live arms, is inventoried in `production-targets.json`; final build and
 `make -q` receipts are in `production-final.json`: build exit 0 and all 44 checks
-(`all`, 42 file targets, and the recursive mdbqsbr target) returned 0. Required layout assertions remain enabled.
+(`all`, 42 file targets, and the recursive mdbqsbr target) returned 0. The
+handoff recheck is `freshness-handoff.json`: all 44 remain fresh and all three
+merit hashes are unchanged. Required layout assertions remain enabled.
 
 The xshard IPA growth is +2531/+2526 GCC estimated instructions by namespace
 (compiler accounting, not measured runtime instructions/op).
@@ -172,8 +207,11 @@ property note is preserved. `tools/notifycompat_pad.py` and `pad-a.json` retain 
 commands, input hashes and structural checks. This is a total-text-size control;
 **it does not reproduce POST's per-function placement or inlining decisions**.
 Earlier compact-cold-unit/PAD-B exploratory artifacts were superseded; final
-PAD-A uses no cold recompilation. Its directed negative proof (`pad-a-directed.coverage.json`) rejects all eight
-rows in all 108 legs and 1320 scenarios, matching the PRE negative control.
+PAD-A uses no cold recompilation. The PAD-labelled directed run
+(`pad-a-directed.coverage.json`) rejects all eight rows across 108 legs and 1320
+scenarios. Of these, 96 notification legs use the frozen PAD-A executable; the
+12 tracking legs use the separately hashed scheduled PRE projection described
+above. The structural PRE relink/address checks establish the size twin.
 
 ### Maintainer merit request
 
@@ -191,5 +229,15 @@ claim. Append measured results to this worktree; no throughput result is asserte
 by this request.
 
 Performance benchmarks/load generators, ABBA measurements, the full iteration
-and NIC measurements: **NOT RUN**, reserved for the maintainer. Remaining required
-correctness/build items: **PENDING**, to be resolved in the final receipt update.
+and NIC measurements: **NOT RUN**, reserved for the maintainer. No requested
+correctness/build run remains pending. The protected EXPECT guard is left for
+the maintainer's +8/+8 count update, and the reported identity differences still
+require the merit verdict.
+
+Historical standalone `tests/ccfix_unit.cc`, `tests/ccfix2_atomic_unit.cc` and
+`tests/replyschema.py`: **NOT RUN**; no gate job names these files. They remain
+archival probes, not replacements for the requested gate interface.
+`tools/ccfix3_prove.py` also hard-pins CPUs 112–127 and has a separate instruction
+workload, outside this lane's allocation/measurement authorization. Current
+generic STORE keymiss behavior is covered by the new directed gate row; the
+specialized MGET deviation in the old differential probe is unchanged.
