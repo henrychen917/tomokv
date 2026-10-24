@@ -8,6 +8,11 @@
 
 namespace tomo {
 
+// Offline PAD-A patch point. Production always takes the corrected controller;
+// the behaviour twin changes this return byte only, retaining POST text/layout.
+// No configuration or command can select the legacy branch.
+__attribute__((noinline, noipa)) bool ctlfix_correctness() { return true; }
+
 namespace {
 
 // A real workload must not wait forever merely because its stationary noise never presents a
@@ -698,7 +703,11 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     // spending a FLIP on the split it is already running.
     if (target_io == server.role_count(Role::Ifid)) return false;
     std::string error;
-    pending_completed_ = server.flip_completed();
+    // A manual completion after this tick's observation invalidates its evidence.
+    // Leave the cursor untouched: the next tick must consume that completion.
+    const bool corrected = ctlfix_correctness();
+    if (corrected && server.flip_completed() != pending_completed_) return false;
+    if (!corrected) pending_completed_ = server.flip_completed();
     pending_refused_ = server.flip_refused();
     pending_target_io_ = target_io;
     after_flip_ = after_flip;
@@ -712,7 +721,8 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     flip_issue_rate_ = rate_before;
     flip_issue_naive_ = flip_naive_transfers(io_clients(server), server.role_count(Role::Ifid),
                                              target_io);
-    if (!server.flip_begin(target_io, server.nthreads() - target_io, coordinator, error))
+    if (!server.flip_begin(target_io, server.nthreads() - target_io, coordinator, error,
+                           corrected ? pending_completed_ : UINT64_MAX))
         return false;
     phase_ = Phase::WaitingFlip;
     const bool issued = server.flip_stage() != FlipStage::Idle;
@@ -1121,7 +1131,9 @@ void FlipController::anchor(Server& server, double rate) {
         (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
          last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
          last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse);
-    const bool moved_split = current != maneuver_origin_io_;
+    // A manual intervention has no automatic hypothesis to credit or penalize.
+    const bool moved_split = last_trigger_ != FlipctlTriggerReason::None &&
+                             current != maneuver_origin_io_;
     const uint32_t confirmation_cap =
         std::max(kMinConfirmations, signature_learning_windows_);
     uint32_t* responsible = last_trigger_ == FlipctlTriggerReason::FingerprintShift
@@ -1188,6 +1200,62 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
 
     const bool shifted = sample_fingerprint(server);
     const bool forced = force_requested_.exchange(false, std::memory_order_acq_rel);
+    if (ctlfix_correctness()) {
+        bool advanced = false, own_completion = false, refused = false;
+        {
+            // Admission takes this same cold mutex. Idle's acquire observes the
+            // completion publication; holding admission excludes a new manual FLIP
+            // while we consume its count, placement and cost snapshot. No retries.
+            std::lock_guard<std::mutex> transition(server.shape_transition_mutex());
+            if (server.flip_stage() != FlipStage::Idle) {
+                if (forced) {
+                    retrigger_after_flip_ = true;
+                    pending_retrigger_ = FlipctlTriggerReason::Forced;
+                }
+                return false;
+            }
+            const uint64_t completed = server.flip_completed();
+            advanced = completed > pending_completed_;
+            refused = server.flip_refused() > pending_refused_;
+            own_completion = advanced && phase_ == Phase::WaitingFlip &&
+                completed == pending_completed_ + 1 && !refused &&
+                server.role_count(Role::Ifid) == pending_target_io_;
+            if (own_completion) measure_flip(server, now_ms);
+            else if (advanced) flip_measure_armed_ = false;
+            // pending_completed_ is also the consumed-completion cursor. A batch
+            // advances it by its entire count, once, even if the final split is
+            // the original split or multiple accepted requests were no-ops.
+            if (advanced) pending_completed_ = completed;
+        }
+        if (advanced && !own_completion) {
+            // Manual intervention (or ambiguous success/refusal ordering) cancels
+            // the hypothesis. Never return to stale argmax evidence or charge a
+            // merged manual/automatic interval as one automatic maneuver.
+            seek_ = Seek::None;
+            pending_miss_ = false;
+            refining_ = false;
+            readings_.clear();
+            rate_ew_.reset();
+            last_trigger_ = FlipctlTriggerReason::None;
+            model_last_decision_ = "manual-intervention";
+            enter_settling();
+        }
+        if (forced || retrigger_after_flip_) {
+            start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
+            return false;
+        }
+        if (own_completion) {
+            phase_ = after_flip_;
+            if (phase_ == Phase::Settling) reset_settling_learning();
+            rate_window_ms_ = 0;
+            previous_subwindow_valid_ = false;
+            return false;
+        }
+        if (advanced) return false;
+        if (phase_ == Phase::WaitingFlip && !refused) return false;
+        // A refusal without completion retains the existing settle/return path
+        // below. Its baseline remains the last consumed completion count.
+    }
     if (phase_ == Phase::BootPending) {
         if (forced) start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
         else if (boot_load_stable(server, now_ms))

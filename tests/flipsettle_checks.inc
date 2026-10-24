@@ -51,7 +51,7 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
     c.phase_ = enter ? Phase::Seeking : disarm ? Phase::Settling : Phase::WaitingFlip;
     c.after_flip_ = other ? Phase::Seeking : Phase::Settling;
     c.seek_ = FlipController::Seek::Returning;
-    c.pending_completed_ = 46;
+    c.pending_completed_ = (waiting || other) ? 46 : 47;
     c.pending_target_io_ = 6;
     f.server.flip_completed_.store(47, std::memory_order_relaxed);
     c.anchor_signature_samples_ = 11;
@@ -113,6 +113,8 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
         std::fill_n(allowed.begin() + at, sizeof member, true);
     };
     allow(c.phase_);
+    // Completion consumption now advances the existing cursor exactly once.
+    if (waiting || other) allow(c.pending_completed_);
     if (!other) {
         allow(c.shift_detector_);
         allow(c.anchor_signature_samples_);

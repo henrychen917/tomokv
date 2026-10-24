@@ -1383,10 +1383,18 @@ job_flip_unit(){
 # The flip-controller MODEL (fingerprint classes, ramp gate, count-noise rejection) has a unit
 # test that nothing built; a model regression surfaced only in flipctl.py's live 2-5 min row.
 row_begin "flip controller model unit"
+local controller_ok=1
 g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomokv-flipctl-unit \
     2>$TMPDIR/gate-flipctl-unit.txt \
     && $TMPDIR/tomokv-flipctl-unit >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
-    && ok "flip controller model unit" \
+    || controller_ok=0
+pausable taskset -c "$BUILD_CORES" make -f tests/ctlfix.mk -j"$BUILD_JOBS" build/ctlfix-unit \
+    >>$TMPDIR/gate-flipctl-unit.txt 2>&1 || controller_ok=0
+if make -f tests/ctlfix.mk -q build/ctlfix-unit; then
+  taskset -c "$CORES" build/ctlfix-unit completions >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
+      || controller_ok=0
+else controller_ok=0; fi
+[ "$controller_ok" = 1 ] && ok "flip controller model unit" \
     || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
 }
 
