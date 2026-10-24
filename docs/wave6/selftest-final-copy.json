@@ -1,5 +1,5 @@
 {
-  "source_sha256": "eab6dbb88c8bcdefe48c51d2bcebd6bb599b35c4c35bd192202458366cc992f8",
-  "copied_sha256": "964925984834e3ae8e24ac2cc5bed07685752cae499a91c12a76cfbe4d6e6ec4",
+  "source_sha256": "3f8fcadedb5c1c4cf981f705feb43e10a2a0d718e4c4c3f954107a72386d3bed",
+  "copied_sha256": "575bae72f51f3070c4e9a91c06b09e4f60d3228d76374cce10f16fefbca9e8fd",
   "diff": "--- protected gate\n+++ throwaway gate\n@@ -344,8 +344,8 @@\n # wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the\n # quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.\n # The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.\n-EXPECT_QUICK=739\n-EXPECT_FULL=756                 # ABBA reports only; self-test remains counted.\n+EXPECT_QUICK=768\n+EXPECT_FULL=785                 # ABBA reports only; self-test remains counted.\n # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:\n # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.\n # txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.\n"
 }
