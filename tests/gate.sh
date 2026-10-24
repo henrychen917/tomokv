@@ -5025,7 +5025,8 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
