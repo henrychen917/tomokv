@@ -75,7 +75,8 @@ for round in (2, 3):
 # These jobs expose their legacy boots through GATE_TXN_FUSED; all their
 # assertions, oracle legs, ASAN legs and shutdown checks remain in gate.sh.
 legacy = ['release_batteries', 'notify', 'sort', 'script_bounds', 'dump_restore',
-          'auth', 'replyoff', 'zc']
+          'auth', 'replyoff', 'zc', 'aof-epoll', 'aof-uring',
+          'snapshot-epoll', 'snapshot-uring']
 job('legacy-split-final', legacy)
 job('legacy-fused', legacy, '--fused')
 

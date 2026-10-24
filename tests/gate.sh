@@ -3231,7 +3231,7 @@ job_snapshot(){
 # ---- snapshot data/sync engines: cut, typed round-trip, and typed preimage race ----------------
 local NET_IO=${1##*-}
   SNAP_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$SNAP_DIR" --dbfilename cut.tomo \
       || bad "snapshot cut boot ($NET_IO)"
   row_begin "snapshot concurrent cut ($NET_IO)"
@@ -3241,7 +3241,7 @@ local NET_IO=${1##*-}
       || bad "snapshot concurrent cut ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-cut-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$SNAP_DIR" --dbfilename cut.tomo \
       || bad "snapshot cut reload boot ($NET_IO)"
   row_begin "snapshot cut reload ($NET_IO)"
@@ -3258,7 +3258,7 @@ local NET_IO=${1##*-}
   # cuts_waited counter that separates a real group drain from a vacuous one. Both arms were
   # confirmed to FAIL on the pre-fix tree (44-53 and 10-13 torn groups per cut respectively).
   GROUP_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-groups-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 1 \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 1 \
       --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
       || bad "atomic group cut boot ($NET_IO, atomic 1)"
   row_begin "snapshot never tears a cross-shard MSET group ($NET_IO, atomic 1)"
@@ -3271,7 +3271,7 @@ local NET_IO=${1##*-}
   stop
   # CONTROL ARM: the DEFAULT --atomic 0. EXEC force-admits a group at either setting, so a
   # transaction is atomic to readers here too and the file must agree with them.
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 0 \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" --atomic 0 \
       --enable-debug-command yes --dir "$GROUP_DIR" --dbfilename groups.tomo \
       || bad "atomic group cut boot ($NET_IO, atomic 0)"
   row_begin "snapshot never tears a MULTI/EXEC group ($NET_IO, default atomic 0)"
@@ -3284,7 +3284,7 @@ local NET_IO=${1##*-}
   stop
 
   TYPED_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-typed-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$TYPED_DIR" --dbfilename typed.tomo \
       || bad "typed snapshot boot ($NET_IO)"
   row_begin "typed snapshot save ($NET_IO)"
@@ -3294,7 +3294,7 @@ local NET_IO=${1##*-}
       || bad "typed snapshot save ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-typed-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$TYPED_DIR" --dbfilename typed.tomo \
       || bad "typed snapshot reload boot ($NET_IO)"
   row_begin "typed snapshot reload ($NET_IO)"
@@ -3306,7 +3306,7 @@ local NET_IO=${1##*-}
   stop
 
   RACE_DIR=$(mktemp -d "$TMPDIR/gate-snapshot-race-${NET_IO}.XXXXXX")
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$RACE_DIR" --dbfilename race.tomo --save '' --enable-debug-command yes \
       || bad "typed snapshot race boot ($NET_IO)"
   row_begin "typed snapshot preimage race ($NET_IO)"
@@ -3318,7 +3318,7 @@ local NET_IO=${1##*-}
       || bad "typed snapshot preimage race ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-race-${NET_IO}.txt"
   stop
-  boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+  txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
       --dir "$RACE_DIR" --dbfilename race.tomo.cut \
       || bad "typed snapshot race reload boot ($NET_IO)"
   row_begin "typed snapshot race reload ($NET_IO)"
@@ -4068,16 +4068,17 @@ stop
 
 job_aof(){
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
-local NET_IO=${1##*-}
+local NET_IO=${1##*-} AOF_MODE=2s
+[ "${GATE_TXN_FUSED:-0}" != 1 ] || AOF_MODE=1s
 for AOF_ATOMIC in 0 1; do
 AOF_DIR=$(mktemp -d "$TMPDIR/gate-aof-${NET_IO}-atomic${AOF_ATOMIC}.XXXXXX")
 AOF_STATE=$AOF_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_ATOMIC" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_ATOMIC" \
     --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_DIR" \
     || bad "AOF purpose boot ($NET_IO, atomic $AOF_ATOMIC)"
 row_begin "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)"
-py tests/knobs.py 127.0.0.1 "$PORT" "$NET_IO" "$AOF_ATOMIC" \
+py tests/knobs.py 127.0.0.1 "$PORT" "$NET_IO" "$AOF_ATOMIC" "$AOF_MODE" \
     >"$TMPDIR/gate-knobs-${NET_IO}-${AOF_ATOMIC}.txt" 2>&1 \
     && ok "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)" \
     || bad "configuration reduction + actual geometry ($NET_IO, atomic $AOF_ATOMIC)"
@@ -4096,7 +4097,7 @@ AOF_WRITTEN=$(redis-cli -h 127.0.0.1 -p $PORT INFO Persistence 2>/dev/null \
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --appendonly yes --appendfsync no \
     --atomic "$AOF_ATOMIC" --net-io "$NET_IO" \
     --enable-debug-command yes --dir "$AOF_DIR" \
     || bad "AOF replay boot ($NET_IO, atomic $AOF_ATOMIC)"
@@ -4122,7 +4123,7 @@ done
 # ---- AOF atomic-group bracketing + directed interrupted-process recovery ---------------------
 AOF_GROUP_DIR=$(mktemp -d "$TMPDIR/gate-aof-group-${NET_IO}.XXXXXX")
 AOF_GROUP_STATE=$AOF_GROUP_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
     || bad "AOF group purpose boot ($NET_IO)"
 row_begin "AOF directed group interruption fired"
@@ -4132,7 +4133,7 @@ py tests/aof_torn_group.py 127.0.0.1 $PORT prepare "$AOF_GROUP_STATE" \
     || bad "AOF directed group interruption" "see $TMPDIR/gate-aof-group.txt"
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --enable-debug-command yes --dir "$AOF_GROUP_DIR" \
     || bad "AOF group recovery boot ($NET_IO)"
 row_begin "AOF atomic-group recovery + writer order"
@@ -4151,7 +4152,7 @@ shutdown_clean \
 # ---- AOF sync policies, reply gate, idle sync, and durability-window recovery ----------------
 AOF_ALWAYS_DIR=$(mktemp -d "$TMPDIR/gate-aof-always-${NET_IO}.XXXXXX")
 AOF_ALWAYS_STATE=$AOF_ALWAYS_DIR/state.json
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always purpose boot ($NET_IO)"
 row_begin "AOF always sync + reply gate fired"
@@ -4162,7 +4163,7 @@ py tests/aof_fsync.py 127.0.0.1 $PORT populate "$AOF_ALWAYS_STATE" always 512 \
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always recovery boot ($NET_IO)"
 row_begin "AOF always recovery after quiescent SIGKILL"
@@ -4212,7 +4213,7 @@ done
 AOF_EVERY_DIR=$(mktemp -d "$TMPDIR/gate-aof-everysec-${NET_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
 AOF_EVERY_FILE=$AOF_EVERY_DIR/appendonlydir/appendonly.aof.1.incr.tomo
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
     --net-io "$NET_IO" --dir "$AOF_EVERY_DIR" \
     || bad "AOF everysec purpose boot ($NET_IO)"
 row_begin "AOF everysec write gate + idle sync fired"
@@ -4229,7 +4230,7 @@ case "$AOF_EVERY_FILE" in
   *) bad "AOF everysec tail target" ;;
 esac
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync everysec \
     --net-io "$NET_IO" --dir "$AOF_EVERY_DIR" \
     || bad "AOF everysec recovery boot ($NET_IO)"
 row_begin "AOF everysec durability window + tail warning"
@@ -4241,7 +4242,7 @@ py tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_EVERY_STATE" everysec 512 \
 stop
 
 AOF_NO_DIR=$(mktemp -d "$TMPDIR/gate-aof-no-sync-${NET_IO}.XXXXXX")
-boot "$CANDIDATE_BINARY" --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --atomic 0 --appendonly yes --appendfsync no \
     --net-io "$NET_IO" --dir "$AOF_NO_DIR" \
     || bad "AOF no-sync purpose boot ($NET_IO)"
 row_begin "AOF no-sync bypassed sync + reply gate"
@@ -4266,7 +4267,7 @@ NET_IO=$NET_IO GATE_PORT=$PORT GATE_CORES=$CORES tests/aof_rewrite_trigger_matri
     || bad "AOF rewrite triggers" "see $TMPDIR/gate-aof-rewrite-trigger.txt"
 
 AOF_OFF_DIR=$(mktemp -d "$TMPDIR/gate-aof-off-${NET_IO}.XXXXXX")
-boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
     --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control boot"
 row_begin "AOF-off negative-control seed landed"
@@ -4279,7 +4280,7 @@ AOF_OFF_PRE_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\
 kill -KILL $SRV 2>/dev/null
 wait $SRV 2>/dev/null
 settle
-boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
+txn_proof_boot "$CANDIDATE_BINARY" --protected-mode no --net-io "$NET_IO" \
     --appendonly no --dir "$AOF_OFF_DIR" \
     || bad "AOF-off negative-control reboot"
 row_begin "AOF-off negative control lost data"

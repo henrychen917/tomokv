@@ -8,6 +8,12 @@ CORES=${GATE_CORES:-224-231}
 NCORES=$(taskset -c "$CORES" nproc)
 if [ "$NCORES" -ge 8 ]; then RATIO=4:4
 else RATIO=$(((NCORES+1)/2)):$((NCORES-(NCORES+1)/2)); fi
+MODE_ARGS=(--ratio "$RATIO")
+case "${GATE_TXN_FUSED:-0}" in
+  0) ;;
+  1) MODE_ARGS=(--thread-mode fused);;
+  *) echo "GATE_TXN_FUSED must be 0 or 1" >&2; exit 2;;
+esac
 CLI=${REDIS_CLI:-redis-cli}
 BIN=${GATE_CANDIDATE_BINARY:-${TOMO_BIN:-./build/tomokv}}
 NET_IO=${NET_IO:-uring}
@@ -40,7 +46,7 @@ boot_server() {
   local boot_pid socket_pid
   [ -z "$(listener_pid)" ] || { echo "AOF rewrite triggers: port $PORT already listening" >&2; return 1; }
   taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
-    --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
+    --shards 16 "${MODE_ARGS[@]}" --protected-mode no --atomic "$atomic" \
     --net-io "$NET_IO" --appendonly yes --appendfsync everysec --save '' \
     --auto-aof-rewrite-percentage 0 \
     --enable-debug-command yes --dir "$directory" >"$log" 2>&1 &
