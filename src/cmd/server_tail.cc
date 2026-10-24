@@ -417,7 +417,9 @@ void cmd_object_impl(Shard& shard, Op& op) {
 
     const MaxmemoryPolicy policy = shard.store().maxmemory_policy();
     const bool lfu = maxmemory_policy_is_lfu(policy);
-    // These two gates are policy checks, not key checks, and redis applies them before the lookup.
+    // Redis checks existence before policy availability, without touching.
+    KvObj* object = object_read_no_touch(shard, op.hash, op.arg(2));
+    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (freq && !lfu) {
         reply_err(op.sink(),
                   "ERR An LFU maxmemory policy is not selected, access frequency not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
@@ -429,9 +431,6 @@ void cmd_object_impl(Shard& shard, Op& op) {
         return;
     }
 
-    // Redis OBJECT uses LOOKUP_NOTOUCH | LOOKUP_NONOTIFY for every subcommand.
-    KvObj* object = object_read_no_touch(shard, op.hash, op.arg(2));
-    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (encoding) {
         const char* name = encoding_name(object);
         reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));
@@ -444,14 +443,8 @@ void cmd_object_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), 1);
         return;
     }
-    // Both remaining forms read the five-bit eviction metadata, which is only written while
-    // maxmemory is enabled. With eviction off the bits are meaningless, so report a fresh key.
-    if (!shard.store().maxmemory_enabled()) { reply_int(op.sink(), 0); return; }
     if (freq) { reply_int(op.sink(), object->eviction_meta()); return; }
-    // The fixed five-bit clock quantises age to 256 seconds and wraps after 8192 seconds.
-    const uint8_t age = static_cast<uint8_t>(
-        (shard.store().published_lru_clock() - object->eviction_meta()) & 0x1f);
-    reply_int(op.sink(), static_cast<long long>(age) << kLruClockShift);
+    reply_int(op.sink(), shard.store().object_idle_seconds(object));
 }
 
 void cmd_object(Shard& shard, Op& op) { cmd_object_impl<false>(shard, op); }
