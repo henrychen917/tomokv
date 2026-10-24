@@ -64,11 +64,22 @@ def controls(binary, output):
     else:
         raise AssertionError('missing execfair promotion callback control passed')
     post.groups = copy.deepcopy(binary.groups)
+    r7shadow_noop.notifycompat_inventory(post)
+    scan = next(name for name in post.groups if 'FlatStore::atomic_for_each_unique_key<' in name
+                and 'xshard_execute(' in name and audit.category(name))
+    del post.groups[scan]
+    try:
+        r7shadow_noop.notifycompat_inventory(post)
+    except AssertionError as error:
+        assert 'missing notifycompat scatter scan' in str(error), str(error)
+    else:
+        raise AssertionError('missing notifycompat scatter scan control passed')
+    post.groups = copy.deepcopy(binary.groups)
     name = next(n for n in post.groups if audit.category(n) == 'commands')
     post.groups[name][0]['encodings'][0] += ' ff'
     rows = audit.compare(binary, post, output)
     assert any(not row['equal'] and row['name'] == name for row in rows), 'changed-opcode negative control passed'
-    print('PASS missing policy symbol, missing split-local parser, missing fliplisten clone, missing execfair callback and changed opcode fail strict identity')
+    print('PASS missing policy symbol, missing split-local parser, missing fliplisten clone, missing execfair callback, missing notifycompat scan and changed opcode fail strict identity')
 
 
 def engagement(binary, output):
@@ -105,7 +116,7 @@ if __name__ == '__main__':
     (args.output / 'twin.json').write_text(json.dumps(receipt, indent=2) + '\n')
     subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
                     str(pad), str(args.binary), str(args.output / 'identity'),
-                    '--inventory', 'execfair'], check=True)
+                    '--inventory', 'wave6'], check=True)
     negative = args.output / 'negative'
     negative.mkdir(exist_ok=True)
     binary = audit.Binary(args.binary, negative, literal_pools=True)
