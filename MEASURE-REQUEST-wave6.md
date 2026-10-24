@@ -254,13 +254,18 @@ objects needed for freshness, command probes and gate artifacts remain;
 
 ### Validation status
 
-The broad touched-job sweep completed 169 jobs; its only failed rows were the
-R7 inventory and synthetic AOF fixture, both repaired and passing on rerun.
-The complete ABBA selftest and standalone scheduler tests passed. After the
-final branch-layout change, a fresh complete-job sweep is queued on the final
-candidate, followed by both-engine standard-seed differential matrices,
-three runs of all four txnorder cells,
-complete legacy fused jobs, and the quiet timing-sensitive correctness jobs.
+The final candidate's broad sweep completed **192 jobs / 767 passing rows /
+zero failed rows**. Its R7, atomic units, every lane row, both persistence engines
+and all four first-round txnorder cells pass. See
+`docs/wave6/correctness/broad-final/receipt.json`. This is a partial-job ledger,
+not a full gate or landing receipt. The earlier 169-job sweep had only the
+R7 inventory and synthetic AOF fixture failures described above; both are
+repaired and pass on the final candidate.
+
+The follow-up sequence is running both-engine standard-seed differential
+matrices, the second and third run of all four txnorder cells, complete legacy
+split/fused jobs, final scheduler/ABBA selftests, and the quiet timing-sensitive
+correctness jobs.
 `docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
 result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
 
