@@ -404,7 +404,9 @@
       "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-epoll-split"
     },
     "expected_exit": 0,
-    "started": 1792883488.6701968
+    "started": 1792883488.6701968,
+    "exit": 0,
+    "finished": 1792884576.3792737
   },
   {
     "name": "differ-final-pre-epoll-split",
@@ -427,6 +429,54 @@
       "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-split"
     },
     "expected_exit": 0,
-    "started": 1792883488.6706731
+    "started": 1792883488.6706731,
+    "exit": 0,
+    "finished": 1792884577.8420253
+  },
+  {
+    "name": "differ-final-post-epoll-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-epoll-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792884576.3798153
+  },
+  {
+    "name": "differ-final-pre-epoll-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792884577.8425581
   }
 ]
