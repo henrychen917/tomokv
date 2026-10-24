@@ -474,7 +474,10 @@ redis.register_function('persistfix2_write',
                 assert command(conn, 'FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'before'
                 def persisted_increment():
                     files = list((data / 'appendonlydir').glob('*.incr.*'))
-                    return files[0] if len(files) == 1 and files[0].stat().st_size > (0 if args.oracle else 80) else None
+                    if len(files) != 1:
+                        return None
+                    contents = files[0].read_bytes()
+                    return files[0] if b'acknowledged-write' in contents and b'before' in contents else None
                 increment = wait(persisted_increment, 'acknowledged write reached increment')
                 limit = increment.stat().st_size
                 resource.prlimit(process.pid, resource.RLIMIT_FSIZE, (limit, 131072))
