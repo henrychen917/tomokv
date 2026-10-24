@@ -1,0 +1,68 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.ktfzLd",
+  "gate_log_sha256": "3762ea50e55a0e7b3979468978a6b176104d32d9c982221f6d67f55f1d58a86d",
+  "jobs": [
+    {
+      "job": "differ-armed-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "526.540000",
+          "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "differ-armed-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "528.840000",
+          "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "differ-equivalence",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "21.230000",
+          "label": "mode equivalence part (all execution modes and knobs)"
+        }
+      ]
+    },
+    {
+      "job": "differ-split-0",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "552.440000",
+          "label": "Redis 7.4 differential part (split, atomic 0)"
+        }
+      ]
+    },
+    {
+      "job": "differ-split-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "533.010000",
+          "label": "Redis 7.4 differential part (split, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.000000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 6,
+  "fail_rows": 0
+}

@@ -29,6 +29,11 @@ for folder in sorted((run/'jobs').iterdir()):
         dd=dest/'differ';dd.mkdir(exist_ok=True)
         for name in ('complete.json','command-coverage.json'):
             if (folder/'differ'/name).exists():shutil.copy2(folder/'differ'/name,dd/name)
+        # Keep the actual boot/shutdown banners, including the selected network
+        # engine, rather than inferring it only from the wrapper's arguments.
+        for source in (folder/'differ').glob('*.log'):
+            if source.name.startswith(('target-', 'oracle')):
+                shutil.copy2(source,dd/source.name)
     if folder.name in ('txnorder2','txnorder_wake','execfair') or folder.name.startswith('txnorder-'):
         for source in folder.rglob('*'):
             if source.is_file() and source.suffix in ('.json','.log','.txt'):

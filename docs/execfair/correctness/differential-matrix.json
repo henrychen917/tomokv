@@ -1,0 +1,245 @@
+{
+  "rows": [
+    {
+      "engine": "uring",
+      "part": "split-0",
+      "run": "initial",
+      "metadata": {
+        "schema": 1,
+        "part": "split-0",
+        "run": "full:gate-run.4V3ebr",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "comparisons": 235,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/initial/differ-split-0/differ/target-atomic-0.log",
+          "banner": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0"
+        }
+      ]
+    },
+    {
+      "engine": "uring",
+      "part": "split-1",
+      "run": "retry-split-1",
+      "metadata": {
+        "schema": 1,
+        "part": "split-1",
+        "run": "full:gate-run.xVokaX",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 239,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/retry-split-1/differ-split-1/differ/target-atomic-1.log",
+          "banner": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0"
+        }
+      ]
+    },
+    {
+      "engine": "uring",
+      "part": "armed-0",
+      "run": "initial",
+      "metadata": {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "full:gate-run.4V3ebr",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "comparisons": 230,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/initial/differ-armed-0/differ/target-atomic-0.log",
+          "banner": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1"
+        }
+      ]
+    },
+    {
+      "engine": "uring",
+      "part": "armed-1",
+      "run": "initial",
+      "metadata": {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "full:gate-run.4V3ebr",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "comparisons": 234,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/initial/differ-armed-1/differ/target-atomic-1.log",
+          "banner": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1"
+        }
+      ]
+    },
+    {
+      "engine": "uring",
+      "part": "equivalence",
+      "run": "initial",
+      "metadata": {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "full:gate-run.4V3ebr",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      "banners": []
+    },
+    {
+      "engine": "epoll",
+      "part": "split-0",
+      "run": "epoll-differ",
+      "metadata": {
+        "schema": 1,
+        "part": "split-0",
+        "run": "full:gate-run.ktfzLd",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 235,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/epoll-differ/differ-split-0/differ/target-atomic-0.log",
+          "banner": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0"
+        }
+      ]
+    },
+    {
+      "engine": "epoll",
+      "part": "split-1",
+      "run": "epoll-differ",
+      "metadata": {
+        "schema": 1,
+        "part": "split-1",
+        "run": "full:gate-run.ktfzLd",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 239,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/epoll-differ/differ-split-1/differ/target-atomic-1.log",
+          "banner": "tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0"
+        }
+      ]
+    },
+    {
+      "engine": "epoll",
+      "part": "armed-0",
+      "run": "epoll-differ",
+      "metadata": {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "full:gate-run.ktfzLd",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 230,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/epoll-differ/differ-armed-0/differ/target-atomic-0.log",
+          "banner": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1"
+        }
+      ]
+    },
+    {
+      "engine": "epoll",
+      "part": "armed-1",
+      "run": "epoll-differ",
+      "metadata": {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "full:gate-run.ktfzLd",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 234,
+        "complete": true
+      },
+      "banners": [
+        {
+          "file": "docs/execfair/correctness/epoll-differ/differ-armed-1/differ/target-atomic-1.log",
+          "banner": "tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, epoll, alloc=jemalloc, reorder=0, read-local=1"
+        }
+      ]
+    },
+    {
+      "engine": "epoll",
+      "part": "equivalence",
+      "run": "epoll-differ",
+      "metadata": {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "full:gate-run.ktfzLd",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      "banners": []
+    }
+  ],
+  "comparisons": 1908
+}

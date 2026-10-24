@@ -119,5 +119,35 @@
     "name": "stress",
     "exit_code": 0,
     "expected_exit": 0
+  },
+  {
+    "name": "epoll-differ",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execfair/build/execfair-epoll"
+    ],
+    "environment": {
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-epoll-differ.tsv",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence"
+    },
+    "log": "build/execfair-epoll-differ.log",
+    "exit_code": 0,
+    "expected_exit": 0
   }
 ]
