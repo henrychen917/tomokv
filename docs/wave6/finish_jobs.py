@@ -77,9 +77,9 @@ for round in (2, 3):
 # assertions, oracle legs, ASAN legs and shutdown checks remain in gate.sh.
 legacy = ['release_batteries', 'notify', 'sort', 'script_bounds', 'dump_restore',
           'auth', 'replyoff', 'zc', 'aof-epoll', 'aof-uring',
-          'snapshot-epoll', 'snapshot-uring']
+          'snapshot-epoll', 'snapshot-uring', 'aof_frame']
 job('legacy-split-final', legacy)
-job('legacy-fused', legacy, '--fused')
+job('legacy-fused', legacy + ['debug-0', 'debug-1', 'asan_batteries'], '--fused')
 
 job('perfio-quiet', ['perfio_stream'])
 job('atomic-split-quiet', ['atomic_batteries'])
