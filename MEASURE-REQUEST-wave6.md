@@ -269,6 +269,15 @@ correctness jobs.
 `docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
 result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
 
+The complete io_uring differential matrix passes its four mode/atomic jobs
+and mode-equivalence control with the standard seeds `7 19 20 23 21` (47 suite
+families per seed). Epoll is running the same job inventory with its standard
+seed allocation. The differential driver's existing armed-fused SORT skip is
+retained because that particular suite requires split 6:2; it is explicitly
+listed in each `matrix-summary.json`. The complete gate SORT battery is also
+selected separately in both modes. A skipped differential leg is not counted
+as a passing leg.
+
 The first ABBA self-test copy lacked required fixture inputs; its gate helper
 also ran with only two load CPUs and hit scheduler-fixture deadlines. A standalone
 self-test first collided on a test port, then overlapped compilation and hit
