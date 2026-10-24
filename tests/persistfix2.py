@@ -454,9 +454,65 @@ def commands(args):
     assert not failures, '\n'.join(failures)
 
 
+def errors(args):
+    failures = []
+    expected = RespError('MISCONF Errors writing to the AOF file: File too large')
+    for policy, reorder in ((p, r) for p in ('no', 'everysec') for r in (0, 1)):
+        try:
+            extra = ['--appendonly', 'yes', '--appendfsync', policy]
+            if not args.oracle:
+                extra += ['--reorder', str(reorder), '--read-local', str(reorder if args.mode == '1s' else 0)]
+            with boot(args, f'write-error-{policy}-{reorder}', extra, fsize=131072) as (process, conn, data):
+                assert conn.must('SET', 'acknowledged-write', 'before') == b'OK'
+                def persisted_increment():
+                    files = list((data / 'appendonlydir').glob('*.incr.*'))
+                    return files[0] if len(files) == 1 and files[0].stat().st_size > (0 if args.oracle else 80) else None
+                increment = wait(persisted_increment, 'acknowledged write reached increment')
+                limit = increment.stat().st_size
+                resource.prlimit(process.pid, resource.RLIMIT_FSIZE, (limit, 131072))
+                emit('durability window armed', policy=policy, reorder=reorder, file_limit=limit)
+                queued = Conn('127.0.0.1', args.port, timeout=15)
+                read_only = Conn('127.0.0.1', args.port, timeout=15)
+                try:
+                    assert queued.must('WATCH', 'acknowledged-write') == b'OK'
+                    assert queued.must('MULTI') == b'OK'
+                    assert queued.must('SET', 'queued-write', 'value') == b'QUEUED'
+                    assert read_only.must('MULTI') == b'OK'
+                    assert read_only.must('GET', 'acknowledged-write') == b'QUEUED'
+                    conn.send('SET', 'durability-window', b'v' * 200000)
+                    emit('durability window', policy=policy, initial_reply=conn.read())
+                    wait(lambda: persistence(conn)['aof_last_write_status'] == 'err',
+                         'AOF write error observed')
+                    for words in [('PING',), ('PING', 'value'), ('SET', 'refused-write', 'value'),
+                                  ('MSET', 'refused-one', '1', 'refused-two', '2'),
+                                  ('DEL', 'acknowledged-write')]:
+                        reply = command(conn, *words)
+                        if reply != expected:
+                            failures.append(f'{policy} {words}: {reply!r}')
+                    assert command(conn, 'GET', 'acknowledged-write') == b'before'
+                    assert command(conn, 'MGET', 'refused-write', 'refused-one', 'refused-two') == [None] * 3
+                    assert command(conn, 'PFCOUNT', 'absent-hll') == 0
+                    assert command(queued, 'EXEC') == RespError(
+                        'EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large')
+                    assert command(queued, 'EXEC') == RespError('ERR EXEC without MULTI')
+                    assert command(conn, 'GET', 'queued-write') is None
+                    assert command(read_only, 'EXEC') == [b'before']
+                    assert conn.must('MULTI') == b'OK'
+                    assert command(conn, 'SET', 'queue-error', 'value') == expected
+                    assert command(conn, 'EXEC') == RespError('EXECABORT Transaction discarded because of previous errors.')
+                    emit('AOF error refusal', policy=policy, info=persistence(conn))
+                finally:
+                    queued.close()
+                    read_only.close()
+        except Exception as error:
+            emit('assertion', policy=policy, error=str(error))
+            failures.append(f'{policy}: {error}')
+    assert not failures, '\n'.join(failures)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--case', choices=('lastsave', 'shutdown', 'commands'), required=True)
+    parser.add_argument('--case', choices=('lastsave', 'shutdown', 'commands', 'errors'), required=True)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--oracle', action='store_true')
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)

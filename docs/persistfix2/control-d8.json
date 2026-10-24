@@ -1,0 +1,17 @@
+{
+  "kind": "control-d8",
+  "behavior": "Throwaway POST with only post-error command refusal removed; never a shipping arm.",
+  "binary": "build/tomokv-persistfix2-control-d8",
+  "sha256": "1ff905332d28cc48a089b04cf33f6fabc09aebc2e4f55d450461ed156ea74a83",
+  "before_padding": {
+    "address": 129200,
+    "size": 8225463
+  },
+  "after_padding": {
+    "address": 129200,
+    "size": 8225527
+  },
+  "padding_bytes": 64,
+  "matched": "POST total .text size and start address",
+  "limitation": "Individual function placement and data sections are not a symbol-for-symbol layout match."
+}

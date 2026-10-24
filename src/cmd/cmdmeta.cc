@@ -292,6 +292,21 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
     return spec.id < g_metadata_by_id.size() ? g_metadata_by_id[spec.id] : nullptr;
 }
 
+bool command_metadata_write(Op& op) {
+    // EVAL/FCALL have dynamic Redis flags; their writable entry points carry
+    // Write in the execution table. Containers use the resolved child flags.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute))
+        return op.spec->flags & CmdFlags::Write;
+    static constexpr uint64_t mask = [] {
+        for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i)
+            if (std::string_view(kGeneratedCommandFlagNames[i]) == "write") return uint64_t{1} << i;
+        return uint64_t{0};
+    }();
+    static_assert(mask, "generated COMMAND metadata must contain write");
+    const auto* metadata = command_metadata_resolve(op, 0);
+    return metadata && (metadata->flags & mask);
+}
+
 bool command_metadata_no_multi(Op& op) {
     static constexpr uint64_t mask = [] {
         for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i) {

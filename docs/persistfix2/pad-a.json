@@ -1,0 +1,17 @@
+{
+  "kind": "pad-a",
+  "behavior": "A: behaviour twin. Unmodified PRE 05a5e01a9 objects with POST total text size.",
+  "binary": "build/tomokv-persistfix2-pad-a",
+  "sha256": "5298af6f9782e8a25266320ad91fe46b3b6af7f83e68b903196ca331272b3972",
+  "before_padding": {
+    "address": 129200,
+    "size": 8217911
+  },
+  "after_padding": {
+    "address": 129200,
+    "size": 8225527
+  },
+  "padding_bytes": 7616,
+  "matched": "POST total .text size and start address",
+  "limitation": "Individual function placement and data sections are not a symbol-for-symbol layout match."
+}

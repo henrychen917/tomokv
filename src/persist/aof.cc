@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "../cmd/command.h"
+#include "../cmd/cmdmeta.h"
 #include "../core/config.h"
 #include "../core/server.h"
 #include "../core/shard.h"
@@ -1232,11 +1233,28 @@ bool aof_commit_group(AofManager& manager, const std::shared_ptr<AofGroupDecisio
     return true;
 }
 
-void AofManager::fail(const char* message) {
-    last_error_ = message ? message : "AOF failure";
+void AofManager::reply_write_error(Op& op, bool transaction) const {
+    char message[512];
+    const int error = last_write_errno_.load(std::memory_order_relaxed);
+    std::snprintf(message, sizeof(message), "%sMISCONF Errors writing to the AOF file: %s",
+        transaction ? "EXECABORT Transaction discarded because of: " : "",
+        std::strerror(error ? error : EIO));
+    reply_err(op.sink(), message);
+}
+
+bool AofManager::deny_command(Op& op) const {
+    if (!command_metadata_write(op) && !op.cmd_name().eq_icase("ping")) return false;
+    reply_write_error(op);
+    return true;
+}
+
+void AofManager::fail(const char* message, int error) {
+    int unset = 0;
+    last_write_errno_.compare_exchange_strong(unset, error > 0 ? error : EIO,
+                                              std::memory_order_relaxed);
     failed_.store(true, std::memory_order_release);
     recording_.store(false, std::memory_order_release);
-    std::fprintf(stderr, "AOF error: %s\n", last_error_.c_str());
+    std::fprintf(stderr, "AOF error: %s\n", message ? message : "AOF failure");
     if (fsync_policy() == AppendFsyncPolicy::Always) {
         std::fprintf(stderr, "Can't recover from AOF write error when the AOF fsync policy "
                              "is 'always'. Exiting...\n");
@@ -1281,7 +1299,7 @@ bool AofManager::wait_control_write(ThreadCtx& writer, Ring& ring, int fd,
         ring.submit_and_wait(1);
         pump_io_completions(writer, ring);
     }
-    if (wait.result < 0) return false;
+    if (wait.result < 0) { errno = -wait.result; return false; }
     offset += length;
     return true;
 }
@@ -1315,6 +1333,7 @@ bool AofManager::wait_control_sync(ThreadCtx& writer, Ring& ring, int fd) {
         ring.submit_and_wait(1);
         pump_io_completions(writer, ring);
     }
+    if (wait.result < 0) errno = -wait.result;
     return wait.result >= 0;
 }
 
@@ -2028,7 +2047,7 @@ uint32_t AofManager::maybe_sync(ThreadCtx& writer, Ring& ring, io_uring_sqe* las
 
     if (engine_ == PersistIoEngine::Normal) {
         if (::fdatasync(fd_) != 0) {
-            fail("AOF data-sync failed");
+            fail("AOF data-sync failed", errno);
             wake_gate_waiters(writer, ring);
             return 1;
         }
@@ -2102,7 +2121,8 @@ void AofManager::on_io_complete(ThreadCtx& writer, Ring& ring, void* opaque, int
                 failed_write_offset_ = std::min(failed_write_offset_, request->safe_offset);
                 pending_chunks_.fetch_sub(request->chunks.size(), std::memory_order_release);
                 fail(request->contains_group_commit ? "AOF GCMT write failed"
-                                                    : "AOF frame ordering or write failed");
+                                                    : "AOF frame ordering or write failed",
+                     result < 0 ? -result : EIO);
                 wake_gate_waiters(writer, ring);
             }
             truncate_failed_write_if_idle();
@@ -2170,7 +2190,7 @@ void AofManager::on_io_complete(ThreadCtx& writer, Ring& ring, void* opaque, int
         return;
     }
     if (result < 0) {
-        fail("AOF data-sync failed");
+        fail("AOF data-sync failed", -result);
         wake_gate_waiters(writer, ring);
         return;
     }
@@ -2419,7 +2439,7 @@ uint32_t AofManager::drain_pending_commits(const OpenStreamToken& stream, uint32
             : submit_group_commit_uring(stream, std::move(pending_commits_[index]),
                                         ring, last_write);
         if (!ok) {
-            fail("AOF GCMT write failed");
+            fail("AOF GCMT write failed", errno);
             return written;
         }
         if (engine_ == PersistIoEngine::Normal) {
@@ -2465,7 +2485,11 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
             if (!large || large->producer() != producer || (flags & AofFrameLargeBegin))
                 valid = false;
         }
-        if (valid && engine_ == PersistIoEngine::Normal) valid = write_frame_normal(*chunk);
+        int write_error = EIO;
+        if (valid && engine_ == PersistIoEngine::Normal) {
+            valid = write_frame_normal(*chunk);
+            if (!valid) write_error = errno;
+        }
         if (valid && engine_ == PersistIoEngine::Normal) note_group_fragment(*chunk);
         if (valid && engine_ == PersistIoEngine::Normal)
             valid = mark_post_written(chunk->post_sequence);
@@ -2486,7 +2510,7 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
         budget--;
         consumed++;
         if (!valid) {
-            fail("AOF frame ordering or write failed");
+            fail("AOF frame ordering or write failed", write_error);
             return false;
         }
     }

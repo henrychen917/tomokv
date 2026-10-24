@@ -298,7 +298,9 @@ public:
         debug_rewrite_pause_.store(stage, std::memory_order_release);
     }
 
-    void fail(const char* message);
+    void fail(const char* message, int error = 0);
+    bool deny_command(Op& op) const;
+    void reply_write_error(Op& op, bool transaction = false) const;
     bool wait_until_drained(uint32_t timeout_ms);
 
     // AOF-only completion batches. Done is the retirement capability: publishing it before
@@ -414,6 +416,7 @@ private:
     std::atomic<bool> recording_{false};
     std::atomic<bool> failed_{false};
     std::atomic<bool> writer_ready_{false};
+    std::atomic<int> last_write_errno_{0}; // existing alignment bytes; published before failed_
     std::atomic<uint64_t> pending_chunks_{0};
     std::atomic<uint64_t> posted_sequence_{0};
     std::atomic<uint64_t> written_sequence_{0};

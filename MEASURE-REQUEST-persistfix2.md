@@ -226,3 +226,22 @@ PS4.13: the directed row reproduces all three register cases on PRE in both mode
 The extended battery exposed and fixed a transition race between clearing the AOF-active flag and the snapshot coordinator reaching Idle. An initial directory-error cleanup bug and an incorrect new SAVE-error status assertion were corrected before the complete matrix was rerun. Existing, separately observed telemetry difference outside the three PS4.13 register cases: a failed synchronous SAVE sets TomoKV's `rdb_last_bgsave_status=err` and does not count an RDB save attempt; Redis retains its previous background-save status and increments its save-attempt count. This lane preserves the existing tests/psfix.py policy; the directed evidence records both INFO results and asserts only the exact error reply for this additional probe. No claim that all INFO fields are Redis-identical is made.
 
 PS4.13 complete gate evidence: `docs/persistfix2/{pre,post}-commands/`; every oracle leg passes, every PRE target leg fails, every POST target leg passes. Cumulative DQ=+3 / DF=+3.
+
+
+PS4.15 coverage audit: all previously fixed listed findings already have gate coverage. The missing D8 policy is now covered and fixed. A real file-size limit is lowered to the current increment boundary after an acknowledged write reaches the file, so the next write receives deterministic EFBIG without a short-write/ENOSPC ambiguity. Both fsync policies (`no`, `everysec`), modes, engines, normal/reorder dispatch, and armed fused reads are exercised. The row requires observed `aof_last_write_status=err`, exact oracle MISCONF replies, continued reads, no rejected mutations, abort of prequeued writes with WATCH cleanup, and completion of a read-only transaction. PRE fails; all POST/oracle legs pass. A separate binary with only the post-error admission refusal removed fails every target leg, while all its oracle legs pass. Control source/binary exist only under build/; it is never a shipping arm. See `docs/persistfix2/{pre,post,control}-errors/` and `control-d8.json`.
+
+The errno occupies existing AofManager alignment bytes. The ordinary and reorder dispatch paths share the same cold refusal; the failed-state flag is the added per-operation test. Existing `always` policy exit behavior is retained. Native writer failure remains terminal until restart; automatic retry after storage recovery is not added by this test-gap fix.
+
+| Finding | Existing source coverage before this lane | New coverage required |
+|---|---|---|
+| PS4.1 | job_aof: aoffix2 snapshot, both modes/engines | none |
+| PS4.2 | job_aof: aoffix2 filename, both modes/engines | none |
+| PS4.3 | job_aof: aoffix2 large and large_placed, fused/both engines | none |
+| PS4.4 | job_aof: aoffix2 error, always policy, both modes/engines | D8 no/everysec refusal row |
+| PS4.5 | job_aof: tickets, exec_tickets, resurrection, both modes/engines | none |
+| PS4.7 | job_aof: off-writer acknowledgement, everysec/always, both modes/engines | none |
+| PS4.8 | job_aof: rewrite_fail2, both modes/engines | none |
+| PS4.9 | job_aof: manifest_missing, both modes/engines | none |
+| PS4.10 | job_snapshot: savefix acknowledged-write recovery, command/SIGTERM, both modes/engines | none |
+
+Final additions: **DQ=+4, DF=+4**, all four collect_job lines precede the quick-tier exit. Maintainer-owned counts should become **EXPECT_QUICK=772** (768+4), **EXPECT_FULL=789** (785+4). Neither constant was edited. The explicit label fixture contains the four reviewed additions and matches all 789 source declarations, with no missing/extra labels. Its raw checker correctly refuses the still-785 constant; the prospective in-memory 789 check passes. Evidence: `label-inventory.json`, `label-fixture-check.log`.

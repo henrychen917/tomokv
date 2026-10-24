@@ -3497,6 +3497,12 @@ private:
                 __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
+            if (__builtin_expect(srv_->aof().failed(), false) && srv_->aof().deny_command(*op)) {
+                multi_mark_queue_error(conn);
+                conn.advance_parse(consumed);
+                finish_prebuilt(c, *op);
+                continue;
+            }
             if constexpr (Fused) {
                 // This must follow the per-frame FLIP gate above: demotion itself publishes owner
                 // Tasks. Non-point routes may touch any key, so move every unresolved local read
