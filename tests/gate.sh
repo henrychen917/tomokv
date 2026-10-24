@@ -1119,7 +1119,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
+              atomfix5_watch core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
@@ -1598,6 +1598,15 @@ job_exbatch_live(){
     fi
     stop
   done
+}
+
+job_atomfix5_watch(){
+  local label="atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+  row_begin "$label"
+  py tests/atomfix5.py --case watch --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/watch" >"$TMPDIR/watch.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/watch.log"
 }
 
 job_clientfix(){
@@ -4729,6 +4738,8 @@ collect_job perfex_units
 collect_job perfex_live
 collect_job ntnew4_live
 collect_job clientfix
+# AT4.13: one row before the quick exit, DQ=+1 / DF=+1.
+collect_job atomfix5_watch
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
 collect_job flipfix_units
