@@ -306,6 +306,14 @@
       "note": "Scheduler/collector interface: all correctness consumer jobs selected; measurement jobs reserved to maintainer."
     },
     {
+      "file": "tests/gates_test.py",
+      "jobs": [
+        "job_abba_selftest"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/knobs.py",
       "jobs": [
         "job_aof",

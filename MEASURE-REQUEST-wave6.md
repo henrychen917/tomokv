@@ -276,6 +276,14 @@ fixture deadlines. These failed attempts are retained, not treated as passes.
 The complete copy now has every required input; its retry gets 24 load CPUs,
 and standalone `gates_test.py` runs serially on the allocation with port 26897.
 
+The final persistence mode hooks exposed one more selftest integration issue:
+`PersistfixWiring` copied the AOF job but omitted its new `txn_proof_boot`
+dependency. It now copies the real selector, checks that each mode chooses the
+right boot stub, and retains all stopped/reaped-slot and exact driver-argument
+assertions in both engines. The focused check passes; a full standalone suite
+and complete ABBA job are queued again. The failed final attempts remain
+separate from their repaired receipts.
+
 **NOT RUN by design:** throughput/load-generator jobs `efficiency`,
 `flip_saturated`, `atomic_floor`, the full `tests/gate.sh iteration`, the null
 and landing measurements, and the full-gate-only tailgen load-generator row
@@ -283,7 +291,7 @@ and landing measurements, and the full-gate-only tailgen load-generator row
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
 
-The source sweep maps 60 touched test files and 43 changed protocol literals to
+The source sweep maps 61 touched test files and 43 changed protocol literals to
 their actual gate consumers, including variable-selected dispatch batteries,
 linked netcmd/AT15/shutdown units, and the lazy-allocation shim. See
 `docs/wave6/coverage.json`. Historical `execfix_unit.cc` has no Makefile target
