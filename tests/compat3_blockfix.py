@@ -69,10 +69,59 @@ def registry(c):
             w.close()
 
 
+def mapping(reply):
+    return dict(zip(reply[::2], reply[1::2]))
+
+
+def mkstream(c):
+    observations = {}
+    # Each axis alone, both disabled, and the default combination. Small byte
+    # limits force rollover on both codecs without assuming equal packed sizes.
+    for axis, limits in (("entries", (0, 1)), ("bytes", (1, 0)),
+                         ("off", (0, 0)), ("default", (4096, 100))):
+        memory = []
+        for tight in (False, True):
+            byte_limit, entry_limit = limits if tight else (0, 100)
+            equal(c.cmd("CONFIG", "SET", "stream-node-max-bytes", byte_limit), b"OK", "byte limit")
+            equal(c.cmd("CONFIG", "SET", "stream-node-max-entries", entry_limit), b"OK", "entry limit")
+            c.cmd("DEL", "plain", "grouped")
+            equal(c.cmd("XGROUP", "CREATE", "grouped", "g", "0", "MKSTREAM"), b"OK", "MKSTREAM")
+            equal(c.cmd("XLEN", "grouped"), 0, "empty grouped stream")
+            for i in range(1, 251):
+                for key in ("plain", "grouped"):
+                    equal(c.cmd("XADD", key, f"{i}-0", "f", "value"), f"{i}-0".encode(), "append")
+            equal(c.cmd("XRANGE", "grouped", "-", "+"), c.cmd("XRANGE", "plain", "-", "+"), "records")
+            memory.append([c.cmd("MEMORY", "USAGE", key) for key in ("plain", "grouped")])
+            equal(c.cmd("XREADGROUP", "GROUP", "g", "c", "COUNT", 1, "STREAMS", "grouped", ">"),
+                  [[b"grouped", [[b"1-0", [b"f", b"value"]]]]], "group survived append")
+            equal(c.cmd("XACK", "grouped", "g", "1-0"), 1, "PEL survived append")
+        if axis in ("entries", "bytes"):
+            observations[axis] = [memory[1][i] > memory[0][i] for i in (0, 1)]
+            equal(observations[axis], [True, True], axis + " rollover allocates nodes on both paths")
+        else:
+            # Allocator size-class slack can make one large packed node larger
+            # than several smaller ones. Only the forced-rollover axes above
+            # have a portable memory-direction assertion; records stay exact.
+            observations[axis] = c.cmd("XLEN", "grouped")
+    c.cmd("CONFIG", "SET", "stream-node-max-bytes", 4096)
+    c.cmd("CONFIG", "SET", "stream-node-max-entries", 100)
+    # LASTID advances the cursor without increasing entries-read. The next
+    # actual delivery increments the known progress counter once (Redis 7.4).
+    c.cmd("XGROUP", "CREATE", "progress", "g", "0", "MKSTREAM")
+    for i in range(1, 4):
+        c.cmd("XADD", "progress", f"{i}-0", "f", "v")
+    c.cmd("XREADGROUP", "GROUP", "g", "c", "COUNT", 1, "STREAMS", "progress", ">")
+    c.cmd("XCLAIM", "progress", "g", "c", 0, "1-0", "JUSTID", "LASTID", "2-0")
+    c.cmd("XREADGROUP", "GROUP", "g", "c", "NOACK", "STREAMS", "progress", ">")
+    group = mapping(c.cmd("XINFO", "GROUPS", "progress")[0])
+    equal((group[b"entries-read"], group[b"lag"]), (2, 1), "LASTID is not a delivery")
+    observations["progress"] = [group[b"entries-read"], group[b"lag"]]
+    return observations
+
 
 def probe(c, case):
-    return registry(c)
+    return {"registry": registry, "mkstream": mkstream}[case](c)
 
 
 if __name__ == "__main__":
-    run(probe, ("registry",))
+    run(probe, ("mkstream", "registry"))

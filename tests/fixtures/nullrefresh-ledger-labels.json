@@ -788,7 +788,8 @@
     "dispatchfix EX4.4 advertised children",
     "dispatchfix CC4.15 ACL subcommand grants",
     "dispatchfix EX4.17 uniform routing and legacy recovery",
-    "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+    "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+    "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
