@@ -4,17 +4,28 @@ import ast,json,re,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];tests=ROOT/'tests';gate=(tests/'gate.sh').read_text()
 blocks={m[1]:m[2] for m in re.finditer(r'^([A-Za-z0-9_]+)\(\)\{\n(.*?)(?=^}\n)',gate,re.M|re.S)}
-files={p.name:p for p in tests.glob('*.py')};deps={}
-for name,p in files.items():
- try:t=ast.parse(p.read_text())
- except (SyntaxError,UnicodeDecodeError):continue
- deps[name]={x+'.py' for n in ast.walk(t) for x in ([n.module.split('.')[0]] if isinstance(n,ast.ImportFrom) and n.module else [a.name.split('.')[0] for a in n.names] if isinstance(n,ast.Import) else []) if x+'.py' in files}
+files={p.name:p for p in tests.glob('*.py')};deps={};catalog={}
+for base in (tests,ROOT/'tools'):
+ for p in base.rglob('*'):
+  if p.is_file() and p.suffix in ('.py','.cc','.inc','.sh'):
+   catalog.setdefault(p.name,[]).append(p)
+for name,paths in catalog.items():
+ deps[name]=set()
+ for p in paths:
+  body=p.read_text(errors='replace')
+  # Include explicit subprocess scripts, with_name fixtures and C++ check includes,
+  # in addition to imports. Same-basename files are conservatively unioned.
+  deps[name].update(x for x in re.findall(r'\b([A-Za-z0-9_]+\.(?:py|cc|inc|sh))\b',body) if x in catalog and x not in (name,'gate.sh'))
+  if p.suffix!='.py':continue
+  try:t=ast.parse(body)
+  except SyntaxError:continue
+  deps[name].update(x+'.py' for n in ast.walk(t) for x in ([n.module.split('.')[0]] if isinstance(n,ast.ImportFrom) and n.module else [a.name.split('.')[0] for a in n.names] if isinstance(n,ast.Import) else []) if x+'.py' in catalog)
 def closure(names):
  out=set(names);todo=list(names)
  while todo:
   for n in deps.get(todo.pop(),set())-out:out.add(n);todo.append(n)
  return out
-jobfiles={n:closure(set(re.findall(r'tests/([A-Za-z0-9_]+\.(?:py|cc|sh|inc))',b))) for n,b in blocks.items()}
+jobfiles={n:closure(set(re.findall(r'(?:tests|tools)/([A-Za-z0-9_]+\.(?:py|cc|sh|inc))',b))) for n,b in blocks.items()}
 # Shell variable-driven battery lists and linked C++ unit entry points are not
 # literal tests/foo.py invocations. Resolve these explicitly, then propagate
 # helper calls. Keep these mappings reviewable rather than claiming an AST
@@ -38,15 +49,26 @@ units={
  'netcmd-config-unit':['netcmd_config_unit.cc'],
  'ktls-keyupdate':['ktls_keyupdate.cc'], 'ktls-keyupdate-unit':['ktls_keyupdate_unit.cc'],
 }
+# Resolve directly declared Makefile unit sources too. Alias-only and generated
+# entry points above remain explicit so their interpretation can be reviewed.
+for target_line,sources in re.findall(r'^([^#\n]+):([^\n]*)', (ROOT/'Makefile').read_text(),re.M):
+ targets=re.findall(r'(?:build|\$\(BUILD_ROOT\))/([A-Za-z0-9_-]+)(?![\w./])',target_line)
+ source_names=re.findall(r'tests/([A-Za-z0-9_]+\.(?:cc|inc))',sources)
+ source_names += [stem+'.cc' for stem in re.findall(r'tests/([A-Za-z0-9_]+)\.o\b',sources) if stem+'.cc' in catalog]
+ for target in targets:
+  if source_names:units.setdefault(target,[]).extend(source_names)
 for name,body in blocks.items():
  for target,sources in units.items():
-  if target in body: jobfiles[name].update(sources)
+  if target in body: jobfiles[name].update(closure(sources))
 jobfiles['job_differ'] = closure({'differ.py','_differ_ccfix.py'})
 jobfiles['job_differ'].add('mode_equivalence.py')
 for battery in ('dispatch_arity','dispatch_errors','dispatch_children','acl_subcommands','router_uniform'):
  jobfiles['job_'+battery].update(closure({battery+'.py'}))
 for job in ('job_serverfix_slowlog','job_serverfix_acllog'):
  jobfiles[job].add('serverfix_alloc.cc')
+for name in jobfiles:
+ if name.startswith('job_iofix_'):jobfiles[name].update(closure({name.removeprefix('job_')+'.py','_iofix.py'}))
+jobfiles['job_compat3'].update(closure({p.name for p in tests.glob('compat3_*.py')}))
 for _ in range(len(blocks)):
  changed=False
  for name,body in blocks.items():
@@ -98,5 +120,5 @@ for token in sorted(tokens):
   matching=sorted({j for f in hits for j,fs in jobfiles.items() if Path(f).name in fs})
   standalone=[f for f in hits if not any(Path(f).name in fs for fs in jobfiles.values())]
   sweep.append(dict(token=token,tests=hits,jobs=matching,
-                    standalone_without_gate_job=standalone))
+                    not_resolved_by_static_scan=standalone))
 out=ROOT/'docs/wave6/coverage.json';out.write_text(json.dumps(dict(touched=rows,protocol_sweep=sweep),indent=2)+'\n');print('touched',len(rows),'protocol tokens',len(sweep))

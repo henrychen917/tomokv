@@ -291,14 +291,18 @@ and landing measurements, and the full-gate-only tailgen load-generator row
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
 
-The source sweep maps 61 touched test files and 43 changed protocol literals to
-their actual gate consumers, including variable-selected dispatch batteries,
-linked netcmd/AT15/shutdown units, and the lazy-allocation shim. See
-`docs/wave6/coverage.json`. Historical `execfix_unit.cc` has no Makefile target
-or gate job. `doubles.py` and `replyschema.py` also have no gate-job entry point;
-those standalone programs are **NOT RUN**. Matching gate consumers and standard
-differential families run through the gate interface. Their absence is not
-counted as a passing standalone check. The attempted `tailgen_build` selection
+The source sweep traces 61 touched test files and 43 changed protocol literals
+through script references, imports, declared unit objects and gate helpers,
+including variable-selected dispatch batteries, linked netcmd/AT15/shutdown
+checks, and the lazy-allocation shim. See `docs/wave6/coverage.json`. This is a
+conservative source-reference map, not per-file execution instrumentation.
+The entire runnable correctness-job inventory is selected independently of it.
+Historical `execfix_unit.cc` has no Makefile target or gate job. The additional
+standalone matches (including `doubles.py`, `replyschema.py` and historical lane
+audit programs) are listed explicitly as **NOT RUN as standalone programs** in
+`docs/wave6/standalone-sweep.json`. Matching gate consumers and standard
+differential families run through the gate interface; no passing standalone
+execution is inferred from them. The attempted `tailgen_build` selection
 was explicitly refused by `GATE_ONLY_JOBS` (exit 2: build-only prerequisite,
 select its consuming correctness job). Its only consumer is the full-gate-only
 live load-generator row reserved to the maintainer. Thus the job is **NOT RUN**;

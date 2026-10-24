@@ -35,8 +35,18 @@
     {
       "file": "tests/acl.py",
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_subcommands",
+        "job_aof",
         "job_auth",
-        "job_release_batteries"
+        "job_body",
+        "job_differ",
+        "job_fused",
+        "job_multidb",
+        "job_release_batteries",
+        "job_serverfix_acllog"
       ],
       "standalone_audit": false,
       "note": ""
@@ -52,6 +62,7 @@
     {
       "file": "tests/aof_rewrite_matrix.sh",
       "jobs": [
+        "job_abba_selftest",
         "job_aof",
         "job_body"
       ],
@@ -61,6 +72,7 @@
     {
       "file": "tests/aof_rewrite_trigger_matrix.sh",
       "jobs": [
+        "job_abba_selftest",
         "job_aof",
         "job_body"
       ],
@@ -86,7 +98,8 @@
         "job_production_units",
         "job_txn_group_fused",
         "job_txn_group_split",
-        "job_txnorder"
+        "job_txnorder",
+        "job_txnorder2"
       ],
       "standalone_audit": false,
       "note": ""
@@ -102,13 +115,20 @@
     {
       "file": "tests/datafix1_common.py",
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
         "job_datafix1_bitfield",
         "job_datafix1_geo",
         "job_datafix1_hexpire",
         "job_datafix1_lists",
         "job_datafix1_locale",
         "job_datafix1_randscan",
-        "job_datafix1_spop"
+        "job_datafix1_spop",
+        "job_differ",
+        "job_fused"
       ],
       "standalone_audit": false,
       "note": ""
@@ -140,7 +160,14 @@
     {
       "file": "tests/datafix1_locale.py",
       "jobs": [
-        "job_datafix1_locale"
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
+        "job_datafix1_locale",
+        "job_differ",
+        "job_fused"
       ],
       "standalone_audit": false,
       "note": ""
@@ -172,7 +199,13 @@
     {
       "file": "tests/differ.py",
       "jobs": [
-        "job_differ"
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
+        "job_differ",
+        "job_fused"
       ],
       "standalone_audit": false,
       "note": ""
@@ -325,6 +358,8 @@
     {
       "file": "tests/mode_equivalence.py",
       "jobs": [
+        "job_abba_selftest",
+        "job_body",
         "job_differ"
       ],
       "standalone_audit": false,
@@ -351,7 +386,8 @@
     {
       "file": "tests/notify.py",
       "jobs": [
-        "job_notify"
+        "job_notify",
+        "job_serverfix_config"
       ],
       "standalone_audit": false,
       "note": ""
@@ -508,6 +544,8 @@
     {
       "file": "tests/txnorder_episodes.cc",
       "jobs": [
+        "job_body",
+        "job_production_units",
         "job_txnorder2",
         "job_txnorder_wake"
       ],
@@ -517,6 +555,8 @@
     {
       "file": "tests/txnorder_watch_unit.cc",
       "jobs": [
+        "job_body",
+        "job_production_units",
         "job_txnorder2",
         "job_txnorder_wake"
       ],
@@ -547,13 +587,16 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_auth",
         "job_body",
         "job_debug",
+        "job_differ",
         "job_fused",
         "job_notify"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "'. Try PUBSUB HELP.",
@@ -566,7 +609,7 @@
         "job_body",
         "job_notify"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "CLIENT",
@@ -684,6 +727,7 @@
         "job_datafix1_spop",
         "job_dbdefault",
         "job_debug",
+        "job_dependencies",
         "job_differ",
         "job_dispatch_arity",
         "job_dispatch_children",
@@ -734,6 +778,7 @@
         "job_racefix_counters",
         "job_racefix_tsan_build",
         "job_readonly",
+        "job_ready",
         "job_recover",
         "job_release",
         "job_release_batteries",
@@ -777,9 +822,8 @@
         "job_wb_rule_units",
         "job_wbland_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_wake.py",
-        "tests/storesize_unit.cc",
         "tests/aclkeys_test.py",
         "tests/respresume_flip.py",
         "tests/connreset_repro.py",
@@ -790,12 +834,9 @@
         "tests/climon_128.py",
         "tests/clientfix_widths.py",
         "tests/barrier.py",
-        "tests/netcap_unit.cc",
         "tests/flakeaudit_test.py",
         "tests/replyschema.py",
-        "tests/aclkeys_wake_unit.cc",
-        "tests/txnfix_audit/resp.py",
-        "tests/txnfix_audit/t14_exec_window.py"
+        "tests/aclkeys_wake_unit.cc"
       ]
     },
     {
@@ -812,17 +853,20 @@
         "tests/knobs.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
         "job_aof",
         "job_auth",
         "job_body",
         "job_differ",
+        "job_fused",
         "job_netcmd_units",
         "job_notify",
         "job_production_units",
         "job_serverfix_config"
       ],
-      "standalone_without_gate_job": [
-        "tests/netcap_unit.cc",
+      "not_resolved_by_static_scan": [
         "tests/differ_test.py"
       ]
     },
@@ -837,7 +881,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR Unknown option or number of arguments for CONFIG SET - '",
@@ -851,7 +895,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR need numeric radius",
@@ -865,7 +909,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/doubles.py"
       ]
     },
@@ -882,14 +926,14 @@
         "job_body",
         "job_debug",
         "job_fused",
+        "job_netcmd_units",
         "job_production_units",
         "job_txn_group_fused",
         "job_txn_group_split",
-        "job_txnorder"
+        "job_txnorder",
+        "job_txnorder2"
       ],
-      "standalone_without_gate_job": [
-        "tests/hexpire_oom_checks.inc"
-      ]
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR parameter is immutable at runtime",
@@ -903,7 +947,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR radius cannot be negative",
@@ -911,7 +955,7 @@
         "tests/doubles.py"
       ],
       "jobs": [],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/doubles.py"
       ]
     },
@@ -929,7 +973,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/doubles.py"
       ]
     },
@@ -945,7 +989,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR timeout is out of range",
@@ -959,7 +1003,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/doubles.py"
       ]
     },
@@ -977,13 +1021,16 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_auth",
         "job_body",
         "job_debug",
+        "job_differ",
         "job_fused",
         "job_notify"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR unknown subcommand or wrong number of arguments for '",
@@ -996,11 +1043,15 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_auth",
         "job_body",
+        "job_differ",
+        "job_fused",
         "job_notify"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_wake_unit.cc"
       ]
     },
@@ -1010,7 +1061,7 @@
         "tests/doubles.py"
       ],
       "jobs": [],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/doubles.py"
       ]
     },
@@ -1037,7 +1088,7 @@
         "job_dump_restore",
         "job_fused"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_wake_unit.cc"
       ]
     },
@@ -1056,7 +1107,7 @@
         "job_fused",
         "job_production_units"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR value is out of range, must be positive",
@@ -1070,7 +1121,7 @@
         "job_body",
         "job_fused"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "ERR wrong number of arguments for '",
@@ -1093,15 +1144,19 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_atomic_units",
         "job_auth",
         "job_body",
+        "job_differ",
         "job_fused",
         "job_notify",
+        "job_production_units",
         "job_respresume"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/cmdgap2.py",
-        "tests/storesize_unit.cc",
         "tests/respresume_flip.py"
       ]
     },
@@ -1122,10 +1177,12 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
         "job_aof",
         "job_atomic_units",
         "job_body",
         "job_clientfix",
+        "job_compat3",
         "job_datafix1_bitfield",
         "job_datafix1_geo",
         "job_datafix1_hexpire",
@@ -1137,17 +1194,18 @@
         "job_differ",
         "job_execfair",
         "job_fused",
+        "job_notify",
         "job_production_units",
         "job_respresume",
         "job_script_bounds",
         "job_scriptfix",
         "job_txn_group_fused",
         "job_txn_group_split",
-        "job_txnorder"
+        "job_txnorder",
+        "job_txnorder2"
       ],
-      "standalone_without_gate_job": [
-        "tests/replyschema.py",
-        "tests/compat3_functions.py"
+      "not_resolved_by_static_scan": [
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1176,6 +1234,8 @@
         "feature_split_job",
         "job_abba_selftest",
         "job_acl_subcommands",
+        "job_aof",
+        "job_atomic_units",
         "job_auth",
         "job_body",
         "job_debug",
@@ -1183,11 +1243,11 @@
         "job_dispatch_arity",
         "job_dispatch_errors",
         "job_fused",
-        "job_notify"
+        "job_notify",
+        "job_production_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_unit.cc",
-        "tests/mdbstamp_checks.cc",
         "tests/replyschema.py"
       ]
     },
@@ -1200,7 +1260,7 @@
       "jobs": [
         "job_dispatch_children"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1381,12 +1441,11 @@
         "job_wb_rule_units",
         "job_wbland_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/cmdgap2.py",
         "tests/cmdmeta_test.py",
         "tests/aclkeys_test.py",
         "tests/respresume_flip.py",
-        "tests/matrix.sh",
         "tests/lottery_test_driver.py",
         "tests/watchlive_gate.sh",
         "tests/redisgap.py",
@@ -1395,8 +1454,7 @@
         "tests/barrier.py",
         "tests/watchlive.py",
         "tests/flakeaudit_test.py",
-        "tests/replyschema.py",
-        "tests/compat3_functions.py"
+        "tests/replyschema.py"
       ]
     },
     {
@@ -1597,7 +1655,7 @@
         "job_wb_rule_units",
         "job_wbland_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/lottery_attempt.py",
         "tests/dumpttl.py",
         "tests/benchfeat.py",
@@ -1610,7 +1668,6 @@
         "tests/cd13b_oracle.sh",
         "tests/replyschema.py",
         "tests/differ_fanout_test.py",
-        "tests/compat3_functions.py",
         "tests/differ_test.py"
       ]
     },
@@ -1627,6 +1684,8 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_body",
         "job_clientfix",
         "job_datafix1_bitfield",
@@ -1638,10 +1697,11 @@
         "job_datafix1_spop",
         "job_differ",
         "job_execfair",
+        "job_fused",
         "job_notify",
         "job_respresume"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1697,36 +1757,139 @@
         "feature_armed_job",
         "feature_split_job",
         "job_abba_selftest",
+        "job_acl_metadata",
+        "job_acl_recheck",
         "job_acl_subcommands",
         "job_aclfix",
         "job_aof",
+        "job_aof_frame",
         "job_aoforder",
+        "job_asan",
+        "job_asan_batteries",
+        "job_atomic_batteries",
+        "job_atomic_floor",
         "job_atomic_units",
         "job_auth",
+        "job_authfix",
         "job_body",
+        "job_boot_grammar",
+        "job_bplus",
+        "job_bugs5",
+        "job_clientfix",
         "job_climonfix",
+        "job_cmd_metadata",
+        "job_compat2",
+        "job_compat3",
+        "job_config_unit",
+        "job_core_tsan_build",
+        "job_core_units",
+        "job_datafix1_bitfield",
+        "job_datafix1_geo",
+        "job_datafix1_hexpire",
+        "job_datafix1_lists",
+        "job_datafix1_locale",
+        "job_datafix1_randscan",
+        "job_datafix1_spop",
+        "job_dbdefault",
+        "job_debug",
         "job_differ",
+        "job_dispatch_arity",
+        "job_dispatch_children",
+        "job_dispatch_errors",
         "job_dump_restore",
+        "job_efficiency",
+        "job_exbatch_live",
+        "job_exbatch_units",
+        "job_execfair",
+        "job_feature_cell",
+        "job_filter_unit",
+        "job_finalize",
+        "job_flip",
+        "job_flip_saturated",
+        "job_flip_unit",
+        "job_fliplisten",
         "job_fused",
+        "job_globcase",
         "job_hexpread",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep",
+        "job_lb_stationary",
+        "job_lbplanner_units",
+        "job_moverfix",
+        "job_multidb",
+        "job_netcap",
         "job_netcmd_units",
+        "job_netfix_config",
+        "job_netfix_idle_buffers",
+        "job_netfix_query_stats",
+        "job_netfix_tls",
+        "job_netfix_unix",
+        "job_netio",
+        "job_notify",
+        "job_notify_aof",
+        "job_notify_order",
+        "job_notifycompat",
+        "job_ntfix_input",
+        "job_ntnew4_live",
+        "job_perfex_live",
+        "job_perfex_units",
+        "job_perfio_stream",
+        "job_persistfix_units",
         "job_production_units",
+        "job_racefix_climon",
+        "job_racefix_counters",
+        "job_racefix_tsan_build",
+        "job_readonly",
+        "job_recover",
+        "job_release",
         "job_release_batteries",
+        "job_reorder_engagement",
+        "job_reorder_identity",
+        "job_reorder_sync",
+        "job_replyoff",
+        "job_respcompat",
         "job_respresume",
+        "job_ring_unit",
+        "job_rlcache",
+        "job_rldbg",
         "job_router_uniform",
-        "job_snapshot"
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_serverfix_acllog",
+        "job_serverfix_config",
+        "job_serverfix_hello",
+        "job_serverfix_hll",
+        "job_serverfix_lines",
+        "job_serverfix_scalar",
+        "job_serverfix_slowlog",
+        "job_serverfix_waitaof",
+        "job_snapshot",
+        "job_sort",
+        "job_splitlocal_units",
+        "job_storage_units",
+        "job_tailgen_build",
+        "job_tls",
+        "job_trackfix_accounting",
+        "job_trackfix_order",
+        "job_tracking_redirect",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2",
+        "job_txnorder_wake",
+        "job_wait_units",
+        "job_waits_tsan_build",
+        "job_wb_policy",
+        "job_wb_rule_units",
+        "job_wbland_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/lottery_attempt.py",
-        "tests/edgetime_persist.sh",
         "tests/climonfix_artifacts.py",
         "tests/shutsave_test.py",
-        "tests/abba_experiments.py",
         "tests/flush_capture.py",
         "tests/gate.sh",
-        "tests/iofix_signal.py",
-        "tests/hexpire_persist.sh",
-        "tests/notify_order_checks.inc",
         "tests/psfix.py",
         "tests/shutsave_unit.cc",
         "tests/ccfix_instr.cc",
@@ -1759,6 +1922,7 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
         "job_aof",
         "job_aof_frame",
         "job_body",
@@ -1773,12 +1937,13 @@
         "job_debug",
         "job_differ",
         "job_execfair",
+        "job_fused",
         "job_notify",
         "job_script_bounds",
         "job_scriptfix",
         "job_txnorder"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/mutants.py",
         "tests/gate.sh",
         "tests/replyschema.py"
@@ -1796,6 +1961,8 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_body",
         "job_datafix1_randscan",
         "job_differ",
@@ -1803,7 +1970,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1820,7 +1987,7 @@
         "job_body",
         "job_serverfix_waitaof"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_wake_unit.cc"
       ]
     },
@@ -1835,12 +2002,18 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_subcommands",
+        "job_aof",
         "job_auth",
         "job_body",
         "job_differ",
-        "job_release_batteries"
+        "job_fused",
+        "job_multidb",
+        "job_release_batteries",
+        "job_serverfix_acllog"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1857,12 +2030,14 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_body",
         "job_differ",
         "job_fused",
         "job_serverfix_waitaof"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_unit.cc",
         "tests/gate.sh",
         "tests/replyschema.py"
@@ -1880,13 +2055,19 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_acl_subcommands",
+        "job_aof",
         "job_auth",
         "job_body",
         "job_differ",
+        "job_fused",
+        "job_multidb",
         "job_release_batteries",
-        "job_respresume"
+        "job_respresume",
+        "job_serverfix_acllog"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1911,7 +2092,10 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
         "job_acl_subcommands",
+        "job_aof",
+        "job_atomic_units",
         "job_body",
         "job_differ",
         "job_dispatch_arity",
@@ -1923,9 +2107,8 @@
         "job_perfio_stream",
         "job_production_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/aclkeys_unit.cc",
-        "tests/mdbstamp_checks.cc",
         "tests/gate.sh",
         "tests/replyschema.py"
       ]
@@ -1943,6 +2126,8 @@
       "jobs": [
         "feature_armed_job",
         "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_body",
         "job_datafix1_randscan",
         "job_differ",
@@ -1950,7 +2135,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": [
+      "not_resolved_by_static_scan": [
         "tests/replyschema.py"
       ]
     },
@@ -1963,7 +2148,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "argument must be 'yes' or 'no'",
@@ -1976,7 +2161,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "argument must be a memory value",
@@ -1986,11 +2171,11 @@
       ],
       "jobs": [
         "job_aof",
-        "job_body"
+        "job_body",
+        "job_netcmd_units",
+        "job_production_units"
       ],
-      "standalone_without_gate_job": [
-        "tests/netcap_unit.cc"
-      ]
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "argument must be between ",
@@ -2007,9 +2192,7 @@
         "job_netcmd_units",
         "job_production_units"
       ],
-      "standalone_without_gate_job": [
-        "tests/netcap_unit.cc"
-      ]
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "atomic_group_wounds",
@@ -2019,12 +2202,18 @@
         "tests/txngroup.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
         "job_differ",
+        "job_fused",
         "job_moverfix",
         "job_txn_group_fused",
         "job_txn_group_split"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "atomic_txn_fast_polls",
@@ -2034,7 +2223,7 @@
       "jobs": [
         "job_execfair"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "atomic_txn_order_violations",
@@ -2047,6 +2236,10 @@
         "tests/txngroup.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
         "job_body",
         "job_debug",
         "job_differ",
@@ -2058,7 +2251,7 @@
         "job_txnorder",
         "job_txnorder2"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     },
     {
       "token": "atomic_txn_readonly",
@@ -2066,9 +2259,15 @@
         "tests/differ.py"
       ],
       "jobs": [
-        "job_differ"
+        "feature_armed_job",
+        "feature_split_job",
+        "job_abba_selftest",
+        "job_aof",
+        "job_body",
+        "job_differ",
+        "job_fused"
       ],
-      "standalone_without_gate_job": []
+      "not_resolved_by_static_scan": []
     }
   ]
 }
