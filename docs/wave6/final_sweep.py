@@ -28,8 +28,10 @@ jobs = list(dict.fromkeys(manifest['lanes'] + manifest['remaining']))
 assert not {'efficiency', 'flip_saturated', 'atomic_floor'} & set(jobs)
 result = subprocess.run(['python3', 'docs/wave6/run_jobs.py', 'broad-final', *jobs])
 print('Final broad jobs exit:', result.returncode, flush=True)
+broad_exit = result.returncode
 # The subsequent sequence records failures independently and completes the
 # differential, repeated txnorder, both-mode and quiet correctness coverage.
 result = subprocess.run(['python3', 'docs/wave6/finish_jobs.py'])
 print('Final remaining jobs exit:', result.returncode, flush=True)
 assert hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest() == digest
+raise SystemExit(int(bool(broad_exit or result.returncode)))

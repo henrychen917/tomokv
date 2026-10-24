@@ -16,17 +16,17 @@ os.chdir(ROOT)
 OUT = ROOT / 'docs/wave6/correctness'
 BUILD = ROOT / 'build/wave6'
 manifest = json.loads((ROOT / 'docs/wave6/job-manifest.json').read_text())
-while 'exit' not in json.loads((OUT / 'broad-1/receipt.json').read_text()):
-    time.sleep(5)
+results = []
 
 
 def job(name, jobs, *options):
     command = ['python3', 'docs/wave6/run_jobs.py', name, *jobs, *options]
     result = subprocess.run(command)
     print(name, result.returncode, flush=True)
+    results.append(dict(name=name, exit=result.returncode))
 
 
-job('integration-fixtures', ['reorder_identity', 'atomic_units'])
+job('integration-fixtures-final', ['reorder_identity', 'atomic_units'])
 job('tailgen-build', ['tailgen_build'])
 
 # Keep scheduler controls away from concurrent builds and servers. The first
@@ -37,10 +37,11 @@ start = time.time()
 with (BUILD / 'gates-test-quiet.log').open('w') as log:
     result = subprocess.run(['python3', 'tests/gates_test.py'], env=env,
                             stdout=log, stderr=subprocess.STDOUT)
-(OUT / 'gates-test.json').write_text(json.dumps(dict(
+(OUT / 'gates-test-final.json').write_text(json.dumps(dict(
     command=['python3', 'tests/gates_test.py'], affinity=sorted(os.sched_getaffinity(0)),
     port=26897, start=start, end=time.time(), exit=result.returncode,
     log=str(BUILD / 'gates-test-quiet.log')), indent=2) + '\n')
+results.append(dict(name='gates-test-final', exit=result.returncode))
 
 copy = BUILD / 'selftest-source'
 for name in ('tests', 'tools', '.githooks', 'src'):
@@ -63,7 +64,7 @@ assert adjusted != gate
     copied_sha256=hashlib.sha256(adjusted.encode()).hexdigest(),
     diff=''.join(difflib.unified_diff(gate.splitlines(True), adjusted.splitlines(True),
                                     fromfile='protected gate', tofile='throwaway gate'))), indent=2) + '\n')
-job('abba-selftest-complete', ['abba_selftest'], '--selftest', '--root', str(copy))
+job('abba-selftest-final', ['abba_selftest'], '--selftest', '--root', str(copy))
 
 for engine in ('uring', 'epoll'):
     job('differ-' + engine, manifest['differential'], '--engine', engine)
@@ -84,3 +85,5 @@ job('perfio-quiet', ['perfio_stream'])
 job('atomic-split-quiet', ['atomic_batteries'])
 job('atomic-fused-quiet', ['atomic_batteries'], '--fused')
 print('Whole-job sequence complete; inspect all receipts, including failures.', flush=True)
+(OUT / 'sequence-final.json').write_text(json.dumps(results, indent=2) + '\n')
+raise SystemExit(int(any(row['exit'] for row in results)))
