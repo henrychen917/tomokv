@@ -209,6 +209,32 @@ void SnapshotManager::cancel_after_join(Server& server) {
     server.set_shutdown_snapshot_active(false);
 }
 
+SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
+        Server& server, ThreadCtx& writer, Ring& ring, std::string& error) {
+    if (!in_progress()) return StartResult::Started;
+    // Without a running IO owner there is nobody who can retire this capture.
+    if (!writer.ring()) {
+        error = "snapshot IO owner is unavailable";
+        return StartResult::Busy;
+    }
+    fail(epoch(), "snapshot cancelled for final shutdown save");
+    const uint64_t deadline = now_ns() + Server::kShutdownSaveWaitNs;
+    while (in_progress() || server.shutdown_snapshot_holds()) {
+        if (now_ns() >= deadline) {
+            error = "snapshot cancellation timed out";
+            return StartResult::Failed;
+        }
+        writer.progress_fused_executor();
+        if (writer_is(writer.id())) {
+            writer_pass(writer, ring, true);
+            if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, ring);
+        }
+        ring.submit_and_reap();
+        std::this_thread::yield();
+    }
+    return StartResult::Started;
+}
+
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {

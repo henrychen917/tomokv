@@ -1858,7 +1858,10 @@ public:
 
     enum class ShutdownSave : uint8_t { Configured, Save, NoSave };
     SnapshotManager::StartResult shutdown(ShutdownSave save, ThreadCtx* writer, Ring* ring,
-                                          std::string& error);
+                                          std::string& error, bool force = false,
+                                          bool from_signal = false);
+    void set_shutdown_policy(bool interrupt, uint8_t flags);
+    bool abort_signal_shutdown();
     void finish_shutdown();
     uint32_t shutdown_from_cron(ThreadCtx& writer, Ring& ring);
     bool shutdown_snapshot_active() const {
@@ -1880,15 +1883,7 @@ public:
     static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
     // Signal-safe request. The elected IO owns allocation and IO, woken by the signal doorbell.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
-    bool request_signal_shutdown() {
-        if (loading()) return false; // retain the existing interrupted-boot teardown
-        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner
-        uint64_t unset = 0;
-        signal_shutdown_deadline_ns_.compare_exchange_strong(
-            unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
-        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_release);
-        return true;
-    }
+    bool request_signal_shutdown(bool interrupt = false);
     static constexpr uint8_t kSaveConfigured = 1, kSignalShutdown = 2;
     bool save_schedule_armed() const {
         return live_save_armed_.load(std::memory_order_relaxed) & kSaveConfigured;

@@ -84,7 +84,12 @@ def boot(args, name, extra=(), fsize=None):
             # Remove only this invocation's DEBUG hold, allowing owned teardown.
             (data / 'appendonlydir/debug-aof-rewrite-stage').unlink(missing_ok=True)
             if process.poll() is None:
-                process.terminate()
+                try:
+                    cleanup = Conn('127.0.0.1', args.port, timeout=.5)
+                    cleanup.send('SHUTDOWN', 'NOSAVE')
+                    cleanup.close()
+                except OSError:
+                    process.terminate()
                 try:
                     process.wait(timeout=3)
                 except subprocess.TimeoutExpired:
@@ -173,9 +178,144 @@ def lastsave(args):
                 watch.close()
 
 
+def shutdown(args):
+    failures = []
+
+    def check(name, run):
+        try:
+            run()
+        except Exception as error:
+            emit('assertion', name=name, error=str(error))
+            failures.append(f'{name}: {error}')
+
+    def grammar():
+        with boot(args, 'grammar') as (_, conn, _):
+            for words in [('ABORT',), ('ABORT', 'ABORT'), ('ABORT', 'bogus'),
+                          ('SAVE', 'NOSAVE'), ('ABORT', 'SAVE'), ('NOW', 'ABORT'),
+                          ('FORCE', 'ABORT'), ('ABORT', 'NOSAVE'),
+                          ('ABORT', 'ABORT', 'ABORT', 'ABORT', 'ABORT')]:
+                expected = 'ERR No shutdown in progress.' if set(words) == {'ABORT'} else 'ERR syntax error'
+                reply = command(conn, 'SHUTDOWN', *words)
+                if reply != RespError(expected):
+                    failures.append(f'{words}: {reply!r} != {expected}')
+            assert conn.must('PING') == b'PONG'
+            assert conn.must('MULTI') == b'OK'
+            assert command(conn, 'SHUTDOWN', 'NOSAVE') == RespError(
+                'ERR Command not allowed inside a transaction')
+            assert command(conn, 'EXEC') == RespError(
+                'EXECABORT Transaction discarded because of previous errors.')
+    check('grammar', grammar)
+
+    def stop_case(name, words, configured, failed, signal_name=None, setting=None):
+        extra = ['--save', '3600 1' if configured else '']
+        with boot(args, name, extra) as (process, conn, data):
+            assert conn.must('SET', 'acknowledged-write', 'value') == b'OK'
+            if failed:
+                (data / 'dump.rdb').mkdir()
+            if setting is not None:
+                key = 'shutdown-on-' + signal_name
+                assert command(conn, 'CONFIG', 'SET', key, setting) == b'OK'
+                wanted = ' '.join(word for word in ('save', 'nosave', 'now', 'force')
+                                  if word in setting.lower().split()) or 'default'
+                assert command(conn, 'CONFIG', 'GET', key) == [key.encode(), wanted.encode()]
+            upper = set(words)
+            saving = 'SAVE' in upper or (configured and 'NOSAVE' not in upper)
+            refuse = saving and failed and 'FORCE' not in upper
+            if signal_name:
+                process.send_signal(signal.SIGTERM if signal_name == 'sigterm' else signal.SIGINT)
+                if refuse:
+                    logfile = data.parent / 'server.log'
+                    wait(lambda: ('can\'t exit' in logfile.read_text(errors='replace') or
+                                  'Errors trying to SHUTDOWN' in logfile.read_text(errors='replace')),
+                         'signal save refusal')
+                    assert process.poll() is None and conn.must('PING') == b'PONG'
+                else:
+                    assert process.wait(timeout=15) == 0
+            else:
+                conn.send('SHUTDOWN', *words)
+                try:
+                    reply = conn.read()
+                except (EOFError, ConnectionResetError):
+                    reply = 'closed'
+                emit('shutdown reply', words=words, configured=configured, failed=failed, reply=reply)
+                if refuse:
+                    assert reply == RespError('ERR Errors trying to SHUTDOWN. Check logs.'), repr(reply)
+                    assert process.poll() is None and conn.must('PING') == b'PONG'
+                else:
+                    assert reply == 'closed', repr(reply)
+                    assert process.wait(timeout=15) == 0
+            if not refuse and not failed:
+                assert (data / 'dump.rdb').is_file() == saving
+
+    combinations = [(), ('NOW',), ('FORCE',), ('NOW', 'FORCE'), ('SAVE',), ('NOSAVE',),
+                    ('SAVE', 'NOW'), ('SAVE', 'FORCE'), ('NOSAVE', 'NOW'), ('NOSAVE', 'FORCE'),
+                    ('SAVE', 'NOW', 'FORCE'), ('NOSAVE', 'NOW', 'FORCE'),
+                    ('NOSAVE', 'NOW', 'FORCE', 'NOW', 'NOSAVE')]
+    for index, words in enumerate(combinations):
+        for failed in (False, True):
+            name = f'command-{index}-{int(failed)}'
+            check(name, lambda: stop_case(name, words, True, failed))
+    for signal_name in ('sigterm', 'sigint'):
+        for setting in ('default', 'save', 'nosave', 'save now', 'save force', 'nosave now force'):
+            for configured in (False, True):
+                name = f'{signal_name}-{setting.replace(" ", "-")}-{int(configured)}'
+                words = tuple(setting.upper().split())
+                check(name, lambda: stop_case(name, words, configured, True, signal_name, setting))
+
+    def config_grammar():
+        with boot(args, 'config') as (_, conn, _):
+            for key in ('shutdown-on-sigterm', 'shutdown-on-sigint'):
+                for value in ('SAVE save FORCE', 'default now nosave', 'force now save default'):
+                    assert command(conn, 'CONFIG', 'SET', key, value) == b'OK'
+                for value in ('save nosave', 'bogus', '', 'abort'):
+                    suffix = "shutdown options SAVE and NOSAVE can't be used simultaneously" \
+                        if value == 'save nosave' else \
+                        'argument(s) must be one of the following: default, save, nosave, now, force'
+                    expected = RespError(f"ERR CONFIG SET failed (possibly related to argument '{key}') - {suffix}")
+                    assert command(conn, 'CONFIG', 'SET', key, value) == expected
+                assert command(conn, 'CONFIG', 'SET', key, 'nosave') == b'OK'
+    check('config grammar', config_grammar)
+    for signal_name in ('sigterm', 'sigint'):
+        def boot_policy():
+            with boot(args, 'boot-' + signal_name,
+                      ['--shutdown-on-' + signal_name, 'default', 'save', 'now', 'force']) as (process, conn, data):
+                (data / 'dump.rdb').mkdir()
+                assert command(conn, 'CONFIG', 'GET', 'shutdown-on-' + signal_name) == [
+                    ('shutdown-on-' + signal_name).encode(), b'save now force']
+                process.send_signal(signal.SIGTERM if signal_name == 'sigterm' else signal.SIGINT)
+                assert process.wait(timeout=15) == 0
+        check('boot policy ' + signal_name, boot_policy)
+    def active_save():
+        for attempt in range(3):
+            extra = ['--rdb-key-save-delay', '100'] if args.oracle else []
+            with boot(args, f'active-save-{attempt}', extra) as (process, conn, data):
+                count = 4000 if args.oracle else 20000 * (attempt + 1)
+                for start in range(0, count, 200):
+                    assert conn.must('MSET', *[word for i in range(start, start + 200)
+                                             for word in (f'persistfix2:{i}', 'v' * 1024)]) == b'OK'
+                assert command(conn, 'BGSAVE') == b'Background saving started'
+                if persistence(conn)['rdb_bgsave_in_progress'] != '1':
+                    emit('fresh state retry', reason='BGSAVE completed before shutdown admission')
+                    continue
+                emit('active save observed', attempt=attempt)
+                conn.send('SHUTDOWN', 'SAVE')
+                try:
+                    reply = conn.read()
+                except (EOFError, ConnectionResetError):
+                    reply = 'closed'
+                emit('active save shutdown reply', reply=reply)
+                assert reply == 'closed', repr(reply)
+                assert process.wait(timeout=15) == 0
+                assert (data / 'dump.rdb').is_file()
+                return
+        raise AssertionError('active BGSAVE shutdown state never observed')
+    check('active BGSAVE shutdown', active_save)
+    assert not failures, '\n'.join(failures)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--case', choices=('lastsave',), required=True)
+    parser.add_argument('--case', choices=('lastsave', 'shutdown'), required=True)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--oracle', action='store_true')
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)

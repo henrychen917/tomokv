@@ -83,7 +83,7 @@ static void on_signal(int sig) {
         }
         // Keep owners alive until the ordinary IO save path has persisted the final cut.
         // Wake the elected IO immediately, keeping all owners alive for its shutdown save.
-        if (server->request_signal_shutdown()) {
+        if (server->request_signal_shutdown(sig == SIGINT)) {
             server->debug_sleep_coordinator().interrupt();
             signal_doorbell_request_notify();
             return;

@@ -315,7 +315,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown
 };
 struct ConfigValue {
     const char* name;
@@ -350,6 +350,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"unixsocketperm", ConfigKind::String, unix_mode, true});
     g_proto_max_bulk_len.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
     g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
+    g_config.push_back({"shutdown-on-sigint", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigint)});
+    g_config.push_back({"shutdown-on-sigterm", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigterm)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
@@ -524,6 +526,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             input.n = static_cast<const char*>(end) - input.p;
     }
     switch (entry.kind) {
+        case ConfigKind::Shutdown: {
+            uint8_t flags = 0;
+            if (!cfg_shutdown_flags(input, flags, error)) return false;
+            out = cfg_shutdown_string(flags);
+            return true;
+        }
         case ConfigKind::Hz: {
             uint32_t value = 0;
             if (!ClientHz::parse(input, value, error)) return false;
@@ -1658,6 +1666,12 @@ void cmd_config(Shard& sh, Op& op) {
                     if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
                                                  clauses)) std::abort();
                     g_server->set_save_schedule(clauses);
+                } else if (update.first->kind == ConfigKind::Shutdown) {
+                    uint8_t flags = 0;
+                    const char* error = nullptr;
+                    if (!cfg_shutdown_flags(Slice(update.second.data(), update.second.size()), flags, error))
+                        std::abort();
+                    g_server->set_shutdown_policy(!std::strcmp(update.first->name, "shutdown-on-sigint"), flags);
                 } else if (!std::strcmp(update.first->name, "proto-max-bulk-len")) {
                     uint64_t value = 0;
                     if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
