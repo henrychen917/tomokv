@@ -65,7 +65,6 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
             return;
         }
         if (owner_prefetch_enabled(count)) prefetch_owner_batch(selected, count);
-        else prefetch_exec_batch(selected, count);
         exec_batch_prefetched<IofusedPrivateQueue>(selected, count);
     };
     auto take = [&](const Task& task) {

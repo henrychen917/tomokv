@@ -2294,32 +2294,6 @@ private:
         }
     }
 
-    // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
-    // round trips overlap instead of each op stalling on its own miss in turn.
-    void prefetch_exec_batch(const Task* batch, uint32_t n) {
-        // A singleton has no later task to overlap. Keep this guard in the caller,
-        // so it pays neither a walk nor an out-of-line call.
-        if (n > 1) prefetch_exec_slots(batch, n);
-    }
-
-    // Like the fused owner walk below, this must be flattened out of line:
-    // GCC erases FlatStore's bucket hints when the walk is inlined into a drain.
-    __attribute__((noinline, flatten))
-    void prefetch_exec_slots(const Task* batch, uint32_t n) {
-        for (uint32_t i = 0; i < n; i++) {
-            if (!batch[i].client) continue;
-            const Op& op = batch[i].client->rob().at(batch[i].op_id);
-            const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
-            // The shipped coarse batch must obey the same resolve -> verify-owner -> store-touch
-            // order as pipelined E1. A route can go stale after enqueue; even a prefetch through
-            // the old FlatStore is formally an ownership violation under TSAN's model.
-            if (shard >= 0 && !batch[i].scatter &&
-                srv_->worker_of_shard(shard) == self_->id() &&
-                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
-                srv_->shard(shard).store().prefetch(op.hash);
-        }
-    }
-
     // GCC 13.3 at release -O2 erases the nested bucket prefetch when this walk is inlined.
     // Flatten this separate body before optimizing it, and retain the direct call so the hints
     // survive. Decomposition retained this walk and found no rate benefit from splitting A/B:
@@ -2408,7 +2382,6 @@ private:
             exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
             return;
         }
-        prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
