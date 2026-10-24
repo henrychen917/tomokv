@@ -292,3 +292,13 @@ Reply search evidence is `docs/persistfix2/reply-search.json`, including old/new
 The first broad POST regression run found the historical rewrite-trigger row waiting for `aof_rewrites` alone to infer completion. Redis increments that field at start: the retained `post-lastsave/lastsave-oracle-*.log` records show `aof_rewrites=1` while `aof_rewrite_in_progress=1`, then the same attempt count after completion. The trigger fixture now additionally requires `aof_rewrite_in_progress=0` before its existing success/base/limiter assertions, for all three waits. No success assertion or arming witness is removed. Its printed count is named attempts. Both complete AOF jobs will be rerun on POST and PRE in both thread modes and engines; the initial failures remain evidence.
 
 Initial dispatch arity/errors and uniform-router jobs could not bind the Redis oracle on port 36862: other lanes' outbound connections occupied even-numbered ports in this lane's range with TIME_WAIT sockets. These are environment failures, not reply comparisons. The three fixtures now use `port+2`, the third port already reserved by each gate slot, allowing odd target/oracle ports 36861/36863 without changing any assertion or row count. Their complete jobs are rerun on PRE and POST, with all four mode/engine legs retained. The standard differential runner already accepts explicit target/oracle ports and uses those same odd ports.
+
+POST regression receipts are archived under `docs/persistfix2/proof/` (each summary includes the original run path, per-job row counts and archive SHA-256):
+
+| Run | Passing rows | Failed rows | Interpretation |
+|---|---:|---:|---|
+| post-initial | 384 | 5 | Two obsolete completion waits; three oracle bind failures, retained in full |
+| post-aof-corrected | 109 | 0 | Release prerequisite plus all 54 AOF rows on each engine |
+| post-extra | 15 | 0 | All port-corrected oracle legs, CONFIG/scalar/WAITAOF, auth and default-database jobs |
+
+The corrected POST runs clear each of the five initial failures. PRE, fused persistence reruns, the standard differential matrix and serverless harness proof remain in the serial verification queue. All jobs use the gate's own job interface; no full iteration or performance tier is run.

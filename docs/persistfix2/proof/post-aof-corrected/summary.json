@@ -1,0 +1,26 @@
+{
+  "run": "build/gate-run.Gt9fAy",
+  "rows": [
+    {
+      "job": "aof-epoll",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "aof-uring",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 109,
+  "failed": 0,
+  "archive_sha256": "8946bc9b932bf714bfcae0eb1afe6cd24fabd50be9d62d7e264ee1eee76a0719"
+}
