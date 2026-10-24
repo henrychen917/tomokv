@@ -62,6 +62,8 @@ for name in names:
 pending = [row['name'] for row in summary if row['status'] in ('PENDING', 'RUNNING')]
 standalone_path = OUT / 'gates-test-repaired.json'
 standalone = json.loads(standalone_path.read_text()) if standalone_path.exists() else None
+freshness_path = OUT / 'freshness-final.json'
+freshness = json.loads(freshness_path.read_text()) if freshness_path.exists() else None
 if standalone and standalone['exit']:
     problems.append(dict(suite='gates-test-repaired', exit=standalone['exit']))
 missing = sorted(required - set(completed))
@@ -76,7 +78,7 @@ for rel in ('gates-test-final.json', 'abba-selftest-final/receipt.json'):
             reason='Persistence fixture omitted the newly used boot selector; fixed by 9ff3f7c39. Complete standalone suite and whole ABBA job rerun; no assertion relaxed.'))
 result = dict(candidate_sha256=digest,
     scope='Whole correctness jobs through GATE_ONLY_JOBS; NOT a full gate/landing receipt.',
-    suites=summary, standalone=standalone, problems=problems, pending=pending,
+    suites=summary, standalone=standalone, freshness=freshness, problems=problems, pending=pending,
     available_jobs=len(manifest['available']), required_correctness_jobs=len(required),
     completed_unique_jobs=len(set(completed) & required), missing_jobs=missing,
     excluded_performance_jobs=sorted(excluded),
@@ -88,6 +90,9 @@ result = dict(candidate_sha256=digest,
 if args.require_complete:
     assert not pending and not problems and not missing, result
     assert standalone and standalone['exit'] == 0, 'standalone gates_test.py incomplete'
+    assert freshness and freshness['exit'] == 0, 'final build incomplete'
+    assert freshness['binary_sha256'] == freshness['binary_sha256_after'] == digest
+    assert all(row['exit'] == 0 for row in freshness['freshness']), freshness
     assert all(len(runs) >= 3 for runs in txn.values()) and len(txn) == 4, txn
     for engine in ('uring', 'epoll'):
         receipt = json.loads((OUT / ('differ-' + engine) / 'receipt.json').read_text())
@@ -98,7 +103,7 @@ if args.require_complete:
         assert receipt['environment']['GATE_TXN_FUSED'] == '1'
     result['complete'] = True
 else:
-    result['complete'] = not pending and not problems and not missing and bool(standalone)
+    result['complete'] = not pending and not problems and not missing and bool(standalone) and bool(freshness)
 (OUT / 'summary-final.json').write_text(json.dumps(result, indent=2) + '\n')
 print(json.dumps({k: result[k] for k in ('complete', 'completed_unique_jobs',
       'required_correctness_jobs', 'pending', 'problems', 'missing_jobs')}, indent=2))
