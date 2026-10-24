@@ -49,7 +49,25 @@ struct AclLogStore {
     std::deque<AclLogEntry> entries;
 };
 
-std::array<AclLogStore, kMaxThreads> g_acl_logs;
+std::array<std::atomic<AclLogStore*>, kMaxThreads> g_acl_logs{};
+struct AclLogCleanup {
+    ~AclLogCleanup() {
+        // Only static teardown reclaims stores, after the workers have joined.
+        for (auto& slot : g_acl_logs) delete slot.load(std::memory_order_relaxed);
+    }
+} g_acl_log_cleanup;
+
+AclLogStore* acl_log_store(uint32_t id) {
+    auto& slot = g_acl_logs[id];
+    auto* store = slot.load(std::memory_order_acquire);
+    if (store) return store;
+    try {
+        auto fresh = std::make_unique<AclLogStore>();
+        if (slot.compare_exchange_strong(store, fresh.get(), std::memory_order_release,
+                                         std::memory_order_acquire)) store = fresh.release();
+    } catch (const std::bad_alloc&) {}
+    return store;
+}
 std::atomic<uint64_t> g_acl_log_max_len{128};
 std::atomic<uint64_t> g_acl_log_next_id{0};
 
@@ -925,7 +943,10 @@ const char* acl_log_context_name(AclLogContext context) {
 }
 
 void acl_log_reset() {
-    for (AclLogStore& store : g_acl_logs) {
+    for (auto& slot : g_acl_logs) {
+        auto* value = slot.load(std::memory_order_acquire);
+        if (!value) continue;
+        AclLogStore& store = *value;
         std::lock_guard<std::mutex> lock(store.mutex);
         store.entries.clear();
     }
@@ -973,7 +994,10 @@ void acl_reply_log(Op& op) {
     }
     if (requested < 0) requested = 0;
     std::vector<AclLogEntry> entries;
-    for (AclLogStore& store : g_acl_logs) {
+    for (auto& slot : g_acl_logs) {
+        auto* value = slot.load(std::memory_order_acquire);
+        if (!value) continue;
+        AclLogStore& store = *value;
         std::lock_guard<std::mutex> lock(store.mutex);
         entries.insert(entries.end(), store.entries.begin(), store.entries.end());
     }
@@ -1019,7 +1043,10 @@ void acl_reply_log(Op& op) {
 
 void acl_set_log_max_len(uint64_t max_len) {
     g_acl_log_max_len.store(max_len, std::memory_order_release);
-    for (AclLogStore& store : g_acl_logs) {
+    for (auto& slot : g_acl_logs) {
+        auto* value = slot.load(std::memory_order_acquire);
+        if (!value) continue;
+        AclLogStore& store = *value;
         std::lock_guard<std::mutex> lock(store.mutex);
         while (store.entries.size() > max_len) store.entries.pop_back();
     }
@@ -1040,7 +1067,9 @@ void acl_log_denial(ThreadCtx& thread, const Client& client, AclDeniedReason rea
     candidate.client_info = "id=" + std::to_string(client.id()) +
         " addr=unknown:0 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0";
 
-    AclLogStore& store = g_acl_logs[thread.id()];
+    AclLogStore* target = acl_log_store(thread.id());
+    if (!target) return;
+    AclLogStore& store = *target;
     std::lock_guard<std::mutex> lock(store.mutex);
     max_len = g_acl_log_max_len.load(std::memory_order_acquire);
     if (!max_len) return;

@@ -343,6 +343,8 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
+// Cold synchronized snapshot for a client that predates slowlog enable.
+bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string& name);
 // Runtime IO-owner handoff moves the thread-local CLIENT catalog as an extracted map node. The
 // opaque handle owns that node between source and destination; no metadata field is reconstructed.
 void* command_client_migration_extract(Client* client);

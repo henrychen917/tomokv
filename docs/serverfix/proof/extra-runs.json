@@ -1,0 +1,125 @@
+[
+  {
+    "arm": "post",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "test_sha256": {
+      "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+      "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+      "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+      "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+      "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+      "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+    },
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv"
+    ],
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.J1dW4z",
+    "exit": 0,
+    "notify_ledger": [
+      "ok\t2.070000\tMULTI feature battery",
+      "ok\t1.540000\tblocking feature battery",
+      "ok\t0.880000\tpubsub feature battery",
+      "ok\t0.030000\tLua feature battery",
+      "ok\t22.710000\tkeyspace notification battery (atomic 0/1)",
+      "ok\t0.020000\tfeature battery shutdown invariants"
+    ],
+    "notify_atomic_legs": [
+      0,
+      1
+    ],
+    "archive": "docs/serverfix/proof/post-extra.tar.gz",
+    "archive_sha256": "c8d1b5954ce5a4a498a83ce402ad508c1f4decb659f01704ff5db3c6237315d2"
+  },
+  {
+    "arm": "pre",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pre",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "test_sha256": {
+      "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+      "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+      "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+      "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+      "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+      "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+    },
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pre"
+    ],
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.zsxtD2",
+    "exit": 1,
+    "notify_ledger": [
+      "ok\t2.070000\tMULTI feature battery",
+      "ok\t1.500000\tblocking feature battery",
+      "ok\t0.910000\tpubsub feature battery",
+      "ok\t0.030000\tLua feature battery",
+      "FAIL\t22.820000\tkeyspace notification battery (atomic 0/1)",
+      "ok\t0.020000\tfeature battery shutdown invariants"
+    ],
+    "notify_atomic_legs": [
+      0,
+      1
+    ],
+    "archive": "docs/serverfix/proof/pre-extra.tar.gz",
+    "archive_sha256": "c5125b553aa18aa4e12917042b73a98b28e0d452aa6c31e1d09fda6475457a69"
+  },
+  {
+    "arm": "pad-a",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pad-a",
+    "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+    "test_sha256": {
+      "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+      "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+      "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+      "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+      "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+      "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+    },
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pad-a"
+    ],
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.gAINNz",
+    "exit": 1,
+    "notify_ledger": [
+      "ok\t2.070000\tMULTI feature battery",
+      "ok\t1.500000\tblocking feature battery",
+      "ok\t0.890000\tpubsub feature battery",
+      "ok\t0.020000\tLua feature battery",
+      "FAIL\t22.720000\tkeyspace notification battery (atomic 0/1)",
+      "ok\t0.020000\tfeature battery shutdown invariants"
+    ],
+    "notify_atomic_legs": [
+      0,
+      1
+    ],
+    "archive": "docs/serverfix/proof/pad-a-extra.tar.gz",
+    "archive_sha256": "1f94249270982aa2429fb2724bc4487f1b5f87958213007c9e86c71689a72c15"
+  }
+]

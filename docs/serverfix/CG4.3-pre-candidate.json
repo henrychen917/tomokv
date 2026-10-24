@@ -1,0 +1,759 @@
+{
+  "binary": "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pre",
+  "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+  "checks": [
+    {
+      "label": "1s-uring-comment-garbage startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-comment-garbage startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-comment-password startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-comment-password comment did not enable auth",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-uring-comment-password decoded bytes",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-uring-comment-many-chunks startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-comment-many-chunks startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-comment-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-comment-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-long-quoted startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-long-quoted startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-long-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-long-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-case-and-crlf startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-case-and-crlf startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-single-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-single-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-single-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-single-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "a'b#c"
+      ]
+    },
+    {
+      "label": "1s-uring-prefix-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-prefix-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-prefix-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-prefix-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "prefix space"
+      ]
+    },
+    {
+      "label": "1s-uring-unquoted-backslash startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-uring-unquoted-backslash authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-uring-unquoted-backslash comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-uring-unquoted-backslash decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "pass\\word"
+      ]
+    },
+    {
+      "label": "1s-uring-no-continuation startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-no-continuation startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-no-inline-comment startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-no-inline-comment startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-closing-quote startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-closing-quote startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-uring-unbalanced-long startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-uring-unbalanced-long startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-comment-garbage startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-comment-garbage startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-comment-password startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-comment-password comment did not enable auth",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-epoll-comment-password decoded bytes",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-epoll-comment-many-chunks startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-comment-many-chunks startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-comment-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-comment-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-long-quoted startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-long-quoted startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-long-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-long-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-case-and-crlf startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-case-and-crlf startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-single-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-single-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-single-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-single-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "a'b#c"
+      ]
+    },
+    {
+      "label": "1s-epoll-prefix-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-prefix-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-prefix-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-prefix-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "prefix space"
+      ]
+    },
+    {
+      "label": "1s-epoll-unquoted-backslash startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "1s-epoll-unquoted-backslash authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-epoll-unquoted-backslash comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-epoll-unquoted-backslash decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "pass\\word"
+      ]
+    },
+    {
+      "label": "1s-epoll-no-continuation startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-no-continuation startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-no-inline-comment startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-no-inline-comment startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-closing-quote startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-closing-quote startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "1s-epoll-unbalanced-long startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll-unbalanced-long startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-comment-garbage startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-comment-garbage startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-comment-password startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-comment-password comment did not enable auth",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-uring-comment-password decoded bytes",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-uring-comment-many-chunks startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-comment-many-chunks startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-comment-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-comment-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-long-quoted startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-long-quoted startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-long-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-long-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-case-and-crlf startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-case-and-crlf startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-single-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-single-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-single-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-single-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "a'b#c"
+      ]
+    },
+    {
+      "label": "2s-uring-prefix-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-prefix-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-prefix-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-prefix-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "prefix space"
+      ]
+    },
+    {
+      "label": "2s-uring-unquoted-backslash startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-uring-unquoted-backslash authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-uring-unquoted-backslash comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-uring-unquoted-backslash decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "pass\\word"
+      ]
+    },
+    {
+      "label": "2s-uring-no-continuation startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-no-continuation startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-no-inline-comment startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-no-inline-comment startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-closing-quote startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-closing-quote startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-uring-unbalanced-long startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-uring-unbalanced-long startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-comment-garbage startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-comment-garbage startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-comment-password startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-comment-password comment did not enable auth",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-epoll-comment-password decoded bytes",
+      "passed": false,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-epoll-comment-many-chunks startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-comment-many-chunks startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-comment-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-comment-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-long-quoted startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-long-quoted startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-long-eof startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-long-eof startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-case-and-crlf startup",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-case-and-crlf startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-single-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-single-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-single-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-single-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "a'b#c"
+      ]
+    },
+    {
+      "label": "2s-epoll-prefix-quote startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-prefix-quote authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-prefix-quote comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-prefix-quote decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "prefix space"
+      ]
+    },
+    {
+      "label": "2s-epoll-unquoted-backslash startup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "label": "2s-epoll-unquoted-backslash authenticated access",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-epoll-unquoted-backslash comment did not enable auth",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-epoll-unquoted-backslash decoded bytes",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "pass\\word"
+      ]
+    },
+    {
+      "label": "2s-epoll-no-continuation startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-no-continuation startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-no-inline-comment startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-no-inline-comment startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-closing-quote startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-closing-quote startup error exit",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "2s-epoll-unbalanced-long startup",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll-unbalanced-long startup error exit",
+      "passed": true,
+      "actual": 1
+    }
+  ],
+  "slowlog": {}
+}

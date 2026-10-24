@@ -1,0 +1,20 @@
+{
+  "pre_sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+  "post_sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+  "changed": 622,
+  "hot_compared": [
+    "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+    "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)",
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+    "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)"
+  ],
+  "hot_changed": []
+}

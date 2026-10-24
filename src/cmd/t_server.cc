@@ -191,9 +191,31 @@ struct ClientMeta {
     int64_t tracking_redirect = -1;
 };
 
-// One catalog per IO thread. It contains no cross-thread Client pointer and is keyed by the
-// process-unique connection id used on the IO-to-IO transport.
-thread_local std::unordered_map<uint64_t, ClientMeta> g_client_meta;
+// Registration is per IO, not per client. Only cold metadata mutation and
+// slowlog's armed snapshot take this mutex; ordinary commands never touch it.
+using ClientCatalog = std::unordered_map<uint64_t, ClientMeta>;
+std::mutex g_client_meta_mu;
+std::array<ClientCatalog*, kMaxThreads> g_client_catalogs{};
+struct RegisteredClientCatalog final : ClientCatalog {
+    RegisteredClientCatalog() {
+        std::lock_guard<std::mutex> lock(g_client_meta_mu);
+        for (auto& slot : g_client_catalogs) if (!slot) { slot = this; return; }
+        std::abort();
+    }
+    ~RegisteredClientCatalog() {
+        std::lock_guard<std::mutex> lock(g_client_meta_mu);
+        for (auto& slot : g_client_catalogs) if (slot == this) { slot = nullptr; return; }
+    }
+};
+static_assert(sizeof(RegisteredClientCatalog) == sizeof(ClientCatalog));
+// Reuse the existing catalog's TLS destructor registration. A separate TLS
+// registration object would allocate an extra libc destructor node while off.
+thread_local RegisteredClientCatalog g_client_meta;
+
+void register_client_catalog() {
+    // Initialize before taking the catalog lock: the constructor registers it.
+    (void)g_client_meta.size();
+}
 
 // `unordered_map::node_type` retains its allocation when it moves between the source and target
 // thread-local maps. A destination reserves buckets during flip preflight, so installing this node
@@ -418,7 +440,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"protected-mode", ConfigKind::Bool,
                         cfg.protected_mode != 0 ? "yes" : "no"});
     g_config.push_back({"aclfile", ConfigKind::String, cfg.aclfile ? cfg.aclfile : "", true});
-    g_config.push_back({"acl-pubsub-default", ConfigKind::String,
+    g_config.push_back({"acl-pubsub-default", ConfigKind::Enum,
                         cfg.acl_pubsub_allchannels ? "allchannels" : "resetchannels"});
     add_config("acllog-max-len", ConfigKind::Unsigned, cfg.acllog_max_len);
     g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
@@ -484,8 +506,20 @@ bool parse_client_output_buffer_limit_slice(Slice input,
     return cfg_parse_client_output_buffer_limit(argv.data(), argv.size(), out, error);
 }
 
+std::string config_range_error(int64_t low, int64_t high) {
+    return "argument must be between " + std::to_string(low) + " and " +
+           std::to_string(high) + " inclusive";
+}
+
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                       const char*& error, bool legacy_compact = false) {
+    // Redis yesnotoi/configEnumGetValue consume C strings, while numeric
+    // string2ll consumes the entire decoded argument (including embedded NUL).
+    if (entry.kind == ConfigKind::Bool || entry.kind == ConfigKind::Enum ||
+        entry.kind == ConfigKind::Policy || entry.kind == ConfigKind::NotifyFlags) {
+        if (const void* end = std::memchr(input.p, 0, input.n))
+            input.n = static_cast<const char*>(end) - input.p;
+    }
     switch (entry.kind) {
         case ConfigKind::Hz: {
             uint32_t value = 0;
@@ -504,13 +538,19 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Encoding: {
             int64_t value = 0;
             const int key = EncodingConfig::find(Slice(entry.name, std::strlen(entry.name)));
-            if (key < 0 || !EncodingConfig::parse(key, input, value, legacy_compact)) {
-                if (key == EncodingConfig::SetIntsetEntries) {
-                    const std::string text(input.p, input.n);
-                    int64_t integer = 0;
-                    error = cfg_parse_i64(text.c_str(), integer) && std::to_string(integer) == text
-                        ? "argument must be between 0 and 9223372036854775807 inclusive"
-                        : "argument couldn't be parsed into an integer";
+            if (key < 0) return false;
+            if (!EncodingConfig::parse(key, input, value, legacy_compact)) {
+                int64_t integer = 0;
+                uint64_t memory = 0;
+                const bool bytes = EncodingConfig::settings[key].memory;
+                const bool parsed = bytes ? cfg_parse_memory(input.p, input.n, memory) :
+                                            cfg_parse_integer(input, integer);
+                if (!parsed) error = bytes ? "argument must be a memory value" :
+                                            "argument couldn't be parsed into an integer";
+                else {
+                    out = config_range_error(key == EncodingConfig::ListSize ? INT_MIN : 0,
+                                             key == EncodingConfig::ListSize ? INT_MAX : LONG_MAX);
+                    error = out.c_str();
                 }
                 return false;
             }
@@ -518,42 +558,33 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             return true;
         }
         case ConfigKind::String:
-            if (!std::strcmp(entry.name, "acl-pubsub-default")) {
-                if (eq_icase(input, "allchannels")) out = "allchannels";
-                else if (eq_icase(input, "resetchannels")) out = "resetchannels";
-                else return false;
-                return true;
-            }
             out.assign(input.p, input.n);
             return true;
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
-            if (!std::strcmp(entry.name, "aof-load-truncated") ||
-                !std::strcmp(entry.name, "dynamic-hz")) {
-                error = "argument must be 'yes' or 'no'";
-                return false;
-            }
-            if (input == Slice("1", 1)) { out = "yes"; return true; }
-            if (input == Slice("0", 1)) { out = "no"; return true; }
+            error = "argument must be 'yes' or 'no'";
             return false;
         case ConfigKind::Unsigned: {
-            uint64_t value = 0;
-            if (!parse_u64(input, value)) return false;
-            if (!std::strcmp(entry.name, "zc-min") &&
-                value > UINT32_MAX) return false;
-            if (!std::strcmp(entry.name, "maxmemory-samples") && (value == 0 || value > 64))
+            int64_t value = 0;
+            if (!cfg_parse_integer(input, value)) {
+                error = "argument couldn't be parsed into an integer";
                 return false;
-            if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
-            if (!std::strcmp(entry.name, "databases") && (value < 1 || value > 256)) return false;
-            if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage") &&
-                value > UINT32_MAX) return false;
-            if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
+            }
+            int64_t low = 0, high = LONG_MAX;
+            if (!std::strcmp(entry.name, "zc-min")) high = UINT32_MAX;
+            if (!std::strcmp(entry.name, "maxmemory-samples")) { low = 1; high = 64; }
+            if (!std::strcmp(entry.name, "atomic")) high = 1;
+            if (!std::strcmp(entry.name, "databases")) { low = 1; high = 256; }
+            if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage")) high = INT_MAX;
+            if (!std::strcmp(entry.name, "maxclients")) { low = 1; high = UINT32_MAX; }
+            if (!std::strcmp(entry.name, "timeout") || !std::strcmp(entry.name, "tcp-keepalive") ||
+                !std::strcmp(entry.name, "tcp-backlog")) high = INT_MAX;
+            if (value < low || value > high) {
+                out = config_range_error(low, high);
+                error = out.c_str();
                 return false;
-            if ((!std::strcmp(entry.name, "timeout") ||
-                 !std::strcmp(entry.name, "tcp-keepalive") ||
-                 !std::strcmp(entry.name, "tcp-backlog")) && value > INT_MAX)
-                return false;
+            }
             out = std::to_string(value);
             return true;
         }
@@ -564,22 +595,38 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                 out = std::to_string(value);
                 return true;
             }
-            if (!parse_bytes(input, value)) return false;
+            if (!parse_bytes(input, value)) {
+                error = "argument must be a memory value";
+                return false;
+            }
+            if (!std::strcmp(entry.name, "auto-aof-rewrite-min-size") && value > INT64_MAX) {
+                out = config_range_error(0, INT64_MAX);
+                error = out.c_str();
+                return false;
+            }
             if (!std::strcmp(entry.name, "proto-max-bulk-len") &&
                 (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported)) return false;
             out = std::to_string(value);
             return true;
         }
         case ConfigKind::Enum:
+            if (!std::strcmp(entry.name, "acl-pubsub-default")) {
+                if (eq_icase(input, "allchannels")) { out = "allchannels"; return true; }
+                if (eq_icase(input, "resetchannels")) { out = "resetchannels"; return true; }
+                error = "argument(s) must be one of the following: allchannels, resetchannels";
+                return false;
+            }
             if (eq_icase(input, "always")) { out = "always"; return true; }
             if (eq_icase(input, "everysec")) { out = "everysec"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
+            error = "argument(s) must be one of the following: everysec, always, no";
             return false;
         case ConfigKind::Policy: {
             static const char* policies[] = {"noeviction", "allkeys-lru", "allkeys-lfu",
                 "allkeys-random", "volatile-lru", "volatile-lfu", "volatile-random", "volatile-ttl"};
             for (const char* policy : policies)
                 if (eq_icase(input, policy)) { out = policy; return true; }
+            error = "argument(s) must be one of the following: volatile-lru, volatile-lfu, volatile-random, volatile-ttl, allkeys-lru, allkeys-lfu, allkeys-random, noeviction";
             return false;
         }
         case ConfigKind::ClientOutputBufferLimit: {
@@ -592,20 +639,33 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         }
         case ConfigKind::NotifyFlags: {
             uint32_t flags = 0;
-            if (!parse_notify_flags(input, flags)) return false;
+            if (!parse_notify_flags(input, flags)) {
+                error = "Invalid event class character. Use 'Ag$lshzxeKEtmdn'.";
+                return false;
+            }
             out = serialize_notify_flags(flags);
             return true;
         }
         case ConfigKind::Signed: {
             int64_t value = 0;
-            if (!parse_i64_slice(input, value)) return false;
-            if (!std::strcmp(entry.name, "slowlog-log-slower-than") && value < -1) return false;
+            if (!cfg_parse_integer(input, value)) {
+                error = "argument couldn't be parsed into an integer";
+                return false;
+            }
+            if (!std::strcmp(entry.name, "slowlog-log-slower-than") && value < -1) {
+                out = config_range_error(-1, INT64_MAX);
+                error = out.c_str();
+                return false;
+            }
             out = std::to_string(value);
             return true;
         }
         case ConfigKind::Save: {
             std::vector<SaveClause> clauses;
-            if (!cfg_parse_save_schedule(input.p, input.n, clauses)) return false;
+            if (!cfg_parse_save_schedule(input.p, input.n, clauses)) {
+                error = "Invalid save parameters";
+                return false;
+            }
             out = cfg_save_schedule_string(clauses);
             return true;
         }
@@ -620,6 +680,43 @@ bool collect_config_updates(Op& op,
         return false;
     }
     if ((op.argc() & 1u) != 0) { reply_syntax(op.sink()); return false; }
+    // Redis checks the whole parameter list before parsing values: a later
+    // immutable/unknown/duplicate argument wins over an earlier invalid value.
+    for (uint32_t i = 2; i < op.argc(); i += 2) {
+        ConfigValue* item = find_config(op.arg(i));
+        const char* error = nullptr;
+        if (!item) {
+            std::string message = "ERR Unknown option or number of arguments for CONFIG SET - '";
+            message.append(op.arg(i).p, op.arg(i).n); message += "'";
+            reply_err(op.sink(), message.c_str()); return false;
+        }
+        // Tomo-only boot controls have no Redis counterpart. Preserve their
+        // established rejection; the standard config surface uses Redis text.
+        if (item->immutable) {
+            static constexpr const char* native[] = {"net-io", "thread-mode", "read-local",
+                "reorder", "wb-policy", "wb-small-pipe", "wb-complete-visits", "key-lb",
+                "key-lb-damping", "client-lb", "flip-auto"};
+            for (const char* name : native) if (!std::strcmp(item->name, name)) {
+                reply_err(op.sink(), "ERR parameter is immutable at runtime");
+                return false;
+            }
+        }
+        if (item->immutable || !std::strcmp(item->name, "tcp-backlog"))
+            error = "can't set immutable config";
+        else if (!std::strcmp(item->name, "dir") || !std::strcmp(item->name, "dbfilename"))
+            error = "can't set protected config";
+        if (!error) {
+            const std::string requested(op.arg(i).p, op.arg(i).n);
+            for (uint32_t previous = 2; previous < i; previous += 2)
+                if (eq_icase(op.arg(previous), requested.c_str())) { error = "duplicate parameter"; break; }
+        }
+        if (error) {
+            std::string message = "ERR CONFIG SET failed (possibly related to argument '";
+            message.append(op.arg(i).p, op.arg(i).n);
+            message += "') - "; message += error;
+            reply_err(op.sink(), message.c_str()); return false;
+        }
+    }
     ClientOutputBufferLimits obuf_scratch = g_client_obuf_limits;
     for (uint32_t i = 2; i < op.argc(); i += 2) {
         ConfigValue* item = find_config(op.arg(i));
@@ -630,43 +727,11 @@ bool collect_config_updates(Op& op,
         }
         const int encoding = EncodingConfig::find(op.arg(i));
         const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
-        // Redis rejects a repeated spelling but accepts canonical + historical aliases in
-        // argument order (last value wins). The original TomoKV aliases allowed repetition.
-        if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
-            item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
-            !std::strcmp(item->name, "aof-load-truncated") ||
-            network_config_name(item->name)) {
-            const std::string requested(op.arg(i).p, op.arg(i).n);
-            for (uint32_t previous = 2; previous < i; previous += 2) {
-                if (!eq_icase(op.arg(previous), requested.c_str())) continue;
-                if (!std::strcmp(item->name, "aof-load-truncated") ||
-                    item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
-                    encoding == EncodingConfig::SetIntsetEntries || network_config_name(item->name)) {
-                    std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                    msg += requested;
-                    msg += "') - duplicate parameter";
-                    reply_err(op.sink(), msg.c_str());
-                    return false;
-                }
-                reply_err(op.sink(), "ERR duplicate configuration parameter");
-                return false;
-            }
-        }
         if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
             if (!eq_icase(op.arg(i + 1), "yes")) {
                 reply_err(op.sink(), "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
                 return false;
             }
-        }
-        if (item->immutable || !std::strcmp(item->name, "dir") ||
-            !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
-            if (network_config_name(item->name)) {
-                std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                msg.append(op.arg(i).p, op.arg(i).n);
-                msg += "') - can't set immutable config";
-                reply_err(op.sink(), msg.c_str());
-            } else reply_err(op.sink(), "ERR parameter is immutable at runtime");
-            return false;
         }
         std::string value;
         bool normalized = false;
@@ -683,16 +748,18 @@ bool collect_config_updates(Op& op,
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            const int network = normalize_network_config(item->name, op.arg(i + 1), value, config_error);
+            const int network = item->kind == ConfigKind::Bool ? -1 :
+                normalize_network_config(item->name, op.arg(i + 1), value, config_error);
             normalized = network >= 0 ? network == 1 :
                 normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
             if (config_error) {
                 std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                if (encoding == EncodingConfig::SetIntsetEntries)
-                    msg.append(op.arg(i).p, op.arg(i).n);
-                else msg += item->name;
+                // Redis metadata preserves alias names but folds their case.
+                // Parameter-list errors above retain the submitted spelling.
+                for (char ch : op.arg(i))
+                    msg.push_back(ch >= 'A' && ch <= 'Z' ? ch + ('a' - 'A') : ch);
                 msg += "') - "; msg += config_error;
                 reply_err(op.sink(), msg.c_str()); return false;
             }
@@ -773,9 +840,9 @@ void cmd_auth(Shard&, Op& op) {
 void cmd_hello(Shard&, Op& op) {
     uint32_t next = 1;
     const bool has_version = op.argc() >= 2;
-    uint64_t version = g_client && g_client->resp3() ? 3 : 2;
+    int64_t version = g_client && g_client->resp3() ? 3 : 2;
     if (has_version) {
-        if (!parse_u64(op.arg(next++), version)) {
+        if (!cfg_parse_integer(op.arg(next++), version)) {
             reply_err(op.sink(), "ERR Protocol version is not an integer or out of range");
             return;
         }
@@ -1695,7 +1762,10 @@ void cmd_config(Shard& sh, Op& op) {
                         changed = true;
                     }
                 }
-                if (changed) g_server->set_slowlog_config(slowlog_us, latency_ms);
+                if (changed) {
+                    slowlog_set_threshold(slowlog_us);
+                    g_server->set_slowlog_config(slowlog_us, latency_ms);
+                }
             }
             if (set_auto_rewrite)
                 g_server->aof().set_auto_rewrite_config(auto_percentage, auto_min_size);
@@ -3227,9 +3297,24 @@ void command_set_local_context(Client* client, ThreadCtx* thread) {
     g_thread = thread;
 }
 
+bool command_client_slowlog_identity(uint64_t id, std::string& addr, std::string& name) {
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
+    for (auto* catalog : g_client_catalogs) {
+        if (!catalog) continue;
+        const auto found = catalog->find(id);
+        if (found == catalog->end()) continue;
+        addr = found->second.addr;
+        name = found->second.name;
+        return true;
+    }
+    return false;
+}
+
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms) {
     if (!client) return;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     ClientMeta meta;
     meta.addr = addr ? addr : "unknown:0";
     meta.laddr = laddr ? laddr : "unknown:0";
@@ -3244,6 +3329,8 @@ void command_client_connected(Client* client, const char* addr, const char* ladd
 
 void command_client_disconnected(Client* client) {
     if (!client) return;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     slowlog_forget_client(client->id());
     g_client_meta.erase(client->id());
 }
@@ -3252,6 +3339,8 @@ void* command_client_migration_extract(Client* client) {
     if (!client) return nullptr;
     auto* catalog = new (std::nothrow) ClientMigrationCatalog;
     if (!catalog) return nullptr;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     catalog->node = g_client_meta.extract(client->id());
     if (catalog->node.empty()) {
         delete catalog;
@@ -3264,6 +3353,8 @@ bool command_client_migration_install(void* opaque) {
     std::unique_ptr<ClientMigrationCatalog> catalog(
         static_cast<ClientMigrationCatalog*>(opaque));
     if (!catalog || catalog->node.empty()) return false;
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     return g_client_meta.insert(std::move(catalog->node)).inserted;
 }
 
@@ -3272,6 +3363,8 @@ void command_client_migration_discard(void* opaque) {
 }
 
 bool command_client_migration_reserve(uint32_t extra) {
+    register_client_catalog();
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     try {
         g_client_meta.reserve(g_client_meta.size() + extra);
         return true;
@@ -3375,6 +3468,7 @@ bool command_client_filter_match(const Client& client, const PubSubEvent& event,
 bool command_client_set_name(Client* client, Slice name) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return false;
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.assign(name.p, name.n);
     slowlog_note_client_name(client->id(), name.p, name.n);
     return true;
@@ -3420,6 +3514,7 @@ void command_client_set_tracking_view(Client* client, bool on, int64_t redirect)
 void command_client_reset_meta(Client* client) {
     ClientMeta* meta = client_meta(client);
     if (!meta) return;
+    std::lock_guard<std::mutex> lock(g_client_meta_mu);
     meta->name.clear();
     meta->lib_name.clear();
     meta->lib_ver.clear();

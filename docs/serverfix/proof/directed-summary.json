@@ -1,0 +1,428 @@
+{
+  "POST": {
+    "serverfix_lines": {
+      "ledger": "ok\t8.400000\tserverfix CG4.3 physical config lines",
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 196,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 49,
+        "failed": 0
+      }
+    },
+    "serverfix_scalar": {
+      "ledger": "ok\t19.440000\tserverfix CG4.4 shared scalar grammar",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.J1dW4z",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 836,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 171,
+        "failed": 0
+      }
+    },
+    "serverfix_config": {
+      "ledger": "ok\t0.990000\tserverfix SV4.6 CONFIG validation matrix",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.J1dW4z",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 6092,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 433,
+        "failed": 0
+      }
+    },
+    "serverfix_hello": {
+      "ledger": "ok\t0.780000\tserverfix SV4.7 HELLO canonical protocol",
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 352,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 71,
+        "failed": 0
+      }
+    },
+    "serverfix_waitaof": {
+      "ledger": "ok\t6.870000\tserverfix SV4.5 WAITAOF wait lifecycle",
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 120,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 24,
+        "failed": 0
+      }
+    },
+    "serverfix_hll": {
+      "ledger": "ok\t6.170000\tserverfix SV4.8 HyperLogLog self-test controls",
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 40,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 10,
+        "failed": 0
+      }
+    },
+    "serverfix_slowlog": {
+      "ledger": "ok\t12.060000\tserverfix SV4.14 disabled slowlog allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.J1dW4z",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 244,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 34,
+        "failed": 0
+      }
+    },
+    "serverfix_acllog": {
+      "ledger": "ok\t12.770000\tserverfix CC4.26 disabled ACL log allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.J1dW4z",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+        "checks": 516,
+        "failed": 0
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 78,
+        "failed": 0
+      }
+    }
+  },
+  "PRE": {
+    "serverfix_lines": {
+      "ledger": "FAIL\t8.640000\tserverfix CG4.3 physical config lines",
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 164,
+        "failed": 52
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 49,
+        "failed": 0
+      }
+    },
+    "serverfix_scalar": {
+      "ledger": "FAIL\t19.500000\tserverfix CG4.4 shared scalar grammar",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.zsxtD2",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 864,
+        "failed": 280
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 171,
+        "failed": 0
+      }
+    },
+    "serverfix_config": {
+      "ledger": "FAIL\t1.000000\tserverfix SV4.6 CONFIG validation matrix",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.zsxtD2",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 6092,
+        "failed": 576
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 433,
+        "failed": 0
+      }
+    },
+    "serverfix_hello": {
+      "ledger": "FAIL\t0.780000\tserverfix SV4.7 HELLO canonical protocol",
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 352,
+        "failed": 36
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 71,
+        "failed": 0
+      }
+    },
+    "serverfix_waitaof": {
+      "ledger": "FAIL\t6.900000\tserverfix SV4.5 WAITAOF wait lifecycle",
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 120,
+        "failed": 48
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 24,
+        "failed": 0
+      }
+    },
+    "serverfix_hll": {
+      "ledger": "FAIL\t4.360000\tserverfix SV4.8 HyperLogLog self-test controls",
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 40,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 10,
+        "failed": 0
+      }
+    },
+    "serverfix_slowlog": {
+      "ledger": "FAIL\t12.250000\tserverfix SV4.14 disabled slowlog allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.zsxtD2",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 244,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 34,
+        "failed": 0
+      }
+    },
+    "serverfix_acllog": {
+      "ledger": "FAIL\t12.910000\tserverfix CC4.26 disabled ACL log allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.zsxtD2",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+        "checks": 516,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 78,
+        "failed": 0
+      }
+    }
+  },
+  "PAD-A": {
+    "serverfix_lines": {
+      "ledger": "FAIL\t8.570000\tserverfix CG4.3 physical config lines",
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 164,
+        "failed": 52
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 49,
+        "failed": 0
+      }
+    },
+    "serverfix_scalar": {
+      "ledger": "FAIL\t19.510000\tserverfix CG4.4 shared scalar grammar",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.gAINNz",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 864,
+        "failed": 280
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 171,
+        "failed": 0
+      }
+    },
+    "serverfix_config": {
+      "ledger": "FAIL\t1.000000\tserverfix SV4.6 CONFIG validation matrix",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.gAINNz",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 6092,
+        "failed": 576
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 433,
+        "failed": 0
+      }
+    },
+    "serverfix_hello": {
+      "ledger": "FAIL\t0.800000\tserverfix SV4.7 HELLO canonical protocol",
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 352,
+        "failed": 36
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 71,
+        "failed": 0
+      }
+    },
+    "serverfix_waitaof": {
+      "ledger": "FAIL\t6.910000\tserverfix SV4.5 WAITAOF wait lifecycle",
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 120,
+        "failed": 48
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 24,
+        "failed": 0
+      }
+    },
+    "serverfix_hll": {
+      "ledger": "FAIL\t4.420000\tserverfix SV4.8 HyperLogLog self-test controls",
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 40,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 10,
+        "failed": 0
+      }
+    },
+    "serverfix_slowlog": {
+      "ledger": "FAIL\t12.380000\tserverfix SV4.14 disabled slowlog allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.gAINNz",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 244,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 34,
+        "failed": 0
+      }
+    },
+    "serverfix_acllog": {
+      "ledger": "FAIL\t13.120000\tserverfix CC4.26 disabled ACL log allocation",
+      "receipt": "/home/user/Projects/cx-serverfix/build/gate-run.gAINNz",
+      "test_sha256": {
+        "serverfix_scalar.py": "a462a96e5eae72eab20bc98439a9f40913ebf688f6e70b829b365dba90259aad",
+        "serverfix_config.py": "b8408938822bcb7809d224eea3408886340d6614344b0ba9b9f404e57767fb47",
+        "serverfix_slowlog.py": "a55770e76a83852e7d6815b5a2c19fe43f30c5391e7efe0e0aa3c49be93b8b25",
+        "serverfix_acllog.py": "e080ea87352ab120da59eeab3fbf4f09caa1bcaadd725806408df6c7fda4c81b",
+        "_serverfix_alloc.py": "33ef4db2294303b098abe903a25387284a41fe1263ea2e4aa3f4c72cd33e2a2a",
+        "notify.py": "b0b53870b22ad629fd23ff041efa30610f98215884cf53e21315e7b34946ad6a"
+      },
+      "candidate": {
+        "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+        "checks": 516,
+        "failed": 4
+      },
+      "oracle": {
+        "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+        "checks": 78,
+        "failed": 0
+      }
+    }
+  }
+}

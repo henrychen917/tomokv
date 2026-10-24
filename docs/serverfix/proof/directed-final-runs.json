@@ -1,0 +1,68 @@
+[
+  {
+    "arm": "post",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv",
+    "sha256": "c0b527316c39ec407c530105ca9d3ce76f65f60b3d284cd96dfa75ae128a6e57",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv"
+    ],
+    "jobs": "serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog auth config_unit debug-0 debug-1",
+    "exit": 0,
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.cfu4RC",
+    "archive": "docs/serverfix/proof/post-directed.tar.gz",
+    "archive_sha256": "793490e479b42bb6a8d4e9d427413e175bf7adb9095f8300721de2ad890b3923"
+  },
+  {
+    "arm": "pre",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pre",
+    "sha256": "a09ba396bfaa2f103173c374d641228af7a42a7eaa26fc9fa48204b95c11ebbd",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pre"
+    ],
+    "jobs": "serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog auth config_unit debug-0 debug-1",
+    "exit": 1,
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.orb6C8",
+    "archive": "docs/serverfix/proof/pre-directed.tar.gz",
+    "archive_sha256": "fedbdd57aef57e59a1ef7964069a6539619caed4c773ca2e23ab2e3d77520ddd"
+  },
+  {
+    "arm": "pad-a",
+    "binary": "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pad-a",
+    "sha256": "641a7d0205248f5f028dbbe121d10684240f2123f343545e483a637a68151c12",
+    "command": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--ports",
+      "31800-31899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-serverfix/build/tomokv-serverfix-pad-a"
+    ],
+    "jobs": "serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog",
+    "exit": 1,
+    "run_dir": "/home/user/Projects/cx-serverfix/build/gate-run.qEpdlJ",
+    "archive": "docs/serverfix/proof/pad-a-directed.tar.gz",
+    "archive_sha256": "779a622b267b6a5b428cde0b12906c6bb4555cb8aa7d7485f22c7bda7419ff96"
+  }
+]

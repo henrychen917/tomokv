@@ -1,0 +1,392 @@
+{
+  "mark": "DIFF-TRK-1",
+  "observed": false,
+  "checked_climon_legs": [
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-split-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-0/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "uring",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/gate-run.lc0r60/jobs/differ-armed-1/output.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-split.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 7,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 19,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 20,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 23,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 21,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    },
+    {
+      "engine": "epoll",
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 22,
+      "status": "ok",
+      "log": "build/serverfix/differ-epoll-armed-fused.log"
+    }
+  ],
+  "pre_comparisons": [],
+  "reason": "All 48 POST climon legs passed. Conditional PRE failure comparisons were not needed."
+}

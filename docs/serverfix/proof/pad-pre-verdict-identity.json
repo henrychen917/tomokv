@@ -1,0 +1,46 @@
+{
+  "lines": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 164,
+    "pad_checks": 164
+  },
+  "scalar": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 864,
+    "pad_checks": 864,
+    "receipt": "extra-runs.json"
+  },
+  "config": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 6092,
+    "pad_checks": 6092,
+    "receipt": "extra-runs.json"
+  },
+  "hello": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 352,
+    "pad_checks": 352
+  },
+  "waitaof": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 120,
+    "pad_checks": 120
+  },
+  "hll": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 40,
+    "pad_checks": 40
+  },
+  "slowlog": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 244,
+    "pad_checks": 244,
+    "receipt": "extra-runs.json"
+  },
+  "acllog": {
+    "equal_verdict_inventory": true,
+    "pre_checks": 516,
+    "pad_checks": 516,
+    "receipt": "extra-runs.json"
+  }
+}
