@@ -1,0 +1,120 @@
+{
+  "scope": [
+    "broad-final",
+    "integration-fixtures-final",
+    "differ-uring",
+    "differ-epoll",
+    "txnorder-round-2",
+    "txnorder-round-3",
+    "legacy-split-final",
+    "legacy-fused",
+    "perfio-quiet",
+    "atomic-split-quiet",
+    "atomic-fused-quiet",
+    "release-split-repaired",
+    "release-fused-repaired"
+  ],
+  "declared_skips": [
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-uring",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-0",
+      "line": "differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+    },
+    {
+      "selection": "differ-epoll",
+      "job": "differ-armed-1",
+      "line": "differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)"
+    }
+  ],
+  "note": "Only the differential driver's existing armed-fused SORT exclusions appear. CLIENT REPLY OFF/SKIP labels are command names, not skipped tests. Gate strict skips and unavailable TSan are failures."
+}
