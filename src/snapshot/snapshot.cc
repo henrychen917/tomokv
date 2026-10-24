@@ -265,6 +265,24 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
                                                      const char* target_filename, bool shutdown) {
+    // SAVE can run while Redis's AOF child is active. The native format shares
+    // one snapshot coordinator, so finish that capture before taking SAVE's cut.
+    // The caller may own its IO ring or a fused shard and must advance both.
+    const bool finish_rewrite = is_blocking && !shutdown && !rewrite &&
+        server.aof().rewrite_in_progress();
+    while (finish_rewrite && (server.aof().rewrite_in_progress() || in_progress())) {
+        writer.progress_fused_executor();
+        if (writer_is(writer.id())) {
+            writer_pass(writer, writer_ring, true);
+            if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
+        }
+        writer_ring.submit_and_reap();
+        if (server.shutting_down()) {
+            error = "save cancelled by shutdown";
+            return StartResult::Failed;
+        }
+        std::this_thread::yield();
+    }
     {
         // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
         // two IO owners could both observe the other's atomic state as idle and publish Preparing

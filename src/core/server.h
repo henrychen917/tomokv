@@ -1885,6 +1885,10 @@ public:
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
     bool request_signal_shutdown(bool interrupt = false);
     static constexpr uint8_t kSaveConfigured = 1, kSignalShutdown = 2;
+    static constexpr uint8_t kScheduledBgsave = 64, kOfflineRewrite = 128;
+    void schedule_bgsave();
+    void schedule_offline_rewrite();
+    uint32_t persistence_command_cron(ThreadCtx& writer, Ring& ring);
     bool save_schedule_armed() const {
         return live_save_armed_.load(std::memory_order_relaxed) & kSaveConfigured;
     }
@@ -1939,6 +1943,8 @@ public:
         if (!save_cron_writer(writer.id())) return 0;
         if (live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown)
             return shutdown_from_cron(writer, ring);
+        if (live_save_armed_.load(std::memory_order_relaxed) & (kScheduledBgsave | kOfflineRewrite))
+            return persistence_command_cron(writer, ring);
         if (snapshot_.in_progress()) return 0;
         save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
         const uint64_t changes = save_changes_since_last_save();

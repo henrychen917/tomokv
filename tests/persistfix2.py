@@ -12,6 +12,7 @@ from pathlib import Path
 import resource
 import signal
 import subprocess
+import threading
 import time
 
 from _lib import Conn, RespError, info, wait_ready
@@ -45,11 +46,12 @@ def wait(predicate, description, seconds=15):
 
 
 @contextlib.contextmanager
-def boot(args, name, extra=(), fsize=None):
+def boot(args, name, extra=(), fsize=None, existing_data=None):
     directory = args.output / name
     directory.mkdir(parents=True, exist_ok=False)
-    data = directory / 'data'
-    data.mkdir()
+    data = existing_data or directory / 'data'
+    if existing_data is None:
+        data.mkdir()
     guard_port(args.port)
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()),
             '--bind', '127.0.0.1', '--port', str(args.port), '--dir', str(data),
@@ -82,7 +84,8 @@ def boot(args, name, extra=(), fsize=None):
             if conn:
                 conn.close()
             # Remove only this invocation's DEBUG hold, allowing owned teardown.
-            (data / 'appendonlydir/debug-aof-rewrite-stage').unlink(missing_ok=True)
+            with contextlib.suppress(NotADirectoryError):
+                (data / 'appendonlydir/debug-aof-rewrite-stage').unlink(missing_ok=True)
             if process.poll() is None:
                 try:
                     cleanup = Conn('127.0.0.1', args.port, timeout=.5)
@@ -313,9 +316,147 @@ def shutdown(args):
     assert not failures, '\n'.join(failures)
 
 
+def commands(args):
+    failures = []
+    def check(name, run):
+        try:
+            run()
+        except Exception as error:
+            emit('assertion', name=name, error=str(error))
+            failures.append(f'{name}: {error}')
+
+    def grammar():
+        with boot(args, 'bgsave-grammar') as (_, conn, _):
+            for words in [('bogus',), ('SCHEDULE', 'bogus'), ('SCHEDULE', 'SCHEDULE')]:
+                reply = command(conn, 'BGSAVE', *words)
+                if reply != RespError('ERR syntax error'):
+                    failures.append(f'BGSAVE {words}: {reply!r}')
+            wait(lambda: persistence(conn)['rdb_bgsave_in_progress'] == '0', 'idle RDB')
+            assert command(conn, 'BGSAVE', 'ScHeDuLe') == b'Background saving started'
+            wait(lambda: persistence(conn)['rdb_bgsave_in_progress'] == '0', 'completed RDB')
+    check('BGSAVE grammar', grammar)
+
+    def disabled():
+        with boot(args, 'aof-disabled') as (_, conn, data):
+            assert not (data / 'appendonlydir').exists()
+            assert conn.must('SET', 'acknowledged-write', 'cut') == b'OK'
+            before = persistence(conn)
+            assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting started'
+            wait(lambda: rewrite_done(conn), 'disabled AOF rewrite complete')
+            assert (data / 'appendonlydir').is_dir()
+            assert list((data / 'appendonlydir').glob('*.manifest'))
+            after = persistence(conn)
+            assert after['aof_enabled'] == '0'
+            assert after['rdb_last_save_time'] == before['rdb_last_save_time']
+            assert after['aof_last_bgrewrite_status'] == 'ok'
+            assert int(after['aof_rewrites']) == int(before['aof_rewrites']) + 1
+            assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting started'
+            wait(lambda: rewrite_done(conn), 'second disabled AOF rewrite complete')
+            assert conn.must('SET', 'acknowledged-write', 'later') == b'OK'
+            emit('disabled AOF rewrite', before=before, after=persistence(conn),
+                 files=sorted(p.name for p in (data / 'appendonlydir').iterdir()))
+        with boot(args, 'disabled-rewrite-recovery', ['--appendonly', 'yes'], existing_data=data) as (_, conn, _):
+            assert command(conn, 'GET', 'acknowledged-write') == b'cut'
+            emit('recovery', result='explicit rewrite cut restored; later AOF-disabled write absent')
+    check('disabled AOF rewrite', disabled)
+
+    def directory_error():
+        with boot(args, 'aof-directory-error') as (_, conn, data):
+            (data / 'appendonlydir').write_text('ordinary file')
+            assert command(conn, 'BGREWRITEAOF') == RespError(
+                "ERR Can't execute an AOF background rewriting. Please check the server logs for more information.")
+            assert persistence(conn)['aof_last_bgrewrite_status'] == 'err'
+            assert conn.must('PING') == b'PONG'
+    check('AOF directory error', directory_error)
+
+    def save_error():
+        with boot(args, 'save-error') as (_, conn, data):
+            (data / 'dump.rdb').mkdir()
+            assert command(conn, 'SAVE') == RespError('ERR')
+            emit('SAVE error persistence', info=persistence(conn))
+    check('SAVE error reply', save_error)
+
+    def scheduled(enabled):
+        for attempt in range(3):
+            extra = ['--appendonly', 'yes' if enabled else 'no', '--appendfsync', 'no']
+            if args.oracle:
+                extra += ['--rdb-key-save-delay', '100']
+            with boot(args, f'scheduled-{int(enabled)}-{attempt}', extra) as (_, conn, data):
+                count = 4000 if args.oracle else 20000 * (attempt + 1)
+                for start in range(0, count, 200):
+                    assert conn.must('MSET', *[word for i in range(start, start + 200)
+                                             for word in (f'persistfix2:{i}', 'v' * 1024)]) == b'OK'
+                before = persistence(conn)
+                assert command(conn, 'BGSAVE') == b'Background saving started'
+                if persistence(conn)['rdb_bgsave_in_progress'] != '1':
+                    emit('fresh state retry', reason='BGSAVE completed before rewrite scheduling')
+                    continue
+                assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting scheduled'
+                current = persistence(conn)
+                emit('scheduled rewrite', info=current)
+                assert current['aof_rewrite_scheduled'] == '1'
+                assert current['aof_rewrite_in_progress'] == '0'
+                assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting scheduled'
+                assert command(conn, 'BGSAVE') == RespError('ERR Background save already in progress')
+                assert command(conn, 'SAVE') == RespError('ERR Background save already in progress')
+                after = wait(lambda: rewrite_done(conn), 'scheduled rewrite complete')
+                assert int(after['aof_rewrites']) == int(before['aof_rewrites']) + 1
+                assert after['aof_last_bgrewrite_status'] == 'ok'
+                assert after['rdb_last_bgsave_status'] == 'ok'
+                return
+        raise AssertionError('BGSAVE scheduling state never observed')
+    check('rewrite during BGSAVE enabled', lambda: scheduled(True))
+    check('rewrite during BGSAVE disabled', lambda: scheduled(False))
+
+    def save_during_rewrite(blocking=False):
+        extra = ['--appendonly', 'yes', '--appendfsync', 'no']
+        if args.oracle:
+            extra += ['--rdb-key-save-delay', '1000']
+        with boot(args, 'save-during-rewrite-' + str(int(blocking)), extra) as (_, conn, data):
+            for start in range(0, 2000, 200):
+                assert conn.must('MSET', *[word for i in range(start, start + 200)
+                                         for word in (f'persistfix2:{i}', 'v')]) == b'OK'
+            watch = observer(args, conn)
+            try:
+                if not args.oracle:
+                    assert command(watch, 'DEBUG', 'AOF-REWRITE-PAUSE', 'before-manifest') == b'OK'
+                before = persistence(watch)
+                assert command(watch, 'BGREWRITEAOF') == b'Background append only file rewriting started'
+                if not args.oracle:
+                    wait(lambda: (data / 'appendonlydir/debug-aof-rewrite-stage').exists(),
+                         'rewrite durability window')
+                assert persistence(watch)['aof_rewrite_in_progress'] == '1'
+                if blocking:
+                    release = threading.Timer(.05, lambda: (data / 'appendonlydir/debug-aof-rewrite-stage').unlink(missing_ok=True))
+                    release.start()
+                    try:
+                        assert command(watch, 'SAVE') == b'OK'
+                    finally:
+                        release.join()
+                    assert (data / 'dump.rdb').is_file()
+                    return
+                assert command(watch, 'BGREWRITEAOF') == RespError(
+                    'ERR Background append only file rewriting already in progress')
+                assert command(watch, 'BGSAVE') == RespError(
+                    "ERR Another child process is active (AOF?): can't BGSAVE right now. Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.")
+                assert command(watch, 'BGSAVE', 'SCHEDULE') == b'Background saving scheduled'
+                assert command(watch, 'BGSAVE', 'SCHEDULE') == b'Background saving scheduled'
+                (data / 'appendonlydir/debug-aof-rewrite-stage').unlink(missing_ok=True)
+                after = wait(lambda: (v if int((v := persistence(watch))['rdb_saves']) > int(before['rdb_saves'])
+                                     and v['rdb_bgsave_in_progress'] == '0' else None), 'scheduled RDB complete')
+                assert int(after['rdb_saves']) == int(before['rdb_saves']) + 1
+                assert after['aof_rewrite_in_progress'] == '0'
+            finally:
+                if watch is not conn:
+                    watch.close()
+    check('BGSAVE during rewrite', save_during_rewrite)
+    check('SAVE during rewrite', lambda: save_during_rewrite(True))
+    assert not failures, '\n'.join(failures)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--case', choices=('lastsave', 'shutdown'), required=True)
+    parser.add_argument('--case', choices=('lastsave', 'shutdown', 'commands'), required=True)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--oracle', action='store_true')
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)

@@ -802,9 +802,8 @@ void snapshot_command(Op& op, bool blocking) {
     if (result == SnapshotManager::StartResult::Busy) {
         reply_err(op.sink(), "ERR Background save already in progress");
     } else if (result == SnapshotManager::StartResult::Failed) {
-        std::string message = "ERR ";
-        message += error.empty() ? "snapshot failed" : error;
-        reply_err(op.sink(), message.c_str());
+        std::fprintf(stderr, "Snapshot error: %s\n", error.c_str());
+        reply_err(op.sink(), "ERR");
     } else if (blocking) {
         reply_ok(op.sink());
     } else {
@@ -813,17 +812,44 @@ void snapshot_command(Op& op, bool blocking) {
 }
 
 void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
-void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
-void cmd_bgrewriteaof(Shard&, Op& op) {
-    if (!g_server || !g_server->aof().recording()) {
-        reply_err(op.sink(), "ERR Background append only file rewriting not scheduled");
+void cmd_bgsave(Shard&, Op& op) {
+    if (op.argc() > 1 && (op.argc() != 2 || !eq_icase(op.arg(1), "SCHEDULE"))) {
+        reply_syntax(op.sink()); return;
+    }
+    if (g_server && g_server->aof().rewrite_in_progress()) {
+        if (op.argc() == 2) {
+            g_server->schedule_bgsave();
+            reply_simple(op.sink(), "Background saving scheduled");
+        } else reply_err(op.sink(), "ERR Another child process is active (AOF?): can't BGSAVE right now. "
+            "Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.");
         return;
     }
-    if (!g_server->aof().request_rewrite()) {
+    snapshot_command(op, false);
+}
+void cmd_bgrewriteaof(Shard&, Op& op) {
+    if (g_server && g_server->aof().rewrite_in_progress()) {
         reply_err(op.sink(), "ERR Background append only file rewriting already in progress");
         return;
     }
-    reply_simple(op.sink(), "Background append only file rewriting started");
+    static constexpr const char* failed = "ERR Can't execute an AOF background rewriting. "
+        "Please check the server logs for more information.";
+    if (!g_server) { reply_err(op.sink(), failed); return; }
+    const bool scheduled = g_server->snapshot().in_progress();
+    if (!g_server->aof().request_rewrite()) { reply_err(op.sink(), failed); return; }
+    if (!g_server->aof().configured()) {
+        if (scheduled) g_server->schedule_offline_rewrite();
+        else {
+            const auto context = snapshot_io_context();
+            std::string error;
+            if (!context.thread || !context.ring ||
+                !g_server->aof().start_offline_rewrite(*context.thread, *context.ring, error)) {
+                std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+                reply_err(op.sink(), failed); return;
+            }
+        }
+    }
+    reply_simple(op.sink(), scheduled ? "Background append only file rewriting scheduled" :
+                                      "Background append only file rewriting started");
 }
 void cmd_lastsave(Shard&, Op& op) {
     reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
@@ -3110,7 +3136,7 @@ static const CommandSpec kTable[] = {
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
     {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
     {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
-    {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
+    {"BGSAVE",     1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
     {"BGREWRITEAOF",1, 1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgrewriteaof,0, 0, 0},
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},

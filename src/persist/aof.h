@@ -208,6 +208,7 @@ public:
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
     bool request_rewrite();
+    bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
     bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
                       int64_t cut_ms, std::string& error);
     bool rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch);
@@ -398,6 +399,7 @@ private:
     void maybe_pause_rewrite(AofRewriteDebugStage stage);
     void cleanup_unreferenced_files();
     bool schedule_rewrite(bool automatic);
+    bool complete_offline_rewrite(const std::string& base_path, uint64_t epoch);
 
     bool configured_ = false;
     bool routing_upgrade_ = false;

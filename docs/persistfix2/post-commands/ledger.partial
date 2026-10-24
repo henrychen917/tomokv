@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=persistfix2_commands; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	60.000000	persistfix2 persistence command replies and scheduling

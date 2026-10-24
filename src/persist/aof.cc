@@ -1489,7 +1489,128 @@ bool AofManager::schedule_rewrite(bool automatic) {
 }
 
 bool AofManager::request_rewrite() {
-    return schedule_rewrite(false);
+    if (rewrite_in_progress() || failed()) return false;
+    if (configured_ && !recording()) return false;
+    if (server_ && server_->snapshot().in_progress()) {
+        consecutive_rewrite_failures_.store(0, std::memory_order_relaxed);
+        next_rewrite_retry_ms_.store(0, std::memory_order_relaxed);
+    }
+    // Repeated requests during BGSAVE coalesce and retain the scheduled reply.
+    if (!rewrite_requested_.exchange(true, std::memory_order_acq_rel))
+        rewrite_requests_.fetch_add(1, std::memory_order_relaxed);
+    return true;
+}
+
+void Server::schedule_bgsave() {
+    live_save_armed_.fetch_or(kScheduledBgsave, std::memory_order_release);
+}
+
+void Server::schedule_offline_rewrite() {
+    live_save_armed_.fetch_or(kOfflineRewrite, std::memory_order_release);
+}
+
+uint32_t Server::persistence_command_cron(ThreadCtx& writer, Ring& ring) {
+    if (snapshot_.in_progress()) return 0;
+    const uint8_t pending = live_save_armed_.load(std::memory_order_acquire);
+    std::string error;
+    if (pending & kOfflineRewrite) {
+        live_save_armed_.fetch_and(uint8_t(~kOfflineRewrite), std::memory_order_relaxed);
+        if (aof_.rewrite_scheduled() && !aof_.start_offline_rewrite(writer, ring, error))
+            std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+    } else if (pending & kScheduledBgsave) {
+        live_save_armed_.fetch_and(uint8_t(~kScheduledBgsave), std::memory_order_relaxed);
+        const auto result = snapshot_.start(*this, writer, ring, false, error);
+        if (result == SnapshotManager::StartResult::Busy) schedule_bgsave();
+        else if (result == SnapshotManager::StartResult::Failed)
+            std::fprintf(stderr, "Background save error: %s\n", error.c_str());
+    }
+    return 1;
+}
+
+bool AofManager::start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error) {
+    if (configured_ || !server_) return false;
+    bool expected = false;
+    if (!rewrite_in_progress_.compare_exchange_strong(expected, true, std::memory_order_acq_rel))
+        return false;
+    rewrite_requested_.store(false, std::memory_order_release);
+    // Explicit BGREWRITEAOF is the only allocation/file-creation entry with AOF
+    // disabled. No producers, channels, recording latch or writer lane is armed.
+    const Config& config = server_->cfg();
+    directory_path_ = aof_directory_path(config);
+    appendfilename_ = config.appendfilename;
+    manifest_path_ = directory_path_ + "/" + appendfilename_ + ".manifest";
+    file_path_.clear();
+    auto refuse = [&] {
+        last_rewrite_ok_.store(false, std::memory_order_relaxed);
+        rewrite_in_progress_.store(false, std::memory_order_release);
+        return false;
+    };
+    struct stat directory{};
+    if ((::mkdir(directory_path_.c_str(), 0700) != 0 && errno != EEXIST) ||
+        ::stat(directory_path_.c_str(), &directory) != 0 || !S_ISDIR(directory.st_mode)) {
+        error = "could not create AOF rewrite directory";
+        return refuse();
+    }
+    AofManifestData manifest;
+    bool exists = false;
+    if (!read_manifest(manifest_path_, exists, manifest, error)) return refuse();
+    rewrite_history_.clear();
+    rewrite_target_sequence_ = exists ? manifest.base_sequence + 1 : 1;
+    if (exists) {
+        if (!manifest.base_name.empty()) rewrite_history_.push_back(manifest.base_name);
+        for (const auto& entry : manifest.increments) {
+            rewrite_history_.push_back(entry.second);
+            rewrite_target_sequence_ = std::max(rewrite_target_sequence_, entry.first + 1);
+        }
+    }
+    // Preserve unrelated files left by an unclean stop; only manifest-named
+    // history is removed after the new recovery plan is durable.
+    for (;;) {
+        rewrite_base_name_ = aof_base_name(appendfilename_, rewrite_target_sequence_);
+        const auto increment = aof_segment_name(appendfilename_, rewrite_target_sequence_);
+        if (::access((directory_path_ + "/" + rewrite_base_name_).c_str(), F_OK) != 0 &&
+            ::access((directory_path_ + "/" + increment).c_str(), F_OK) != 0) break;
+        ++rewrite_target_sequence_;
+    }
+    nshards_ = server_->nshards();
+    writer_tid_ = writer.id();
+    rewrite_completions_.fetch_add(1, std::memory_order_relaxed);
+    const auto result = server_->snapshot().start(*server_, writer, ring, false, error,
+        this, directory_path_.c_str(), rewrite_base_name_.c_str());
+    if (result == SnapshotManager::StartResult::Busy) {
+        rewrite_in_progress_.store(false, std::memory_order_release);
+        rewrite_completions_.fetch_sub(1, std::memory_order_relaxed);
+        rewrite_requested_.store(true, std::memory_order_release);
+        server_->schedule_offline_rewrite();
+        return true;
+    }
+    if (result == SnapshotManager::StartResult::Failed) { rewrite_abort(); return false; }
+    return true;
+}
+
+bool AofManager::complete_offline_rewrite(const std::string& base_path, uint64_t epoch) {
+    struct stat base{};
+    if (::stat(base_path.c_str(), &base) != 0 || base.st_size < 0 || file_path_.empty()) return false;
+    const uint64_t size = static_cast<uint64_t>(base.st_size);
+    const std::string increment = aof_segment_name(appendfilename_, rewrite_target_sequence_);
+    std::string error;
+    if (!persist_manifest(rewrite_base_name_, rewrite_target_sequence_, epoch,
+        server_->snapshot().cut_ticket(), size, size + file_offset_,
+        {{rewrite_target_sequence_, increment}}, {std::vector<uint32_t>(nshards_, 0)}, error)) {
+        std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+        return false;
+    }
+    for (const auto& name : rewrite_history_)
+        if (::unlink((directory_path_ + "/" + name).c_str()) == 0)
+            history_unlinks_.fetch_add(1, std::memory_order_relaxed);
+    rewrite_history_.clear();
+    base_size_.store(size, std::memory_order_relaxed);
+    current_size_.store(size + file_offset_, std::memory_order_relaxed);
+    rewrite_base_size_.store(size + file_offset_, std::memory_order_relaxed);
+    last_rewrite_ok_.store(true, std::memory_order_relaxed);
+    consecutive_rewrite_failures_.store(0, std::memory_order_relaxed);
+    rewrite_in_progress_.store(false, std::memory_order_release);
+    return true;
 }
 
 void AofManager::maybe_schedule_auto_rewrite() {
@@ -1577,6 +1698,19 @@ void AofManager::maybe_start_rewrite(ThreadCtx& writer, Ring& ring) {
 
 bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
                               int64_t, std::string& error) {
+    if (!configured_ && rewrite_in_progress() && writer.id() == writer_tid_) {
+        const std::string path = directory_path_ + "/" +
+            aof_segment_name(appendfilename_, rewrite_target_sequence_);
+        fd_ = ::open(path.c_str(), O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC, 0600);
+        if (fd_ < 0) { error = "could not create offline AOF increment"; return false; }
+        file_path_ = path;
+        file_offset_ = 0;
+        bool ok = write_header_normal() && ::fsync(fd_) == 0;
+        if (::close(fd_) != 0) ok = false;
+        fd_ = -1;
+        if (!ok) error = "could not persist offline AOF increment";
+        return ok;
+    }
     if (!rewrite_in_progress() || writer.id() != writer_tid_ || fd_ < 0 || !server_) {
         error = "invalid AOF rewrite mark owner";
         return false;
@@ -1660,6 +1794,8 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
 }
 
 bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch) {
+    if (!configured_) return rewrite_in_progress() &&
+        snapshot_epoch == server_->snapshot().epoch() && complete_offline_rewrite(base_path, snapshot_epoch);
     if (!rewrite_in_progress() || snapshot_epoch != chunk_in_[writer_tid_].rewrite_epoch)
         return false;
     struct stat base_stat{};
@@ -1717,8 +1853,13 @@ bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapsho
 
 void AofManager::rewrite_abort() {
     if (!rewrite_in_progress_.exchange(false, std::memory_order_acq_rel)) return;
-    chunk_in_[writer_tid_].rewrite_epoch = 0;
-    chunk_in_[writer_tid_].rewrite_commit = 0;
+    if (configured_) {
+        chunk_in_[writer_tid_].rewrite_epoch = 0;
+        chunk_in_[writer_tid_].rewrite_commit = 0;
+    } else if (!file_path_.empty()) {
+        (void)::unlink(file_path_.c_str());
+        file_path_.clear();
+    }
     last_rewrite_ok_.store(false, std::memory_order_relaxed);
     rewrite_failures_.fetch_add(1, std::memory_order_relaxed);
     const uint32_t failures =

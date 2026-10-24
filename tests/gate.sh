@@ -1128,7 +1128,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(persistfix2_lastsave persistfix2_shutdown aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+  JOB_NAMES+=(persistfix2_lastsave persistfix2_shutdown persistfix2_commands aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
@@ -3268,6 +3268,12 @@ job_persistfix2_shutdown(){
       || bad "persistfix2 shutdown modifiers and signal policy" "see $TMPDIR/shutdown-*.log"
 }
 
+job_persistfix2_commands(){
+  row_begin "persistfix2 persistence command replies and scheduling"
+  persistfix2_case commands && ok "persistfix2 persistence command replies and scheduling" \
+      || bad "persistfix2 persistence command replies and scheduling" "see $TMPDIR/commands-*.log"
+}
+
 job_snapshot(){
 # ---- snapshot data/sync engines: cut, typed round-trip, and typed preimage race ----------------
 local NET_IO=${1##*-}
@@ -5291,6 +5297,7 @@ collect_job serverfix_acllog
 
 collect_job persistfix2_lastsave
 collect_job persistfix2_shutdown
+collect_job persistfix2_commands
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 
 collect_job notify
