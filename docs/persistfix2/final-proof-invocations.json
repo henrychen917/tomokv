@@ -1,6 +1,6 @@
 [
   {
-    "name": "final-artifact-pad",
+    "name": "before-eval-artifact-pad",
     "command": [
       "python3",
       "tools/persistfix2_artifacts.py",
@@ -14,7 +14,7 @@
     "finished": 1792878804.6805525
   },
   {
-    "name": "final-artifact-control",
+    "name": "before-eval-artifact-control",
     "command": [
       "python3",
       "tools/persistfix2_artifacts.py",
@@ -43,7 +43,7 @@
     "excluded": "Object scan also included unit artifacts; replaced by a complete production-link inventory scan."
   },
   {
-    "name": "final-artifact-hot-explain",
+    "name": "before-eval-artifact-hot-explain",
     "command": [
       "python3",
       "tools/persistfix2_artifacts.py",
@@ -57,7 +57,7 @@
     "finished": 1792879218.3734252
   },
   {
-    "name": "final-artifact-identity",
+    "name": "before-eval-artifact-identity",
     "command": [
       "python3",
       "tools/persistfix2_artifacts.py",
@@ -69,6 +69,94 @@
     "started": 1792879230.5370104,
     "exit": 0,
     "finished": 1792879386.2836185
+  },
+  {
+    "name": "gate-before-eval-post-regression",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix iofix-signal persistfix_units router_uniform aof_frame aoforder debug-0 debug-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 dispatch_arity dispatch_errors atomic_units release_batteries atomic_batteries serverfix_config serverfix_scalar serverfix_waitaof auth dbdefault",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 0,
+    "started": 1792879386.9064612,
+    "exit": 0,
+    "finished": 1792880964.663923,
+    "binary_sha256": "0ed778a80c61ece49bad82066c0680c609575e51ba8b04382d994bf25ace4d02",
+    "completion_evidence": "Gate child exit status 0 and complete 400/400 job ledgers; queue paused at completion."
+  },
+  {
+    "name": "final-artifact-pad",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "pad"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881575.2432427,
+    "exit": 0,
+    "finished": 1792881583.3842864
+  },
+  {
+    "name": "final-artifact-control",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "control"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881583.384635,
+    "exit": 0,
+    "finished": 1792881609.9795492
+  },
+  {
+    "name": "final-artifact-identity",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "identity"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881609.9798846,
+    "exit": 0,
+    "finished": 1792881765.4555779
+  },
+  {
+    "name": "final-artifact-hot-explain",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "hot-explain"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881765.4559655,
+    "exit": 0,
+    "finished": 1792881770.1158118
   },
   {
     "name": "gate-final-post-regression",
@@ -96,6 +184,96 @@
       "GATE_SHUTDOWN_NET_IO": "uring"
     },
     "expected_exit": 0,
-    "started": 1792879386.9064612
+    "started": 1792881770.73522,
+    "exit": 0,
+    "finished": 1792883152.9343982
+  },
+  {
+    "name": "gate-final-pre-errors",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_errors",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 1,
+    "started": 1792883152.934821,
+    "exit": 1,
+    "finished": 1792883158.639439
+  },
+  {
+    "name": "gate-final-control-errors",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-control-d8"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_errors",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 1,
+    "started": 1792883158.6398745,
+    "exit": 1,
+    "finished": 1792883164.3170733
+  },
+  {
+    "name": "gate-final-post-fused",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix",
+      "GATE_TXN_FUSED": "1",
+      "GATE_SHUTDOWN_NET_IO": "epoll"
+    },
+    "expected_exit": 0,
+    "started": 1792883164.3175147
   }
 ]

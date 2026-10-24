@@ -1,0 +1,30 @@
+{
+  "name": "gate-final-post-regression",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "36861-36899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-persistfix2/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix iofix-signal persistfix_units router_uniform aof_frame aoforder debug-0 debug-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 dispatch_arity dispatch_errors atomic_units release_batteries atomic_batteries serverfix_config serverfix_scalar serverfix_waitaof auth dbdefault",
+    "GATE_TXN_FUSED": "0",
+    "GATE_SHUTDOWN_NET_IO": "uring"
+  },
+  "expected_exit": 0,
+  "started": 1792881770.73522,
+  "exit": 0,
+  "finished": 1792883152.9343982
+}

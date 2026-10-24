@@ -1,0 +1,20 @@
+{
+  "run": "build/persistfix2/pre-proof-source/build/gate-run.olfikD",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 1,
+  "failed": 1,
+  "archive_sha256": "e8818a26aa6693fc9b6c36183d965a635ede876282fa556c269ad5c473e242fe"
+}

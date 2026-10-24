@@ -1,0 +1,20 @@
+{
+  "run": "build/gate-run.nEDqJt",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 1,
+  "failed": 1,
+  "archive_sha256": "f524cb6a4dd36395a34e0b8a609dcf1561d6db8aabe029617ae425547f9e0efe"
+}
