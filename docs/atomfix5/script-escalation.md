@@ -36,6 +36,12 @@ entry. `txn_group.inc::txn_group_prepare` explicitly excludes Kind::Script.
 Scripts have their own PIN/READ/RUN/VALIDATE/UNPIN/APPLY state machine in
 `scatter_engine.inc::xshard_complete_script`.
 
+Wrapping the script in the existing EXEC lowerer is not an available adapter:
+`classify_multi_command` classifies ScriptRoute/CursorShard as Scan, which calls
+`command_prepare_scan_route` and then `command_prepare_script_route`. The latter
+returns CROSSSLOT for declared keys on different shards (scripting.cc:1543–1547).
+There is no existing multi-owner script child behind the EXEC claim protocol.
+
 `Server::script_try_certification` is not an EXEC fallback. It serializes only
 script certification; plain writers still run, and APPLY still validates each
 owner. Holding it longer cannot prevent plain-writer conflicts. Retrying its
