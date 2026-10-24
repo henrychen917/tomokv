@@ -1,5 +1,7 @@
 """CD4.10: first-byte offset limits and the maximum eight-byte growth spill."""
 from datafix1_common import main
+from clientfix import Error, plain
+import json
 
 
 def battery(p):
@@ -30,6 +32,19 @@ def battery(p):
     p.cmd('CONFIG', 'SET', 'proto-max-bulk-len', cap)
     p.cmd('BITFIELD_RO', 'missing', 'GET', 'i64', cap*8-1)
     p.cmd('BITFIELD_RO', 'missing', 'GET', 'i64', cap*8)
+    # Wave 5 accepts Redis's larger CONFIG range but keeps growth within Slice.
+    # Cross that configuration boundary without allocating a multi-gigabyte value.
+    p.cmd('CONFIG', 'SET', 'proto-max-bulk-len', 2**63 - 1)
+    p.cmd('BITFIELD_RO', 'missing', 'GET', 'i64', cap*8-1)
+    for role, conn in p.each():
+        for command in ('BITFIELD', 'BITFIELD_RO'):
+            reply = conn.cmd(command, 'missing', 'GET', 'i64', cap*8)
+            expected = ([0] if role == 'oracle' else
+                        Error('ERR bit offset is not an integer or out of range'))
+            p.receipt.write(json.dumps(plain(dict(role=role, command=command,
+                configured=2**63-1, offset=cap*8, reply=reply, expected=expected))) + '\n')
+            p.check(reply == expected, dict(role=role, command=command, reply=reply,
+                                            expected=expected))
 
 
 if __name__ == '__main__':

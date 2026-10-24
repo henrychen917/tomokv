@@ -287,9 +287,9 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
 
     // Redis grows through the final bit (lookupStringForBitCommand), with no
     // second proto-max-bulk-len check. A 64-bit field starting in the last valid
-    // byte needs at most eight extra bytes. The supported request cap reserves
+    // byte needs at most eight extra bytes. The representable string cap reserves
     // 64 KiB below UINT32_MAX, so both this cast and every bit store remain safe.
-    static_assert(kProtoMaxBulkLenSupported + 8 <= UINT32_MAX);
+    static_assert(kProtoMaxBulkLenRepresentable + 8 <= UINT32_MAX);
     const uint32_t new_length = static_cast<uint32_t>(
         std::max<uint64_t>(old.n, (highest_write_offset >> 3) + 1));
     uint8_t* image = static_cast<uint8_t*>(std::malloc(new_length));
