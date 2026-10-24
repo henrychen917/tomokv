@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import identity
+import switch_provenance
 
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
 ROOT = identity.ROOT
@@ -46,11 +47,40 @@ for arm in ('pre', 'post'):
         result[arm + '-' + ns] = rows
 result['links'] = {k: {f: v[f] for f in ('path', 'sha256')} for k, v in inventories.items()}
 (DOC / 'provenance.json').write_text(json.dumps(result, indent=2) + '\n')
+switch_names = {
+    row['name'] for arm in ('pre', 'post') for ns in ('normal', 'db0')
+    for row in result[arm + '-' + ns] if not row['production_equal']
+}
+switches = {}
+if switch_names:
+    assert switch_names == {
+        'tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)',
+        'tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)',
+    }, switch_names
+    selected = ['pre-db0', 'post-db0', 'pre-production', 'post-production', 'headline']
+    with concurrent.futures.ThreadPoolExecutor(2) as pool:
+        switches = dict(zip(selected, pool.map(
+            lambda key: switch_provenance.inspect(paths[key], switch_names), selected)))
+    for arm in ('pre', 'post'):
+        for row in result[arm + '-db0']:
+            if row['name'] not in switch_names:
+                continue
+            name = row['name']
+            probe = switches[arm + '-db0'][name]
+            production = switches[arm + '-production'][name]
+            row['verified_switch_equal'] = probe == production
+            if arm == 'pre':
+                row['verified_switch_headline_equal'] = probe == switches['headline'][name]
+    (DOC / 'switch-provenance.json').write_text(json.dumps(
+        dict(binaries=switches), indent=2) + '\n')
+(DOC / 'provenance.json').write_text(json.dumps(result, indent=2) + '\n')
 failed = []
 for arm in ('pre', 'post'):
     for ns in ('normal', 'db0'):
         name = arm + '-' + ns
-        failures = [r for r in result[name] if not r['production_equal'] or not r.get('headline_equal', True)]
+        failures = [r for r in result[name]
+                    if not (r['production_equal'] or r.get('verified_switch_equal', False))
+                    or not (r.get('headline_equal', True) or r.get('verified_switch_headline_equal', False))]
         print(name, len(result[name]), 'counted groups;', len(failures), 'differences', flush=True)
         failed += failures
 for row in failed:

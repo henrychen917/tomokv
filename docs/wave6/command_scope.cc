@@ -32,7 +32,7 @@ struct CoreConcurrencyTest {
   if constexpr(Fused)need(server.placement_.build_fused(server.topo_,place.c_str()));
   else need(server.placement_.build_even(server.topo_,6,2));
   need(server.placement_.reserve_runtime_roles(8));
-  Config cfg;cfg.databases=1;cfg.shards=16;cfg.atomic=atomic;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
+  Config cfg;cfg.databases=TOMO_SINGLE_DATABASE?1:16;cfg.shards=16;cfg.atomic=atomic;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
   cfg.thread_mode=Fused?ThreadMode::Fused:ThreadMode::Split;cfg.read_local=0;cfg.save.clear();
   cfg.slowlog_log_slower_than=slowlog;cfg.latency_monitor_threshold=0;
   need(server.init(cfg));command_bind_server(&server);

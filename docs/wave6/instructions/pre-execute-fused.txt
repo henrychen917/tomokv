@@ -1,0 +1,800 @@
+
+build/wave6/commands/pre-normal/probe:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.got:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+00000000006ed8e0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE>:
+  6ed8e0:	endbr64
+  6ed8e4:	push   %rbp
+  6ed8e5:	mov    %rsp,%rbp
+  6ed8e8:	push   %r15
+  6ed8ea:	push   %r14
+  6ed8ec:	push   %r13
+  6ed8ee:	push   %r12
+  6ed8f0:	push   %rbx
+  6ed8f1:	mov    %rsi,%r12
+  6ed8f4:	mov    %rdi,%rbx
+  6ed8f7:	sub    $0x68,%rsp
+  6ed8fb:	mov    %fs:0x28,%rax
+  6ed904:	mov    %rax,0x58(%rsp)
+  6ed909:	mov    0x8(%rdi),%rax
+  6ed90d:	movb   $0x0,0x20(%rsp)
+  6ed912:	movq   $0x0,0x18(%rsp)
+  6ed91b:	mov    (%rax),%eax
+  6ed91d:	add    $0x5ee,%rax
+  6ed923:	shl    $0x6,%rax
+  6ed927:	add    (%rdi),%rax
+  6ed92a:	mov    %rax,0x10(%rsp)
+  6ed92f:	mov    (%rax),%rdx
+  6ed932:	mov    %rdx,%rcx
+  6ed935:	and    $0x1,%ecx
+  6ed938:	mov    %rcx,%rsi
+  6ed93b:	xor    $0x1,%rsi
+  6ed93f:	mov    %sil,0x20(%rsp)
+  6ed944:	andb   $0x1,0x20(%rsp)
+  6ed949:	test   %rcx,%rcx
+  6ed94c:	je     6edb80 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x2a0>
+  6ed952:	movslq 0x10(%r12),%rax
+  6ed957:	test   %eax,%eax
+  6ed959:	jns    6ed98f <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xaf>
+  6ed95b:	mov    (%r12),%rcx
+  6ed95f:	mov    0x8(%r12),%rax
+  6ed964:	test   %rcx,%rcx
+  6ed967:	je     6ed9f0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x110>
+  6ed96d:	mov    %eax,%edx
+  6ed96f:	and    $0x7,%eax
+  6ed972:	shr    $0x3,%edx
+  6ed975:	and    $0x7,%edx
+  6ed978:	imul   $0x150,%rax,%rax
+  6ed97f:	add    0x80(%rcx,%rdx,8),%rax
+  6ed987:	movslq 0x8(%rax),%rax
+  6ed98b:	test   %eax,%eax
+  6ed98d:	js     6ed9f0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x110>
+  6ed98f:	mov    (%rbx),%rdx
+  6ed992:	add    $0x446e,%rax
+  6ed998:	mov    (%rdx,%rax,4),%edx
+  6ed99b:	mov    0x8(%rbx),%rax
+  6ed99f:	cmp    (%rax),%edx
+  6ed9a1:	je     6ed9f0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x110>
+  6ed9a3:	mov    %r12,%rsi
+  6ed9a6:	mov    %rbx,%rdi
+  6ed9a9:	call   6e71e0 <_ZN4tomo7ExLoopTILb1EE19post_forwarded_taskILb0EEEbRKNS_4TaskEj>
+  6ed9ae:	test   %al,%al
+  6ed9b0:	je     6ede40 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x560>
+  6ed9b6:	mov    $0x1,%r13d
+  6ed9bc:	cmpb   $0x0,0x20(%rsp)
+  6ed9c1:	jne    6edba0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x2c0>
+  6ed9c7:	mov    0x58(%rsp),%rax
+  6ed9cc:	sub    %fs:0x28,%rax
+  6ed9d5:	jne    6ee693 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdb3>
+  6ed9db:	add    $0x68,%rsp
+  6ed9df:	mov    %r13d,%eax
+  6ed9e2:	pop    %rbx
+  6ed9e3:	pop    %r12
+  6ed9e5:	pop    %r13
+  6ed9e7:	pop    %r14
+  6ed9e9:	pop    %r15
+  6ed9eb:	pop    %rbp
+  6ed9ec:	ret
+  6ed9ed:	nopl   (%rax)
+  6ed9f0:	mov    %r12,%rdi
+  6ed9f3:	call   4d4450 <_ZN4tomo17multi_task_taggedERKNS_4TaskE>
+  6ed9f8:	mov    0x10(%r12),%edi
+  6ed9fd:	mov    %eax,%r13d
+  6eda00:	mov    (%rbx),%rax
+  6eda03:	mov    %edi,0x8(%rsp)
+  6eda07:	mov    0x103c8(%rax),%rax
+  6eda0e:	test   %r13b,%r13b
+  6eda11:	je     6edbc0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x2e0>
+  6eda17:	movslq %edi,%rdx
+  6eda1a:	mov    (%rax,%rdx,8),%r13
+  6eda1e:	movzbl 0x18a(%rbx),%edx
+  6eda25:	mov    0x158(%rbx),%rax
+  6eda2c:	mov    %dl,0x1c8(%r13)
+  6eda33:	mov    (%r12),%rdx
+  6eda37:	mov    %rax,0x10(%r13)
+  6eda3b:	mov    %rax,0x1c0(%r13)
+  6eda42:	test   %rdx,%rdx
+  6eda45:	je     6ede90 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5b0>
+  6eda4b:	mov    0x8(%r12),%rcx
+  6eda50:	lea    0x230(%rbx),%rdi
+  6eda57:	mov    0x240(%rbx),%rsi
+  6eda5e:	mov    0x10(%r12),%r14d
+  6eda63:	mov    %rdi,0x8(%rsp)
+  6eda68:	mov    %ecx,%eax
+  6eda6a:	shr    $0x3,%eax
+  6eda6d:	and    $0x7,%eax
+  6eda70:	mov    0x80(%rdx,%rax,8),%rax
+  6eda78:	cmp    %rsi,0x260(%rbx)
+  6eda7f:	jne    6ee2e0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa00>
+  6eda85:	mov    0x2e0(%rbx),%rdi
+  6eda8c:	cmp    %rdi,0x300(%rbx)
+  6eda93:	jne    6ee2e0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa00>
+  6eda99:	mov    0x100(%r13),%rax
+  6edaa0:	test   %rax,%rax
+  6edaa3:	je     6edf70 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x690>
+  6edaa9:	cmpq   $0x0,0x210(%rax)
+  6edab1:	je     6edf70 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x690>
+  6edab7:	mov    (%r12),%rdx
+  6edabb:	mov    0x210(%rax),%ecx
+  6edac1:	mov    0x7a8(%rdx),%r15
+  6edac8:	test   %ecx,%ecx
+  6edaca:	je     6ee1b0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x8d0>
+  6edad0:	mov    %r15,%rdx
+  6edad3:	movabs $0xff51afd7ed558ccd,%rcx
+  6edadd:	shr    $0x21,%rdx
+  6edae1:	xor    %r15,%rdx
+  6edae4:	imul   %rcx,%rdx
+  6edae8:	mov    %rdx,%rcx
+  6edaeb:	shr    $0x21,%rcx
+  6edaef:	xor    %rcx,%rdx
+  6edaf2:	movabs $0xc4ceb9fe1a85ec53,%rcx
+  6edafc:	imul   %rcx,%rdx
+  6edb00:	mov    %rdx,%rcx
+  6edb03:	shr    $0x21,%rcx
+  6edb07:	xor    %rcx,%rdx
+  6edb0a:	and    $0x3f,%edx
+  6edb0d:	mov    0x10(%rax,%rdx,8),%r14
+  6edb12:	test   %r14,%r14
+  6edb15:	jne    6edb2d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x24d>
+  6edb17:	jmp    6edf70 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x690>
+  6edb1c:	nopl   0x0(%rax)
+  6edb20:	mov    0x10(%r14),%r14
+  6edb24:	test   %r14,%r14
+  6edb27:	je     6edf70 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x690>
+  6edb2d:	mov    0x30(%r14),%rsi
+  6edb31:	test   %rsi,%rsi
+  6edb34:	je     6edb20 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x240>
+  6edb36:	cmp    0x50(%r14),%r15
+  6edb3a:	jne    6edb20 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x240>
+  6edb3c:	mov    %r12,%rdi
+  6edb3f:	call   4d4460 <_ZN4tomo21multi_task_owns_epochERKNS_4TaskEPKv>
+  6edb44:	test   %al,%al
+  6edb46:	jne    6edb20 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x240>
+  6edb48:	mov    0x30(%r14),%rax
+  6edb4c:	mov    (%rax),%rax
+  6edb4f:	test   %rax,%rax
+  6edb52:	jne    6edb20 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x240>
+  6edb54:	mov    0x40(%r14),%rax
+  6edb58:	test   %rax,%rax
+  6edb5b:	je     6edb64 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x284>
+  6edb5d:	movzbl (%rax),%eax
+  6edb60:	test   %al,%al
+  6edb62:	jne    6edb20 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x240>
+  6edb64:	incq   0x458(%r13)
+  6edb6b:	mov    0x8(%rsp),%rdi
+  6edb70:	mov    %r12,%rsi
+  6edb73:	call   46d4a0 <_ZNSt5dequeIN4tomo4TaskESaIS1_EE9push_backERKS1_>
+  6edb78:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edb7d:	nopl   (%rax)
+  6edb80:	lea    0x2(%rdx),%rcx
+  6edb84:	inc    %rdx
+  6edb87:	mov    %rcx,0x18(%rsp)
+  6edb8c:	mov    %rdx,(%rax)
+  6edb8f:	jmp    6ed952 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x72>
+  6edb94:	data16 cs nopw 0x0(%rax,%rax,1)
+  6edb9f:	nop
+  6edba0:	mov    0x10(%rsp),%rax
+  6edba5:	mov    0x18(%rsp),%rdx
+  6edbaa:	mov    %rdx,(%rax)
+  6edbad:	jmp    6ed9c7 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xe7>
+  6edbb2:	data16 cs nopw 0x0(%rax,%rax,1)
+  6edbbd:	nopl   (%rax)
+  6edbc0:	mov    (%r12),%rcx
+  6edbc4:	test   %rcx,%rcx
+  6edbc7:	je     6ee260 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x980>
+  6edbcd:	mov    0x8(%r12),%r14
+  6edbd2:	mov    %r14d,%edx
+  6edbd5:	and    $0x7,%r14d
+  6edbd9:	shr    $0x3,%edx
+  6edbdc:	and    $0x7,%edx
+  6edbdf:	imul   $0x150,%r14,%r14
+  6edbe6:	add    0x80(%rcx,%rdx,8),%r14
+  6edbee:	mov    0x8(%rsp),%edx
+  6edbf2:	test   %edx,%edx
+  6edbf4:	js     6ede80 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5a0>
+  6edbfa:	movslq 0x8(%rsp),%rdx
+  6edbff:	cmpb   $0x0,0x188(%rbx)
+  6edc06:	mov    (%rax,%rdx,8),%r15
+  6edc0a:	jne    6ee150 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x870>
+  6edc10:	movzbl 0x18a(%rbx),%edx
+  6edc17:	mov    0x158(%rbx),%rax
+  6edc1e:	mov    %dl,0x1c8(%r15)
+  6edc25:	cmpb   $0x0,0x188(%rbx)
+  6edc2c:	mov    %rax,0x10(%r15)
+  6edc30:	mov    %rax,0x1c0(%r15)
+  6edc37:	jne    6ee120 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x840>
+  6edc3d:	cmpq   $0x0,0xa8(%r14)
+  6edc45:	je     6edc55 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x375>
+  6edc47:	cmpl   $0xfffffffc,0xb4(%r14)
+  6edc4f:	je     6ee200 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x920>
+  6edc55:	movzbl 0x28454e(%rip),%eax        # 9721aa <_ZN4tomo22atomic_tripwire_detail5armedE>
+  6edc5c:	test   %al,%al
+  6edc5e:	je     6edc78 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x398>
+  6edc60:	cmpq   $0x0,0x284548(%rip)        # 9721b0 <_ZN4tomo22atomic_tripwire_detail5stateE>
+  6edc68:	je     6edc78 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x398>
+  6edc6a:	mov    %r14,%rdx
+  6edc6d:	mov    %r15,%rsi
+  6edc70:	mov    %r12,%rdi
+  6edc73:	call   5013b0 <_ZN4tomo30xshard_tripwire_fragment_beginERKNS_4TaskERNS_5ShardERNS_2OpE>
+  6edc78:	lea    0x230(%rbx),%rax
+  6edc7f:	mov    %rax,(%rsp)
+  6edc83:	mov    0x240(%rbx),%rax
+  6edc8a:	cmp    %rax,0x260(%rbx)
+  6edc91:	jne    6edfa0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x6c0>
+  6edc97:	mov    0x2e0(%rbx),%rax
+  6edc9e:	cmp    %rax,0x300(%rbx)
+  6edca5:	jne    6edfa0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x6c0>
+  6edcab:	cmpq   $0x0,0x18(%r12)
+  6edcb1:	je     6ee000 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x720>
+  6edcb7:	mov    (%rbx),%rdi
+  6edcba:	mov    %r14,%rcx
+  6edcbd:	mov    %r12,%rdx
+  6edcc0:	mov    %r15,%rsi
+  6edcc3:	call   5103c0 <_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE>
+  6edcc8:	test   %al,%al
+  6edcca:	jne    6edfe0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x700>
+  6edcd0:	mov    0x18(%r12),%rdx
+  6edcd5:	test   %rdx,%rdx
+  6edcd8:	je     6ee00b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x72b>
+  6edcde:	mov    0x8(%rbx),%rdi
+  6edce2:	mov    0x18(%r15),%eax
+  6edce6:	mov    0x44(%rdi),%ecx
+  6edce9:	incq   0x3e8(%r15)
+  6edcf0:	cmp    $0xffffffff,%eax
+  6edcf3:	je     6ee390 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xab0>
+  6edcf9:	cmp    %ecx,%eax
+  6edcfb:	je     6edd04 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x424>
+  6edcfd:	incq   0x410(%r15)
+  6edd04:	test   %rdx,%rdx
+  6edd07:	je     6ee400 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb20>
+  6edd0d:	mov    (%rbx),%rax
+  6edd10:	mov    0x14c18(%rax),%eax
+  6edd16:	test   $0x2,%al
+  6edd18:	jne    6ee44b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb6b>
+  6edd1e:	cmpq   $0x0,0x18(%r12)
+  6edd24:	je     6ee040 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x760>
+  6edd2a:	mov    0x8(%rbx),%rax
+  6edd2e:	mov    %r14,%rdx
+  6edd31:	mov    %r15,%rsi
+  6edd34:	mov    %r12,%rdi
+  6edd37:	mov    (%rax),%ecx
+  6edd39:	call   511960 <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj>
+  6edd3e:	mov    %eax,%ecx
+  6edd40:	mov    %r14,%rdx
+  6edd43:	mov    %r15,%rsi
+  6edd46:	mov    %r12,%rdi
+  6edd49:	mov    %al,0x8(%rsp)
+  6edd4d:	call   509730 <_ZN4tomo19xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE>
+  6edd52:	cmpb   $0x2,0x8(%rsp)
+  6edd57:	je     6edfe0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x700>
+  6edd5d:	cmpb   $0x1,0x8(%rsp)
+  6edd62:	je     6ed9bc <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdc>
+  6edd68:	mov    0x18c(%rbx),%eax
+  6edd6e:	test   %eax,%eax
+  6edd70:	je     6edd97 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x4b7>
+  6edd72:	vmovq  %rbx,%xmm1
+  6edd77:	lea    0x30(%rsp),%rsi
+  6edd7c:	lea    -0xeb53(%rip),%rdx        # 6df230 <_ZZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskEENUlPvmE0_4_FUNES6_m>
+  6edd83:	mov    %r12,%rdi
+  6edd86:	vpinsrq $0x1,%r15,%xmm1,%xmm0
+  6edd8c:	vmovdqa %xmm0,0x30(%rsp)
+  6edd92:	call   4d08b0 <_ZN4tomo24xshard_visit_task_hashesERKNS_4TaskEPvPFvS3_mE>
+  6edd97:	mov    0x4b0(%r15),%rax
+  6edd9e:	test   %rax,%rax
+  6edda1:	jne    6ee569 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xc89>
+  6edda7:	cmpq   $0x0,0x180(%rbx)
+  6eddaf:	lea    0x10(%rbx),%rax
+  6eddb3:	mov    %rax,0x8(%rsp)
+  6eddb8:	jne    6ee52f <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xc4f>
+  6eddbe:	mov    %r15,%rdi
+  6eddc1:	call   7843b0 <_ZN4tomo5Shard12publish_sizeEv>
+  6eddc6:	mov    0x8(%rbx),%rsi
+  6eddca:	mov    (%rbx),%rdi
+  6eddcd:	mov    0x8(%rsp),%rdx
+  6eddd2:	mov    %r14,%r8
+  6eddd5:	mov    %r12,%rcx
+  6eddd8:	call   519b20 <_ZN4tomo15xshard_completeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE>
+  6edddd:	test   %al,%al
+  6edddf:	je     6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edde5:	cmp    $0x1,%al
+  6edde7:	je     6ed9bc <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdc>
+  6edded:	cmp    $0x2,%al
+  6eddef:	je     6ee5a4 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xcc4>
+  6eddf5:	cmpq   $0x0,0x18(%r12)
+  6eddfb:	je     6ee3a0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xac0>
+  6ede01:	mov    (%r14),%rax
+  6ede04:	testb  $0x1,0x12(%rax)
+  6ede08:	jne    6ee3f2 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb12>
+  6ede0e:	mov    0x180(%rbx),%rdi
+  6ede15:	test   %rdi,%rdi
+  6ede18:	jne    6ee45b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb7b>
+  6ede1e:	movb   $0x2,0xb8(%r14)
+  6ede26:	mov    (%r12),%rsi
+  6ede2a:	mov    %rbx,%rdi
+  6ede2d:	call   6ec750 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>
+  6ede32:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ede37:	nopw   0x0(%rax,%rax,1)
+  6ede40:	mov    0x3b0(%rbx),%rdi
+  6ede47:	mov    0x3a0(%rbx),%rax
+  6ede4e:	lea    -0x20(%rdi),%rdx
+  6ede52:	cmp    %rdx,%rax
+  6ede55:	je     6ee340 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa60>
+  6ede5b:	vmovdqu (%r12),%ymm3
+  6ede61:	add    $0x20,%rax
+  6ede65:	vmovdqu %ymm3,-0x20(%rax)
+  6ede6a:	mov    %rax,0x3a0(%rbx)
+  6ede71:	vzeroupper
+  6ede74:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ede79:	nopl   0x0(%rax)
+  6ede80:	mov    0x8(%r14),%ecx
+  6ede84:	mov    %ecx,0x8(%rsp)
+  6ede88:	jmp    6edbfa <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x31a>
+  6ede8d:	nopl   (%rax)
+  6ede90:	cmpb   $0x0,0x188(%rbx)
+  6ede97:	jne    6edf8a <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x6aa>
+  6ede9d:	mov    (%rbx),%rdi
+  6edea0:	mov    0x8(%rbx),%rax
+  6edea4:	lea    0x10(%rbx),%rsi
+  6edea8:	lea    0x30(%rsp),%r9
+  6edead:	vmovq  %rsi,%xmm0
+  6edeb2:	mov    %r12,%rsi
+  6edeb5:	mov    (%rax),%ecx
+  6edeb7:	lea    0x3c0(%rax),%rdx
+  6edebe:	vpinsrq $0x1,%rdx,%xmm0,%xmm0
+  6edec4:	mov    0x180(%rbx),%rdx
+  6edecb:	vmovdqu %xmm0,0x38(%rsp)
+  6eded1:	mov    %ecx,0x30(%rsp)
+  6eded5:	mov    0x44(%rax),%r8d
+  6eded9:	test   %rdx,%rdx
+  6ededc:	cmove  %rdx,%r9
+  6edee0:	mov    %r13,%rdx
+  6edee3:	call   519e30 <_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE>
+  6edee8:	mov    %eax,%r14d
+  6edeeb:	mov    %r13,%rdi
+  6edeee:	call   7843b0 <_ZN4tomo5Shard12publish_sizeEv>
+  6edef3:	test   %r14b,%r14b
+  6edef6:	je     6ee2c0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x9e0>
+  6edefc:	cmp    $0x2,%r14b
+  6edf00:	jne    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edf06:	mov    0x8(%r12),%rax
+  6edf0b:	mov    (%r12),%rcx
+  6edf0f:	mov    0x180(%rbx),%rdi
+  6edf16:	mov    %eax,%edx
+  6edf18:	and    $0x7,%eax
+  6edf1b:	shr    $0x3,%edx
+  6edf1e:	and    $0x7,%edx
+  6edf21:	imul   $0x150,%rax,%r13
+  6edf28:	add    0x80(%rcx,%rdx,8),%r13
+  6edf30:	test   %rdi,%rdi
+  6edf33:	je     6edf4b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x66b>
+  6edf35:	mov    0x8(%rbx),%rax
+  6edf39:	mov    %r13,%rdx
+  6edf3c:	mov    (%rax),%esi
+  6edf3e:	call   6825e0 <_ZN4tomo10AofManager16defer_completionEjRNS_2OpEPNS_6ClientE>
+  6edf43:	test   %al,%al
+  6edf45:	jne    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edf4b:	movb   $0x2,0xb8(%r13)
+  6edf53:	mov    (%r12),%rsi
+  6edf57:	mov    %rbx,%rdi
+  6edf5a:	call   6ec750 <_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE>
+  6edf5f:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edf64:	data16 cs nopw 0x0(%rax,%rax,1)
+  6edf6f:	nop
+  6edf70:	cmpb   $0x0,0x188(%rbx)
+  6edf77:	je     6ede9d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5bd>
+  6edf7d:	mov    (%r12),%rdx
+  6edf81:	test   %rdx,%rdx
+  6edf84:	jne    6ee1c0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x8e0>
+  6edf8a:	mov    (%rbx),%rdi
+  6edf8d:	jmp    6ee1ec <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x90c>
+  6edf92:	data16 cs nopw 0x0(%rax,%rax,1)
+  6edf9d:	nopl   (%rax)
+  6edfa0:	mov    0x8(%rsp),%r8d
+  6edfa5:	mov    (%rsp),%rsi
+  6edfa9:	mov    %r14,%rcx
+  6edfac:	mov    %r12,%rdx
+  6edfaf:	mov    %rbx,%rdi
+  6edfb2:	call   6ec380 <_ZN4tomo7ExLoopTILb1EE21parked_predecessor_inERKSt5dequeINS_4TaskESaIS3_EERKS3_RNS_2OpEi>
+  6edfb7:	test   %al,%al
+  6edfb9:	jne    6edfe0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x700>
+  6edfbb:	mov    0x8(%rsp),%r8d
+  6edfc0:	lea    0x2d0(%rbx),%rsi
+  6edfc7:	mov    %r14,%rcx
+  6edfca:	mov    %r12,%rdx
+  6edfcd:	mov    %rbx,%rdi
+  6edfd0:	call   6ec380 <_ZN4tomo7ExLoopTILb1EE21parked_predecessor_inERKSt5dequeINS_4TaskESaIS3_EERKS3_RNS_2OpEi>
+  6edfd5:	test   %al,%al
+  6edfd7:	je     6edcab <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x3cb>
+  6edfdd:	nopl   (%rax)
+  6edfe0:	mov    (%rsp),%rdi
+  6edfe4:	mov    %r12,%rsi
+  6edfe7:	call   46d4a0 <_ZNSt5dequeIN4tomo4TaskESaIS1_EE9push_backERKS1_>
+  6edfec:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6edff1:	data16 cs nopw 0x0(%rax,%rax,1)
+  6edffc:	nopl   0x0(%rax)
+  6ee000:	testb  $0x1,0x1c(%r14)
+  6ee005:	jne    6edcb7 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x3d7>
+  6ee00b:	mov    (%r14),%rax
+  6ee00e:	testl  $0x401,0x10(%rax)
+  6ee015:	je     6ee027 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x747>
+  6ee017:	nopl   0x0(%rax,%rax,1)
+  6ee01c:	cmpb   $0x0,0x8(%r15)
+  6ee021:	jne    6ee4ac <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xbcc>
+  6ee027:	mov    0x18(%r12),%rdx
+  6ee02c:	jmp    6edcde <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x3fe>
+  6ee031:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee03c:	nopl   0x0(%rax)
+  6ee040:	mov    (%r14),%rax
+  6ee043:	testb  $0x1,0x11(%rax)
+  6ee047:	jne    6ee4e7 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xc07>
+  6ee04d:	cmpq   $0x0,0x16d8(%rbx)
+  6ee055:	je     6ee420 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb40>
+  6ee05b:	mov    (%r14),%rax
+  6ee05e:	mov    0x10(%rax),%edx
+  6ee061:	test   $0x401,%edx
+  6ee067:	je     6ee360 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa80>
+  6ee06d:	cmpl   $0xfffffffd,0xb4(%r14)
+  6ee075:	je     6ee080 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x7a0>
+  6ee077:	and    $0x8,%dh
+  6ee07a:	je     6ee360 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa80>
+  6ee080:	mov    (%r12),%rax
+  6ee084:	mov    (%rbx),%rdi
+  6ee087:	lea    0x30(%rsp),%r8
+  6ee08c:	vpxor  %xmm0,%xmm0,%xmm0
+  6ee090:	mov    %r14,%rdx
+  6ee093:	vmovdqu8 %ymm0,0x30(%rsp)
+  6ee09e:	mov    %r15,%rsi
+  6ee0a1:	mov    %r8,0x8(%rsp)
+  6ee0a6:	mov    0x7a8(%rax),%rcx
+  6ee0ad:	vzeroupper
+  6ee0b0:	call   4fa340 <_ZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE>
+  6ee0b5:	mov    %al,(%rsp)
+  6ee0b8:	mov    0x4b0(%r15),%r13
+  6ee0bf:	test   %r13,%r13
+  6ee0c2:	jne    6ee603 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd23>
+  6ee0c8:	test   %al,%al
+  6ee0ca:	je     6ee47a <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb9a>
+  6ee0d0:	mov    (%r14),%rax
+  6ee0d3:	mov    %r14,%rsi
+  6ee0d6:	mov    %r15,%rdi
+  6ee0d9:	call   *0x18(%rax)
+  6ee0dc:	mov    0x8(%rsp),%rsi
+  6ee0e1:	mov    %r15,%rdi
+  6ee0e4:	call   4d2920 <_ZN4tomo19xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE>
+  6ee0e9:	test   %r13,%r13
+  6ee0ec:	jne    6ee648 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd68>
+  6ee0f2:	mov    0x30(%rsp),%rdi
+  6ee0f7:	test   %rdi,%rdi
+  6ee0fa:	je     6eddf5 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x515>
+  6ee100:	mov    0x40(%rsp),%rsi
+  6ee105:	sub    %rdi,%rsi
+  6ee108:	call   1dc80 <_ZdlPvm@plt>
+  6ee10d:	jmp    6eddf5 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x515>
+  6ee112:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee11d:	nopl   (%rax)
+  6ee120:	movzbl 0x1c(%r14),%eax
+  6ee125:	and    $0x10,%eax
+  6ee128:	test   %al,%al
+  6ee12a:	setne  0x1c9(%r15)
+  6ee132:	je     6edc3d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x35d>
+  6ee138:	mov    (%rbx),%rax
+  6ee13b:	lock incq 0x14c80(%rax)
+  6ee143:	jmp    6edc3d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x35d>
+  6ee148:	nopl   0x0(%rax,%rax,1)
+  6ee150:	cmpq   $0x0,0x16d8(%rbx)
+  6ee158:	je     6edc10 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x330>
+  6ee15e:	cmpb   $0x0,0x1c(%r14)
+  6ee163:	jns    6edc10 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x330>
+  6ee169:	movzbl 0x12b(%r15),%eax
+  6ee171:	mov    %al,(%rsp)
+  6ee174:	test   %al,%al
+  6ee176:	je     6edc10 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x330>
+  6ee17c:	cmpb   $0x0,0x12a(%r15)
+  6ee184:	je     6ee18e <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x8ae>
+  6ee186:	movb   $0x0,0x12b(%r15)
+  6ee18e:	mov    %r12,%rsi
+  6ee191:	mov    %rbx,%rdi
+  6ee194:	call   6ecb90 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE>
+  6ee199:	mov    %eax,%r13d
+  6ee19c:	movzbl (%rsp),%eax
+  6ee1a0:	mov    %al,0x12b(%r15)
+  6ee1a7:	jmp    6ed9bc <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdc>
+  6ee1ac:	nopl   0x0(%rax)
+  6ee1b0:	cmpb   $0x0,0x188(%rbx)
+  6ee1b7:	je     6ede9d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5bd>
+  6ee1bd:	nopl   (%rax)
+  6ee1c0:	mov    0x8(%r12),%rax
+  6ee1c5:	mov    (%rbx),%rdi
+  6ee1c8:	mov    %eax,%ecx
+  6ee1ca:	and    $0x7,%eax
+  6ee1cd:	shr    $0x3,%ecx
+  6ee1d0:	and    $0x7,%ecx
+  6ee1d3:	imul   $0x150,%rax,%rax
+  6ee1da:	add    0x80(%rdx,%rcx,8),%rax
+  6ee1e2:	testb  $0x10,0x1c(%rax)
+  6ee1e6:	jne    6ee4c4 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xbe4>
+  6ee1ec:	movb   $0x0,0x1c9(%r13)
+  6ee1f4:	jmp    6edea0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5c0>
+  6ee1f9:	nopl   0x0(%rax)
+  6ee200:	mov    0x8(%rbx),%r13
+  6ee204:	mov    0x18(%r15),%eax
+  6ee208:	mov    0x44(%r13),%edx
+  6ee20c:	incq   0x3e8(%r15)
+  6ee213:	cmp    $0xffffffff,%eax
+  6ee216:	je     6ee442 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb62>
+  6ee21c:	cmp    %edx,%eax
+  6ee21e:	je     6ee227 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x947>
+  6ee220:	incq   0x410(%r15)
+  6ee227:	mov    0x10(%r14),%rdx
+  6ee22b:	mov    %r15,%rsi
+  6ee22e:	mov    %rbx,%rdi
+  6ee231:	call   6ec230 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>
+  6ee236:	mov    (%rbx),%rdi
+  6ee239:	lea    0x10(%rbx),%rdx
+  6ee23d:	mov    %r14,%r9
+  6ee240:	mov    %r15,%r8
+  6ee243:	mov    %r12,%rcx
+  6ee246:	mov    %r13,%rsi
+  6ee249:	call   50af20 <_ZN4tomo16blocking_executeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_5ShardERNS_2OpE>
+  6ee24e:	mov    %eax,%r13d
+  6ee251:	jmp    6ed9bc <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdc>
+  6ee256:	cs nopw 0x0(%rax,%rax,1)
+  6ee260:	movslq 0x8(%rsp),%rdx
+  6ee265:	mov    (%rax,%rdx,8),%r12
+  6ee269:	movzbl 0x18a(%rbx),%edx
+  6ee270:	mov    0x158(%rbx),%rax
+  6ee277:	mov    %dl,0x1c8(%r12)
+  6ee27f:	cmpb   $0x0,0x188(%rbx)
+  6ee286:	mov    %rax,0x10(%r12)
+  6ee28b:	mov    %rax,0x1c0(%r12)
+  6ee293:	jne    6ee4d9 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xbf9>
+  6ee299:	mov    (%rbx),%rdi
+  6ee29c:	mov    $0x20,%edx
+  6ee2a1:	mov    %r12,%rsi
+  6ee2a4:	call   509320 <_ZN4tomo20xshard_cleanup_shardERNS_6ServerERNS_5ShardEj>
+  6ee2a9:	mov    %r12,%rdi
+  6ee2ac:	call   7843b0 <_ZN4tomo5Shard12publish_sizeEv>
+  6ee2b1:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ee2b6:	cs nopw 0x0(%rax,%rax,1)
+  6ee2c0:	lea    0x280(%rbx),%rdi
+  6ee2c7:	mov    %r12,%rsi
+  6ee2ca:	call   46d4a0 <_ZNSt5dequeIN4tomo4TaskESaIS1_EE9push_backERKS1_>
+  6ee2cf:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ee2d4:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee2df:	nop
+  6ee2e0:	and    $0x7,%ecx
+  6ee2e3:	mov    0x8(%rsp),%rsi
+  6ee2e8:	mov    %r14d,%r8d
+  6ee2eb:	mov    %r12,%rdx
+  6ee2ee:	imul   $0x150,%rcx,%rcx
+  6ee2f5:	mov    %rbx,%rdi
+  6ee2f8:	lea    (%rax,%rcx,1),%r15
+  6ee2fc:	mov    %r15,%rcx
+  6ee2ff:	call   6ec380 <_ZN4tomo7ExLoopTILb1EE21parked_predecessor_inERKSt5dequeINS_4TaskESaIS3_EERKS3_RNS_2OpEi>
+  6ee304:	test   %al,%al
+  6ee306:	jne    6edb6b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x28b>
+  6ee30c:	lea    0x2d0(%rbx),%rsi
+  6ee313:	mov    %r14d,%r8d
+  6ee316:	mov    %r15,%rcx
+  6ee319:	mov    %r12,%rdx
+  6ee31c:	mov    %rbx,%rdi
+  6ee31f:	call   6ec380 <_ZN4tomo7ExLoopTILb1EE21parked_predecessor_inERKSt5dequeINS_4TaskESaIS3_EERKS3_RNS_2OpEi>
+  6ee324:	test   %al,%al
+  6ee326:	jne    6edb6b <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x28b>
+  6ee32c:	jmp    6eda99 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x1b9>
+  6ee331:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee33c:	nopl   0x0(%rax)
+  6ee340:	lea    0x370(%rbx),%rdi
+  6ee347:	mov    %r12,%rsi
+  6ee34a:	call   46d210 <_ZNSt5dequeIN4tomo4TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_>
+  6ee34f:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ee354:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee35f:	nop
+  6ee360:	mov    0x100(%r15),%rdx
+  6ee367:	test   %rdx,%rdx
+  6ee36a:	je     6ee37a <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa9a>
+  6ee36c:	cmpq   $0x0,0x210(%rdx)
+  6ee374:	jne    6ee080 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x7a0>
+  6ee37a:	mov    %r14,%rsi
+  6ee37d:	mov    %r15,%rdi
+  6ee380:	call   *0x18(%rax)
+  6ee383:	jmp    6eddf5 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x515>
+  6ee388:	nopl   0x0(%rax,%rax,1)
+  6ee390:	mov    %ecx,0x18(%r15)
+  6ee394:	jmp    6edd04 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x424>
+  6ee399:	nopl   0x0(%rax)
+  6ee3a0:	mov    0x10(%r14),%rdx
+  6ee3a4:	mov    %r15,%rsi
+  6ee3a7:	mov    %rbx,%rdi
+  6ee3aa:	call   6ec230 <_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm>
+  6ee3af:	mov    (%r14),%rax
+  6ee3b2:	testl  $0x401,0x10(%rax)
+  6ee3b9:	je     6ee3d7 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xaf7>
+  6ee3bb:	nopl   0x0(%rax,%rax,1)
+  6ee3c0:	cmpb   $0x0,0x8(%r15)
+  6ee3c5:	jne    6ee594 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xcb4>
+  6ee3cb:	cmpq   $0x0,0x18(%r12)
+  6ee3d1:	jne    6ede01 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x521>
+  6ee3d7:	cmpq   $0x0,0x180(%rbx)
+  6ee3df:	jne    6ee5bf <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xcdf>
+  6ee3e5:	mov    (%r14),%rax
+  6ee3e8:	testb  $0x1,0x12(%rax)
+  6ee3ec:	je     6ede1e <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x53e>
+  6ee3f2:	mov    %r14,%rdi
+  6ee3f5:	call   4d5060 <_ZN4tomo22notify_tracking_commitERNS_2OpE>
+  6ee3fa:	jmp    6ede0e <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x52e>
+  6ee3ff:	nop
+  6ee400:	mov    (%r14),%rax
+  6ee403:	movzwl 0x26(%rax),%esi
+  6ee407:	call   6e0660 <_ZN4tomo9ThreadCtx12note_commandEt>
+  6ee40c:	jmp    6edd0d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x42d>
+  6ee411:	data16 cs nopw 0x0(%rax,%rax,1)
+  6ee41c:	nopl   0x0(%rax)
+  6ee420:	mov    0x100(%r15),%rax
+  6ee427:	test   %rax,%rax
+  6ee42a:	je     6ee43a <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xb5a>
+  6ee42c:	cmpq   $0x0,0x210(%rax)
+  6ee434:	jne    6ee080 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x7a0>
+  6ee43a:	mov    (%r14),%rax
+  6ee43d:	jmp    6ee37a <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xa9a>
+  6ee442:	mov    %edx,0x18(%r15)
+  6ee446:	jmp    6ee227 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x947>
+  6ee44b:	mov    %r14,%rsi
+  6ee44e:	mov    %r15,%rdi
+  6ee451:	call   6a6820 <_ZN4tomo21tracking_observe_readERNS_5ShardERNS_2OpE>
+  6ee456:	jmp    6edd1e <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x43e>
+  6ee45b:	mov    0x8(%rbx),%rax
+  6ee45f:	mov    (%r12),%rcx
+  6ee463:	mov    %r14,%rdx
+  6ee466:	mov    (%rax),%esi
+  6ee468:	call   6825e0 <_ZN4tomo10AofManager16defer_completionEjRNS_2OpEPNS_6ClientE>
+  6ee46d:	test   %al,%al
+  6ee46f:	je     6ede1e <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x53e>
+  6ee475:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ee47a:	mov    %r14,%rdi
+  6ee47d:	call   76b5b0 <_ZN4tomo22l4prebuild_discard_setERNS_2OpE>
+  6ee482:	mov    0x8(%rsp),%rsi
+  6ee487:	mov    %r15,%rdi
+  6ee48a:	call   4d2920 <_ZN4tomo19xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE>
+  6ee48f:	jmp    6ee0f2 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x812>
+  6ee494:	cmpq   $0x0,0x4d8(%r15)
+  6ee49c:	jne    6ee4ac <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xbcc>
+  6ee49e:	cmpq   $0x0,0x510(%r15)
+  6ee4a6:	je     6ee027 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x747>
+  6ee4ac:	mov    %r14,%rsi
+  6ee4af:	mov    %r15,%rdi
+  6ee4b2:	call   50f400 <_ZN4tomo23multi_plain_write_readyERNS_5ShardERNS_2OpE>
+  6ee4b7:	test   %al,%al
+  6ee4b9:	jne    6ee027 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x747>
+  6ee4bf:	jmp    6ed9bc <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdc>
+  6ee4c4:	movb   $0x1,0x1c9(%r13)
+  6ee4cc:	lock incq 0x14c80(%rdi)
+  6ee4d4:	jmp    6ede9d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x5bd>
+  6ee4d9:	movb   $0x0,0x1c9(%r12)
+  6ee4e2:	jmp    6ee299 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x9b9>
+  6ee4e7:	mov    0xc0(%r14),%rdx
+  6ee4ee:	movswl 0x20(%rax),%eax
+  6ee4f2:	lea    0x38(%r15),%rdi
+  6ee4f6:	test   %rdx,%rdx
+  6ee4f9:	je     6ee638 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd58>
+  6ee4ff:	shl    $0x4,%rax
+  6ee503:	add    %rdx,%rax
+  6ee506:	mov    (%rax),%rsi
+  6ee509:	mov    0x8(%rax),%rdx
+  6ee50d:	call   4325b0 <_ZN4tomo9FlatStore12budget_admitENS_5SliceE>
+  6ee512:	test   %al,%al
+  6ee514:	jne    6ee04d <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x76d>
+  6ee51a:	mov    %r14,%rdi
+  6ee51d:	call   57f2b0 <_ZN4tomo19reply_maxmemory_oomERNS_2OpE>
+  6ee522:	mov    %r14,%rdi
+  6ee525:	call   76b5b0 <_ZN4tomo22l4prebuild_discard_setERNS_2OpE>
+  6ee52a:	jmp    6eddf5 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x515>
+  6ee52f:	mov    0x8(%rbx),%rax
+  6ee533:	vmovq  0x8(%rsp),%xmm2
+  6ee539:	lea    0x30(%rsp),%rcx
+  6ee53e:	mov    %r15,%rsi
+  6ee541:	mov    %r12,%rdi
+  6ee544:	mov    (%rax),%edx
+  6ee546:	add    $0x3c0,%rax
+  6ee54c:	vpinsrq $0x1,%rax,%xmm2,%xmm0
+  6ee552:	vmovdqu %xmm0,0x38(%rsp)
+  6ee558:	mov    %edx,0x30(%rsp)
+  6ee55c:	mov    %r14,%rdx
+  6ee55f:	call   4d0440 <_ZN4tomo15xshard_aof_emitERKNS_4TaskERNS_5ShardERNS_2OpERNS_15AofOwnerContextE>
+  6ee564:	jmp    6eddbe <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x4de>
+  6ee569:	mov    %r14,%rdx
+  6ee56c:	mov    %r15,%rsi
+  6ee56f:	mov    %r12,%rdi
+  6ee572:	call   50c7b0 <_ZN4tomo35blocking_scatter_mutation_publishedERKNS_4TaskERNS_5ShardERNS_2OpE>
+  6ee577:	jmp    6edda7 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x4c7>
+  6ee57c:	cmpq   $0x0,0x4d8(%r15)
+  6ee584:	jne    6ee594 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xcb4>
+  6ee586:	cmpq   $0x0,0x510(%r15)
+  6ee58e:	je     6ee3cb <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xaeb>
+  6ee594:	mov    %r14,%rsi
+  6ee597:	mov    %r15,%rdi
+  6ee59a:	call   50c8c0 <_ZN4tomo27multi_plain_write_committedERNS_5ShardERNS_2OpE>
+  6ee59f:	jmp    6ee3cb <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xaeb>
+  6ee5a4:	mov    0x8(%rbx),%rsi
+  6ee5a8:	mov    (%rbx),%rdi
+  6ee5ab:	mov    %r12,%rdx
+  6ee5ae:	call   4d09d0 <_ZN4tomo19xshard_queue_commitERNS_6ServerERNS_9ThreadCtxERKNS_4TaskE>
+  6ee5b3:	movb   $0x1,0x15d0(%rbx)
+  6ee5ba:	jmp    6ed9b6 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd6>
+  6ee5bf:	mov    0x8(%rbx),%rax
+  6ee5c3:	lea    0x10(%rbx),%rdi
+  6ee5c7:	mov    %r14,%rsi
+  6ee5ca:	vmovq  %rdi,%xmm0
+  6ee5cf:	mov    %r15,%rdi
+  6ee5d2:	mov    (%rax),%edx
+  6ee5d4:	add    $0x3c0,%rax
+  6ee5da:	vpinsrq $0x1,%rax,%xmm0,%xmm0
+  6ee5e0:	vmovdqu %xmm0,0x38(%rsp)
+  6ee5e6:	mov    %edx,0x30(%rsp)
+  6ee5ea:	cmpl   $0xfffffffd,0xb4(%r14)
+  6ee5f2:	lea    0x30(%rsp),%rdx
+  6ee5f7:	je     6ee65f <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd7f>
+  6ee5f9:	call   692260 <_ZN4tomo19aof_record_local_opERNS_5ShardERNS_2OpERNS_15AofOwnerContextE>
+  6ee5fe:	jmp    6ede01 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x521>
+  6ee603:	mov    $0x1,%edi
+  6ee608:	call   4d2cb0 <_ZN4tomo32blocking_defer_plain_publicationEb>
+  6ee60d:	cmpb   $0x0,(%rsp)
+  6ee611:	jne    6ee0d0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x7f0>
+  6ee617:	mov    %r14,%rdi
+  6ee61a:	call   76b5b0 <_ZN4tomo22l4prebuild_discard_setERNS_2OpE>
+  6ee61f:	mov    0x8(%rsp),%rsi
+  6ee624:	mov    %r15,%rdi
+  6ee627:	call   4d2920 <_ZN4tomo19xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE>
+  6ee62c:	xor    %edi,%edi
+  6ee62e:	call   4d2cb0 <_ZN4tomo32blocking_defer_plain_publicationEb>
+  6ee633:	jmp    6ee0f2 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x812>
+  6ee638:	add    $0xd,%rax
+  6ee63c:	shl    $0x4,%rax
+  6ee640:	add    %r14,%rax
+  6ee643:	jmp    6ee506 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xc26>
+  6ee648:	xor    %edi,%edi
+  6ee64a:	call   4d2cb0 <_ZN4tomo32blocking_defer_plain_publicationEb>
+  6ee64f:	mov    %r14,%rsi
+  6ee652:	mov    %r15,%rdi
+  6ee655:	call   50c5f0 <_ZN4tomo33blocking_plain_mutation_publishedERNS_5ShardERNS_2OpE>
+  6ee65a:	jmp    6ee0f2 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x812>
+  6ee65f:	call   4d91a0 <_ZN4tomo21xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE>
+  6ee664:	jmp    6ede01 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0x521>
+  6ee669:	mov    0x8(%rsp),%rdi
+  6ee66e:	vzeroupper
+  6ee671:	call   46d1e0 <_ZNSt6vectorIN4tomo21PlainForeignReadScope3KeyESaIS2_EED1Ev>
+  6ee676:	lea    0x10(%rsp),%rdi
+  6ee67b:	vzeroupper
+  6ee67e:	call   436230 <_ZN4tomo6Server15ClientWorkScopeD1Ev>
+  6ee683:	mov    0x58(%rsp),%rax
+  6ee688:	sub    %fs:0x28,%rax
+  6ee691:	je     6ee6c0 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xde0>
+  6ee693:	call   1d870 <__stack_chk_fail@plt>
+  6ee698:	endbr64
+  6ee69c:	mov    %rax,%rbx
+  6ee69f:	jmp    6ee669 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd89>
+  6ee6a1:	endbr64
+  6ee6a5:	mov    %rax,%rbx
+  6ee6a8:	jmp    6ee6b3 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xdd3>
+  6ee6aa:	endbr64
+  6ee6ae:	mov    %rax,%rbx
+  6ee6b1:	jmp    6ee676 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd96>
+  6ee6b3:	movzbl (%rsp),%eax
+  6ee6b7:	mov    %al,0x12b(%r15)
+  6ee6be:	jmp    6ee676 <_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE+0xd96>
+  6ee6c0:	mov    %rbx,%rdi
+  6ee6c3:	call   1de80 <_Unwind_Resume@plt>
+
+Disassembly of section .rlfence:
+
+Disassembly of section .fini:
