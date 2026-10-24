@@ -295,11 +295,9 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
 
 bool command_metadata_write(Op& op) {
     // FCALL's declaration overrides the command flag, including FCALL_RO.
-    // EVAL's supported forms use the execution flags. Containers resolve children.
-    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute)) {
-        if (function_is_fcall(op)) return function_metadata_write(op);
-        return op.spec->flags & CmdFlags::Write;
-    }
+    // Legacy EVAL forms check each nested write; their Redis metadata is not Write.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute) && function_is_fcall(op))
+        return function_metadata_write(op);
     static constexpr uint64_t mask = [] {
         for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i)
             if (std::string_view(kGeneratedCommandFlagNames[i]) == "write") return uint64_t{1} << i;

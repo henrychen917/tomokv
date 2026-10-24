@@ -470,6 +470,10 @@ redis.register_function('persistfix2_write',
  function(keys, args) return redis.call('SET', keys[1], 'refused') end)
 """
                 assert command(conn, 'FUNCTION', 'LOAD', library) == b'persistfix2'
+                read_script = "return redis.call('GET', KEYS[1])"
+                write_script = "return redis.pcall('SET', KEYS[1], 'refused').err"
+                read_sha = conn.must('SCRIPT', 'LOAD', read_script)
+                write_sha = conn.must('SCRIPT', 'LOAD', write_script)
                 assert conn.must('SET', 'acknowledged-write', 'before') == b'OK'
                 assert command(conn, 'FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'before'
                 def persisted_increment():
@@ -484,6 +488,7 @@ redis.register_function('persistfix2_write',
                 emit('durability window armed', policy=policy, reorder=reorder, file_limit=limit)
                 queued = Conn('127.0.0.1', args.port, timeout=15)
                 read_only = Conn('127.0.0.1', args.port, timeout=15)
+                script_txn = Conn('127.0.0.1', args.port, timeout=15)
                 try:
                     assert queued.must('WATCH', 'acknowledged-write') == b'OK'
                     assert queued.must('MULTI') == b'OK'
@@ -491,6 +496,10 @@ redis.register_function('persistfix2_write',
                     assert read_only.must('MULTI') == b'OK'
                     assert read_only.must('GET', 'acknowledged-write') == b'QUEUED'
                     assert read_only.must('FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'QUEUED'
+                    assert read_only.must('EVAL', read_script, '1', 'acknowledged-write') == b'QUEUED'
+                    assert read_only.must('EVALSHA', read_sha, '1', 'acknowledged-write') == b'QUEUED'
+                    assert script_txn.must('MULTI') == b'OK'
+                    assert script_txn.must('EVAL', write_script, '1', 'refused-script-write') == b'QUEUED'
                     conn.send('SET', 'durability-window', b'v' * 200000)
                     emit('durability window', policy=policy, initial_reply=conn.read())
                     wait(lambda: persistence(conn)['aof_last_write_status'] == 'err',
@@ -505,6 +514,14 @@ redis.register_function('persistfix2_write',
                     assert command(conn, 'MGET', 'refused-write', 'refused-one', 'refused-two') == [None] * 3
                     assert command(conn, 'PFCOUNT', 'absent-hll') == 0
                     assert command(conn, 'EVAL_RO', "return redis.call('GET', KEYS[1])", '1', 'acknowledged-write') == b'before'
+                    assert command(conn, 'EVAL', read_script, '1', 'acknowledged-write') == b'before'
+                    assert command(conn, 'EVALSHA', read_sha, '1', 'acknowledged-write') == b'before'
+                    assert command(conn, 'EVALSHA', '0' * 40, '0') == RespError('NOSCRIPT No matching script. Please use EVAL.')
+                    for verb, script in (('EVAL', write_script), ('EVALSHA', write_sha),
+                            ('EVAL', "redis.call('GET', KEYS[1]); " + write_script),
+                            ('EVAL', "redis.pcall('SET', KEYS[1], 'first-refused'); " + write_script)):
+                        assert command(conn, verb, script, '1', 'refused-script-write') == str(expected).encode()
+                        assert command(conn, 'GET', 'refused-script-write') is None
                     for verb in ('FCALL', 'FCALL_RO'):
                         assert command(conn, verb, 'persistfix2_read', '1', 'acknowledged-write') == b'before'
                         assert command(conn, verb, 'persistfix2_write', '1', 'refused-function-write') == expected
@@ -513,7 +530,9 @@ redis.register_function('persistfix2_write',
                         'EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large')
                     assert command(queued, 'EXEC') == RespError('ERR EXEC without MULTI')
                     assert command(conn, 'GET', 'queued-write') is None
-                    assert command(read_only, 'EXEC') == [b'before', b'before']
+                    assert command(read_only, 'EXEC') == [b'before'] * 4
+                    assert command(script_txn, 'EXEC') == [str(expected).encode()]
+                    assert command(conn, 'GET', 'refused-script-write') is None
                     assert conn.must('MULTI') == b'OK'
                     assert command(conn, 'SET', 'queue-error', 'value') == expected
                     assert command(conn, 'EXEC') == RespError('EXECABORT Transaction discarded because of previous errors.')
@@ -521,6 +540,7 @@ redis.register_function('persistfix2_write',
                 finally:
                     queued.close()
                     read_only.close()
+                    script_txn.close()
         except Exception as error:
             emit('assertion', policy=policy, error=str(error))
             failures.append(f'{policy}: {error}')

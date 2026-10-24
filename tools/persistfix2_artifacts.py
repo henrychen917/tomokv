@@ -170,6 +170,8 @@ def identity():
             reason = 'D8: write classification and refusal of a queued write transaction, including WATCH retirement.'
         elif any(x in name for x in ('FunctionRegistry', 'invoke_fcall', 'function_metadata_write')):
             reason = 'D8: use registered no-writes flags for FCALL admission and recheck the selected callback after library replacement.'
+        elif any(x in name for x in ('redis_dispatch', 'script_execute', 'run_eval', 'cmd_eval', 'ScriptContext')):
+            reason = 'D8: legacy EVAL checks nested writes, preserves an already-started writable activation and does not treat reads or refused writes as admission.'
         elif any(x in name for x in ('IoLoop', 'ExLoop', 'Server', 'ThreadCtx', 'main')):
             reason = 'Owner-loop integration for cold persistence commands/error admission; compiler propagation through existing inlined owner helpers.'
         else:

@@ -2,7 +2,7 @@
   "source": "build/persistfix2/pre-proof-source",
   "production_tree_equal_to": "05a5e01a9",
   "test_commit": "66f4a3c04ea7b979daa4fb8aca10aad2be289d26",
-  "private_commit": "6a4c11321f848b57b3af5d0bc867e5b12b2d5892",
+  "private_commit": "a1ea2746e456d4dabb0b2b7f5e39f6e547f9000c",
   "object_root": "build/persistfix2/pre",
   "purpose": "Run the real gate jobs and current shutdown fixture against PRE source and implementation objects.",
   "fixture_followups": [
@@ -10,7 +10,8 @@
     "tests/dispatch_arity.py",
     "tests/dispatch_errors.py",
     "tests/router_uniform.py",
-    "tests/persistfix2.py: declared read-only/writable FCALL and FCALL_RO after AOF error"
+    "tests/persistfix2.py: declared read-only/writable FCALL and FCALL_RO after AOF error",
+    "tests/persistfix2.py: legacy EVAL/EVALSHA reads, nested write refusal and queued scripts"
   ],
   "object_root_physical": "build/persistfix2/pre-proof-source/build",
   "object_root_alias": "build/persistfix2/pre",
