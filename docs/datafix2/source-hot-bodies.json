@@ -1,0 +1,30 @@
+[
+  {
+    "file": "src/cmd/t_string.cc",
+    "body": "void cmd_get(",
+    "equal": true,
+    "pre_sha256": "8bf51c2b8e90f238cc06e228aac33d68ac59fc63ea102f4711be197404e2e221",
+    "post_sha256": "8bf51c2b8e90f238cc06e228aac33d68ac59fc63ea102f4711be197404e2e221"
+  },
+  {
+    "file": "src/cmd/t_string.cc",
+    "body": "void cmd_set(",
+    "equal": true,
+    "pre_sha256": "70862d85353df49d41970fd4db7b87ebcd4194b0f71f157000304a8788f04ba6",
+    "post_sha256": "70862d85353df49d41970fd4db7b87ebcd4194b0f71f157000304a8788f04ba6"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "body": "MSET",
+    "equal": true,
+    "pre_sha256": "0b0cc82b17e67a8cca8854a2da8a3368218713f94e399400e1ac1c73ee77b29d",
+    "post_sha256": "0b0cc82b17e67a8cca8854a2da8a3368218713f94e399400e1ac1c73ee77b29d"
+  },
+  {
+    "file": "src/cmd/scatter_engine.inc",
+    "body": "MGET",
+    "equal": true,
+    "pre_sha256": "4de3d9ef2ad13c5afafef9044e3b86d3757db5c1e1a8037d113be0d81b0f03d0",
+    "post_sha256": "4de3d9ef2ad13c5afafef9044e3b86d3757db5c1e1a8037d113be0d81b0f03d0"
+  }
+]

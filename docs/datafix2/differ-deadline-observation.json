@@ -1,0 +1,17 @@
+{
+  "run": "build/gate-run.NVGNHj",
+  "geometry": "one correctness slot; server CPUs 96-103, oracle 104, load 105-111; 8 threads, 16 shards, ratio 6:2",
+  "aggregate_fallback_seconds": 900,
+  "split_atomic0_seconds": 529.247126798,
+  "split_atomic1_seconds": 531.565618369,
+  "observation": "The two completed split parts together exceed 900 seconds, but the partial selector publishes the five private job verdicts and does not execute aggregate folds.",
+  "action": "Keep the gate deadline unchanged. Report the actual green partial diagnostic receipt; aggregate folds/full iteration are NOT RUN.",
+  "classification": "Corrected preliminary inference; no timeout occurred in the partial job interface.",
+  "actual_post_epoll_receipt": {
+    "returncode": 0,
+    "passing_rows": 6,
+    "private_parts": 5,
+    "suite_seed_legs": 938,
+    "mode_equivalence_cells": 16
+  }
+}

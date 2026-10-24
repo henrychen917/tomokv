@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	222.230000	eviction lruclock battery (split, atomic 0)
+ok	254.200000	eviction lruclock battery (fused+armed, atomic 0)
+ok	254.190000	eviction lruclock battery (split, atomic 1)
+ok	254.180000	eviction lruclock battery (fused+armed, atomic 1)
+ok	0.300000	eviction lfu battery (split, atomic 0)
+ok	0.300000	eviction lfu battery (fused+armed, atomic 0)
+ok	0.300000	eviction lfu battery (split, atomic 1)
+ok	0.300000	eviction lfu battery (fused+armed, atomic 1)

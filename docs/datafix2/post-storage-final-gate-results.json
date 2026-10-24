@@ -1,0 +1,24 @@
+[
+  {
+    "name": "post-storage-final-gate",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "storage_units",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/post-storage-final-gate.ledger"
+    },
+    "returncode": 0
+  }
+]

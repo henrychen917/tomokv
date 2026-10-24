@@ -1,0 +1,37 @@
+[
+  {
+    "prefix": "post-final-v2-directed-",
+    "phase": "gate",
+    "driver_returncode": 0
+  },
+  {
+    "prefix": "post-related-",
+    "phase": "gate",
+    "driver_returncode": 0
+  },
+  {
+    "prefix": "post-eviction-",
+    "phase": "gate",
+    "driver_returncode": 0
+  },
+  {
+    "prefix": "pre-related-",
+    "phase": "gate",
+    "driver_returncode": 1
+  },
+  {
+    "prefix": "pre-eviction-",
+    "phase": "gate",
+    "driver_returncode": 0
+  },
+  {
+    "prefix": "post-",
+    "phase": "differ",
+    "driver_returncode": 0
+  },
+  {
+    "prefix": "pre-",
+    "phase": "differ",
+    "driver_returncode": 0
+  }
+]

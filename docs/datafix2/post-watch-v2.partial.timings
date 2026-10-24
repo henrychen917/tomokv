@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	117.940000	datafix2 CD4.9 write WATCH table vs Redis 7.4

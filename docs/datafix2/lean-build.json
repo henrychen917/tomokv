@@ -1,0 +1,2132 @@
+[
+  {
+    "path": "build/aoforder/scheduled/tomokv",
+    "before": 10447840,
+    "after": 10447840,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/aoforder-scheduled",
+    "before": 10447840,
+    "after": 10447840,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/at15-db0-unit",
+    "before": 9779160,
+    "after": 9779160,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/at15-unit",
+    "before": 5149504,
+    "after": 5149504,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/atomic-survivors-unit",
+    "before": 99233528,
+    "after": 5279272,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/core-concurrency-mdbqsbr-asan",
+    "before": 151360264,
+    "after": 151360264,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/core-concurrency-unit",
+    "before": 151360264,
+    "after": 151360264,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/encodingfix-unit",
+    "before": 5075704,
+    "after": 5075704,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/all/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/ex1/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/ex3/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/ex6/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-add/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-append/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-finalize/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-prune/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-remove/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-no-update/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-db0-unit/watch-old-loads/unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/all/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/ex1/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/ex3/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/ex6/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-add/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-append/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-finalize/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-prune/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-remove/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-no-update/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch/units/exbatch-unit/watch-old-loads/unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch-db0-unit",
+    "before": 9701800,
+    "after": 9701800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/exbatch-unit",
+    "before": 5072768,
+    "after": 5072768,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/execabort-watch-db0-unit",
+    "before": 9740160,
+    "after": 9740160,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/execabort-watch-unit",
+    "before": 5110776,
+    "after": 5110776,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/expire-notify-unit",
+    "before": 5037592,
+    "after": 5037592,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/embedded/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/int/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/raw/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/reheader/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/string/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-header-controls/typeval/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/flushfix-unit",
+    "before": 9722776,
+    "after": 9722776,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/gate-cache/core-concurrency-tsan",
+    "before": 114553472,
+    "after": 7282160,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/gate-run.s09ioy/jobs/ntnew4_live/ntnew4-clock.so",
+    "before": 16352,
+    "after": 16240,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/ktls-keyupdate",
+    "before": 31832,
+    "after": 31832,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/ktls-keyupdate-unit",
+    "before": 92648,
+    "after": 92648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/ktls-lifetime-unit",
+    "before": 5122912,
+    "after": 5122912,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/kvobj-header-db0-unit",
+    "before": 30664,
+    "after": 30664,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/kvobj-header-unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbosc3-unit-pad",
+    "before": 5218912,
+    "after": 5218912,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/copy-on-io/unit",
+    "before": 5227168,
+    "after": 5227168,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/duplicate/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/no-publish/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/record-reuse/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/stale-flip/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/stale-lb/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-budget/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-late-pause/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-controls/timing-lock/unit",
+    "before": 5223008,
+    "after": 5223008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-unit",
+    "before": 5218912,
+    "after": 5218912,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/lbplanner-unit-pad",
+    "before": 5218912,
+    "after": 5218912,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/mdbqsbr-unit",
+    "before": 149267744,
+    "after": 149267744,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/mdbqsbr2-no-wake/tomokv",
+    "before": 10443976,
+    "after": 10443976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/mdbqsbr2-park/tomokv",
+    "before": 10444064,
+    "after": 10444064,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/moverfix-db0-unit",
+    "before": 9753128,
+    "after": 9753128,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/moverfix-unit",
+    "before": 5128080,
+    "after": 5128080,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/multidb-boundary-unit",
+    "before": 5335104,
+    "after": 5335104,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/multidb-unit",
+    "before": 10017544,
+    "after": 10017544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/netcap-unit",
+    "before": 5144424,
+    "after": 5144424,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/netcmd-unit",
+    "before": 6237240,
+    "after": 6237240,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/persistfix-controls/no-refusal/unit",
+    "before": 5064136,
+    "after": 5064136,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/persistfix-controls/old-ack/unit",
+    "before": 5064048,
+    "after": 5064048,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/persistfix-controls/old-close/unit",
+    "before": 5064136,
+    "after": 5064136,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/persistfix-unit",
+    "before": 5064136,
+    "after": 5064136,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/aoforder/scheduled/tomokv",
+    "before": 10407408,
+    "after": 10407408,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/aoforder-scheduled",
+    "before": 10407408,
+    "after": 10407408,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/at15-db0-unit",
+    "before": 9738480,
+    "after": 9738480,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/at15-unit",
+    "before": 5129512,
+    "after": 5129512,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/atomic-survivors-unit",
+    "before": 98428504,
+    "after": 5259312,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/core-concurrency-mdbqsbr-asan",
+    "before": 150632144,
+    "after": 150632144,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/core-concurrency-unit",
+    "before": 150632144,
+    "after": 150632144,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/encodingfix-unit",
+    "before": 5055712,
+    "after": 5055712,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/all/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/ex1/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/ex3/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/ex6/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-add/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-append/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-finalize/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-prune/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-remove/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-no-update/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-db0-unit/watch-old-loads/unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/all/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/ex1/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/ex3/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/ex6/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-add/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-append/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-finalize/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-prune/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-remove/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-no-update/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch/units/exbatch-unit/watch-old-loads/unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch-db0-unit",
+    "before": 9656992,
+    "after": 9656992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/exbatch-unit",
+    "before": 5053040,
+    "after": 5053040,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/execabort-watch-db0-unit",
+    "before": 9699480,
+    "after": 9699480,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/execabort-watch-unit",
+    "before": 5090784,
+    "after": 5090784,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/expire-notify-unit",
+    "before": 5017376,
+    "after": 5017376,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/embedded/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/int/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/raw/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/reheader/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/string/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-header-controls/typeval/unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/flushfix-unit",
+    "before": 9682216,
+    "after": 9682216,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/gate-cache/core-concurrency-tsan",
+    "before": 113575872,
+    "after": 7255008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/gate-run.n7AEfn/jobs/ntnew4_live/ntnew4-clock.so",
+    "before": 16352,
+    "after": 16240,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/ktls-keyupdate",
+    "before": 31832,
+    "after": 31832,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/ktls-keyupdate-unit",
+    "before": 92648,
+    "after": 92648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/ktls-lifetime-unit",
+    "before": 5098824,
+    "after": 5098824,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/kvobj-header-db0-unit",
+    "before": 30664,
+    "after": 30664,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/kvobj-header-unit",
+    "before": 30888,
+    "after": 30888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbosc3-unit-pad",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/copy-on-io/unit",
+    "before": 5203080,
+    "after": 5203080,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/duplicate/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/no-publish/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/record-reuse/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/stale-flip/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/stale-lb/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/timing-budget/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/timing-late-pause/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-controls/timing-lock/unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-unit",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/lbplanner-unit-pad",
+    "before": 5203016,
+    "after": 5203016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/mdbqsbr-unit",
+    "before": 148561256,
+    "after": 148561256,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/mdbqsbr2-no-wake/tomokv",
+    "before": 10398904,
+    "after": 10398904,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/mdbqsbr2-park/tomokv",
+    "before": 10398992,
+    "after": 10398992,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/moverfix-db0-unit",
+    "before": 9704576,
+    "after": 9704576,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/moverfix-unit",
+    "before": 5100168,
+    "after": 5100168,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/multidb-boundary-unit",
+    "before": 5315064,
+    "after": 5315064,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/multidb-unit",
+    "before": 9969144,
+    "after": 9969144,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/netcap-unit",
+    "before": 5128528,
+    "after": 5128528,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/netcmd-unit",
+    "before": 6217536,
+    "after": 6217536,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/persistfix-controls/no-refusal/unit",
+    "before": 5039976,
+    "after": 5039976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/persistfix-controls/old-ack/unit",
+    "before": 5039888,
+    "after": 5039888,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/persistfix-controls/old-close/unit",
+    "before": 5039976,
+    "after": 5039976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/persistfix-unit",
+    "before": 5039976,
+    "after": 5039976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/publishfix-unit",
+    "before": 5018648,
+    "after": 5018648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/racefix-climon",
+    "before": 10404800,
+    "after": 10404800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/racefix-climon-objects/tomokv",
+    "before": 10404800,
+    "after": 10404800,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/rehash-waits-unit",
+    "before": 5092520,
+    "after": 5092520,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/reorder-engagement-unit",
+    "before": 5251008,
+    "after": 5251008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/reorder-engagement-unit-db0",
+    "before": 9860952,
+    "after": 9860952,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/respresume-migration",
+    "before": 5137592,
+    "after": 5137592,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/respresume-unit",
+    "before": 72120,
+    "after": 72120,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/rltopo-unit",
+    "before": 140774080,
+    "after": 140774080,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/shutdown-unit",
+    "before": 5172792,
+    "after": 5172792,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/splitlocal-unit",
+    "before": 15816,
+    "after": 15816,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/store-regression",
+    "before": 7101304,
+    "after": 380208,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/store-regression-tsan",
+    "before": 7668680,
+    "after": 531728,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/storesize-unit",
+    "before": 9840696,
+    "after": 9840696,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/storesize-unit-pad",
+    "before": 9840696,
+    "after": 9840696,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/txnorder-episodes",
+    "before": 94153296,
+    "after": 7593216,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/txnorder-episodes-debug",
+    "before": 94290480,
+    "after": 7635696,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/txnorder-wake-unit",
+    "before": 22056,
+    "after": 22056,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/txnorder-watch-db0-unit",
+    "before": 187587208,
+    "after": 12165696,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/txnorder-watch-unit",
+    "before": 93936616,
+    "after": 7521928,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/waits-unit",
+    "before": 24280,
+    "after": 24280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-small-ignored/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-small-ignored/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-unbounded-ignored/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-unbounded-ignored/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-unbounded-wrap/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/knob-unbounded-wrap/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/serve-reset/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/serve-reset/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/small-early/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/small-early/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/small-late/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/small-late/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/visits-early/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/visits-early/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/visits-late/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-controls/visits-late/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-completion-unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/borrow/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/budget/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/capture/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/code/unit",
+    "before": 39448,
+    "after": 39448,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/crlf/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/dead/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/direct/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/done-bytes/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/fastpath/unit",
+    "before": 39504,
+    "after": 39504,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/floor/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/head/unit",
+    "before": 6768016,
+    "after": 6768016,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/hole/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/marker/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/no-sum/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/parse/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/pin/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/pre-read/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/relaxed/unit",
+    "before": 39408,
+    "after": 39408,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/rotation/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/scatter-exit/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/spill/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/split-aof/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/split-budget/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/split-ex/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/split-local/unit",
+    "before": 6767480,
+    "after": 6767480,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/split-policy/unit",
+    "before": 6767480,
+    "after": 6767480,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/staged-clause/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/staged-source/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/submitted/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/visit/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/walk-tail/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/whole/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-controls/work/unit",
+    "before": 6767760,
+    "after": 6767760,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-db0-completion-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-db0-phase-unit",
+    "before": 9830408,
+    "after": 9830408,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-db0-unit",
+    "before": 39552,
+    "after": 39552,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-phase-unit",
+    "before": 5224648,
+    "after": 5224648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wb-rule-unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/borrow/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/code/unit",
+    "before": 39600,
+    "after": 39600,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/crlf/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/direct/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/done-bytes/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/fastpath/unit",
+    "before": 39656,
+    "after": 39656,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/floor/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/hole/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/marker/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/no-sum/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/pre-read/unit",
+    "before": 39640,
+    "after": 39640,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/relaxed/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/scatter-exit/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/spill/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/staged-clause/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/staged-source/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/submitted/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/walk-tail/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-controls/whole/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-clause-unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-controls/byte-limit/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-controls/empty/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-controls/flushall/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-controls/half/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-db0-clause-unit",
+    "before": 39712,
+    "after": 39712,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-db0-unit",
+    "before": 84432,
+    "after": 84432,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/pre-objects/build/wbland-unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/publishfix-unit",
+    "before": 5050568,
+    "after": 5050568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/racefix-climon",
+    "before": 10449864,
+    "after": 10449864,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/racefix-climon-objects/tomokv",
+    "before": 10449864,
+    "after": 10449864,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/rehash-waits-unit",
+    "before": 5112688,
+    "after": 5112688,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/reorder-engagement-unit",
+    "before": 5275240,
+    "after": 5275240,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/reorder-engagement-unit-db0",
+    "before": 9901728,
+    "after": 9901728,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/respresume-migration",
+    "before": 5161680,
+    "after": 5161680,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/respresume-unit",
+    "before": 72120,
+    "after": 72120,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/rltopo-unit",
+    "before": 141463024,
+    "after": 141463024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/shutdown-unit",
+    "before": 5192976,
+    "after": 5192976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/splitlocal-unit",
+    "before": 15816,
+    "after": 15816,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/store-regression",
+    "before": 7252576,
+    "after": 385792,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/store-regression-tsan",
+    "before": 7822776,
+    "after": 537416,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/storesize-unit",
+    "before": 9897064,
+    "after": 9897064,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/storesize-unit-pad",
+    "before": 9897064,
+    "after": 9897064,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/tomokv-watch",
+    "before": 10433056,
+    "after": 10433056,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/txnorder-episodes",
+    "before": 94926120,
+    "after": 7631624,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/txnorder-episodes-debug",
+    "before": 95059208,
+    "after": 7670008,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/txnorder-wake-unit",
+    "before": 22056,
+    "after": 22056,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/txnorder-watch-db0-unit",
+    "before": 189041784,
+    "after": 12224848,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/txnorder-watch-unit",
+    "before": 94713896,
+    "after": 7564440,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/waits-unit",
+    "before": 24280,
+    "after": 24280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-small-ignored/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-small-ignored/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-unbounded-ignored/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-unbounded-ignored/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-unbounded-wrap/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/knob-unbounded-wrap/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/serve-reset/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/serve-reset/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/small-early/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/small-early/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/small-late/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/small-late/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/visits-early/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/visits-early/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/visits-late/db0-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-controls/visits-late/unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-completion-unit",
+    "before": 43976,
+    "after": 43976,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/borrow/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/budget/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/capture/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/code/unit",
+    "before": 39448,
+    "after": 39448,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/crlf/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/dead/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/direct/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/done-bytes/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/fastpath/unit",
+    "before": 39504,
+    "after": 39504,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/floor/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/head/unit",
+    "before": 6803808,
+    "after": 6803808,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/hole/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/marker/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/no-sum/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/parse/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/pin/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/pre-read/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/relaxed/unit",
+    "before": 39408,
+    "after": 39408,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/rotation/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/scatter-exit/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/spill/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-aof/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-budget/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-ex/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-local/unit",
+    "before": 6803272,
+    "after": 6803272,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/split-policy/unit",
+    "before": 6803272,
+    "after": 6803272,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/staged-clause/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/staged-source/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/submitted/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/visit/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/walk-tail/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/whole/unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-controls/work/unit",
+    "before": 6803544,
+    "after": 6803544,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-db0-completion-unit",
+    "before": 44024,
+    "after": 44024,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-db0-phase-unit",
+    "before": 9875280,
+    "after": 9875280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-db0-unit",
+    "before": 39552,
+    "after": 39552,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-phase-unit",
+    "before": 5244792,
+    "after": 5244792,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wb-rule-unit",
+    "before": 39496,
+    "after": 39496,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/borrow/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/code/unit",
+    "before": 39600,
+    "after": 39600,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/crlf/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/direct/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/done-bytes/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/fastpath/unit",
+    "before": 39656,
+    "after": 39656,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/floor/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/hole/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/marker/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/no-sum/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/pre-read/unit",
+    "before": 39640,
+    "after": 39640,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/relaxed/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/scatter-exit/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/spill/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/staged-clause/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/staged-source/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/submitted/unit",
+    "before": 39568,
+    "after": 39568,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/walk-tail/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-controls/whole/unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-clause-unit",
+    "before": 39648,
+    "after": 39648,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-controls/byte-limit/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-controls/empty/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-controls/flushall/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-controls/half/unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-db0-clause-unit",
+    "before": 39712,
+    "after": 39712,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-db0-unit",
+    "before": 84432,
+    "after": 84432,
+    "allocated_equal": true
+  },
+  {
+    "path": "build/wbland-unit",
+    "before": 84280,
+    "after": 84280,
+    "allocated_equal": true
+  }
+]

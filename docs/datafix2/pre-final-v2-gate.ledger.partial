@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_watch datafix2_idle; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	185.670000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+FAIL	312.030000	datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4

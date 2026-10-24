@@ -1,0 +1,39 @@
+{
+  "base": "ef5204b2e9650693228cc105b34625516898b82d",
+  "constants_unchanged": {
+    "QUICK": 739,
+    "FULL": 756
+  },
+  "DQ": 5,
+  "DF": 5,
+  "maintainer_expected": {
+    "QUICK": 744,
+    "FULL": 761
+  },
+  "collect_lines": [
+    {
+      "line": 4898,
+      "job": "datafix2_notouch"
+    },
+    {
+      "line": 4899,
+      "job": "datafix2_encoding"
+    },
+    {
+      "line": 4900,
+      "job": "datafix2_subkeys"
+    },
+    {
+      "line": 4901,
+      "job": "datafix2_watch"
+    },
+    {
+      "line": 4902,
+      "job": "datafix2_idle"
+    }
+  ],
+  "quick_exit_line": 5029,
+  "fixture_unchanged": true,
+  "fixture_sha256": "b5f7dfed1c7276d32e4123d1883736ed44e14f8bf8195ad07875e75d3776a422",
+  "quick_branch_line": 5025
+}

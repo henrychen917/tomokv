@@ -1,0 +1,4 @@
+RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=756, fixture=756, source declarations=761
+Missing fixture labels: 'datafix2 CD4.14 expired_subkeys vs Redis 7.4' (x1); 'datafix2 CD4.15 string encoding vs Redis 7.4' (x1); 'datafix2 CD4.7 no-touch lookups vs Redis 7.4' (x1); 'datafix2 CD4.9 write WATCH table vs Redis 7.4' (x1); 'datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.

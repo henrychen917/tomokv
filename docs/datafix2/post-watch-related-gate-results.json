@@ -1,0 +1,24 @@
+[
+  {
+    "name": "post-watch-related-gate",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "core_units ntnew4_live release_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/post-watch-related-gate.ledger"
+    },
+    "returncode": 0
+  }
+]

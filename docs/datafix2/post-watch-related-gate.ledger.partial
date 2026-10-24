@@ -1,0 +1,58 @@
+PARTIAL	0	GATE_ONLY_JOBS=core_units ntnew4_live release_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	14.370000	RESP resumable fragment (1s, epoll)
+ok	14.480000	RESP resumable fragment (1s, uring)
+ok	14.540000	RESP resumable fragment (2s, epoll)
+ok	14.530000	RESP resumable fragment (2s, uring)
+ok	2.600000	RESP resumable cpu (1s, epoll)
+ok	2.610000	RESP resumable cpu (1s, uring)
+ok	2.600000	RESP resumable cpu (2s, epoll)
+ok	2.600000	RESP resumable cpu (2s, uring)
+ok	0.790000	RESP resumable neighbour (1s, epoll)
+ok	0.790000	RESP resumable neighbour (1s, uring)
+ok	0.780000	RESP resumable neighbour (2s, epoll)
+ok	0.790000	RESP resumable neighbour (2s, uring)
+ok	4.430000	multidb (1s, read-local 0, atomic 0)
+ok	0.100000	multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.420000	multidb (1s, read-local 0, atomic 1)
+ok	0.100000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.410000	multidb (1s, read-local 1, atomic 0)
+ok	0.100000	multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.400000	multidb (1s, read-local 1, atomic 1)
+ok	0.090000	multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	4.310000	multidb (2s, read-local 0, atomic 0)
+ok	0.100000	multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB
+ok	4.310000	multidb (2s, read-local 0, atomic 1)
+ok	0.090000	multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB
+ok	4.290000	multidb (2s, read-local 1, atomic 0)
+ok	0.090000	multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+ok	0.280000	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB
+ok	4.270000	multidb (2s, read-local 1, atomic 1)
+ok	0.100000	multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+ok	0.270000	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB
+ok	0.110000	core concurrency watch
+ok	0.310000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.140000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (1s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	6.640000	torture battery
+ok	0.970000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.050000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)

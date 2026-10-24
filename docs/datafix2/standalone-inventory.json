@@ -1,0 +1,87 @@
+[
+  {
+    "file": "tests/aclkeys_unit.cc",
+    "status": "NOT RUN",
+    "reason": "Standalone unit target; no gate job declares it."
+  },
+  {
+    "file": "tests/at15.py",
+    "status": "NOT RUN",
+    "reason": "NOT RUN: standalone live inventory; no declared gate job. at15 units run in atomic_units."
+  },
+  {
+    "file": "tests/cd13b_wire.py",
+    "status": "NOT RUN",
+    "reason": "Standalone wire campaign; no gate job declares it."
+  },
+  {
+    "file": "tests/cdfix_unit.cc",
+    "status": "NOT RUN",
+    "reason": "Standalone unit helper; no gate job declares it."
+  },
+  {
+    "file": "tests/cmdmeta.py",
+    "status": "NOT RUN",
+    "reason": "Standalone directed battery; registry coverage runs in cmd_metadata and differ."
+  },
+  {
+    "file": "tests/differ_test.py",
+    "status": "PASS",
+    "reason": "24 tests PASS; differ-selftest.log"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "status": "NOT RUN",
+    "reason": "Standalone oracle battery; no gate job declares it."
+  },
+  {
+    "file": "tests/encodingfix.py",
+    "status": "NOT RUN",
+    "reason": "Standalone oracle inventory; no gate job declares it. Serverless encodingfix is in netcmd_units."
+  },
+  {
+    "file": "tests/execabort_watch_gate_test.py",
+    "status": "PASS",
+    "reason": "3 tests PASS; execabort-watch-gate-selftest.log"
+  },
+  {
+    "file": "tests/gates_test.py",
+    "status": "PASS",
+    "reason": "70 tests PASS; gates-test.log"
+  },
+  {
+    "file": "tests/owner_prefetch_unit.cc",
+    "status": "NOT RUN",
+    "reason": "NOT RUN: standalone target, no declared gate job."
+  },
+  {
+    "file": "tests/redisgap.py",
+    "status": "NOT RUN",
+    "reason": "Standalone configuration battery; no gate job declares it."
+  },
+  {
+    "file": "tests/replyschema.py",
+    "status": "NOT RUN",
+    "reason": "Standalone oracle inventory; no gate job declares it."
+  },
+  {
+    "file": "tests/storeorder.py",
+    "status": "NOT RUN",
+    "reason": "Standalone campaign helper; no gate job declares it."
+  },
+  {
+    "file": "tests/txnfix_audit/t18_watch_cas.py",
+    "status": "NOT RUN",
+    "reason": "NOT RUN: standalone historical audit, no declared gate job."
+  },
+  {
+    "file": "tests/txnfix_audit/t19_crossed_watch.py",
+    "status": "NOT RUN",
+    "reason": "NOT RUN: standalone historical audit, no declared gate job."
+  },
+  {
+    "file": "tests/watchlive.py",
+    "status": "NOT RUN",
+    "reason": "NOT RUN: separate watchlive_gate.sh driver, no tests/gate.sh job."
+  }
+]

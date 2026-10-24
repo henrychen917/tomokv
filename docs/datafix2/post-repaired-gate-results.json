@@ -1,0 +1,24 @@
+[
+  {
+    "name": "post-repaired-gate",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "atomic_units debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder2",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/post-repaired-gate.ledger"
+    },
+    "returncode": 0
+  }
+]

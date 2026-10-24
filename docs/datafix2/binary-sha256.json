@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "build/tomokv-pre",
+    "sha256": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f",
+    "size": 208299240
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "sha256": "e04e787a192cd2ab0b3f9f0ef22df0e9ba3651843aeaa2802c697ef24ed37909",
+    "size": 209758760
+  },
+  "PAD_A": {
+    "path": "build/tomokv-pad-a",
+    "sha256": "88221d10464fd62014ffba52e2b6e15c23d61ece794ba4ec95d5803046c5eb5c",
+    "size": 208323744
+  }
+}

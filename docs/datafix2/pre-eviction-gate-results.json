@@ -1,0 +1,24 @@
+[
+  {
+    "name": "pre-eviction-gate",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/tomokv-pre"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/pre-eviction-gate.ledger"
+    },
+    "returncode": 0
+  }
+]

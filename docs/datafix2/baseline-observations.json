@@ -1,0 +1,20 @@
+[
+  {
+    "invocation": "pre-related-gate",
+    "job": "snapshot-epoll",
+    "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+    "observed": [
+      "SAVE #1 replied -ERR Background save already in progress",
+      "2 of 3 cut barriers armed",
+      "0 torn snapshot groups; 0 live torn reads"
+    ],
+    "post": "The same whole job passed all 16 rows on POST.",
+    "action": "Both attempts are retained. The first SAVE overlap failure was not observed in the complete repeated job; no snapshot implementation change is attributed to this lane.",
+    "repeat": {
+      "invocation": "pre-snapshot-repeat-gate",
+      "snapshot_rows_passed": 16,
+      "gate_returncode": 0,
+      "unchanged_baseline_binary": true
+    }
+  }
+]

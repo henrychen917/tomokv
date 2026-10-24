@@ -1,0 +1,260 @@
+[
+  {
+    "file": "tests/aclkeys_unit.cc",
+    "jobs": [],
+    "note": "Standalone unit target; no gate job declares it."
+  },
+  {
+    "file": "tests/aof.py",
+    "jobs": [
+      "aof-epoll",
+      "aof-uring"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/arity.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/cd13b_wire.py",
+    "jobs": [],
+    "note": "Standalone wire campaign; no gate job declares it."
+  },
+  {
+    "file": "tests/cdfix_unit.cc",
+    "jobs": [],
+    "note": "Standalone unit helper; no gate job declares it."
+  },
+  {
+    "file": "tests/cmdmeta.py",
+    "jobs": [],
+    "note": "Standalone directed battery; registry coverage runs in cmd_metadata and differ."
+  },
+  {
+    "file": "tests/datafix2_encoding.py",
+    "jobs": [
+      "datafix2_encoding"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/datafix2_idle.py",
+    "jobs": [
+      "datafix2_idle"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/datafix2_notouch.py",
+    "jobs": [
+      "datafix2_notouch"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/datafix2_subkeys.py",
+    "jobs": [
+      "datafix2_subkeys"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/differ.py",
+    "jobs": [
+      "differ-armed",
+      "differ-split"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/differ_test.py",
+    "jobs": [],
+    "note": "Parser/generator self-test; run separately without servers."
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "jobs": [],
+    "note": "Standalone oracle battery; no gate job declares it."
+  },
+  {
+    "file": "tests/edgeenc.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/edgetime.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/encodingfix.py",
+    "jobs": [],
+    "note": "Standalone oracle inventory; no gate job declares it. Serverless encodingfix is in netcmd_units."
+  },
+  {
+    "file": "tests/encodingfix_unit.cc",
+    "jobs": [
+      "netcmd_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/evict_battery.py",
+    "jobs": [
+      "evict-lfu-armed-0",
+      "evict-lfu-armed-1",
+      "evict-lfu-split-0",
+      "evict-lfu-split-1",
+      "evict-lruclock-armed-0",
+      "evict-lruclock-armed-1",
+      "evict-lruclock-split-0",
+      "evict-lruclock-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/exbatch_unit.cc",
+    "jobs": [
+      "exbatch_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/gate.sh",
+    "jobs": [],
+    "note": "Gate declarations covered by listed jobs."
+  },
+  {
+    "file": "tests/hexpire.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/hexpread.py",
+    "jobs": [
+      "hexpread"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/knobs.py",
+    "jobs": [
+      "aof-epoll",
+      "aof-uring"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/mdbstamp_checks.cc",
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Included by multidb-unit."
+  },
+  {
+    "file": "tests/objectpread.py",
+    "jobs": [
+      "hexpread"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/read_local_lfu.py",
+    "jobs": [
+      "bugs5"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/redisgap.py",
+    "jobs": [],
+    "note": "Standalone configuration battery; no gate job declares it."
+  },
+  {
+    "file": "tests/replyschema.py",
+    "jobs": [],
+    "note": "Standalone oracle inventory; no gate job declares it."
+  },
+  {
+    "file": "tests/resp3.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/scancompact.py",
+    "jobs": [
+      "bugs5"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/servertail.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/snap_typed_roundtrip.py",
+    "jobs": [
+      "snapshot-epoll",
+      "snapshot-uring"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/storeorder.py",
+    "jobs": [],
+    "note": "Standalone campaign helper; no gate job declares it."
+  },
+  {
+    "file": "tests/stream.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/zsetops.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  }
+]
