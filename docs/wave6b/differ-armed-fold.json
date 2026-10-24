@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "group": "armed",
+  "parts": [
+    "armed-0",
+    "armed-1"
+  ],
+  "start": 1792865417.9332132,
+  "end": 1792866156.9550915,
+  "seconds": 739.0218782424927,
+  "comparisons": 648,
+  "complete": true
+}

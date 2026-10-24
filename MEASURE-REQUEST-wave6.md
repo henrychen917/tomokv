@@ -376,3 +376,140 @@ on ports 26800–26899 (`docs/wave6/correctness/cleanup-final.json`). No unrelat
 process was stopped. Source, test, Makefile and integration-report whitespace
 checks pass. Four inherited whitespace lines in the lanes' raw receipts remain
 unchanged and are identified in `docs/wave6/correctness/source-review.json`.
+
+
+## wave6b
+
+Harness-only follow-up to `925e8f7eb`; no push. Correctness work uses only CPUs
+64–111 and ports 26800–26899, with all external invocations under
+`taskset -c 64-111`. Every live validation below uses `GATE_ONLY_JOBS` and the
+ordinary `tests/gate.sh iteration` job dispatcher, with `LANG=en_US.UTF-8` and
+`LC_ALL` removed from the caller environment. No complete iteration or performance
+benchmark is run by this lane.
+
+### Corrections and audit
+
+The original `build/gate-run.O9A75W` evidence shows the same failure in **both**
+`differ-split-0` and `differ-split-1`: SORT's C-collation precondition fails for
+seeds 7, 19, 20, 23 and 24, returning `[char-lie050, Echo!068]`. Their later missing
+comparison-witness/completion failures are consequences of those failed SORT
+legs, not a second unexplained worker failure.
+
+`tests/gate.sh` now exports `LC_ALL=C` before launching any child. This covers
+shell boot helpers, batteries that own subprocess boots, and oracle processes
+without maintaining a separate list of locale-sensitive commands. The standalone
+`tests/differ_gate.sh` exports the same value, covering both target modes and its
+mode-equivalence boots. It retains Redis's existing explicit C environment.
+No server configuration default is changed.
+
+The collation audit covers `sort`, `aclfix`, `debug-0/1` (EXEC SORT STORE),
+`feature-split-0/1` and `feature-armed-0/1` (zsetops SORT ALPHA and BYLEX), `notify`
+(ZREMRANGEBYLEX), all five differential jobs, and `datafix1_locale`. Lexicographic
+zset operations retain their bytewise semantics; the shared export also covers
+other children that may gain locale-sensitive commands later. `replyschema.py`
+connects to an existing server and has no selectable gate job. The datafix1
+common boot helper deliberately sets both LANG and LC_ALL to `en_US.UTF-8` for
+its target/oracle pair. CD4.6 still tests empty, C, en_US.UTF-8, C.UTF-8 and invalid
+settings explicitly; it now additionally proves that the inherited default and
+a restored empty setting equal en_US.UTF-8 and differ from C. The global gate
+export cannot silently replace this environment-default proof.
+
+`txnorder` case b now requires at least 20 completed bystander transactions and
+16 acknowledged **storm** EXECs within the existing five-second startup bound.
+The bystander remains live until after the victim measurement. It reports its
+sample count, checks the quiet keys exactly, and checks the total EXEC count
+against storm + bystander + victim. Victim <1 s, bystander <0.2 s, writer <40 ms,
+all existing exact counts and order/doom invariants remain unchanged.
+
+Case c's PING watcher previously initialized its maximum to zero and could pass
+without a sample. It now collects 20 startup samples, remains live throughout
+the unchanged 30-second storm, and must collect further samples during that
+storm; its <1 s bound remains unchanged. Cases a/d use a worker barrier and
+counted EXEC/plain-writer work; b2 collects exactly 500 foreground samples and
+requires writer-wait activity. The xscript liveness loops use fixed work (40
+successful scripts per worker and 80 iterations per mixed writer), joins, exact
+final values, and separate counter-witnessed directed windows. They have no
+stop-on-fast-victim watcher; no xscript change was needed. Its `debug-0/1` and
+`script_bounds` gate jobs are included in validation.
+
+`GateLocaleInheritance` runs the real gate/differ startup prefixes and checks
+collation in a child process, with LC_ALL both absent and explicitly non-C. All
+four subcases fail on the original prefixes and pass with the exports.
+
+### Validation
+
+All four txnorder jobs passed **10/10** times through the gate dispatcher
+(40/40 battery rows, 50/50 including the ten release prerequisites). Each job
+retains its ordinary boot, serverless cases, AOF leg and finalizer.
+`docs/wave6b/txnorder.json` retains every row's b1/b2/c counters and timings;
+`docs/wave6b/txnorder-proof.tar.gz` contains the raw battery logs and ledgers.
+
+| Job | Passes | Minimum bystander samples | Maximum victim ms | Maximum bystander ms |
+| --- | ---: | ---: | ---: | ---: |
+| fused, atomic 0 | 10/10 | 23 | 18.066 | 14.110 |
+| fused, atomic 1 | 10/10 | 23 | 15.594 | 12.848 |
+| split, atomic 0 | 10/10 | 24 | 4.969 | 8.661 |
+| split, atomic 1 | 10/10 | 23 | 14.239 | 17.238 |
+
+The limits remain 1,000 ms / 200 ms, respectively. The 40 ms plain-writer limit
+also passes (worst 9.284 ms); case c records at least 290 PING samples during each
+storm (worst 26.992 ms, unchanged 1,000 ms limit). Exact quiet-key values,
+storm + bystander + victim EXEC counts, existing data counters, and AOF reload
+comparisons all pass.
+
+`python3 tests/gates_test.py`: **72 tests passed**, including the new locale
+inheritance check; its four subcases fail against the original startup prefixes.
+`GATE_TEST_PORT=26898` keeps even the self-test listeners inside the allocation.
+Logs: `docs/wave6b/gates-test.log`, `locale-unit-control.log`, `locale-unit-post.log`.
+
+The live negative control, `build/gate-run.Cc9PyX`, exits 1 with exactly the two
+expected split differential job failures. It runs 282/286 legs for atomic 0/1;
+only the six SORT legs per mode fail (seeds 7, 19, 20, 23, 24, 25), with the same
+C-collation exception. Both targets and both oracles shut down and free their
+ports. `docs/wave6b/locale-control.json` records the failures and verifies that
+the loaded gate/differ scripts match the pre-fix base. `original-failures.json`
+records the corresponding maintainer-run diagnosis.
+
+CD4.6 passes **12/12 legs, 4,764 checks**, including the explicit non-C default
+proof. Receipt: `docs/wave6b/locale-battery.json`.
+
+The locale/related invocation, `build/gate-run.B6FjPw`, passed **197/197** rows,
+including `datafix1_locale`, `sort`, `aclfix`, both `debug` jobs, all four
+split/armed feature jobs, `notify`, `script_bounds`, both split differential
+workers and mode equivalence. This includes both xscript batteries and their
+limit/window controls. The split matrix completes 329 atomic-0 legs and 333
+atomic-1 legs with zero differences; mode equivalence passes all 16 cells.
+The normal `differ_fanout.fold` validator confirms the complete split group
+(`docs/wave6b/differ-split-fold.json`).
+
+The fused/read-local invocation, `build/gate-run.zJ5qt6`, passed **3/3** rows:
+release prerequisite and both differential jobs. Atomic 0/1 complete **322/326**
+compared legs plus their mandatory read-local activity witnesses, with zero
+failures. The existing split-only SORT exclusion is unchanged in fused mode;
+all seven SORT seeds pass in both split modes. The four matrix workers together
+complete **1,310 compared legs**, plus the 16 mode-equivalence cells. Both group
+folds validate as complete (`docs/wave6b/differ-armed-fold.json` and the split
+fold above). Split seeds are 7/19/20/23/24/25/26; fused seeds replace rotating 26
+with 27. Both atomic-1 workers retain four additional seed-19 MULTI repetitions.
+
+`docs/wave6b/validation.json` records every selected job and verdict.
+`docs/wave6b/locale-and-related-proof.tar.gz` preserves the control/post ledgers,
+plans, complete leg journals, comparison coverage, and battery logs. Exact
+command argument vectors are in `docs/wave6b/commands.json`; all four differential
+targets' observed LC_ALL and CPU masks are in `docs/wave6b/post-processes.json`.
+`docs/wave6b/cleanup-final.json` confirms no owned servers and no listeners on
+ports 26800–26899 after all finalizers. No unrelated process was stopped.
+
+### Inventory and binary identity
+
+No gate row was added, removed, or moved across the quick-tier exit: DQ=0,
+DF=0; required inventory remains **768/785**. The inherited EXPECT literals
+remain **739/756**, untouched, as documented in wave6 integration; the mainline
+runner owns their update. No server source or Makefile is changed. `make -j8`
+reports nothing to do, and `build/tomokv` remains:
+
+`6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036`
+
+Full `tests/gate.sh iteration` and performance/ABBA/NIC benchmarks: **NOT RUN**,
+reserved to the maintainer by this lane's authorization. No performance claim,
+PRE/POST performance arm, or PAD is needed for an unchanged server binary.

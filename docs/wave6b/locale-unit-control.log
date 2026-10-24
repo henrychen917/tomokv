@@ -1,0 +1,65 @@
+FFFF
+======================================================================
+FAIL: test_gate_and_standalone_differ_pin_child_collation (__main__.GateLocaleInheritance.test_gate_and_standalone_differ_pin_child_collation) (script='gate.sh', LC_ALL=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave6/tests/gates_test.py", line 2041, in test_gate_and_standalone_differ_pin_child_collation
+    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
+AssertionError: Lists differ: [None, ['char-lie050', 'Echo!068']] != ['C', ['Echo!068', 'char-lie050']]
+
+First differing element 0:
+None
+'C'
+
+- [None, ['char-lie050', 'Echo!068']]
++ ['C', ['Echo!068', 'char-lie050']]
+
+======================================================================
+FAIL: test_gate_and_standalone_differ_pin_child_collation (__main__.GateLocaleInheritance.test_gate_and_standalone_differ_pin_child_collation) (script='gate.sh', LC_ALL='en_US.UTF-8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave6/tests/gates_test.py", line 2041, in test_gate_and_standalone_differ_pin_child_collation
+    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
+AssertionError: Lists differ: ['en_US.UTF-8', ['char-lie050', 'Echo!068']] != ['C', ['Echo!068', 'char-lie050']]
+
+First differing element 0:
+'en_US.UTF-8'
+'C'
+
+- ['en_US.UTF-8', ['char-lie050', 'Echo!068']]
++ ['C', ['Echo!068', 'char-lie050']]
+
+======================================================================
+FAIL: test_gate_and_standalone_differ_pin_child_collation (__main__.GateLocaleInheritance.test_gate_and_standalone_differ_pin_child_collation) (script='differ_gate.sh', LC_ALL=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave6/tests/gates_test.py", line 2041, in test_gate_and_standalone_differ_pin_child_collation
+    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
+AssertionError: Lists differ: [None, ['char-lie050', 'Echo!068']] != ['C', ['Echo!068', 'char-lie050']]
+
+First differing element 0:
+None
+'C'
+
+- [None, ['char-lie050', 'Echo!068']]
++ ['C', ['Echo!068', 'char-lie050']]
+
+======================================================================
+FAIL: test_gate_and_standalone_differ_pin_child_collation (__main__.GateLocaleInheritance.test_gate_and_standalone_differ_pin_child_collation) (script='differ_gate.sh', LC_ALL='en_US.UTF-8')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave6/tests/gates_test.py", line 2041, in test_gate_and_standalone_differ_pin_child_collation
+    self.assertEqual(json.loads(result.stdout), ['C', ['Echo!068', 'char-lie050']])
+AssertionError: Lists differ: ['en_US.UTF-8', ['char-lie050', 'Echo!068']] != ['C', ['Echo!068', 'char-lie050']]
+
+First differing element 0:
+'en_US.UTF-8'
+'C'
+
+- ['en_US.UTF-8', ['char-lie050', 'Echo!068']]
++ ['C', ['Echo!068', 'char-lie050']]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.086s
+
+FAILED (failures=4)
