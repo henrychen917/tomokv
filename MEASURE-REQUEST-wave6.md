@@ -2,7 +2,9 @@
 
 ## wave6 integration
 
-Integration branch `cx-wave6`, headline `ef5204b2e`; no push. Work is in progress.
+Integration branch `cx-wave6`, headline `ef5204b2e`; no push. Integration and the
+available correctness jobs are complete. The maintainer's null and landing
+measurements remain outstanding; identity and PAD limitations are recorded below.
 All builds and correctness work are restricted to CPUs 64–95, ports 26800–26899.
 No performance generator or full iteration is authorized or run by this lane.
 
@@ -25,7 +27,7 @@ datafix1 7, prefetch 0 gives **DQ=+29, DF=+29; required counts 768/785**.
 `EXPECT_QUICK` and `EXPECT_FULL` remain 739/756, untouched. The fixture has all
 785 declared full labels with their multiplicities; dispatchfix's five missing
 fixture entries were added explicitly. `docs/wave6/rows.json` records every added job’s collection line against the
-quick-tier exit and independently compares the source-declared label multiset.
+quick-tier exit (line 5335) and independently compares the source-declared label multiset.
 The new gate mode hooks add no rows.
 
 ### Merge decisions and interaction audit
@@ -213,10 +215,12 @@ exact patches and input hash are retained in `docs/wave6/inlinepins-trial.json`.
 
 ### Build arms and maintainer measurement
 
-`make all` and all 44 requested build targets completed; all `make -q` checks
-passed (`docs/wave6/correctness/build.json`). Final freshness will be repeated
-once all jobs finish. The final source also rebuilt all 44 targets with every
-`make -q` exit zero (`docs/wave6/correctness/build-final.json`).
+`make all` and every `job_production_units` target completed. After all jobs
+finished, all 45 `make -q` checks (the 44 requested targets plus `build/tailgen`)
+exited zero; the POST hash stayed unchanged. See
+`docs/wave6/correctness/freshness-final.json`. Compiled layout assertions retain
+all eight locks: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944,
+Rob<64> 192, AtomicEntry 144 and Config 624 bytes.
 
 | Arm | Binary | SHA-256 |
 |---|---|---|
@@ -224,6 +228,10 @@ once all jobs finish. The final source also rebuilt all 44 targets with every
 | Rebuilt PRE | `build/wave6/pre-source/build/tomokv` | `9388e045f35736ce08a9b9635fb83e37f5fff75c0de0c78c091a8e5969b883ee` |
 | Merged POST | `build/tomokv` | `6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036` |
 | PAD-A | `build/tomokv-wave6-PAD-A` | `d3c042b755ce0ec0fb6fe377e9ee6a66d02b88a1b4f15b09c75bf7b6322c5d45` |
+
+`docs/wave6/final-artifacts.json` verifies these hashes and that production
+source and Makefile are unchanged since `f1f9dc18e`; subsequent commits change
+only tests, integration drivers and receipts.
 
 PAD is **kind A, behaviour twin**: unmodified PRE object code with inert padding
 matching POST's `.text` origin and total size. Its per-function offsets and data
@@ -273,6 +281,15 @@ objects needed for freshness, command probes and gate artifacts remain;
 
 ### Validation status
 
+**All 200 selectable correctness/build-prerequisite jobs have passing complete-job
+receipts on the final POST.** `tests/gates_test.py` passes all 71 tests, and the
+complete `abba_selftest` job passes with the final wrong-selector negative controls
+included. Its 768/785 EXPECT edits exist only in the throwaway selftest copy;
+the integration worktree retains 739/756. The final audit has no pending jobs or
+unresolved failures: `docs/wave6/correctness/summary-final.json`. This accounts for
+204 available job names minus three performance jobs and the refused build-only
+`tailgen_build` selection described below.
+
 The final candidate's broad sweep completed **192 jobs / 767 passing rows /
 zero failed rows**. Its R7, atomic units, every lane row, both persistence engines
 and all four first-round txnorder cells pass. See
@@ -283,9 +300,9 @@ repaired and pass on the final candidate.
 
 Both-engine standard-seed differential matrices are complete, and every one
 of the four txnorder cells has three passing runs on the final POST (broad
-sweep plus `txnorder-round-2` and `txnorder-round-3`). The follow-up sequence
-is running complete legacy split/fused jobs, final scheduler/ABBA selftests,
-and the quiet timing-sensitive correctness jobs.
+sweep plus `txnorder-round-2` and `txnorder-round-3`). Complete legacy split/fused
+jobs, final scheduler/ABBA selftests and the quiet timing-sensitive correctness
+jobs also pass.
 `docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
 result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
 
@@ -293,25 +310,29 @@ Both complete differential matrices pass their four mode/atomic jobs and
 mode-equivalence control (47 suite families per seed). Standard seeds are
 `7 19 20 23 21` for io_uring and `7 19 20 23 22` for epoll. The differential
 driver's existing armed-fused SORT skip is
-retained because that particular suite requires split 6:2; it is explicitly
-listed in each `matrix-summary.json`. The complete gate SORT battery is also
-selected separately in both modes. A skipped differential leg is not counted
-as a passing leg.
+retained because that particular suite requires split 6:2; the 20 declared skips
+(five seeds × two atomic settings × two engines) are listed in each
+`matrix-summary.json` and `docs/wave6/correctness/declared-skips.json`. The complete
+gate SORT battery passes separately in both modes. A skipped differential leg is
+not counted as a passing leg.
 
 The first ABBA self-test copy lacked required fixture inputs; its gate helper
 also ran with only two load CPUs and hit scheduler-fixture deadlines. A standalone
 self-test first collided on a test port, then overlapped compilation and hit
 fixture deadlines. These failed attempts are retained, not treated as passes.
-The complete copy now has every required input; its retry gets 24 load CPUs,
-and standalone `gates_test.py` runs serially on the allocation with port 26897.
+The complete passing copy has every required input and 24 fixture load CPUs;
+standalone `gates_test.py` ran serially on the allocation with port 26897.
 
 The final persistence mode hooks exposed one more selftest integration issue:
 `PersistfixWiring` copied the AOF job but omitted its new `txn_proof_boot`
 dependency. It now copies the real selector, checks that each mode chooses the
 right boot stub, and retains all stopped/reaped-slot and exact driver-argument
-assertions in both engines. The focused check passes; a full standalone suite
-and complete ABBA job are queued again. The failed final attempts remain
-separate from their repaired receipts.
+assertions in both engines. Two wrong-selector controls prove the fixture rejects
+either wrong mode, including when Bash conditional execution disables errexit.
+The full 71-test standalone suite and complete ABBA job pass with these controls;
+see `gates-test-final-controls.{json,log}` and `abba-selftest-final-controls/`
+under `docs/wave6/correctness`. Failed attempts remain separate from their
+repaired receipts.
 
 The complete fused release job exposed a second mode-hook assumption: its
 historical `dispatched==executed (N)` row requested split-only fields that the
@@ -347,4 +368,11 @@ execution is inferred from them. The attempted `tailgen_build` selection
 was explicitly refused by `GATE_ONLY_JOBS` (exit 2: build-only prerequisite,
 select its consuming correctness job). Its only consumer is the full-gate-only
 live load-generator row reserved to the maintainer. Thus the job is **NOT RUN**;
-the build target will be checked separately without launching the generator.
+the `build/tailgen` target compiled and passed its final freshness check without
+launching the generator.
+
+The final read-only cleanup census found no owned workload processes or listeners
+on ports 26800–26899 (`docs/wave6/correctness/cleanup-final.json`). No unrelated
+process was stopped. Source, test, Makefile and integration-report whitespace
+checks pass. Four inherited whitespace lines in the lanes' raw receipts remain
+unchanged and are identified in `docs/wave6/correctness/source-review.json`.
