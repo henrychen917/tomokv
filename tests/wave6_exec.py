@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 """Directed wave6 interactions in the existing EXEC gate's eight declared legs."""
 import concurrent.futures
+import socket
 import sys
 import time
 import uuid
-from clientfix import Conn, Error
+from clientfix import Conn as BaseConn, Error
 
 port = int(sys.argv[1])
 prefix = 'wave6:' + uuid.uuid4().hex + ':'
+
+
+class Conn(BaseConn):
+    def __exit__(self, exc_type, *rest):
+        try:
+            if exc_type is None:
+                # Observe the server's close before the gate sends TERM. A local
+                # close alone leaves EOF racing the pre-teardown ownership dump.
+                self.s.shutdown(socket.SHUT_WR)
+                assert not self.buf, ('unread reply at close', self.buf)
+                assert self.s.recv(1) == b'', 'server did not finish the connection'
+        finally:
+            self.s.close()
 
 
 def equal(actual, expected):

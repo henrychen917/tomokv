@@ -81,6 +81,7 @@ def compare(post, refs):
         changed_lanes = [arm for arm, ref in refs.items() if arm != 'headline' and not arm.startswith('baseline_') and
                          signature(ref['groups'].get(name, [])) != signature(refs.get('baseline_'+arm, refs['headline'])['groups'].get(name, []))]
         rows.append(dict(name=name, hot=bool(GENERAL_HOT.search(name) or HOT.search(name) or
+                                           re.search(r'::reply_(?:int|bulk|array_header)<|Op::Sink::reserve\(', name) or
                                            re.search(r'ExLoopT<.*>::run\(', name)),
                          command_hot=bool(HOT.search(name)), equal=same,
                          headline_sizes=[r['size'] for r in before], post_sizes=[r['size'] for r in after],
