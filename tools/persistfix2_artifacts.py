@@ -179,6 +179,97 @@ def identity():
 ''' + source[end:]
     exec(compile(source, str(ROOT / 'tools/serverfix_identity.py'), 'exec'),
          {'__file__': str(ROOT / 'tools/serverfix_identity.py'), '__name__': '__main__'})
+    explain_reasons()
+
+
+def explain_reasons():
+    """Index every strict result, including object aliases absent from linked groups."""
+    with gzip.open(WORK / 'identity/changed-bodies.json.gz', 'rt') as stream:
+        linked = json.load(stream)
+    audit = json.loads((DOCS / 'object-identity/audit.json').read_text())
+    details = []
+    for row in linked:
+        removed = [line[1:] for line in row['diff'].splitlines()
+                   if line.startswith('-') and not line.startswith('---')]
+        added = [line[1:] for line in row['diff'].splitlines()
+                 if line.startswith('+') and not line.startswith('+++')]
+        # This labels the existing diff, without changing either comparator or
+        # treating a changed reference annotation as proof of equal data bytes.
+        def without_annotation(line):
+            return re.sub(r' # <.*> (?=\|)', ' ', line)
+        if not row['pre_sizes']:
+            kind = 'added linked group'
+        elif not row['post_sizes']:
+            kind = 'removed linked group'
+        elif list(map(without_annotation, removed)) == list(map(without_annotation, added)):
+            kind = 'reference annotations only'
+        else:
+            kind = 'instruction records or group shape'
+        reason = row['reason']
+        if kind == 'reference annotations only':
+            reason = ('The strict difference consists only of linked memory-reference symbol '
+                      'annotations. Instruction records and masked encodings otherwise agree; '
+                      'this classification alone does not establish referenced-data identity.')
+        elif row['name'] == 'on_signal(int)':
+            reason = 'PS4.12: select the configured SIGINT or SIGTERM shutdown policy.'
+        elif reason.startswith('Compiler/link') and row['name'].startswith('lua'):
+            reason = ('The unchanged Lua runtime is included in the modified scripting.cc '
+                      'translation unit; its emitted code changes with compiler inlining/code '
+                      'generation. The complete strict instruction difference is retained.')
+        details.append(dict(name=row['name'], classification=kind, reason=reason,
+                            removed_instruction_records=len(removed),
+                            added_instruction_records=len(added)))
+    by_name = {row['name']: row for row in details}
+
+    def object_reason(row):
+        if row['name'] in by_name:
+            return by_name[row['name']]['reason']
+        source = row['object'].split('src/', 1)[1]
+        origins = {
+            'cmd/functions.o': 'D8 function flags and selected-callback admission',
+            'cmd/scripting.o': 'D8 nested legacy-script write admission and included Lua runtime',
+            'cmd/server_tail.o': 'PS4.12 shutdown grammar, signal policy, cancellation and FORCE',
+            'cmd/t_server.o': 'PS4.6/PS4.13 command replies and INFO; PS4.12 signal CONFIG',
+            'cmd/xshard.o': 'D8 transaction admission in included multi.inc and shared Server helpers',
+            'persist/aof.o': 'PS4.6/PS4.13 rewrite lifecycle and D8 errno/refusal helpers',
+            'snapshot/snapshot.o': 'RDB-only LASTSAVE, final-save cancellation and SAVE coordination',
+            'main.o': 'PS4.12 signal selection and boot policy parsing',
+            'core/reorder.o': 'D8 refusal before reordered command dispatch',
+        }
+        if source in origins:
+            return origins[source] + '; emitted body/alias or helper propagation in this translation unit.'
+        return ('No direct source edit to this translation unit. The object comparison retains '
+                'emitted inline/helper or relocation changes after shared Config, Server and IO '
+                'header updates; this body has no separately named changed linked group.')
+
+    object_rows = [dict(row, reason=object_reason(row)) for row in audit['changed_bodies']]
+    inventory = [dict(row, reason=object_reason(row)) for row in audit['inventory_changes']]
+    dest = DOCS / 'identity'
+    (dest / 'reason-details.json').write_text(json.dumps(
+        dict(linked=details, objects=object_rows, inventory=inventory), indent=2) + '\n')
+    linked_lines = ['# Changed linked bodies', '',
+                    'Strict gate normalization; identity is a proxy, merit decides. '
+                    'Reference-annotation classifications do not establish referenced-data identity.', '',
+                    '| Body | PRE sizes | POST sizes | Reason |', '|---|---|---|---|']
+    for row in linked:
+        linked_lines.append(f"| `{row['name']}` | {row['pre_sizes']} | {row['post_sizes']} | "
+                            f"{by_name[row['name']]['reason']} |")
+    (dest / 'changed-bodies.md').write_text('\n'.join(linked_lines) + '\n')
+    lines = ['# Changed object bodies and inventory', '',
+             'Every strict object result is listed, including aliases not separately named by '
+             'the linked-body grouper. No comparator or identity verdict is changed.', '',
+             '| Object | Body | PRE bytes | POST bytes | Reason |',
+             '|---|---|---:|---:|---|']
+    for row in object_rows:
+        lines.append(f"| `{row['object']}` | `{row['name']}` | {row['pre_size']} | "
+                     f"{row['post_size']} | {row['reason']} |")
+    lines += ['', '## Inventory changes', '', '| Object | Body | Status | Reason |',
+              '|---|---|---|---|']
+    for row in inventory:
+        lines.append(f"| `{row['object']}` | `{row['name']}` | {row['status']} | {row['reason']} |")
+    (dest / 'object-changed-bodies.md').write_text('\n'.join(lines) + '\n')
+    print(f"Reason index: {len(details)} linked groups, {len(object_rows)} object bodies, "
+          f"{len(inventory)} object inventory changes.")
 
 
 def explain_hot():
@@ -242,10 +333,11 @@ def explain_hot():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('pad', 'control', 'identity', 'hot-explain'))
+    parser.add_argument('action', choices=('pad', 'control', 'identity', 'hot-explain', 'reasons'))
     args = parser.parse_args()
     DOCS.mkdir(parents=True, exist_ok=True)
-    {'pad': build_pad, 'control': build_control, 'identity': identity, 'hot-explain': explain_hot}[args.action]()
+    {'pad': build_pad, 'control': build_control, 'identity': identity,
+     'hot-explain': explain_hot, 'reasons': explain_reasons}[args.action]()
 
 
 if __name__ == '__main__':
