@@ -238,9 +238,17 @@ static std::string local(Server& server, uint8_t db, std::initializer_list<std::
     if (write) require(multi_plain_write_ready(shard, r.op), "plain WATCH readiness");
     PlainForeignReadScope scope;
     require(xshard_plain_prepare(server, shard, r.op, 71, scope), "plain owner preparation");
+#if __has_include("src/cmd/watch_modified.h")
+    if (shard.has_watches()) watch_execute_handler(shard, r.op);
+    else r.op.spec->handler(shard, r.op);
+#else
     r.op.spec->handler(shard, r.op);
+#endif
     xshard_plain_finish(shard, scope);
-    if (write) multi_plain_write_committed(shard, r.op);
+#if !__has_include("src/cmd/watch_modified.h")
+    if (r.op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+        multi_plain_write_committed(shard, r.op);
+#endif
     return r.reply();
 }
 static std::string scatter(Server& server, uint8_t db,

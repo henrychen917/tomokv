@@ -441,7 +441,10 @@ void cmd_xgroup(Shard& shard, Op& op) {
             reply_err(op.sink(), "ERR The XGROUP subcommand requires the key to exist. Note that for CREATE you may want to use the MKSTREAM option to create an empty stream automatically.");
             return;
         }
-        if (!object && !stream_create_empty_external(shard, op, kNotify, object)) return;
+        if (!object) {
+            if (!stream_create_empty_external(shard, op, kNotify, object)) return;
+            watch_record_modified(shard, key);
+        }
         if (!stream_force_external(shard, op, object, kNotify)) return;
         StreamHeader header;
         if (!stream_object_header(object, header)) {

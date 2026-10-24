@@ -4,6 +4,7 @@
 // exposes only opaque state and the narrow IO/executor hooks needed by the single-TU core.
 #pragma once
 
+#include "watch_modified.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -159,7 +160,6 @@ uint32_t multi_last_attempts(const Client& client);
 // Ordinary owner-local write hook.  The false result means an EXEC still holds a WATCH validation
 // reservation on one of this command's keys and the task must be retried, not executed early.
 bool multi_plain_write_ready(Shard& shard, Op& op);
-void multi_plain_write_committed(Shard& shard, Op& op);
 
 // Post-join shutdown only (IoLoop::shutdown_clients_after_join), for a Done transaction that its
 // IO thread never retired. No worker remains, so no command may run and no owner can consume a

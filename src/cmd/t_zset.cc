@@ -1233,7 +1233,7 @@ if (inserted_ != FlatStore::InsertResult::Inserted) {
     } else {
         reply_int(op.sink(), static_cast<long long>(ch ? added + updated : added));
     }
-    if constexpr (kNotify) if (processed)
+    if constexpr (kNotify) if (added + updated)
         notify_record(shard, op, NOTIFY_ZSET,
                       incr ? NotifyEventId::Zincr : NotifyEventId::Zadd, op.key());
     if (processed && shard.has_blocking_waiters()) blocking_publish_zset_op(shard, op);

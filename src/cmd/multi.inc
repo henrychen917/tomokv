@@ -1328,9 +1328,8 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
             }))
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
     if (!shard.watch_txn_write_ready(key, state)) return MultiPrepareWrite::Retry;
-    if (signal_watch)
-        shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
-                                  &state.decision.epoch, &state.decision.aborted, watch_refs);
+    // Placement reserves ordering; actual command effects signal the mutation.
+    (void)signal_watch;
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
@@ -1493,6 +1492,8 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
         }
     }
     if (function_is_fcall(*command.op)) {
+        WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
+            &state.decision.aborted, &state.watch_refs, state.client);
         struct Context {
             Server& server; MultiExecState& state; MultiCommand& command;
             Shard& shard; uint32_t owner;
@@ -1514,7 +1515,12 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
     if (command.op->spec->flags & CmdFlags::NotifySelected)
         notify_execute_source(shard, *command.op, command.notify_order_base);
     shard.store().atomic_set_read_context(multi_read_cut(state), state.origin_conn_id);
-    command.op->spec->handler(shard, *command.op);
+    {
+        WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
+            &state.decision.aborted, &state.watch_refs, state.client);
+        if (shard.has_watches()) watch_execute_handler(shard, *command.op);
+        else command.op->spec->handler(shard, *command.op);
+    }
     complete_child_zc(shard, *command.op);
     shard.store().atomic_clear_read_epoch();
     return true;
@@ -1533,7 +1539,12 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             Client* previous_client = command_local_client();
             ThreadCtx* previous_thread = command_local_thread();
             command_set_local_context(state.client, &server.thread(owner_thread_id));
-            command.op->spec->handler(shard, *command.op);
+            {
+        WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
+            &state.decision.aborted, &state.watch_refs, state.client);
+        if (shard.has_watches()) watch_execute_handler(shard, *command.op);
+        else command.op->spec->handler(shard, *command.op);
+    }
             command_set_local_context(previous_client, previous_thread);
         }
         return true;
@@ -1556,7 +1567,9 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         return true;
     }
     Op& op = *command.op;
-    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
+    WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
+        &state.decision.aborted, &state.watch_refs, state.client);
     if (notify)
         notify_execute_source(shard, op, command.notify_order_base);
     const bool read_kind = command.kind == MultiCommandKind::Mget ||
@@ -2831,9 +2844,10 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             if (execute_child) {
                 if (command.scatter->kind == Kind::DatabaseInfo)
                     multi_collect_database_stats(state, command, shard);
-                else executed = xshard_execute(child_task, shard, *command.op, owner_thread_id);
+                else executed = shard.has_watches()
+                    ? watch_execute_scatter(child_task, shard, *command.op, owner_thread_id)
+                    : xshard_execute(child_task, shard, *command.op, owner_thread_id);
             }
-            xshard_watch_finish(child_task, shard, *command.op, executed);
             if (executed != ScatterTaskResult::Complete) return MultiTaskResult::Retry;
             done = static_cast<uint8_t>(stage + 1);
             const MultiChildFinish finished = xshard_multi_child_complete(
@@ -3480,12 +3494,11 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
         for (auto& r : existing->second) if (r.token == token) {
             r.entry_kind = 0; // WATCH blocks from validation, before the started bit
             r.blocking = true;
-            r.mutates |= mutates && !multi_watch_map;
             if (r.mutates) watch_note_database(r, server_, key.ns);
             return true;
         }
     WatchReservation claim{token, epoch, aborted, refs, client, generation,
-                            mutates && !multi_watch_map, true};
+                            false, true};
     claim.unit_kind = unit ? 1 : 0;
     claim.unit_mode = static_cast<uint8_t>(mutates ? TxnClaimMode::Write : TxnClaimMode::Read);
     if (!watch_append_reservation(owned, claim)) aborted->store(true, std::memory_order_release);
@@ -3589,6 +3602,20 @@ void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
             entry.client->set_watch_dirty();
 }
 
+void Shard::watch_physical_delete(Slice key, bool expired) {
+    if (!has_watches()) return;
+    const std::string owned = watch_key_string(key);
+    watch_prune_stale(owned);
+    const auto found = watchers_.find(owned);
+    if (found == watchers_.end()) return;
+    const uint8_t logical = server_ ? server_->databases().logical(key.ns) : key.ns;
+    for (const auto& entry : found->second)
+        if (entry.db == logical && entry.client &&
+            entry.client->watch_generation() == entry.generation &&
+            (!expired || entry.expire_at_ms >= 0))
+            entry.client->set_watch_dirty();
+}
+
 bool Shard::watch_all_write_ready(const void* token) {
     if (!has_watches()) return true;
     std::vector<std::string> keys;
@@ -3658,19 +3685,6 @@ bool Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_
     return true;
 }
 
-void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
-                         ScatterTaskResult result) {
-    if (result != ScatterTaskResult::Complete || !task.scatter || !shard.has_watches()) return;
-    ScatterState& state = *task.scatter;
-    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group ||
-        state.kind == Kind::Swapdb || state.kind == Kind::Xreadgroup) return;
-    ShardGroup* group = group_for(state, shard.id());
-    if (!group || group->count == 0) return; // FLUSH records existence before clearing.
-    for (uint32_t i = 0; i < group->count; i++) {
-        const uint32_t pos = state.key_order[group->begin + i];
-        shard.watch_write_committed(op.arg(state.keys[pos].arg));
-    }
-}
 
 namespace {
 template <typename Fn>
@@ -3722,14 +3736,6 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     return false;
 }
 
-void multi_plain_write_committed(Shard& shard, Op& op) {
-    if (!shard.has_watches() || op.cmd_name().eq_icase("xreadgroup")) return;
-    auto commit = [&](uint64_t, Slice key) { shard.watch_write_committed(key); };
-    if (op.local_xshard()) for_each_touched_key(op, commit);
-    else if (op.spec->flags & CmdFlags::ScriptRoute)
-        for_each_spec_key(op, [&](Slice key) { commit(0, key); });
-    else commit(op.hash, op_routed_key(op));
-}
 
 namespace {
 bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
@@ -3776,9 +3782,7 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         if (!state.atomic_group) shard.watch_writer_unmark(key, &op);
-        else if (state.kind != Kind::Xreadgroup)
-            shard.watch_reserve_write(key, task.client, task.client->watch_generation(), &state,
-                publish_epoch(state), publish_aborted(state), &state.watch_refs);
+
     }
     return true;
 }

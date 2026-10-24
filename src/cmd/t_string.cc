@@ -808,8 +808,6 @@ void cmd_setbit(Shard& sh, Op& op) {
     // Redis materializes integer-encoded strings before a bit write, even when the selected bit
     // already has the requested value. Raw values with no growth and no change remain untouched.
     if (o && o->encoding() == Enc::Extern && new_length == old.n && old_bit == bit_value) {
-        if constexpr (kNotify)
-            notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
         reply_int(op.sink(), old_bit);
         return;
     }
@@ -828,7 +826,7 @@ void cmd_setbit(Shard& sh, Op& op) {
             o && o->has_ttl_slot(), kNotify));
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
-    if constexpr (kNotify)
+    if constexpr (kNotify) if (new_length != old.n || old_bit != bit_value)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
     reply_int(op.sink(), old_bit);
 }
@@ -1266,6 +1264,7 @@ void cmd_pfcount(Shard& sh, Op& op) {
         sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
         sh.store().deadline(op.hash, object), false, object->has_ttl_slot());
     if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
+    watch_record_modified(sh, op.key());
     reply_int(op.sink(), static_cast<long long>(cardinality));
 }
 

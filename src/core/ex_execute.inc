@@ -145,8 +145,9 @@
             tracking_observe_read(sh, op);
 
         if (t.scatter) {
-            const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
-            xshard_watch_finish(t, sh, op, result);
+            const ScatterTaskResult result = sh.has_watches()
+                ? watch_execute_scatter(t, sh, op, self_->id())
+                : xshard_execute(t, sh, op, self_->id());
             if (result == ScatterTaskResult::Defer) {
                 atomic_deferred_.push_back(t);
                 return true;
@@ -204,7 +205,10 @@
                 const bool defer_blocking =
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
-                if (execute_handler) op.spec->handler(sh, op);
+                if (execute_handler) {
+                    if (__builtin_expect(sh.has_watches(), false)) watch_execute_handler(sh, op);
+                    else op.spec->handler(sh, op);
+                }
                 else if constexpr (Fused) l4prebuild_discard_set(op);
                 xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
@@ -212,13 +216,11 @@
                     if (execute_handler) blocking_plain_mutation_published(sh, op);
                 }
             } else {
-                op.spec->handler(sh, op);
+                if (__builtin_expect(sh.has_watches(), false)) watch_execute_handler(sh, op);
+                else op.spec->handler(sh, op);
             }
         }
         if (!t.scatter) note_lb_hash(sh, op.hash);
-        if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
-            __builtin_expect(sh.has_watches(), false))
-            multi_plain_write_committed(sh, op);
         if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
             AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);

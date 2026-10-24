@@ -77,6 +77,7 @@ private:
 
 // Per-key cross-script access byte: read=1, completed write=2, admitted FUNCTION=4.
 constexpr uint8_t kScriptFunctionAdmitted = 4;
+constexpr uint8_t kScriptModified = 8; // Redis signalModifiedKey effect, including equal-value SET
 
 // Flattens a Lua error string into one RESP-safe line (CR/LF/NUL to spaces, 2 KiB cap).
 std::string script_clean_error(const char* text, size_t length);
