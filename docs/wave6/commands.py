@@ -90,12 +90,14 @@ def at(pc):
  return ranges[i] if i>=0 and pc<ranges[i][1] else None
 end_pc=int(gdb.parse_and_eval('(void*)&scope_end'))
 start.delete();gdb.execute('finish',to_string=True)
-counts=Counter();excluded=Counter();clocks=0;arch=gdb.selected_frame().architecture()
+counts=Counter();bodies=Counter();excluded=Counter();clocks=0;arch=gdb.selected_frame().architecture()
 for step in range(1000000):
  pc=int(gdb.parse_and_eval('$pc'))
  if pc==end_pc:break
  fn=at(pc);ins=arch.disassemble(pc,count=1)[0]['asm']
- if fn:counts[fn[3]]+=1
+ if fn:
+  counts[fn[3]]+=1
+  bodies[hex(fn[0]-delta)+' '+fn[3]]+=1
  if ins.startswith('call') and 'clock_gettime' in ins:
   import struct
   clocks+=1;ptr=int(gdb.parse_and_eval('$rsi'))
@@ -117,7 +119,7 @@ for step in range(1000000):
  else:gdb.execute('stepi',to_string=True)
 else:raise RuntimeError('bounded instruction trace exhausted')
 assert sum(counts.values()) > 0, 'named production scope did not fire'
-json.dump(dict(total=sum(counts.values()),functions=dict(counts),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
+json.dump(dict(total=sum(counts.values()),functions=dict(counts),bodies=dict(bodies),excluded=dict(excluded),clock_calls=clocks),open({str(output)!r},'w'),indent=2)
 end.delete();gdb.execute('continue',to_string=True)
 assert int(gdb.parse_and_eval('$_exitcode'))==0,'fixture exact-data assertion failed'
 print('COUNT',sum(counts.values()))

@@ -24,18 +24,24 @@ result = {}
 for arm in ('pre', 'post'):
     runs = json.loads((DOC / ('results-' + arm + '.json')).read_text())
     for ns in ('normal', 'db0'):
-        names = sorted({name for row in runs if row['namespace'] == ns
-                        for name in row['functions']})
+        selected = [row for row in runs if row['namespace'] == ns]
+        assert all('bodies' in row for row in selected), 'trace actual body addresses first'
+        names = sorted({name for row in selected for name in row['bodies']})
         rows = []
-        for name in names:
-            harness = inventories[arm + '-' + ns]['groups'].get(name, [])
+        for counted in names:
+            address, name = counted.split(' ', 1)
+            harness = [body for body in inventories[arm + '-' + ns]['groups'].get(name, [])
+                       if body['address'] == address]
+            assert len(harness) == 1, (counted, harness)
             production = inventories[arm + '-production']['groups'].get(name, [])
-            row = dict(name=name, production_equal=bool(harness) and
-                       identity.signature(harness) == identity.signature(production),
+            # The fixture can emit an additional private helper clone. Compare
+            # the exact body entered by the trace, never an unexecuted namesake.
+            row = dict(name=name, address=address,
+                       production_equal=harness[0]['digest'] in identity.signature(production),
                        harness=harness, production=production)
             if arm == 'pre':
                 headline = inventories['headline']['groups'].get(name, [])
-                row['headline_equal'] = identity.signature(production) == identity.signature(headline)
+                row['headline_equal'] = harness[0]['digest'] in identity.signature(headline)
             rows.append(row)
         result[arm + '-' + ns] = rows
 result['links'] = {k: {f: v[f] for f in ('path', 'sha256')} for k, v in inventories.items()}

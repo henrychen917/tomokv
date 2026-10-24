@@ -56,11 +56,27 @@
     "sha256": "b90cff5ede08b5c6c30e832cb44afaf4fcaed6dac5a3238805fda33dd39d4aff"
   },
   {
+    "arm": "baseline_dispatchfix",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "2d8265e581c9f871dd36208039a915ea2373de458123dfc6febf63ce22dd25bd"
+  },
+  {
+    "arm": "baseline_datafix1",
+    "counts": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "sha256": "194bcfa235f0255304b9d774134f28a9fe7beaf61ba6f10861484404c17dc615"
+  },
+  {
     "arm": "merged",
     "counts": {
       "tomo": 156,
       "tomo_db0": 156
     },
-    "sha256": "2f1e1198e8d07961c31f094da0d3af59eb807165da072905b18d3f41e559611a"
+    "sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a"
   }
 ]

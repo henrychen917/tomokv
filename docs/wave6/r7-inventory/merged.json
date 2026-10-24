@@ -1,7 +1,7 @@
 {
   "arm": "merged",
   "path": "/home/user/Projects/cx-wave6/build/tomokv",
-  "sha256": "2f1e1198e8d07961c31f094da0d3af59eb807165da072905b18d3f41e559611a",
+  "sha256": "7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a",
   "counts": {
     "tomo": 156,
     "tomo_db0": 156
@@ -307,7 +307,7 @@
   "excluded": [
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
-      "address": "0x79f270",
+      "address": "0x7a3e00",
       "reason": "STB_LOCAL in reorder.cc; all incoming paths local or armed",
       "local_ancestors": [
         "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
@@ -316,7 +316,7 @@
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
-      "address": "0x53a22",
+      "address": "0x5382e",
       "reason": "STB_LOCAL in reorder.cc; all incoming paths local or armed",
       "local_ancestors": [
         "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -326,31 +326,31 @@
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
-      "address": "0x7a8fd0",
+      "address": "0x7adb60",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
-      "address": "0x7ada50",
+      "address": "0x7b25e0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
-      "address": "0x7b7820",
+      "address": "0x7bc3b0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
-      "address": "0x7b8c90",
+      "address": "0x7bd820",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
-      "address": "0x3cf490",
+      "address": "0x3d2fb0",
       "reason": "STB_LOCAL in reorder.cc; all incoming paths local or armed",
       "local_ancestors": [
         "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -359,7 +359,7 @@
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
-      "address": "0x37e54",
+      "address": "0x37ef8",
       "reason": "STB_LOCAL in reorder.cc; all incoming paths local or armed",
       "local_ancestors": [
         "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -369,121 +369,121 @@
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
-      "address": "0x3d8f50",
+      "address": "0x3dcab0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
-      "address": "0x3ddbc0",
+      "address": "0x3e1720",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
-      "address": "0x3e9430",
+      "address": "0x3ecf90",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
-      "address": "0x3e80a0",
+      "address": "0x3ebc00",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const::{lambda(tomo::Op const&)#1}>(unsigned long, tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x7a8610",
+      "address": "0x7ad1a0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&) const::{lambda(tomo::Op const&)#1}>(unsigned long, tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x7a89e0",
+      "address": "0x7ad570",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const::{lambda(tomo::Op const&)#1}>(unsigned long, tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x7a7da0",
+      "address": "0x7ac930",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&) const::{lambda(tomo::Op const&)#1}>(unsigned long, tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x7a8170",
+      "address": "0x7acd00",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const",
-      "address": "0x7a75e0",
+      "address": "0x7ac170",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
-      "address": "0x7a8820",
+      "address": "0x7ad3b0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const",
-      "address": "0x7a72b0",
+      "address": "0x7abe40",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
-      "address": "0x7a7fb0",
+      "address": "0x7acb40",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x3d85b0",
+      "address": "0x3dc110",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x3d8980",
+      "address": "0x3dc4e0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x3d7d60",
+      "address": "0x3db8c0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "tomo_db0::Rob<64u>::read_local_owner_conflicts_before<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const::{lambda(tomo_db0::Op const&)#1}>(unsigned long, tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const",
-      "address": "0x3d8130",
+      "address": "0x3dbc90",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}&&) const",
-      "address": "0x3d7790",
+      "address": "0x3db2b0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
-      "address": "0x3d87c0",
+      "address": "0x3dc320",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}&&) const",
-      "address": "0x3d7460",
+      "address": "0x3daf80",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     },
     {
       "name": "auto tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
-      "address": "0x3d7f70",
+      "address": "0x3dbad0",
       "reason": "explicit R7 specialization",
       "local_ancestors": []
     }

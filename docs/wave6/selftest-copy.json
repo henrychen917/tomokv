@@ -1,0 +1,11 @@
+{
+  "source": "/home/user/Projects/cx-wave6/tests/gate.sh",
+  "throwaway": "/home/user/Projects/cx-wave6/build/wave6/selftest-source/tests/gate.sh",
+  "original_sha256": "fb4c6c0dcb3868ebb0fe4b1cfb3f6341fd7a0dd054379ff8b01657024be08b5e",
+  "copy_sha256": "2b68d75e5ec06ed00f6164f2224cc099a8d307033799f959f5d271f511e46a5b",
+  "edits": [
+    "EXPECT_QUICK 739 -> 768",
+    "EXPECT_FULL 756 -> 785"
+  ],
+  "fixture_count": 785
+}
