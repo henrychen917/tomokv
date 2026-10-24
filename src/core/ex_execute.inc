@@ -131,8 +131,11 @@
         // predicate here so ordinary commands do not enter its scatter frame.
         // A WATCH-blocked writer acquires the hazard bit below before retry;
         // scatter tasks still enter even without it (including debug holds).
+        // Pin the compact exact-timed fused body's no-hazard fallthrough.
         if (has_parked_predecessor(t, op, shard_id) ||
-            (__builtin_expect(t.scatter || op.atomic_hazard(), false) &&
+            ((Timed && Fused
+                ? __builtin_expect(t.scatter || op.atomic_hazard(), false)
+                : (t.scatter || op.atomic_hazard())) &&
              xshard_task_should_defer(*srv_, sh, t, op))) {
             atomic_deferred_.push_back(t);
             return true;
