@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the information-only ALT and a kind-A PRE-behaviour padding arm.
+"""Build a kind-A PRE-behaviour padding arm.
 
 Run after gate builds, on CPUs 64-79. Never starts a server or a measurement.
 PAD matches cold object/allocation sizes and aggregate .text, not every address.
@@ -38,9 +38,6 @@ def text_size(path):
 
 
 def main():
-    alt = ROOT / "build/post-alt"
-    run(["make", "-j16", "BUILD_ROOT=" + str(alt),
-         "CXXFLAGS=" + FLAGS + " -DTOMO_EXECFAIR_WRITERS_FIRST", "all"], "alt-build.log")
     source = ROOT / "build/pad-source"
     assert not source.exists(), "do not silently overwrite an earlier PAD source"
     source.mkdir()
@@ -90,7 +87,7 @@ def main():
         assert padding >= 0
     assert actual == target
     arms = {"PRE": ROOT / "build/pre/tomokv", "POST": post,
-            "POST-ALT": alt / "tomokv", "PAD-A": pad / "tomokv"}
+            "PAD-A": pad / "tomokv"}
     manifest = {"pad_kind": "A: PRE behaviour with candidate cold object/allocation and aggregate text sizes",
                 "pad_limits": "Individual function addresses and other ELF sections are not matched.",
                 "pad_attempts": attempts, "arms": {name: {"path": str(path.relative_to(ROOT)),

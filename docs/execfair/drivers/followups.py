@@ -17,7 +17,6 @@ wrapper.chmod(0o755)
 rows = []
 for name,jobs,binary,tier,expected in [
     ('final-txnorder2', 'txnorder2', None, 'quick', 0),
-    ('alt-witness', 'execfair', ROOT / 'build/post-alt/tomokv', 'quick', 0),
     ('pad-witness', 'execfair', ROOT / 'build/pad-a/tomokv', 'quick', 1),
     ('retry-split-1', 'differ-split-1', None, 'full', 0),
     ('stress', '', None, '', 0),
