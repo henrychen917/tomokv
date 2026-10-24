@@ -1527,8 +1527,8 @@ class PersistfixWiring(unittest.TestCase):
         stub = r'''set -eu
 CORES=112-119; GATE_RATIO=6:2; PORT=19000; CANDIDATE_BINARY=/unused-candidate
 owned=0; SRV=0
-boot(){ [ "$GATE_TXN_FUSED" = 0 ]; [ "$owned" = 0 ]; owned=1; SRV=1; }
-boot_fused(){ [ "$GATE_TXN_FUSED" = 1 ]; [ "$owned" = 0 ]; owned=1; SRV=1; }
+boot(){ [ "$GATE_TXN_FUSED" = 0 ] && [ "$owned" = 0 ] || return 1; owned=1; SRV=1; }
+boot_fused(){ [ "$GATE_TXN_FUSED" = 1 ] && [ "$owned" = 0 ] || return 1; owned=1; SRV=1; }
 kill(){ [ "$owned" = 1 ]; }
 wait(){ [ "$owned" = 1 ]; owned=0; }
 stop(){ wait "$SRV"; SRV=0; }
@@ -1560,6 +1560,15 @@ python3(){
                         for fused in ('0', '1') for engine in ('epoll', 'uring') for mode in ('2s', '1s')
                         for case in ('kill', 'term')]
             self.assertEqual(calls, expected)
+            for fused, before, after in [('0', '0) boot "$@"', '0) boot_fused "$@"'),
+                                         ('1', '1) boot_fused "$@"', '1) boot "$@"')]:
+                broken = boot_helper.replace(before, after)
+                self.assertNotEqual(broken, boot_helper)
+                result = subprocess.run(['bash', '-c', stub + broken + '\n' + body], cwd=root,
+                    env=dict(os.environ, TMPDIR=temporary, NET_IO='epoll', GATE_TXN_FUSED=fused),
+                    text=True, capture_output=True, timeout=5)
+                self.assertNotEqual(result.returncode, 0, 'wrong boot selector survived')
+                self.assertIn('AOF always purpose boot', result.stderr)
 
     def test_unit_row_requires_build_and_success_in_its_own_job(self):
         root = Path(__file__).resolve().parent.parent
