@@ -759,7 +759,8 @@
     "iofix IO4.9 Redis hz cron",
     "iofix IO4.10 global DEBUG SLEEP",
     "iofix IO4.17 immediate signal shutdown",
-    "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)"
+    "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)",
+    "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
