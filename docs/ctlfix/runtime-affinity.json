@@ -1,0 +1,174 @@
+{
+  "scope": "Snapshot of both concurrent engine matrices: two targets and two Redis oracles",
+  "all_threads_within_allocated_cpus": true,
+  "processes": [
+    {
+      "pid": 2998073,
+      "executable": "/home/user/Projects/redis/src/redis-server",
+      "cwd": "/home/user/Projects/cx-ctlfix/docs/ctlfix/differ-final-uring-split/oracle",
+      "threads": [
+        {
+          "tid": 2998073,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998082,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998083,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998084,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998085,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998086,
+          "cpus": "48-55"
+        }
+      ]
+    },
+    {
+      "pid": 2998098,
+      "executable": "/home/user/Projects/cx-ctlfix/build/tomokv",
+      "cwd": "/home/user/Projects/cx-ctlfix",
+      "threads": [
+        {
+          "tid": 2998098,
+          "cpus": "48-55"
+        },
+        {
+          "tid": 2998107,
+          "cpus": "54"
+        },
+        {
+          "tid": 2998108,
+          "cpus": "55"
+        },
+        {
+          "tid": 2998109,
+          "cpus": "48"
+        },
+        {
+          "tid": 2998110,
+          "cpus": "49"
+        },
+        {
+          "tid": 2998111,
+          "cpus": "50"
+        },
+        {
+          "tid": 2998112,
+          "cpus": "51"
+        },
+        {
+          "tid": 2998113,
+          "cpus": "52"
+        },
+        {
+          "tid": 2998114,
+          "cpus": "53"
+        },
+        {
+          "tid": 3009927,
+          "cpus": "52"
+        },
+        {
+          "tid": 3023134,
+          "cpus": "51"
+        },
+        {
+          "tid": 3054016,
+          "cpus": "50"
+        },
+        {
+          "tid": 3069338,
+          "cpus": "49"
+        },
+        {
+          "tid": 3085192,
+          "cpus": "53"
+        }
+      ]
+    },
+    {
+      "pid": 3031272,
+      "executable": "/home/user/Projects/redis/src/redis-server",
+      "cwd": "/home/user/Projects/cx-ctlfix/docs/ctlfix/differ-final-epoll-split/oracle",
+      "threads": [
+        {
+          "tid": 3031272,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031281,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031282,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031283,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031284,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031285,
+          "cpus": "56-63"
+        }
+      ]
+    },
+    {
+      "pid": 3031314,
+      "executable": "/home/user/Projects/cx-ctlfix/build/tomokv",
+      "cwd": "/home/user/Projects/cx-ctlfix",
+      "threads": [
+        {
+          "tid": 3031314,
+          "cpus": "56-63"
+        },
+        {
+          "tid": 3031323,
+          "cpus": "62"
+        },
+        {
+          "tid": 3031324,
+          "cpus": "63"
+        },
+        {
+          "tid": 3031325,
+          "cpus": "56"
+        },
+        {
+          "tid": 3031326,
+          "cpus": "57"
+        },
+        {
+          "tid": 3031327,
+          "cpus": "58"
+        },
+        {
+          "tid": 3031328,
+          "cpus": "59"
+        },
+        {
+          "tid": 3031329,
+          "cpus": "60"
+        },
+        {
+          "tid": 3031330,
+          "cpus": "61"
+        }
+      ]
+    }
+  ]
+}

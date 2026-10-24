@@ -148,6 +148,8 @@ is a proxy, not a performance verdict. GNU size's text total is 9,297,053 PRE an
 `make -j16 all` succeeded. An independent `make -q` inventory checked **44/44**
 targets fresh: `all`, every target named by `job_production_units`' main make,
 and its `mdbqsbr-live-arms` target. See `docs/ctlfix/make-freshness.json`.
+Both final PRE and POST gate archives also contain all **43** production-unit
+readiness markers from the gate's own build/freshness checks.
 After archiving proof, duplicate PRE build outputs are removed; its four command
 objects, frozen sources, the three binary arms, and POST targets are retained.
 `build-cleanup.json` records the exact cleanup and retained-object hashes.
@@ -221,10 +223,48 @@ per-leg output and manifests are in `docs/ctlfix/gate-receipts/`; completed jobs
 are archived with a SHA-256, and generated binary/persistence files are omitted.
 
 The isolated `taskset -c 48-63 env GATE_TEST_PORT=35899 python3 tests/gates_test.py`
-run passed **72/72 tests** (including its nested 14-test identity self-test).
+run passed **72/72 outer tests**; its nested 14-test identity self-test also passed.
 The final freshness inventory passed **44/44** and source labels matched
 **785/785**. The final listener jobs both used the bind-verified reservation
-35841–35843 and passed every leg. Differential results are pending below.
+35841–35843 and passed every leg.
+
+The standard differentials use the unchanged `tests/differ_gate.sh`, all 47
+registered generators, both atomic values, the permanent and historical seed
+set plus each run's rotating seed, and the standard repeated multi-key legs.
+Split mode also runs the complete mode-equivalence matrix. Armed-fused mode
+requires positive read-local execution witnesses for each atomic value; its
+existing SORT exclusion requires split 6:2 and is reported as SKIP, not PASS.
+
+The engine queues run concurrently as correctness tests within the assigned
+16 CPUs: uring targets/oracles on 48–55 and clients on 56–63, epoll
+targets/oracles on 56–63 and clients on 48–55. Server core groups are disjoint;
+clients share cores with the other queue's server. This is not a performance
+experiment. The live affinity snapshot checked all 35 server/oracle threads
+inside 48–63. Each queue reserves distinct consecutive target/oracle/control
+ports (uring 35861–35879, epoll 35881–35899); exact selections are in the
+per-matrix `*-ports.json` receipts. The initial sequential outer loop is retired
+only after its active split matrix finishes normally; no test leg is interrupted.
+`differ-scheduling.json` records that scheduling change.
+
+| POST standard matrix | Result | Seeds |
+|---|---|---|
+| uring / split | **663 PASS, 0 FAIL**; 16/16 equivalence cells | 7, 19, 20, 23, 21, 22, 24 |
+| epoll / split | **663 PASS, 0 FAIL**; 16/16 equivalence cells | 7, 19, 20, 23, 21, 22, 25 |
+| uring / armed-fused | **650 PASS, 0 FAIL**; both read-local witnesses pass; 14 declared SORT skips | 7, 19, 20, 23, 21, 22, 26 |
+| epoll / armed-fused | **650 PASS, 0 FAIL**; both read-local witnesses pass; 14 declared SORT skips | 7, 19, 20, 23, 21, 22, 27 |
+
+All four matrices record comparison coverage for **232 of the source inventory's
+245 registered commands**: 662 leg artifacts per split matrix and 648 per
+armed-fused matrix. `differ-final-summary.json` records the exact results, both
+read-local witnesses, seed sets and hashes of the unchanged standard proof
+drivers. All four return codes are zero. The remaining 13 commands
+are explicitly listed in each coverage receipt; this is not an all-command
+coverage claim. Full comparison output, coverage counters, seed allocations and
+mode-equivalence evidence are archived under `docs/ctlfix/differ-receipts/`.
+After verifying the archive hashes and file inventories, generated differential
+data directories were removed. All master logs, return codes, port receipts and
+archives remain. The retained seed history includes the earlier infrastructure
+failures; no failed seed was erased or excluded from these standard runs.
 
 Earlier attempts are retained, not counted as final proof. The first POST broad
 run had five failed rows after a readiness TCP self-connection occupied

@@ -48,5 +48,31 @@
     "build/tomokv-PRE",
     "build/tomokv",
     "build/tomokv-PAD-A"
+  ],
+  "archived_final_differential_trees_removed": [
+    {
+      "directory": "differ-final-uring-split",
+      "files": 1545,
+      "bytes": 2377685,
+      "archive_sha256": "60e764edcaa9907f15c8f595b722e449687479cf5940363071fe967742621c15"
+    },
+    {
+      "directory": "differ-final-uring-armed-fused",
+      "files": 1307,
+      "bytes": 1000360,
+      "archive_sha256": "47da68d9713e6325f4ed908ab8e78c9eb05dd74a4163feaa5d163b5e4fa0db50"
+    },
+    {
+      "directory": "differ-final-epoll-split",
+      "files": 1545,
+      "bytes": 2382922,
+      "archive_sha256": "cc7e86563fda2f303a46e194a858e42aac66c1f40c7a3d794761105788c97b69"
+    },
+    {
+      "directory": "differ-final-epoll-armed-fused",
+      "files": 1307,
+      "bytes": 1000616,
+      "archive_sha256": "68d2be6113bfd912c98f3e5674574b43268bdd12001415e2f4b3a80d2c42dcda"
+    }
   ]
 }
