@@ -1647,6 +1647,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         }
         command.integer.fetch_add(removed, std::memory_order_relaxed);
     } else if (command.kind == MultiCommandKind::Exists) {
+        LookupNoTouch no_touch(shard.store(), op.cmd_name().eq_icase("exists"));
         long long found = 0;
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;

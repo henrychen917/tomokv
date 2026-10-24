@@ -3454,13 +3454,15 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 return ScatterTaskResult::Complete;
             case Kind::Exists:
-            case Kind::Touch:
+            case Kind::Touch: {
+                LookupNoTouch no_touch(shard.store(), state.kind == Kind::Exists);
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     state.status[pos] = find_value(key.hash, op.arg(key.arg), true) != nullptr;
                 }
                 return ScatterTaskResult::Complete;
+            }
             case Kind::RandomKey:
             case Kind::Keys: {
                 if (!group.aux) group.aux = new GroupAux;

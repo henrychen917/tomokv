@@ -1447,6 +1447,7 @@ public:
     }
     // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
     // maxmemory is enabled, so it costs nothing in the default configuration.
+    bool no_touch() const { return no_touch_; }
     void set_no_touch(bool value) { no_touch_ = value; }
 
     // OBJECT IDLETIME/FREQ report the same five-bit eviction metadata the victim chooser reads, so

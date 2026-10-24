@@ -429,11 +429,8 @@ void cmd_object_impl(Shard& shard, Op& op) {
         return;
     }
 
-    // ENCODING/REFCOUNT go through the notify-aware lookup so an armed keymiss event still fires.
-    // IDLETIME/FREQ must not touch the metadata they are about to report.
-    KvObj* object = (idletime || freq)
-        ? object_read_no_touch(shard, op.hash, op.arg(2))
-        : shard.store_find_read<kNotify>(op.hash, op.arg(2));
+    // Redis OBJECT uses LOOKUP_NOTOUCH | LOOKUP_NONOTIFY for every subcommand.
+    KvObj* object = object_read_no_touch(shard, op.hash, op.arg(2));
     if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (encoding) {
         const char* name = encoding_name(object);

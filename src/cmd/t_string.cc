@@ -7,6 +7,7 @@
 #include "xshard.h"
 #include "notify.h"
 #include "serialize.h"
+#include "lookup_notouch.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -627,6 +628,7 @@ void cmd_del(Shard& sh, Op& op) {
 
 template <bool kNotify>
 void cmd_exists(Shard& sh, Op& op) {
+    LookupNoTouch no_touch(sh.store(), op.cmd_name().eq_icase("exists"));
     uint64_t found = 0;
     for (uint32_t i = 1; i < op.argc(); i++) {
         const uint64_t hash = i == 1 ? op.hash : FlatStore::hash_key(op.arg(i));
@@ -1366,6 +1368,7 @@ int64_t rounded_seconds(int64_t ms) {
 
 template <bool kNotify>
 void ttl_generic(Shard& sh, Op& op, bool milliseconds, bool absolute) {
+    LookupNoTouch no_touch(sh.store());
     KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), -2); return; }
     const int64_t expire = sh.store().deadline(op.hash, o);
@@ -1412,6 +1415,7 @@ const char* type_name(const KvObj* o) {
 
 template <bool kNotify>
 void cmd_type(Shard& sh, Op& op) {
+    LookupNoTouch no_touch(sh.store());
     reply_simple(op.sink(), type_name(sh.store_find_read<kNotify>(op.hash, op.key())));
 }
 

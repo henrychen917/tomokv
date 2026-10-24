@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_notouch; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	34.530000	datafix2 CD4.7 no-touch lookups vs Redis 7.4
