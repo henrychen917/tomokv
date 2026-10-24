@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--require-complete', action='store_true')
 args = parser.parse_args()
 names = ['broad-final', 'integration-fixtures-final', 'tailgen-build',
-         'abba-selftest-final', 'differ-uring', 'differ-epoll',
+         'abba-selftest-repaired', 'differ-uring', 'differ-epoll',
          'txnorder-round-2', 'txnorder-round-3', 'legacy-split-final',
          'legacy-fused', 'perfio-quiet', 'atomic-split-quiet', 'atomic-fused-quiet']
 digest = hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest()
@@ -60,13 +60,20 @@ for name in names:
                         receipt=str(path.relative_to(ROOT))))
 
 pending = [row['name'] for row in summary if row['status'] in ('PENDING', 'RUNNING')]
-standalone_path = OUT / 'gates-test-final.json'
+standalone_path = OUT / 'gates-test-repaired.json'
 standalone = json.loads(standalone_path.read_text()) if standalone_path.exists() else None
 if standalone and standalone['exit']:
-    problems.append(dict(suite='gates-test-final', exit=standalone['exit']))
+    problems.append(dict(suite='gates-test-repaired', exit=standalone['exit']))
 missing = sorted(required - set(completed))
 txn = {job: completed[job] for job in manifest['available'] if job.startswith('txnorder-')}
 coverage = json.loads((ROOT / 'docs/wave6/coverage.json').read_text())
+superseded = []
+for rel in ('gates-test-final.json', 'abba-selftest-final/receipt.json'):
+    path = OUT / rel
+    if path.exists():
+        old = json.loads(path.read_text())
+        superseded.append(dict(receipt=str(path.relative_to(ROOT)), exit=old.get('exit'),
+            reason='Persistence fixture omitted the newly used boot selector; fixed by 9ff3f7c39. Complete standalone suite and whole ABBA job rerun; no assertion relaxed.'))
 result = dict(candidate_sha256=digest,
     scope='Whole correctness jobs through GATE_ONLY_JOBS; NOT a full gate/landing receipt.',
     suites=summary, standalone=standalone, problems=problems, pending=pending,
@@ -74,6 +81,7 @@ result = dict(candidate_sha256=digest,
     completed_unique_jobs=len(set(completed) & required), missing_jobs=missing,
     excluded_performance_jobs=sorted(excluded),
     unavailable_jobs=unavailable,
+    superseded_attempts=superseded,
     txnorder_repetitions=txn, job_receipts=dict(sorted(completed.items())),
     touched_test_files=len(coverage['touched']),
     matched_protocol_literals=len(coverage['protocol_sweep']))
