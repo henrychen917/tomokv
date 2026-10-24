@@ -2111,7 +2111,7 @@ def gen_edgeenc(rng):
 
     What is deliberately NOT generated, each with the reason:
       * OBJECT ENCODING on STRINGS and LISTS. The embstr/raw line is 192 here and 44 in redis, an
-        APPENDed short string stays embstr here, and the list knob is an aggregate byte budget
+        short strings created by SET can therefore differ, and the list knob is an aggregate byte budget
         here against an entry count there -- three documented deviations (NOTES-SERVERTAIL.md 5,
         src/store/typeval.h). OBJECT ENCODING on hash/set/zset IS generated: those align exactly.
       * SORT ... ALPHA. Redis sorts it with strcoll() under the collation locale, so an oracle

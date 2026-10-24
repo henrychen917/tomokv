@@ -1120,7 +1120,7 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3268,6 +3268,12 @@ fi
 [ "$compatible" = 1 ]
 }
 
+job_datafix2_encoding(){
+  row_begin "datafix2 CD4.15 string encoding vs Redis 7.4"
+  datafix2_case encoding encoding && ok "datafix2 CD4.15 string encoding vs Redis 7.4" \
+      || bad "datafix2 CD4.15 string encoding vs Redis 7.4" "see $TMPDIR/encoding-*.log"
+}
+
 job_compat3(){
   row_begin "compat3 CC4.12 pubsub vs Redis 7.4"
   compat3_case pubsub pubsub && ok "compat3 CC4.12 pubsub vs Redis 7.4" \
@@ -4872,6 +4878,7 @@ collect_job bugs5
 collect_job compat3
 # datafix2 rows are before the quick exit; EXPECT stays maintainer-owned.
 collect_job datafix2_notouch
+collect_job datafix2_encoding
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

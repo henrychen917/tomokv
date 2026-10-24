@@ -1,4 +1,5 @@
 #include "lookup_notouch.h"
+#include "string_mutation.h"
 // xshard.cc -- arena-backed, owner-only cross-shard execution.
 #include "xshard.h"
 #include "lcs.h"

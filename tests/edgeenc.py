@@ -24,7 +24,7 @@ passing quietly.
 
 Deliberate deviations from vanilla redis that this battery encodes rather than fights
 (both documented in-tree, see NOTES-SERVERTAIL.md section 5 and NOTES-HEXPIRE.md):
-  * the embstr/raw line is 192 here and 44 in redis, and an APPENDed short string stays embstr;
+  * the initial SET embstr/raw line is 192 here and 44 in redis; mutators materialise raw;
   * a hash carrying field TTLs reports listpack/hashtable, never redis 7.4's listpackex.
 """
 
@@ -287,13 +287,12 @@ for n, expect in ((0, b"embstr"), (1, b"embstr"), (EMBED - 1, b"embstr"), (EMBED
           c.cmd("OBJECT", "ENCODING", k), expect)
     check("embed line: %d bytes round-trips" % n, c.cmd("GET", k), payload.encode())
 
-# GROWN across the line rather than written across it: APPEND and SETRANGE take a different path
-# from SET and must reach the same representation decision. The decision here is the RESULTING
-# LENGTH alone -- redis reports any APPENDed string raw because it over-allocates for growth, this
-# tree keeps no such reservation and a short grown value stays embstr (NOTES-SERVERTAIL.md 5).
+# Redis's dbUnshareStringValue materialises raw storage before APPEND and
+# non-empty SETRANGE, including results below the initial SET embed threshold.
+# Exact changed replies: docs/datafix2/edgeenc-oracle.jsonl.
 for start in (EMBED - 2, EMBED - 1, EMBED):
     grown_len = start + 2
-    expect = b"embstr" if grown_len <= EMBED else b"raw"
+    expect = b"raw"
     k = "grow:%d" % start
     c.cmd("DEL", k)
     c.cmd("SET", k, V(start, "g"))
@@ -530,18 +529,16 @@ check("DECR at INT64_MIN left the value alone", c.cmd("GET", "int:min"),
 check("INCR just below the top", c.cmd("INCRBY", "int:max", "0"), 9223372036854775807)
 c.cmd("DEL", "int:max", "int:min")
 
-# APPEND / SETRANGE against an integer-encoded value: both must MATERIALISE it -- the value stops
-# being Enc::Int. Which byte-form it lands in is the 192-byte line, so a short result reads embstr
-# here where redis would say raw (NOTES-SERVERTAIL.md 5). The load-bearing assertion is
-# "no longer int"; the exact byte-form is asserted separately at both sides of 192.
+# APPEND (including an empty suffix) and non-empty SETRANGE materialise an
+# integer-encoded value as raw, matching Redis's exact encoding transition.
 c.cmd("SET", "int:app", "123")
 check("APPEND to an int", c.cmd("APPEND", "int:app", "45"), 5)
-check("APPEND materialises an int", c.cmd("OBJECT", "ENCODING", "int:app"), b"embstr")
+check("APPEND materialises an int", c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
 check("APPEND to an int keeps the digits", c.cmd("GET", "int:app"), b"12345")
 c.cmd("SET", "int:app", "123")
 check("empty APPEND to an int", c.cmd("APPEND", "int:app", ""), 3)
 check("empty APPEND still materialises an int",
-      c.cmd("OBJECT", "ENCODING", "int:app"), b"embstr")
+      c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
 c.cmd("SET", "int:app", "123")
 c.cmd("APPEND", "int:app", V(EMBED, "A"))
 check("APPEND past the embed line gives raw", c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
@@ -549,7 +546,7 @@ check("APPEND past the embed line keeps every byte", c.cmd("GET", "int:app"),
       b"123" + V(EMBED, "A").encode())
 c.cmd("SET", "int:sr", "123")
 check("SETRANGE into an int", c.cmd("SETRANGE", "int:sr", "1", "X"), 3)
-check("SETRANGE materialises an int", c.cmd("OBJECT", "ENCODING", "int:sr"), b"embstr")
+check("SETRANGE materialises an int", c.cmd("OBJECT", "ENCODING", "int:sr"), b"raw")
 check("SETRANGE into an int result", c.cmd("GET", "int:sr"), b"1X3")
 c.cmd("SET", "int:sr", "123")
 check("empty SETRANGE into an int is a no-op", c.cmd("SETRANGE", "int:sr", "99", ""), 3)

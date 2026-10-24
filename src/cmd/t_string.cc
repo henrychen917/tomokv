@@ -8,6 +8,7 @@
 #include "notify.h"
 #include "serialize.h"
 #include "lookup_notouch.h"
+#include "string_mutation.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -655,9 +656,8 @@ void cmd_append(Shard& sh, Op& op) {
     char integer[24];
     KvObjRawReadBuffer raw;
     const Slice old = string_bytes(o, integer, raw);
-    // A raw empty append changes no observable value or encoding. Integer encoding is the one
-    // exception: Redis's append path materializes it even when the appended byte count is zero.
-    if (op.arg(2).n == 0 && !o->is_int()) {
+    // An existing string is unshared into raw storage, including APPEND "".
+    if (op.arg(2).n == 0 && o->encoding() == Enc::Extern) {
         if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Append, op.key());
         reply_int(op.sink(), old.n); return;
@@ -672,9 +672,9 @@ void cmd_append(Shard& sh, Op& op) {
     std::memcpy(merged, old.p, old.n);
     std::memcpy(merged + old.n, op.arg(2).p, op.arg(2).n);
     const int64_t expire = sh.store().deadline(op.hash, o);
-    const StoreResult result = store_string_for<kNotify>(
-        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire, false,
-        o->has_ttl_slot());
+    const StoreResult result = static_cast<StoreResult>(store_mutable_string(
+        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire,
+        o->has_ttl_slot(), kNotify));
     std::free(merged);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -761,8 +761,9 @@ void cmd_setrange(Shard& sh, Op& op) {
     std::memcpy(changed + offset, op.arg(3).p, op.arg(3).n);
     const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
-                                  o && o->has_ttl_slot());
+        static_cast<StoreResult>(store_mutable_string(
+            sh, op.key(), op.hash, Slice(changed, new_length), expire,
+            o && o->has_ttl_slot(), kNotify));
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -806,7 +807,7 @@ void cmd_setbit(Shard& sh, Op& op) {
 
     // Redis materializes integer-encoded strings before a bit write, even when the selected bit
     // already has the requested value. Raw values with no growth and no change remain untouched.
-    if (o && !o->is_int() && new_length == old.n && old_bit == bit_value) {
+    if (o && o->encoding() == Enc::Extern && new_length == old.n && old_bit == bit_value) {
         if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
         reply_int(op.sink(), old_bit);
@@ -822,8 +823,9 @@ void cmd_setbit(Shard& sh, Op& op) {
                          : static_cast<uint8_t>(selected & ~mask);
     const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
-                                  o && o->has_ttl_slot());
+        static_cast<StoreResult>(store_mutable_string(
+            sh, op.key(), op.hash, Slice(changed, new_length), expire,
+            o && o->has_ttl_slot(), kNotify));
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
