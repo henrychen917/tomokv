@@ -1,0 +1,62 @@
+RL4.15 wire unions PASS: 2s, read-local 1
+Native image: /home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi
+RL4.11 CONFIG REWRITE rc=0
+RL4.15 metadata 2s shards=16 sections=('server',) rc=-11
+RL4.15 metadata 2s shards=16 sections=('clients',) rc=-11
+RL4.15 metadata 2s shards=16 sections=('server', 'clients') rc=-11
+RL4.15 metadata 2s shards=16 sections=('unknown',) rc=-11
+RL4.15 unit 2s shards=16 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('all',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') guard rc=-11
+RL4.15 metadata 2s shards=256 sections=('server',) rc=-11
+RL4.15 metadata 2s shards=256 sections=('clients',) rc=-11
+RL4.15 metadata 2s shards=256 sections=('server', 'clients') rc=-11
+RL4.15 metadata 2s shards=256 sections=('unknown',) rc=-11
+RL4.15 unit 2s shards=256 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('all',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') guard rc=-11
+RL4.15 counter transitions rc=-11
+Native image: /home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0
+RL4.11 CONFIG REWRITE rc=0
+RL4.15 metadata 2s shards=16 sections=('server',) rc=-11
+RL4.15 metadata 2s shards=16 sections=('clients',) rc=-11
+RL4.15 metadata 2s shards=16 sections=('server', 'clients') rc=-11
+RL4.15 metadata 2s shards=16 sections=('unknown',) rc=-11
+RL4.15 unit 2s shards=16 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('all',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) guard rc=-11
+RL4.15 unit 2s shards=16 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') guard rc=-11
+RL4.15 metadata 2s shards=256 sections=('server',) rc=-11
+RL4.15 metadata 2s shards=256 sections=('clients',) rc=-11
+RL4.15 metadata 2s shards=256 sections=('server', 'clients') rc=-11
+RL4.15 metadata 2s shards=256 sections=('unknown',) rc=-11
+RL4.15 unit 2s shards=256 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('all',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) guard rc=-11
+RL4.15 unit 2s shards=256 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') guard rc=-11
+RL4.15 counter transitions rc=-11
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix3/tests/rlfix3_info.py", line 83, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix3/tests/rlfix3_info.py", line 79, in main
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 16, ('server',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 16, ('clients',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 16, ('server', 'clients'), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 16, ('unknown',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 16, ('server',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 16, ('all',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 16, ('everything',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 16, ('server', 'clients'), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 256, ('server',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 256, ('clients',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 256, ('server', 'clients'), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'metadata', 256, ('unknown',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 256, ('server',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 256, ('all',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 256, ('everything',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 256, ('server', 'clients'), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-multi', 'counts', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 16, ('server',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 16, ('clients',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 16, ('server', 'clients'), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 16, ('unknown',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 16, ('server',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 16, ('all',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 16, ('everything',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 16, ('server', 'clients'), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 256, ('server',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 256, ('clients',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 256, ('server', 'clients'), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'metadata', 256, ('unknown',), -11), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 256, ('server',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 256, ('all',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 256, ('everything',), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 256, ('server', 'clients'), 'guard', -11, ''), ('/home/user/Projects/cx-rlfix3/build/rlfix3/info-pre-db0', 'counts', -11, '')]

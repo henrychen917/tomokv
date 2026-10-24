@@ -1,0 +1,187 @@
+{
+  "total": 1370,
+  "raw_equal": 1341,
+  "relocation_equal": 1350,
+  "changed": [
+    {
+      "object": "db0/src/core/genthread.o",
+      "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
+      "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+      "pre_size": 1208,
+      "post_size": 1014,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "pre_size": 9885,
+      "post_size": 9904,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "pre_size": 166,
+      "post_size": 166,
+      "raw_equal": true,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "pre_size": 3608,
+      "post_size": 3512,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRb",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+      "pre_size": 1135,
+      "post_size": 932,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "pre_size": 3807,
+      "post_size": 3758,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "pre_size": 796,
+      "post_size": 729,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "pre_size": 3807,
+      "post_size": 3758,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELb0EEEvv",
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "pre_size": 5591,
+      "post_size": 5575,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/reorder.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "pre_size": 18483,
+      "post_size": 18429,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_size": 12161,
+      "post_size": 12025,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_size": 244,
+      "post_size": 248,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_size": 20830,
+      "post_size": 20802,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_size": 284,
+      "post_size": 287,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_size": 20676,
+      "post_size": 20517,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_size": 280,
+      "post_size": 281,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "pre_size": 21103,
+      "post_size": 20956,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "pre_size": 21014,
+      "post_size": 20910,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+      "pre_size": 1274,
+      "post_size": 1222,
+      "raw_equal": false,
+      "relocation_equal": false
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore6insertEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+      "pre_size": 1376,
+      "post_size": 1319,
+      "raw_equal": false,
+      "relocation_equal": false
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "source_rows": 801,
+  "fixture_rows": 801,
+  "same_multiset": true,
+  "DQ": 16,
+  "DF": 16,
+  "required_quick": 784,
+  "required_full": 801,
+  "collection_lines": {
+    "rlfix3_zc": 5282,
+    "rlfix3_info": 5283
+  },
+  "check": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=785, fixture=801, source declarations=801\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.",
+  "fixture_self_test": {
+    "exit": 1,
+    "checks": 10,
+    "errors": 1,
+    "reason": "unchanged maintainer-owned EXPECT_FULL"
+  }
+}

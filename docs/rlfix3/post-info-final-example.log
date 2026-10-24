@@ -1,0 +1,55 @@
+RL4.15 wire unions PASS: 2s, read-local 1
+Native image: build/rlfix3-info-unit
+RL4.11 CONFIG REWRITE rc=0
+RL4.15 metadata 2s shards=16 sections=('server',) rc=0
+RL4.15 metadata 2s shards=16 sections=('clients',) rc=0
+RL4.15 metadata 2s shards=16 sections=('server', 'clients') rc=0
+RL4.15 metadata 2s shards=16 sections=('unknown',) rc=0
+RL4.15 unit 2s shards=16 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('all',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') guard rc=0
+RL4.15 metadata 2s shards=256 sections=('server',) rc=0
+RL4.15 metadata 2s shards=256 sections=('clients',) rc=0
+RL4.15 metadata 2s shards=256 sections=('server', 'clients') rc=0
+RL4.15 metadata 2s shards=256 sections=('unknown',) rc=0
+RL4.15 unit 2s shards=256 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('all',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') guard rc=0
+RL4.15 counter transitions rc=0
+Native image: build/rlfix3-info-db0-unit
+RL4.11 CONFIG REWRITE rc=0
+RL4.15 metadata 2s shards=16 sections=('server',) rc=0
+RL4.15 metadata 2s shards=16 sections=('clients',) rc=0
+RL4.15 metadata 2s shards=16 sections=('server', 'clients') rc=0
+RL4.15 metadata 2s shards=16 sections=('unknown',) rc=0
+RL4.15 unit 2s shards=16 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('all',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('everything',) guard rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=16 sections=('server', 'clients') guard rc=0
+RL4.15 metadata 2s shards=256 sections=('server',) rc=0
+RL4.15 metadata 2s shards=256 sections=('clients',) rc=0
+RL4.15 metadata 2s shards=256 sections=('server', 'clients') rc=0
+RL4.15 metadata 2s shards=256 sections=('unknown',) rc=0
+RL4.15 unit 2s shards=256 sections=('server',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('all',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('all',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('everything',) guard rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') snapshot rc=0
+RL4.15 unit 2s shards=256 sections=('server', 'clients') guard rc=0
+RL4.15 counter transitions rc=0

@@ -1,0 +1,12 @@
+{
+  "kind": "A: behaviour twin",
+  "behaviour": "PRE 05a5e01a9",
+  "control": "Target total .text size; internal function placement is not matched",
+  "cold_alignment_compacted": true,
+  "compact_text_bytes": 8203447,
+  "input_text_bytes": 8217911,
+  "target_text_bytes": 8214279,
+  "pad_text_bytes": 8214279,
+  "nop_bytes": 10832,
+  "sha256": "f586bb6a31eaf61e02af89bf186cc171abfdb8f5c3691efbc6f11c481263f757"
+}

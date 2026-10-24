@@ -1,0 +1,12 @@
+{
+  "kind": "B: inverse control",
+  "behaviour": "POST",
+  "control": "Target total .text size; internal function placement is not matched",
+  "cold_alignment_compacted": false,
+  "compact_text_bytes": 8214279,
+  "input_text_bytes": 8214279,
+  "target_text_bytes": 8217911,
+  "pad_text_bytes": 8217911,
+  "nop_bytes": 3632,
+  "sha256": "0af2046d94987870a881b0b71738ba33dd9711efb9c7cfa97585a401674a9ccc"
+}
