@@ -399,7 +399,7 @@ struct Config {
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------
-    uint32_t zc_min         = 16384;     // zero-copy GET replies at >= this value length.
+    uint32_t zc_min         = 16384;     // Owner GET borrow threshold; lane replies always copy.
                                          // DEFAULT ON (owner: hardcode a consistent gain): -4.1%
                                          // server cycles at d16K on the wire-walled NIC, +20-24%
                                          // class on unwalled wires per the fork's history. 0 = off.
@@ -1233,7 +1233,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  load balancing: --key-lb 0|1 --client-lb 0|1 (both default 1)\n"
                         "  key planner: --key-lb-damping -1|0|N (default -1, 0 = PRE policy)\n"
                         "  flip controller: --flip-auto 0|1\n"
-                        "    --zc-min N                  zero-copy replies at >= N bytes (0=off)\n"
+                        "    --zc-min N                  owner GET borrows at >= N bytes (0=off; local reads copy)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"

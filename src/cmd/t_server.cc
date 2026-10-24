@@ -429,6 +429,11 @@ void init_config(const Config& cfg) {
     add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
     add_config("client-query-buffer-limit", ConfigKind::Bytes, cfg.client_query_buffer_limit);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
+    // Capability, not a second tuning knob: a lane capture is protected only
+    // through its QSBR rotation, not through a potentially delayed socket send.
+    // Owner fallbacks still obey zc-min, so reporting that value as zero would
+    // misdescribe those GETs. Expose the lane's effective threshold separately.
+    g_config.push_back({"zc-min-read-local", ConfigKind::Unsigned, "0", true});
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
     for (uint32_t i = 0; i < EncodingConfig::Count; i++)
         g_config.push_back({EncodingConfig::settings[i].name, ConfigKind::Encoding,
@@ -3271,7 +3276,12 @@ void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& o
     std::lock_guard<std::mutex> lock(g_config_mu);
     out.clear();
     out.reserve(g_config.size());
-    for (const ConfigValue& item : g_config) out.emplace_back(item.name, item.value);
+    for (const ConfigValue& item : g_config) {
+        // CONFIG REWRITE consumes this boot-config snapshot. The GET-only lane
+        // capability has no boot directive and must never enter that file.
+        if (!std::strcmp(item.name, "zc-min-read-local")) continue;
+        out.emplace_back(item.name, item.value);
+    }
 }
 
 bool command_aof_load_truncated(bool boot_value) {
