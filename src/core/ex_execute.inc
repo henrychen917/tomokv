@@ -64,8 +64,7 @@
                                    aof_manager_ ? &aof_context : nullptr, &promoter);
             shard.publish_size();
             if (result == MultiTaskResult::RetrySoon) {
-                multi_retries_.insert(multi_retries_.begin() + multi_fast_count_, t);
-                ++multi_fast_count_;
+                queue_fast_multi_retry(t);
                 return true;
             }
             if (result == MultiTaskResult::Retry) {

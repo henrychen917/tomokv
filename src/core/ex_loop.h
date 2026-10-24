@@ -2405,6 +2405,13 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    // deque insertion needs an aligned temporary; keep that frame entirely on
+    // the unit retry path instead of changing every ordinary execute prologue.
+    __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
+        multi_retries_.insert(multi_retries_.begin() + multi_fast_count_, task);
+        ++multi_fast_count_;
+    }
+
     void promote_multi_retry(const Task& next) {
         for (size_t i = multi_fast_count_; i < multi_retries_.size(); ++i) {
             if (multi_retries_[i].scatter != next.scatter || multi_retries_[i].shard != next.shard)
