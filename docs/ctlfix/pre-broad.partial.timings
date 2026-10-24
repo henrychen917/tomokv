@@ -1,0 +1,42 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.390000	configuration docs match parser
+ok	5.180000	Redis config quoting + mid-value #
+FAIL	15.000000	flip controller model unit
+ok	132.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	42.380000	stationary balanced LB holds still (1s)
+ok	42.370000	stationary balanced LB holds still (2s)
+ok	0.100000	core concurrency watch
+ok	0.310000	core concurrency lifetime
+ok	0.100000	core concurrency drain
+ok	7.150000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.160000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.130000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.120000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.210000	LB sampler exceptional cleanup + negative control
+ok	0.230000	LB monitor plan handoff + negative controls
+ok	0.010000	reject --mode (flag deleted)
+ok	0.000000	reject --spread
+ok	0.000000	reject --nodes
+ok	0.010000	reject 3-part ratio
+ok	0.010000	reject missing conf
+ok	0.000000	reject bad conf key
+ok	0.010000	reject aclfile + conf user lines
+ok	0.160000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.540000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.260000	FLIP close during FLIP (uring)
+ok	2.180000	FLIP close during FLIP (epoll)
+ok	1.170000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	5.200000	perfio stale epoll registration (epoll-lb)
+FAIL	74.060000	FLIP listener conservation (io-ex, complete)
+ok	26.510000	FLIP listener conservation (io-ex, rollback)
+ok	26.220000	FLIP listener conservation (ex-io, complete)
+ok	26.780000	FLIP listener conservation (ex-io, rollback)
+ok	6.050000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants

@@ -1,0 +1,37 @@
+{
+  "reason": "Editing a running shell script changed its read position: the finished POST runner entered an unintended PRE build concurrently with the queued live retry. Terminated only the obsolete runner and its descendants. PRE will be rerun once, sequentially.",
+  "processes": [
+    {
+      "pid": 2116961,
+      "command": "bash docs/ctlfix/run-proof.sh post "
+    },
+    {
+      "pid": 3886754,
+      "command": "/bin/bash tests/gate.sh quick --server-cores 48-55 --load-cores 56-63 --ports 35800-35809 --candidate-binary /home/user/Projects/cx-ctlfix/build/tomokv-PRE "
+    },
+    {
+      "pid": 3887290,
+      "command": "/bin/bash tests/gate.sh quick --server-cores 48-55 --load-cores 56-63 --ports 35800-35809 --candidate-binary /home/user/Projects/cx-ctlfix/build/tomokv-PRE "
+    },
+    {
+      "pid": 3975921,
+      "command": "/bin/bash tests/gate.sh quick --server-cores 48-55 --load-cores 56-63 --ports 35800-35809 --candidate-binary /home/user/Projects/cx-ctlfix/build/tomokv-PRE "
+    },
+    {
+      "pid": 3976227,
+      "command": "python3 tests/gate_history.py watch --pid 3975921 --parent-start 452893125 --seconds 900 --marker /home/user/Projects/cx-ctlfix/build/ctlfix-pre/build/gate-run.fEM2oB/jobs/flip_unit/row-timeout-3975921.json --generation 3975921.452893125.1 "
+    },
+    {
+      "pid": 3986658,
+      "command": "make -f tests/ctlfix.mk -j16 build/ctlfix-unit "
+    },
+    {
+      "pid": 3986688,
+      "command": "g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_CORE_CONCURRENCY_TEST -I. tests/ctlfix_unit.cc build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/xshard.o build/src/cmd/acl.o bu"
+    },
+    {
+      "pid": 3986689,
+      "command": "/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus -quiet -I . -imultiarch x86_64-linux-gnu -D_GNU_SOURCE -D_REENTRANT -D TOMO_JEMALLOC -D TOMO_CORE_CONCURRENCY_TEST tests/ctlfix_unit.cc -D_FORTIFY_SOURCE=3 -march=znver4 -mmmx -mpopcnt -msse -mss"
+    }
+  ]
+}

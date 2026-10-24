@@ -1,0 +1,52 @@
+{
+  "pre_removed_files": 5009,
+  "pre_removed_bytes": 14241914072,
+  "pre_retained_objects": {
+    "src/cmd/t_string.o": "37d219f8280fbb7a862663c5060d1b0effc5fc055d8b3260a34dbd2f6ba42fd4",
+    "src/cmd/xshard.o": "07e531615d1f52e5da60676d753e25b7888aa4786c09ce8be8dd1aa1cb43fb5d",
+    "db0/src/cmd/t_string.o": "59517bf4d475a52c7fbc87d6fc1c9b430c88484a62a416afaf2045b0e9ddaedd",
+    "db0/src/cmd/xshard.o": "34873cf24143f089c87e479af8183bcd9126dca2b970f68ff7f46c6f1a1b670e"
+  },
+  "archived_gate_runs_removed": [
+    "build/ctlfix-pre/build/gate-run.X31VRD",
+    "build/ctlfix-pre/build/gate-run.XROaQw",
+    "build/ctlfix-pre/build/gate-run.YrhxPC",
+    "build/ctlfix-pre/build/gate-run.fEM2oB",
+    "build/ctlfix-pre/build/gate-run.jcJrfg",
+    "build/ctlfix-pre/build/gate-run.lmhL8N",
+    "build/ctlfix-pre/build/gate-run.wE6AAL",
+    "build/ctlfix-pre/build/gate-run.ztyX97",
+    "build/gate-run.0Ga36s",
+    "build/gate-run.3Wi3au",
+    "build/gate-run.4Q1gWU",
+    "build/gate-run.4ffFpx",
+    "build/gate-run.7BijUa",
+    "build/gate-run.7XXTpO",
+    "build/gate-run.8WhzIp",
+    "build/gate-run.ALxZqQ",
+    "build/gate-run.J7CSNt",
+    "build/gate-run.MIo9oL",
+    "build/gate-run.SxMDkp",
+    "build/gate-run.TseRZE",
+    "build/gate-run.bZqagy",
+    "build/gate-run.dTIal5",
+    "build/gate-run.ovg0NJ",
+    "build/gate-run.thByBL",
+    "build/gate-run.trglyr",
+    "build/gate-run.woTEmQ",
+    "build/gate-run.zfFgMG",
+    "build/scheduler-failure-5_sv_f7r",
+    "build/scheduler-failure-ai90uicx",
+    "build/scheduler-failure-elq_9e3t",
+    "build/scheduler-failure-hb4ripgg",
+    "build/scheduler-failure-ksu55suc",
+    "build/scheduler-failure-uwu6t8k9",
+    "build/scheduler-failure-yxf34ep9"
+  ],
+  "post_build_targets_retained": true,
+  "binary_arms_retained": [
+    "build/tomokv-PRE",
+    "build/tomokv",
+    "build/tomokv-PAD-A"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "run": "/home/user/Projects/cx-ctlfix/build/gate-run.ovg0NJ",
+  "jobs": [
+    {
+      "job": "flip_unit",
+      "done": "0\t0\t1"
+    }
+  ],
+  "included": [
+    "families.tsv",
+    "jobs/flip_unit/done",
+    "jobs/flip_unit/family.tsv",
+    "jobs/flip_unit/gate-flipctl-unit.txt",
+    "jobs/flip_unit/ledger",
+    "jobs/flip_unit/output.log",
+    "jobs/flip_unit/timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "omitted": [
+    "jobs/flip_unit/row-timeout-1119553.1119553.452694269.1.cancel",
+    "jobs/flip_unit/tomokv-flipctl-unit",
+    "queue.lock"
+  ],
+  "archive_sha256": "48bce8cb1720f0d45ac1401988c207242872385213b812d58b3b7bbd80e928f7",
+  "summary": [
+    "GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-ctlfix/docs/ctlfix/ct41-pre-repro.partial"
+  ]
+}

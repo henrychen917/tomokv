@@ -1,0 +1,11 @@
+Diagnostic observation during the initial POST FLIP job:
+  ss -tanp '( sport >= :35800 and sport <= :35809 )'
+  State     Recv-Q Send-Q Local Address:Port  Peer Address:Port Process
+  TIME-WAIT 0      0          127.0.0.1:35800    127.0.0.1:35800
+
+The initial fliplisten io-ex/complete log also reports:
+  AssertionError: readiness PING returned [b'PING']
+
+Subsequent capture after that socket expired:
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+32768	60999

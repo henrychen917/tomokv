@@ -1,0 +1,1786 @@
+{
+  "pre": "f300057c10b8664da9a4ded59403be3482870f5507ef36611f3235d294f72fbe",
+  "post": "9ce7cd18c4900705c71f31780b12a04c518ffceb28c4ac3287f1a50dcd73c27d",
+  "normalizer": "tests/reorder_noop.py via docs/wave4/identity.py (unmodified)",
+  "compared": 9332,
+  "changed": 151,
+  "command_bodies": [
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1078
+      ],
+      "post_sizes": [
+        1078
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1094
+      ],
+      "post_sizes": [
+        1094
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1190
+      ],
+      "post_sizes": [
+        1190
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1133
+      ],
+      "post_sizes": [
+        1133
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1094
+      ],
+      "post_sizes": [
+        1094
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1190
+      ],
+      "post_sizes": [
+        1190
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::cmd_xshard_only(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::cmd_xshard_only_notify(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        117
+      ],
+      "post_sizes": [
+        117
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::cmd_xshard_only_notify_body(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        21135
+      ],
+      "post_sizes": [
+        21135
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        458
+      ],
+      "post_sizes": [
+        458
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        225
+      ],
+      "post_sizes": [
+        225
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        228
+      ],
+      "post_sizes": [
+        228
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1747
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        18231
+      ],
+      "post_sizes": [
+        18231
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        573
+      ],
+      "post_sizes": [
+        573
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        6
+      ],
+      "post_sizes": [
+        6
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_store_string(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::xshard_store_string_notify(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1727
+      ],
+      "post_sizes": [
+        1727
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1901
+      ],
+      "post_sizes": [
+        1901
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        117
+      ],
+      "post_sizes": [
+        117
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::cmd_xshard_only_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        158
+      ],
+      "post_sizes": [
+        158
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        9
+      ],
+      "post_sizes": [
+        9
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        98
+      ],
+      "post_sizes": [
+        98
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        23014
+      ],
+      "post_sizes": [
+        23014
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        389
+      ],
+      "post_sizes": [
+        389
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        209
+      ],
+      "post_sizes": [
+        209
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        228
+      ],
+      "post_sizes": [
+        228
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1747
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1743
+      ],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        18665
+      ],
+      "post_sizes": [
+        18665
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        558
+      ],
+      "post_sizes": [
+        558
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        375
+      ],
+      "post_sizes": [
+        375
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        6
+      ],
+      "post_sizes": [
+        6
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_store_string(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::xshard_store_string_notify(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        44
+      ],
+      "post_sizes": [
+        44
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1345
+      ],
+      "post_sizes": [
+        1345
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        1422
+      ],
+      "post_sizes": [
+        1422
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        792
+      ],
+      "post_sizes": [
+        792
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2128
+      ],
+      "post_sizes": [
+        2128
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        2394
+      ],
+      "post_sizes": [
+        2394
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        5
+      ],
+      "post_sizes": [
+        5
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        15966
+      ],
+      "post_sizes": [
+        15966
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        17060
+      ],
+      "post_sizes": [
+        17060
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        776
+      ],
+      "post_sizes": [
+        776
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2127
+      ],
+      "post_sizes": [
+        2127
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        2219
+      ],
+      "post_sizes": [
+        2219
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        5
+      ],
+      "post_sizes": [
+        5
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        15887
+      ],
+      "post_sizes": [
+        15887
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": true,
+      "headline_sizes": [
+        17100
+      ],
+      "post_sizes": [
+        17100
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    }
+  ],
+  "changed_commands": [],
+  "changed_hot": [
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12811
+      ],
+      "post_sizes": [
+        12811
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18702
+      ],
+      "post_sizes": [
+        18709
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20676
+      ],
+      "post_sizes": [
+        20676
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21103
+      ],
+      "post_sizes": [
+        21103
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12891
+      ],
+      "post_sizes": [
+        12907
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10013,
+        12161,
+        10013,
+        10877
+      ],
+      "post_sizes": [
+        10020,
+        12109,
+        10020,
+        11061
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18706
+      ],
+      "post_sizes": [
+        18713
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20830,
+        19184
+      ],
+      "post_sizes": [
+        20817,
+        19200
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        284,
+        289
+      ],
+      "post_sizes": [
+        284,
+        289
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21014
+      ],
+      "post_sizes": [
+        21014
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18368
+      ],
+      "post_sizes": [
+        18375
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18252
+      ],
+      "post_sizes": [
+        18259
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12875
+      ],
+      "post_sizes": [
+        12875
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18768
+      ],
+      "post_sizes": [
+        18775
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21242
+      ],
+      "post_sizes": [
+        21242
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21659
+      ],
+      "post_sizes": [
+        21659
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12730
+      ],
+      "post_sizes": [
+        12730
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9773,
+        12232,
+        9885,
+        10582
+      ],
+      "post_sizes": [
+        9780,
+        12232,
+        9831,
+        10928
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        248
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18581
+      ],
+      "post_sizes": [
+        18588
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21387,
+        19097
+      ],
+      "post_sizes": [
+        21403,
+        19143
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        289,
+        293
+      ],
+      "post_sizes": [
+        289,
+        292
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21566
+      ],
+      "post_sizes": [
+        21566
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18473
+      ],
+      "post_sizes": [
+        18480
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18439
+      ],
+      "post_sizes": [
+        18446
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2334
+      ],
+      "post_sizes": [
+        2388
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2350
+      ],
+      "post_sizes": [
+        2404
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2334
+      ],
+      "post_sizes": [
+        2388
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        796
+      ],
+      "post_sizes": [
+        729
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5518
+      ],
+      "post_sizes": [
+        5526
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5591
+      ],
+      "post_sizes": [
+        5575
+      ],
+      "matches": [],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5636
+      ],
+      "post_sizes": [
+        5644
+      ],
+      "matches": [],
+      "changed_lanes": []
+    }
+  ]
+}

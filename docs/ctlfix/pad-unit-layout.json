@@ -1,0 +1,17 @@
+{
+  "kind": "A: PRE behaviour with POST text size/layout",
+  "source": "build/ctlfix-unit-POST",
+  "twin": "build/ctlfix-unit",
+  "post_sha256": "07bc4724bf1c9b9f32da3e7d139b695b094eb8a1962d68c968500bb0803c8000",
+  "pad_sha256": "ad65eb4be2fa267f49dbb4159034cbdec1e8a28caa93d73093c01a3726fe69c5",
+  "every_function_address_and_size_identical": true,
+  "all_other_bytes_identical": true,
+  "patches": [
+    {
+      "symbol": "_ZN4tomo18ctlfix_correctnessEv",
+      "offset": 2700581,
+      "before": 1,
+      "after": 0
+    }
+  ]
+}

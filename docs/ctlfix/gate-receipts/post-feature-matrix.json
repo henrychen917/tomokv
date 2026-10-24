@@ -1,0 +1,406 @@
+{
+  "run": "/home/user/Projects/cx-ctlfix/build/gate-run.4ffFpx",
+  "jobs": [
+    {
+      "job": "feature-cell-1s-0-0-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-0-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-0-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-0-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-1-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-1-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-1-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-0-1-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-0-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-0-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-0-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-0-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-1-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-1-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-1-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-1s-1-1-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-0-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-0-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-0-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-0-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-1-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-1-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-1-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-0-1-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-0-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-0-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-0-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-0-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-1-0-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-1-0-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-1-1-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-2s-1-1-1-1",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-fused-home-max-nopin",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-split-home-min",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "feature-cell-split-shards-auto",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "netio-1s",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "netio-2s",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "included": [
+    "families.tsv",
+    "jobs/feature-cell-1s-0-0-0-0/done",
+    "jobs/feature-cell-1s-0-0-0-0/family.tsv",
+    "jobs/feature-cell-1s-0-0-0-0/ledger",
+    "jobs/feature-cell-1s-0-0-0-0/output.log",
+    "jobs/feature-cell-1s-0-0-0-0/timings",
+    "jobs/feature-cell-1s-0-0-0-1/done",
+    "jobs/feature-cell-1s-0-0-0-1/family.tsv",
+    "jobs/feature-cell-1s-0-0-0-1/ledger",
+    "jobs/feature-cell-1s-0-0-0-1/output.log",
+    "jobs/feature-cell-1s-0-0-0-1/timings",
+    "jobs/feature-cell-1s-0-0-1-0/done",
+    "jobs/feature-cell-1s-0-0-1-0/family.tsv",
+    "jobs/feature-cell-1s-0-0-1-0/ledger",
+    "jobs/feature-cell-1s-0-0-1-0/output.log",
+    "jobs/feature-cell-1s-0-0-1-0/timings",
+    "jobs/feature-cell-1s-0-0-1-1/done",
+    "jobs/feature-cell-1s-0-0-1-1/family.tsv",
+    "jobs/feature-cell-1s-0-0-1-1/ledger",
+    "jobs/feature-cell-1s-0-0-1-1/output.log",
+    "jobs/feature-cell-1s-0-0-1-1/timings",
+    "jobs/feature-cell-1s-0-1-0-0/done",
+    "jobs/feature-cell-1s-0-1-0-0/family.tsv",
+    "jobs/feature-cell-1s-0-1-0-0/ledger",
+    "jobs/feature-cell-1s-0-1-0-0/output.log",
+    "jobs/feature-cell-1s-0-1-0-0/timings",
+    "jobs/feature-cell-1s-0-1-0-1/done",
+    "jobs/feature-cell-1s-0-1-0-1/family.tsv",
+    "jobs/feature-cell-1s-0-1-0-1/ledger",
+    "jobs/feature-cell-1s-0-1-0-1/output.log",
+    "jobs/feature-cell-1s-0-1-0-1/timings",
+    "jobs/feature-cell-1s-0-1-1-0/done",
+    "jobs/feature-cell-1s-0-1-1-0/family.tsv",
+    "jobs/feature-cell-1s-0-1-1-0/ledger",
+    "jobs/feature-cell-1s-0-1-1-0/output.log",
+    "jobs/feature-cell-1s-0-1-1-0/timings",
+    "jobs/feature-cell-1s-0-1-1-1/done",
+    "jobs/feature-cell-1s-0-1-1-1/family.tsv",
+    "jobs/feature-cell-1s-0-1-1-1/ledger",
+    "jobs/feature-cell-1s-0-1-1-1/output.log",
+    "jobs/feature-cell-1s-0-1-1-1/timings",
+    "jobs/feature-cell-1s-1-0-0-0/done",
+    "jobs/feature-cell-1s-1-0-0-0/family.tsv",
+    "jobs/feature-cell-1s-1-0-0-0/ledger",
+    "jobs/feature-cell-1s-1-0-0-0/output.log",
+    "jobs/feature-cell-1s-1-0-0-0/timings",
+    "jobs/feature-cell-1s-1-0-0-1/done",
+    "jobs/feature-cell-1s-1-0-0-1/family.tsv",
+    "jobs/feature-cell-1s-1-0-0-1/ledger",
+    "jobs/feature-cell-1s-1-0-0-1/output.log",
+    "jobs/feature-cell-1s-1-0-0-1/timings",
+    "jobs/feature-cell-1s-1-0-1-0/done",
+    "jobs/feature-cell-1s-1-0-1-0/family.tsv",
+    "jobs/feature-cell-1s-1-0-1-0/ledger",
+    "jobs/feature-cell-1s-1-0-1-0/output.log",
+    "jobs/feature-cell-1s-1-0-1-0/timings",
+    "jobs/feature-cell-1s-1-0-1-1/done",
+    "jobs/feature-cell-1s-1-0-1-1/family.tsv",
+    "jobs/feature-cell-1s-1-0-1-1/ledger",
+    "jobs/feature-cell-1s-1-0-1-1/output.log",
+    "jobs/feature-cell-1s-1-0-1-1/timings",
+    "jobs/feature-cell-1s-1-1-0-0/done",
+    "jobs/feature-cell-1s-1-1-0-0/family.tsv",
+    "jobs/feature-cell-1s-1-1-0-0/ledger",
+    "jobs/feature-cell-1s-1-1-0-0/output.log",
+    "jobs/feature-cell-1s-1-1-0-0/timings",
+    "jobs/feature-cell-1s-1-1-0-1/done",
+    "jobs/feature-cell-1s-1-1-0-1/family.tsv",
+    "jobs/feature-cell-1s-1-1-0-1/ledger",
+    "jobs/feature-cell-1s-1-1-0-1/output.log",
+    "jobs/feature-cell-1s-1-1-0-1/timings",
+    "jobs/feature-cell-1s-1-1-1-0/done",
+    "jobs/feature-cell-1s-1-1-1-0/family.tsv",
+    "jobs/feature-cell-1s-1-1-1-0/ledger",
+    "jobs/feature-cell-1s-1-1-1-0/output.log",
+    "jobs/feature-cell-1s-1-1-1-0/timings",
+    "jobs/feature-cell-1s-1-1-1-1/done",
+    "jobs/feature-cell-1s-1-1-1-1/family.tsv",
+    "jobs/feature-cell-1s-1-1-1-1/ledger",
+    "jobs/feature-cell-1s-1-1-1-1/output.log",
+    "jobs/feature-cell-1s-1-1-1-1/timings",
+    "jobs/feature-cell-2s-0-0-0-0/done",
+    "jobs/feature-cell-2s-0-0-0-0/family.tsv",
+    "jobs/feature-cell-2s-0-0-0-0/ledger",
+    "jobs/feature-cell-2s-0-0-0-0/output.log",
+    "jobs/feature-cell-2s-0-0-0-0/timings",
+    "jobs/feature-cell-2s-0-0-0-1/done",
+    "jobs/feature-cell-2s-0-0-0-1/family.tsv",
+    "jobs/feature-cell-2s-0-0-0-1/ledger",
+    "jobs/feature-cell-2s-0-0-0-1/output.log",
+    "jobs/feature-cell-2s-0-0-0-1/timings",
+    "jobs/feature-cell-2s-0-0-1-0/done",
+    "jobs/feature-cell-2s-0-0-1-0/family.tsv",
+    "jobs/feature-cell-2s-0-0-1-0/ledger",
+    "jobs/feature-cell-2s-0-0-1-0/output.log",
+    "jobs/feature-cell-2s-0-0-1-0/timings",
+    "jobs/feature-cell-2s-0-0-1-1/done",
+    "jobs/feature-cell-2s-0-0-1-1/family.tsv",
+    "jobs/feature-cell-2s-0-0-1-1/ledger",
+    "jobs/feature-cell-2s-0-0-1-1/output.log",
+    "jobs/feature-cell-2s-0-0-1-1/timings",
+    "jobs/feature-cell-2s-0-1-0-0/done",
+    "jobs/feature-cell-2s-0-1-0-0/family.tsv",
+    "jobs/feature-cell-2s-0-1-0-0/ledger",
+    "jobs/feature-cell-2s-0-1-0-0/output.log",
+    "jobs/feature-cell-2s-0-1-0-0/timings",
+    "jobs/feature-cell-2s-0-1-0-1/done",
+    "jobs/feature-cell-2s-0-1-0-1/family.tsv",
+    "jobs/feature-cell-2s-0-1-0-1/ledger",
+    "jobs/feature-cell-2s-0-1-0-1/output.log",
+    "jobs/feature-cell-2s-0-1-0-1/timings",
+    "jobs/feature-cell-2s-0-1-1-0/done",
+    "jobs/feature-cell-2s-0-1-1-0/family.tsv",
+    "jobs/feature-cell-2s-0-1-1-0/ledger",
+    "jobs/feature-cell-2s-0-1-1-0/output.log",
+    "jobs/feature-cell-2s-0-1-1-0/timings",
+    "jobs/feature-cell-2s-0-1-1-1/done",
+    "jobs/feature-cell-2s-0-1-1-1/family.tsv",
+    "jobs/feature-cell-2s-0-1-1-1/ledger",
+    "jobs/feature-cell-2s-0-1-1-1/output.log",
+    "jobs/feature-cell-2s-0-1-1-1/timings",
+    "jobs/feature-cell-2s-1-0-0-0/done",
+    "jobs/feature-cell-2s-1-0-0-0/family.tsv",
+    "jobs/feature-cell-2s-1-0-0-0/ledger",
+    "jobs/feature-cell-2s-1-0-0-0/output.log",
+    "jobs/feature-cell-2s-1-0-0-0/timings",
+    "jobs/feature-cell-2s-1-0-0-1/done",
+    "jobs/feature-cell-2s-1-0-0-1/family.tsv",
+    "jobs/feature-cell-2s-1-0-0-1/ledger",
+    "jobs/feature-cell-2s-1-0-0-1/output.log",
+    "jobs/feature-cell-2s-1-0-0-1/timings",
+    "jobs/feature-cell-2s-1-0-1-0/done",
+    "jobs/feature-cell-2s-1-0-1-0/family.tsv",
+    "jobs/feature-cell-2s-1-0-1-0/ledger",
+    "jobs/feature-cell-2s-1-0-1-0/output.log",
+    "jobs/feature-cell-2s-1-0-1-0/timings",
+    "jobs/feature-cell-2s-1-0-1-1/done",
+    "jobs/feature-cell-2s-1-0-1-1/family.tsv",
+    "jobs/feature-cell-2s-1-0-1-1/ledger",
+    "jobs/feature-cell-2s-1-0-1-1/output.log",
+    "jobs/feature-cell-2s-1-0-1-1/timings",
+    "jobs/feature-cell-2s-1-1-0-0/done",
+    "jobs/feature-cell-2s-1-1-0-0/family.tsv",
+    "jobs/feature-cell-2s-1-1-0-0/ledger",
+    "jobs/feature-cell-2s-1-1-0-0/output.log",
+    "jobs/feature-cell-2s-1-1-0-0/timings",
+    "jobs/feature-cell-2s-1-1-0-1/done",
+    "jobs/feature-cell-2s-1-1-0-1/family.tsv",
+    "jobs/feature-cell-2s-1-1-0-1/ledger",
+    "jobs/feature-cell-2s-1-1-0-1/output.log",
+    "jobs/feature-cell-2s-1-1-0-1/timings",
+    "jobs/feature-cell-2s-1-1-1-0/done",
+    "jobs/feature-cell-2s-1-1-1-0/family.tsv",
+    "jobs/feature-cell-2s-1-1-1-0/ledger",
+    "jobs/feature-cell-2s-1-1-1-0/output.log",
+    "jobs/feature-cell-2s-1-1-1-0/timings",
+    "jobs/feature-cell-2s-1-1-1-1/done",
+    "jobs/feature-cell-2s-1-1-1-1/family.tsv",
+    "jobs/feature-cell-2s-1-1-1-1/ledger",
+    "jobs/feature-cell-2s-1-1-1-1/output.log",
+    "jobs/feature-cell-2s-1-1-1-1/timings",
+    "jobs/feature-cell-fused-home-max-nopin/done",
+    "jobs/feature-cell-fused-home-max-nopin/family.tsv",
+    "jobs/feature-cell-fused-home-max-nopin/ledger",
+    "jobs/feature-cell-fused-home-max-nopin/output.log",
+    "jobs/feature-cell-fused-home-max-nopin/timings",
+    "jobs/feature-cell-split-home-min/done",
+    "jobs/feature-cell-split-home-min/family.tsv",
+    "jobs/feature-cell-split-home-min/ledger",
+    "jobs/feature-cell-split-home-min/output.log",
+    "jobs/feature-cell-split-home-min/timings",
+    "jobs/feature-cell-split-shards-auto/done",
+    "jobs/feature-cell-split-shards-auto/family.tsv",
+    "jobs/feature-cell-split-shards-auto/ledger",
+    "jobs/feature-cell-split-shards-auto/output.log",
+    "jobs/feature-cell-split-shards-auto/timings",
+    "jobs/netio-1s/done",
+    "jobs/netio-1s/epoll.log",
+    "jobs/netio-1s/family.tsv",
+    "jobs/netio-1s/ledger",
+    "jobs/netio-1s/output.log",
+    "jobs/netio-1s/timings",
+    "jobs/netio-1s/uring.log",
+    "jobs/netio-2s/done",
+    "jobs/netio-2s/epoll.log",
+    "jobs/netio-2s/family.tsv",
+    "jobs/netio-2s/ledger",
+    "jobs/netio-2s/output.log",
+    "jobs/netio-2s/timings",
+    "jobs/netio-2s/uring.log",
+    "jobs/release/done",
+    "jobs/release/family.tsv",
+    "jobs/release/ledger",
+    "jobs/release/output.log",
+    "jobs/release/timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "omitted": [
+    "jobs/feature-cell-1s-0-0-0-0/row-timeout-1755899.1755899.453160875.1.cancel",
+    "jobs/feature-cell-1s-0-0-0-1/row-timeout-1755971.1755971.453161040.1.cancel",
+    "jobs/feature-cell-1s-0-0-1-0/row-timeout-1756029.1756029.453161091.1.cancel",
+    "jobs/feature-cell-1s-0-0-1-1/row-timeout-1756105.1756105.453161255.1.cancel",
+    "jobs/feature-cell-1s-0-1-0-0/row-timeout-1756147.1756147.453161307.1.cancel",
+    "jobs/feature-cell-1s-0-1-0-1/row-timeout-1756280.1756280.453161582.1.cancel",
+    "jobs/feature-cell-1s-0-1-1-0/row-timeout-1756320.1756320.453161634.1.cancel",
+    "jobs/feature-cell-1s-0-1-1-1/row-timeout-1756416.1756416.453161798.1.cancel",
+    "jobs/feature-cell-1s-1-0-0-0/row-timeout-1756461.1756461.453161850.1.cancel",
+    "jobs/feature-cell-1s-1-0-0-1/row-timeout-1756562.1756562.453162015.1.cancel",
+    "jobs/feature-cell-1s-1-0-1-0/row-timeout-1756609.1756609.453162067.1.cancel",
+    "jobs/feature-cell-1s-1-0-1-1/row-timeout-1757410.1757410.453162232.1.cancel",
+    "jobs/feature-cell-1s-1-1-0-0/row-timeout-1758344.1758344.453162284.1.cancel",
+    "jobs/feature-cell-1s-1-1-0-1/row-timeout-1761376.1761376.453162450.1.cancel",
+    "jobs/feature-cell-1s-1-1-1-0/row-timeout-1761432.1761432.453162502.1.cancel",
+    "jobs/feature-cell-1s-1-1-1-1/row-timeout-1761522.1761522.453162666.1.cancel",
+    "jobs/feature-cell-2s-0-0-0-0/row-timeout-1761567.1761567.453162717.1.cancel",
+    "jobs/feature-cell-2s-0-0-0-1/row-timeout-1761674.1761674.453162881.1.cancel",
+    "jobs/feature-cell-2s-0-0-1-0/row-timeout-1761802.1761802.453163046.1.cancel",
+    "jobs/feature-cell-2s-0-0-1-1/row-timeout-1761911.1761911.453163211.1.cancel",
+    "jobs/feature-cell-2s-0-1-0-0/row-timeout-1762077.1762077.453163375.1.cancel",
+    "jobs/feature-cell-2s-0-1-0-1/row-timeout-1762243.1762243.453163540.1.cancel",
+    "jobs/feature-cell-2s-0-1-1-0/row-timeout-1762407.1762407.453163705.1.cancel",
+    "jobs/feature-cell-2s-0-1-1-1/row-timeout-1762551.1762551.453163870.1.cancel",
+    "jobs/feature-cell-2s-1-0-0-0/row-timeout-1762686.1762686.453164146.1.cancel",
+    "jobs/feature-cell-2s-1-0-0-1/row-timeout-1762793.1762793.453164311.1.cancel",
+    "jobs/feature-cell-2s-1-0-1-0/row-timeout-1763627.1763627.453164476.1.cancel",
+    "jobs/feature-cell-2s-1-0-1-1/row-timeout-1767111.1767111.453164643.1.cancel",
+    "jobs/feature-cell-2s-1-1-0-0/row-timeout-1767965.1767965.453164807.1.cancel",
+    "jobs/feature-cell-2s-1-1-0-1/row-timeout-1768085.1768085.453164972.1.cancel",
+    "jobs/feature-cell-2s-1-1-1-0/row-timeout-1768177.1768177.453165137.1.cancel",
+    "jobs/feature-cell-2s-1-1-1-1/row-timeout-1768253.1768253.453165302.1.cancel",
+    "jobs/feature-cell-fused-home-max-nopin/row-timeout-1768378.1768378.453165631.1.cancel",
+    "jobs/feature-cell-split-home-min/row-timeout-1768323.1768323.453165467.1.cancel",
+    "jobs/feature-cell-split-shards-auto/row-timeout-1768582.1768582.453165799.1.cancel",
+    "jobs/netio-1s/gate-srv-fused.Wu5pcK",
+    "jobs/netio-1s/gate-srv-fused.psSubb",
+    "jobs/netio-1s/row-timeout-1755435.1755435.453160205.1.cancel",
+    "jobs/netio-2s/gate-srv-main.aAG4Vz",
+    "jobs/netio-2s/gate-srv-main.wsmm4v",
+    "jobs/netio-2s/row-timeout-1755653.1755653.453160542.1.cancel",
+    "jobs/release/row-timeout-1754978.1754978.453160164.1.cancel",
+    "queue.lock"
+  ],
+  "archive_sha256": "869662fcb479e24f458353ba7df689f54b1d1c0049e457e2b447589db129e244",
+  "summary": [
+    "GATE(PARTIAL): 38 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-ctlfix/docs/ctlfix/post-feature-matrix.partial"
+  ]
+}

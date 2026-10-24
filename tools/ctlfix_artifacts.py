@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
 
@@ -32,11 +33,13 @@ def pad(source, destination, receipt):
     data = bytearray(original.data)
     patches = []
     for symbol in original.symbols:
-        if 'ctlfix_correctnessEv' not in symbol['name']:
+        if not re.fullmatch(r'_ZN(?:4tomo|8tomo_db0)18ctlfix_correctnessEv', symbol['name']):
             continue
-        assert original.body(symbol) == bytes.fromhex('b8 01 00 00 00 c3'), symbol
+        body = original.body(symbol)
+        prefix = 4 if body.startswith(bytes.fromhex('f3 0f 1e fa')) else 0
+        assert body[prefix:] == bytes.fromhex('b8 01 00 00 00 c3'), symbol
         section = original.sections[symbol['sec']]
-        offset = section[4] + symbol['value'] - section[3] + 1
+        offset = section[4] + symbol['value'] - section[3] + prefix + 1
         assert data[offset] == 1
         data[offset] = 0
         patches.append(dict(symbol=symbol['name'], offset=offset, before=1, after=0))
@@ -80,6 +83,30 @@ def identity():
           'GET/SET/MGET/MSET changed:', sum(not r['equal'] for r in commands))
 
 
+def object_identity():
+    hot = re.compile(r'::cmd_(?:get|set)(?:\(|<)|::cmd_xshard_only|'
+                     r'::xshard_(?:prepare|execute|complete|store_string|queue_commit|flush_commits)')
+    rows = []
+    for prefix in ('src', 'db0/src'):
+        for unit in ('t_string', 'xshard'):
+            relative = Path(prefix) / 'cmd' / (unit + '.o')
+            old = Elf(ROOT / 'build/ctlfix-pre/build' / relative)
+            new = Elf(ROOT / 'build' / relative)
+            before, after = old.functions(), new.functions()
+            symbols = sorted(before)
+            names = subprocess.check_output(['c++filt'], input='\n'.join(symbols) + '\n', text=True).splitlines()
+            for symbol, name in zip(symbols, names):
+                if hot.search(name):
+                    rows.append(dict(object=str(relative), name=name, symbol=symbol,
+                        equal=symbol in after and old.canonical(before[symbol]) == new.canonical(after[symbol]),
+                        pre_size=before[symbol]['size'], post_size=after.get(symbol, {}).get('size')))
+    assert rows and any('::xshard_execute(' in r['name'] for r in rows)
+    save(OUT / 'command-object-identity.json', dict(
+        normalizer='tools/lbstall_artifacts.py Elf.canonical (unmodified)',
+        bodies=rows, changed=[r for r in rows if not r['equal']]))
+    print('Command object bodies:', len(rows), 'changed:', sum(not r['equal'] for r in rows))
+
+
 def archive(log):
     text = log.read_text()
     assert 'GATE(PARTIAL):' in text, 'gate did not finish'
@@ -114,6 +141,42 @@ def archive(log):
     print(log.stem, len(jobs), 'jobs archived')
 
 
+def archive_differ(log):
+    text = log.read_text()
+    summary = [line for line in text.splitlines() if line.startswith('DIFFER GATE:')]
+    assert len(summary) == 1, 'differential matrix did not finish'
+    directory = log.with_suffix('')
+    destination = OUT / 'differ-receipts'
+    destination.mkdir(exist_ok=True)
+    target = destination / (log.stem + '.tar.gz')
+    included, omitted = [], []
+    with tarfile.open(target, 'w:gz') as tar:
+        for path in sorted(directory.rglob('*')):
+            if not path.is_file() or path.is_symlink():
+                continue
+            name = str(path.relative_to(directory))
+            # Retain all textual receipts, including generated ACL/config files;
+            # generated persistence images and other binary data are disposable.
+            if path.stat().st_size > 20_000_000:
+                omitted.append(name)
+                continue
+            try:
+                path.read_bytes().decode('utf-8')
+            except UnicodeDecodeError:
+                omitted.append(name)
+                continue
+            tar.add(path, arcname=name, recursive=False)
+            included.append(name)
+    meta = dict(directory=str(directory), summary=summary[0], included=included,
+                omitted=omitted, archive_sha256=sha(target))
+    for name in ('seeds.json', 'command-coverage.json'):
+        path = directory / name
+        if path.exists():
+            meta[name.removesuffix('.json')] = json.loads(path.read_text())
+    save(destination / (log.stem + '.json'), meta)
+    print(log.stem, len(included), 'text receipts archived;', len(omitted), 'binary/large files omitted')
+
+
 def labels():
     sys.path.insert(0, str(ROOT / 'tests'))
     import gate_ledger_fixture as fixture
@@ -128,6 +191,20 @@ def labels():
     print('Label inventory:', len(declared), 'source;', len(frozen), 'fixture;', expected)
 
 
+def freshness():
+    gate = (ROOT / 'tests/gate.sh').read_text()
+    body = gate.split('job_production_units(){', 1)[1].split('\njob_multidb(){', 1)[0]
+    build = body.split('make -k ', 1)[1].split('>"$TMPDIR/build.log"', 1)[0]
+    targets = ['all'] + re.findall(r'\bbuild/[\w-]+', build) + ['mdbqsbr-live-arms']
+    assert len(set(targets)) == len(targets) and len(targets) > 40
+    rows = []
+    for target in targets:
+        result = subprocess.run(['make', '-q', target], cwd=ROOT, capture_output=True, text=True)
+        rows.append(dict(target=target, returncode=result.returncode, stdout=result.stdout, stderr=result.stderr))
+    save(OUT / 'make-freshness.json', dict(targets=rows, all_fresh=all(r['returncode'] == 0 for r in rows)))
+    print('make -q:', sum(r['returncode'] == 0 for r in rows), '/', len(rows), 'fresh')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest='command', required=True)
@@ -135,12 +212,20 @@ if __name__ == '__main__':
     for name in ('source', 'destination', 'receipt'):
         control.add_argument(name, type=Path)
     commands.add_parser('identity')
+    commands.add_parser('object-identity')
     commands.add_parser('labels')
+    commands.add_parser('freshness')
     archived = commands.add_parser('archive')
     archived.add_argument('logs', nargs='+', type=Path)
+    differ = commands.add_parser('archive-differ')
+    differ.add_argument('logs', nargs='+', type=Path)
     args = parser.parse_args()
     if args.command == 'pad': pad(args.source, args.destination, args.receipt)
     elif args.command == 'identity': identity()
+    elif args.command == 'object-identity': object_identity()
     elif args.command == 'labels': labels()
+    elif args.command == 'freshness': freshness()
+    elif args.command == 'archive-differ':
+        for log in args.logs: archive_differ(log)
     else:
         for log in args.logs: archive(log)

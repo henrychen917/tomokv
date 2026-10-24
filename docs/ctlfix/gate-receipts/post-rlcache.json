@@ -1,0 +1,42 @@
+{
+  "run": "/home/user/Projects/cx-ctlfix/build/gate-run.ALxZqQ",
+  "jobs": [
+    {
+      "job": "rlcache",
+      "done": "0\t2\t0"
+    },
+    {
+      "job": "rldbg",
+      "done": "0\t1\t0"
+    }
+  ],
+  "included": [
+    "families.tsv",
+    "jobs/rlcache/done",
+    "jobs/rlcache/family.tsv",
+    "jobs/rlcache/gate-rlcache-churn.txt",
+    "jobs/rlcache/ledger",
+    "jobs/rlcache/output.log",
+    "jobs/rlcache/timings",
+    "jobs/rldbg/done",
+    "jobs/rldbg/family.tsv",
+    "jobs/rldbg/gate-rlcachedbg-build.txt",
+    "jobs/rldbg/ledger",
+    "jobs/rldbg/output.log",
+    "jobs/rldbg/timings",
+    "phases.tsv",
+    "plan.sh",
+    "row-timeouts.json"
+  ],
+  "omitted": [
+    "jobs/rlcache/gate-srv-fused.V3FshN",
+    "jobs/rlcache/row-timeout-1780752.1780752.453171225.1.cancel",
+    "jobs/rlcache/row-timeout-1780752.1780752.453171225.2.cancel",
+    "jobs/rldbg/row-timeout-1768944.1768944.453166063.1.cancel",
+    "queue.lock"
+  ],
+  "archive_sha256": "351e3b5a98a4a564bcd64df929f1d96e4e17c242cb9b088218b0e77361eecf15",
+  "summary": [
+    "GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-ctlfix/docs/ctlfix/post-rlcache.partial"
+  ]
+}

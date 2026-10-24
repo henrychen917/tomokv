@@ -1,0 +1,13 @@
+{
+  "base": "05a5e01a9",
+  "files_checked": 227,
+  "missing": [],
+  "changed": [],
+  "production_sources_match_base": true,
+  "test_overlays": [
+    "tests/ctlfix_unit.cc",
+    "tests/ctlfix.mk",
+    "tests/gate.sh",
+    "tests/flipsettle_checks.inc"
+  ]
+}

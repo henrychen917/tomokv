@@ -1,0 +1,92 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.400000	configuration docs match parser
+ok	5.470000	Redis config quoting + mid-value #
+ok	5.480000	flip controller model unit
+ok	129.890000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.870000	execiso battery (atomic 0)
+ok	0.440000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.740000	multirace battery (atomic 0)
+ok	30.480000	session_monotonic battery (atomic 0)
+ok	0.360000	xacct battery (atomic 0)
+ok	0.280000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	1.930000	txn_nx battery (atomic 0)
+ok	9.440000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.880000	execiso battery (atomic 1)
+ok	0.430000	execfix battery (atomic 1)
+ok	0.140000	multires battery (atomic 1)
+ok	0.730000	multirace battery (atomic 1)
+ok	30.480000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.300000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	1.920000	txn_nx battery (atomic 1)
+ok	8.680000	txniso battery (atomic 1)
+ok	42.370000	stationary balanced LB holds still (1s)
+ok	42.370000	stationary balanced LB holds still (2s)
+ok	0.110000	core concurrency watch
+ok	0.310000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.300000	core concurrency route
+ok	0.120000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.580000	read-local topology demotion (1s)
+ok	0.580000	read-local topology demotion (2s)
+ok	0.130000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.130000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.180000	LB sampler exceptional cleanup + negative control
+ok	0.190000	LB monitor plan handoff + negative controls
+ok	0.010000	reject --mode (flag deleted)
+ok	0.000000	reject --spread
+ok	0.010000	reject --nodes
+ok	0.010000	reject 3-part ratio
+ok	0.000000	reject missing conf
+ok	0.010000	reject bad conf key
+ok	0.010000	reject aclfile + conf user lines
+ok	0.170000	FLIP state battery
+ok	1.030000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	2.240000	FLIP close during FLIP (uring)
+ok	2.170000	FLIP close during FLIP (epoll)
+ok	1.190000	FLIP signal stop during FLIP + second SIGINT
+ok	0.520000	perfio stale epoll registration (epoll-flip)
+ok	26.180000	perfio stale epoll registration (epoll-lb)
+FAIL	53.380000	FLIP listener conservation (io-ex, complete)
+ok	29.850000	FLIP listener conservation (io-ex, rollback)
+ok	29.760000	FLIP listener conservation (ex-io, complete)
+ok	30.210000	FLIP listener conservation (ex-io, rollback)
+ok	6.050000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants
+ok	0.260000	fused boot line (atomic 0)
+ok	1.190000	fused s6 battery (atomic 0)
+ok	2.080000	fused multi_exec battery (atomic 0)
+ok	0.710000	fused edgeproto battery (atomic 0)
+ok	0.050000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.440000	fused txn_nx battery (atomic 0)
+ok	9.160000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.180000	fused s6 battery (atomic 1)
+ok	2.070000	fused multi_exec battery (atomic 1)
+ok	0.720000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.170000	fused shutdown report (atomic 1)
+ok	2.490000	fused txn_nx battery (atomic 1)
+ok	8.910000	fused txniso battery (atomic 1)
