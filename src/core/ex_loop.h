@@ -2405,6 +2405,14 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    __attribute__((noinline)) MultiTaskResult execute_multi_unit(
+        const Task& task, Shard& shard, void (*promote)(void*, const Task&)) {
+        AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
+        const MultiRetryPromoter promoter{this, promote};
+        return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
+                                  aof_manager_ ? &context : nullptr, &promoter);
+    }
+
     // deque insertion needs an aligned temporary; keep that frame entirely on
     // the unit retry path instead of changing every ordinary execute prologue.
     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
