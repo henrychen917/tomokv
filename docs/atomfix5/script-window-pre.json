@@ -1,0 +1,34 @@
+[
+  {
+    "leg": "1s-atomic0",
+    "case": "script_window",
+    "result": {
+      "OK": 32,
+      "BUSY Cross-shard script snapshot window is full": 32
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "script_window",
+    "result": {
+      "OK": 32,
+      "BUSY Cross-shard script snapshot window is full": 32
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "script_window",
+    "result": {
+      "BUSY Cross-shard script snapshot window is full": 40,
+      "OK": 24
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "script_window",
+    "result": {
+      "BUSY Cross-shard script snapshot window is full": 40,
+      "OK": 24
+    }
+  }
+]
