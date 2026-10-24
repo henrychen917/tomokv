@@ -1,0 +1,69 @@
+{
+  "kind": "A: full PRE behavior with exact POST text size",
+  "limitation": "Total-text-size twin only; cold PRE server_tail uses -Os when needed; not POST function placement",
+  "pre_sha256": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+  "post_sha256": "7c509b3bc9dc93268201619027657397bb0c1d3dd5180d5d7043521d21b602dc",
+  "pad_sha256": "e396d89760e9f80c6eab2febecd3a813468e42f80f56fae4178287bdc07a7a3c",
+  "baseline_relink_identical": true,
+  "pre_text_bytes": 8124983,
+  "post_text_bytes": 8117639,
+  "pad_text_bytes": 8117639,
+  "padding_bytes": 38240,
+  "original_text_symbols": 11014,
+  "compact_pre_inputs": [
+    {
+      "object": "src/cmd/server_tail.o",
+      "command": [
+        "g++",
+        "-std=c++20",
+        "-Os",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-march=native",
+        "-pthread",
+        "-DTOMO_JEMALLOC",
+        "-I.",
+        "-c",
+        "src/cmd/server_tail.cc",
+        "-o",
+        "/home/user/Projects/cx-notifycompat/build/notifycompat/full-pad/src-server_tail-os.o"
+      ],
+      "cwd": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre-proof",
+      "sha256": "7c79c65cd2f50f200ddde4375714a00403ce6c4055c791d622bab819a545d96a"
+    },
+    {
+      "object": "db0/src/cmd/server_tail.o",
+      "command": [
+        "g++",
+        "-std=c++20",
+        "-Os",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-march=native",
+        "-pthread",
+        "-DTOMO_JEMALLOC",
+        "-DTOMO_SINGLE_DATABASE=1",
+        "-Dtomo=tomo_db0",
+        "-I.",
+        "-c",
+        "src/cmd/server_tail.cc",
+        "-o",
+        "/home/user/Projects/cx-notifycompat/build/notifycompat/full-pad/db0_src-server_tail-os.o"
+      ],
+      "cwd": "/home/user/Projects/cx-notifycompat/build/notifycompat-pre-proof",
+      "sha256": "fe29c6136059be9049f4746a070274417bacebd2dfa58f6b3c6df1abd0454e98"
+    }
+  ],
+  "all_unpadded_twin_function_addresses_sizes_equal": true,
+  "added_functions": [
+    [
+      "notifycompat_size_pad_a",
+      8204183,
+      38240
+    ]
+  ],
+  "cwd": "/home/user/Projects/cx-notifycompat",
+  "output": "/home/user/Projects/cx-notifycompat/build/tomokv-pad-a"
+}

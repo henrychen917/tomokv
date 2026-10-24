@@ -1,0 +1,5 @@
+{"target": false, "resp": 2, "reset": false, "attempt": 0, "target_id": 7, "flags": "[b'on', b'broken_redirect']", "frames": "[]", "wire_hex": ""}
+{"target": false, "resp": 2, "reset": true, "attempt": 0, "target_id": 10, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+{"target": false, "resp": 3, "reset": false, "attempt": 0, "target_id": 13, "flags": "[b'on', b'broken_redirect']", "frames": "[[b'tracking-redir-broken', 13]]", "wire_hex": "3e320d0a2432310d0a747261636b696e672d72656469722d62726f6b656e0d0a3a31330d0a"}
+{"target": false, "resp": 3, "reset": true, "attempt": 0, "target_id": 16, "flags": "[b'on']", "frames": "[]", "wire_hex": ""}
+PASS redirect

@@ -673,10 +673,12 @@ void multidb_flush(Shard& shard, uint8_t physical) {
             if (object->key_namespace() != physical) return;
             if (count == keys.size()) overflow = true;
             else keys[count++] = object->key();
-        });
+        }, false);
         for (size_t i = 0; i < count; ++i) {
             const Slice key = keys[i];
-            shard.store().erase(FlatStore::hash_key(key), key);
+            // FLUSH retires the namespace, including elapsed residents, without
+            // per-key expiry events, expiry statistics, or AOF delete records.
+            shard.store().erase_resident(FlatStore::hash_key(key), key);
         }
         if (overflow) continue;
         cursor = next;

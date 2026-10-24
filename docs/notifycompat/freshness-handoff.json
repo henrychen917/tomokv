@@ -1,0 +1,626 @@
+{
+  "utc": "2026-10-24T00:32:15Z",
+  "checks": [
+    {
+      "target": "all",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "all"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/publishfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/txnorder-wake-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/txnorder-episodes"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/txnorder-episodes-debug"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/txnorder-watch-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/txnorder-watch-db0-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-migration",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "mdbqsbr-live-arms",
+      "command": [
+        "taskset",
+        "-c",
+        "48-63",
+        "make",
+        "-q",
+        "mdbqsbr-live-arms"
+      ],
+      "exit": 0,
+      "stdout": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-notifycompat'\nmake[1]: Leaving directory '/home/user/Projects/cx-notifycompat'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-notifycompat'\nmake[1]: Leaving directory '/home/user/Projects/cx-notifycompat'\n",
+      "stderr": ""
+    }
+  ],
+  "sha256": {
+    "tomokv-pre": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+    "tomokv": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59",
+    "tomokv-pad-a": "638ecff86821cb4d84916382ae0f6baac9fe78e4b41e1fa660130196e81b94af"
+  }
+}

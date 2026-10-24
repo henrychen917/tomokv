@@ -360,8 +360,9 @@ template <bool kNotify>
 WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage& image,
                       bool suppress_del = false) {
     if (!image.present) {
-        shard.store_erase<kNotify>(hash, key, suppress_del ? FlatStore::EraseEvent::None
-                                                           : FlatStore::EraseEvent::Del);
+        if constexpr (kNotify) notify_erase_image(shard, hash, key, suppress_del);
+        else if (suppress_del) shard.store().erase_resident(hash, key);
+        else shard.store().erase(hash, key);
         return WorkError::None;
     }
     KvObj* object = nullptr;
@@ -3266,9 +3267,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const ObjectImage& image = state.apply[pos];
                     if (!image.present) {
                         if (notify)
-                            shard.store_erase<true>(key.hash, op.arg(key.arg),
-                                                   FlatStore::EraseEvent::None);
-                        else shard.store().erase(key.hash, op.arg(key.arg));
+                            notify_erase_image(shard, key.hash, op.arg(key.arg), true);
+                        else shard.store().erase_resident(key.hash, op.arg(key.arg));
                         result = WorkError::None;
                     } else {
                         // BITOP overwrites the destination like SET: TTL cleared (-1), and the
@@ -3572,6 +3572,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         (is_geo_kind(state.kind) &&
                          pos == (state.geo_store ? 1u : 0u));
                     KvObj* object = find_value(key.hash, op.arg(key.arg), source_read);
+                    // The MVCC probe bypasses FlatStore's notification sink.
+                    // Preserve the source read's keymiss when an atomic STORE
+                    // encounters absence (including a retained tombstone).
+                    if (notify && pending_reads && source_read && !object)
+                        notify_flat_emit(&shard, NOTIFY_KEY_MISS, NotifyEventId::Keymiss,
+                                         op.arg(key.arg));
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;

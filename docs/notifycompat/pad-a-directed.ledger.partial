@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=notifycompat tracking_redirect; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	26.090000	notification compatibility setbit vs Redis 7.4
+FAIL	284.470000	notification compatibility setpast vs Redis 7.4
+FAIL	118.010000	notification compatibility emptystore vs Redis 7.4
+FAIL	262.980000	notification compatibility writemiss vs Redis 7.4
+FAIL	92.490000	notification compatibility objectmiss vs Redis 7.4
+FAIL	182.040000	notification compatibility expiredstore vs Redis 7.4
+FAIL	59.420000	notification compatibility flush vs Redis 7.4
+FAIL	85.140000	tracking REDIRECT close vs Redis 7.4

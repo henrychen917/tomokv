@@ -1,0 +1,26 @@
+Hot bodies: 1312; raw byte equal: 1285; bytes + resolved relocation targets equal: 1287
+DIFF db0/src/cmd/geo.o 554 0 tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const
+DIFF db0/src/cmd/geo.o 108 824 tomo_db0::FlatStore::find_resident(unsigned long, tomo_db0::Slice) const
+DIFF db0/src/cmd/multidb.o 785 1282 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/cmd/multidb.o 1378 0 tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/cmd/multidb.o 1405 0 tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/cmd/server_tail.o 1887 0 tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]
+DIFF db0/src/cmd/server_tail.o 1118 0 tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)
+DIFF db0/src/cmd/server_tail.o 1011 0 tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)
+DIFF db0/src/cmd/t_server.o 1125 1203 tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]
+DIFF db0/src/cmd/t_string_notify.o 2182 2127 void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF db0/src/cmd/xshard.o 554 446 tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const
+DIFF db0/src/cmd/xshard.o 1493 1493 tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/cmd/xshard.o 975 927 tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/cmd/xshard.o 941 846 tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)
+DIFF src/cmd/geo.o 630 0 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/cmd/geo.o 108 764 tomo::FlatStore::find_resident(unsigned long, tomo::Slice) const
+DIFF src/cmd/multidb.o 2304 0 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/multidb.o 1910 0 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/server_tail.o 1042 0 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]
+DIFF src/cmd/server_tail.o 540 630 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/cmd/server_tail.o 1644 0 tomo::FlatStore::find(unsigned long, tomo::Slice)
+DIFF src/cmd/server_tail.o 585 0 tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)
+DIFF src/cmd/t_string_notify.o 2182 2128 void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)
+DIFF src/cmd/xshard.o 871 538 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+DIFF src/cmd/xshard.o 1109 1038 tomo::FlatStore::erase(unsigned long, tomo::Slice)

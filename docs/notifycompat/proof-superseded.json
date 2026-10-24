@@ -1,0 +1,66 @@
+[
+  {
+    "old": "post-notify-uring-1s",
+    "replacement": "post-r2-notify-uring-1s",
+    "reason": "listener bind failed: ephemeral TIME_WAIT collided with an even lane port; repeat whole jobs on an odd base"
+  },
+  {
+    "old": "post-related-jobs",
+    "replacement": "post-r2-related-jobs",
+    "reason": "listener bind failed: ephemeral TIME_WAIT collided with an even lane port; repeat whole jobs on an odd base"
+  },
+  {
+    "old": "post-search-epoll",
+    "replacement": "post-r2-search-epoll",
+    "reason": "listener bind failed: ephemeral TIME_WAIT collided with an even lane port; repeat whole jobs on an odd base"
+  },
+  {
+    "old": "pre-search-jobs",
+    "replacement": "pre-r2-search-jobs",
+    "reason": "listener bind failed: ephemeral TIME_WAIT collided with an even lane port; repeat whole jobs on an odd base"
+  },
+  {
+    "old": "pre-search-epoll",
+    "replacement": "pre-r2-search-epoll",
+    "reason": "listener bind failed: ephemeral TIME_WAIT collided with an even lane port; repeat whole jobs on an odd base"
+  },
+  {
+    "old": "pre-r2-search-jobs",
+    "replacement": "pre-r3-search-fragment",
+    "jobs": [
+      "respresume-fragment-1s-epoll",
+      "respresume-fragment-1s-uring",
+      "respresume-fragment-2s-epoll",
+      "respresume-fragment-2s-uring"
+    ],
+    "reason": "Oracle port EADDRINUSE; repeat all four whole fragment jobs with bound non-listening reservations"
+  },
+  {
+    "old": "post-r2-related-jobs",
+    "replacement": "post-r3-related-failed",
+    "jobs": [
+      "notify_order",
+      "notify_aof",
+      "trackfix_order",
+      "trackfix_accounting",
+      "aof_frame",
+      "aoforder",
+      "compat2",
+      "compat3",
+      "hexpread",
+      "readonly"
+    ],
+    "reason": "Target/oracle EADDRINUSE; repeat these whole jobs with bound non-listening reservations; successful complete jobs remain evidence"
+  },
+  {
+    "old": "post-feature-epoll",
+    "replacement": "post-r2-feature-epoll",
+    "jobs": [
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "reason": "Engine wrapper moved config path away from argv[1]; preserve config grammar and repeat all four whole feature jobs"
+  }
+]

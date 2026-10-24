@@ -1,0 +1,27 @@
+[
+  {
+    "path": "build/notifycompat-budgets/trials",
+    "logical_bytes": 329120964,
+    "reason": "superseded compile-only budget candidates; trial receipts retained"
+  },
+  {
+    "path": "build/notifycompat-budgets/final-trials",
+    "logical_bytes": 435715442,
+    "reason": "superseded compile-only budget candidates; trial receipts retained"
+  },
+  {
+    "path": "build/notifycompat/full-pad/hybrid",
+    "logical_bytes": 208303112,
+    "reason": "redundant PAD staging binary; PRE and final PAD-A retained"
+  },
+  {
+    "path": "build/notifycompat/full-pad/compact-pre",
+    "logical_bytes": 207569688,
+    "reason": "redundant PAD staging binary; PRE and final PAD-A retained"
+  },
+  {
+    "path": "build/notifycompat-pre-proof/build",
+    "logical_bytes": 15332017675,
+    "reason": "completed PRE production proof; all gate evidence archived; pristine PRE source overlay and baseline objects/binary retained"
+  }
+]

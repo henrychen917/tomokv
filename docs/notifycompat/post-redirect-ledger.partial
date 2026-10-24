@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=tracking_redirect; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	36.650000	tracking REDIRECT close vs Redis 7.4

@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=notifycompat; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	23.070000	notification compatibility setbit vs Redis 7.4
+FAIL	158.170000	notification compatibility setpast vs Redis 7.4

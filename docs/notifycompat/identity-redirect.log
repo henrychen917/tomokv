@@ -1,0 +1,76 @@
+{
+  "bodies": 65,
+  "identical": 56,
+  "changed": [
+    {
+      "object": "src/cmd/xshard.o",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "equal": false,
+      "pre_size": 20700,
+      "post_size": 20685
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "equal": false,
+      "pre_size": 415,
+      "post_size": 415
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "equal": false,
+      "pre_size": 18231,
+      "post_size": 18258
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "equal": false,
+      "pre_size": 573,
+      "post_size": 573
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "equal": false,
+      "pre_size": 22856,
+      "post_size": 22717
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "equal": false,
+      "pre_size": 372,
+      "post_size": 386
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "equal": false,
+      "pre_size": 18724,
+      "post_size": 18665
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+      "equal": false,
+      "pre_size": 578,
+      "post_size": 558
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "equal": false,
+      "pre_size": 1190,
+      "post_size": 1190
+    }
+  ]
+}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-notifycompat/tools/notifycompat_identity.py", line 40, in <module>
+    main()
+  File "/home/user/Projects/cx-notifycompat/tools/notifycompat_identity.py", line 36, in main
+    assert rows and not changed, 'hot-body drift: listed for repair/merit, never a throughput verdict'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: hot-body drift: listed for repair/merit, never a throughput verdict

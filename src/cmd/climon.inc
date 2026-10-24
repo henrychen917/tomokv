@@ -70,6 +70,9 @@
         // All three tables move in the existing connection ownership commit section.
         std::unordered_map<std::string, TrackingPending> tracking_pending;
         std::unordered_map<std::string, uint64_t> tracking_enrolled;
+        // Invalidations in flight belong to one TRACKING configuration. This
+        // side state migrates with the rest of ClimonConn at ownership commit.
+        uint64_t tracking_generation = 0;
 
         bool idle() const {
             return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
@@ -157,7 +160,9 @@
     void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp);
     void tracking_broadcast_flush();
     void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush);
-    void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush);
+    void tracking_redirect_broken(ClimonConn& state);
+    void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
+                                    uint64_t source_id = 0, uint64_t generation = 0);
     void tracking_note_prefix_registered(const std::string& prefix, bool added);
     void tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const;
     void tracking_migration_extract(uint64_t id, std::vector<std::string>& keys);

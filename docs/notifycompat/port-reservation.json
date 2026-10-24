@@ -1,0 +1,9 @@
+{
+  "prior": "",
+  "requested": "32800-32899",
+  "reason": "lane listener range overlaps automatic ephemeral ports; captured TIME_WAIT 127.0.0.1:32800 -> 127.0.0.1:32840 and :30800",
+  "exit": 1,
+  "stdout": "",
+  "stderr": "sudo: a password is required\n",
+  "observed": ""
+}

@@ -190,6 +190,18 @@ uint32_t notify_key_arg_order(const Shard& shard, const Op& source, Slice key) {
     return shard.notify_order_base() + 0x0ff0;
 }
 
+[[gnu::noinline]] bool notify_store_command(const Op& source) {
+    // This observer must not add a caller to the hot scatter classifier: GCC
+    // can change its inlining in GET/MGET routing when the caller count changes.
+    const Slice name = source.cmd_name();
+    return name.eq_icase("bitop") || name.eq_icase("sinterstore") ||
+        name.eq_icase("sunionstore") || name.eq_icase("sdiffstore") ||
+        name.eq_icase("zunionstore") || name.eq_icase("zinterstore") ||
+        name.eq_icase("zdiffstore") || name.eq_icase("zrangestore") ||
+        name.eq_icase("sort") || name.eq_icase("geosearchstore") ||
+        name.eq_icase("georadius") || name.eq_icase("georadiusbymember");
+}
+
 std::string notify_keyspace_channel(Slice key, uint8_t db) {
     std::string channel = "__keyspace@" + std::to_string(db) + "__:";
     channel.append(key.p, key.n);
@@ -217,14 +229,22 @@ bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
     return true;
 }
 
+struct NotifyExpiryCompletion {
+    std::vector<std::shared_ptr<std::atomic<bool>>> waiters;
+    ~NotifyExpiryCompletion() {
+        for (const auto& waiter : waiters) waiter->store(true, std::memory_order_release);
+    }
+};
+
 std::shared_ptr<PubSubNotificationChain> notify_reserve_chain(
-        Server& server, std::unique_ptr<PubSubNotificationChain> chain) {
+        Server& server, std::unique_ptr<PubSubNotificationChain> chain,
+        std::shared_ptr<NotifyExpiryCompletion> expiry_completion = {}) {
     const uint64_t count = chain ? chain->items.size() : 0;
     if (!count || !server.pubsub_notification_reserve(count, kNotifyInflightCap)) return {};
     PubSubNotificationChain* raw = chain.release();
     // The shared_ptr constructor invokes this deleter even if its control block allocation fails.
     return std::shared_ptr<PubSubNotificationChain>(
-        raw, [&server, count](PubSubNotificationChain* owned) {
+        raw, [&server, count, completion = std::move(expiry_completion)](PubSubNotificationChain* owned) {
             delete owned;
             server.pubsub_notification_retire(count);
         });
@@ -242,6 +262,7 @@ struct NotifyBatch {
     uint32_t physical = 0;
     std::vector<NotifyRecordImpl> spill;
     std::deque<std::string> owned_keys;
+    std::shared_ptr<NotifyExpiryCompletion> expiry_completion;
 };
 
 namespace {
@@ -378,7 +399,12 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     }
 
     NotifyRecordImpl record;
-    record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
+    // STORE reads its sources before deleting/replacing the destination. Keep
+    // destination mutation events after source keymiss even in owner-parallel gathers.
+    const bool store_tail = event != NotifyEventId::Keymiss &&
+        notify_store_command(source);
+    record.order = (store_tail ? shard.notify_order_base() + source.argc() * 16
+                              : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
     record.routes = routes;
     if (!server->pubsub_any_subscribers())
@@ -500,6 +526,15 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         out.event = event;
         out.db = server->databases().logical(key.ns);
         out.key.assign(key.p, key.n);
+        if (event == NotifyEventId::Expired) {
+            auto& pending = slot->elapsed_sets;
+            for (auto it = pending.begin(); it != pending.end();) {
+                const bool same = it->ns == key.ns && it->key == key.sv();
+                if (same) out.after_set = it->after_set;
+                if (same || it->after_set->load(std::memory_order_acquire)) it = pending.erase(it);
+                else ++it;
+            }
+        }
         slot->keyless.push_back(std::move(out));
     } catch (const std::bad_alloc&) {
         server->notify_event_dropped();
@@ -515,6 +550,51 @@ void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key) {
     // Only the named lookup can advance this owner-local physical counter.
     if (shard.stats().expired != expired_before)
         notify_flat_emit(&shard, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
+}
+
+void notify_elapsed_set(Shard& shard, Op& op, Slice key) {
+    // Only this already-elapsed value needs a causal edge to maintenance. The
+    // value still expires through the usual owner cycle, with unchanged AOF,
+    // SAVE, tracking-NOLOOP and expiry-counter semantics. Waiting delays only
+    // publication of its keyless event, never data access or the physical reap.
+    const uint32_t mask = shard.notify_mask();
+    if (!(mask & NOTIFY_EXPIRED) || !(mask & (NOTIFY_STRING | NOTIFY_GENERIC)) ||
+        !(mask & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) || !shard.server() ||
+        !shard.server()->pubsub_any_subscribers()) return;
+    Op* carrier = shard.notify_carrier();
+    if (!carrier) carrier = &op;
+    auto& slot = shard.notify_state_slot();
+    try {
+        NotifyBatch* batch = notify_get_or_create_batch(*carrier);
+        if (!batch) return;
+        if (!slot) slot = std::make_unique<NotifyShardState>();
+        auto& pending = slot->elapsed_sets;
+        for (auto it = pending.begin(); it != pending.end();) {
+            if (it->after_set->load(std::memory_order_acquire) ||
+                (it->ns == key.ns && it->key == key.sv())) it = pending.erase(it);
+            else ++it;
+        }
+        auto ready = std::make_shared<std::atomic<bool>>(false);
+        std::lock_guard<std::mutex> lock(batch->mutex);
+        if (!batch->expiry_completion)
+            batch->expiry_completion = std::make_shared<NotifyExpiryCompletion>();
+        batch->expiry_completion->waiters.push_back(ready);
+        pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+    } catch (const std::bad_alloc&) {
+        shard.server()->notify_event_dropped();
+    }
+}
+
+// Cold STORE/RENAME image deletion. A source RENAME deletion suppresses del;
+// STORE observes whether dbDelete removed a physical resident, even if elapsed.
+void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_del) {
+    Op* source = shard.notify_source();
+    if (suppress_del) {
+        if (shard.store().erase_resident(hash, key) && source && notify_store_command(*source))
+            notify_record(shard, *source, NOTIFY_GENERIC, NotifyEventId::Del, key);
+    } else {
+        shard.store_erase<true>(hash, key);
+    }
 }
 
 bool notify_flat_enabled(void* context, uint32_t cls) {
@@ -543,7 +623,18 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
         !(source.spec->flags & CmdFlags::Write)) return true;
     const Slice name = source.cmd_name();
     uint32_t first, end = source.argc();
-    if (name.eq_icase("copy")) {
+    if (name.eq_icase("getset") || name.eq_icase("getdel") || name.eq_icase("getex")) {
+        first = 1; end = std::min(end, 2u);
+    }
+    else if (name.eq_icase("set")) {
+        // Parsing already succeeded before this lookup. GET reads the old value
+        // even when NX/XX will reject the write.
+        bool get = false;
+        for (uint32_t i = 3; i < end; ++i) get |= source.arg(i).eq_icase("get");
+        if (!get) return false;
+        first = 1; end = std::min(end, 2u);
+    }
+    else if (name.eq_icase("copy")) {
         // Redis rejects the same-object form before either lookup. The local gather may
         // already have probed both argv entries when it diagnoses that error.
         if (end >= 3 && source.arg(1).key_mem_eq(source.arg(2))) return false;
@@ -552,6 +643,19 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
     else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
              name.eq_icase("sdiffstore")) first = 2;
     else if (name.eq_icase("bitop")) first = 3;
+    else if (name.eq_icase("zunionstore") || name.eq_icase("zinterstore") ||
+             name.eq_icase("zdiffstore")) {
+        first = 3;
+        if (end < 3) return false;
+        // The command parser has validated numkeys. Keep this observer's
+        // bounded count independent of the hot scatter numeric parser too.
+        uint32_t count = 0;
+        for (char digit : source.arg(2)) {
+            if (digit < '0' || digit > '9' || count > end) return false;
+            count = count * 10 + static_cast<unsigned>(digit - '0');
+        }
+        end = std::min(end, 3 + count);
+    }
     else return false;
     for (uint32_t arg = first; arg < end; ++arg) {
         const Slice candidate = source.arg(arg);
@@ -606,6 +710,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
     uint32_t work = 0;
     while (work < kNotifyKeylessPass && !slot->keyless.empty()) {
         NotifyOut& out = slot->keyless.front();
+        if (out.after_set && !out.after_set->load(std::memory_order_acquire)) break;
         // Lane F: an expired or evicted key is an invalidation. Post it to every io owner that
         // holds tracking connections; each filters against its own table. The executor never
         // touches a Client here -- only the same io-to-io transport pub/sub already uses.
@@ -804,7 +909,8 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
                     PubSubNotificationItem{std::move(channel), std::move(message)});
             }
         }
-        auto chain = notify_reserve_chain(*loop.srv_, std::move(building));
+        auto chain = notify_reserve_chain(*loop.srv_, std::move(building),
+                                          std::move(batch->expiry_completion));
         if (!chain) {
             // An empty pub/sub chain is successful tracking-only delivery.
             // Count only actual publication records on this failure path;
@@ -917,7 +1023,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 2);
                     emit(NOTIFY_STRING, NotifyEventId::Set, 2);
-                } else
+                } else if (state.atomic_apply && state.images && state.images[0].present)
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 2);
             }
             break;
@@ -937,7 +1043,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Sinterstore : state.kind == Kind::Sunionstore
                         ? NotifyEventId::Sunionstore : NotifyEventId::Sdiffstore;
                     emit(NOTIFY_SET, event, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
@@ -952,7 +1058,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Zunionstore : state.kind == Kind::Zinterstore
                         ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
                     emit(NOTIFY_ZSET, event, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
@@ -962,7 +1068,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 1);
                     emit(NOTIFY_ZSET, NotifyEventId::Zrangestore, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
@@ -977,7 +1083,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Geosearchstore : NotifyEventId::Georadiusstore;
                     emit(NOTIFY_ZSET, event,
                          state.geo_destination_arg);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, state.geo_destination_arg);
                 }
             }
@@ -987,7 +1093,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, state.sort_options.store_arg);
                     emit(NOTIFY_LIST, NotifyEventId::Sortstore, state.sort_options.store_arg);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, state.sort_options.store_arg);
                 }
             }

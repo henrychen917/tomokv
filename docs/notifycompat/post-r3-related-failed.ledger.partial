@@ -1,0 +1,32 @@
+PARTIAL	0	GATE_ONLY_JOBS=notify_order notify_aof trackfix_order trackfix_accounting aof_frame aoforder compat2 compat3 hexpread readonly; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	2.060000	read-only resize split read-local=0
+ok	2.100000	read-only resize split read-local=1
+ok	1.570000	read-only resize fused read-local=0
+ok	1.570000	read-only resize fused read-local=1
+ok	1.130000	hexpread torn (1s)
+ok	3.320000	hexpread replies (1s)
+ok	1.140000	hexpread deferred (1s)
+ok	1.120000	hexpread OBJECT expiry (1s)
+ok	1.140000	hexpread torn (2s)
+ok	3.310000	hexpread replies (2s)
+ok	1.130000	hexpread deferred (2s)
+ok	1.130000	hexpread OBJECT expiry (2s)
+ok	2.120000	compat2 autharity
+ok	6.950000	compat2 expire_notify
+ok	1.980000	compat2 ktls_lifetime
+ok	34.230000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.330000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.410000	compat3 CC4.14 history vs Redis 7.4
+ok	33.540000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.980000	compat3 CC4.5 glob vs Redis 7.4
+ok	34.210000	compat3 CC4.17 flags vs Redis 7.4
+ok	66.060000	keyspace lazy-expiry order vs Redis 7.4
+ok	11.770000	local script notification AOF vs Redis 7.4
+ok	55.230000	tracking-only delivery/drop accounting vs Redis 7.4
+ok	222.170000	tracking delayed-write order vs Redis 7.4
+ok	0.400000	AOF control frame never inside a large record (atomic 0)
+ok	0.530000	AOF control frame never inside a large record (atomic 1)
+ok	10.360000	AOF commit order single
+ok	4.670000	AOF commit order crossing
+ok	5.100000	AOF commit order rewrite

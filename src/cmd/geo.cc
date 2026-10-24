@@ -775,6 +775,12 @@ void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify) {
     if (built == GeoBuildResult::Oom) { reply_err(op.sink(), "ERR out of memory"); return; }
     const Slice destination_key = op.arg(options.destination_arg);
     const uint64_t destination_hash = FlatStore::hash_key(destination_key);
+    if (output.empty()) {
+        if (notify) notify_erase_image(shard, destination_hash, destination_key, true);
+        else shard.store().erase_resident(destination_hash, destination_key);
+        reply_int(op.sink(), 0);
+        return;
+    }
     KvObj* previous = shard.store().find_resident(destination_hash, destination_key);
     // Ignore elapsed residents without touching or reaping them before replacement admission.
     if (previous && shard.store().deadline(destination_hash, previous) >= 0 &&
@@ -787,9 +793,7 @@ void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify) {
     if (notify) {
         const NotifyEventId event = op.cmd_name().eq_icase("geosearchstore")
             ? NotifyEventId::Geosearchstore : NotifyEventId::Georadiusstore;
-        notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
-                      output.empty() ? NotifyEventId::Del : event,
-                      destination_key);
+        notify_record(shard, op, NOTIFY_ZSET, event, destination_key);
     }
     reply_int(op.sink(), static_cast<long long>(output.size()));
 }

@@ -1765,6 +1765,17 @@ public:
         return false;
     }
 
+    // Redis dbDelete removes a resident regardless of its deadline. STORE and
+    // FLUSH use this owner-only path: no expiry event, AOF DEL, or expiry count.
+    // erase_in retains the ordinary snapshot/QSBR retirement rules.
+    bool erase_resident(uint64_t h, Slice key) {
+        if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) {
+            maybe_start_shrink();
+            return true;
+        }
+        return false;
+    }
+
     bool erase_notify(uint64_t h, Slice key, FlatNotifySink* sink,
                       EraseEvent event = EraseEvent::Del) {
         KvObj* candidate = find_in(0, h, key);

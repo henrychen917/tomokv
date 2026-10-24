@@ -1,0 +1,24 @@
+{
+  "kind": "A: full PRE behavior with exact POST text size",
+  "limitation": "Total-text-size twin only; cold PRE server_tail uses -Os when needed; not POST function placement",
+  "pre_sha256": "a1953bcbd75e9dd5f468ea2340c5f26fb855864148cd5efd1fac806751bff54e",
+  "post_sha256": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59",
+  "pad_sha256": "638ecff86821cb4d84916382ae0f6baac9fe78e4b41e1fa660130196e81b94af",
+  "baseline_relink_identical": true,
+  "pre_text_bytes": 8124983,
+  "post_text_bytes": 8132311,
+  "pad_text_bytes": 8132311,
+  "padding_bytes": 7328,
+  "original_text_symbols": 10941,
+  "compact_pre_inputs": [],
+  "all_unpadded_twin_function_addresses_sizes_equal": true,
+  "added_functions": [
+    [
+      "notifycompat_size_pad_a",
+      8249895,
+      7328
+    ]
+  ],
+  "cwd": "/home/user/Projects/cx-notifycompat",
+  "output": "/home/user/Projects/cx-notifycompat/build/tomokv-pad-a"
+}

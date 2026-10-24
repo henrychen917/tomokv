@@ -190,7 +190,12 @@ def expect_none(flags, command, label):
 
 
 try:
-    expect(admin.command("CONFIG", "SET", "atomic", "0"), b"OK", "initial atomic off")
+    # The gate invokes the complete battery in both modes, including PRE runs
+    # that fail before reaching the final cross-shard controls below.
+    initial_atomic = sys.argv[3] if len(sys.argv) > 3 else "0"
+    assert initial_atomic in ("0", "1")
+    expect(admin.command("CONFIG", "SET", "atomic", initial_atomic), b"OK", "initial atomic")
+    print(f"notify: initial atomic={initial_atomic}", flush=True)
     # G1-G4: exact parser, atomic rejection, normalization, and upstream A suppressing n.
     grammar = [
         ("", ""), ("KA", "AK"), ("EA", "AE"), ("gKE", "gKE"),
@@ -251,7 +256,7 @@ try:
     expect_e("$g", ("SET", "str:ttl", "v", "EX", "10"),
              [("set", "str:ttl"), ("expire", "str:ttl")], "SET EX")
     expect_e("g", ("SET", "str:past", "v", "PXAT", "1"),
-             [("del", "str:past")], "SET past")
+             [("expire", "str:past")], "SET past")
     expect_e("$", ("SETNX", "str:nx", "v"), [("set", "str:nx")], "SETNX")
     expect_none("E$", ("SETNX", "str:nx", "w"), "SETNX no-op")
     expect_e("$g", ("SETEX", "str:setex", "30", "v"),
@@ -392,8 +397,8 @@ try:
     setup(("SET", "store:bit:a", "x"), ("SET", "store:bit:z", "y"))
     expect_e("$", ("BITOP", "OR", "store:bit:nonempty", "store:bit:a", "store:bit:z"),
              [("set", "store:bit:nonempty")], "BITOP non-empty")
-    expect_e("g", ("BITOP", "AND", "store:bit", "none:a", "none:z"),
-             [("del", "store:bit")], "BITOP empty")
+    expect_none("g", ("BITOP", "AND", "store:bit", "none:a", "none:z"),
+                "BITOP empty absent destination")
     setup(("SADD", "store:set:a", "m"), ("SADD", "store:set:z", "m", "n"))
     expect_e("s", ("SINTERSTORE", "store:sinter", "store:set:a", "store:set:z"),
              [("sinterstore", "store:sinter")], "SINTERSTORE non-empty")
@@ -401,22 +406,22 @@ try:
              [("sunionstore", "store:sunion")], "SUNIONSTORE non-empty")
     expect_e("s", ("SDIFFSTORE", "store:sdiff", "store:set:z", "store:set:a"),
              [("sdiffstore", "store:sdiff")], "SDIFFSTORE non-empty")
-    expect_e("g", ("SINTERSTORE", "store:set", "none:a", "none:z"),
-             [("del", "store:set")], "SINTERSTORE empty")
-    expect_e("g", ("SUNIONSTORE", "store:sunion:empty", "none:a", "none:z"),
-             [("del", "store:sunion:empty")], "SUNIONSTORE empty")
-    expect_e("g", ("SDIFFSTORE", "store:sdiff:empty", "none:a", "none:z"),
-             [("del", "store:sdiff:empty")], "SDIFFSTORE empty")
-    expect_e("g", ("ZRANGESTORE", "store:z", "none:z", "0", "-1"),
-             [("del", "store:z")], "ZRANGESTORE empty")
+    expect_none("g", ("SINTERSTORE", "store:set", "none:a", "none:z"),
+                "SINTERSTORE empty absent destination")
+    expect_none("g", ("SUNIONSTORE", "store:sunion:empty", "none:a", "none:z"),
+                "SUNIONSTORE empty absent destination")
+    expect_none("g", ("SDIFFSTORE", "store:sdiff:empty", "none:a", "none:z"),
+                "SDIFFSTORE empty absent destination")
+    expect_none("g", ("ZRANGESTORE", "store:z", "none:z", "0", "-1"),
+                "ZRANGESTORE empty absent destination")
     setup(("ZADD", "store:z:source", "1", "m"))
     expect_e("z", ("ZRANGESTORE", "store:z:dest", "store:z:source", "0", "-1"),
              [("zrangestore", "store:z:dest")], "ZRANGESTORE non-empty")
     setup(("RPUSH", "store:sort:source", "2", "1"))
     expect_e("l", ("SORT", "store:sort:source", "STORE", "store:sort:dest"),
              [("sortstore", "store:sort:dest")], "SORT STORE non-empty")
-    expect_e("g", ("SORT", "none:sort", "STORE", "store:sort:empty"),
-             [("del", "store:sort:empty")], "SORT STORE empty")
+    expect_none("g", ("SORT", "none:sort", "STORE", "store:sort:empty"),
+                "SORT STORE empty absent destination")
 
     setup(("ZADD", "cross:zmpop", "1", "a", "2", "b"))
     expect_e("zg", ("ZMPOP", "1", "cross:zmpop", "MAX", "COUNT", "2"),
