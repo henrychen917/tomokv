@@ -598,8 +598,8 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     readings_.clear();
     demand_window_.reset();
     model_readings_ = 0;
-    // Readings, not ticks: each stabilized reading spans at least two ticks, and the deferral
-    // bound is the one wall-clock allowance this controller already grants a boot.
+    // Budget stabilized readings, including those without identifiable role demand.
+    // Adjacent readings overlap; this is a sample cap, not an elapsed-time guarantee.
     {
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
         model_readings_cap_ = static_cast<uint32_t>(std::max<uint64_t>(
@@ -849,11 +849,26 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
                                       double rate) {
     maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
     double io_frac = 0, io_headroom = 0, ex_headroom = 0;
-    if (!sample_role_demand(server, now_ms, io_frac, io_headroom, ex_headroom)) return false;
+    const bool corrected = ctlfix_correctness();
+    if (corrected) ++model_readings_;
+    if (!sample_role_demand(server, now_ms, io_frac, io_headroom, ex_headroom)) {
+        // PING/IO-only traffic is a real reading even though it cannot identify
+        // executor capacity. Bound the observation arm without fabricating a
+        // demand draw or choosing a new placement from missing evidence.
+        if (corrected && model_readings_ >= model_readings_cap_) {
+            record(server.role_count(Role::Ifid), rate);
+            if (refining_) refine_decision_ = "hold-no-demand";
+            else { model_last_decision_ = "hold-no-demand"; ++model_holds_; }
+            debug_seek_io_ = 0;
+            debug_seek_force_ = false;
+            enter_settling();
+        }
+        return false;
+    }
     demand_window_.add(io_frac);
     // Measuring never moves the split, so every reading here is a reading of the ORIGIN.
     if (rate > 0) origin_window_.add(rate);
-    model_readings_++;
+    if (!corrected) model_readings_++;
     model_io_frac_ = demand_window_.mean;
     model_io_headroom_ = io_headroom;
     model_ex_headroom_ = ex_headroom;

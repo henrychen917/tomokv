@@ -183,6 +183,48 @@ struct FlipControllerTest {
         }
         std::puts("CT4.1 completion schedules PASS");
     }
+    static void boot_samples() {
+        for (unsigned mix : {0u, 1u, 2u}) {
+            Fixture f(false);
+            FlipController c;
+            require(c.init(true, 8), "boot measurement controller initialized");
+            auto& writer = f.server.thread(0).flip_fingerprint();
+            writer.configure(1);
+            unsigned measuring = 0;
+            bool capped = false;
+            for (uint64_t tick = 1; tick <= 60 && c.phase_ != Phase::Anchored; ++tick) {
+                for (uint32_t tid = 0; tid < 8; ++tid) {
+                    auto& t = f.server.thread(tid);
+                    t.sig().idle_ns += 990000000;
+                    if (tid == 0 || (tid == 6 && (mix == 2 || (mix == 1 && tick % 4 == 0))))
+                        t.sig().ops += 6000;
+                }
+                for (unsigned n = 0; n != 6000; ++n) {
+                    f.server.thread(0).note_command(UINT16_MAX);
+                    writer.note_command(FlipFingerprintClass::Other, 0, 0);
+                }
+                require(writer.finish_parse_pass(), "boot sample publishes a real fingerprint");
+                writer.arm(tick);
+                c.tick(f.server, tick * 1000);
+                measuring += c.phase_ == Phase::Measuring;
+                capped |= c.model_readings_cap_ != 0 && c.model_readings_ == c.model_readings_cap_;
+            }
+            std::printf("CT4.2 mix=%u boot=%llu measuring_ticks=%u samples=%u cap=%u "
+                        "demand=%u phase=%s\n", mix, (unsigned long long)c.boot_triggers_, measuring,
+                        c.model_readings_, c.model_readings_cap_, c.demand_window_.samples,
+                        c.phase_name(c.phase_));
+            std::fflush(stdout);
+            require(c.boot_triggers_ == 1 && measuring > 0, "boot measurement actually armed");
+            require(c.phase_ == Phase::Anchored && c.signal_sample_rate() == 0 &&
+                    c.model_readings_ > 0 && c.model_readings_ <= c.model_readings_cap_,
+                    "CT4.2 every traffic mix finishes boot measurement and disarms");
+            if (mix == 0)
+                require(capped && c.demand_window_.samples == 0 && c.model_holds_ == 1 &&
+                        f.server.flip_completed() == 0,
+                        "IO-only samples exhaust cap without inventing executor demand or moving");
+        }
+        std::puts("CT4.2 boot measurement samples PASS");
+    }
 };
 }
 
@@ -190,5 +232,6 @@ int main(int argc, char** argv) {
     tomo::CoreConcurrencyTest::require(tomo::command_registry_init(false), "command registry");
     tomo::CoreConcurrencyTest::require(argc == 2, "select a controller regression");
     if (std::strcmp(argv[1], "completions") == 0) tomo::FlipControllerTest::completions();
+    else if (std::strcmp(argv[1], "boot") == 0) tomo::FlipControllerTest::boot_samples();
     else tomo::CoreConcurrencyTest::require(false, "unknown controller regression");
 }
