@@ -245,3 +245,44 @@ The errno occupies existing AofManager alignment bytes. The ordinary and reorder
 | PS4.10 | job_snapshot: savefix acknowledged-write recovery, command/SIGTERM, both modes/engines | none |
 
 Final additions: **DQ=+4, DF=+4**, all four collect_job lines precede the quick-tier exit. Maintainer-owned counts should become **EXPECT_QUICK=772** (768+4), **EXPECT_FULL=789** (785+4). Neither constant was edited. The explicit label fixture contains the four reviewed additions and matches all 789 source declarations, with no missing/extra labels. Its raw checker correctly refuses the still-785 constant; the prospective in-memory 789 check passes. Evidence: `label-inventory.json`, `label-fixture-check.log`.
+
+
+Identity and layout: the unmodified object and strict linked identity tools were run against PRE. They report 420 changed object bodies, 89 inventory additions/removals and 683 strict linked groups; these are diagnostic differences, not a stopping rule. Every changed linked group and its reason is listed in `docs/persistfix2/identity/changed-bodies.md`; full instruction diffs remain in `build/persistfix2/identity/changed-bodies.json.gz`. The raw object tool rejects intentional changed command handlers. Of 74 actual GET/SET/MGET/MSET entry/execution bodies, 73 match its relocation normalization directly. The remaining DB0 xshard_execute has three same-section LEA displacements to the same unchanged ScriptWorkbench destructor; the compiler emitted no ELF relocations for them. Resolving those exact references makes the instruction stream identical. Its one strict linked literal-label difference loads the same eight bytes (`ffffffff00000000`); only objdump's nearest-symbol label changed. No equality tool was weakened. `hot-resolved-identity.json` records these additional explicit checks.
+
+All existing sizes and field offsets match PRE, including both database runtimes: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624; AofManager 976, SnapshotManager 792 and Server 141696 also remain unchanged. No shard ownership, QSBR, immutable replacement, RYOW, ROB or native TOMOAOF format change is introduced.
+
+Merit request — maintainer only, **not run by this lane**. Use the gate's ABBA instrument and the exact 14-cell file `docs/lbplanner/generic-cells.txt`, with balanced PRE/POST and PRE/PAD-A comparisons on a quiet box. Use eight server cores in one CCX (64–71) and load cores 72–79, no SMT, ports within 36800–36899; preserve every cell's offered load, pipeline, read-local, atomic and connection settings. `GATE_ABBA_CELLS=docs/lbplanner/generic-cells.txt` selects that source. Record per-cell matched-load rate, cycles/op, IPC and instructions/op, plus the designated latency metric for d1g_l0/d1s_l0. Rate/latency at matched offered load decides merit; instruction count alone does not. Do not average away a regressed cell.
+
+PAD-A is **(A) behaviour twin**: unmodified PRE implementation objects, padded and relocated to POST's total .text size and start address. Its individual function positions and data sections retain PRE behavior/layout, so it does not isolate every local alignment effect. The added padding is unreachable. The D8 planted control is a separate correctness artifact and is excluded from the merit request. POST .text is 8,225,527 bytes versus PRE's 8,217,911; PAD-A is 8,225,527. No throughput claim is made.
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE | `build/tomokv-persistfix2-pre` | `85bf1643126b63a140cf864ffa63c8d7abe75ebdb161831c3c3a9a7d84e6b0aa` |
+| POST | `build/tomokv` | `efb579d46ee296f96c7d07053804e5021ec0ea250b7c42e01aab6ad1e4c98edd` |
+| PAD-A | `build/tomokv-persistfix2-pad-a` | `5298af6f9782e8a25266320ad91fe46b3b6af7f83e68b903196ca331272b3972` |
+
+| Cell | PRE | POST | PAD-A | Verdict |
+|---|---|---|---|---|
+| h05 | pending | pending | pending | maintainer measurement |
+| h06 | pending | pending | pending | maintainer measurement |
+| p8g | pending | pending | pending | maintainer measurement |
+| p8s | pending | pending | pending | maintainer measurement |
+| d1g_l0 | pending | pending | pending | maintainer measurement |
+| d1s_l0 | pending | pending | pending | maintainer measurement |
+| m8g_l0 | pending | pending | pending | maintainer measurement |
+| v1g_l0 | pending | pending | pending | maintainer measurement |
+| d128g_l0 | pending | pending | pending | maintainer measurement |
+| d32g_l1 | pending | pending | pending | maintainer measurement |
+| d8s_l1 | pending | pending | pending | maintainer measurement |
+| d32s_l1 | pending | pending | pending | maintainer measurement |
+| x9_32_l1 | pending | pending | pending | maintainer measurement |
+| x9_32_l0 | pending | pending | pending | maintainer measurement |
+
+The four new collect_job lines are 5306–5309, before the quick-tier exit at line 5386 in this revision. Broader correctness receipts and final freshness results follow below when complete. Performance benchmarks, measurement load generators and the full iteration gate remain NOT RUN, as reserved for the maintainer.
+
+
+PS4.12 qualification: the claim that NOW alone permits exit after a failed save is **NOT REPRODUCED**. PRE and Redis both refuse `SHUTDOWN NOW` when the final save fails, in all four 1s/2s × epoll/uring geometries (16 shards, six IO/two executor workers for split, cores 64–71, port 36800). FORCE is the modifier that permits that exit. NOW bypasses replica waiting, absent in this single-node architecture.
+
+The complete PRE proof uses `build/persistfix2/pre-proof-source`: an isolated, disposable source snapshot below this worktree, with every production blob and Makefile verified identical to 05a5e01a9, plus the current gate fixtures. It reuses the frozen PRE objects. This allows the changed shutdown-unit fixture to link to PRE's implementation; the ordinary external-candidate gate interface alone would otherwise build that unit from POST sources. Its exact source-tree receipt is `pre-proof-source.json`.
+
+Offline build freshness is complete on POST: `make -q all`, all 42 executable targets named by `job_production_units`, and `mdbqsbr-live-arms` return 0 (44 checks). Receipt: `docs/persistfix2/post-build-freshness.json`. PRE and POST hashes remain unchanged. An initial regression invocation pointed `REDIS74_ROOT` at the binary-only oracle directory; its preflight warning did not stop its workers. That invocation was terminated after detecting the overlap. Its results are excluded. The surviving run uses the complete Redis source tree, and every unit target's freshness was independently checked after the duplicate stopped.

@@ -1,0 +1,8 @@
+{
+  "source": "build/persistfix2/pre-proof-source",
+  "production_tree_equal_to": "05a5e01a9",
+  "test_commit": "66f4a3c04ea7b979daa4fb8aca10aad2be289d26",
+  "private_commit": "92cbf754765146096414f1fbcddf80e8ad615c42",
+  "object_root": "build/persistfix2/pre",
+  "purpose": "Run the real gate jobs and current shutdown fixture against PRE source and implementation objects."
+}

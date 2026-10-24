@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "binary": "build/tomokv-persistfix2-pre",
+    "sha256": "85bf1643126b63a140cf864ffa63c8d7abe75ebdb161831c3c3a9a7d84e6b0aa",
+    "bytes": 209924960
+  },
+  "POST": {
+    "binary": "build/tomokv",
+    "sha256": "efb579d46ee296f96c7d07053804e5021ec0ea250b7c42e01aab6ad1e4c98edd",
+    "bytes": 210090928
+  },
+  "PAD-A": {
+    "binary": "build/tomokv-persistfix2-pad-a",
+    "sha256": "5298af6f9782e8a25266320ad91fe46b3b6af7f83e68b903196ca331272b3972",
+    "bytes": 209937296
+  },
+  "D8 planted control": {
+    "binary": "build/tomokv-persistfix2-control-d8",
+    "sha256": "1ff905332d28cc48a089b04cf33f6fabc09aebc2e4f55d450461ed156ea74a83",
+    "bytes": 210092720
+  }
+}
