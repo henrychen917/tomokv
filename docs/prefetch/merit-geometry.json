@@ -1,0 +1,22 @@
+[
+  {
+    "cells": "docs/prefetch/generic-cells.txt",
+    "server_cpus": 8,
+    "split_ratio": "not-applicable (1s only)"
+  },
+  {
+    "cells": "docs/prefetch/generic-cells.txt",
+    "server_cpus": 32,
+    "split_ratio": "16:16"
+  },
+  {
+    "cells": "docs/prefetch/targeted-cells.txt",
+    "server_cpus": 8,
+    "error": "no reviewed abba io:ex ratio for 8 server threads; record the measured geometry in gate_measurements.json, never derive it from a core range"
+  },
+  {
+    "cells": "docs/prefetch/targeted-cells.txt",
+    "server_cpus": 32,
+    "split_ratio": "16:16"
+  }
+]
