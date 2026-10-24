@@ -1128,7 +1128,7 @@ plan_jobs(){
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
-  JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+  JOB_NAMES+=(blockfix_registry aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
@@ -3428,6 +3428,21 @@ fi
 [ "$compatible" = 1 ]
 }
 
+job_blockfix_registry(){
+  local failed=0 cost="$(dirname "$CANDIDATE_BINARY")/blockfix-cost"
+  row_begin "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+  if [ "$CANDIDATE_BINARY" = "$PWD/build/tomokv" ]; then
+    unit_ready blockfix-cost || failed=1
+  fi
+  sha256sum -c "$CANDIDATE_BINARY.blockfix-cost.sha256" >"$TMPDIR/cost-binding.log" 2>&1 &&
+      taskset -c "$CORES" "$cost" --check >"$TMPDIR/instructions.csv" 2>"$TMPDIR/instructions.log" || failed=1
+  compat3_case blockfix registry || failed=1
+  if [ "$failed" = 0 ]; then ok "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+  else bad "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4" "see $TMPDIR/{instructions,registry-*}.log"; fi
+}
+
+
+
 job_compat3(){
   row_begin "compat3 CC4.12 pubsub vs Redis 7.4"
   compat3_case pubsub pubsub && ok "compat3 CC4.12 pubsub vs Redis 7.4" \
@@ -4942,6 +4957,10 @@ job_production_units(){
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
       >"$TMPDIR/mdbqsbr-live-build.log" 2>&1 && : > "$RUN_DIR/unit-ready/mdbqsbr-live-arms"
+  pausable taskset -c "$BUILD_CORES" make -f Makefile -f tools/blockfix_cost.mk \
+      -j"$BUILD_JOBS" build/blockfix-cost >"$TMPDIR/blockfix-cost-build.log" 2>&1 &&
+      make -f Makefile -f tools/blockfix_cost.mk -q build/blockfix-cost \
+          build/tomokv.blockfix-cost.sha256 && : > "$RUN_DIR/unit-ready/blockfix-cost"
   return 0
 }
 job_multidb(){
@@ -5019,7 +5038,7 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls|compat2) echo 'release production_units';;
+    tls|compat2|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
@@ -5189,6 +5208,8 @@ collect_job compat2
 collect_job bugs5
 # Six oracle regressions before the quick exit: DQ=+6, DF=+6. EXPECT is owner-owned.
 collect_job compat3
+# blockfix: counted here before the quick exit; EXPECT remains owner-maintained.
+collect_job blockfix_registry
 collect_job dispatch_arity
 collect_job dispatch_errors
 collect_job dispatch_children
