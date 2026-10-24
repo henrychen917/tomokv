@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_geo datafix1_spop datafix1_lists datafix1_locale datafix1_bitfield datafix1_hexpire datafix1_randscan; NOT A RECEIPT

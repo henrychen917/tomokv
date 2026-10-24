@@ -29,7 +29,7 @@ enum class WorkError : uint8_t {
 };
 enum class FinalReply : uint8_t {
     None, Ok, Integer, Nil, NullArray, Bulk, Array, Lmpop, Zmpop, SortConversion,
-    Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError
+    Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError, Prepared
 };
 enum class PopReplyShape : uint8_t { Mpop, ListPair, ZsetTriple };
 enum class ValueKind : uint8_t { Nil, Inline, Borrow, Owned };

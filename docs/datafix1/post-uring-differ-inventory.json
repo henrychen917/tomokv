@@ -1,0 +1,94 @@
+{
+  "arm": "post-uring",
+  "run": "/home/user/Projects/cx-datafix1/build/gate-run.CwB71Q",
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    25
+  ],
+  "suite_count": 47,
+  "parts": {
+    "split-0": {
+      "expected": 235,
+      "executed": 235,
+      "exact_inventory": true,
+      "failures": []
+    },
+    "split-1": {
+      "expected": 239,
+      "executed": 239,
+      "exact_inventory": true,
+      "failures": []
+    },
+    "armed-0": {
+      "expected": 230,
+      "executed": 230,
+      "exact_inventory": true,
+      "failures": []
+    },
+    "armed-1": {
+      "expected": 234,
+      "executed": 234,
+      "exact_inventory": true,
+      "failures": []
+    }
+  },
+  "folds": {
+    "split": {
+      "schema": 1,
+      "group": "split",
+      "parts": [
+        "split-0",
+        "split-1",
+        "equivalence"
+      ],
+      "start": 1792746918.2747548,
+      "end": 1792749038.1798916,
+      "seconds": 2119.905136823654,
+      "comparisons": 490,
+      "complete": true
+    },
+    "armed": {
+      "schema": 1,
+      "group": "armed",
+      "parts": [
+        "armed-0",
+        "armed-1"
+      ],
+      "start": 1792747972.2407312,
+      "end": 1792749016.681189,
+      "seconds": 1044.4404578208923,
+      "comparisons": 464,
+      "complete": true
+    }
+  },
+  "mode_equivalence": {
+    "declared_cells": 16,
+    "executed_cells": 16,
+    "exact_inventory": true,
+    "all_pass": true,
+    "owned_boots": 32,
+    "observed_engines": [
+      "io_uring"
+    ],
+    "observed_executables": [
+      "/home/user/Projects/cx-datafix1/build/tomokv"
+    ],
+    "complete": {
+      "schema": 1,
+      "part": "equivalence",
+      "run": "full:gate-run.CwB71Q",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        25
+      ],
+      "comparisons": 16,
+      "complete": true
+    }
+  }
+}

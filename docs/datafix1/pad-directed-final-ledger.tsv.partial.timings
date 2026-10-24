@@ -1,0 +1,8 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	1.610000	datafix1 RAND/SCAN errors (both engines and modes)
+FAIL	1.780000	datafix1 HEXPIRE precedence (both engines and modes)
+FAIL	1.640000	datafix1 BITFIELD bounds (both engines and modes)
+FAIL	4.300000	datafix1 SORT locale (both engines and modes)
+FAIL	3.210000	datafix1 list demotion (both engines and modes)
+FAIL	1.700000	datafix1 SPOP encodings (both engines and modes)
+FAIL	3.310000	datafix1 GEO grammar (both engines and modes)

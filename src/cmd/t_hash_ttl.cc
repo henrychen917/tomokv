@@ -157,17 +157,6 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         reply_err(op.sink(), "ERR value is not an integer or out of range");
         return;
     }
-    uint32_t index = 3;
-    Cond cond = Cond::None;
-    if (index < op.argc()) {
-        const Slice token = op.arg(index);
-        if      (token.eq_icase("nx")) { cond = Cond::Nx; index++; }
-        else if (token.eq_icase("xx")) { cond = Cond::Xx; index++; }
-        else if (token.eq_icase("gt")) { cond = Cond::Gt; index++; }
-        else if (token.eq_icase("lt")) { cond = Cond::Lt; index++; }
-    }
-    FieldsSpec fields;
-    if (!parse_fields_tail(op, index, true, fields)) return;
 
     if (raw < 0) {
         reply_err(op.sink(), "ERR invalid expire time, must be >= 0");
@@ -188,6 +177,19 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
     int64_t deadline = raw * unit_ms;
     if (deadline > kFieldExpireMax - basetime) { invalid(); return; }
     deadline += basetime;
+
+    uint32_t index = 3;
+    Cond cond = Cond::None;
+    if (index < op.argc()) {
+        const Slice token = op.arg(index);
+        if      (token.eq_icase("nx")) { cond = Cond::Nx; index++; }
+        else if (token.eq_icase("xx")) { cond = Cond::Xx; index++; }
+        else if (token.eq_icase("gt")) { cond = Cond::Gt; index++; }
+        else if (token.eq_icase("lt")) { cond = Cond::Lt; index++; }
+    }
+    FieldsSpec fields;
+    if (!parse_fields_tail(op, index, true, fields)) return;
+
 
     if (!object) { reply_all(op, fields.count, -2); return; }
 

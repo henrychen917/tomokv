@@ -3693,12 +3693,8 @@ def gen_sort(rng):
       * an alphabetic tie -- the reference leaves equal ALPHA weights wherever its sort algorithm
         put them and neither server promises stability, so every weight generated here is distinct.
 
-    BOOT THE ORACLE UNDER ``LC_ALL=C``. Redis calls ``setlocale(LC_COLLATE, "")`` and then
-    ``strcoll()`` for ALPHA comparisons; this server never calls setlocale, so its strcoll is byte
-    order. Under en_US.UTF-8 the oracle orders ``1`` before ``-3`` where a byte comparison puts
-    ``-3`` first, and every punctuation-bearing ALPHA row diffs for that reason alone. In the C
-    locale strcoll IS the byte order and the two sides are comparing the same relation. (Whether
-    this server SHOULD collate by locale is a separate compatibility question -- see NOTES-SORT.md.)
+    Run both endpoints with C collation for this fixed-order corpus. Locale defaults and
+    runtime CONFIG SET are covered by tests/datafix1_locale.py against the same oracle.
     """
     # Deliberately mixed case and punctuation: with the oracle in the C locale this exercises the
     # ALPHA comparison itself, which is where a locale difference would show up first.
@@ -6798,10 +6794,8 @@ if SUITE == "sort":
     if observed != set(range(16)):
         raise RuntimeError("sort differ requires 16 observed shards, got %r" % sorted(observed))
 
-    # Redis installs LC_COLLATE from its process environment while TomoKV deliberately retains the
-    # C locale. Mixed-case/punctuation ALPHA weights below are a useful comparison only when both
-    # sides therefore use byte order. Check the actual relation instead of trusting a boot note:
-    # without LC_ALL=C, every so:a_* row becomes a locale artefact that looks like a bad gather.
+    # This corpus uses C ordering on both endpoints. Assert the actual relation;
+    # environment/default and live-locale parity have a separate directed battery.
     locale_key = "sort:locale:probe"
     locale_expected = [b"Echo!068", b"char-lie050"]
     for label, (sock, file) in (("target", (ts, tf)), ("oracle", (os_, of))):

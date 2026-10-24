@@ -1102,7 +1102,7 @@ plan_jobs(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
+  JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -2643,6 +2643,63 @@ job_aclfix(){
       fi
     done
   done
+}
+
+# datafix1: one aggregate row per issue; each battery owns every declared engine/mode leg.
+job_datafix1_geo(){
+  row_begin "datafix1 GEO grammar (both engines and modes)"
+  py tests/datafix1_geo.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 GEO grammar (both engines and modes)" \
+      || bad "datafix1 GEO grammar (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_spop(){
+  row_begin "datafix1 SPOP encodings (both engines and modes)"
+  py tests/datafix1_spop.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 SPOP encodings (both engines and modes)" \
+      || bad "datafix1 SPOP encodings (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_lists(){
+  row_begin "datafix1 list demotion (both engines and modes)"
+  py tests/datafix1_lists.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 list demotion (both engines and modes)" \
+      || bad "datafix1 list demotion (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_locale(){
+  row_begin "datafix1 SORT locale (both engines and modes)"
+  py tests/datafix1_locale.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 SORT locale (both engines and modes)" \
+      || bad "datafix1 SORT locale (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_bitfield(){
+  row_begin "datafix1 BITFIELD bounds (both engines and modes)"
+  py tests/datafix1_bitfield.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 BITFIELD bounds (both engines and modes)" \
+      || bad "datafix1 BITFIELD bounds (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_hexpire(){
+  row_begin "datafix1 HEXPIRE precedence (both engines and modes)"
+  py tests/datafix1_hexpire.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 HEXPIRE precedence (both engines and modes)" \
+      || bad "datafix1 HEXPIRE precedence (both engines and modes)" "see $TMPDIR/proof.log"
+}
+
+job_datafix1_randscan(){
+  row_begin "datafix1 RAND/SCAN errors (both engines and modes)"
+  py tests/datafix1_randscan.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/proof" >"$TMPDIR/proof.log" 2>&1 \
+      && ok "datafix1 RAND/SCAN errors (both engines and modes)" \
+      || bad "datafix1 RAND/SCAN errors (both engines and modes)" "see $TMPDIR/proof.log"
 }
 
 job_sort(){
@@ -5154,6 +5211,13 @@ collect_job acl_recheck
 collect_job aclfix
 
 collect_job sort
+collect_job datafix1_geo
+collect_job datafix1_spop
+collect_job datafix1_lists
+collect_job datafix1_locale
+collect_job datafix1_bitfield
+collect_job datafix1_randscan
+collect_job datafix1_hexpire
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split

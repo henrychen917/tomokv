@@ -1,0 +1,40 @@
+{
+  "matched_rows": 156,
+  "pre_pass": 155,
+  "pre_fail": [
+    {
+      "status": "FAIL",
+      "seconds": 12.16,
+      "label": "tracking battery (atomic 1)",
+      "run": "pre-existing-uring"
+    }
+  ],
+  "post_pass": 156,
+  "missing_labels": [],
+  "excluded_duplicate_or_static_rows": [
+    {
+      "status": "ok",
+      "seconds": 0.38,
+      "label": "configuration docs match parser",
+      "run": "pre-existing-uring"
+    },
+    {
+      "status": "ok",
+      "seconds": 5.19,
+      "label": "Redis config quoting + mid-value #",
+      "run": "pre-existing-uring"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.07,
+      "label": "cmdmeta covers every registered command",
+      "run": "pre-existing-uring"
+    },
+    {
+      "status": "ok",
+      "seconds": 0.01,
+      "label": "release build (+footprint locks)",
+      "run": "pre-uring-globcase"
+    }
+  ]
+}

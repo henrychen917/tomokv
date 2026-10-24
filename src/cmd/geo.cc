@@ -73,19 +73,6 @@ bool parse_double(Slice input, double& value) {
     return parse_double_strict(input, value);
 }
 
-bool parse_positive_count(Slice input, uint64_t& value) {
-    if (!input.n) return false;
-    uint64_t parsed = 0;
-    for (uint32_t i = 0; i < input.n; i++) {
-        const uint8_t c = static_cast<uint8_t>(input.p[i]);
-        if (c < '0' || c > '9') return false;
-        if (parsed > (std::numeric_limits<uint64_t>::max() - (c - '0')) / 10) return false;
-        parsed = parsed * 10 + (c - '0');
-    }
-    if (!parsed) return false;
-    value = parsed;
-    return true;
-}
 
 bool parse_unit(Slice input, double& meters) {
     if (input.eq_icase("m")) meters = 1.0;
@@ -226,7 +213,9 @@ std::vector<ScoreInterval> geo_neighbor_intervals(const GeoSearchOptions& option
     return intervals;
 }
 
-bool parse_search(Op& op, GeoSearchOptions& options) {
+// Validation runs only after the source lookup (including for STORE's gathered image).
+// Redis resolves members while walking options, so a later malformed shape cannot mask it.
+bool parse_search(Op& op, GeoSearchOptions& options, const std::vector<ZsetEntry>& source) {
     const bool search_store = op.cmd_name().eq_icase("geosearchstore");
     const bool search = op.cmd_name().eq_icase("geosearch") || search_store;
     const bool by_member = op.cmd_name().eq_icase("georadiusbymember") ||
@@ -234,42 +223,87 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
     const bool read_only_radius = op.cmd_name().eq_icase("georadius_ro") ||
                                   op.cmd_name().eq_icase("georadiusbymember_ro");
     options = {};
-    uint32_t arg = 0;
-    if (search) {
-        options.source_arg = search_store ? 2 : 1;
-        options.store = search_store;
-        options.destination_arg = search_store ? 1 : 0;
-        arg = search_store ? 3 : 2;
-        if (arg >= op.argc()) { reply_syntax(op.sink()); return false; }
-        if (op.arg(arg).eq_icase("frommember") && arg + 1 < op.argc()) {
-            options.from_member = true;
-            options.member = op.arg(arg + 1);
-            arg += 2;
-        } else if (op.arg(arg).eq_icase("fromlonlat") && arg + 2 < op.argc()) {
-            if (!parse_double(op.arg(arg + 1), options.longitude) ||
-                !parse_double(op.arg(arg + 2), options.latitude)) {
-                reply_err(op.sink(), "ERR value is not a valid float");
-                return false;
+    options.source_arg = search_store ? 2 : 1;
+    options.store = search_store;
+    options.destination_arg = search_store ? 1 : 0;
+    auto coordinates = [&](uint32_t arg) {
+        if (!parse_double(op.arg(arg), options.longitude) ||
+            !parse_double(op.arg(arg + 1), options.latitude)) {
+            reply_err(op.sink(), "ERR value is not a valid float"); return false;
+        }
+        if (!valid_coordinates(options.longitude, options.latitude)) {
+            reply_invalid_coordinates(op, options.longitude, options.latitude); return false;
+        }
+        return true;
+    };
+    auto member = [&](uint32_t arg) {
+        if (source.empty()) return true;
+        const Slice name = op.arg(arg);
+        auto it = std::find_if(source.begin(), source.end(), [&](const ZsetEntry& e) {
+            return Slice(e.member.data(), e.member.size()) == name;
+        });
+        if (it == source.end() || !std::isfinite(it->score) || it->score < 0 ||
+            it->score >= static_cast<double>(uint64_t{1} << 52)) {
+            reply_err(op.sink(), "ERR could not decode requested zset member"); return false;
+        }
+        geo_decode(it->score, options.longitude, options.latitude);
+        return true;
+    };
+    auto radius = [&](uint32_t arg) {
+        if (!parse_double(op.arg(arg), options.radius_m)) {
+            reply_err(op.sink(), "ERR need numeric radius"); return false;
+        }
+        if (options.radius_m < 0) {
+            reply_err(op.sink(), "ERR radius cannot be negative"); return false;
+        }
+        if (!parse_unit(op.arg(arg + 1), options.unit_m)) { reply_bad_unit(op); return false; }
+        options.radius_m *= options.unit_m;
+        options.shape = GeoShape::Radius;
+        return true;
+    };
+    uint32_t arg = search_store ? 3 : 2;
+    if (!search) {
+        arg = by_member ? 5 : 6;
+        if (by_member) {
+            if (!source.empty() && (!member(2) || !radius(3))) return false;
+        } else if (!coordinates(2) || !radius(4)) return false;
+    }
+    bool frommember = false, fromloc = false, byradius = false, bybox = false;
+    for (; arg < op.argc(); arg++) {
+        const Slice token = op.arg(arg);
+        if (token.eq_icase("asc")) options.order = GeoOrder::Asc;
+        else if (token.eq_icase("desc")) options.order = GeoOrder::Desc;
+        else if (token.eq_icase("withcoord")) options.with_coord = true;
+        else if (token.eq_icase("withdist")) options.with_dist = true;
+        else if (token.eq_icase("withhash")) options.with_hash = true;
+        else if (token.eq_icase("any")) options.any = true;
+        else if (token.eq_icase("count") && arg + 1 < op.argc()) {
+            int64_t count = 0;
+            const Slice number = op.arg(++arg);
+            const auto parsed = std::from_chars(number.p, number.p + number.n, count);
+            const std::string canonical = std::to_string(count);
+            if (parsed.ec != std::errc{} || parsed.ptr != number.p + number.n ||
+                Slice(canonical.data(), canonical.size()) != number) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
             }
-            if (!valid_coordinates(options.longitude, options.latitude)) {
-                reply_invalid_coordinates(op, options.longitude, options.latitude);
-                return false;
-            }
-            arg += 3;
-        } else { reply_syntax(op.sink()); return false; }
-
-        if (arg >= op.argc()) { reply_syntax(op.sink()); return false; }
-        if (op.arg(arg).eq_icase("byradius") && arg + 2 < op.argc()) {
-            options.shape = GeoShape::Radius;
-            if (!parse_double(op.arg(arg + 1), options.radius_m)) {
-                reply_err(op.sink(), "ERR need numeric radius"); return false;
-            }
-            if (options.radius_m < 0) { reply_err(op.sink(), "ERR radius cannot be negative"); return false; }
-            if (!parse_unit(op.arg(arg + 2), options.unit_m)) { reply_bad_unit(op); return false; }
-            options.radius_m *= options.unit_m;
-            arg += 3;
-        } else if (op.arg(arg).eq_icase("bybox") && arg + 3 < op.argc()) {
-            options.shape = GeoShape::Box;
+            if (count <= 0) { reply_err(op.sink(), "ERR COUNT must be > 0"); return false; }
+            options.count = static_cast<uint64_t>(count);
+        } else if (!search && !read_only_radius && arg + 1 < op.argc() &&
+                   (token.eq_icase("store") || token.eq_icase("storedist"))) {
+            options.destination_arg = ++arg;
+            options.store = true;
+            options.store_distance = token.eq_icase("storedist");
+        } else if (search_store && token.eq_icase("storedist")) options.store_distance = true;
+        else if (search && !fromloc && token.eq_icase("frommember") && arg + 1 < op.argc()) {
+            if (!member(++arg)) return false;
+            frommember = true;
+        } else if (search && !frommember && token.eq_icase("fromlonlat") && arg + 2 < op.argc()) {
+            if (!coordinates(arg + 1)) return false;
+            arg += 2; fromloc = true;
+        } else if (search && !bybox && token.eq_icase("byradius") && arg + 2 < op.argc()) {
+            if (!radius(arg + 1)) return false;
+            arg += 2; byradius = true;
+        } else if (search && !byradius && token.eq_icase("bybox") && arg + 3 < op.argc()) {
             if (!parse_double(op.arg(arg + 1), options.width_m)) {
                 reply_err(op.sink(), "ERR need numeric width"); return false;
             }
@@ -282,75 +316,30 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
             if (!parse_unit(op.arg(arg + 3), options.unit_m)) { reply_bad_unit(op); return false; }
             options.width_m *= options.unit_m;
             options.height_m *= options.unit_m;
-            arg += 4;
-        } else { reply_syntax(op.sink()); return false; }
-    } else {
-        options.source_arg = 1;
-        if (by_member) {
-            options.from_member = true;
-            options.member = op.arg(2);
-            if (!parse_double(op.arg(3), options.radius_m)) {
-                reply_err(op.sink(), "ERR need numeric radius"); return false;
-            }
-            if (options.radius_m < 0) { reply_err(op.sink(), "ERR radius cannot be negative"); return false; }
-            if (!parse_unit(op.arg(4), options.unit_m)) { reply_bad_unit(op); return false; }
-            arg = 5;
-        } else {
-            if (!parse_double(op.arg(2), options.longitude) ||
-                !parse_double(op.arg(3), options.latitude)) {
-                reply_err(op.sink(), "ERR value is not a valid float"); return false;
-            }
-            if (!parse_double(op.arg(4), options.radius_m)) {
-                reply_err(op.sink(), "ERR need numeric radius"); return false;
-            }
-            if (!valid_coordinates(options.longitude, options.latitude)) {
-                reply_invalid_coordinates(op, options.longitude, options.latitude); return false;
-            }
-            if (options.radius_m < 0) { reply_err(op.sink(), "ERR radius cannot be negative"); return false; }
-            if (!parse_unit(op.arg(5), options.unit_m)) { reply_bad_unit(op); return false; }
-            arg = 6;
-        }
-        options.radius_m *= options.unit_m;
-    }
-
-    bool count_seen = false;
-    for (; arg < op.argc(); arg++) {
-        if (op.arg(arg).eq_icase("asc")) options.order = GeoOrder::Asc;
-        else if (op.arg(arg).eq_icase("desc")) options.order = GeoOrder::Desc;
-        else if (op.arg(arg).eq_icase("withcoord")) options.with_coord = true;
-        else if (op.arg(arg).eq_icase("withdist")) options.with_dist = true;
-        else if (op.arg(arg).eq_icase("withhash")) options.with_hash = true;
-        else if (op.arg(arg).eq_icase("count") && arg + 1 < op.argc()) {
-            if (!parse_positive_count(op.arg(++arg), options.count)) {
-                reply_err(op.sink(), "ERR COUNT must be > 0"); return false;
-            }
-            count_seen = true;
-            if (arg + 1 < op.argc() && op.arg(arg + 1).eq_icase("any")) {
-                options.any = true;
-                arg++;
-            }
-        } else if (op.arg(arg).eq_icase("any")) {
-            reply_err(op.sink(), "ERR the ANY argument requires COUNT argument"); return false;
-        } else if (!search_store && !read_only_radius &&
-                   (op.arg(arg).eq_icase("store") || op.arg(arg).eq_icase("storedist")) &&
-                   arg + 1 < op.argc()) {
-            options.destination_arg = arg + 1;
-            options.store = true;
-            options.store_distance = op.arg(arg).eq_icase("storedist");
-            arg++;
-        } else if (search_store && op.arg(arg).eq_icase("storedist")) {
-            options.store_distance = true;
+            options.shape = GeoShape::Box;
+            arg += 3; bybox = true;
         } else { reply_syntax(op.sink()); return false; }
     }
-    (void)count_seen;
-    if (options.count && options.order == GeoOrder::None && !options.any)
-        options.order = GeoOrder::Asc;
     if (options.store && (options.with_coord || options.with_dist || options.with_hash)) {
         reply_err(op.sink(), search_store
             ? "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"
             : "ERR STORE option in GEORADIUS is not compatible with WITHDIST, WITHHASH and WITHCOORD options");
         return false;
     }
+    const char* missing = search && !frommember && !fromloc
+        ? "ERR exactly one of FROMMEMBER or FROMLONLAT can be specified for "
+        : search && !byradius && !bybox
+        ? "ERR exactly one of BYRADIUS and BYBOX can be specified for " : nullptr;
+    if (missing) {
+        std::string error(missing);
+        error.append(op.cmd_name().p, op.cmd_name().n);
+        reply_err(op.sink(), error.c_str()); return false;
+    }
+    if (options.any && !options.count) {
+        reply_err(op.sink(), "ERR the ANY argument requires COUNT argument"); return false;
+    }
+    if (options.count && options.order == GeoOrder::None && !options.any)
+        options.order = GeoOrder::Asc;
     return true;
 }
 
@@ -658,10 +647,9 @@ void cmd_geodist(Shard& shard, Op& op) {
 template <bool kNotify>
 void cmd_geosearch(Shard& shard, Op& op) {
     GeoSearchOptions options;
-    if (!parse_search(op, options)) return;
     std::vector<ZsetEntry> entries;
     int64_t expire = -1;
-    const Slice key = op.arg(options.source_arg);
+    const Slice key = op.arg(op.cmd_name().eq_icase("geosearchstore") ? 2 : 1);
     const uint64_t hash = FlatStore::hash_key(key);
     const ZsetOwnerResult read = zset_owner_read(
         shard, key, hash, kNotify, true, entries, expire);
@@ -669,6 +657,7 @@ void cmd_geosearch(Shard& shard, Op& op) {
     if (read != ZsetOwnerResult::Ok && read != ZsetOwnerResult::Missing) {
         reply_owner_error(op, read); return;
     }
+    if (!parse_search(op, options, entries)) return;
     std::vector<GeoResult> results;
     const GeoBuildResult built = run_search(options, entries, results);
     if (built == GeoBuildResult::MissingMember) {
@@ -716,19 +705,30 @@ static const CommandSpec kTable[] = {
 }  // namespace
 
 bool geo_prepare_route(Op& op, GeoRoute& route) {
-    GeoSearchOptions options;
-    if (!parse_search(op, options)) return false;
-    route.store = options.store;
-    route.store_distance = options.store_distance;
-    route.source_arg = options.source_arg;
-    route.destination_arg = options.destination_arg;
+    // Key extraction must not validate before the source owner's type/member lookup.
+    route = {};
+    if (op.cmd_name().eq_icase("geosearchstore")) {
+        route.store = true; route.source_arg = 2; route.destination_arg = 1;
+    } else if (op.cmd_name().eq_icase("georadius") ||
+               op.cmd_name().eq_icase("georadiusbymember")) {
+        uint32_t arg = op.cmd_name().eq_icase("georadius") ? 6 : 5;
+        for (; arg < op.argc(); ++arg) {
+            const Slice token = op.arg(arg);
+            if (token.eq_icase("count") && arg + 1 < op.argc()) ++arg;
+            else if ((token.eq_icase("store") || token.eq_icase("storedist")) && arg + 1 < op.argc()) {
+                route.store = true;
+                route.store_distance = token.eq_icase("storedist");
+                route.destination_arg = ++arg;
+            }
+        }
+    }
     return true;
 }
 
 GeoBuildResult geo_build_store(Op& op, const std::vector<ZsetEntry>& source,
                                std::vector<ZsetEntry>& destination) {
     GeoSearchOptions options;
-    if (!parse_search(op, options)) return GeoBuildResult::Oom;
+    if (!parse_search(op, options, source)) return GeoBuildResult::Invalid;
     std::vector<GeoResult> results;
     const GeoBuildResult built = run_search(options, source, results);
     if (built != GeoBuildResult::Ok) return built;
@@ -750,8 +750,8 @@ GeoBuildResult geo_build_store(Op& op, const std::vector<ZsetEntry>& source,
 }
 
 void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify) {
-    GeoSearchOptions options;
-    if (!parse_search(op, options)) return;
+    GeoRoute options;
+    geo_prepare_route(op, options);
     if (!options.store) {
         if (notify) cmd_geosearch<true>(shard, op);
         else cmd_geosearch<false>(shard, op);
@@ -769,6 +769,7 @@ void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify) {
     }
     std::vector<ZsetEntry> output;
     const GeoBuildResult built = geo_build_store(op, source, output);
+    if (built == GeoBuildResult::Invalid) return;
     if (built == GeoBuildResult::MissingMember) {
         reply_err(op.sink(), "ERR could not decode requested zset member"); return;
     }

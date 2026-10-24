@@ -1,0 +1,738 @@
+{
+  "object": "src/cmd/t_set.o",
+  "budget": 29000,
+  "unit": 19548,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=29000",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/t_set.cc",
+    "-o",
+    "/home/user/Projects/cx-datafix1/build/datafix1/budgets/src_cmd_t_set.o.post.29000.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-datafix1/build/datafix1/budgets/src_cmd_t_set.o.post.29000"
+  ],
+  "sha256": "11bc96c15eb4033bf3eee08911a223f628e97e2f188997f137791a9c1a84fb42",
+  "total": 213,
+  "hot": 12,
+  "changed": 78,
+  "hot_changed": 6,
+  "hot_differing_bytes": 4357,
+  "rows": [
+    {
+      "symbol": "_GLOBAL__sub_I__ZN4tomo14SetMemberTable12capacity_forEj",
+      "name": "_GLOBAL__sub_I__ZN4tomo14SetMemberTable12capacity_forEj",
+      "hot": false,
+      "pre_size": 759,
+      "post_size": 766,
+      "differing_bytes": 95,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo10reply_bulkINS_2Op4SinkEEEvOT_NS_5SliceE.isra.0",
+      "name": "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 267,
+      "post_size": 477,
+      "differing_bytes": 465,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_110add_memberERNS_13CollectionRefENS_5SliceERKNS_12CompactLimitEj",
+      "name": "tomo::(anonymous namespace)::add_member(tomo::CollectionRef&, tomo::Slice, tomo::CompactLimit const&, unsigned int)",
+      "hot": false,
+      "pre_size": 3183,
+      "post_size": 2551,
+      "differing_bytes": 3009,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_110add_memberERNS_13CollectionRefENS_5SliceERKNS_12CompactLimitEj.cold",
+      "name": "tomo::(anonymous namespace)::add_member(tomo::CollectionRef&, tomo::Slice, tomo::CompactLimit const&, unsigned int) [clone .cold]",
+      "hot": false,
+      "pre_size": 58,
+      "post_size": 58,
+      "differing_bytes": 2,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_110integer_atERKNS_13CollectionRefEjRl",
+      "name": "tomo::(anonymous namespace)::integer_at(tomo::CollectionRef const&, unsigned int, long&)",
+      "hot": false,
+      "pre_size": 527,
+      "post_size": 553,
+      "differing_bytes": 522,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_110reply_scanERNS_2OpEmRKSt6vectorIjSaIjEERKNS_14SetMemberTableE",
+      "name": "tomo::(anonymous namespace)::reply_scan(tomo::Op&, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> > const&, tomo::SetMemberTable const&)",
+      "hot": false,
+      "pre_size": 787,
+      "post_size": 883,
+      "differing_bytes": 678,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_111pop_compactERNS_2OpERNS_13CollectionRefEjb",
+      "name": "tomo::(anonymous namespace)::pop_compact(tomo::Op&, tomo::CollectionRef&, unsigned int, bool)",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 3317,
+      "differing_bytes": 3317,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_111pop_compactERNS_2OpERNS_13CollectionRefEjb.cold",
+      "name": "tomo::(anonymous namespace)::pop_compact(tomo::Op&, tomo::CollectionRef&, unsigned int, bool) [clone .cold]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 110,
+      "differing_bytes": 110,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_smembersILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_smembers<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 1520,
+      "post_size": 1824,
+      "differing_bytes": 904,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_112generic_findERKNS_13CollectionRefENS_5SliceERjPNS_7Compact5EntryE",
+      "name": "tomo::(anonymous namespace)::generic_find(tomo::CollectionRef const&, tomo::Slice, unsigned int&, tomo::Compact::Entry*)",
+      "hot": false,
+      "pre_size": 988,
+      "post_size": 1194,
+      "differing_bytes": 1147,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_112random_belowEm",
+      "name": "tomo::(anonymous namespace)::random_below(unsigned long)",
+      "hot": false,
+      "pre_size": 259,
+      "post_size": 259,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_113set_int_widthERNS_13CollectionRefEh",
+      "name": "tomo::(anonymous namespace)::set_int_width(tomo::CollectionRef&, unsigned char)",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 25,
+      "differing_bytes": 25,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_smismemberILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_smismember<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 734,
+      "post_size": 926,
+      "differing_bytes": 793,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_smismemberILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_smismember<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 734,
+      "post_size": 942,
+      "differing_bytes": 816,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_115cmd_srandmemberILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_srandmember<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3612,
+      "post_size": 3708,
+      "differing_bytes": 3288,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_115cmd_srandmemberILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_srandmember<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3612,
+      "post_size": 3724,
+      "differing_bytes": 3352,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_115externalize_setILb0EEEbRNS_5ShardERNS_2OpERPNS_5KvObjE",
+      "name": "bool tomo::(anonymous namespace)::externalize_set<false>(tomo::Shard&, tomo::Op&, tomo::KvObj*&)",
+      "hot": false,
+      "pre_size": 1407,
+      "post_size": 1442,
+      "differing_bytes": 1236,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_115externalize_setILb1EEEbRNS_5ShardERNS_2OpERPNS_5KvObjE",
+      "name": "bool tomo::(anonymous namespace)::externalize_set<true>(tomo::Shard&, tomo::Op&, tomo::KvObj*&)",
+      "hot": false,
+      "pre_size": 1423,
+      "post_size": 1458,
+      "differing_bytes": 1243,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_117set_snapshot_readERNS_18SnapshotSaveCursorEPhmRm",
+      "name": "tomo::(anonymous namespace)::set_snapshot_read(tomo::SnapshotSaveCursor&, unsigned char*, unsigned long, unsigned long&)",
+      "hot": false,
+      "pre_size": 1407,
+      "post_size": 1696,
+      "differing_bytes": 1506,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_118set_snapshot_beginERKNS_5KvObjERNS_18SnapshotSaveCursorERh",
+      "name": "tomo::(anonymous namespace)::set_snapshot_begin(tomo::KvObj const&, tomo::SnapshotSaveCursor&, unsigned char&)",
+      "hot": false,
+      "pre_size": 1200,
+      "post_size": 1472,
+      "differing_bytes": 839,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_130xshard_insert_set_element_implILb0EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmS5_",
+      "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_insert_set_element_impl<false>(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice)",
+      "hot": false,
+      "pre_size": 2451,
+      "post_size": 3008,
+      "differing_bytes": 2583,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_130xshard_insert_set_element_implILb0EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmS5_.cold",
+      "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_insert_set_element_impl<false>(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice) [clone .cold]",
+      "hot": false,
+      "pre_size": 43,
+      "post_size": 43,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_130xshard_insert_set_element_implILb1EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmS5_",
+      "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_insert_set_element_impl<true>(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice)",
+      "hot": false,
+      "pre_size": 2483,
+      "post_size": 3024,
+      "differing_bytes": 2597,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_130xshard_insert_set_element_implILb1EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmS5_.cold",
+      "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_insert_set_element_impl<true>(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice) [clone .cold]",
+      "hot": false,
+      "pre_size": 43,
+      "post_size": 43,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 2826,
+      "post_size": 3229,
+      "differing_bytes": 3006,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "differing_bytes": 3,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 2879,
+      "post_size": 3316,
+      "differing_bytes": 3073,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "differing_bytes": 3,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3196,
+      "post_size": 9363,
+      "differing_bytes": 9076,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 48,
+      "post_size": 186,
+      "differing_bytes": 172,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_spop<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3324,
+      "post_size": 9644,
+      "differing_bytes": 9370,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_spopILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_spop<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 48,
+      "post_size": 192,
+      "differing_bytes": 160,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_sremILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_srem<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 808,
+      "post_size": 856,
+      "differing_bytes": 325,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_sremILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_srem<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 949,
+      "post_size": 997,
+      "differing_bytes": 427,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3395,
+      "post_size": 3459,
+      "differing_bytes": 3112,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 117,
+      "post_size": 117,
+      "differing_bytes": 2,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&)",
+      "hot": false,
+      "pre_size": 3395,
+      "post_size": 3459,
+      "differing_bytes": 3120,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 117,
+      "post_size": 117,
+      "differing_bytes": 2,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo13CollectionRef15replace_compactEONS_7CompactE",
+      "name": "tomo::CollectionRef::replace_compact(tomo::Compact&&)",
+      "hot": false,
+      "pre_size": 306,
+      "post_size": 637,
+      "differing_bytes": 611,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo14kvobj_capacityEPKNS_5KvObjE",
+      "name": "tomo::kvobj_capacity(tomo::KvObj const*)",
+      "hot": false,
+      "pre_size": 221,
+      "post_size": 0,
+      "differing_bytes": 221,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo16reply_set_headerINS_2Op4SinkEEEvOT_mb",
+      "name": "void tomo::reply_set_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long, bool)",
+      "hot": false,
+      "pre_size": 365,
+      "post_size": 593,
+      "differing_bytes": 580,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo18reply_array_headerINS_2Op4SinkEEEvOT_m",
+      "name": "void tomo::reply_array_header<tomo::Op::Sink>(tomo::Op::Sink&&, unsigned long)",
+      "hot": false,
+      "pre_size": 235,
+      "post_size": 444,
+      "differing_bytes": 435,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+      "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+      "hot": false,
+      "pre_size": 588,
+      "post_size": 826,
+      "differing_bytes": 730,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo24atomic_tripwire_excludedEmmmmm",
+      "name": "tomo::atomic_tripwire_excluded(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 361,
+      "post_size": 0,
+      "differing_bytes": 361,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm",
+      "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+      "hot": false,
+      "pre_size": 515,
+      "post_size": 580,
+      "differing_bytes": 140,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo25xshard_remove_set_elementERNS_5ShardENS_5SliceEmS2_",
+      "name": "tomo::xshard_remove_set_element(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice)",
+      "hot": false,
+      "pre_size": 642,
+      "post_size": 937,
+      "differing_bytes": 783,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo25xshard_remove_set_elementERNS_5ShardENS_5SliceEmS2_.cold",
+      "name": "tomo::xshard_remove_set_element(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice) [clone .cold]",
+      "hot": false,
+      "pre_size": 80,
+      "post_size": 80,
+      "differing_bytes": 2,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo2Op4Sink6appendEPKcm",
+      "name": "tomo::Op::Sink::append(char const*, unsigned long)",
+      "hot": false,
+      "pre_size": 324,
+      "post_size": 533,
+      "differing_bytes": 515,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6SetValC1Ev",
+      "name": "tomo::SetVal::SetVal()",
+      "hot": false,
+      "pre_size": 148,
+      "post_size": 0,
+      "differing_bytes": 148,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6SetValC2Ev",
+      "name": "tomo::SetVal::SetVal()",
+      "hot": false,
+      "pre_size": 148,
+      "post_size": 0,
+      "differing_bytes": 148,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo7Compact19ensure_offset_spaceEj",
+      "name": "tomo::Compact::ensure_offset_space(unsigned int)",
+      "hot": false,
+      "pre_size": 721,
+      "post_size": 790,
+      "differing_bytes": 730,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore10retire_objEPNS_5KvObjE",
+      "name": "tomo::FlatStore::retire_obj(tomo::KvObj*)",
+      "hot": false,
+      "pre_size": 454,
+      "post_size": 519,
+      "differing_bytes": 98,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore11find_notifyEmNS_5SliceEPNS_14FlatNotifySinkE",
+      "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+      "hot": true,
+      "pre_size": 717,
+      "post_size": 772,
+      "differing_bytes": 636,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore12erase_notifyEmNS_5SliceEPNS_14FlatNotifySinkENS0_10EraseEventE.isra.0",
+      "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent) [clone .isra.0]",
+      "hot": true,
+      "pre_size": 625,
+      "post_size": 737,
+      "differing_bytes": 407,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore12start_rehashEj",
+      "name": "tomo::FlatStore::start_rehash(unsigned int)",
+      "hot": false,
+      "pre_size": 973,
+      "post_size": 1054,
+      "differing_bytes": 490,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore13choose_victimENS_5SliceE",
+      "name": "tomo::FlatStore::choose_victim(tomo::Slice)",
+      "hot": false,
+      "pre_size": 1974,
+      "post_size": 2540,
+      "differing_bytes": 2332,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore13make_room_forENS_5SliceEm",
+      "name": "tomo::FlatStore::make_room_for(tomo::Slice, unsigned long)",
+      "hot": false,
+      "pre_size": 1451,
+      "post_size": 1799,
+      "differing_bytes": 1712,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore14live_or_expireEimNS_5SliceEPNS_5KvObjE",
+      "name": "tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)",
+      "hot": false,
+      "pre_size": 300,
+      "post_size": 0,
+      "differing_bytes": 300,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+      "hot": true,
+      "pre_size": 1242,
+      "post_size": 1287,
+      "differing_bytes": 291,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore22insert_into_read_localEimPNS_5KvObjEb",
+      "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+      "hot": true,
+      "pre_size": 1135,
+      "post_size": 1345,
+      "differing_bytes": 848,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore22rehash_step_read_localEv",
+      "name": "tomo::FlatStore::rehash_step_read_local()",
+      "hot": false,
+      "pre_size": 1229,
+      "post_size": 1326,
+      "differing_bytes": 270,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmb",
+      "name": "tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)",
+      "hot": false,
+      "pre_size": 2209,
+      "post_size": 2482,
+      "differing_bytes": 2314,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore24choose_victim_read_localENS_5SliceE",
+      "name": "tomo::FlatStore::choose_victim_read_local(tomo::Slice)",
+      "hot": false,
+      "pre_size": 1945,
+      "post_size": 2480,
+      "differing_bytes": 2273,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore25random_volatile_candidateEv",
+      "name": "tomo::FlatStore::random_volatile_candidate()",
+      "hot": false,
+      "pre_size": 995,
+      "post_size": 1027,
+      "differing_bytes": 442,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore25read_local_reclaim_objectEPvS1_m",
+      "name": "tomo::FlatStore::read_local_reclaim_object(void*, void*, unsigned long)",
+      "hot": false,
+      "pre_size": 610,
+      "post_size": 653,
+      "differing_bytes": 582,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore25read_local_topology_storeIjEEvPT_S2_.isra.0",
+      "name": "void tomo::FlatStore::read_local_topology_store<unsigned int>(unsigned int*, unsigned int) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 38,
+      "post_size": 0,
+      "differing_bytes": 38,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore29read_local_advance_generationERSt6atomicImEb",
+      "name": "tomo::FlatStore::read_local_advance_generation(std::atomic<unsigned long>&, bool)",
+      "hot": false,
+      "pre_size": 98,
+      "post_size": 0,
+      "differing_bytes": 98,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore4findEmNS_5SliceE",
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "hot": true,
+      "pre_size": 774,
+      "post_size": 1005,
+      "differing_bytes": 928,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore5eraseEmNS_5SliceE",
+      "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+      "hot": true,
+      "pre_size": 819,
+      "post_size": 1320,
+      "differing_bytes": 1247,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9good_sizeEm",
+      "name": "tomo::good_size(unsigned long)",
+      "hot": false,
+      "pre_size": 89,
+      "post_size": 0,
+      "differing_bytes": 89,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "hot": false,
+      "pre_size": 550,
+      "post_size": 781,
+      "differing_bytes": 724,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_intINS_2Op4SinkEEEvOT_x",
+      "name": "void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)",
+      "hot": false,
+      "pre_size": 207,
+      "post_size": 397,
+      "differing_bytes": 387,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK4tomo7Compact2atEjRNS0_5EntryE",
+      "name": "tomo::Compact::at(unsigned int, tomo::Compact::Entry&) const",
+      "hot": false,
+      "pre_size": 336,
+      "post_size": 474,
+      "differing_bytes": 453,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_111pop_rebuiltILb0EEEbRNS_5ShardERNS_2OpERPNS_5KvObjEjENKUlNS_5SliceEE0_clES9_.isra.0",
+      "name": "tomo::(anonymous namespace)::pop_rebuilt<false>(tomo::Shard&, tomo::Op&, tomo::KvObj*&, unsigned int)::{lambda(tomo::Slice)#2}::operator()(tomo::Slice) const [clone .isra.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 143,
+      "differing_bytes": 143,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_111pop_rebuiltILb0EEEbRNS_5ShardERNS_2OpERPNS_5KvObjEjENKUlNS_5SliceEE_clES9_",
+      "name": "tomo::(anonymous namespace)::pop_rebuilt<false>(tomo::Shard&, tomo::Op&, tomo::KvObj*&, unsigned int)::{lambda(tomo::Slice)#1}::operator()(tomo::Slice) const",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 644,
+      "differing_bytes": 644,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_111pop_rebuiltILb1EEEbRNS_5ShardERNS_2OpERPNS_5KvObjEjENKUlNS_5SliceEE0_clES9_.isra.0",
+      "name": "tomo::(anonymous namespace)::pop_rebuilt<true>(tomo::Shard&, tomo::Op&, tomo::KvObj*&, unsigned int)::{lambda(tomo::Slice)#2}::operator()(tomo::Slice) const [clone .isra.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 143,
+      "differing_bytes": 143,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_111pop_rebuiltILb1EEEbRNS_5ShardERNS_2OpERPNS_5KvObjEjENKUlNS_5SliceEE_clES9_",
+      "name": "tomo::(anonymous namespace)::pop_rebuilt<true>(tomo::Shard&, tomo::Op&, tomo::KvObj*&, unsigned int)::{lambda(tomo::Slice)#1}::operator()(tomo::Slice) const",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 644,
+      "differing_bytes": 644,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmbENKUlRNS_11AtomicEntryEPNS_5KvObjEbE_clES3_S5_b",
+      "name": "tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)::{lambda(tomo::AtomicEntry&, tomo::KvObj*, bool)#1}::operator()(tomo::AtomicEntry&, tomo::KvObj*, bool) const",
+      "hot": false,
+      "pre_size": 604,
+      "post_size": 1067,
+      "differing_bytes": 1029,
+      "targets_equal": false
+    }
+  ]
+}

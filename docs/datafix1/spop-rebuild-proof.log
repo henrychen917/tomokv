@@ -1,0 +1,2 @@
+post-spop-rebuild GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-spop-rebuild-ledger.tsv.partial
+pre-spop-rebuild GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/pre-spop-rebuild-ledger.tsv.partial

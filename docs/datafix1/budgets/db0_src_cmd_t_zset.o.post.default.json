@@ -1,0 +1,155 @@
+{
+  "object": "db0/src/cmd/t_zset.o",
+  "pre": false,
+  "unit": 24874,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=32984",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_zset.cc",
+    "-o",
+    "/home/user/Projects/cx-datafix1/build/datafix1/budgets/db0_src_cmd_t_zset.o.post.default.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-datafix1/build/datafix1/budgets/db0_src_cmd_t_zset.o.post.default"
+  ],
+  "sha256": "117a88654cdb7e7f38aca9b9c803e832157847e3dffcdf923bd07ab087fb8baa",
+  "total": 293,
+  "hot": 12,
+  "changed": 13,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_GLOBAL__sub_I__ZN8tomo_db07ZsetValD2Ev",
+      "name": "_GLOBAL__sub_I__ZN8tomo_db07ZsetValD2Ev",
+      "hot": false,
+      "pre_size": 1809,
+      "post_size": 1809,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115cmd_zrandmemberILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 4401,
+      "post_size": 4360,
+      "differing_bytes": 3560,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115cmd_zrandmemberILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 250,
+      "post_size": 257,
+      "differing_bytes": 181,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115cmd_zrandmemberILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 4401,
+      "post_size": 4360,
+      "differing_bytes": 3560,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115cmd_zrandmemberILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 250,
+      "post_size": 257,
+      "differing_bytes": 181,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117compact_erase_lexERNS_13CollectionRefERKNS0_8LexRangeE",
+      "name": "tomo_db0::(anonymous namespace)::compact_erase_lex(tomo_db0::CollectionRef&, tomo_db0::(anonymous namespace)::LexRange const&)",
+      "hot": false,
+      "pre_size": 1869,
+      "post_size": 1797,
+      "differing_bytes": 1676,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_119finish_range_deleteILb1EEEvRNS_5ShardERNS_2OpERNS_13CollectionRefENS0_13RemovalResultEbRNS_17ObjectSizeTrackerE.isra.0",
+      "name": "void tomo_db0::(anonymous namespace)::finish_range_delete<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::CollectionRef&, tomo_db0::(anonymous namespace)::RemovalResult, bool, tomo_db0::ObjectSizeTracker&) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 891,
+      "post_size": 867,
+      "differing_bytes": 818,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_zscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 4260,
+      "post_size": 4356,
+      "differing_bytes": 3978,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_zscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 200,
+      "post_size": 200,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_zscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 4260,
+      "post_size": 4356,
+      "differing_bytes": 3978,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_zscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 200,
+      "post_size": 200,
+      "differing_bytes": 0,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db017zset_sort_promoteERNS_5ShardEmNS_5SliceEb",
+      "name": "tomo_db0::zset_sort_promote(tomo_db0::Shard&, unsigned long, tomo_db0::Slice, bool)",
+      "hot": false,
+      "pre_size": 2543,
+      "post_size": 2576,
+      "differing_bytes": 1077,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db025embedded_compact_capacityEPKNS_5KvObjE",
+      "name": "tomo_db0::embedded_compact_capacity(tomo_db0::KvObj const*)",
+      "hot": false,
+      "pre_size": 280,
+      "post_size": 296,
+      "differing_bytes": 259,
+      "targets_equal": false
+    }
+  ]
+}

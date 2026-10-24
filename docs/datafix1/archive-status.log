@@ -1,0 +1,26 @@
+pre-existing-uring GATE(PARTIAL): 157 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/pre-existing-uring-ledger.tsv.partial
+pre-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-units-ledger.tsv.partial
+post-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-units-ledger.tsv.partial
+pad-control GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/pad-control-ledger.tsv.partial
+post-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+pre-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+post-existing-uring LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+post-serial-epoll GATE(PARTIAL): 164 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-serial-epoll-ledger.tsv.partial
+post-final-epoll GATE(PARTIAL): 166 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-final-epoll-ledger.tsv.partial
+post-final-uring GATE(PARTIAL): 156 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-final-uring-ledger.tsv.partial
+pre-final-spop GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-final-spop-ledger.tsv.partial
+pre-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-extra-ledger.tsv.partial
+post-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-extra-ledger.tsv.partial
+post-linear-directed GATE(PARTIAL): 8 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-directed-ledger.tsv.partial
+pre-linear-directed GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-linear-directed-ledger.tsv.partial
+pre-static-final GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-static-final-ledger.tsv.partial
+post-linear-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-units-ledger.tsv.partial
+post-linear-epoll GATE(PARTIAL): 159 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-epoll-ledger.tsv.partial
+post-linear-uring GATE(PARTIAL): 156 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-uring-ledger.tsv.partial
+post-linear-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-extra-ledger.tsv.partial
+post-epoll-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-epoll-differ-serial-ledger.tsv.partial
+pre-epoll-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-epoll-differ-serial-ledger.tsv.partial
+post-uring-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-uring-differ-serial-ledger.tsv.partial
+pre-uring-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-uring-differ-serial-ledger.tsv.partial
+pad-directed-final GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pad-directed-final-ledger.tsv.partial
+pre-uring-globcase GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-uring-globcase-ledger.tsv.partial

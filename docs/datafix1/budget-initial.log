@@ -1,0 +1,4 @@
+{"object": "src/cmd/t_set.o", "pre": true, "unit": 17685, "sha256": "69d58c3e4028819682febd7c13fea2e3e5d6d6a61226ee7144a85bf74a5046b1", "total": 206, "hot": 12, "changed": 0, "hot_changed": 0, "hot_differing_bytes": 0}
+{"object": "src/cmd/t_set.o", "pre": false, "unit": 17957, "sha256": "3199f4aa2571d533352f98cb58063cda76bf78344496e54893e5f33dabc673c6", "total": 209, "hot": 12, "changed": 29, "hot_changed": 3, "hot_differing_bytes": 1154}
+{"object": "db0/src/cmd/t_set.o", "pre": true, "unit": 17505, "sha256": "9254e66d3e108d9a6f73e45f6ac42935732f5bbfe2c7e6e316c73a14bf16d78a", "total": 203, "hot": 12, "changed": 0, "hot_changed": 0, "hot_differing_bytes": 0}
+{"object": "db0/src/cmd/t_set.o", "pre": false, "unit": 17775, "sha256": "b3a2d6a0ae92f435cf7ae8163ee337cc02a49ce01d80d11d47623eba05cb7a59", "total": 208, "hot": 12, "changed": 39, "hot_changed": 4, "hot_differing_bytes": 1572}

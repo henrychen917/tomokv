@@ -1,0 +1,3 @@
+ok	0.390000	configuration docs match parser
+ok	5.010000	Redis config quoting + mid-value #
+ok	0.070000	cmdmeta covers every registered command

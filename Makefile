@@ -194,10 +194,14 @@ $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-u
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
-$(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23582
+# datafix1: compact SPOP, survivor rebuilding and RAND parsing add 1688/1670
+# initial IPA instructions in the ordinary/db0 units.
+# Bounded scans in docs/datafix1/budgets restore all ordinary storage hot bodies;
+# the chosen budgets also minimize unrelated set-body changes among those trials.
+$(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26200
 # The live intset limit adds cold collection code; retain the ordinary FlatStore body.
-$(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23442
-$(BUILD_ROOT)/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33409
+$(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26400
+$(BUILD_ROOT)/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33447
 $(BUILD_ROOT)/db0/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32984
 # CD7/CD13's cold GEO text needs its own budget. The audit still reports the three
 # remaining GEO-helper differences; these settings do not claim that strict check passes.

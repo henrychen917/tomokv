@@ -1377,7 +1377,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
             }
             with_values = true;
             if (signed_count < -INT64_MAX / 2 || signed_count > INT64_MAX / 2) {
-                reply_outofrange(op.sink());
+                reply_err(op.sink(), "ERR value is out of range");
                 return;
             }
         }

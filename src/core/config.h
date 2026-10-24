@@ -28,6 +28,7 @@
 #include <cerrno>
 #include <charconv>
 #include <limits>
+#include <locale.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -473,7 +474,8 @@ struct Config {
     uint32_t requirepass_size = 0;
     uint32_t hz = ClientHz::kDefault;
     uint32_t dynamic_hz = 1;
-    uint8_t layout_reserved[32]{};
+    const char* locale_collate = ""; // Redis: empty selects the environment LC_COLLATE.
+    uint8_t layout_reserved[24]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -1075,6 +1077,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--locale-collate")) {
+            cfg.locale_collate = next(nullptr);
+            if (!cfg.locale_collate) return kConfigError;
+        }
         else if (!std::strcmp(a, "--proto-max-bulk-len")) {
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value < kProtoMinBulkLen ||
@@ -1321,6 +1327,12 @@ inline int validate_config(const Config& cfg) {
         std::fprintf(stderr, "proto-max-bulk-len is outside the supported range\n");
         return kConfigError;
     }
+    locale_t collate = newlocale(LC_COLLATE_MASK, cfg.locale_collate, nullptr);
+    if (!collate) {
+        std::fprintf(stderr, "Invalid locale name for locale-collate\n");
+        return kConfigError;
+    }
+    freelocale(collate);
     if (cfg.port && cfg.tls_port && cfg.port == cfg.tls_port) {
         std::fprintf(stderr, "port and tls-port must be different listeners\n");
         return kConfigError;

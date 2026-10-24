@@ -96,6 +96,40 @@ void adopt_nodes(ListVal& dst, ListVal& src) {
     src.node_allocation_bytes = 0;
 }
 
+// Redis's hysteresis is based on listpack wire size, not this implementation's
+// ULEB framing or allocator capacity. Include the 6-byte header and terminator.
+uint64_t redis_listpack_bytes(const Compact& packed) {
+    uint64_t bytes = 7;
+    for (const Compact::Entry entry : packed) {
+        int64_t integer = 0;
+        uint64_t encoded;
+        if (parse_i64(entry.value, integer)) {
+            encoded = integer >= 0 && integer <= 127 ? 1
+                : integer >= -4096 && integer <= 4095 ? 2
+                : integer >= INT16_MIN && integer <= INT16_MAX ? 3
+                : integer >= -8388608 && integer <= 8388607 ? 4
+                : integer >= INT32_MIN && integer <= INT32_MAX ? 5 : 9;
+        } else encoded = entry.value.n + (entry.value.n < 64 ? 1 : entry.value.n < 4096 ? 2 : 5);
+        const uint32_t backlen = encoded <= 127 ? 1 : encoded < 16383 ? 2
+            : encoded < 2097151 ? 3 : encoded < 268435455 ? 4 : 5;
+        bytes += encoded + backlen;
+    }
+    return bytes;
+}
+
+void demote_shrunk_list(CollectionRef& list, const CompactLimit& limit) {
+    if (list.encoding() != CollectionEncoding::Deque) return;
+    ListVal* expanded = list.external_as<ListVal>();
+    if (!expanded->head || expanded->head != expanded->tail ||
+        list.entries() > limit.max_entries / 2 ||
+        redis_listpack_bytes(expanded->head->values) > limit.max_value / 2) return;
+    // Move the sole node's packed storage; no allocation or copy can fail here.
+    Compact packed = std::move(expanded->head->values);
+    clear_nodes(*expanded);
+    static_cast<CompactValue&>(*expanded) = CompactValue{};
+    expanded->replace_compact(std::move(packed));
+}
+
 bool node_can_insert(const ListNode* node, Slice value, const CompactLimit& limit) {
     if (!node || value.n > limit.max_value ||
         node->values.size() >= std::min(limit.max_entries, kNodeMaxEntries)) return false;
@@ -495,6 +529,7 @@ void pop_generic(Shard& shard, Op& op, bool left) {
             expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_LIST,
                       left ? NotifyEventId::Lpop : NotifyEventId::Rpop, op.key());
@@ -616,6 +651,7 @@ void cmd_lset(Shard& shard, Op& op) {
             expanded->promote(CollectionEncoding::Deque, allocation);
         expanded->note_expanded_replace(old_payload, replacement.n, allocation);
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Lset, op.key());
     reply_ok(op.sink());
@@ -768,6 +804,7 @@ void cmd_lrem(Shard& shard, Op& op) {
         expanded->note_expanded_delete_many(remove_count, removed_payload,
                                             expanded->node_allocation_bytes);
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Lrem, op.key());
     reply_int(op.sink(), remove_count);
@@ -796,6 +833,7 @@ void cmd_ltrim(Shard& shard, Op& op) {
         return;
     }
     if (first == 0 && keep == list.entries()) {
+        demote_shrunk_list(list, shard.type_limits().list);
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Ltrim, op.key());
         reply_ok(op.sink()); return;
@@ -823,6 +861,7 @@ void cmd_ltrim(Shard& shard, Op& op) {
         expanded->note_expanded_delete_many(removed, removed_payload,
                                             expanded->node_allocation_bytes);
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if constexpr (kNotify)
         notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Ltrim, op.key());
     reply_ok(op.sink());
@@ -1003,6 +1042,7 @@ XshardPopResult xshard_pop_list(Shard& shard, Slice key, uint64_t hash, bool lef
             expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if (Op* source = shard.notify_source())
         notify_record(shard, *source, NOTIFY_LIST,
                       left ? NotifyEventId::Lpop : NotifyEventId::Rpop, key);
@@ -1091,6 +1131,7 @@ XshardElementResult xshard_remove_list_element_impl(Shard& shard, Slice key, uin
             expanded_pop(*expanded, left, payload);
             expanded->note_expanded_delete(payload, expanded->node_allocation_bytes);
         }
+        demote_shrunk_list(list, shard.type_limits().list);
         if (!list.entries()) {
             size_tracker.finish();
             shard.store_erase<kNotify>(hash, key);
@@ -1142,6 +1183,7 @@ XshardElementResult xshard_remove_list_element_impl(Shard& shard, Slice key, uin
         adopt_nodes(*expanded, staging);
         expanded->note_expanded_delete(removed_payload, expanded->node_allocation_bytes);
     }
+    demote_shrunk_list(list, shard.type_limits().list);
     if (!list.entries()) {
         size_tracker.finish();
         shard.store_erase<kNotify>(hash, key);

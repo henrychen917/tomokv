@@ -1,0 +1,785 @@
+{"argv": ["SET", "wrong", "string"], "oracle": "OK", "target": "OK"}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 1, "target": 1}
+{"argv": ["HEXPIRE", "h", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "FIELDS", 1, "f"], "oracle": [1], "target": [1]}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "h", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HEXPIRE", "missing", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HEXPIRE", "missing", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIRE", "missing", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HEXPIRE", "missing", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HEXPIRE", "missing", 100, "FIELDS", 1, "f"], "oracle": [-2], "target": [-2]}
+{"argv": ["HEXPIRE", "missing", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIRE", "wrong", -1, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -1, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -1, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -1, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -1, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", -5, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "x", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", "01", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIRE", "wrong", 100, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 1, "target": 1}
+{"argv": ["HEXPIRE", "bound", 70368744177, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIRE", "bound", 70368744178, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpire' command"}, "target": {"error": "ERR invalid expire time in 'hexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "FIELDS", 1, "f"], "oracle": [1], "target": [1]}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "h", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HPEXPIRE", "missing", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HPEXPIRE", "missing", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIRE", "missing", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HPEXPIRE", "missing", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HPEXPIRE", "missing", 100, "FIELDS", 1, "f"], "oracle": [-2], "target": [-2]}
+{"argv": ["HPEXPIRE", "missing", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -1, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", -5, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "x", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", "01", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIRE", "wrong", 100, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "bound", 70368744177663, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIRE", "bound", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpire' command"}, "target": {"error": "ERR invalid expire time in 'hpexpire' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "h", 100, "FIELDS", 1, "f"], "oracle": [2], "target": [2]}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 1, "target": 1}
+{"argv": ["HEXPIREAT", "h", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HEXPIREAT", "missing", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HEXPIREAT", "missing", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIREAT", "missing", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HEXPIREAT", "missing", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HEXPIREAT", "missing", 100, "FIELDS", 1, "f"], "oracle": [-2], "target": [-2]}
+{"argv": ["HEXPIREAT", "missing", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -1, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", -5, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "x", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", "01", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HEXPIREAT", "wrong", 100, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "bound", 70368744177, "FIELDS", 1, "f"], "oracle": [1], "target": [1]}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HEXPIREAT", "bound", 70368744178, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "h", 100, "FIELDS", 1, "f"], "oracle": [2], "target": [2]}
+{"argv": ["HSET", "h", "f", "v"], "oracle": 1, "target": 1}
+{"argv": ["HPEXPIREAT", "h", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -1, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", -5, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time, must be >= 0"}, "target": {"error": "ERR invalid expire time, must be >= 0"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "x", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "FIELDS", 2, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "FIELDS", 0, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "FIELD", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "FIELDS", 1, "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", "01", "FIELDS", "x", "f"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}
+{"argv": ["HPEXPIREAT", "missing", 100, "FIELDS", 2, "f"], "oracle": {"error": "ERR The `numfields` parameter must match the number of arguments"}, "target": {"error": "ERR The `numfields` parameter must match the number of arguments"}}
+{"argv": ["HPEXPIREAT", "missing", 100, "FIELDS", 0, "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIREAT", "missing", 100, "FIELD", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HPEXPIREAT", "missing", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}, "target": {"error": "ERR Mandatory argument FIELDS is missing or not at the right position"}}
+{"argv": ["HPEXPIREAT", "missing", 100, "FIELDS", 1, "f"], "oracle": [-2], "target": [-2]}
+{"argv": ["HPEXPIREAT", "missing", 100, "FIELDS", "x", "f"], "oracle": {"error": "ERR Parameter `numFields` should be greater than 0"}, "target": {"error": "ERR Parameter `numFields` should be greater than 0"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -1, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", -5, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "9223372036854775808", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "x", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", "01", "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 70368744177664, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 9223372036854775807, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "FIELDS", 2, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "FIELDS", 0, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "FIELD", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "NX", "XX", "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "FIELDS", 1, "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HPEXPIREAT", "wrong", 100, "FIELDS", "x", "f"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "bound", 70368744177663, "FIELDS", 1, "f"], "oracle": [1], "target": [1]}
+{"argv": ["HSET", "bound", "f", "v"], "oracle": 0, "target": 0}
+{"argv": ["HPEXPIREAT", "bound", 70368744177664, "FIELDS", 1, "f"], "oracle": {"error": "ERR invalid expire time in 'hpexpireat' command"}, "target": {"error": "ERR invalid expire time in 'hpexpireat' command"}}

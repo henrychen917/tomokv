@@ -202,9 +202,8 @@ for name, knob, small, big, add, count in TYPES:
         check("list content across promotion", c.cmd("LRANGE", k, "0", "-1"),
               [b"e%05d" % i for i in range(maxent + 1)])
 
-    # ONE-WAY BY DESIGN (src/store/typeval.h: "Promotion is one-way unless a lane explicitly
-    # proves a hysteretic demotion policy"). Deleting back below the threshold must NOT demote.
-    # This is the arm that would catch a demotion path being added without the accounting.
+    # Redis keeps hash/set/zset encodings; lists demote at half the live limit.
+    # CD4.5 oracle boundary receipts: docs/datafix1/oracle-lists/.
     for i in range(maxent):
         if name == "hash":
             c.cmd("HDEL", k, "f%05d" % i)
@@ -214,8 +213,9 @@ for name, knob, small, big, add, count in TYPES:
             c.cmd("ZREM", k, "m%05d" % i)
         else:
             c.cmd("LPOP", k)
-    check("%s stays %s after shrinking back below the threshold" % (name, big.decode()),
-          c.cmd("OBJECT", "ENCODING", k), big)
+    shrunk = small if name == "list" and maxent >= 2 else big
+    check("%s is %s after shrinking back below the threshold" % (name, shrunk.decode()),
+          c.cmd("OBJECT", "ENCODING", k), shrunk)
     check("%s survives the shrink with one entry" % name, c.cmd(*count(k)), 1)
     c.cmd("DEL", k)
 

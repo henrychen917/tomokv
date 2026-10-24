@@ -1,0 +1,207 @@
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", ""], "target": ["locale-collate", ""]}
+{"argv": ["RPUSH", "l", "b", "A", "a", "B", "c", "C", "_x", "\u00e9", "z"], "oracle": 9, "target": 9}
+{"argv": ["SADD", "s", "b", "A", "a", "B", "c", "C", "_x", "\u00e9", "z"], "oracle": 9, "target": 9}
+{"argv": ["SET", "weight:b", "b"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 0, "b"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:A", "A"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 1, "A"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:a", "a"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 2, "a"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:B", "B"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 3, "B"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:c", "c"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 4, "c"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:C", "C"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 5, "C"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:_x", "_x"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 6, "_x"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:\u00e9", "\u00e9"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 7, "\u00e9"], "oracle": 1, "target": 1}
+{"argv": ["SET", "weight:z", "z"], "oracle": "OK", "target": "OK"}
+{"argv": ["ZADD", "z", 8, "z"], "oracle": 1, "target": 1}
+{"argv": ["CONFIG", "SET", "locale-collate", ""], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", ""], "target": ["locale-collate", ""]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "C"], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", "C"], "target": ["locale-collate", "C"]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "en_US.UTF-8"], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", "en_US.UTF-8"], "target": ["locale-collate", "en_US.UTF-8"]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "C.UTF-8"], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", "C.UTF-8"], "target": ["locale-collate", "C.UTF-8"]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "not_a_locale"], "oracle": {"error": "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name"}, "target": {"error": "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name"}}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", "C.UTF-8"], "target": ["locale-collate", "C.UTF-8"]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "C\u0000suffix"], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", "C"], "target": ["locale-collate", "C"]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"], "target": ["\u00e9", "z", "c", "b", "a", "_x", "C", "B", "A"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["B", "C", "_x", "a", "b"], "target": ["B", "C", "_x", "a", "b"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", ""], "oracle": "OK", "target": "OK"}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", ""], "target": ["locale-collate", ""]}
+{"argv": ["SORT", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "l", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "l", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "l", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "s", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "s", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "s", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["SORT", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT_RO", "z", "ALPHA"], "oracle": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"], "target": ["a", "A", "b", "B", "c", "C", "\u00e9", "_x", "z"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "DESC"], "oracle": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"], "target": ["z", "_x", "\u00e9", "C", "c", "B", "b", "A", "a"]}
+{"argv": ["SORT_RO", "z", "ALPHA", "BY", "weight:*", "LIMIT", 1, 5], "oracle": ["A", "b", "B", "c", "C"], "target": ["A", "b", "B", "c", "C"]}
+{"argv": ["SORT", "z", "ALPHA", "STORE", "dst"], "oracle": 9, "target": 9}
+{"argv": ["LRANGE", "dst", 0, -1], "oracle": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"], "target": ["A", "B", "C", "_x", "a", "b", "c", "z", "\u00e9"]}
+{"argv": ["CONFIG", "SET", "locale-collate", "C", "LOCALE-COLLATE", ""], "oracle": {"error": "ERR CONFIG SET failed (possibly related to argument 'LOCALE-COLLATE') - duplicate parameter"}, "target": {"error": "ERR CONFIG SET failed (possibly related to argument 'LOCALE-COLLATE') - duplicate parameter"}}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", ""], "target": ["locale-collate", ""]}
+{"argv": ["CONFIG", "SET", "LOCALE-COLLATE", "not_a_locale"], "oracle": {"error": "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name"}, "target": {"error": "ERR CONFIG SET failed (possibly related to argument 'locale-collate') - Invalid locale name"}}
+{"argv": ["CONFIG", "GET", "locale-collate"], "oracle": ["locale-collate", ""], "target": ["locale-collate", ""]}

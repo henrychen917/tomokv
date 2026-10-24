@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_geo; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	3.260000	datafix1 GEO grammar (both engines and modes)

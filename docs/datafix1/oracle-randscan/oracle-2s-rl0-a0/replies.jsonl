@@ -1,0 +1,1056 @@
+{"argv": ["HSET", "h", "f", "v"], "oracle": 1, "target": 1}
+{"argv": ["ZADD", "z", 1, "a"], "oracle": 1, "target": 1}
+{"argv": ["SADD", "s", "a"], "oracle": 1, "target": 1}
+{"argv": ["SET", "wrong", "string"], "oracle": "OK", "target": "OK"}
+{"argv": ["HRANDFIELD", "h", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "x", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "x", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "01", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "01", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "+1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "+1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", " 1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", " 1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "-0", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", "-0", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775809, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775809, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "h", -9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "h", 0], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "h", 0, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "h", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 0, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 1], "oracle": ["f"], "target": ["f"]}
+{"argv": ["HRANDFIELD", "h", 1, "WITHVALUES"], "oracle": ["f", "v"], "target": ["f", "v"]}
+{"argv": ["HRANDFIELD", "h", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 1, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", -2], "oracle": ["f", "f"], "target": ["f", "f"]}
+{"argv": ["HRANDFIELD", "h", -2, "WITHVALUES"], "oracle": ["f", "v", "f", "v"], "target": ["f", "v", "f", "v"]}
+{"argv": ["HRANDFIELD", "h", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", -2, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 4611686018427387904], "oracle": ["f"], "target": ["f"]}
+{"argv": ["HRANDFIELD", "h", 4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "h", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 4611686018427387904, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775807], "oracle": ["f"], "target": ["f"]}
+{"argv": ["HRANDFIELD", "h", 9223372036854775807, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", 9223372036854775807, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "h", -4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "missing", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "x", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "x", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "01", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "01", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "+1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "+1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", " 1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", " 1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "-0", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", "-0", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775809, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775809, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "missing", 0], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 0, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 0, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 1], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 1, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 1, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -2], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -2, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -2, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387904], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387904, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775807], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775807, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 9223372036854775807, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775807], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775807, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -9223372036854775807, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387904], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387904, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387903], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387903, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387903, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387903], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387903, "WITHVALUES"], "oracle": [], "target": []}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", 4611686018427387903, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "missing", -4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "x", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "x", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "01", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "01", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "+1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "+1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", " 1", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", " 1", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "-0", "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", "-0", "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775809, "WITHVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775809, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775808, "WITHVALUES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775808, "WITHVALUES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["HRANDFIELD", "wrong", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 0, "WITHVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 0, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 1, "WITHVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 1, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -2], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -2, "WITHVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -2, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387904, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775807, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 9223372036854775807, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775807, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -9223372036854775807, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387904, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387903, "WITHVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387903, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387903, "WITHVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", 4611686018427387903, "WITHVALUES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HRANDFIELD", "wrong", -4611686018427387904, "WITHVALUES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["SRANDMEMBER", "s", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", "x", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "x", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "x", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", "01", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "01", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "01", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", "+1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "+1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "+1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", " 1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", " 1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", " 1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", "-0", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "-0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", "-0", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775809, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775809, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775809, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 0], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "s", 0, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 0, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["SRANDMEMBER", "s", 1, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 1, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -2], "oracle": ["a", "a"], "target": ["a", "a"]}
+{"argv": ["SRANDMEMBER", "s", -2, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", -2, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 4611686018427387904], "oracle": ["a"], "target": ["a"]}
+{"argv": ["SRANDMEMBER", "s", 4611686018427387904, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 4611686018427387904, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775807], "oracle": ["a"], "target": ["a"]}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775807, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "s", 9223372036854775807, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", "x", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "x", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "x", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", "01", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "01", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "01", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", "+1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "+1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "+1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", " 1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", " 1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", " 1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", "-0", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "-0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", "-0", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775809, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775809, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775809, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 0], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", 0, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 0, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 1], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", 1, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 1, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -2], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", -2, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -2, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387904], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387904, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387904, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775807], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775807, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 9223372036854775807, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775807], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775807, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -9223372036854775807, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387904], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387904, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387904, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387903], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387903, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", -4611686018427387903, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387903], "oracle": [], "target": []}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387903, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "missing", 4611686018427387903, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", "x", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "x", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "x", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", "01", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "01", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "01", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", "+1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "+1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "+1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", " 1", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", " 1", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", " 1", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", "-0", "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "-0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", "-0", "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775809, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775809, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775809, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775808, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775808, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775808, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", 0, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 0, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", 1, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 1, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -2], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", -2, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -2, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387904, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387904, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775807, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 9223372036854775807, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775807, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -9223372036854775807, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387904, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387904, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387903, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", -4611686018427387903, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387903, "bogus"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SRANDMEMBER", "wrong", 4611686018427387903, "bogus", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "x", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "x", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "01", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "01", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "+1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "+1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", " 1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", " 1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "-0", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", "-0", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775809, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775809, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "z", -9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "z", 0], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "z", 0, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "z", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 0, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 1], "oracle": ["a"], "target": ["a"]}
+{"argv": ["ZRANDMEMBER", "z", 1, "WITHSCORES"], "oracle": ["a", "1"], "target": ["a", "1"]}
+{"argv": ["ZRANDMEMBER", "z", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 1, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", -2], "oracle": ["a", "a"], "target": ["a", "a"]}
+{"argv": ["ZRANDMEMBER", "z", -2, "WITHSCORES"], "oracle": ["a", "1", "a", "1"], "target": ["a", "1", "a", "1"]}
+{"argv": ["ZRANDMEMBER", "z", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", -2, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 4611686018427387904], "oracle": ["a"], "target": ["a"]}
+{"argv": ["ZRANDMEMBER", "z", 4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 4611686018427387904, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775807], "oracle": ["a"], "target": ["a"]}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775807, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", 9223372036854775807, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "z", -4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "x", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "x", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "01", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "01", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "+1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "+1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", " 1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", " 1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "-0", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", "-0", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775809, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775809, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "missing", 0], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 0, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 0, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 1], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 1, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 1, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -2], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -2, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -2, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387904], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387904, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775807], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775807, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 9223372036854775807, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775807], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775807, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -9223372036854775807, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387904], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387904, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387903], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387903, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387903, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387903], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387903, "WITHSCORES"], "oracle": [], "target": []}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", 4611686018427387903, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "missing", -4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "x", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "x", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "x", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "01", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "01", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "01", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "+1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "+1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "+1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "+1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", " 1"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", " 1", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", " 1", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", " 1", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "-0"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "-0", "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "-0", "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", "-0", "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775808, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775809], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775809, "WITHSCORES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775809, "bad"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775809, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775808], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775808, "WITHSCORES"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775808, "bad"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775808, "WITHSCORES", "extra"], "oracle": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}, "target": {"error": "ERR value is out of range, value must between -9223372036854775807 and 9223372036854775807"}}
+{"argv": ["ZRANDMEMBER", "wrong", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 0, "WITHSCORES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 0, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 1, "WITHSCORES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 1, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 1, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -2], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -2, "WITHSCORES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -2, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -2, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387904, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775807, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 9223372036854775807, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775807], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775807, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775807, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -9223372036854775807, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387904], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387904, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387904, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387903, "WITHSCORES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387903, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387903], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387903, "WITHSCORES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387903, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", 4611686018427387903, "WITHSCORES", "extra"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZRANDMEMBER", "wrong", -4611686018427387904, "WITHSCORES"], "oracle": {"error": "ERR value is out of range"}, "target": {"error": "ERR value is out of range"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", " 0", "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", " 0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", " 0", "NOVALUES"], "oracle": ["0", ["f"]], "target": ["0", ["f"]]}
+{"argv": ["HSCAN", "h", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", " 0", "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", 0, "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", 0, "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "h", 0, "NOVALUES"], "oracle": ["0", ["f"]], "target": ["0", ["f"]]}
+{"argv": ["HSCAN", "h", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["HSCAN", "h", 0, "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", " 0", "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "missing", 0, "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "missing", 0, "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", " 0", "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["HSCAN", "wrong", 0, "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", " 0", "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", " 0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", " 0", "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SSCAN", "s", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SSCAN", "s", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", " 0", "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", 0, "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", 0, "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "s", 0, "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SSCAN", "s", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SSCAN", "s", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SSCAN", "s", 0, "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", " 0", "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "missing", 0, "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "missing", 0, "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", " 0", "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SSCAN", "wrong", 0, "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", " 0", "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", " 0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", " 0", "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["ZSCAN", "z", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["ZSCAN", "z", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", " 0", "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["ZSCAN", "z", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZSCAN", "z", 0, "TYPE", "hash"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", " 0", "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", 0], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", -1], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", "01"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", 9223372036854775808], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "MATCH"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "bad"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "NOVALUES", "COUNT", "x"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "COUNT", "x", "NOVALUES"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "missing", 0, "TYPE", "hash"], "oracle": ["0", []], "target": ["0", []]}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "x", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", " 0", "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", "18446744073709551616", "TYPE", "hash"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", 0], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", -1], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", "01"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", 9223372036854775808], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "MATCH"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "bad"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["ZSCAN", "wrong", 0, "TYPE", "hash"], "oracle": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}, "target": {"error": "WRONGTYPE Operation against a key holding the wrong kind of value"}}
+{"argv": ["SCAN", "x", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "x", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", " 0", "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", " 0", "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", " 0", "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", " 0", "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", " 0", "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", " 0", "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", " 0", "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", " 0", "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", " 0", "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SCAN", " 0", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SCAN", " 0", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", 0], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", -1], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", "01"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", 9223372036854775808], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "MATCH"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "bad"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", "18446744073709551616", "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR invalid cursor"}, "target": {"error": "ERR invalid cursor"}}
+{"argv": ["SCAN", 0, "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", 0, "COUNT", -1], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", 0, "COUNT", "x"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", 0, "COUNT", "01"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", 0, "COUNT", 9223372036854775808], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["SCAN", 0, "COUNT"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", 0, "MATCH"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", 0, "bad"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SCAN", 0, "NOVALUES"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SCAN", 0, "NOVALUES", "COUNT", "x"], "oracle": {"error": "ERR NOVALUES option can only be used in HSCAN"}, "target": {"error": "ERR NOVALUES option can only be used in HSCAN"}}
+{"argv": ["SCAN", 0, "COUNT", "x", "NOVALUES"], "oracle": {"error": "ERR value is not an integer or out of range"}, "target": {"error": "ERR value is not an integer or out of range"}}
+{"argv": ["ZRANDMEMBER", "z", 1, "WITHVALUES"], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["ZSCAN", "z", 0, "COUNT", 0], "oracle": {"error": "ERR syntax error"}, "target": {"error": "ERR syntax error"}}
+{"argv": ["SPOP", "s", -1], "oracle": {"error": "ERR value is out of range, must be positive"}, "target": {"error": "ERR value is out of range, must be positive"}}
+{"argv": ["ZPOPMIN", "z", -1], "oracle": {"error": "ERR value is out of range, must be positive"}, "target": {"error": "ERR value is out of range, must be positive"}}
+{"argv": ["LPOP", "missing", -1], "oracle": {"error": "ERR value is out of range, must be positive"}, "target": {"error": "ERR value is out of range, must be positive"}}
+{"argv": ["SPOP", "missing", "x"], "oracle": {"error": "ERR value is out of range, must be positive"}, "target": {"error": "ERR value is out of range, must be positive"}}
