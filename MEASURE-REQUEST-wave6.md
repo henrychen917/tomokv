@@ -142,8 +142,10 @@ nine equal the headline; normal `prepare_captured_local_mget` equals execfair,
 and the two notification-enabled SET handlers equal notifycompat. No selected
 command group is an unattributed residual.
 
-Compile-only budget trials and linked scoring are in `docs/wave6/budgets` and
-`docs/wave6/budgets-dispatch`. The explicit integer-reply instantiation prevents
+Compile-only budget trials and linked scoring are in `docs/wave6/budgets`,
+`docs/wave6/budgets-dispatch`, `docs/wave6/budgets-final` and
+`docs/wave6/budgets-timed`. Final trials recompile all eight executor units on
+the final source and retain every selected budget. The explicit integer-reply instantiation prevents
 the measured-in-instructions weak-definition flip. The two EXEC-only outlined
 helpers remove ordinary dispatch's initial +6 instructions/op in 1s and +2 in
 2s. They retain the promotion callbacks and execute/Done ordering.
@@ -159,15 +161,15 @@ and disarmed −1. MGET uses eight keys on eight shards, atomic 0/1, batches 1/8
 Exact replies are asserted outside the counted region; a synthetic clock keeps
 debugger overhead from fabricating slow commands.
 
-**46/48 plain cells equal PRE.** Armed singleton fused GET has +1 instruction
-in each database runtime, from the exact-timed executor's branch layout. The
-SV4.14 recorder helper itself is 75 instructions on both PRE and POST (78 in the
-initial merge). Thus the lazy-recorder regression is removed, but the requested
-absolute zero-added-instruction proof for the whole merged command is **not
-satisfied in those two cells**. Bounded alternative outlines, branch hints and
-timed-body attributes did not improve every affected path; their rejected
-receipts are retained. Normal MGET is +4 instructions per key from the accepted
-notifycompat owner-scatter change; DB0 MGET is unchanged.
+**All 48 plain cells execute zero added instructions:** 44 equal PRE and the
+four armed singleton fused SET/INCR cells save one instruction. The recorder
+helper is 75 instructions on PRE and POST (78 in the initial merge). The last
++1 fused GET residual was a compact-body jump; the final compile-time
+`Timed && Fused` hint keeps its no-hazard fallthrough contiguous. Applying that
+hint everywhere added one instruction to ordinary split writes and was rejected.
+The initial merged arm fails the zero-added assertion in every plain cell.
+Normal MGET remains +4 instructions per key from the accepted notifycompat
+owner-scatter change; DB0 MGET is unchanged.
 
 The probe provenance verifies each actually entered body against production.
 For two DB0 helpers, the strict normalizer retains an anonymous switch-table
@@ -179,13 +181,14 @@ No register, opcode, field offset or source-line immediate is discarded.
 
 `make all` and all 44 requested build targets completed; all `make -q` checks
 passed (`docs/wave6/correctness/build.json`). Final freshness will be repeated
-once the fixture changes and all jobs finish.
+once all jobs finish. The final source also rebuilt all 44 targets with every
+`make -q` exit zero (`docs/wave6/correctness/build-final.json`).
 
 | Arm | Binary | SHA-256 |
 |---|---|---|
 | Frozen headline | `/home/user/Projects/bench-bins/tomokv-headline-ef5204b2e` | `95798c8e28a01583c83f434a6ecc8e8e0602e7fc1d877a94ae58ec16bebbad41` |
 | Rebuilt PRE | `build/wave6/pre-source/build/tomokv` | `9388e045f35736ce08a9b9635fb83e37f5fff75c0de0c78c091a8e5969b883ee` |
-| Merged POST | `build/tomokv` | `7a3aecd4626b88415424fd9c2cb14d806df694b4c29d2d1db26f4a780bbc618a` |
+| Merged POST | `build/tomokv` | `6f62f03b645852e12defd123215062b8ae44e8c74b1add2f3a5921b983d8e036` |
 | PAD-A | `build/tomokv-wave6-PAD-A` | `d3c042b755ce0ec0fb6fe377e9ee6a66d02b88a1b4f15b09c75bf7b6322c5d45` |
 
 PAD is **kind A, behaviour twin**: unmodified PRE object code with inert padding
@@ -205,8 +208,10 @@ serverless counts only explain it. No throughput claim is made by this lane.
 
 The broad touched-job sweep completed 169 jobs; its only failed rows were the
 R7 inventory and synthetic AOF fixture, both repaired and passing on rerun.
-Still running: the full ABBA selftest, both-engine standard-seed differential
-matrices, three runs of all four txnorder cells,
+The complete ABBA selftest and standalone scheduler tests passed. After the
+final branch-layout change, a fresh complete-job sweep is queued on the final
+candidate, followed by both-engine standard-seed differential matrices,
+three runs of all four txnorder cells,
 complete legacy fused jobs, and the quiet timing-sensitive correctness jobs.
 `docs/wave6/finish_jobs.py` invokes only complete gate jobs and records every
 result. NETFIX_TLS_ORACLE remains unset; the gate uses its default TLS oracle.
@@ -220,6 +225,7 @@ and standalone `gates_test.py` runs serially on the allocation with port 26897.
 
 **NOT RUN by design:** throughput/load-generator jobs `efficiency`,
 `flip_saturated`, `atomic_floor`, the full `tests/gate.sh iteration`, the null
-and landing measurements. They remain with the maintainer under the explicit
+and landing measurements, and the full-gate-only tailgen load-generator row
+(which has no selectable `GATE_ONLY_JOBS` job). They remain with the maintainer under the explicit
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.

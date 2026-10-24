@@ -914,8 +914,8 @@ bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)
 +CLONE 0 045e [ 7] cmp %rax,0x300(%rbx)
 +CLONE 0 0465 [ 2] jne <+0x470>
 +CLONE 0 0467 [ 5] cmpq $0x0,0x18(%r13)
-+CLONE 0 046c [ 2] jne <+0x4c7>
-+CLONE 0 046e [ 2] jmp <+0x4b0>
++CLONE 0 046c [ 2] je <+0x4b0>
++CLONE 0 046e [ 2] jmp <+0x4c7>
 +CLONE 0 0470 [ 5] mov 0x10(%rsp),%rsi
 +CLONE 0 0475 [ 3] mov %r15d,%r8d
 +CLONE 0 0478 [ 3] mov %r12,%rcx

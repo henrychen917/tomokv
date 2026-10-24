@@ -147,7 +147,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-1.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
@@ -433,7 +433,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-2.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
@@ -588,7 +588,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-3.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
@@ -743,7 +743,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-4.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
@@ -1038,7 +1038,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-5.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo::ExLoopT<true>::execute_timed<false, true>(tomo::Task const&)",
@@ -1329,7 +1329,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-6.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
@@ -1479,7 +1479,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-7.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
@@ -1765,7 +1765,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-8.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
@@ -1920,7 +1920,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-9.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
@@ -2075,7 +2075,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-10.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
@@ -2370,7 +2370,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-11.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, true>(tomo_db0::Task const&)",
@@ -2661,7 +2661,7 @@
       }
     },
     "diff": "docs/wave6/callsites/diff-12.txt",
-    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. Ordinary command totals equal headline except the documented +1 exact-timed fused GET branch; callbacks and Done ordering are retained."
+    "review": "Two deliberate EXEC-only outlines replace direct multi_execute_task/deque insertion. All 48 plain command cells execute no added instructions; callbacks and Done ordering are retained."
   },
   {
     "name": "tomo::ExLoopT<false>::execute_multi_unit(tomo::Task const&, tomo::Shard&, void (*)(void*, tomo::Task const&))",

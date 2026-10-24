@@ -23,13 +23,11 @@
     "threshold": 10000,
     "pre": 1330,
     "initial": 1339,
-    "post": 1331,
-    "delta": 1,
+    "post": 1330,
+    "delta": 0,
     "initial_delta": 9,
-    "functions_equal": false,
-    "changed_functions": {
-      "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)": 1
-    }
+    "functions_equal": true,
+    "changed_functions": {}
   },
   {
     "namespace": "normal",
@@ -145,11 +143,13 @@
     "threshold": 10000,
     "pre": 1463,
     "initial": 1472,
-    "post": 1463,
-    "delta": 0,
+    "post": 1462,
+    "delta": -1,
     "initial_delta": 9,
-    "functions_equal": true,
-    "changed_functions": {}
+    "functions_equal": false,
+    "changed_functions": {
+      "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)": -1
+    }
   },
   {
     "namespace": "normal",
@@ -265,11 +265,13 @@
     "threshold": 10000,
     "pre": 1926,
     "initial": 1946,
-    "post": 1926,
-    "delta": 0,
+    "post": 1925,
+    "delta": -1,
     "initial_delta": 20,
-    "functions_equal": true,
-    "changed_functions": {}
+    "functions_equal": false,
+    "changed_functions": {
+      "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)": -1
+    }
   },
   {
     "namespace": "normal",
@@ -385,13 +387,11 @@
     "threshold": 10000,
     "pre": 1219,
     "initial": 1228,
-    "post": 1220,
-    "delta": 1,
+    "post": 1219,
+    "delta": 0,
     "initial_delta": 9,
-    "functions_equal": false,
-    "changed_functions": {
-      "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)": 1
-    }
+    "functions_equal": true,
+    "changed_functions": {}
   },
   {
     "namespace": "db0",
@@ -507,11 +507,13 @@
     "threshold": 10000,
     "pre": 1350,
     "initial": 1359,
-    "post": 1350,
-    "delta": 0,
+    "post": 1349,
+    "delta": -1,
     "initial_delta": 9,
-    "functions_equal": true,
-    "changed_functions": {}
+    "functions_equal": false,
+    "changed_functions": {
+      "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)": -1
+    }
   },
   {
     "namespace": "db0",
@@ -627,11 +629,13 @@
     "threshold": 10000,
     "pre": 1709,
     "initial": 1729,
-    "post": 1709,
-    "delta": 0,
+    "post": 1708,
+    "delta": -1,
     "initial_delta": 20,
-    "functions_equal": true,
-    "changed_functions": {}
+    "functions_equal": false,
+    "changed_functions": {
+      "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)": -1
+    }
   },
   {
     "namespace": "db0",
