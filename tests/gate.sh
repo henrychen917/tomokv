@@ -1132,7 +1132,7 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -2550,6 +2550,38 @@ local AT=${1##*-}
       && ok "fused txniso battery (atomic $AT)" \
       || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
   stop
+}
+
+job_rlfix3_info(){
+  local mode engine lane launch_fn label unit=${GATE_RLFIX3_INFO_UNIT:-build/rlfix3-info-unit}
+  local db0_unit=${GATE_RLFIX3_INFO_DB0_UNIT:-build/rlfix3-info-db0-unit}
+  # A frozen PRE-linked witness can accompany --candidate-binary for PRE proof.
+  local built=0
+  if [ -n "${GATE_RLFIX3_INFO_UNIT:-}" ]; then
+    [ -x "$unit" ] && [ -x "$db0_unit" ] && built=1
+  # Default native witnesses belong to this fresh local server. An external
+  # PRE/PAD candidate must explicitly supply its matching native witnesses;
+  # otherwise a POST helper could make an unfixed external INFO handler pass.
+  elif make -q all && cmp -s "$CANDIDATE_BINARY" build/tomokv && \
+      pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/rlfix3-info-unit build/rlfix3-info-db0-unit \
+      >"$TMPDIR/build.log" 2>&1 && make -q build/rlfix3-info-unit build/rlfix3-info-db0-unit; then built=1; fi
+  [ "$built" = 1 ] || echo 'INFO native witness build/pairing refused; external candidates need matching GATE_RLFIX3_INFO_{,DB0_}UNIT' >>"$TMPDIR/build.log"
+  for mode in 1s 2s; do
+    launch_fn=boot; [ "$mode" != 1s ] || launch_fn=boot_fused
+    for engine in epoll uring; do for lane in 0 1; do
+      label="INFO selective collection ($mode, $engine, read-local $lane)"
+      row_begin "$label"
+      if [ "$built" = 1 ] && "$launch_fn" "$CANDIDATE_BINARY" \
+          --net-io "$engine" --read-local "$lane" --atomic 1 && \
+          py tests/rlfix3_info.py 127.0.0.1 "$PORT" --unit "$unit" --unit "$db0_unit" \
+          >"$TMPDIR/info-$mode-$engine-$lane.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/info-$mode-$engine-$lane.log, build.log and $SRVLOG"
+      fi
+      stop
+    done; done
+  done
 }
 
 job_rlfix3_zc(){
@@ -5248,6 +5280,7 @@ done
 
 collect_job bplus
 collect_job rlfix3_zc
+collect_job rlfix3_info
 
 collect_job acl_recheck
 collect_job aclfix
