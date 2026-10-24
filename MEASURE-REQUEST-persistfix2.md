@@ -207,3 +207,12 @@ The report is committed separately.
  tomokv.conf                                   |   4 +
  34 files changed, 3076 insertions(+), 195 deletions(-)
 ```
+
+
+## persistfix2
+
+Current lane: `/home/user/Projects/cx-persistfix2`, branch `cx-persistfix2`, PRE `05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba`. The earlier report above is historical. No push. Builds use CPUs 64–79, `-j16`; gate jobs use servers 64–71, clients 72–79, 16 shards, ratio 6:2, ports 36800–36899.
+
+PS4.6 reproduced on PRE in all four 1s/2s × epoll/uring legs through the real `GATE_ONLY_JOBS=persistfix2_lastsave` interface. Redis 7.4 passed every oracle leg. POST passes the same eight legs: LASTSAVE and RDB telemetry remain unchanged during/after a rewrite, and `aof_rewrites` counts an attempt at start, as Redis does. Evidence: `docs/persistfix2/{pre,post}-lastsave/`. The RDB change baseline, last-save status and save count already excluded rewrites; native snapshot-cut and AOF byte/record counters describe their own mechanisms. The LASTSAVE correction also preserves the save cron elapsed-time origin.
+
+Interim row delta: DQ=+1 / DF=+1, collected at `collect_job persistfix2_lastsave`, before the quick-tier exit. EXPECT constants remain unchanged. Remaining items and final proof are being completed.

@@ -1562,6 +1562,8 @@ void AofManager::maybe_start_rewrite(ThreadCtx& writer, Ring& ring) {
     rewrite_requested_.store(false, std::memory_order_release);
     rewrite_target_sequence_ = active_incr_sequence_ + 1;
     rewrite_base_name_ = aof_base_name(appendfilename_, rewrite_target_sequence_);
+    // Redis counts started rewrites, including attempts that later fail.
+    rewrite_completions_.fetch_add(1, std::memory_order_relaxed);
     maybe_pause_rewrite(AofRewriteDebugStage::BeforeMark);
     std::string error;
     const SnapshotManager::StartResult result = server_->snapshot().start(
@@ -1701,7 +1703,6 @@ bool AofManager::rewrite_complete(const std::string& base_path, uint64_t snapsho
     increment_starts_ = std::move(active_starts);
     rewrite_history_.clear();
     history_unlinks_.fetch_add(removed, std::memory_order_relaxed);
-    rewrite_completions_.fetch_add(1, std::memory_order_relaxed);
     consecutive_rewrite_failures_.store(0, std::memory_order_relaxed);
     next_rewrite_retry_ms_.store(0, std::memory_order_relaxed);
     backoff_reported_ = false;

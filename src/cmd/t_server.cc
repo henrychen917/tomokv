@@ -2460,7 +2460,8 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->loading() ? 1u : 0u,
                 static_cast<unsigned long long>(
                     g_server ? g_server->save_changes_since_last_save() : 0),
-                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                g_server && g_server->snapshot().in_progress() &&
+                    !g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 snapshot_last_bgsave_ok() ? "ok" : "err",
                 static_cast<unsigned long long>(snapshot_completed_saves()),

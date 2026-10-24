@@ -782,10 +782,12 @@ bool SnapshotManager::complete_file_success() {
     if (!rewrite_) {
         completed_saves.fetch_add(1, std::memory_order_relaxed);
         last_bgsave_ok.store(true, std::memory_order_relaxed);
+        // A native AOF base is a snapshot, but is not an RDB save for LASTSAVE
+        // or the elapsed-time test of the configured save schedule.
+        last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     }
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
     if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();
-    last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);
     server_ = nullptr;
