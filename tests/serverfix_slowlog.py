@@ -18,6 +18,17 @@ def probe(run, mode, label, extra):
             c = clients[0]
             run.check(label + ' empty disabled log', c.cmd('SLOWLOG', 'GET', -1), [])
             trace.snapshot('off-clients', server.process.pid)
+            # A high armed threshold exercises completion without allocating a recorder.
+            # This is independent of the cold-disabled leg and the subsequent zero-threshold
+            # witness. The command-scope debugger checks the default fast-path instructions.
+            run.check(label + ' arm high threshold', c.cmd('CONFIG', 'SET',
+                      'slowlog-log-slower-than', 1000000000), b'OK')
+            for command, args, expected in [('SET', ('threshold-key', '0'), b'OK'),
+                                            ('GET', ('threshold-key',), b'0'),
+                                            ('INCR', ('threshold-key',), 1)]:
+                run.check(label + ' below threshold ' + command, c.cmd(command, *args), expected)
+            run.check(label + ' below threshold log empty', c.cmd('SLOWLOG', 'GET', -1), [])
+            trace.snapshot('armed-below-threshold', server.process.pid)
             run.check(label + ' enable', c.cmd('CONFIG', 'SET', 'slowlog-log-slower-than', 0), b'OK')
             found = []
             for attempt in range(4):

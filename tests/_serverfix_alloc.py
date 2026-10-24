@@ -73,8 +73,8 @@ class Trace:
             elif parts[0] == 'MARK':
                 self.snapshots[parts[1]].update(feature_live_bytes=sum(x['size'] for x in live.values()),
                                                feature_allocations=len(allocations))
-                if parts[1] == 'off-clients':
-                    self.run.check(feature + ' allocates nothing before first enable', len(allocations), 0)
+                if parts[1] in ('off-clients', 'armed-below-threshold'):
+                    self.run.check(feature + ' allocates nothing at ' + parts[1], len(allocations), 0)
         self.run.rows[self.path.stem] = dict(snapshots=self.snapshots, attributed_allocations=allocations,
                                             clients=24)
         # Retain raw attribution in the receipt, not an unbounded address log.

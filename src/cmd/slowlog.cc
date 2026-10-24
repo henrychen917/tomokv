@@ -640,9 +640,9 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
                     int64_t now_ms, const SlowlogArm& arm, bool exact) {
     const uint64_t duration_us = duration_ns / 1000;
     // Skip the capture entirely unless this op will actually be logged.
-    const bool wants_entry = g_slowlog_max_len.load(std::memory_order_acquire) &&
-                             arm.slowlog_us >= 0 &&
-                             duration_us >= static_cast<uint64_t>(arm.slowlog_us);
+    const bool wants_entry = arm.slowlog_us >= 0 &&
+                             duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
+                             g_slowlog_max_len.load(std::memory_order_acquire);
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
     entry.duration_us = duration_us;
@@ -665,8 +665,8 @@ void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const Slo
     entry.identity = identity;
     entry.duration_us = duration_us;
     entry.exact = true;
-    if (g_slowlog_max_len.load(std::memory_order_acquire) &&
-        arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
+    if (arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&
+        g_slowlog_max_len.load(std::memory_order_acquire) &&
         !build_argv(capture, entry.argv)) return;
     slowlog_finish(thread_id, entry, duration_ns, now_ms, arm);
 }
