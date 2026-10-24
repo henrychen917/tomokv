@@ -1,0 +1,1474 @@
+[
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "GET",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "SET",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "INCR",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "GET",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 1
+    },
+    "post": {
+      "memcpy@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "SET",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "memcpy@plt": 32
+    },
+    "post": {
+      "memcpy@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "1s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "1s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "1s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "2s",
+      1,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    },
+    "post": {
+      "mallocx@plt": 1,
+      "memcmp@plt": 1
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "2s",
+      32,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "INCR",
+      "2s",
+      32,
+      1,
+      10000
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    },
+    "post": {
+      "mallocx@plt": 32,
+      "memcmp@plt": 32
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "1s",
+      8,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "1s",
+      8,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "2s",
+      1,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "2s",
+      8,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "normal",
+      "MGET",
+      "2s",
+      8,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "1s",
+      1,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "1s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "1s",
+      8,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "1s",
+      8,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "2s",
+      1,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "2s",
+      1,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    },
+    "post": {
+      "strcmp@plt": 1,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 2,
+      "memset@plt": 3,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 1,
+      "memcpy@plt": 16,
+      "malloc@plt": 3,
+      "__memcpy_chk@plt": 3,
+      "free@plt": 2
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "2s",
+      8,
+      0,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  },
+  {
+    "cell": [
+      "db0",
+      "MGET",
+      "2s",
+      8,
+      1,
+      -1
+    ],
+    "equal": true,
+    "clock_calls_equal": true,
+    "pre": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    },
+    "post": {
+      "strcmp@plt": 8,
+      "posix_memalign@plt": 1,
+      "_ZNSt12_Vector_baseIdSaIdEED2Ev": 16,
+      "memset@plt": 24,
+      "_Znwm@plt": 1,
+      "_ZNSt6vectorIjSaIjEED2Ev": 8,
+      "memcpy@plt": 128,
+      "malloc@plt": 24,
+      "__memcpy_chk@plt": 24,
+      "free@plt": 16
+    }
+  }
+]

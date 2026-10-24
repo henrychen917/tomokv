@@ -1,0 +1,194 @@
+{
+  "removed": [
+    {
+      "path": "build/wave6/commands/hint-normal",
+      "bytes": 180428800
+    },
+    {
+      "path": "build/wave6/commands/trial-db0",
+      "bytes": 178671616
+    },
+    {
+      "path": "build/wave6/commands/readyrare-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/wholeunit-normal",
+      "bytes": 180428800
+    },
+    {
+      "path": "build/wave6/commands/line-normal",
+      "bytes": 159592448
+    },
+    {
+      "path": "build/wave6/commands/watchfirst-normal",
+      "bytes": 180420608
+    },
+    {
+      "path": "build/wave6/commands/parkedhint-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/ordered-normal",
+      "bytes": 195657728
+    },
+    {
+      "path": "build/wave6/commands/watchhint-db0",
+      "bytes": 180412416
+    },
+    {
+      "path": "build/wave6/commands/timed-normal",
+      "bytes": 180432896
+    },
+    {
+      "path": "build/wave6/commands/line-db0",
+      "bytes": 159576064
+    },
+    {
+      "path": "build/wave6/commands/hazardhint-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/inline-normal",
+      "bytes": 160952320
+    },
+    {
+      "path": "build/wave6/commands/deferhint-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/partition-normal",
+      "bytes": 195657728
+    },
+    {
+      "path": "build/wave6/commands/inline-db0",
+      "bytes": 160935936
+    },
+    {
+      "path": "build/wave6/commands/postflag-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/preflag-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/watchfirst-db0",
+      "bytes": 180404224
+    },
+    {
+      "path": "build/wave6/commands/postwatch-normal",
+      "bytes": 212148224
+    },
+    {
+      "path": "build/wave6/commands/coldopt-db0",
+      "bytes": 180404224
+    },
+    {
+      "path": "build/wave6/commands/watchhint-normal",
+      "bytes": 180428800
+    },
+    {
+      "path": "build/wave6/commands/timed-db0",
+      "bytes": 180416512
+    },
+    {
+      "path": "build/wave6/commands/wholeunit-db0",
+      "bytes": 180412416
+    },
+    {
+      "path": "build/wave6/commands/trial-normal",
+      "bytes": 178688000
+    },
+    {
+      "path": "build/wave6/commands/hint-db0",
+      "bytes": 180412416
+    },
+    {
+      "path": "build/wave6/commands/coldopt-normal",
+      "bytes": 180420608
+    },
+    {
+      "path": "build/wave6/branch-readyrare",
+      "bytes": 27643904
+    },
+    {
+      "path": "build/wave6/branch-parkedhint",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/wholeunit-trial",
+      "bytes": 10801152
+    },
+    {
+      "path": "build/wave6/hint-trial",
+      "bytes": 10801152
+    },
+    {
+      "path": "build/wave6/dispatch-trial",
+      "bytes": 12177408
+    },
+    {
+      "path": "build/wave6/watchfirst-trial",
+      "bytes": 10784768
+    },
+    {
+      "path": "build/wave6/branch-deferhint",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/branch-hazardhint",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/branch-postflag",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/coldopt-trial",
+      "bytes": 10784768
+    },
+    {
+      "path": "build/wave6/provenance-inspect",
+      "bytes": 254988288
+    },
+    {
+      "path": "build/wave6/line-trial",
+      "bytes": 8118272
+    },
+    {
+      "path": "build/wave6/branch-postwatch",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/ordered-trial",
+      "bytes": 8118272
+    },
+    {
+      "path": "build/wave6/inlinepins",
+      "bytes": 260186112
+    },
+    {
+      "path": "build/wave6/watchhint-trial",
+      "bytes": 10801152
+    },
+    {
+      "path": "build/wave6/timed-trial",
+      "bytes": 10797056
+    },
+    {
+      "path": "build/wave6/inline-trial",
+      "bytes": 8122368
+    },
+    {
+      "path": "build/wave6/branch-preflag",
+      "bytes": 27648000
+    },
+    {
+      "path": "build/wave6/partition-trial",
+      "bytes": 8118272
+    }
+  ],
+  "total_bytes": 5857923072,
+  "retained": "Final PRE/POST/PAD arms, final and initial command probes, production unit objects/freshness, all gate receipts and final source archives."
+}

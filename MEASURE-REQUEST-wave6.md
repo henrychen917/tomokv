@@ -122,10 +122,14 @@ atomic-unit jobs now pass (28 directed rows plus prerequisites); neither initial
 failure is counted as a pass. Standalone `tests/gates_test.py` also passes its
 quiet rerun on CPUs 64–95, port 26897.
 
-The legacy release, notification, auth, DUMP/RESTORE and zero-copy jobs now accept
-the existing `GATE_TXN_FUSED=1` selection. Default geometry is unchanged. This
-lets the gate itself run their complete fused legs, including zero-copy ASAN;
-no standalone substitute driver or reduced assertion set is used.
+The legacy release, notification, auth, DUMP/RESTORE, zero-copy, AOF, snapshot
+and AOF-framing jobs now accept the existing `GATE_TXN_FUSED=1` selection.
+The persistence knob check validates fused thread and shard-owner counts;
+the two rewrite-matrix subdrivers also select fused boots. Default split
+geometry is unchanged. The historical rewrite subdrivers retain their declared
+4:4 split on eight cores; ordinary gate boots use 6:2 and 16 shards. Complete
+fused debug and sanitizer jobs are also selected. No standalone substitute
+driver or reduced assertion set is used.
 
 ### Compiled bodies and instruction scope
 
@@ -176,6 +180,17 @@ For two DB0 helpers, the strict normalizer retains an anonymous switch-table
 address. A supplementary check verifies every case destination and every
 instruction/encoding; altered-target and altered-bound-branch controls fail.
 No register, opcode, field offset or source-line immediate is discarded.
+The excluded library-call footprints and synthetic-clock call counts are also
+equal between PRE and POST in all 64 cells; see
+`docs/wave6/instructions/library-call-footprints.json`.
+
+Exact isolated-lane identity is not reached for every composite body. The
+40 residual hot groups are individually explained in
+`docs/wave6/callsites/review.md`. Remaining parser cleanup/inlining propagation,
+the DB0 R7 shutdown-helper inline choice and the read-local epoll loop still
+need the owner's merit verdict. A source-pinning trial of the three read-local
+helpers increased residual hot groups from 40 to 65 and was rejected; its
+exact patches and input hash are retained in `docs/wave6/inlinepins-trial.json`.
 
 ### Build arms and maintainer measurement
 
@@ -197,12 +212,45 @@ sections retain PRE layout; it is a section-placement/size control, **not an
 exact per-symbol/data-layout twin**. `docs/wave6/pad-a.json` records every input
 object, the link command, padding, section sizes and this limitation.
 
-The maintainer owns the quiet null and landing gate, including throughput,
-cycles/op, IPC and instructions/op at matched offered load. Please run the
-standing gate's normal headline cells with frozen headline, merged POST and
-PAD-A, retaining its null/rejection rules, plus its EXEC hot-key/uncontended
-cells. Rate at matched offered load decides merit; body identity and these
-serverless counts only explain it. No throughput claim is made by this lane.
+The maintainer owns the quiet null and landing gate. Verify the arm hashes
+before and after each run; retain the standing gate's null, ABBA variation and
+rejection rules. Use the same offered load and declared geometry for each arm.
+`docs/wave6/measurement-cells.json` freezes every recipe file, hash and cell ID.
+
+1. Run all **181** recipes in `tests/headline_cells.txt` (SHA-256
+   `f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6`),
+   not only the smoke subset. Arms: headline→headline null, headline→POST,
+   headline→PAD-A. Use each recipe's rate/latency verdict; retain per-cell
+   cycles/op, IPC, instructions/op and latency tails. Also compare the rebuilt
+   PRE with the frozen headline as a build control before attributing PAD effects.
+2. Run execfair's frozen 14 generic, 14 multi-key and eight MSETNX/MSET recipes
+   (`docs/execfair/cells/{generic14,multikey,execfix}.txt`) for headline→POST
+   and headline→PAD-A. These include read-local off/on, depth-1/32 GET/SET,
+   both atomic settings and the residual loop/inlining paths. Preserve each
+   recipe's 4/8-core geometry, depth, connection count and values.
+3. Run all eight `/home/user/Projects/calib/exec-merit.py` cells:
+   `x{1s,2s}_a{0,1}_{unc,hot}`. Arms: headline→POST and headline→PAD-A;
+   no ALT arm remains. Use 64 EXEC connections, pipeline 4, two children,
+   16 generator threads, three ABBA blocks and 20 seconds per arm. 2s uses
+   eight cores/6:2/16 shards; 1s uses eight fused cores/read-local 1/64 shards.
+   Disable key/client balancing and auto-FLIP; select hot keys on different
+   owners and retain the four plain INCR clients. Median completed EXEC/s is
+   the harness verdict. Keep writer completions/share, unit INFO deltas and
+   latency/progress alongside it. Label perf denominators separately per EXEC
+   and per logical INCR (`2 × EXEC + plain INCR`). Repeat the four hot cells at
+   8, 16 and 32 connections as the connection-count control.
+
+For these recipes, server CPUs are 64–71 (64–67 for four-core recipes) and
+load CPUs 72–95, with no load SMT, on a maintainer-scheduled quiet box. A
+candidate effect should move POST while the behaviour twin remains flat;
+PAD movement requires investigating placement before attributing the effect.
+Rate/latency at matched offered load decides merit. No throughput claim is
+made by this lane.
+
+Forty-seven superseded trial build directories (5.46 GiB) were removed from
+this worktree after their receipts were recorded. Final arms, production/unit
+objects needed for freshness, command probes and gate artifacts remain;
+`docs/wave6/build-pruning.json` lists the removed directories.
 
 ### Validation status
 
@@ -230,7 +278,7 @@ and landing measurements, and the full-gate-only tailgen load-generator row
 runtime authorization. The failed initial compile is retained in
 `build/wave6/build-initial.log`; it is not a validation pass.
 
-The source sweep maps 57 touched test files and 43 changed protocol literals to
+The source sweep maps 60 touched test files and 43 changed protocol literals to
 their actual gate consumers, including variable-selected dispatch batteries,
 linked netcmd/AT15/shutdown units, and the lazy-allocation shim. See
 `docs/wave6/coverage.json`. Historical `execfix_unit.cc` has no Makefile target

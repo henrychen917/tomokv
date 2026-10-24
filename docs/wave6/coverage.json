@@ -50,6 +50,24 @@
       "note": ""
     },
     {
+      "file": "tests/aof_rewrite_matrix.sh",
+      "jobs": [
+        "job_aof",
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
+      "file": "tests/aof_rewrite_trigger_matrix.sh",
+      "jobs": [
+        "job_aof",
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/at15_unit.cc",
       "jobs": [
         "job_atomic_units",
@@ -286,6 +304,15 @@
       "jobs": [],
       "standalone_audit": false,
       "note": "Scheduler/collector interface: all correctness consumer jobs selected; measurement jobs reserved to maintainer."
+    },
+    {
+      "file": "tests/knobs.py",
+      "jobs": [
+        "job_aof",
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/mode_equivalence.py",

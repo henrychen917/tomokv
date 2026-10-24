@@ -1225,5 +1225,12 @@
     "-lssl",
     "-lcrypto",
     "-lm"
-  ]
+  ],
+  "baseline_sha256": "402bdf8376a4ff316c2eb544b604a73743561b8b05f154626f5566b8a5f8e658",
+  "baseline_residual_hot": 40,
+  "baseline_residual_all": 476,
+  "source_diffs": {
+    "src/core/server.h": "--- unscoped hazard baseline\n+++ src/core/server.h\n@@ -743,7 +743,7 @@\n         return cfg.read_local != 0;\n     }\n     bool read_local_enabled() const { return read_local_enabled(cfg_); }\n-    uint64_t read_local_epoch() const {\n+    __attribute__((always_inline)) uint64_t read_local_epoch() const {\n         if (!read_local_state_) std::abort();\n         return read_local_state_->epoch.load(std::memory_order_seq_cst);\n     }\n",
+    "src/core/thread.h": "--- unscoped hazard baseline\n+++ src/core/thread.h\n@@ -895,12 +895,12 @@\n     // never per operation. Parked shares this word with the tick so a grace scan cannot accept a\n     // stale separate parked=true after the thread has resumed probing foreign stores. Sequential\n     // consistency orders the park/resume edge with that scan; it is paid only at rotation/park.\n-    void publish_read_local_tick(uint64_t tick) {\n+    __attribute__((always_inline)) void publish_read_local_tick(uint64_t tick) {\n         if (tick & kReadLocalParkedBit) std::abort();\n         if (!read_local_state_) std::abort();\n         read_local_state_->tick.store(tick, std::memory_order_seq_cst);\n     }\n-    void publish_read_local_parked(uint64_t tick) {\n+    __attribute__((always_inline)) void publish_read_local_parked(uint64_t tick) {\n         if (tick & kReadLocalParkedBit) std::abort();\n         if (!read_local_state_) std::abort();\n         read_local_state_->tick.store(tick | kReadLocalParkedBit, std::memory_order_seq_cst);\n"
+  }
 }
