@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--require-complete', action='store_true')
 args = parser.parse_args()
 names = ['broad-final', 'integration-fixtures-final', 'tailgen-build',
-         'abba-selftest-repaired', 'differ-uring', 'differ-epoll',
+         'abba-selftest-final-controls', 'differ-uring', 'differ-epoll',
          'txnorder-round-2', 'txnorder-round-3', 'legacy-split-final',
          'legacy-fused', 'perfio-quiet', 'atomic-split-quiet', 'atomic-fused-quiet',
          'release-split-repaired', 'release-fused-repaired']
@@ -70,12 +70,12 @@ for name in names:
                         receipt=str(path.relative_to(ROOT))))
 
 pending = [row['name'] for row in summary if row['status'] in ('PENDING', 'RUNNING')]
-standalone_path = OUT / 'gates-test-repaired.json'
+standalone_path = OUT / 'gates-test-final-controls.json'
 standalone = json.loads(standalone_path.read_text()) if standalone_path.exists() else None
 freshness_path = OUT / 'freshness-final.json'
 freshness = json.loads(freshness_path.read_text()) if freshness_path.exists() else None
 if standalone and standalone['exit']:
-    problems.append(dict(suite='gates-test-repaired', exit=standalone['exit']))
+    problems.append(dict(suite='gates-test-final-controls', exit=standalone['exit']))
 missing = sorted(required - set(completed))
 txn = {job: completed[job] for job in manifest['available'] if job.startswith('txnorder-')}
 coverage = json.loads((ROOT / 'docs/wave6/coverage.json').read_text())
