@@ -2,7 +2,10 @@
 """Bounded serverless paths in linked production routines, no rates.
 
 Count named tomo routines (including inlined code), exclude out-of-scope library
-callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1, slowlog -1, read-local 0.
+callees and fixture glue. The plain fixture calls the linked production exec_batch_prefetched entry point.
+Plain: atomic 1, slowlog -1/10000, batch 1/32. Scatter: eight keys on eight
+shards, atomic 0/1, batch 1/8, slowlog -1. Both modes and database runtimes;
+read-local 0 throughout. Setup and exact result verification are outside scope.
 """
 import argparse
 import concurrent.futures

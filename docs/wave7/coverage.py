@@ -60,6 +60,9 @@ for target_line,sources in re.findall(r'^([^#\n]+):([^\n]*)', (ROOT/'Makefile').
 for name,body in blocks.items():
  for target,sources in units.items():
   if target in body: jobfiles[name].update(closure(sources))
+jobfiles['job_production_units'].update({'blockfix_cost.cc'})
+jobfiles['job_blockfix_registry'].update({'blockfix_cost.cc'})
+jobfiles['job_flip_unit'].update({'ctlfix.mk','ctlfix_unit.cc'})
 jobfiles['job_differ'] = closure({'differ.py','_differ_ccfix.py'})
 jobfiles['job_differ'].add('mode_equivalence.py')
 for battery in ('dispatch_arity','dispatch_errors','dispatch_children','acl_subcommands','router_uniform'):
