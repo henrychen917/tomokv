@@ -1,0 +1,39 @@
+{
+  "total": 950,
+  "functions": {
+    "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91,
+    "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 188,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "tomo::ThreadCtx::note_command(unsigned short)": 15,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+    "tomo::KvObj::key() const": 13,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 5,
+    "tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 34,
+    "tomo::ExLoopT<true>::flush_notify_batch()": 94,
+    "tomo::Shard::publish_size()": 58,
+    "tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "bodies": {
+    "0x71e760 void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 91,
+    "0x71add0 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 188,
+    "0x4e5250 tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "0x6f9e40 tomo::ThreadCtx::note_command(unsigned short)": 15,
+    "0x595230 void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 77,
+    "0x539e40 tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+    "0x532960 tomo::KvObj::key() const": 13,
+    "0x531b50 tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "0x592b00 void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 110,
+    "0x705b00 tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 5,
+    "0x705f30 tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 34,
+    "0x705da0 tomo::ExLoopT<true>::flush_notify_batch()": 94,
+    "0x79cb10 tomo::Shard::publish_size()": 58,
+    "0x79ca10 tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "excluded": {
+    "memcpy@plt": 1
+  },
+  "clock_calls": 1
+}

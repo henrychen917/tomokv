@@ -17,89 +17,196 @@
     798,
     815
   ],
-  "quick_exit_line": 5609,
+  "quick_exit_line": 5610,
   "collections": [
     {
-      "line": 5370,
+      "line": 5371,
       "text": "collect_job atomfix5_watch",
       "before_quick": true
     },
     {
-      "line": 5372,
+      "line": 5373,
       "text": "collect_job atomfix5_accounting",
       "before_quick": true
     },
     {
-      "line": 5448,
+      "line": 5449,
       "text": "collect_job blockfix_registry",
       "before_quick": true
     },
     {
-      "line": 5449,
+      "line": 5450,
       "text": "collect_job blockfix_mkstream",
       "before_quick": true
     },
     {
-      "line": 5450,
+      "line": 5451,
       "text": "collect_job blockfix_structure",
       "before_quick": true
     },
     {
-      "line": 5457,
+      "line": 5458,
       "text": "collect_job datafix2_notouch",
       "before_quick": true
     },
     {
-      "line": 5458,
+      "line": 5459,
       "text": "collect_job datafix2_encoding",
       "before_quick": true
     },
     {
-      "line": 5459,
+      "line": 5460,
       "text": "collect_job datafix2_subkeys",
       "before_quick": true
     },
     {
-      "line": 5460,
+      "line": 5461,
       "text": "collect_job datafix2_watch",
       "before_quick": true
     },
     {
-      "line": 5461,
+      "line": 5462,
       "text": "collect_job datafix2_idle",
       "before_quick": true
     },
     {
-      "line": 5489,
+      "line": 5490,
       "text": "collect_job rlfix3_zc",
       "before_quick": true
     },
     {
-      "line": 5490,
+      "line": 5491,
       "text": "collect_job rlfix3_info",
       "before_quick": true
     },
     {
-      "line": 5529,
+      "line": 5530,
       "text": "collect_job persistfix2_lastsave",
       "before_quick": true
     },
     {
-      "line": 5530,
+      "line": 5531,
       "text": "collect_job persistfix2_shutdown",
       "before_quick": true
     },
     {
-      "line": 5531,
+      "line": 5532,
       "text": "collect_job persistfix2_commands",
       "before_quick": true
     },
     {
-      "line": 5532,
+      "line": 5533,
       "text": "collect_job persistfix2_errors",
       "before_quick": true
     }
   ],
   "fixture": 815,
-  "expect_unchanged": true
+  "expect_unchanged": true,
+  "source_full": 815,
+  "source_quick": 798,
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "lane_source_counts": [
+    {
+      "lane": "rlfix3",
+      "base": "05a5e01a9",
+      "base_counts": [
+        768,
+        785
+      ],
+      "merged_tip": "5a5c2e63e80b364af76019d0b264468462b234d4",
+      "lane_counts": [
+        784,
+        801
+      ],
+      "delta": [
+        16,
+        16
+      ]
+    },
+    {
+      "lane": "ctlfix",
+      "base": "05a5e01a9",
+      "base_counts": [
+        768,
+        785
+      ],
+      "merged_tip": "bcf0ed8de327af8268f57ccf01d8c5dc7da383e6",
+      "lane_counts": [
+        768,
+        785
+      ],
+      "delta": [
+        0,
+        0
+      ]
+    },
+    {
+      "lane": "blockfix",
+      "base": "05a5e01a9",
+      "base_counts": [
+        768,
+        785
+      ],
+      "merged_tip": "feba2b9c0afb76f64ff0a145ee483d094a484fa8",
+      "lane_counts": [
+        771,
+        788
+      ],
+      "delta": [
+        3,
+        3
+      ]
+    },
+    {
+      "lane": "persistfix2",
+      "base": "05a5e01a9",
+      "base_counts": [
+        768,
+        785
+      ],
+      "merged_tip": "7e7e0aea7d2a2aab7eac1e746fea5086bd1dcf7d",
+      "lane_counts": [
+        772,
+        789
+      ],
+      "delta": [
+        4,
+        4
+      ]
+    },
+    {
+      "lane": "atomfix5",
+      "base": "ef5204b2e",
+      "base_counts": [
+        739,
+        756
+      ],
+      "merged_tip": "f0280b95550019816cccf64ecb57857f1e44fb65",
+      "lane_counts": [
+        741,
+        758
+      ],
+      "delta": [
+        2,
+        2
+      ]
+    },
+    {
+      "lane": "datafix2",
+      "base": "ef5204b2e",
+      "base_counts": [
+        739,
+        756
+      ],
+      "merged_tip": "d796f673708ba66c0fcd50095c87979f78ab1658",
+      "lane_counts": [
+        744,
+        761
+      ],
+      "delta": [
+        5,
+        5
+      ]
+    }
+  ]
 }

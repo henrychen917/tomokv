@@ -2,6 +2,8 @@
 """Require every counted production group to match its ordinary linked server."""
 import concurrent.futures
 import json
+import gzip
+import constant_provenance
 import os
 from pathlib import Path
 import identity
@@ -51,6 +53,29 @@ switch_names = {
     row['name'] for arm in ('pre', 'post') for ns in ('normal', 'db0')
     for row in result[arm + '-' + ns] if not row['production_equal']
 }
+constant_names={n for n in switch_names if '::kvobj_' not in n}
+switch_names-=constant_names
+constant_proofs={}
+if constant_names:
+    raw=json.load(gzip.open(DOC/'provenance-bodies.json.gz','rt'))
+    for arm in ('pre','post'):
+        for ns in ('normal','db0'):
+            key=arm+'-'+ns
+            for row in result[key]:
+                name=row['name']
+                if row['production_equal'] or name not in constant_names:continue
+                harness=next(b for b in raw[key][name] if hex(b['addr'])==row['address'])
+                production=raw[arm+'-production'][name]
+                assert len(production)==1
+                production=production[0]
+                assert constant_provenance.signature(harness)==row['harness'][0]['digest']
+                assert constant_provenance.signature(production)==row['production'][0]['digest']
+                proof=constant_provenance.prove(paths[arm+'-production'],production,paths[key],harness)
+                constant_proofs[key+' '+name]=proof
+                row['verified_constant_equal']=True
+                if arm=='pre':
+                    row['verified_constant_headline_equal']=row['production'][0]['digest'] in identity.signature(inventories['headline']['groups'][name])
+    (DOC/'constant-provenance.json').write_text(json.dumps(constant_proofs,indent=2)+'\n')
 switches = {}
 if switch_names:
     assert switch_names == {
@@ -79,8 +104,8 @@ for arm in ('pre', 'post'):
     for ns in ('normal', 'db0'):
         name = arm + '-' + ns
         failures = [r for r in result[name]
-                    if not (r['production_equal'] or r.get('verified_switch_equal', False))
-                    or not (r.get('headline_equal', True) or r.get('verified_switch_headline_equal', False))]
+                    if not (r['production_equal'] or r.get('verified_switch_equal', False) or r.get('verified_constant_equal',False))
+                    or not (r.get('headline_equal', True) or r.get('verified_switch_headline_equal', False) or r.get('verified_constant_headline_equal',False))]
         print(name, len(result[name]), 'counted groups;', len(failures), 'differences', flush=True)
         failed += failures
 for row in failed:

@@ -1,0 +1,56 @@
+{
+  "function_groups": 9321,
+  "unchanged": 9316,
+  "changed": 5,
+  "lane_equal": 0,
+  "residual": 5,
+  "hot_groups": 565,
+  "hot_headline": 565,
+  "hot_lane": 0,
+  "command_hot_groups": 12,
+  "command_hot_headline": 12,
+  "command_hot_lane": 0,
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+    },
+    "rlfix3": {
+      "path": "/home/user/Projects/bins/rlfix3-post-d00d4c6b",
+      "sha256": "d00d4c6ba6dba4d76b5a07fbdce632a22b4bf5aac9eb8138d45391daa9181997"
+    },
+    "ctlfix": {
+      "path": "/home/user/Projects/bins/ctlfix-post-9ce7cd18",
+      "sha256": "9ce7cd18c4900705c71f31780b12a04c518ffceb28c4ac3287f1a50dcd73c27d"
+    },
+    "blockfix": {
+      "path": "/home/user/Projects/bins/blockfix-post-4fb4f41b",
+      "sha256": "4fb4f41bdaaf92dbcaaa782e1462ee14bbd1566dfe1336a723fd4cd827ac2331"
+    },
+    "persistfix2": {
+      "path": "/home/user/Projects/bins/persistfix2-post-edbdf2c7",
+      "sha256": "edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43"
+    },
+    "atomfix5": {
+      "path": "/home/user/Projects/bins/atomfix5-post-63888447",
+      "sha256": "6388844742d94aaa373064dab3a2aedd18b2f03c9e58b36728a6283b75513b4f"
+    },
+    "datafix2": {
+      "path": "/home/user/Projects/bins/datafix2-post-e04e787a",
+      "sha256": "e04e787a192cd2ab0b3f9f0ef22df0e9ba3651843aeaa2802c697ef24ed37909"
+    },
+    "baseline_atomfix5": {
+      "path": "/home/user/Projects/bins/atomfix5-pre-adaa817d",
+      "sha256": "adaa817d5be4fb08cc433a25c981af2dedb950fba102faed797f90e2acc47487"
+    },
+    "baseline_datafix2": {
+      "path": "/home/user/Projects/bins/datafix2-pre-bd013c79",
+      "sha256": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f"
+    }
+  },
+  "post": {
+    "path": "build/tomokv-wave7-PAD-A",
+    "sha256": "d00e327ca81e3c7708b6f2f6e71ac56388f50a747c503689715971fcbf296d12"
+  }
+}

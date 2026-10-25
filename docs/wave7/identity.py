@@ -25,6 +25,7 @@ OUT = ROOT / 'build/wave7/identity'
 REFS = {'headline': '/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9', 'rlfix3': '/home/user/Projects/bins/rlfix3-post-d00d4c6b', 'ctlfix': '/home/user/Projects/bins/ctlfix-post-9ce7cd18', 'blockfix': '/home/user/Projects/bins/blockfix-post-4fb4f41b', 'persistfix2': '/home/user/Projects/bins/persistfix2-post-edbdf2c7', 'atomfix5': '/home/user/Projects/bins/atomfix5-post-63888447', 'datafix2': '/home/user/Projects/bins/datafix2-post-e04e787a', 'baseline_atomfix5': '/home/user/Projects/bins/atomfix5-pre-adaa817d', 'baseline_datafix2': '/home/user/Projects/bins/datafix2-pre-bd013c79'}
 
 HOT = re.compile(r'::cmd_(?:get|set|mget|mset)(?:\(|<)|prepare_captured_local_mget|xshard_.*mset')
+COUNTED_HOT = set()
 
 
 def _inventory(path):
@@ -82,7 +83,8 @@ def compare(post, refs):
                          signature(ref['groups'].get(name, [])) != signature(refs.get('baseline_'+arm, refs['headline'])['groups'].get(name, []))]
         rows.append(dict(name=name, hot=bool(GENERAL_HOT.search(name) or HOT.search(name) or
                                            re.search(r'::reply_(?:int|bulk|array_header)<|Op::Sink::reserve\(', name) or
-                                           re.search(r'ExLoopT<.*>::run\(', name)),
+                                           re.search(r'ExLoopT<.*>::run\(', name) or name in COUNTED_HOT),
+                         counted_command_scope=name in COUNTED_HOT,
                          command_hot=bool(HOT.search(name)), equal=same,
                          headline_sizes=[r['size'] for r in before], post_sizes=[r['size'] for r in after],
                          matches=matches, changed_lanes=changed_lanes))
@@ -90,6 +92,13 @@ def compare(post, refs):
 
 
 def main():
+    # Expand the final audit to every body actually entered by the full command
+    # matrix. Budget trials call compare() directly with the fixed historical
+    # hot selection; this additional final inventory cannot change trial scores.
+    if os.getenv('WAVE7_COUNTED_HOT') == '1':
+        for arm in ('pre','post'):
+            for row in json.loads((ROOT/'docs/wave7/instructions'/('results-'+arm+'.json')).read_text()):
+                COUNTED_HOT.update(audit.canonical(name) for name in row['functions'])
     with ProcessPoolExecutor(max_workers=6) as pool:
         inventories = list(pool.map(inventory, [*REFS.values(), Path(sys.argv[1]) if len(sys.argv)>1 else ROOT / 'build/tomokv']))
     refs = dict(zip(REFS, inventories[:-1]))

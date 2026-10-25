@@ -1,0 +1,39 @@
+{
+  "total": 18930,
+  "functions": {
+    "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370,
+    "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 6016,
+    "tomo::multi_task_tagged(tomo::Task const&)": 128,
+    "tomo::ThreadCtx::note_command(unsigned short)": 480,
+    "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 2464,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 2720,
+    "tomo::KvObj::key() const": 416,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 928,
+    "void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3520,
+    "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 160,
+    "tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 1088,
+    "tomo::ExLoopT<true>::flush_notify_batch()": 435,
+    "tomo::Shard::publish_size()": 58,
+    "tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "bodies": {
+    "0x71e760 void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 370,
+    "0x71add0 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": 6016,
+    "0x4e5250 tomo::multi_task_tagged(tomo::Task const&)": 128,
+    "0x6f9e40 tomo::ThreadCtx::note_command(unsigned short)": 480,
+    "0x595230 void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)": 2464,
+    "0x539e40 tomo::FlatStore::find(unsigned long, tomo::Slice)": 2720,
+    "0x532960 tomo::KvObj::key() const": 416,
+    "0x531b50 tomo::Slice::key_eq(tomo::Slice const&) const": 928,
+    "0x592b00 void tomo::reply_bulk<tomo::Op::Sink>(tomo::Op::Sink&&, tomo::Slice) [clone .isra.0]": 3520,
+    "0x705b00 tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)": 160,
+    "0x705f30 tomo::ExLoopT<true>::notify_sender(tomo::Client*)": 1088,
+    "0x705da0 tomo::ExLoopT<true>::flush_notify_batch()": 435,
+    "0x79cb10 tomo::Shard::publish_size()": 58,
+    "0x79ca10 tomo::FlatStore::publish_database_counts() const": 147
+  },
+  "excluded": {
+    "memcpy@plt": 32
+  },
+  "clock_calls": 1
+}

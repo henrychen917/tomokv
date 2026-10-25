@@ -1,0 +1,176 @@
+{
+  "pre-normal tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": {
+    "production": [
+      {
+        "instruction_offset": "0x379",
+        "target": "0x80dd48",
+        "bytes": "0100000001000000",
+        "instruction": "0379 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x604>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x379",
+        "target": "0x81ae18",
+        "bytes": "0100000001000000",
+        "instruction": "0379 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x614>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  },
+  "pre-db0 tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)": {
+    "production": [
+      {
+        "instruction_offset": "0x349",
+        "target": "0x80dda8",
+        "bytes": "0200000001000000",
+        "instruction": "0349 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x664>"
+      },
+      {
+        "instruction_offset": "0x367",
+        "target": "0x80dd48",
+        "bytes": "0100000001000000",
+        "instruction": "0367 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x604>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x349",
+        "target": "0x81ae78",
+        "bytes": "0200000001000000",
+        "instruction": "0349 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x674>"
+      },
+      {
+        "instruction_offset": "0x367",
+        "target": "0x81ae18",
+        "bytes": "0100000001000000",
+        "instruction": "0367 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x614>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  },
+  "pre-db0 tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": {
+    "production": [
+      {
+        "instruction_offset": "0x4c15",
+        "target": "0x80dd78",
+        "bytes": "ffffffff00000000",
+        "instruction": "4c15 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x634>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x4c15",
+        "target": "0x81ae48",
+        "bytes": "ffffffff00000000",
+        "instruction": "4c15 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x644>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  },
+  "post-normal tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)": {
+    "production": [
+      {
+        "instruction_offset": "0x159",
+        "target": "0x81e218",
+        "bytes": "0100000001000000",
+        "instruction": "0159 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>"
+      },
+      {
+        "instruction_offset": "0x339",
+        "target": "0x81e2b0",
+        "bytes": "0200000001000000",
+        "instruction": "0339 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8>"
+      },
+      {
+        "instruction_offset": "0x34e",
+        "target": "0x81e218",
+        "bytes": "0100000001000000",
+        "instruction": "034e [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x159",
+        "target": "0x82a2a8",
+        "bytes": "0100000001000000",
+        "instruction": "0159 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>"
+      },
+      {
+        "instruction_offset": "0x339",
+        "target": "0x82a340",
+        "bytes": "0200000001000000",
+        "instruction": "0339 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>"
+      },
+      {
+        "instruction_offset": "0x34e",
+        "target": "0x82a2a8",
+        "bytes": "0100000001000000",
+        "instruction": "034e [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  },
+  "post-normal tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": {
+    "production": [
+      {
+        "instruction_offset": "0x490c",
+        "target": "0x81e248",
+        "bytes": "ffffffff00000000",
+        "instruction": "490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x490c",
+        "target": "0x82a2d8",
+        "bytes": "ffffffff00000000",
+        "instruction": "490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  },
+  "post-db0 tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": {
+    "production": [
+      {
+        "instruction_offset": "0x4ea3",
+        "target": "0x81e248",
+        "bytes": "ffffffff00000000",
+        "instruction": "4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>"
+      }
+    ],
+    "probe": [
+      {
+        "instruction_offset": "0x4ea3",
+        "target": "0x82a2d8",
+        "bytes": "ffffffff00000000",
+        "instruction": "4ea3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>"
+      }
+    ],
+    "negative_controls": {
+      "changed_constant_byte": true,
+      "changed_opcode": true
+    },
+    "proof": "All instructions/encodings match except these verified equal eight-byte constant loads; no strict inventory tolerance added."
+  }
+}

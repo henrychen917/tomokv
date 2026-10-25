@@ -1,0 +1,21 @@
+{
+  "persistfix2": {
+    "path": "/home/user/Projects/bins/persistfix2-post-edbdf2c7",
+    "sha256": "edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43",
+    "offset": "0x581",
+    "load": "70acf1:\t48 8b 05 50 67 10 00 \tmov    0x106750(%rip),%rax        # 811448 <_ZZN8tomo_db018cfg_shutdown_flagsENS_5SliceERhRPKcE6values+0x900>",
+    "target": "0x811448",
+    "bytes": "0000000001000000",
+    "strict_instruction": "0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>"
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave7/build/tomokv",
+    "sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+    "offset": "0x581",
+    "load": "7173f1:\t48 8b 05 30 71 10 00 \tmov    0x107130(%rip),%rax        # 81e528 <_ZZN8tomo_db018cfg_shutdown_flagsENS_5SliceERhRPKcE6values+0x920>",
+    "target": "0x81e528",
+    "bytes": "0000000001000000",
+    "strict_instruction": "0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x920>"
+  },
+  "proof": "All other normalized instructions and every encoding match. The sole 64-bit RIP load reads the same eight bytes. Strict mismatch remains retained."
+}

@@ -11,6 +11,17 @@ def get(pair):
  arm,path=pair;out=DOC/(arm+'.json.gz')
  key=dict(sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),names=sorted(wanted))
  stamp=DOC/(arm+'-cache-key.json')
+ # Frozen references can reuse a superset from the earlier complete audit.
+ if not out.exists():
+  for prior in ('callsites-budgets','callsites-initial'):
+   old=ROOT/'docs/wave7'/prior/(arm+'.json.gz')
+   oldkey=ROOT/'docs/wave7'/prior/(arm+'-cache-key.json')
+   if old.exists() and oldkey.exists():
+    previous=json.loads(oldkey.read_text())
+    if previous['sha256']==key['sha256'] and wanted<=set(previous['names']):
+     with gzip.open(old,'rt') as f:cached=json.load(f)
+     with gzip.open(out,'wt') as f:json.dump({n:cached[n] for n in wanted},f)
+     stamp.write_text(json.dumps(key,indent=2)+'\n');break
  if out.exists() and stamp.exists() and json.loads(stamp.read_text())==key:
   with gzip.open(out,'rt') as f:cached=json.load(f)
   for bodies in cached.values():
