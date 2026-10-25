@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/syscall.h>
+#include <sys/prctl.h>
 #include <unistd.h>
 
 static void trace_abort(int signal_number) {
@@ -14,6 +15,7 @@ static void trace_abort(int signal_number) {
     dprintf(STDERR_FILENO, "WAVE7_ABORT pid=%ld tid=%ld signal=%d\n",
             (long)getpid(), (long)syscall(SYS_gettid), signal_number);
     backtrace_symbols_fd(frames, count, STDERR_FILENO);
+    if (getenv("WAVE7_ABORT_STOP")) syscall(SYS_tgkill, getpid(), syscall(SYS_gettid), SIGSTOP);
     struct sigaction action = {.sa_handler = SIG_DFL};
     sigemptyset(&action.sa_mask);
     sigaction(SIGABRT, &action, NULL);
@@ -26,6 +28,7 @@ static void trace_abort(int signal_number) {
 }
 
 __attribute__((constructor)) static void install_abort_trace(void) {
+    if (getenv("WAVE7_ABORT_STOP")) prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
     void *frame;
     (void)backtrace(&frame, 1); /* Resolve unwinder before an exceptional path. */
     struct sigaction action = {.sa_handler = trace_abort};
