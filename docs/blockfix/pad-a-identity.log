@@ -1,0 +1,8 @@
+normalizer self-checks PASS
+scheduler 72 identical 72 different/missing 0
+envelope 120 identical 120 different/missing 0
+dispatch 92 identical 92 different/missing 0
+retire 8 identical 8 different/missing 0
+commands 16 identical 16 different/missing 0
+multi-key commands 32 identical 32 different/missing 0
+strict_noop True

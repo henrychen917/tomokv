@@ -1,0 +1,424 @@
+[
+  {
+    "target": "all",
+    "command": [
+      "make",
+      "-q",
+      "all"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/expire-notify-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/ktls-lifetime-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/moverfix-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/moverfix-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/moverfix-db0-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/publishfix-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/publishfix-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/at15-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/txnorder-wake-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/txnorder-wake-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/txnorder-episodes",
+    "command": [
+      "make",
+      "-q",
+      "build/txnorder-episodes"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/txnorder-episodes-debug",
+    "command": [
+      "make",
+      "-q",
+      "build/txnorder-episodes-debug"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/txnorder-watch-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/txnorder-watch-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/txnorder-watch-db0-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/txnorder-watch-db0-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/netcmd-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/netcap-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/waits-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/multidb-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/storesize-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/respresume-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/respresume-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/respresume-migration",
+    "command": [
+      "make",
+      "-q",
+      "build/respresume-migration"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/exbatch-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/wb-rule-units",
+    "command": [
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/wbland-units",
+    "command": [
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/rltopo-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/lbplanner-units",
+    "command": [
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/shutdown-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/persistfix-units",
+    "command": [
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "command": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/flushfix-units",
+    "command": [
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "command": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "command": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/racefix-climon",
+    "command": [
+      "make",
+      "-q",
+      "build/racefix-climon"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "command": [
+      "make",
+      "-q",
+      "build/aoforder-scheduled"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "mdbqsbr-live-arms",
+    "command": [
+      "make",
+      "-q",
+      "mdbqsbr-live-arms"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/blockfix-cost",
+    "command": [
+      "make",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk",
+      "-q",
+      "build/blockfix-cost"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "build/tomokv.blockfix-cost.sha256",
+    "command": [
+      "make",
+      "-f",
+      "Makefile",
+      "-f",
+      "tools/blockfix_cost.mk",
+      "-q",
+      "build/tomokv.blockfix-cost.sha256"
+    ],
+    "rc": 0
+  }
+]

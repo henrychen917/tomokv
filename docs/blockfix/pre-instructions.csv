@@ -1,0 +1,4 @@
+blocked_keys,LPUSH_instructions,XADD_instructions,BLPOP_registration_instructions
+1,2106.70,3529.45,2912.11
+100,2466.52,3994.34,4200.06
+10000,52097.17,53601.30,111157.67

@@ -1,0 +1,12 @@
+$ rg -n --glob *.py --glob *.cc --glob *.sh radix-tree-keys|radix-tree-nodes|entries-read tests
+tests/compat3_blockfix.py:91:                        equal((empty[b"radix-tree-keys"], empty[b"radix-tree-nodes"]), (0, 1), "empty root")
+tests/compat3_blockfix.py:139:    # LASTID advances the cursor without increasing entries-read. The next
+tests/compat3_blockfix.py:148:    equal((group[b"entries-read"], group[b"lag"]), (2, 1), "LASTID is not a delivery")
+tests/compat3_blockfix.py:149:    observations["progress"] = [group[b"entries-read"], group[b"lag"]]
+tests/perfio.py:254:        fields = (b"last-delivered-id", b"entries-read", b"lag")
+tests/perfio.py:326:                assert actual == expected, "entries-read/lag differ from Redis 7.4 oracle"
+tests/streamgroups.py:112:note("XGROUP CREATE ENTRIESREAD seeds entries-read and lag",
+tests/streamgroups.py:115:     pairs(admin.cmd("XINFO", "GROUPS", "group:meta")[0])[b"entries-read"] == 2 and
+tests/streamgroups.py:121:     pairs(admin.cmd("XINFO", "GROUPS", "group:meta")[0])[b"entries-read"] == 1)
+tests/streamgroups.py:198:note("XINFO GROUPS cross-checks cursor, PEL, entries-read and lag",
+tests/streamgroups.py:200:     group_info[b"entries-read"] == 7 and group_info[b"lag"] == 1,

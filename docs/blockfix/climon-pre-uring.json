@@ -1,0 +1,28 @@
+[
+  {
+    "geometry": "split",
+    "command": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-blockfix/build/blockfix/PRE/tomokv",
+      "37803",
+      "37804",
+      "80-87",
+      "6:2"
+    ],
+    "directory": "/home/user/Projects/cx-blockfix/build/blockfix/climon/climon-pre-uring-split",
+    "rc": 0
+  },
+  {
+    "geometry": "armed-fused",
+    "command": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-blockfix/build/blockfix/PRE/tomokv",
+      "37803",
+      "37804",
+      "80-87",
+      "6:2"
+    ],
+    "directory": "/home/user/Projects/cx-blockfix/build/blockfix/climon/climon-pre-uring-armed-fused",
+    "rc": 0
+  }
+]

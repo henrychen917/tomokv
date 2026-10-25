@@ -1,0 +1,12 @@
+{
+  "old_tip": "f8de8a9c1e4edc8b8a4f2534f53243494d3f32de",
+  "new_tip": "419fd26f1e4f3a81a7fd5eedf1a628ee83eddab2",
+  "tree_unchanged": true,
+  "tested_tree": "840c5f6e0a9ae3ee83e14dbe89158e5a97273fea",
+  "commits": {
+    "AT4.8": "5b1b5874f84a7f7312f1e6b4f908ca2e201de6fe",
+    "CC4.18": "88b1ffce5a8942b24570af8bc875e9325e25a853",
+    "CC4.19": "419fd26f1e4f3a81a7fd5eedf1a628ee83eddab2"
+  },
+  "method": "Temporary git index and commit-tree; no working file or timestamp changed"
+}
