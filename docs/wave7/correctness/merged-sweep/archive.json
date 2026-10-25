@@ -1,0 +1,22 @@
+{
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.fKT455",
+  "archive_sha256": "4d469f25932ffb0dbae9640b7c5e191b8fff7c9c1b257b4266ea5badbd22692a",
+  "included": [
+    {
+      "path": "phases.tsv",
+      "bytes": 27,
+      "sha256": "4b37a8566e8904bd87ae1917a4fd3b544616c7debd6701881848c424765819f6"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1227,
+      "sha256": "db301750d608f613f9f9f2f79af29040c8fd6d6d8e9f51ccbffb0e6d57f40813"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 6082,
+      "sha256": "ccdb10cd0c26049c23795b8477facfcb96ea0f3ec5662feac31f9f1b7cbf9fd5"
+    }
+  ],
+  "excluded_runtime_data": []
+}

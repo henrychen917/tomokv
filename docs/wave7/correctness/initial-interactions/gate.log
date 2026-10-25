@@ -1,0 +1,31 @@
+GATE(full): 32 physical cores; 3 correctness slots = min(24/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 24 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave7/build/gate-run.UXU7kz
+PARTIAL jobs (including prerequisites): release production_units blockfix_registry persistfix2_shutdown datafix2_watch rlfix3_info execfair
+PARTIAL jobs (including prerequisites): release production_units blockfix_registry persistfix2_shutdown datafix2_watch rlfix3_info execfair
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+  blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4 ok
+  row budget: 900s; median=-s; no-history-conservative-default; persistfix2 shutdown modifiers and signal policy
+  persistfix2 shutdown modifiers and signal policy     ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.9 write WATCH table vs Redis 7.4
+  datafix2 CD4.9 write WATCH table vs Redis 7.4        ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 0)
+  INFO selective collection (1s, epoll, read-local 0)  FAIL (see /home/user/Projects/cx-wave7/build/gate-run.UXU7kz/jobs/rlfix3_info/info-1s-epoll-0.log, build.log and /home/user/Projects/cx-wave7/build/gate-run.UXU7kz/jobs/rlfix3_info/gate-srv-fused.sgWewT)
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, epoll, read-local 1)
+  INFO selective collection (1s, epoll, read-local 1)  FAIL (see /home/user/Projects/cx-wave7/build/gate-run.UXU7kz/jobs/rlfix3_info/info-1s-epoll-1.log, build.log and /home/user/Projects/cx-wave7/build/gate-run.UXU7kz/jobs/rlfix3_info/gate-srv-fused.0BOSgn)
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 0)
+  INFO selective collection (1s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (1s, uring, read-local 1)
+  INFO selective collection (1s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 0)
+  INFO selective collection (2s, epoll, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, epoll, read-local 1)
+  INFO selective collection (2s, epoll, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 0)
+  INFO selective collection (2s, uring, read-local 0)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; INFO selective collection (2s, uring, read-local 1)
+  INFO selective collection (2s, uring, read-local 1)  ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXEC fast-lane polls
+  EXEC fast-lane polls                                 ok
+GATE(PARTIAL): 11 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave7/docs/wave7/correctness/initial-interactions/ledger.partial

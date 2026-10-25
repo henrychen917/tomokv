@@ -1,0 +1,91 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792897547.9969797,
+  "commit": "411767c70c203cc8d815819b914570fbfa31ba11",
+  "binary_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/differ-uring/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792898612.8485482,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.heQJEZ",
+  "jobs": {
+    "differ-armed-0": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t538.810000\tRedis 7.4 differential part (armed fused, atomic 0)"
+      ]
+    },
+    "differ-armed-1": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t529.250000\tRedis 7.4 differential part (armed fused, atomic 1)"
+      ]
+    },
+    "differ-equivalence": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t21.520000\tmode equivalence part (all execution modes and knobs)"
+      ]
+    },
+    "differ-split-0": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t532.920000\tRedis 7.4 differential part (split, atomic 0)"
+      ]
+    },
+    "differ-split-1": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t533.470000\tRedis 7.4 differential part (split, atomic 1)"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}
