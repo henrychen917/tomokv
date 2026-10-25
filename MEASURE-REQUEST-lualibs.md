@@ -148,6 +148,22 @@ The full standard sequence is being rerun sequentially from the fixed driver;
 its final results will replace this pending statement. No performance run
 occurred. A partial gate is not a full-gate receipt.
 
+The first corrected split/uring POST matrix then encountered nine `climon`
+reader-control bind failures on port 40842; its summary also rejected the
+missing comparison witnesses (466 passed, 10 failed). Those are setup errors,
+not DIFF-TRK-1 reply differences. The allocated lane range lies inside this
+host's ephemeral range, 32768-60999, with an empty reserved-port list. Concurrent
+client sockets to other lanes were observed using nearby allocated ports as
+source ports; ephemeral use is the inferred cause of these collisions.
+[The local lease](docs/lualibs/port_guard/lease.py) holds non-listening
+SO_REUSEADDR sockets for 40840-40842, preventing ephemeral allocation between
+boots while allowing the real Redis/TomoKV/control listeners to bind normally.
+Its listener compatibility was checked with a real command-byte exchange.
+It changes no sysctl, comparison, deadline or protocol. The whole first matrix
+is queued for a standard-seed rerun under this reservation; original failures
+remain retained. The lease will be closed after verification.
+
+
 ### Binary identity, size and per-state memory
 
 Binaries: `build/tomokv-lualibs-pre`, `build/tomokv` (POST),
