@@ -610,6 +610,8 @@
       "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors"
     },
     "expected_exit": 1,
-    "started": 1792887799.720251
+    "started": 1792887799.720251,
+    "exit": 1,
+    "finished": 1792887912.5575044
   }
 ]

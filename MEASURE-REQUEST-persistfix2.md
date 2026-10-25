@@ -211,55 +211,122 @@ The report is committed separately.
 
 ## persistfix2
 
-Current lane: `/home/user/Projects/cx-persistfix2`, branch `cx-persistfix2`, PRE `05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba`. The earlier report above is historical. No push. Builds use CPUs 64–79, `-j16`; gate jobs use servers 64–71, clients 72–79, 16 shards, ratio 6:2, ports 36800–36899.
+Worktree `/home/user/Projects/cx-persistfix2`, branch `cx-persistfix2`; PRE is `05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba`. The preceding report is historical. This section describes the final lane. No push or performance measurement was performed.
 
-PS4.6 reproduced on PRE in all four 1s/2s × epoll/uring legs through the real `GATE_ONLY_JOBS=persistfix2_lastsave` interface. Redis 7.4 passed every oracle leg. POST passes the same eight legs: LASTSAVE and RDB telemetry remain unchanged during/after a rewrite, and `aof_rewrites` counts an attempt at start, as Redis does. Evidence: `docs/persistfix2/{pre,post}-lastsave/`. The RDB change baseline, last-save status and save count already excluded rewrites; native snapshot-cut and AOF byte/record counters describe their own mechanisms. The LASTSAVE correction also preserves the save cron elapsed-time origin.
+### Changes and reproduction
 
-Interim row delta: DQ=+1 / DF=+1, collected at `collect_job persistfix2_lastsave`, before the quick-tier exit. EXPECT constants remain unchanged. Remaining items and final proof are being completed.
-
-PS4.12: reproduced FORCE refusal, ABORT combination parsing, repeated-modifier arity, absent signal policies and non-oracle error text on PRE. POST passes the complete directed oracle/target matrix (1s/2s × epoll/uring), including failing/successful saves, all legal flag sets, illegal combinations, CONFIG and boot signal policies, and shutdown during an observed BGSAVE. NOW bypasses replication waiting; this single-node server has none, and NOW alone still refuses a failed save. FORCE logs the failed save and exits 0 without a reply. A pending signal request can be aborted before save admission. Existing Config padding holds the two policy bytes; no listed layout changes. Evidence: `docs/persistfix2/{pre,post}-shutdown/`. The shutdown unit passes; its timeout assertion now uses the exact oracle refusal while retaining the required stalled-owner witness. Its active-save schedule now requires cancellation and a fresh final epoch. An initial extra EXEC probe incorrectly expected queueing; both oracle and target rejected it. The corrected probe asserts the exact rejection and EXECABORT.
-
-The combined shutdown/production-unit gate build was interrupted before row execution so subsequent header changes do not force redundant complete instrumented builds. It is not a pass; the complete job will be rerun after the final source changes. Interim cumulative DQ=+2 / DF=+2.
-
-PS4.13: the directed row reproduces all three register cases on PRE in both modes and engines: disabled-AOF refusal, rewrite scheduling reply, and BGSAVE option parsing. POST uses the existing native snapshot coordinator for an explicit rewrite while AOF is off; it creates a native base plus empty increment and durable manifest without arming producers or ordinary AOF recording. Recovery restores that explicit cut; later AOF-disabled writes are absent. Repeated scheduled rewrite requests coalesce. BGSAVE SCHEDULE waits for an active rewrite; ordinary BGSAVE reports Redis's exact error. SAVE may finish the shared rewrite capture before taking its own cut. Invalid BGSAVE options return syntax errors, and synchronous SAVE failure returns the oracle's exact `ERR`.
-
-The extended battery exposed and fixed a transition race between clearing the AOF-active flag and the snapshot coordinator reaching Idle. An initial directory-error cleanup bug and an incorrect new SAVE-error status assertion were corrected before the complete matrix was rerun. Existing, separately observed telemetry difference outside the three PS4.13 register cases: a failed synchronous SAVE sets TomoKV's `rdb_last_bgsave_status=err` and does not count an RDB save attempt; Redis retains its previous background-save status and increments its save-attempt count. This lane preserves the existing tests/psfix.py policy; the directed evidence records both INFO results and asserts only the exact error reply for this additional probe. No claim that all INFO fields are Redis-identical is made.
-
-PS4.13 complete gate evidence: `docs/persistfix2/{pre,post}-commands/`; every oracle leg passes, every PRE target leg fails, every POST target leg passes. Cumulative DQ=+3 / DF=+3.
-
-
-PS4.15 coverage audit: all previously fixed listed findings already have gate coverage. The missing D8 policy is now covered and fixed. A real file-size limit is lowered to the current increment boundary after an acknowledged write reaches the file, so the next write receives deterministic EFBIG without a short-write/ENOSPC ambiguity. Both fsync policies (`no`, `everysec`), modes, engines, normal/reorder dispatch, and armed fused reads are exercised. The row requires observed `aof_last_write_status=err`, exact oracle MISCONF replies, continued reads, no rejected mutations, abort of prequeued writes with WATCH cleanup, and completion of a read-only transaction. PRE fails; all POST/oracle legs pass. A separate binary with only the post-error admission refusal removed fails every target leg, while all its oracle legs pass. Control source/binary exist only under build/; it is never a shipping arm. See `docs/persistfix2/{pre,post,control}-errors/` and `control-d8.json`.
-
-The errno occupies existing AofManager alignment bytes. The ordinary and reorder dispatch paths share the same cold refusal; the failed-state flag is the added per-operation test. Existing `always` policy exit behavior is retained. Native writer failure remains terminal until restart; automatic retry after storage recovery is not added by this test-gap fix.
-
-| Finding | Existing source coverage before this lane | New coverage required |
+| Item | PRE / oracle evidence | Final behavior |
 |---|---|---|
-| PS4.1 | job_aof: aoffix2 snapshot, both modes/engines | none |
-| PS4.2 | job_aof: aoffix2 filename, both modes/engines | none |
-| PS4.3 | job_aof: aoffix2 large and large_placed, fused/both engines | none |
-| PS4.4 | job_aof: aoffix2 error, always policy, both modes/engines | D8 no/everysec refusal row |
-| PS4.5 | job_aof: tickets, exec_tickets, resurrection, both modes/engines | none |
-| PS4.7 | job_aof: off-writer acknowledgement, everysec/always, both modes/engines | none |
-| PS4.8 | job_aof: rewrite_fail2, both modes/engines | none |
-| PS4.9 | job_aof: manifest_missing, both modes/engines | none |
-| PS4.10 | job_snapshot: savefix acknowledged-write recovery, command/SIGTERM, both modes/engines | none |
+| PS4.6 | Every PRE target leg fails; every Redis leg passes | An AOF rewrite leaves LASTSAVE, the RDB save time and save-cron elapsed-time origin unchanged. INFO distinguishes RDB activity from AOF activity; `aof_rewrites` counts attempts at start. |
+| PS4.12 | FORCE refusal, modifier parsing, signal configuration and error replies reproduced in both modes/engines | Redis 7.4 modifier grammar and combinations; SAVE/NOSAVE, FORCE, NOW and ABORT; signal-policy CONFIG/boot grammar; exact refusal replies; pending-request cancellation; cancel an active capture before the final save. FORCE permits exit after a failed final save, with no reply and exit status 0. |
+| PS4.13 | All three register cases reproduce in every PRE target leg; oracle legs pass | Explicit rewrite with AOF off creates a native base/increment/manifest without ordinary AOF recording. Rewrite and BGSAVE scheduling coalesce and expose the correct state/replies. SAVE coordinates with an active rewrite; invalid BGSAVE options and SAVE failure use the oracle replies. |
+| PS4.15 / D8 | Coverage audit finds D8 missing; PRE and the planted control fail every target leg | After an observed AOF write error, write commands and PING receive the exact errno-bearing MISCONF; reads continue. Prequeued write transactions abort with WATCH cleanup; read-only transactions complete. Registered function flags distinguish read-only and writable FCALL/FCALL_RO; legacy EVAL/EVALSHA check nested writes while continuing to serve reads. |
 
-Final additions: **DQ=+4, DF=+4**, all four collect_job lines precede the quick-tier exit. Maintainer-owned counts should become **EXPECT_QUICK=772** (768+4), **EXPECT_FULL=789** (785+4). Neither constant was edited. The explicit label fixture contains the four reviewed additions and matches all 789 source declarations, with no missing/extra labels. Its raw checker correctly refuses the still-785 constant; the prospective in-memory 789 check passes. Evidence: `label-inventory.json`, `label-fixture-check.log`.
+Initial item commits are `f5b1c68be`, `102bfa866`, `41ed3030f`, and `66f4a3c04`. The D8 function correction is `7ad321563`; its stricter acknowledged-write witness is `d9a33d353`; legacy-script admission is corrected in `b6aca6fcd`. Supporting fixture/proof commits follow on this branch.
 
+**NOT REPRODUCED:** NOW alone permitting exit after a failed save. PRE and Redis both refuse it. Exact target geometry: 16 shards; eight fused workers or split 6 IO + 2 executor workers; CPUs 64–71; epoll and io_uring; original directed reproduction port 36800; `--databases 1 --read-local 0 --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly no --save "3600 1"`. A directory occupying the configured `dump.rdb` path causes the final-save failure. NOW bypasses replica waiting, which this single-node architecture does not have. FORCE is the modifier that permits the failed-save exit.
 
-Identity and layout: the unmodified object and strict linked identity tools were run against PRE. They report 477 changed object bodies, 92 inventory additions/removals and 715 strict linked groups; these are diagnostic differences, not a stopping rule. Every changed linked group and its reason is listed in `docs/persistfix2/identity/changed-bodies.md`; full instruction diffs remain in `build/persistfix2/identity/changed-bodies.json.gz`. The raw object tool rejects intentional changed command handlers. Of 74 actual GET/SET/MGET/MSET entry/execution bodies, 73 match its relocation normalization directly. The remaining DB0 xshard_execute has three same-section LEA displacements to the same unchanged ScriptWorkbench destructor; the compiler emitted no ELF relocations for them. Resolving those exact references makes the instruction stream identical. Its one strict linked literal-label difference loads the same eight bytes (`ffffffff00000000`); only objdump's nearest-symbol label changed. No equality tool was weakened. `hot-resolved-identity.json` records these additional explicit checks.
+The directed target matrix is 1s/2s × epoll/io_uring, with an oracle assertion leg for each target geometry. The oracle is Redis 7.4.10 at `/home/user/Projects/redis74/src/redis-server`, checked against `/home/user/Projects/redis/src`; `oracle.sha256` records its binary identity. Original reproduction receipts are `docs/persistfix2/pre-{lastsave,shutdown,commands,errors}/`; corresponding corrected receipts and final gate archives retain the wire replies, INFO observations, invocation arguments and exit evidence. The D8 function follow-up was reproduced against the first candidate in all four geometries before correction (`proof/functions-reproduced`); the complete corrected job passes (`proof/functions-corrected`).
 
-All existing sizes and field offsets match PRE, including both database runtimes: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624; AofManager 976, SnapshotManager 792 and Server 141696 also remain unchanged. No shard ownership, QSBR, immutable replacement, RYOW, ROB or native TOMOAOF format change is introduced.
+D8 arming requires the acknowledged key/value bytes in the increment before lowering RLIMIT_FSIZE to the current file boundary. The next write produces EFBIG deterministically. Both `appendfsync no` and `everysec`, both normal/reorder dispatch paths, and armed fused reads are covered. Required active states must be observed; there are no skipped window assertions. The separate planted control removes only the post-error admission refusal and is never a shipping arm.
 
-Merit request — maintainer only, **not run by this lane**. Use the gate's ABBA instrument and the exact 14-cell file `docs/lbplanner/generic-cells.txt`, with balanced PRE/POST and PRE/PAD-A comparisons on a quiet box. Use eight server cores in one CCX (64–71) and load cores 72–79, no SMT, ports within 36800–36899; preserve every cell's offered load, pipeline, read-local, atomic and connection settings. `GATE_ABBA_CELLS=docs/lbplanner/generic-cells.txt` selects that source. Record per-cell matched-load rate, cycles/op, IPC and instructions/op, plus the designated latency metric for d1g_l0/d1s_l0. Rate/latency at matched offered load decides merit; instruction count alone does not. Do not average away a regressed cell.
+The legacy-script correction was reproduced in all four geometries before implementation (`proof/eval-reproduced`). The expanded row checks ordinary and queued EVAL/EVALSHA, unknown SHA replies, protected write errors, reads before a refused write and repeated refused writes. Every final target/oracle leg passes (`proof/eval-corrected`). An initial added Lua PFCOUNT probe encountered an existing native unsupported-command restriction; supported GET and repeated-refused-SET probes replace it, retaining exact oracle assertions. Direct PFCOUNT read availability remains asserted.
 
-PAD-A is **(A) behaviour twin**: unmodified PRE implementation objects, padded and relocated to POST's total .text size and start address. Its individual function positions and data sections retain PRE behavior/layout, so it does not isolate every local alignment effect. The added padding is unreachable. The D8 planted control is a separate correctness artifact and is excluded from the merit request. POST .text is 8,226,151 bytes versus PRE's 8,217,911; PAD-A is 8,226,151. No throughput claim is made.
+### Coverage and row counts
+
+| Finding | Coverage already present before this lane |
+|---|---|
+| PS4.1 | aoffix2 snapshot, both modes/engines |
+| PS4.2 | aoffix2 filename, both modes/engines |
+| PS4.3 | aoffix2 large / large_placed, fused and both engines |
+| PS4.4 | aoffix2 error, `always`, both modes/engines; D8 `no`/`everysec` refusal added here |
+| PS4.5 | tickets, exec_tickets, resurrection, both modes/engines |
+| PS4.7 | off-writer acknowledgement, everysec/always, both modes/engines |
+| PS4.8 | rewrite_fail2, both modes/engines |
+| PS4.9 | manifest_missing, both modes/engines |
+| PS4.10 | savefix acknowledged-write recovery after command/SIGTERM, both modes/engines |
+
+The aoffix2 rows are the `job_aof` declarations at `tests/gate.sh:4350`, `:4364` and `:4378`: 32 ordinary case rows + 8 off-writer acknowledgement rows + 4 large-value rows = 44 existing rows. PS4.10 is the eight `shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)` rows declared at `tests/gate.sh:3390` in `job_snapshot`. Only the D8 `no`/`everysec` policy lacked coverage among the requested PS4.15 findings.
+
+**DQ=+4; DF=+4.** The new collect_job declarations are at lines 5306–5309, before the quick-tier exit at line 5386. Maintainer-owned counts should become **EXPECT_QUICK=772** and **EXPECT_FULL=789**. Neither constant was edited. All 789 explicit fixture labels agree with source declarations, including duplicate occurrences. The raw fixture checker refuses the unchanged 785 count; the prospective in-memory 789 check passes. See `label-inventory.json` and `label-fixture-check.log`.
+
+### Correctness proof
+
+All new/touched gate rows and related battery jobs use `tests/gate.sh`'s own `GATE_ONLY_JOBS` interface, retaining every nested leg. Builds use CPUs 64–79 and `-j16`; ordinary gate servers use 64–71, clients 72–79, ports 36861–36899, 16 shards and split ratio 6:2. Historical rewrite child scripts declare 4:4 on those eight server cores and retain that geometry. Fused reruns use `GATE_TXN_FUSED=1`; shutdown checks include both engine selections.
+
+The isolated PRE proof checkout contains production blobs and Makefile identical to 05a5e01a9, plus current fixtures. Its real build directory resides inside that checkout; a read-only Git object alternate supplies history for existing PAD unit builders. The source identity and private fixture revision are recorded in `pre-proof-source.json`. `final-source-audit.json` rechecks every touched fixture against PRE, all four binary hashes, unchanged owner counts, build freshness and closure of the assigned listener ports.
+
+| Gate invocation | Pass | Fail | Evidence |
+|---|---:|---:|---|
+| Final POST, complete selected inventory | 400 | 0 | `docs/persistfix2/proof/final-post-regression/` |
+| PRE, same selected inventory | 395 | 5 | `docs/persistfix2/proof/pre-regression/` |
+| PRE, expanded D8 row | 1 | 1 | `docs/persistfix2/proof/final-pre-errors/` |
+| Planted D8 control | 1 | 1 | `docs/persistfix2/proof/final-control-errors/` |
+| Final POST, fused persistence | 148 | 0 | `docs/persistfix2/proof/final-post-fused/` |
+| PRE, fused persistence | 147 | 1 | `docs/persistfix2/proof/pre-fused/` |
+| PRE, final directed fixtures | 1 | 4 | `docs/persistfix2/proof/final-pre-new-rows/` |
+
+The original PRE 400-row selection has 395 passing rows and five expected failures: the four new rows, plus the shutdown-unit assertion that ABORT cancels a pending signal request before save admission. Its six live shutdown legs pass. The PRE fused rerun has 147 passing rows and that same unit failure. All other selected PRE jobs pass. The four new rows' original PRE target legs all fail and all oracle legs pass; the final expanded D8 row is rerun on PRE and the planted control. The final `final-directed-leg-audit.json` checks every nested leg from the retained gate archives: 32 POST legs, 32 PRE legs and eight planted-control legs, including every required D8 durability-window witness.
+
+Reply search evidence is `reply-search.json`. Registered consumers were run: AOF and snapshot jobs on both engines, climonfix, iofix-signal, persistfix_units, router_uniform, dispatch arity/errors, aof_frame, aoforder, both debug jobs, all split/armed feature jobs, both fused jobs, atomic units/batteries, release batteries, CONFIG/scalar/WAITAOF, auth and default-database jobs. `psfix.py`, `shutsave.py` and `redisgap.py` are historical standalone drivers without registered jobs; their complete legacy drivers were NOT RUN. Their relevant registered rows and the serverless harness controls are covered.
+
+Historical rewrite-trigger checks inferred completion from the attempt counter. The fixture now also requires `aof_rewrite_in_progress=0` in all three trigger waits. Retained oracle observations show the counter advancing while the rewrite is active; no success or arming assertion was removed. Three dispatch/router fixtures now use their reserved third port (`port+2`): the former oracle port was occupied by other lanes' outbound TIME_WAIT sockets. Their assertions are unchanged, and all PRE/POST mode/engine legs pass.
+
+Standard differential proof uses the unmodified `tests/differ_gate.sh`, standard seeds **7, 19, 20, 23, 21**, both atomic settings, all declared suites, four MULTI repeats, mode equivalence and armed-read witnesses. PRE and POST matrices run independently on the two eight-core groups inside CPUs 64–79: POST target/oracle 64–71 with clients 72–79 and target/control/oracle ports 36861/36863/36865; PRE reverses the core groups and uses 36881/36883/36885. Exact commands and environment are in `final-proof-invocations.json`.
+
+| Arm / engine / geometry | Pass | Fail | Evidence |
+|---|---:|---:|---|
+| post-epoll-armed-fused | 466 | 0 | `proof/differ-final-post-epoll-armed-fused/` |
+| post-epoll-split | 475 | 0 | `proof/differ-final-post-epoll-split/` |
+| post-uring-armed-fused | 466 | 0 | `proof/differ-final-post-uring-armed-fused/` |
+| post-uring-split | 475 | 0 | `proof/differ-final-post-uring-split/` |
+| pre-epoll-armed-fused | 466 | 0 | `proof/differ-final-pre-epoll-armed-fused/` |
+| pre-epoll-split | 475 | 0 | `proof/differ-final-pre-epoll-split/` |
+| pre-uring-armed-fused | 466 | 0 | `proof/differ-final-pre-uring-armed-fused/` |
+| pre-uring-split | 475 | 0 | `proof/differ-final-pre-uring-split/` |
+
+All eight final PRE/POST matrices pass, including all 80 climon comparison legs. DIFF-TRK-1 was not observed in either PRE or POST epoll armed-fused run. These results provide no evidence that the pre-existing duplicate-invalidation finding is fixed.
+
+| Serverless check | Exit |
+|---|---:|
+| `python3 tests/gates_test.py` | 0 |
+| `python3 tests/psfix_test.py` | 0 |
+| `python3 tests/shutsave_test.py` | 0 |
+| `python3 tests/differ_test.py` | 0 |
+| `python3 tests/aof_frame_order_test.py` | 0 |
+| `python3 tests/debug_load_test.py` | 0 |
+| `python3 tests/flakeaudit_test.py` | 0 |
+
+Complete serverless output is retained under `docs/persistfix2/proof/final-serverless-*/`.
+
+All final `make -q` checks pass on both PRE and POST: `all`, the 42 executable targets of `job_production_units`, and `mdbqsbr-live-arms` — **44 checks per arm**. See `{pre,post}-build-freshness.json`.
+
+Excluded preliminary attempts are retained as evidence: an initial binary-only REDIS74_ROOT, PRE helper-directory/history assumptions, the three oracle bind failures, and a differential reader-control/oracle port collision. None is counted as a completed proof or as DIFF-TRK-1. The candidate before the legacy-script correction passed its complete 400-row selection (`proof/before-eval-post-regression`). An earlier candidate's completed epoll/split differential matrix passed 475/475; final results above use the final candidate SHA.
+
+### Identity, layout and limits
+
+The unchanged object normalizer compares all **110 production-linked objects**, **18,338 function pairs**, **477 changed bodies** and **92 inventory additions/removals**. Every changed object body and inventory addition/removal has a reason in `identity/object-changed-bodies.md`; unit instrumentation copies are excluded from that production inventory. The strict linked normalizer reports **715 changed groups**, each listed with its reason in `identity/changed-bodies.md`; full instruction diffs remain in `build/persistfix2/identity/changed-bodies.json.gz`. The supplemental `identity/reason-details.json` labels 335 linked differences as memory-reference annotations only, 315 as changed instruction records/group shape, and 65 as added/removed linked groups. The annotation classification does not establish referenced-data identity. The object tool’s ordinary-command assertion flags the intentional changed handlers; this diagnostic did not stop the work.
+
+All **74 GET/SET/MGET/MSET entry/execution bodies** retain the same instructions, constants and resolved targets. The stock object comparison directly matches 73; the remaining DB0 xshard body has three same-section LEA displacements to the same unchanged destructor, without ELF relocations. Those references were resolved explicitly. One linked nearest-symbol literal label differs, but its eight loaded bytes are identical. No comparison algorithm was weakened. See `hot-resolved-identity.json` and `identity-object-inventory.json`.
+
+All old field offsets and sizes match in both database runtimes: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624; AofManager 976, SnapshotManager 792 and Server 141696 are also unchanged. The errno and signal policies use existing alignment bytes. Shard ownership, QSBR, immutable replacement, RYOW, ROB and native TOMOAOF format remain intact.
+
+Known scope limits: native AOF writer failure remains terminal until restart; automatic storage-recovery retry is not added. A separately observed existing SAVE telemetry difference remains: failed synchronous SAVE sets TomoKV's `rdb_last_bgsave_status=err` and does not count a save attempt, while Redis retains background-save status and counts the attempt. This is outside the three PS4.13 register cases and preserves the existing psfix policy; the additional SAVE-error probe records INFO and asserts the exact reply. Rewrites themselves do not change the RDB baseline, save count or last-save status.
+
+Completed test data is retained in `build/persistfix2/completed-large-test-data.tar.gz`: 196 datasets, 12,098,404,166 uncompressed bytes stored in 225,704,164 bytes. Every archived file's SHA-256 was verified before its uncompressed copy was removed. `archived-test-data.json` records all file hashes and the archive hash. Requested binaries, production objects and required unit build targets remain available.
+
+### Arms and maintainer merit request
 
 | Arm | Binary | SHA-256 |
 |---|---|---|
 | PRE | `build/tomokv-persistfix2-pre` | `85bf1643126b63a140cf864ffa63c8d7abe75ebdb161831c3c3a9a7d84e6b0aa` |
 | POST | `build/tomokv` | `edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43` |
 | PAD-A | `build/tomokv-persistfix2-pad-a` | `2a444235324881c04d1740615c9c5ae02e4c6bf6217ffc4adf858140eb850550` |
+| D8 planted control | `build/tomokv-persistfix2-control-d8` | `45146dfab18e1a64b8907457d6e6a387f05e5fdcf4bbb01405cf3c8f9919d56a` |
+
+PAD-A is **(A) behaviour twin**: unmodified PRE implementation objects with unreachable padding, relocated to the final POST total .text size and start address. PRE .text is 8,217,911 bytes; POST and PAD-A are 8,226,151. Individual function placement and data sections are not a symbol-for-symbol candidate layout match, so this control does not isolate every local alignment effect. The planted D8 control is separate and excluded from merit measurement.
+
+**NOT RUN, reserved for the maintainer:** performance benchmarks, measurement load generators and full `tests/gate.sh iteration`. No throughput claim is made. Use the gate's ABBA instrument with `GATE_ABBA_CELLS=docs/lbplanner/generic-cells.txt`, balanced PRE/POST and PRE/PAD-A comparisons on a quiet box. Server core pool 64–71, clients 72–79, no SMT, ports within 36800–36899; preserve every cell's own worker count, offered load, pipeline, read-local, atomic and connection settings, including the four-worker latency cells. Matched-load rate/latency decides merit; cycles/op, IPC and instructions/op explain it. Do not average away a regressed cell.
 
 | Cell | PRE | POST | PAD-A | Verdict |
 |---|---|---|---|---|
@@ -277,58 +344,3 @@ PAD-A is **(A) behaviour twin**: unmodified PRE implementation objects, padded a
 | d32s_l1 | pending | pending | pending | maintainer measurement |
 | x9_32_l1 | pending | pending | pending | maintainer measurement |
 | x9_32_l0 | pending | pending | pending | maintainer measurement |
-
-The four new collect_job lines are 5306–5309, before the quick-tier exit at line 5386 in this revision. Broader correctness receipts and final freshness results follow below when complete. Performance benchmarks, measurement load generators and the full iteration gate remain NOT RUN, as reserved for the maintainer.
-
-
-PS4.12 qualification: the claim that NOW alone permits exit after a failed save is **NOT REPRODUCED**. PRE and Redis both refuse `SHUTDOWN NOW` when the final save fails, in all four 1s/2s × epoll/uring geometries (16 shards, six IO/two executor workers for split, cores 64–71, port 36800). FORCE is the modifier that permits that exit. NOW bypasses replica waiting, absent in this single-node architecture.
-
-The complete PRE proof uses `build/persistfix2/pre-proof-source`: an isolated, disposable source snapshot below this worktree, with every production blob and Makefile verified identical to 05a5e01a9, plus the current gate fixtures. It reuses the frozen PRE objects. This allows the changed shutdown-unit fixture to link to PRE's implementation; the ordinary external-candidate gate interface alone would otherwise build that unit from POST sources. Its exact source-tree receipt is `pre-proof-source.json`.
-
-Offline build freshness is complete on POST: `make -q all`, all 42 executable targets named by `job_production_units`, and `mdbqsbr-live-arms` return 0 (44 checks). Receipt: `docs/persistfix2/post-build-freshness.json`. PRE and POST hashes remain unchanged. An initial regression invocation pointed `REDIS74_ROOT` at the binary-only oracle directory; its preflight warning did not stop its workers. That invocation was terminated after detecting the overlap. Its results are excluded. The surviving run uses the complete Redis source tree, and every unit target's freshness was independently checked after the duplicate stopped.
-
-Reply search evidence is `docs/persistfix2/reply-search.json`, including old/new rewrite and shutdown wording, BGSAVE errors, exact `ERR`, signal-policy diagnostics and AOF refusals. Registered consumers are covered by `aof-{epoll,uring}`, `snapshot-{epoll,uring}`, `climonfix`, `iofix-signal`, `router_uniform`, `aof_frame`, `aoforder`, both debug jobs, all four split/armed feature jobs, both fused jobs, dispatch arity/errors, atomic units/batteries and the standard differential matrix. CONFIG/INFO checks also include `serverfix_config`, `serverfix_scalar` and `serverfix_waitaof`. `psfix.py`, `shutsave.py` and `redisgap.py` are standalone historical drivers with no registered job; their occurrences do not identify additional gate rows. The serverless controls for the first two, differential driver, framing and DEBUG load are included in the proof queue. Historical rewrite child scripts choose ratio 4:4 on eight cores; their gate jobs retain that declared geometry. The new persistfix2 and ordinary split boots use ratio 6:2.
-
-The first broad POST regression run found the historical rewrite-trigger row waiting for `aof_rewrites` alone to infer completion. Redis increments that field at start: the retained `post-lastsave/lastsave-oracle-*.log` records show `aof_rewrites=1` while `aof_rewrite_in_progress=1`, then the same attempt count after completion. The trigger fixture now additionally requires `aof_rewrite_in_progress=0` before its existing success/base/limiter assertions, for all three waits. No success assertion or arming witness is removed. Its printed count is named attempts. Both complete AOF jobs will be rerun on POST and PRE in both thread modes and engines; the initial failures remain evidence.
-
-Initial dispatch arity/errors and uniform-router jobs could not bind the Redis oracle on port 36862: other lanes' outbound connections occupied even-numbered ports in this lane's range with TIME_WAIT sockets. These are environment failures, not reply comparisons. The three fixtures now use `port+2`, the third port already reserved by each gate slot, allowing odd target/oracle ports 36861/36863 without changing any assertion or row count. Their complete jobs are rerun on PRE and POST, with all four mode/engine legs retained. The standard differential runner uses target 36861 and oracle 36865, leaving 36863 for its required reader control.
-
-POST regression receipts are archived under `docs/persistfix2/proof/` (each summary includes the original run path, per-job row counts and archive SHA-256):
-
-| Run | Passing rows | Failed rows | Interpretation |
-|---|---:|---:|---|
-| post-initial | 384 | 5 | Two obsolete completion waits; three oracle bind failures, retained in full |
-| post-aof-corrected | 109 | 0 | Release prerequisite plus all 54 AOF rows on each engine |
-| post-extra | 15 | 0 | All port-corrected oracle legs, CONFIG/scalar/WAITAOF, auth and default-database jobs |
-
-The corrected POST runs clear each of the five initial failures. PRE, fused persistence reruns, the standard differential matrix and serverless harness proof remain in the serial verification queue. All jobs use the gate's own job interface; no full iteration or performance tier is run.
-
-PRE source proof checkout repair: the first production-helper attempt encountered two local checkout assumptions (generated sources must resolve beneath that checkout's real build directory; PAD unit builders need historical Git objects). That attempt was stopped after its compilation finished and is not counted as a completed regression run. The build directory now physically resides inside the PRE source checkout, with the original `build/persistfix2/pre` path retained as an alias. A read-only Git object alternate supplies the required existing history. No PRE production blob or binary changed. The restarted run built every helper successfully; **all 44 PRE freshness checks return 0**, including `make -q all`, the 42 executables and `mdbqsbr-live-arms`. Receipt: `docs/persistfix2/pre-build-freshness.json`.
-
-The completed PRE regression run has **395 passing rows and five expected failures** (`proof/pre-regression`). Its four new persistfix2 rows fail in all 16 target legs; all 16 corresponding Redis legs pass. The changed shutdown-unit row fails precisely at `ABORT cancels a signal request before save admission`; its six live shutdown-persistence legs pass. Every other selected PRE job passes, including both complete AOF jobs, both snapshot jobs and the port-corrected dispatch/router jobs. This completes the 400-row PRE/POST comparison for that job inventory: POST clears all five behavior differences after the documented fixture corrections.
-
-The complete POST fused persistence rerun passes **148/148 rows** (`proof/post-fused`): `GATE_TXN_FUSED=1` runs the historical AOF/snapshot boots in fused mode on both engines, and `GATE_SHUTDOWN_NET_IO=epoll` covers both shutdown thread modes on epoll. The earlier climonfix run covered both on io_uring. No leg is omitted from the jobs' nested matrices.
-
-The matching PRE fused persistence rerun has **147 passing rows and one expected failure** (`proof/pre-fused`): the same pending-ABORT shutdown unit. Every live AOF, snapshot and shutdown leg passes. The required new/touched rows and related persistence jobs have now completed through the gate's own interface on both arms, in all declared modes and engines.
-
-The first standard differential attempt was interrupted after its climon reader control exposed the target-plus-two reservation colliding with the oracle listener. This was a fixture-port failure before a tracking comparison, not DIFF-TRK-1. The complete matrix is restarted with target/control/oracle ports 36861/36863/36865, using the unmodified standard runner and unchanged seed inventory. The interrupted attempt is excluded.
-
-D8 follow-up: a review found that FCALL admission must use the registered function flags. A directed reproduction on the first candidate failed in every mode/engine while every oracle leg passed: a declared no-writes function was refused after an AOF write error. The classifier now reads registry flags on the cold failed-state path, including writable functions invoked as FCALL_RO; owner execution rechecks the selected callback to cover library replacement. The expanded row also queues a read-only function before the error and requires its EXEC to complete. The corrected complete eight-leg job passes (`proof/functions-{reproduced,corrected}`). This follow-up changes the candidate binary; final arms, identity and regression receipts are being refreshed.
-
-Final artifact refresh after the function-admission correction: the object audit covers all 110 objects in the production link recipe, listed in `identity-object-inventory.json`, and compares 18,338 function pairs. Unit instrumentation copies are excluded from that production inventory; the comparison algorithms remain unchanged. The raw ordinary-command assertion reports the intentional persistence/function changes. All 74 resolved GET/SET/MGET/MSET bodies and all old layout offsets remain equal. Final binary hashes are in the arm table above and `arms.json`. The final complete regression selection is running against this candidate.
-
-D8 legacy-script follow-up: Redis admits legacy EVAL/EVALSHA and checks disk errors at nested write execution. The prior candidate refused even read-only legacy scripts, reproduced in all four target geometries while all oracle legs passed (`proof/eval-reproduced`). Nested refusal now follows Redis, including protected errors, repeated refused writes, reads before a write and scripts queued before the AOF error. The complete expanded job passes (`proof/eval-corrected`). An initial added Lua PFCOUNT probe encountered the existing native unsupported-command restriction; it was replaced with supported GET and repeated-refused-SET probes, each keeping exact oracle assertions. The 400-row run before this follow-up passed (`proof/before-eval-post-regression`); final artifacts and proof are refreshed again for this source correction.
-
-After the legacy-script correction, the final linked audit reports 715 changed groups, all with reasons. The complete object audit compares 18,338 function pairs, with 477 changed bodies and 92 inventory changes. All old layouts and all 74 resolved hot command bodies remain equal. Final hashes are refreshed in the arm table and `arms.json`; the full selected regression inventory is rerunning against this candidate.
-
-The final candidate `edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43` passes the complete selected 400-row POST inventory (`proof/final-post-regression`). The expanded D8 fixture fails on PRE and the rebuilt planted control in every target leg; every oracle leg passes, all four per-leg durability windows are observed, and the target failures show the otherwise refused mutation taking effect (`proof/final-{pre,control}-errors`). The final fused and differential proof continues.
-
-Final fused persistence proof passes 148/148 rows (`proof/final-post-fused`). Both arms have 44/44 successful make-q checks. Every queued serverless check passes: gates_test, psfix_test, shutsave_test, differ_test, aof_frame_order_test, debug_load_test and flakeaudit_test. Their full logs and exact invocations are retained under `proof/final-serverless-*`. The final standard PRE/POST differential matrices are running on separate eight-core groups inside CPUs 64–79.
-
-Final standard epoll/split differential proof passes 475/475 on both PRE and POST, with the full five-seed inventory, both atomic settings, all four MULTI repeats and mode equivalence. Evidence is under `proof/differ-final-{pre,post}-epoll-split`. The remaining engine/geometry pairs continue.
-
-Final standard epoll/armed-fused differential proof passes 466/466 on both PRE and POST. The complete standard suite/seed inventory, four MULTI repeats and both armed-read witnesses are retained. DIFF-TRK-1 is not observed on either arm in these epoll runs; this does not establish that the existing intermittent issue is resolved. Evidence: `proof/differ-final-{pre,post}-epoll-armed-fused`. The io_uring matrices continue.
-
-Final candidate and PRE io_uring/split standard-seed matrices each pass 475/475 (18m03s and 18m05s). Complete evidence is in `docs/persistfix2/proof/differ-final-{post,pre}-uring-split/`. Six of eight final differential matrices are complete; the io_uring armed-fused pair is running.
-
-Final PRE and POST io_uring armed-fused matrices each pass 466/466 (17m44s and 17m43s). All eight final matrices now pass, including all 80 climon legs; DIFF-TRK-1 was not observed. Evidence is in `docs/persistfix2/proof/differ-final-{post,pre}-uring-armed-fused/`. The final PRE replay of the four directed gate rows is running.

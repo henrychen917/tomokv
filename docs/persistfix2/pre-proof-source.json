@@ -15,5 +15,39 @@
   ],
   "object_root_physical": "build/persistfix2/pre-proof-source/build",
   "object_root_alias": "build/persistfix2/pre",
-  "historical_objects": "Read-only alternates to the parent repository object store"
+  "historical_objects": "Read-only alternates to the parent repository object store",
+  "final_fixture_sha256": [
+    {
+      "path": "tests/aof_rewrite_triggers.py",
+      "sha256": "63b70c5bc5b262ef5b3d1da1c44c93c8e456095f38c97fce8af5b1ed67bbbb2f"
+    },
+    {
+      "path": "tests/dispatch_arity.py",
+      "sha256": "ed705650268edd3ca0a3cfe0168dcddf209c938afc72cffc3b232bc23e108573"
+    },
+    {
+      "path": "tests/dispatch_errors.py",
+      "sha256": "3ab9b42fa2df42124f871ef5042be038b6b5ff3ca8910636d27f0d011e97db09"
+    },
+    {
+      "path": "tests/fixtures/nullrefresh-ledger-labels.json",
+      "sha256": "fc18b86f252da51abd788a5b905089796a19245450183c4caa7ba75f885965e0"
+    },
+    {
+      "path": "tests/gate.sh",
+      "sha256": "9c6e14d7c8cc72c06418175142a74eed048d03b47a75ad02096d5de154c39c42"
+    },
+    {
+      "path": "tests/persistfix2.py",
+      "sha256": "b1b0bc03b2eb9a1a5aab00f9318a47788828298171da7a01d7575e54c9b2e5d7"
+    },
+    {
+      "path": "tests/router_uniform.py",
+      "sha256": "f3d5595efa54b433daf08f848c074f9133229ec353e8cd5b1dbd9fcb16c510d1"
+    },
+    {
+      "path": "tests/shutdown_unit.cc",
+      "sha256": "cfec6ea4ad42d78b9bbb88f1bf08621386577abda143868760e3eb55628c9f88"
+    }
+  ]
 }

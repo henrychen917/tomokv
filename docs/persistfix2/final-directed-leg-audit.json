@@ -1,0 +1,634 @@
+[
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-post-regression",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "lastsave",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "shutdown",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "commands",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS"
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-pre-new-rows",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "1s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "epoll",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "target",
+    "result": "expected failure",
+    "armed_windows": 4,
+    "observed_windows": 4,
+    "incorrectly_admitted_mutations": 4
+  },
+  {
+    "proof": "final-control-errors",
+    "case": "errors",
+    "mode": "2s",
+    "engine": "uring",
+    "arm": "oracle",
+    "result": "PASS",
+    "armed_windows": 4,
+    "observed_windows": 4
+  }
+]
