@@ -1,0 +1,637 @@
+{
+  "argv": [
+    "tests/abbagate.py",
+    "--self-test"
+  ],
+  "affinity": [
+    90,
+    91
+  ],
+  "seconds": 567.3078264025971,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_a_peak_at_the_top_is_not_yet_proven",
+      "seconds": 0.016067642718553543
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_a_pin_that_stops_saturating_fails_and_says_how_to_fix_it",
+      "seconds": 0.008654547855257988
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_a_pinned_cell_needs_no_second_rung",
+      "seconds": 0.008695128373801708
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_aabb_is_rejected",
+      "seconds": 0.003285299986600876
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_abba_cancels_linear_drift",
+      "seconds": 0.0032484205439686775
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_accounting_rejects_interrupted_errors_unknown_and_missing_commands",
+      "seconds": 0.0015372950583696365
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_arbitrary_workloads_issue_eight_keys_and_correct_mix_direction",
+      "seconds": 0.0005759419873356819
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_armed_zero_permutations_need_directed_control_and_live_batches",
+      "seconds": 0.0008263615891337395
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_bad_sized_cells_cannot_silently_measure_64_bytes",
+      "seconds": 0.6824172111228108
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_bind_guard_accepts_owned_time_wait_that_plain_bind_rejects",
+      "seconds": 0.003925801254808903
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_bind_guard_rejects_live_listener_even_with_reuseport",
+      "seconds": 0.00034516118466854095
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_build_abort_stops_only_pids_in_its_owned_session",
+      "seconds": 0.10115301515907049
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_busy_floor_applies_to_every_run_of_the_judged_block",
+      "seconds": 0.08019882813096046
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_changed_harness_invalidates_the_real_measurement_loop",
+      "seconds": 2.1912152376025915
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_changed_instrument_invalidates_the_real_measurement_loop",
+      "seconds": 9.799302904866636
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_comparison_inherits_the_null_floor_and_can_still_fail",
+      "seconds": 0.07984848599880934
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_contamination_during_reference_skip_still_fails_whole_tier",
+      "seconds": 5.703669066540897
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_contended_preflight_never_reaches_support_or_measurement",
+      "seconds": 5.702082052826881
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_contender_invalidates_real_loop_without_retry_or_threshold_change",
+      "seconds": 5.958891906775534
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_count_hdr_tail_validation_uses_the_same_finite_bound",
+      "seconds": 0.0005523404106497765
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_depth_one_ignores_deep_pipeline_pin",
+      "seconds": 9.730947438627481
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_depth_one_uses_latency_and_is_exempt",
+      "seconds": 0.02146818768233061
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_escalate_cannot_borrow_pin_for_a_single_block",
+      "seconds": 9.757371219806373
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_escalate_ignores_pin_and_drives_full_ladder",
+      "seconds": 9.987258551642299
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_explicit_axes_and_binary_arguments",
+      "seconds": 0.00213661789894104
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_explicit_reference_records_digest_without_fabricating_a_commit",
+      "seconds": 0.001271604560315609
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_fastest_arm_still_gaining_fails",
+      "seconds": 0.015579459257423878
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_final_observation_can_fail_completed_real_loop",
+      "seconds": 6.635497368872166
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_flat_rate_below_the_busy_floor_still_fails",
+      "seconds": 0.027787478640675545
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_flat_rate_just_under_98_busy_is_saturated",
+      "seconds": 0.020960766822099686
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_full_coverage_preserves_original_axes_and_restores_multikey",
+      "seconds": 0.04605601727962494
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_fused_only_smoke_needs_no_unmeasured_split_ratio",
+      "seconds": 0.068962880410254
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_generator_cpu_endpoint_rejects_exit_missing_and_malformed_proc",
+      "seconds": 0.0009658141061663628
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_generator_cpu_endpoints_preserve_identity_seconds_and_worker_normalization",
+      "seconds": 0.0007654512301087379
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_hdr_decoder_matches_recorded_memtier_output_and_rejects_corruption",
+      "seconds": 0.0005874317139387131
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_histograms_merge_counts_instead_of_averaging_percentiles",
+      "seconds": 0.00035377126187086105
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_historical_numbers_are_not_inputs",
+      "seconds": 0.062224979512393475
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_idle_spinning_is_not_busy",
+      "seconds": 0.00039256084710359573
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_info_poller_cadence_bad_replies_and_throughput_exclusion",
+      "seconds": 0.0012402934953570366
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_l4_cells_cover_sizes_modes_and_controls_without_borrowed_pins",
+      "seconds": 0.03357765730470419
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_large_population_matches_scored_bytes_and_rejects_bad_controls",
+      "seconds": 0.003361050970852375
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_legacy_busy_cannot_replace_missing_or_forged_saturation_evidence",
+      "seconds": 0.010530874133110046
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_legacy_control_requires_both_live_verdicts_and_caches_only_success",
+      "seconds": 0.0018444154411554337
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_legacy_reorder_maps_explicitly_without_dropping_knobs",
+      "seconds": 0.00030422117561101913
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_load_escalation_preserves_total_connections",
+      "seconds": 0.011615997180342674
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_long_tail_cannot_regress_behind_short_tail_improvement",
+      "seconds": 0.007675584405660629
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_missing_candidate_executable_is_rejected",
+      "seconds": 6.31136420276016
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_missing_required_knob_refuses_both_arms_even_when_off",
+      "seconds": 0.0009671235457062721
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_missing_workload_or_scheduler_engagement_is_red",
+      "seconds": 0.000514080747961998
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_multidb_cell_inventory_and_exact_connection_assignment",
+      "seconds": 0.19468401186168194
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_multidb_population_and_select_witness_reject_db0_only_load",
+      "seconds": 0.03606102615594864
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_new_unmeasured_pins_search_instead_of_vetoing_the_tier",
+      "seconds": 6.2268360638991
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_null_resolution_records_equal_gain_and_loss_for_every_scored_metric",
+      "seconds": 0.001257644034922123
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_null_resolution_retains_a_failing_escalation_probe",
+      "seconds": 0.0071869827806949615
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_one_probe_cannot_prove_plateau",
+      "seconds": 0.007057672366499901
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_only_owned_children_are_stopped",
+      "seconds": 0.0049629053100943565
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_optional_cell_fields_are_strict_and_part_of_calibration_shape",
+      "seconds": 0.5152687849476933
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_physical_load_ceiling_keeps_unproven_saturation_red",
+      "seconds": 10.852776092477143
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pidfile_empty_window_rejects_read_once_but_waits_for_publication",
+      "seconds": 0.11260073818266392
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pidfile_wait_requires_a_complete_integer_before_deadline",
+      "seconds": 0.0012290244922041893
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pin_beyond_budget_is_loud_not_an_unreached_measurement",
+      "seconds": 10.58122787065804
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pin_dispatch_uses_identical_arms_and_the_validated_atomic_writer",
+      "seconds": 5.740128803066909
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pin_drives_real_loop_to_exactly_four_measurements",
+      "seconds": 29.615787183865905
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pin_that_outgrows_load_fails_after_four_and_names_remedy",
+      "seconds": 9.747247079387307
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_pinned_floor_cannot_borrow_occupancy_outside_central_window",
+      "seconds": 0.009282379411160946
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_placement_caps_physical_cores_and_preserves_explicit_smt",
+      "seconds": 0.0004624519497156143
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_port_boundaries_reject_any_bind_outside_the_budget",
+      "seconds": 0.0002819010987877846
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_profile_cannot_be_enabled_in_normal_gate_or_cli",
+      "seconds": 0.0037085721269249916
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_raw_role_deltas_preserve_idle_executor_evidence",
+      "seconds": 0.00025020167231559753
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_read_local_control_binds_bytes_mode_and_both_arms",
+      "seconds": 0.0031757699325680733
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_accepts_positive_gain_inside_each_arms_repeatability",
+      "seconds": 9.805703435093164
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_accepts_twelve_as_cli_ceiling",
+      "seconds": 9.839453202672303
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_cannot_call_same_worker_count_more_capacity",
+      "seconds": 9.894090838730335
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_cannot_discard_an_unstable_higher_probe",
+      "seconds": 9.727975153364241
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_does_not_hide_either_arms_different_knee",
+      "seconds": 19.671200095675886
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_incomplete_measurement_is_permanent_failure",
+      "seconds": 9.715847263112664
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_retests_existing_non_ladder_pin",
+      "seconds": 9.821326470002532
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_sixteen_cannot_credit_fewer_workers_than_twelve",
+      "seconds": 9.892349747940898
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_escalation_twelve_confirms_eight_with_more_workers",
+      "seconds": 9.849700247868896
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_loop_passes_selected_port_and_preserves_cpu_samples",
+      "seconds": 9.76137448195368
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_main_passes_actual_measurement_window_to_quiet_monitor",
+      "seconds": 19.51185182388872
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_measure_brackets_all_generators_and_rejects_counter_mutants",
+      "seconds": 0.03684506565332413
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_null_collection_comparison_and_subset_controls",
+      "seconds": 261.19382193125784
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_orchestration_order_and_negative_control",
+      "seconds": 19.96725005004555
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_real_runner_checks_effective_read_local_before_population",
+      "seconds": 0.1480091130360961
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_reference_must_match_last_push",
+      "seconds": 0.0007931618019938469
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_reference_noise_cannot_turn_a_bad_session_green",
+      "seconds": 0.011093574576079845
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_regression_cannot_hide_in_reference_noise",
+      "seconds": 0.015686409547924995
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_retired_overlap_refuses_enabled_recipes_and_boots",
+      "seconds": 0.0005760723724961281
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_saturation_from_another_window_is_rejected",
+      "seconds": 0.005418017506599426
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_server_flags_reach_both_arm_boots",
+      "seconds": 0.03472519759088755
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_smoke_is_seventeen_justified_cells_not_a_cross_product",
+      "seconds": 0.045378562062978745
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_split_local_io_can_saturate_with_idle_executors",
+      "seconds": 0.012900900095701218
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_stable_equal_arms_pass",
+      "seconds": 0.01775500550866127
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_standalone_defaults_use_all_other_physical_and_smt_load_cores",
+      "seconds": 0.0015439139679074287
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_stopped_child_can_be_reaped_at_any_read",
+      "seconds": 0.0010635824874043465
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_tail_instrument_geometry_and_warmup",
+      "seconds": 0.04963115509599447
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_unpinned_real_loop_searches_and_says_so",
+      "seconds": 9.998403191566467
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_variance_pin_bounds_are_frozen_and_pilots_cannot_raise_paired_ceiling",
+      "seconds": 0.0005360618233680725
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_variance_pin_exhaustion_does_not_award_the_ceiling",
+      "seconds": 0.00038379058241844177
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_variance_pin_noisy_cell_escalates_even_when_rate_is_flat",
+      "seconds": 0.0003129206597805023
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_variance_pin_quiet_cell_keeps_its_saturation_rung",
+      "seconds": 0.00024095084518194199
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_variance_pin_rejects_missing_reused_skipped_and_unsaturated_evidence",
+      "seconds": 0.0010080039501190186
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_verdict_is_taken_at_the_peak_not_the_last_block",
+      "seconds": 0.016910872422158718
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_whole_run_counts_use_logical_multikey_units_and_exact_hdr",
+      "seconds": 0.0007419520989060402
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_worker_pinning_and_startup_allowance_cannot_enter_normal_gate",
+      "seconds": 0.008554796688258648
+    },
+    {
+      "test": "__main__.self_test.<locals>.ABBA.test_worst_failure_not_an_average",
+      "seconds": 0.000273081474006176
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_inventory_geometry_and_pin",
+      "seconds": 0.06695236824452877
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_measured_window_wiring_both_arms_and_failed_artifact",
+      "seconds": 0.04649873450398445
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_null_cannot_cover_a_plain_twin_even_with_same_id_and_source_digest",
+      "seconds": 0.030881496146321297
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_option_text_argv_receipt_and_shape",
+      "seconds": 0.1211887989193201
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_population_never_gets_client_flags",
+      "seconds": 0.030599926598370075
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_raw_endpoint_replay_and_arm_specific_named_fail",
+      "seconds": 0.0690060444176197
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_setex_server_counters_match_logical_memtier_sets_exactly",
+      "seconds": 0.035996273159980774
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_unknown_duplicate_unsafe_and_vacuous_options_rejected",
+      "seconds": 0.03107076697051525
+    },
+    {
+      "test": "ttlcell_test.suite.<locals>.TTLCell.test_witness_zero_missing_bad_and_reset_fail_for_either_arm",
+      "seconds": 0.030492255464196205
+    },
+    {
+      "test": "dbdefault.suite.<locals>.DatabaseDefaults.test_database_plan_preserves_explicit_and_legacy_reference",
+      "seconds": 0.00021403096616268158
+    },
+    {
+      "test": "dbdefault.suite.<locals>.DatabaseDefaults.test_default_wire_control_fails_on_pre",
+      "seconds": 0.00017451122403144836
+    },
+    {
+      "test": "dbdefault.suite.<locals>.DatabaseDefaults.test_legacy_requires_single_database_wire_witness",
+      "seconds": 0.00018640048801898956
+    },
+    {
+      "test": "dbdefault.suite.<locals>.DatabaseDefaults.test_modern_config_must_match_exactly",
+      "seconds": 0.00012714043259620667
+    },
+    {
+      "test": "dbdefault.suite.<locals>.DatabaseDefaults.test_replay_requires_the_receipt_except_pre_receipt_evidence",
+      "seconds": 0.0003449413925409317
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_bad_schema_and_duplicate_threads_are_rejected",
+      "seconds": 9.474996477365494e-05
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_cached_saturation_cannot_hide_missing_or_unproductive_threads",
+      "seconds": 0.004061541520059109
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_counter_reset_role_change_and_no_clock_progress_are_invalid",
+      "seconds": 9.165983647108078e-05
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_executors_need_tasks_not_client_ownership",
+      "seconds": 0.0003757709637284279
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_fused_combined_counter_is_not_divided_between_roles",
+      "seconds": 0.00037607084959745407
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_idle_polling_control_and_one_hot_thread_cannot_certify_role",
+      "seconds": 0.0016670851036906242
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_raw_saturation_replays_after_json_round_trip",
+      "seconds": 0.0010528545826673508
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_saturation_is_bound_to_this_workload_interval",
+      "seconds": 0.00045262183994054794
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_split_local_io_saturates_while_executors_are_idle",
+      "seconds": 0.000350060872733593
+    },
+    {
+      "test": "abba_saturation.self_test.<locals>.Controls.test_wide_capture_cannot_borrow_outside_window_occupancy",
+      "seconds": 0.0004095910117030144
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_ceiling_abba_assessment_prints_without_plateau_confirmation_fields",
+      "seconds": 0.013150031678378582
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_ceiling_classification_keeps_slope_occupancy_and_never_a_floor",
+      "seconds": 0.024701807647943497
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_failed_empty_shortened_and_changed_workload_observations_refuse",
+      "seconds": 0.014243903569877148
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_observed_peak_matches_full_escalation_on_same_rates",
+      "seconds": 0.015274837613105774
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_real_dispatch_emits_pin_only_and_retains_failed_rung_or_late_quiet",
+      "seconds": 0.3573349257931113
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_real_runner_reuses_one_boot_population_and_reaps_on_failure",
+      "seconds": 0.01858171820640564
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_session_cleanup_survives_connection_close_error",
+      "seconds": 0.0002614697441458702
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_short_windows_require_calibration_session",
+      "seconds": 7.363967597484589e-05
+    },
+    {
+      "test": "load_calibration.self_test.<locals>.Controls.test_unconfirmed_unsaturated_or_no_capacity_increase_cannot_pin",
+      "seconds": 0.03485453873872757
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_181_cells_and_all_phases_share_one_copy_and_receipt_identity",
+      "seconds": 0.39298762660473585
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_alias_must_be_hard_link_even_if_copy_has_identical_bytes",
+      "seconds": 0.0011274926364421844
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_changed_source_or_manifest_refuses_reuse",
+      "seconds": 0.0011320924386382103
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_cli_low_space_stops_before_any_snapshot_or_manifest",
+      "seconds": 0.0008962126448750496
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_cross_filesystem_alias_refuses_instead_of_copying",
+      "seconds": 0.0011587627232074738
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_deleted_alias_and_manifest_name_the_missing_path",
+      "seconds": 0.0013255244120955467
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_deleted_binary_fails_real_measure_before_any_child_or_control",
+      "seconds": 0.0010207528248429298
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_deleted_snapshot_is_not_recreated_from_surviving_alias",
+      "seconds": 0.001604224555194378
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_descriptor_is_closed_when_child_launch_fails",
+      "seconds": 0.0010473337024450302
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_distinct_arms_copy_once_each",
+      "seconds": 0.0008678929880261421
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_each_cell_hashes_once_and_each_boot_rechecks_identity",
+      "seconds": 0.0013021845370531082
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_inode_replacement_and_preserved_mtime_corruption_fail",
+      "seconds": 0.001025172881782055
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_old_source_mtime_not_inherited_and_source_rewrite_is_isolated",
+      "seconds": 0.0008688727393746376
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_real_taskset_exec_survives_unlink_with_harmless_true_fixture",
+      "seconds": 0.002901989035308361
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_space_boundary_includes_payload_once_and_rejects_equality",
+      "seconds": 0.0011550337076187134
+    },
+    {
+      "test": "abba_binaries.self_test.<locals>.Controls.test_unlink_between_check_and_taskset_exec_keeps_open_inode_then_fails_guard",
+      "seconds": 0.0008649621158838272
+    }
+  ]
+}

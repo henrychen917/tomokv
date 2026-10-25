@@ -1,0 +1,86 @@
+[
+  {
+    "arm": "headline",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/0-headline"
+    ],
+    "seconds": 18.209071110002697,
+    "rc": 0,
+    "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+  },
+  {
+    "arm": "wave7",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/cx-wave7/build/tomokv",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/1-wave7"
+    ],
+    "seconds": 6.206002291291952,
+    "rc": 0,
+    "sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
+  },
+  {
+    "arm": "headline",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/2-headline"
+    ],
+    "seconds": 12.171902293339372,
+    "rc": 0,
+    "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+  },
+  {
+    "arm": "wave7",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/cx-wave7/build/tomokv",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/3-wave7"
+    ],
+    "seconds": 35.209830990061164,
+    "rc": 1,
+    "sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
+  },
+  {
+    "arm": "headline",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/4-headline"
+    ],
+    "seconds": 9.180232991464436,
+    "rc": 0,
+    "sha256": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+  },
+  {
+    "arm": "wave7",
+    "command": [
+      "python3",
+      "docs/wave7b/lb_compare.py",
+      "--binary",
+      "/home/user/Projects/cx-wave7/build/tomokv",
+      "--output",
+      "/home/user/Projects/cx-wave7/docs/wave7b/lb-before/5-wave7"
+    ],
+    "seconds": 26.213753778487444,
+    "rc": 0,
+    "sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
+  }
+]

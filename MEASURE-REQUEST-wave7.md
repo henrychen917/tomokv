@@ -124,3 +124,14 @@ Codex stopped on a content filter (a false cybersecurity flag) during its final 
 Result on POST `02e1a1a2` (binary unchanged before and after): **6 ok, 0 FAIL**. The six jobs were release, differ-split-0, differ-split-1, differ-armed-0, differ-armed-1 and differ-equivalence. Together with differ-postfix-uring, the both-engine differential on the final executable is complete.
 
 The interrupted `differ-postfix-epoll` receipt has no exit status because it was killed with the codex stop. It stays as historical evidence, which is why `summary.json` still lists it as pending.
+
+
+## wave7b
+
+Work in progress from `f974e5c50`; both maintainer commits remain. DQ/DF = **0/0**. EXPECT is untouched. Correctness work is confined to CPUs 64–95 and ports 26800–26899; no performance benchmark or full iteration is run.
+
+The unchanged ABBA job is running through the whole-job interface with per-test timings and concurrent correctness jobs. Its ABBA controls took 567.308 s on the slot's two client CPUs; the null-comparison orchestration control alone took 261.194 s. `harness_fingerprint` reads 82,379 repository paths before selecting 588 entries. A prepared equivalent path-first implementation produces the identical digest in 0.467 s versus 8.538 s under contention. Full-source receipt fingerprints remain complete.
+
+The unchanged epoll-LB case was compared on frozen headline and wave-7 executables, using identical 8-thread / 6:2 / 16-shard geometry and owned contention. Both binaries can fail the 35-second move witness. Counters identify normal client readiness and destination-ACK refusals; the planner, jitter and refusal source files are unchanged between headline and the supplied HEAD. ctlfix changes automatic FLIP admission, while this test disables automatic FLIP. A cold, DEBUG-gated directed admission is being added because no existing client-LB trigger exists: the requesting destination prepares its capacity, then the ordinary source readiness and epoll transfer path runs. Runtime policy, layout sizes and the three-pass refusal rule remain intact.
+
+Timings, complete fixed-row repetition receipts, build/freshness results, final SHA-256s and the refreshed PAD-A construction follow when validation completes.

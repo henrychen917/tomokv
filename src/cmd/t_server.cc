@@ -1074,6 +1074,26 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // The requesting connection's IO is the destination. Its own callback reserves
+    // capacity; the source's ordinary LB tail retains every readiness/lifetime fence.
+    if (eq_icase(subcommand, "client-lb") && op.argc() == 3) {
+        uint64_t id = 0;
+        if (!parse_u64(op.arg(2), id) || !id) {
+            reply_err(op.sink(), "ERR DEBUG CLIENT-LB wants a positive client ID");
+            return;
+        }
+        if (!g_server || !g_thread || !g_client) {
+            reply_err(op.sink(), "ERR no IO client context");
+            return;
+        }
+        std::string error;
+        if (!g_server->lb_debug_move_client(id, g_thread->id(), error)) {
+            reply_err(op.sink(), error.c_str());
+            return;
+        }
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
         // Raw monotonic dump; windowing is the reader's job (two calls, subtract). See lbsignals.h.
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }

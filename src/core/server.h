@@ -1330,6 +1330,8 @@ public:
     // The monitor alone gathers and searches. The IO tail only installs a finished result.
     bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms);
     bool lb_consume_plan(uint32_t coordinator);
+    // DEBUG-only admission from the destination's own IO thread. Normal LB policy is unchanged.
+    bool lb_debug_move_client(uint64_t id, uint32_t destination, std::string& error);
     void monitor_controllers();
 
     // Offline PAD-A targets only. No production call reaches these retained PRE bodies;

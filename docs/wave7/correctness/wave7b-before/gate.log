@@ -1,0 +1,4 @@
+GATE(full): 30 physical cores; 3 correctness slots = min(24/8 server, 6/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 24 server + 6 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave7/build/gate-run.EnUHer
+PARTIAL jobs (including prerequisites): release abba_selftest feature-split-0 feature-armed-0 flip
+PARTIAL jobs (including prerequisites): release abba_selftest feature-split-0 feature-armed-0 flip

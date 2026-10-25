@@ -434,6 +434,63 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
 }
 
 
+
+// A directed transport check needs a real client-LB transfer without racing the
+// policy's sampled load or the destination's three-source-pass ACK budget. The
+// DEBUG caller runs ON the destination: reserve its capacity before publishing
+// the ordinary ClientDrain. The source still owns all readiness/transfer work.
+__attribute__((cold, noinline))
+bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string& error) {
+    if (cfg_.thread_mode != ThreadMode::Split || !client_lb_signals_enabled()) {
+        error = "ERR DEBUG CLIENT-LB requires split mode and client-lb 1";
+        return false;
+    }
+    std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+    if (destination >= nthreads() || thread(destination).role() != Role::Ifid ||
+        lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+        snapshot_.in_progress() || loading()) {
+        error = "ERR DEBUG CLIENT-LB requires idle topology and an IO destination";
+        return false;
+    }
+    LbClientMove move;
+    {
+        std::lock_guard<std::mutex> signal_lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        if (found == lb_clients_.end()) {
+            error = "ERR DEBUG CLIENT-LB client has no owner observation";
+            return false;
+        }
+        const auto& client = found->second;
+        if (client.owner >= nthreads() || thread(client.owner).role() != Role::Ifid ||
+            client.owner == destination) {
+            error = "ERR DEBUG CLIENT-LB requires a different live IO owner";
+            return false;
+        }
+        move = {id, client.owner, destination, client.weight};
+    }
+    if (!thread(destination).prepare_client_capacity(1)) {
+        error = "ERR DEBUG CLIENT-LB destination capacity unavailable";
+        return false;
+    }
+    // Match normal PlanReady's SC gate before reusing the immutable move record.
+    // An old reader may still be retiring after cancellation published Idle.
+    lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);
+    if (lb_plan_->client_readers.load(std::memory_order_seq_cst) != 0) {
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        error = "ERR DEBUG CLIENT-LB previous move still has readers";
+        return false;
+    }
+    for (uint32_t tid = 0; tid < nthreads(); ++tid)
+        lb_ack_[tid].store(tid == destination, std::memory_order_relaxed);
+    lb_coordinator_ = destination;
+    lb_client_move_ = move;
+    lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
+    lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs, std::memory_order_release);
+    lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+    return true;
+}
+
+
 bool Server::lb_consume_plan(uint32_t coordinator) {
     // Only an observed PlanReady reaches this cold path. Never wait behind a monitor gather.
     std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
