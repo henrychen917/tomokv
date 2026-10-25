@@ -69,7 +69,7 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
 summary = dict(post_sha256=POST, pending=pending, selections=selections, jobs=dict(jobs))
 (OUT / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
 passed = [name for name, entries in jobs.items() if any(
-    e['current_post'] and e['exit'] == '0' and not e['rows'].get('bad', 0) for e in entries)]
+    e['current_post'] and e['exit'] == '0' and not e['rows'].get('FAIL', 0) for e in entries)]
 failed = [(r['name'], r['exit']) for r in selections if r['exit']]
 print('completed selections', len(selections), 'current POST jobs passing', len(passed),
       'historical failed selections', failed, 'pending', pending)
