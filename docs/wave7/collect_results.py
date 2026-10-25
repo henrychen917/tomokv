@@ -31,11 +31,13 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
     record = dict(name=receipt.parent.name, exit=value['exit'],
                   current_post=value['binary_sha256'] == POST,
                   unchanged_binary=value['binary_sha256'] == value['binary_sha256_after'],
+                  diagnostic=bool(value.get('diagnostic_preload')),
                   environment=value['environment'], jobs=value.get('jobs', {}))
     selections.append(record)
     for name, job in record['jobs'].items():
         verdicts = Counter(row.split('\t', 1)[0] for row in job['rows'])
         jobs[name].append(dict(selection=record['name'], current_post=record['current_post'],
+                              diagnostic=record['diagnostic'],
                               exit=job['done'].split('\t')[0] if job['done'] else None,
                               rows=dict(verdicts), labels=[row.split('\t', 2)[-1] for row in job['rows']],
                               engine=value['environment']['GATE_DIFFER_NET_IO'],
@@ -73,7 +75,7 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
 summary = dict(post_sha256=POST, pending=pending, selections=selections, jobs=dict(jobs))
 (OUT / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
 passed = [name for name, entries in jobs.items() if any(
-    e['current_post'] and e['exit'] == '0' and not e['rows'].get('FAIL', 0) for e in entries)]
+    e['current_post'] and not e.get('diagnostic') and e['exit'] == '0' and not e['rows'].get('FAIL', 0) for e in entries)]
 failed = [(r['name'], r['exit']) for r in selections if r['exit']]
 print('completed selections', len(selections), 'current POST jobs passing', len(passed),
       'historical failed selections', failed, 'pending', pending)

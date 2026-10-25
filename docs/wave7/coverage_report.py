@@ -26,7 +26,7 @@ def resolve(function):
     return sorted(job for job in available if job == name or job.startswith(name + '-'))
 
 def passes(entry):
-    return entry['current_post'] and entry['exit'] == '0' and not entry['rows'].get('FAIL', 0)
+    return entry['current_post'] and not entry.get('diagnostic') and entry['exit'] == '0' and not entry['rows'].get('FAIL', 0)
 
 jobs = {}
 for name in sorted(available):
