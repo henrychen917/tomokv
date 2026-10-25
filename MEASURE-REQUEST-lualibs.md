@@ -107,19 +107,46 @@ targets, and both underlying mdbqsbr live-arm build roots. The wrapper
 `mdbqsbr-live-arms` is phony, so freshness is checked on its real outputs.
 [Freshness receipt](docs/lualibs/production-freshness.json).
 
-POST completed its first whole-job sequence at **235 passed, zero failures**.
-PRE's armed/fused atomic-1 `servertail` row hit `EADDRINUSE` on its nested
-port 40822; the two child startup logs record the bind error. No listener
-remained when inspected, so the collision's source is not attributed.
-The corresponding POST row passed. The original
-[failure receipt](docs/lualibs/pre-servertail-bind-conflict.tar.gz) is retained,
-and a whole-job PRE rerun on fresh ports is queued; no assertion is relaxed.
+Complete gate jobs used the gate's own `GATE_ONLY_JOBS` interface, preserving
+all their other controls and declared legs. These are row **executions**, not
+new ledger rows; repeated mode passes include their release prerequisite.
 
-Remaining complete-job proof is in progress. Commands are retained in
-[tools/lualibs_proof.sh](tools/lualibs_proof.sh), using only GATE_ONLY_JOBS and
-`tests/differ_gate.sh`, never a replacement battery driver. The jobs preserve
-all their other controls and all declared legs. Any failures and their PRE
-controls will be recorded here; a partial gate is not a full-gate receipt.
+| Whole-job invocation | POST passed / failed | PRE passed / failed |
+|---|---:|---:|
+| Four feature jobs, split debug 0/1, compat3, script_bounds, scriptfix, notify, notify_aof | 194 / 0 | 193 / 1 |
+| Fused debug 0/1 + script_bounds | 35 / 0 | 35 / 0 |
+| Additional atomic-0 script_bounds, split | 3 / 0 | 3 / 0 |
+| Additional atomic-0 script_bounds, fused | 3 / 0 | 3 / 0 |
+| AOF epoll + uring, split replay | 109 / 0 | 109 / 0 |
+| AOF epoll + uring, fused replay | 109 / 0 | 109 / 0 |
+| Initial total | **453 / 0** | **452 / 1** |
+| Whole-job PRE feature-armed-1 rerun on fresh ports | — | **36 / 0** |
+
+Every scripting, FUNCTION and script-atomicity row passed on both arms and
+both thread modes, with atomic 0/1. All eight scriptatomic runs report zero
+failures and **zero vacuous checks**. The AOF jobs include script-group logging,
+DEBUG LOADAOF, process-restart script replay and their full recovery controls.
+[Summary](docs/lualibs/regression-summary.json),
+[POST receipts](docs/lualibs/post-regression.tar.gz),
+[PRE receipts](docs/lualibs/pre-regression.tar.gz).
+
+The sole initial failure was PRE's armed/fused atomic-1 `servertail` row:
+its two nested boots hit `EADDRINUSE` on port 40822. No listener remained
+when inspected, so the collision's source is not attributed. The corresponding
+POST row passed. The original
+[failure receipt](docs/lualibs/pre-servertail-bind-conflict.tar.gz) is retained;
+the unchanged whole-job rerun on ports 40860-40869 passed. No assertion changed.
+
+Commands are in [tools/lualibs_proof.sh](tools/lualibs_proof.sh). Final differential
+execution uses its fixed copy `build/lualibs-proof-driver-final.sh`. Editing the
+original recipe while its jobs invocation was active caused an unintended PRE
+differential leg to start and overlap the end of AOF correctness. The queued
+eight matrices then refused the occupied 40840/40841 ports. The original runner
+and its owned descendants were stopped. These partial/guard-refused attempts
+are **invalid and excluded**, with [receipts retained](docs/lualibs/invalid-differ-starts.tar.gz).
+The full standard sequence is being rerun sequentially from the fixed driver;
+its final results will replace this pending statement. No performance run
+occurred. A partial gate is not a full-gate receipt.
 
 ### Binary identity, size and per-state memory
 
@@ -198,7 +225,11 @@ The lane-only Python port guard allocates disposable bind-zero fixtures from
 40890-40898, with gates_test explicitly on 40899. It changes port allocation
 only, not comparisons or deadlines. One early, superseded gates_test run used
 its default ephemeral fixture listener port before this guard was enabled.
-The later runs use the explicit allocation and guard.
+The later runs use the explicit allocation and guard. Generated persistence
+payloads (about 4.8 GB) were removed after archiving logs, models, witnesses and
+ledgers; their [size inventory](docs/lualibs/removed-persistence-payloads.json)
+is retained. PRE keeps only its binary and six frozen objects; PAD-A is one
+additional binary, without another full build tree.
 
 **NOT RUN:** full `tests/gate.sh iteration`, performance benchmarks, load
 generators for measurement, generic 14-cell ABBA merit and NIC performance
