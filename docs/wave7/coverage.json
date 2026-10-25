@@ -45,7 +45,10 @@
     },
     {
       "file": "tests/blockfix_cost.cc",
-      "jobs": [],
+      "jobs": [
+        "job_blockfix_registry",
+        "job_production_units"
+      ],
       "standalone_audit": false,
       "note": ""
     },
@@ -63,13 +66,17 @@
     },
     {
       "file": "tests/ctlfix.mk",
-      "jobs": [],
+      "jobs": [
+        "job_flip_unit"
+      ],
       "standalone_audit": false,
       "note": ""
     },
     {
       "file": "tests/ctlfix_unit.cc",
-      "jobs": [],
+      "jobs": [
+        "job_flip_unit"
+      ],
       "standalone_audit": false,
       "note": ""
     },

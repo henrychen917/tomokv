@@ -240,6 +240,9 @@ if __name__ == '__main__':
     if args.inventory == 'wave6':
         for binary in (pre, post): notifycompat_inventory(binary)
         # Headline 152/153 + execfair 3/3 + notifycompat 1/0 = 156/156.
+        # Wave 7 retains 156/156: rlfix3/ctlfix/blockfix/persistfix2/atomfix5
+        # add no entries; datafix2's older-base normal scan is the same +1
+        # already included by notifycompat. Never count that overlap twice.
         expected['tomo'] += 1
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'

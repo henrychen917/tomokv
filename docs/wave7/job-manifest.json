@@ -248,12 +248,6 @@
     "differ-equivalence"
   ],
   "remaining": [
-    "release",
-    "asan",
-    "core_tsan_build",
-    "waits_tsan_build",
-    "racefix_tsan_build",
-    "rldbg",
     "datafix1_randscan",
     "datafix1_hexpire",
     "datafix1_bitfield",
@@ -265,7 +259,6 @@
     "filter_unit",
     "ring_unit",
     "storage_units",
-    "production_units",
     "acl_metadata",
     "cmd_metadata",
     "bugs5",
@@ -450,5 +443,15 @@
     "abba_selftest": "throwaway EXPECT copy",
     "perfio_stream": "correctness latency assertion; quiet boundary",
     "tailgen_build": "measurement-only dependency; compile without generator"
-  }
+  },
+  "build_prerequisites": [
+    "asan",
+    "core_tsan_build",
+    "production_units",
+    "racefix_tsan_build",
+    "release",
+    "rldbg",
+    "tailgen_build",
+    "waits_tsan_build"
+  ]
 }
