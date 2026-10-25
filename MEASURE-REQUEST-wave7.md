@@ -2,96 +2,115 @@
 
 ## wave7 integration
 
-Integration and offline proof are complete on `cx-wave7`, headline `05a5e01a9`; correctness verification is in progress. No push. All commands and correctness children are constrained to CPUs 64–95 and listeners to ports 26800–26899. Performance measurements and the full iteration remain with the maintainer.
+All six lanes are merged on `cx-wave7` from headline `05a5e01a9`, with a separate `--no-ff` commit for each lane in the requested order. A real cross-wave WATCH/prebuilt-SET defect was found, fixed and given a directed regression check. Offline proof is complete; the complete correctness campaign is rerunning on the final executable. No push. AT4.12 remains design-only.
 
-All six lane reports were read before merging their branches in the requested order with `--no-ff`. Each merge is committed separately. AT4.12 remains design-only.
+Every invocation uses CPUs 64–95, builds use `-j32`, and correctness listeners use ports 26800–26899. Gate entry starts with `LANG=en_US.UTF-8` and `LC_ALL` unset; the real gate pins collation to C. No performance load generator or full iteration was run.
 
-### Row accounting
+### Merges and row accounting
 
-Headline 768/785 + rlfix3 16 + ctlfix 0 + blockfix 3 + persistfix2 4 + atomfix5 2 + datafix2 5 gives **DQ=+30, DF=+30; required counts 798/815**. The explicit fixture contains all 815 declared labels with multiplicities, including datafix2’s five previously missing labels. `docs/wave7/rows.json` counts collection lines relative to the quick exit. `EXPECT_QUICK=768` and `EXPECT_FULL=785` remain untouched.
+| Lane | Merge commit | DQ | DF |
+|---|---|---:|---:|
+| cx-rlfix3 | `abff31819` | 16 | 16 |
+| cx-ctlfix | `ee1aec4ea` | 0 | 0 |
+| cx-blockfix | `e452caa92` | 3 | 3 |
+| cx-persistfix2 | `f0d647b37` | 4 | 4 |
+| cx-atomfix5 | `033be1114` | 2 | 2 |
+| cx-datafix2 | `7fe467f66` | 5 | 5 |
+| Total | | **30** | **30** |
 
-### Merge decisions
+The maintainer should change **768/785 → 798/815**. The actual `EXPECT_QUICK=768` and `EXPECT_FULL=785` are untouched. [Row accounting](docs/wave7/rows.json) derives each lane's delta against its own base and counts every collection by its **line relative to the quick exit at line 5610**. All 30 added rows precede that exit. The explicit fixture contains all 815 declared labels with multiplicities, including the five datafix2 labels missing from its lane fixture. Directed integration checks extend existing jobs and add no rows.
 
-- Keep all scheduler registrations and collections from every lane and wave 6.
-- Atomic apply retains notifycompat’s empty-destination presence witness and adds datafix2’s effect-based WATCH signal.
-- MULTI scatter execution retains execfair’s `retry()` scheduling and uses datafix2’s effect-aware scatter wrapper; the retired unconditional WATCH completion callback stays removed.
-- Lua retains persistfix2’s AOF-error admission and adds datafix2’s effect scope, including partial effects before an error.
-- OBJECT retains wave 6’s single no-touch/non-notifying lookup, missing-key precedence and physical expiry notification, plus datafix2’s idle-clock result.
-- XGROUP keeps dispatchfix’s early validation and blockfix’s macro-node MKSTREAM, adding WATCH dirtiness only when the stream is created.
-- SETBIT keeps notifycompat’s changed-bit notification rule, while datafix2 materializes embedded strings as raw even for an unchanged bit.
-- INFO retains selective collection; `expired_subkeys` is computed from the collected lifetime field counter and RESETSTAT baseline only for STATS.
+All six reports were read before their merge. Shared files compose additively: scheduler registrations/collections, Makefile targets, label fixture, all four unique-key scans in the R7 check, and lane-specific implementations remain present. Older atomfix5/datafix2 code retains wave 6 scheduling, notification and routing changes.
 
-Final build, compiler trials, command-scope instruction counts and PAD construction are complete; the current correctness status is below. No throughput claim.
+### Semantic interactions and fixes
 
-### Directed interaction checks
+**WATCH counts, actual effects and execfair.** atomfix5 counts the unique ns=0 alias of each logical watched key; datafix2 changes mutation evidence without clearing aliases or generations early. Wave 6's `retry()` and `service_multi_retries` remain. The integration check runs same/cross-owner no-op and real writes, both ordinary and inside the writer's EXEC, verifies CLIENT INFO/LIST counts before and after both EXEC outcomes, and checks that unchanged SETBIT materializes raw without dirtying WATCH. Atomic scatter keeps notifycompat's empty-destination presence witness plus CD4.9 effects. Lua keeps PS4.15 AOF admission and CD4.9 partial-effect tracking; the vendored C++ interpreter unwinds the effect scope on errors.
 
-`tests/wave7.py` extends existing jobs without adding rows: cross-owner no-op/real writes both ordinary and in writer EXEC preserve exact CLIENT INFO/LIST watch counts and clear them on both EXEC outcomes; unchanged SETBIT still materializes raw without dirtying WATCH; blocking BLMOVE dirties its watched destination when served; selective INFO asserts each changed field appears exactly once in its owning section and requires a nonzero expired-subkeys transition followed by RESETSTAT. Persistfix2 shutdown adds observed BLPOP+XREAD waiters at SAVE/NOSAVE shutdown, EOF on every peer, clean exit and exact recovery.
+**Diagnosed prebuilt-SET defect, fixed in `9cbe15382`.** datafix2's WATCH dispatch selects `op.spec->handler_notify` when any watched key exists on the shard. Wave 6's prebuilt SET specifications had copied ordinary SET's notification handler. A remote large SET could therefore leave its prebuilt `KvObj` pointer and -6 marker attached; writeback interpreted that marker as scatter state and attempted snapshot retirement on the value. This caused the persistence error job's fused aborts. The [captured debugger state](docs/wave7/persistence-abort-stop-7-138742-gdb.log) contains `durability-window` key bytes in the supposed snapshot header.
 
-The first merged interaction selection exposed an RL4.15 fixture integration error: its serverless eight-worker topology inherited the gate client's two-CPU mask in a three-slot run and failed `selected == 8`. The helper now runs native witnesses on the gate's own eight-CPU `GATE_CORES` allocation. This retains all protected-page, exact-count and rewrite assertions; the failed first invocation is retained. Live selective INFO, the complete CD4.9 table, execfair interaction checks and blocked SAVE/NOSAVE recovery passed their first invocations.
+Both specifications now set `handler_notify = cmd_set_prebuilt<true>`, consuming the same sidecar before recording effects. This changes cold specification initialization only: ordinary no-watcher SET gains no branch, callback, key lookup or layout change. The directed CD4.9 extension proves a same-shard pair and remote writer, then checks 513/1024/200000-byte values, sibling-only WATCH, replacement, no-op NX, missing XX and SET GET under empty and K$ notification masks, against Redis. All 24 fixed-binary legs pass. The whole job is also run on the frozen faulty candidate as a negative control; its final receipt is retained separately from passing evidence.
 
-### Interaction audit
+**Selective INFO.** `expired_subkeys` and its lifetime/reset companions appear only in STATS; changed RDB/AOF time, attempt and status fields appear only in PERSISTENCE. Selective collection computes the field counter when STATS is requested. CLIENT INFO/LIST `watch=` is client metadata, not an INFO section field. Directed RESP2/RESP3 tests cover each selected section, default/all/everything/unions, exactly-once membership, a nonzero expiry, RESETSTAT and equality of the RDB time with LASTSAVE.
 
-- WATCH count is session metadata, independent of dirty claims: atomfix5 counts the unique ns=0 alias for each logical watched key; datafix2 preserves aliases and generations until EXEC/DISCARD/UNWATCH while changing only mutation evidence. Wave 6 `retry()` still releases/requeues executable units through execfair; it was not reverted to the older bare retry result. The directed cross-owner writer-EXEC cases and the full CD4.9 command table exercise the composition.
-- Lua composes PS4.15 admission with CD4.9 effect tracking: a refused nested write never calls its handler, while a partial effect retains its mutation witness. The vendored interpreter is compiled as C++ (`LUAI_THROW` throws), so the nested effect scopes unwind on Lua errors; no dangling scope is introduced by the merge. The persistence error and complete WATCH-table jobs retain these cases.
-- INFO: `expired_subkeys` and its lifetime/reset companions belong to STATS; RDB/AOF attempt/time/status fields belong to PERSISTENCE. Selective collection computes the field-expiry counter only when STATS is requested. CLIENT INFO/LIST watch counts are client metadata, not a new INFO section field. Nonzero expiry and reset witnesses cover RESP2/3 and section unions.
-- FLIP admission and controller completion attribution share the existing cold transition mutex. No retry or lock was added to a reader. RL4.11 keeps read-local values copied through migration; its read-only capability stays zero while owner GET zero-copy remains separately configurable. The directed two-completion migration check extends every declared 2s RL4.11 leg.
-- Blocking queues retain owner-local state and FIFO order; the new hash lookup includes hash, physical namespace and full key equality. The registry remains attached to the Shard, so ownership migration moves the same registry. Datafix2 mutation evidence is emitted by the served command, not registration or lookup; the BLMOVE watcher test observes a real park before waking and validates destination encoding.
-- Registry destruction still follows owner/IO join. Wave 5's shutdown writeback retirement discards undeliverable notification batches and retires blocked operations before shard-owned registry references are released. Directed SAVE/NOSAVE shutdown arms require two observed blocked clients, peer EOF and exact reload contents. Persistfix2's admission policy does not alter dispatchfix's v2 snapshot routing reader/writer; the existing router-uniform old-file recovery job is included in the sweep.
+**FLIP and read-local.** ctlfix's completion-qualified admission and completion attribution retain the cold transition mutex. RL4.11's lane copying remains valid through migration and its read-only `zc-min-read-local` stays zero; owner GET zero-copy remains separately configurable. The two-completion migration witness extends every declared 2s RL4.11 leg. No reader retry, seqlock or per-operation reader lock was added.
 
-### Offline inventory and trials
+**Blocking lookup, effects and teardown.** blockfix's registry remains Shard-owned, including hash, physical namespace and full-key comparison, so it migrates with the shard. FIFO order is unchanged. A directed BLMOVE check requires an observed park, validates the served destination's listpack encoding and WATCH abort, and requires the blocked count to return to zero. Wave 5's owner/IO join, notification-batch discard and blocked-operation retirement still precede registry destruction.
 
-The merged link has **156 R7 bodies in `tomo`, 156 in `tomo_db0`**, with exactly the headline's names and multiplicities. Older atomfix5 contributes no inventory delta; datafix2's one extra normal-namespace body already exists in the wave 6 headline. `docs/wave7/r7-inventory` records each frozen input and the empty merged/headline delta. The final R7 job, including its negative controls, remains required after tuning.
+**Persistence, blocked shutdown and old files.** SAVE/NOSAVE shutdown checks require observed BLPOP and XREAD waiters, EOF for every peer, clean exit and exact reload contents. PS4.15 error admission composes with the WATCH table and scripts. Dispatchfix's v2 non-divisor snapshot reader/writer is unchanged; router-uniform old-file recovery remains in the campaign. XGROUP retains early error precedence, blockfix MKSTREAM structure/counts and WATCH dirtiness only on creation. OBJECT retains wave 6's single no-touch lookup, missing-key precedence and physical-expiry notification plus datafix2 IDLETIME.
 
-`docs/wave7/budgets` records PRE/POST IPA sizes, compile-only budget trials and linked-body scoring against all six frozen POSTs. The final inventory and call-site review are below. No instructions, registers, member offsets or opcode differences are masked.
+[Directed checks](tests/wave7.py) run only through their owning gate jobs. [Coverage mapping](docs/wave7/coverage.json) sweeps touched files and changed reply text, INFO fields, encodings and precedence into complete gate selections.
 
-The whole `atomic_batteries` release job is **NOT RUN**: it contains an explicit pipelined-versus-serial throughput measurement, which this lane is not authorized to run. Its non-rate correctness cases will run through the gate's ASAN battery in both modes. Efficiency, saturated FLIP, atomic throughput floor, ABBA measurements, NIC measurements and full iteration are also reserved to the maintainer. This limitation is separate from ordinary correctness failures, which remain visible in receipts.
+### Fixture findings
 
-The first broad job selection was rejected before any job ran because it explicitly named a build-only prerequisite (`core_tsan_build`). The campaign manifest now selects consuming correctness jobs and lets the gate add prerequisites. The rejected selection remains in its receipt; it is not passing evidence. The independent differential and repeated transaction selections continue through the same gate interface.
+- RL4.15's eight-worker native witness inherited the gate client's two-CPU mask. It now uses that job's eight-CPU `GATE_CORES`; all protected-page, exact-count and rewrite assertions remain.
+- SV4.6's mutable-knob inventory omitted RL4.11's deliberate immutability. `zc-min-read-local` is now in the immutable inventory; duplicate, rollback, type and oracle checks remain.
+- The WATCH eviction witness could see no victim in one bounded sparse-store sample. It now requires all 128 seeds, at most 32 pressure writes to the same unwatched key per cohort, and exactly three fresh cohorts. An actual watched-key removal and aborted EXEC remain mandatory. A whole-job target-only noeviction control must fail all 24 legs; no skip or tolerance was added.
+- RLIMIT_FSIZE also suppressed the persistence child's diagnostic file. The parent now drains a pipe into its own log; AOF limit, commands and verdicts are unchanged. The resulting diagnostic work found the real prebuilt defect above. The new large-value test client uses buffered reads so multi-packet replies are read exactly.
+- `gates_test.py`'s one-slot fixture had pinned coordinator and worker together on one CPU, unlike the real gate. The coordinator now keeps the fixture's existing four-CPU allocation; its sole worker must still be observed on exactly one CPU. All 72 tests, jobs, planted controls and the 45-second bound remain. Extracted fixtures retain the real gate's C collation pin.
+- Configuration documentation now includes `shutdown-on-sigint` and `shutdown-on-sigterm` with Redis grammar/defaults; generated source anchors are refreshed. The docs checker covers all 93 spellings and its negative controls.
 
-### Final build and offline proof
+Historical failed jobs, the initial harness artifact and diagnostic-preload runs remain archived. Diagnostic runs cannot count as final passing evidence.
 
-POST is `build/tomokv`, SHA-256 `177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee`. PAD-A is `build/tomokv-wave7-PAD-A`, SHA-256 `d00e327ca81e3c7708b6f2f6e71ac56388f50a747c503689715971fcbf296d12`. Production source last changed in `f941716b1`; subsequent work is verification/reporting. [PAD construction](docs/wave7/pad-a.json) records every input object hash. Kind **A, behaviour twin**: unchanged headline behaviour with POST's `.text` start `0x1f8b0` and size 8,278,199 bytes, using 60,288 trailing unreachable bytes. It controls section origin/size, not individual function addresses or data layout. No PAD-B. The locally rebuilt PRE matches all 9,320 frozen headline groups; PAD retains all 565 historical hot groups exactly, with four cold local-closure relocation mismatches and its added unreachable pad body left visible.
+### R7 inventory, inlining and linked-body review
 
-There were 58 baseline/merged IPA compilations, 112 budget trials over all 29 pinned units (96 distinct scored objects), then 60 call-site trials over six dispatcher units. The source fix keeps GET's exact small argc/argv key expression at its use site, restoring the armed GET body; it does not alter access semantics. [Budget choices](docs/wave7/budgets/selected.json), [dispatch call-site choices](docs/wave7/budgets-dispatch/selected.json), and [every remaining changed body with its reason](docs/wave7/identity-expanded/changed-bodies.md) are retained. The expanded audit includes every body actually entered by the command scopes: **787 hot groups, 697 headline-equal, 25 lane-equal, 65 residual**. All 65 have [full call-site comparisons](docs/wave7/callsites-expanded/summary.json) against every supplied frozen reference. Ten of twelve selected command-body groups match headline; the two armed SET bodies compose datafix2 effect notifications with wave 6's expired-SET handling. This is not a claim that all bodies became identical. Remaining composites, cold inlining changes and constant-pool/switch references stay explicit merit inputs; no opcodes, member offsets or register differences were masked.
+The merged ELF has **156 bodies in `tomo`, 156 in `tomo_db0`**, with exactly the headline's names and multiplicities. [Frozen inventories](docs/wave7/r7-inventory/summary.json) show atomfix5 152/153 against its 152/153 base, and datafix2 153/153 against 152/153. That extra normal body already exists in wave 6; additive composition does not double-count it. The owning R7 job retains every negative control.
 
-[Complete instruction table](docs/wave7/instructions/table.md): **48/48 GET/SET/INCR cells add zero instructions**, at batches 1/32, both modes, both database runtimes, slowlog 10000/-1. The unarmed SET handler is byte-identical, and no WATCH callback or watch-key lookup runs on these no-watcher paths. The full CD4.9 command table retains SET/NX/XX and MSET/MSETNX present/absent-key cases, including writer EXEC. The cost is in shared scatter selection: 8-key MSET adds **40/56** instructions at atomic 0/1 in the normal runtime, **48/40** in db0, in either mode; batch 8 scales these to **320/448** and **384/320**. `xshard_execute` contributes +40/+64 (normal) or +48/+48 (db0); atomic admission removes eight instructions. MGET shares the predicate and adds +40 normal / +48 db0 per 8-key command. These are named production instruction counts, excluding fixture setup, external library bodies and networking; the scatter batch repeats completed groups. External library call counts match in all 80 cells. [Provenance](docs/wave7/instructions/provenance.json) verifies every actually entered body: 125 normal and 124 db0 groups per arm, with exact constant-byte and switch-destination proofs plus negative controls. No throughput/cycle/IPC claim.
+Compile-only work covered all 29 pinned units: 58 baseline/merged IPA compilations, 112 budget trials (96 distinct scored objects), followed by 60 call-site trials over six dispatcher units. [Budget choices](docs/wave7/budgets/selected.json) and [dispatcher choices](docs/wave7/budgets-dispatch/selected.json) retain exact commands, input sizes and scores against headline and all six frozen POSTs. GET's small argc/argv key expression stays at its call site to restore its armed body without changing semantics.
 
-Both uring and epoll differential selections pass, including standard seeds, atomic modes, both geometries and mode equivalence. Two complete repetitions of all four transaction-order cells and the fused legacy/ASAN selection pass. All 46 production build/freshness checks pass with POST unchanged. The broad final job sweep and gate self-tests remain pending; final receipts will replace this status.
+| Unit | Headline budget → merged budget |
+|---|---|
+| normal t_list | 25352 → 25608 |
+| db0 t_server; aof | 33074 → 33448; 37572 → 39024 |
+| normal snapshot | 14818 → 15191 |
+| normal/db0 t_set | 26200 → 26451 / 26400 → 26651 |
+| db0 t_zset; geo | 32984 → 33229; 16457 → 16462 |
+| normal/db0 xshard | 145327 → 147163 / 144177 → 145970 |
+| normal genthread; rl2s; reorder | 132011 → 132454; 165332 → 165831; 149814 → 150313 |
+| db0 genthread; rl2s; reorder | 132813 → 133256; 163824 → 164323; 150803 → 151302 |
 
-### Maintainer measurement request
+Other pinned budgets retain headline values. The final strict inventory has **9,478 groups: 8,083 headline-equal, 833 equal to a supplied lane POST, 562 residual**. All **1,395 changed groups** have a [per-body reason](docs/wave7/identity-expanded/changed-bodies.md). The expanded hot inventory includes actual instruction-trace bodies: **787 groups, 697 headline-equal, 25 lane-equal, 65 residual**. Every residual group's clones and call sites were compared against every frozen input in the [call-site receipts](docs/wave7/callsites-expanded/summary.json).
 
-The full iteration, null and landing gate are **NOT RUN here**. Use the gate's own instrument and declared cell geometry, matched offered load, arm balance and null rejection rules. PRE is `/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9`, SHA-256 `ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8`; POST and PAD-A are bound above. Run PRE/PRE null, PRE/POST landing and PRE/PAD-A size/origin control. Keep the normal landing [headline cells](tests/headline_cells.txt) and [multi-key cells](tests/mkprobe_cells.txt), including both modes, read-local states, atomic settings and pipeline depths declared there. Check the 2s SET depth-1 cells and 8-key MSET depth 1/8 separately; the maintainer's isolated datafix2 leans are not an integration verdict. Include the established [multi-DB cells](docs/lbplanner/multidb-cells.txt) for the full database runtime.
+Ten of twelve selected GET/SET/MGET/MSET groups match headline. The two armed SET bodies combine CD4.9 effect metadata with wave 6's `notify_elapsed_set`, which the older lane POST lacks. Remaining scheduler/parser composites, clone-specific cold inlining changes, register/branch changes and strict constant/switch reference differences stay listed; **this is not a claim of complete body identity**. No opcode, register or member-offset difference is masked. Identity explains the candidate; the maintainer's landing merit decides it.
+
+The prebuilt pointer fix changes only four linked groups (two functions × two namespaces); [its exact comparison](docs/wave7/prebuilt-fix-identity.json) proves every other group unchanged. The retained command traces were rebound to the final production ELF, including exact constant bytes and switch destinations. No counted body changed.
+
+### Serverless command-scope instructions
+
+[Complete PRE/POST table](docs/wave7/instructions/table.md) covers 80 cells. All **48 GET/SET/INCR cells add zero instructions** at batch 1/32, both modes, both database runtimes and slowlog 10000/-1. The plain SET body is headline-identical; no WATCH callback or key lookup executes when no client watches. Counts are exact named production instructions, excluding setup, external library bodies, parser/network and queues. Each cell verifies reply/data; clock reads are deterministic to exclude debugger pauses from slowlog admission. Multi-key batch 8 repeats completed scatter groups rather than an overlapped parser pipeline.
+
+| Eight-key command | Normal runtime delta, atomic 0 / 1 | db0 delta, atomic 0 / 1 |
+|---|---:|---:|
+| MGET, batch 1 | +40 / +40 | +48 / +48 |
+| MGET, batch 8 | +320 / +320 | +384 / +384 |
+| MSET, batch 1 | +40 / +56 | +48 / +40 |
+| MSET, batch 8 | +320 / +448 | +384 / +320 |
+
+These deltas hold in both modes. The shared `xshard_execute` notification-selection predicate now includes shard watches: +40/+64 in normal or +48/+48 in db0 across eight fragments; atomic admission removes eight instructions. MGET shares the predicate. The full CD4.9 table retains SET/NX/XX and MSET/MSETNX present/absent-key cases, including writer EXEC. [Provenance](docs/wave7/instructions/provenance.json) covers all 125 normal and 124 db0 entered groups per arm, with constant-byte and switch-destination proofs and negative controls. External library call counts match in every cell. Instructions are not a cycles or throughput verdict.
+
+### Correctness status
+
+Final whole-job campaign is IN PROGRESS on POST `02e1a1a2…`. The corrected build has already passed all 24 WATCH legs, persistence-error legs and execfair interactions. The earlier broad campaign, both differential engines, repeated txnorder cells and fused batteries remain historical evidence for the superseded executable, not substitutes for this rerun. Final [selection receipts](docs/wave7/correctness/summary.json) and [job coverage](docs/wave7/coverage-results.json) will be refreshed when the campaign completes.
+
+The final campaign includes every allowed new/touched/matching job, R7 negative controls, both-engine differential standard seeds and both geometries, all four txnorder cells at least three times, blocking/streams/persistence/old-file recovery/FLIP/read-local/INFO/scripts/data types in both modes, standalone `gates_test.py`, complete `abba_selftest` and all production unit builds/freshness checks. Only the throwaway self-test source copy changes EXPECT to 798/815.
+
+**NOT RUN:** full `tests/gate.sh iteration`, ABBA/NIC measurements, `efficiency`, `flip_saturated`, `atomic_floor`, and whole release `atomic_batteries`. These include performance benchmarks or measurement load generators reserved to the maintainer. The latter's non-rate correctness cases run through both declared ASAN battery modes. `tailgen` is compile-only through `make all`; its generator is not invoked.
+
+### Final artifacts and measurement request
+
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE | `/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9` | `ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8` |
+| POST | `build/tomokv` | `02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753` |
+| PAD-A | `build/tomokv-wave7-PAD-A` | `900b797991bce0bf12c4c8e2ed92a270281f023f30b784faefaa8e4b1cbcfc68` |
+
+PAD is kind **A, behaviour twin**: unchanged headline behaviour with final POST's `.text` start `0x1f8b0` and size **8,278,231 bytes**, using **60,320 trailing unreachable bytes**. It controls section origin/size, not individual function offsets or data layout. [Construction](docs/wave7/pad-a.json) hashes every object; [PAD audit](docs/wave7/pad-identity-final/summary.json) retains all 785 expanded headline hot groups and all 12 command groups exactly. Four cold local-closure relocation mismatches and the added unreachable pad body remain visible. No PAD-B. The locally rebuilt PRE matches all 9,320 frozen headline groups.
+
+The maintainer runs the null and landing gate with the gate's own instrument, geometry, matched offered load, arm balance and validity rules. Run PRE/PRE null, PRE/POST landing and PRE/PAD-A section-size/origin control. Retain all [headline cells](tests/headline_cells.txt), [multi-key cells](tests/mkprobe_cells.txt) and established [multi-DB cells](docs/lbplanner/multidb-cells.txt). Check **2s SET depth 1** and **eight-key MSET depth 1/8** separately; the isolated datafix2 lean is not an integration verdict.
 
 | Comparison | PRE | POST / PAD-A | Deciding evidence |
 |---|---|---|---|
-| PRE/PRE null | NOT RUN | NOT RUN | Gate's validity/noise rules |
-| PRE/POST landing | NOT RUN | NOT RUN | Per-cell rate at matched load and declared depth-1 latency score |
-| PRE/PAD-A control | NOT RUN | NOT RUN | Whether section-size/origin movement explains any result |
+| PRE/PRE null | NOT RUN | NOT RUN | Gate validity/noise rules |
+| PRE/POST landing | NOT RUN | NOT RUN | Rate at matched offered load and declared depth-1 latency score |
+| PRE/PAD-A control | NOT RUN | NOT RUN | Whether section origin/size movement explains the result |
 
-Report cycles/op, instructions/op and IPC with each cell. Rate and latency decide; the instruction counts and identity inventory explain and localize changes. Do not average away a regressed SET/MSET cell. PAD-A is a **behaviour twin**, with the section-layout limitation stated above; it is not an inverse control. No throughput, latency or cycle improvement is claimed by this integration.
-
-### Harness integration finding
-
-The first standalone `tests/gates_test.py` run executed 72 tests and failed only the one-slot scheduler fixture at its existing 45-second bound. Its retained artifact has 219 published completion records while the coordinator had collected 66 rows. The fixture had reduced both its coordinator and sole worker to one CPU; the real gate retains the coordinator's full allocation. `tests/gates_test.py` now retains the fixture's existing four-CPU group for the coordinator while every worker remains pinned to its assigned single CPU. The one-slot test additionally requires exactly one observed worker CPU. Every job, completion/cleanup assertion, planted control and deadline remains intact. Extracted scheduler fixtures also retain the real startup's `export LC_ALL=C`, while the top-level test starts with `LANG=en_US.UTF-8` and `LC_ALL` unset. The full standalone suite and complete `abba_selftest` job will be rerun; the initial failed [log and scheduler artifact](docs/wave7/correctness/harness-initial) remain separate evidence.
-
-The broad sweep also found that the parser's new `shutdown-on-sigint` and `shutdown-on-sigterm` spellings were absent from `docs/CONFIGURATION.md`. Both entries now describe their Redis modifier grammar, defaults and live behavior; the existing generator refreshed two writeback source anchors. The checker validates all 93 parsed spellings and its complete negative-control set passes. The whole `config_unit` job remains scheduled for a final rerun; its original red row stays in the broad receipt.
-
-### Persistence error observation under investigation
-
-The first final broad `persistfix2_errors` job recorded SIGABRT in `1s / uring / appendfsync no / reorder 1 / read-local 1`, after the acknowledged increment was observed and RLIMIT_FSIZE was lowered to 380 bytes. The other target geometries and every oracle geometry passed. The same file limit suppressed the server's assertion text because stderr was a regular file already larger than 380 bytes. The fixture now drains limited children's diagnostics through a parent-owned pipe/file, leaving the AOF limit, commands and assertions intact; setup replies also identify the last completed command and failures include the reorder arm. This is **not yet a diagnosed or fixed server failure**. The complete persistence jobs must be rerun with those diagnostics, and any production defect fixed and revalidated before handoff.
-
-### Further complete-job findings
-
-The SV4.6 configuration matrix still classified `zc-min-read-local` as mutable after RL4.11 intentionally made it immutable. Its four target mode/engine legs correctly refused the update, making the old fixture fail. The immutable inventory now includes that knob; all type, duplicate, transaction rollback and oracle checks remain. The complete owning job is queued again.
-
-One of the 24 CD4.9 WATCH-table legs (`db16 / 2s / uring / atomic 1 / read-local 0`) failed to observe any eviction in its three fresh cohorts. All command-table cases in that leg completed, and the other 23 legs passed. Diagnostics now retain every pressure reply, seed error, remaining-cohort count and memory/eviction counters without changing the required window or outcome. The complete job is queued for diagnosis; this is not passing evidence.
-
-The complete WATCH diagnostic rerun passes all 24 legs, and the corrected configuration matrix passes. Diagnostics nevertheless reproduce failed single-pressure arming attempts: all 128 seeds exist, SET returns OOM, and zero keys are evicted. `FlatStore::random_allkeys_candidate` intentionally bounds each sample to 16 random probes plus a 16-slot advancing backstop; a sparse shard may have no victim in that pass. The fixture now verifies all 128 seeds, issues at most 32 pressure writes to the same **unwatched** key per cohort, and retains exactly three fresh cohorts. It still requires an actual watched-cohort removal and then an aborted EXEC. No sample knob, outcome tolerance or missing-window skip was added. The whole revised job and a whole-job no-eviction negative control remain scheduled.
-
-The complete persistence rerun initially passed, but its next complete repetition reproduced two silent SIGABRT failures: fused/epoll/no and fused/uring/everysec, both reorder/read-local armed, immediately after the queued transaction setup and before the large SET reply. The original executable remains unchanged. A diagnostic-only abort-stack preload is now being used with complete error jobs; its invocations are explicitly marked and cannot count as final passing evidence.
-
-### Diagnosed integration defect: WATCH and prebuilt SET
-
-The abort stack and debugger state identify the exact cross-wave interaction: `watch_execute_handler` selects `op.spec->handler_notify`, but wave 6's two prebuilt SET specifications copied ordinary SET's notification handler. Any watched key on the same shard could make a remote large SET execute the ordinary handler, leaving its prebuilt `KvObj` pointer and `-6` marker attached. WB then misinterpreted that marker as a completed scatter and tried to retire the value as a snapshot. The captured state contains the `durability-window` key bytes in the supposed snapshot header. This was a real integration defect, not an AOF error tolerance issue.
-
-Both prebuilt specs now point `handler_notify` at `cmd_set_prebuilt<true>`. The notifying path consumes the prebuilt value before recording actual effects; no branch, watcher lookup, layout change, or instruction is added to ordinary no-watcher SET. The directed CD4.9 job extension proves a same-shard key pair and a writer on a different IO/owner thread, then checks 513/1024/200000-byte values for sibling-only WATCH, replacement, no-op NX, missing XX and GET, under both notification masks, against Redis. The prior candidate is retained as `build/tomokv-wave7-before-prebuiltfix` for the complete-job regression control. All final hashes and proof bindings must be refreshed after this source correction.
+Record cycles/op, instructions/op and IPC for every cell. Rate and latency decide; do not average away a regressed SET/MSET cell. No throughput, latency or cycle improvement is claimed here.
