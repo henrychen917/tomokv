@@ -1,0 +1,2516 @@
+{
+  "expected_gate_exit": 1,
+  "actual_gate_exit": 1,
+  "broken_binary_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "fixed_binary_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753",
+  "helper_sha256": "eebe4e46d95651f87360d9c0893bdd25d644c391f6f8e345d102a921800d59d5",
+  "fused_failures": 16,
+  "split_passes": 8,
+  "legs": [
+    {
+      "leg": "watch-db1-1s-epoll-a0-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 5,
+          "writer_io": 7,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-epoll-a0-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 6,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-epoll-a1-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Segmentation fault",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 7,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-epoll-a1-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 10,
+          "owner": 2,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-uring-a0-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 4,
+          "owner": 4,
+          "writer_io": 7,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-uring-a0-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 15,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-uring-a1-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 10,
+          "owner": 2,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-1s-uring-a1-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 14,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-2s-epoll-a0-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-2s-epoll-a1-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 3,
+          "owner": 7,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-2s-uring-a0-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 5,
+          "owner": 7,
+          "writer_io": 2,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db1-2s-uring-a1-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 1,
+          "owner": 7,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-epoll-a0-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 8,
+          "owner": 0,
+          "writer_io": 6,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-epoll-a0-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 5,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-epoll-a1-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 9,
+          "owner": 1,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 9,
+          "owner": 1,
+          "writer_io": 2,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-epoll-a1-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 9,
+          "owner": 1,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-uring-a0-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 9,
+          "owner": 1,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-uring-a0-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 0,
+          "owner": 0,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-uring-a1-rl0.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 4,
+          "owner": 4,
+          "writer_io": 6,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-1s-uring-a1-rl1.log",
+      "prebuilt_path": true,
+      "expected_failure": true,
+      "fatal_signal": "Aborted",
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 4,
+          "owner": 4,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-2s-epoll-a0-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 12,
+          "owner": 6,
+          "writer_io": 5,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-2s-epoll-a1-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 3,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 13,
+          "owner": 7,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-2s-uring-a0-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 1,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    },
+    {
+      "leg": "watch-db16-2s-uring-a1-rl0.log",
+      "prebuilt_path": false,
+      "expected_failure": false,
+      "fatal_signal": null,
+      "target_cases_reached": [
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "",
+          "size": 200000,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 513,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 513,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 1024,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 1024,
+          "case": "get"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "sibling"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "replace"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "nx"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 4,
+          "mask": "K$",
+          "size": 200000,
+          "case": "xx-missing"
+        },
+        {
+          "target": true,
+          "shard": 2,
+          "owner": 6,
+          "writer_io": 0,
+          "mask": "K$",
+          "size": 200000,
+          "case": "get"
+        }
+      ]
+    }
+  ]
+}
