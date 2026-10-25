@@ -107,6 +107,14 @@ targets, and both underlying mdbqsbr live-arm build roots. The wrapper
 `mdbqsbr-live-arms` is phony, so freshness is checked on its real outputs.
 [Freshness receipt](docs/lualibs/production-freshness.json).
 
+POST completed its first whole-job sequence at **235 passed, zero failures**.
+PRE's armed/fused atomic-1 `servertail` row hit `EADDRINUSE` on its nested
+port 40822; the two child startup logs record the bind error. No listener
+remained when inspected, so the collision's source is not attributed.
+The corresponding POST row passed. The original
+[failure receipt](docs/lualibs/pre-servertail-bind-conflict.tar.gz) is retained,
+and a whole-job PRE rerun on fresh ports is queued; no assertion is relaxed.
+
 Remaining complete-job proof is in progress. Commands are retained in
 [tools/lualibs_proof.sh](tools/lualibs_proof.sh), using only GATE_ONLY_JOBS and
 `tests/differ_gate.sh`, never a replacement battery driver. The jobs preserve
@@ -170,9 +178,16 @@ load for these unchanged generic cells:
 `h05 h06 p8g p8s d1g_l0 d1s_l0 m8g_l0 v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`
 
 Record rate, cycles/op, instructions/op, IPC and depth-1 latency scores for
-all arms and the null control. Rate/latency under the gate's normal criteria
-decide regression; instructions and IPC explain it. PAD-A separates code
-placement effects from helper availability. Identity is a proxy, merit decides.
+all arms and the null control. The per-cell deciding number is the existing
+assessor's `margin_pct = loss_pct - threshold_pct`: require **margin <= 0**
+with a valid, resolving comparison in every requested cell. Rate loss is the
+negative paired percentage delta; latency loss is the positive delta. Retain
+the instrument's recorded reference/null/read-local threshold and its source;
+do not widen it for this lane. Report raw rates and latency scores even if the
+instrument cannot resolve a verdict. Instructions and IPC explain the result.
+PAD-A separates code placement effects from helper availability. Identity is a
+proxy, merit decides. The current gate reports ABBA separately from its
+correctness tally; this is the requested maintainer merit decision.
 **No throughput or latency claim is made by this lane.** No PAD-B is supplied.
 
 ### Resources and exclusions

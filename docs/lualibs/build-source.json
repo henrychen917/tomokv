@@ -1,0 +1,22 @@
+{
+  "production_commit": "1909358b1",
+  "base_commit": "05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba",
+  "files": {
+    "Makefile": "38d50a36b87340514f33cef30c8068606b85a760b11303d629261896771c5982",
+    "src/cmd/scripting.cc": "212d58eb3e1db41fa5cef5a62b16febbac65d9c4d170b4aa8528503c008d8671",
+    "src/cmd/scripting.h": "554a0be3b9347971963759819162eac9448257959001681b6cc0352c9dea2d4d",
+    "src/cmd/functions.cc": "ad556c331a59c166964d400e2a9b0f1eddbdcd111cdec25797959c1ae1840198",
+    "tests/compat3_lualibs.py": "ad6cf1a600abf19c17de02e0b2e4f198759ce67b2eb24837244c24e8d9302f26",
+    "tests/gate.sh": "a33388624b29afe47aadabc9dcf6451cc35b7fcbf5dbe13dd1302f2e7e309810",
+    "tools/lualibs_artifacts.py": "cb45a903894225ec55b6e7191b954a4f42e21a427667e8a22348b8c3d47e98b6",
+    "tests/lualibs_memory.cc": "af62e5bd8d41157ae5e5e081f9fedc1f8ee19d578f8575ad73ab5256986f91d0",
+    "third_party/lua/helpers/fpconv.c": "375eec59a91f57917726c0726907efdb0d31029589c203a31b114f6ccf680b0d",
+    "third_party/lua/helpers/fpconv.h": "61cb0f044e1dfccfcda0908b9330da250d386454e95acda4bf78b2188fc64070",
+    "third_party/lua/helpers/lua_bit.c": "78e10247b33d0db026cbe906d19b4bd3636840f195a63e93ce08c5dee9fb578a",
+    "third_party/lua/helpers/lua_cjson.c": "9e49244067f2c0adf221106dca97e267e9581ee53fcf9061ce8cddc6cd32cc20",
+    "third_party/lua/helpers/lua_cmsgpack.c": "0d2fd82fb47fc247a0e6f0a287f5429e81b7eb6735665e8d851bfb109961640d",
+    "third_party/lua/helpers/lua_struct.c": "57bc18e91a747a846ba76c070d9213452283c0ed9e652861ee7fabf87d590878",
+    "third_party/lua/helpers/strbuf.c": "46f386f1640d436a1fe03b4150e6be5751114e9f5de007ef231774e06ac95ebd",
+    "third_party/lua/helpers/strbuf.h": "830ab40b6da9ae6aa2d53452720be83b1e1ff7f02899739a1b1b288e15182362"
+  }
+}

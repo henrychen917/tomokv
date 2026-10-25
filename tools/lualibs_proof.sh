@@ -1,6 +1,6 @@
 #!/bin/bash
 # Reproduce CC4.7 correctness via complete gate jobs, never the performance tier.
-# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ.
+# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ|recheck.
 set -u
 cd "$(dirname "$0")/.."
 export PYTHONPATH="$PWD/docs/lualibs/port_guard${PYTHONPATH:+:$PYTHONPATH}"
@@ -32,6 +32,12 @@ case "${1:-}" in
         gate_job "$arm-bounds-a0-f$fused" "$binary" script_bounds "$fused" 0
       done
     done
+    ;;
+  recheck)
+    # PRE's first armed atomic-1 feature job saw EADDRINUSE on the nested
+    # servertail port. Retain it, then rerun the whole job on a fresh allocation.
+    gate_args=(quick --server-cores 48-55 --load-cores 56-63 --load-smt '' --ports 40860-40869)
+    gate_job pre-servertail-recheck build/tomokv-lualibs-pre feature-armed-1 0 1
     ;;
   persistence)
     # AOF owns explicit script-group and process-restart script replay rows.
@@ -65,5 +71,5 @@ case "${1:-}" in
       done; done
     done
     ;;
-  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ' >&2; exit 2;;
+  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ|recheck' >&2; exit 2;;
 esac
