@@ -4,6 +4,7 @@
 
 #include "acl_categories_generated.h"
 #include "command.h"
+#include "scripting.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../base/exbatch_control.h"
@@ -290,6 +291,21 @@ bool command_metadata_init(const CommandSpec* specs, size_t count) {
 
 const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
     return spec.id < g_metadata_by_id.size() ? g_metadata_by_id[spec.id] : nullptr;
+}
+
+bool command_metadata_write(Op& op) {
+    // FCALL's declaration overrides the command flag, including FCALL_RO.
+    // Legacy EVAL forms check each nested write; their Redis metadata is not Write.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute) && function_is_fcall(op))
+        return function_metadata_write(op);
+    static constexpr uint64_t mask = [] {
+        for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i)
+            if (std::string_view(kGeneratedCommandFlagNames[i]) == "write") return uint64_t{1} << i;
+        return uint64_t{0};
+    }();
+    static_assert(mask, "generated COMMAND metadata must contain write");
+    const auto* metadata = command_metadata_resolve(op, 0);
+    return metadata && (metadata->flags & mask);
 }
 
 bool command_metadata_no_multi(Op& op) {

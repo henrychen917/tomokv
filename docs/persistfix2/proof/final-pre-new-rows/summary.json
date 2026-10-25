@@ -1,0 +1,38 @@
+{
+  "run": "build/persistfix2/pre-proof-source/build/gate-run.u9VYdV",
+  "rows": [
+    {
+      "job": "persistfix2_commands",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_lastsave",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "persistfix2_shutdown",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 1,
+  "failed": 4,
+  "archive_sha256": "be77c7d24a36f6882c9d42c516835466dc09d27d390b2c7c42e7ee5f48d8855d"
+}

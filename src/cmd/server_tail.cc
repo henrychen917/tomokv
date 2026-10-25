@@ -210,12 +210,15 @@ void cmd_pfselftest(Shard&, Op& op) {
 // Both command and signal requests land here on an IO owner. A required save must succeed
 // before publishing any stop flags; Busy is a refusal, never permission to discard writes.
 SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writer, Ring* ring,
-                                              std::string& error) {
+                                              std::string& error, bool force, bool from_signal) {
     std::unique_lock lock(shutdown_mu_, std::try_to_lock);
     if (!lock.owns_lock()) {
         error = "shutdown is already in progress";
         return SnapshotManager::StartResult::Busy;
     }
+    // ABORT and the signal request's admission use the same mutex. A request
+    // cancelled before admission must not proceed with a previously read policy.
+    if (from_signal && !signal_shutdown_pending()) return SnapshotManager::StartResult::Started;
     const bool must_save = save == ShutdownSave::Save ||
         (save == ShutdownSave::Configured && save_schedule_armed());
     if (must_save) {
@@ -223,12 +226,21 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
             error = "shutdown save has no IO owner";
             return SnapshotManager::StartResult::Failed;
         }
-        // start uses nonblocking admission for shutdown: the caller may itself be the IO
-        // writer that must advance an older BGSAVE after this attempt returns Busy.
+        const auto cancelled = snapshot_.cancel_for_shutdown(*this, *writer, *ring, error);
+        if (cancelled != SnapshotManager::StartResult::Started) {
+            if (!force || cancelled == SnapshotManager::StartResult::Busy) return cancelled;
+            finish_shutdown();
+            return SnapshotManager::StartResult::Started;
+        }
         const auto result = snapshot_.start(*this, *writer, *ring, true, error,
                                              nullptr, nullptr, nullptr, true);
         if (result != SnapshotManager::StartResult::Started) {
             set_shutdown_snapshot_active(false);
+            if (force && result == SnapshotManager::StartResult::Failed) {
+                std::fprintf(stderr, "Shutdown save failed: %s; FORCE permits exit\n", error.c_str());
+                finish_shutdown();
+                return SnapshotManager::StartResult::Started;
+            }
             return result;
         }
         // Owners stay frozen from the cut through capture and enter ShutdownHeld
@@ -238,6 +250,40 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
         finish_shutdown();
     }
     return SnapshotManager::StartResult::Started;
+}
+
+void Server::set_shutdown_policy(bool interrupt, uint8_t flags) {
+    std::atomic_ref<uint8_t>(interrupt ? cfg_.shutdown_on_sigint : cfg_.shutdown_on_sigterm)
+        .store(flags, std::memory_order_relaxed);
+}
+
+bool Server::request_signal_shutdown(bool interrupt) {
+    if (loading()) return false;
+    static_assert(std::atomic_ref<uint8_t>::is_always_lock_free);
+    const uint8_t flags = std::atomic_ref<uint8_t>(
+        interrupt ? cfg_.shutdown_on_sigint : cfg_.shutdown_on_sigterm).load(std::memory_order_relaxed);
+    if ((flags & ShutdownNoSaveFlag) || (!(flags & ShutdownSaveFlag) && !save_schedule_armed()))
+        return false;
+    uint64_t unset = 0;
+    signal_shutdown_deadline_ns_.compare_exchange_strong(
+        unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
+    uint8_t current = live_save_armed_.load(std::memory_order_relaxed);
+    do {
+        if (current & kSignalShutdown) return true;
+    } while (!live_save_armed_.compare_exchange_weak(current,
+        uint8_t(current | kSignalShutdown | (flags << 2)), std::memory_order_release));
+    return true;
+}
+
+bool Server::abort_signal_shutdown() {
+    std::unique_lock lock(shutdown_mu_, std::try_to_lock);
+    if (!lock.owns_lock() || shutdown_snapshot_active() || shutting_down()) return false;
+    const uint8_t old = live_save_armed_.fetch_and(uint8_t(~(kSignalShutdown | 0x3c)),
+                                                 std::memory_order_acq_rel);
+    if (!(old & kSignalShutdown)) return false;
+    signal_shutdown_deadline_ns_.store(0, std::memory_order_relaxed);
+    signal_doorbell_consume_request();
+    return true;
 }
 
 void Server::finish_shutdown() {
@@ -252,14 +298,16 @@ uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
     // eventfd that could spin every epoll worker. finish_shutdown rings a new, sticky stop edge.
     signal_doorbell_consume_request();
     std::string error;
-    auto result = shutdown(ShutdownSave::Configured, &writer, &ring, error);
+    const uint8_t flags = live_save_armed_.load(std::memory_order_acquire) >> 2;
+    auto result = shutdown(flags & ShutdownSaveFlag ? ShutdownSave::Save : ShutdownSave::Configured,
+                           &writer, &ring, error, flags & ShutdownForceFlag, true);
     if (result == SnapshotManager::StartResult::Busy) {
         if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
             return 0; // yield to the old snapshot/FLIP, retry at the next ordinary IO pass
         error = "shutdown timed out waiting for snapshot/placement; retry SHUTDOWN";
         result = SnapshotManager::StartResult::Failed;
     }
-    live_save_armed_.fetch_and(uint8_t(~kSignalShutdown), std::memory_order_relaxed);
+    live_save_armed_.fetch_and(uint8_t(~(kSignalShutdown | 0x3c)), std::memory_order_relaxed);
     signal_shutdown_deadline_ns_.store(0, std::memory_order_relaxed);
     if (result == SnapshotManager::StartResult::Failed)
         std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
@@ -269,29 +317,40 @@ uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
 namespace {
 
 void cmd_shutdown(Shard&, Op& op) {
-    bool nosave = false, save = false;
+    bool nosave = false, save = false, force = false, abort = false, now = false;
     for (uint32_t i = 1; i < op.argc(); i++) {
         if (eq_icase(op.arg(i), "NOSAVE")) nosave = true;
         else if (eq_icase(op.arg(i), "SAVE")) save = true;
-        else if (eq_icase(op.arg(i), "NOW") || eq_icase(op.arg(i), "FORCE")) continue;
-        else if (eq_icase(op.arg(i), "ABORT")) {
-            reply_err(op.sink(), "ERR No shutdown in progress.");
-            return;
-        } else { reply_syntax(op.sink()); return; }
+        else if (eq_icase(op.arg(i), "NOW")) now = true;
+        else if (eq_icase(op.arg(i), "FORCE")) force = true;
+        else if (eq_icase(op.arg(i), "ABORT")) abort = true;
+        else { reply_syntax(op.sink()); return; }
     }
     if (nosave && save) { reply_syntax(op.sink()); return; }
+    if (abort) for (uint32_t i = 1; i < op.argc(); ++i)
+        if (!eq_icase(op.arg(i), "ABORT")) { reply_syntax(op.sink()); return; }
 
     Server* server = command_server();
     if (!server) { reply_err(op.sink(), "ERR server is not bound"); return; }
+    if (abort) {
+        if (server->abort_signal_shutdown()) reply_ok(op.sink());
+        else reply_err(op.sink(), "ERR No shutdown in progress.");
+        return;
+    }
+    if (Client* client = command_local_client(); !now && client &&
+        client->barrier_held_by(BarrierOwner::Exec)) {
+        reply_err(op.sink(), "ERR SHUTDOWN without NOW or ABORT isn't allowed for DENY BLOCKING client");
+        return;
+    }
 
     const SnapshotIoContext context = snapshot_io_context();
     const auto choice = nosave ? Server::ShutdownSave::NoSave :
                         save ? Server::ShutdownSave::Save : Server::ShutdownSave::Configured;
     std::string error;
-    if (server->shutdown(choice, context.thread, context.ring, error) !=
+    if (server->shutdown(choice, context.thread, context.ring, error, force) !=
         SnapshotManager::StartResult::Started) {
-        const std::string message = "ERR Errors trying to SHUTDOWN. Check logs. " + error;
-        reply_err(op.sink(), message.c_str());
+        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
+        reply_err(op.sink(), "ERR Errors trying to SHUTDOWN. Check logs.");
         return;
     }
     // Deliberately no reply: the client observes a closed connection, exactly like redis.
@@ -1019,7 +1078,7 @@ static const CommandSpec kTable[] = {
     {"REPLICAOF",   3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
     {"SLAVEOF",     3,  3, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_replicaof,  0,  0, 0},
     {"PFSELFTEST",  1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_pfselftest, 0,  0, 0},
-    {"SHUTDOWN",    1,  4, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_shutdown,   0,  0, 0},
+    {"SHUTDOWN",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                cmd_shutdown,   0,  0, 0},
     // Read-only SORT: same scatter lowering, same option grammar minus STORE.
     {"SORT_RO",     2, -1, CmdFlags::Readonly | CmdFlags::MultiShard,            cmd_xshard_only,1,  1, 1},
     {"OBJECT",      2,  3, CmdFlags::Readonly | CmdFlags::Admin |

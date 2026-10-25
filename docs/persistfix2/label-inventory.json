@@ -1,0 +1,14 @@
+{
+  "source_full": 789,
+  "fixture_full": 789,
+  "expected_quick": "768",
+  "expected_full": "785",
+  "dq": 4,
+  "df": 4,
+  "labels": [
+    "persistfix2 LASTSAVE and rewrite INFO",
+    "persistfix2 shutdown modifiers and signal policy",
+    "persistfix2 persistence command replies and scheduling",
+    "persistfix2 AOF write-error refusal and read availability"
+  ]
+}

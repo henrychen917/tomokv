@@ -1,0 +1,15 @@
+{
+  "name": "final-serverless-gates_test.py",
+  "command": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_TEST_PORT": "36897"
+  },
+  "expected_exit": 0,
+  "started": 1792883359.5581143,
+  "exit": 0,
+  "finished": 1792883482.5327864
+}

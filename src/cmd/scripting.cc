@@ -4,6 +4,7 @@
 // owner, so Lua and every redis.call handler obey the ownership law without locks around a shard.
 // The cache is the only cross-thread scripting object and is protected independently of shard data.
 #include "command.h"
+#include "cmdmeta.h"
 #include "auth.h"
 #include "notify.h"
 #include "scripting.h"
@@ -292,6 +293,9 @@ struct ScriptContext {
     // the redis.call dispatch site against the command row's Write bit.
     bool readonly = false;
     bool function_admitted = false;
+    // A writable activation already admitted to execution survives a later disk
+    // error. Read-only metadata (including PFCOUNT) must not arm that admission.
+    bool persistence_write_started = false;
     // Nested Write-flagged commands that answered without an error: the keyspace effects this
     // activation has already applied and which a failure must NOT reverse.
     uint32_t effect_writes = 0;
@@ -633,10 +637,17 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 if (context->notify)
                     notify_execute_source(*context->shard, nested,
                                           context->call_index++ * 0x10000u);
-                if ((spec->flags & CmdFlags::DenyOom) &&
+                const bool logical_write = (spec->flags & CmdFlags::Write) &&
+                                           command_metadata_write(nested);
+                Server* server = context->shard->server();
+                if (logical_write && !context->persistence_write_started && server &&
+                    __builtin_expect(server->aof().failed(), false)) {
+                    server->aof().reply_write_error(nested);
+                } else if ((spec->flags & CmdFlags::DenyOom) &&
                     !context->shard->store().budget_admit(key)) {
                     reply_maxmemory_oom(nested);
                 } else {
+                    if (logical_write) context->persistence_write_started = true;
                     spec->handler(*context->shard, nested);
                 }
                 if (context->notify)

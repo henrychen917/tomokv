@@ -1,0 +1,96 @@
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-1s-epoll-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1414903}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "1s", "oracle": true, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-1s-epoll-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1417157}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "1s", "oracle": true, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-1s-uring-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1419444}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "1s", "oracle": true, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-1s-uring-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1421039}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "1s", "oracle": true, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-2s-epoll-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1423252}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "2s", "oracle": true, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-2s-epoll-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1425319}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "2s", "oracle": true, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-2s-uring-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1427781}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "2s", "oracle": true, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/True-2s-uring-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1429193}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "2s", "oracle": true, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: No space left on device"}}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-1s-epoll-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "1s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1432040}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "1s", "oracle": false, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-1s-epoll-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "1s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1436184}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "1s", "oracle": false, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-1s-uring-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "1s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1437757}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "1s", "oracle": false, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-1s-uring-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "1s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1439866}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "1s", "oracle": false, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-2s-epoll-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1442510}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "2s", "oracle": false, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-2s-epoll-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1446509}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "epoll", "event": "D8 geometry", "mode": "2s", "oracle": false, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-2s-uring-no/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 1450388}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "2s", "oracle": false, "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36890", "--dir", "build/persistfix2/d8-pre/False-2s-uring-everysec/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec"], "event": "boot", "pid": 1453123}
+{"event": "initial write reply", "reply": "OK"}
+{"engine": "uring", "event": "D8 geometry", "mode": "2s", "oracle": false, "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["SET", "after-error", "value"], "event": "reply", "reply": "OK"}
+{"code": 0, "event": "exit"}

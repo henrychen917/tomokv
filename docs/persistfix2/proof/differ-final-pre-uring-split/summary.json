@@ -1,0 +1,30 @@
+{
+  "name": "differ-final-pre-uring-split",
+  "command": [
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+    "36881",
+    "36885",
+    "72-79",
+    "6:2"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_LOAD_CORES": "64-71",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_DIFFER_GEOMETRY": "split",
+    "GATE_RUN_ID": "persistfix2-standard",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-uring-split"
+  },
+  "expected_exit": 0,
+  "started": 1792885650.4144628,
+  "exit": 0,
+  "finished": 1792886735.1931345,
+  "passed": 475,
+  "failed": 0,
+  "runtime": "18m05s",
+  "archive_sha256": "fcae7d112ee46274bce276b5cad64637babfbd9bd27d7aeb62c3e2e38460ca3f",
+  "comparison_failures": []
+}

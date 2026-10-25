@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=persistfix2_shutdown; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	71.510000	persistfix2 shutdown modifiers and signal policy

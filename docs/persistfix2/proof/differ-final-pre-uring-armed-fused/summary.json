@@ -1,0 +1,30 @@
+{
+  "name": "differ-final-pre-uring-armed-fused",
+  "command": [
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+    "36881",
+    "36885",
+    "72-79",
+    "6:2"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_LOAD_CORES": "64-71",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_DIFFER_GEOMETRY": "armed-fused",
+    "GATE_RUN_ID": "persistfix2-standard",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-uring-armed-fused"
+  },
+  "expected_exit": 0,
+  "started": 1792886735.193713,
+  "exit": 0,
+  "finished": 1792887799.0276961,
+  "passed": 466,
+  "failed": 0,
+  "runtime": "17m44s",
+  "archive_sha256": "7928969c5a0a5fa2bef02f933f0c71f91a59dc9fa93e6113bde9572774df3af0",
+  "comparison_failures": []
+}

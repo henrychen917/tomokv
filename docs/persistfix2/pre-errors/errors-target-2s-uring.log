@@ -1,0 +1,76 @@
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Q2LsvH/jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no", "--reorder", "0", "--read-local", "0"], "event": "boot", "pid": 306424}
+{"event": "durability window armed", "file_limit": 184, "policy": "no", "reorder": 0}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["PING", "value"], "event": "reply", "reply": "value"}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": "OK"}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": "OK"}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": 1}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": null}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "policy": "no"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Q2LsvH/jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no", "--reorder", "1", "--read-local", "0"], "event": "boot", "pid": 306500}
+{"event": "durability window armed", "file_limit": 184, "policy": "no", "reorder": 1}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["PING", "value"], "event": "reply", "reply": "value"}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": "OK"}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": "OK"}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": 1}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": null}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "policy": "no"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Q2LsvH/jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec", "--reorder", "0", "--read-local", "0"], "event": "boot", "pid": 306580}
+{"event": "durability window armed", "file_limit": 184, "policy": "everysec", "reorder": 0}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["PING", "value"], "event": "reply", "reply": "value"}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": "OK"}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": "OK"}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": 1}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": null}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "policy": "everysec"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Q2LsvH/jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec", "--reorder", "1", "--read-local", "0"], "event": "boot", "pid": 306616}
+{"event": "durability window armed", "file_limit": 184, "policy": "everysec", "reorder": 1}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": "PONG"}
+{"command": ["PING", "value"], "event": "reply", "reply": "value"}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": "OK"}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": "OK"}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": 1}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": null}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "policy": "everysec"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 531, in <module>
+    main()
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 526, in main
+    globals()[args.case](args)
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 510, in errors
+    assert not failures, '\n'.join(failures)
+           ^^^^^^^^^^^^
+AssertionError: no ('PING',): b'PONG'
+no ('PING', 'value'): b'value'
+no ('SET', 'refused-write', 'value'): b'OK'
+no ('MSET', 'refused-one', '1', 'refused-two', '2'): b'OK'
+no ('DEL', 'acknowledged-write'): 1
+no: 
+no ('PING',): b'PONG'
+no ('PING', 'value'): b'value'
+no ('SET', 'refused-write', 'value'): b'OK'
+no ('MSET', 'refused-one', '1', 'refused-two', '2'): b'OK'
+no ('DEL', 'acknowledged-write'): 1
+no: 
+everysec ('PING',): b'PONG'
+everysec ('PING', 'value'): b'value'
+everysec ('SET', 'refused-write', 'value'): b'OK'
+everysec ('MSET', 'refused-one', '1', 'refused-two', '2'): b'OK'
+everysec ('DEL', 'acknowledged-write'): 1
+everysec: 
+everysec ('PING',): b'PONG'
+everysec ('PING', 'value'): b'value'
+everysec ('SET', 'refused-write', 'value'): b'OK'
+everysec ('MSET', 'refused-one', '1', 'refused-two', '2'): b'OK'
+everysec ('DEL', 'acknowledged-write'): 1
+everysec: 

@@ -77,6 +77,8 @@ public:
     void on_io_complete(ThreadCtx& writer, Ring& writer_ring, void* request, int result);
     // All workers joined, their rings/pools still alive; precedes atomic-record release.
     void cancel_after_join(Server& server);
+    StartResult cancel_for_shutdown(Server& server, ThreadCtx& writer, Ring& ring,
+                                    std::string& error);
 
     Phase phase() const { return phase_.load(std::memory_order_acquire); }
     uint64_t epoch() const { return epoch_.load(std::memory_order_acquire); }

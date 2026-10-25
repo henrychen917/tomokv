@@ -1,0 +1,183 @@
+{
+  "baseline": "05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba",
+  "branch": "cx-persistfix2",
+  "production_commit": "b6aca6fcd017885b02f9a5fa12c6d1bf06acf29c",
+  "pre_private_commit": "a1ea2746e456d4dabb0b2b7f5e39f6e547f9000c",
+  "pre_production_tree_equal": true,
+  "pre_production_worktree_clean": true,
+  "production_tree_listing_sha256": "c297ecd79bf6d4073e6b0437faf927205a065ad64d7407e9a365ab41c3e6fc2a",
+  "final_fixtures_equal": [
+    {
+      "path": "tests/aof_rewrite_triggers.py",
+      "sha256": "63b70c5bc5b262ef5b3d1da1c44c93c8e456095f38c97fce8af5b1ed67bbbb2f"
+    },
+    {
+      "path": "tests/dispatch_arity.py",
+      "sha256": "ed705650268edd3ca0a3cfe0168dcddf209c938afc72cffc3b232bc23e108573"
+    },
+    {
+      "path": "tests/dispatch_errors.py",
+      "sha256": "3ab9b42fa2df42124f871ef5042be038b6b5ff3ca8910636d27f0d011e97db09"
+    },
+    {
+      "path": "tests/fixtures/nullrefresh-ledger-labels.json",
+      "sha256": "fc18b86f252da51abd788a5b905089796a19245450183c4caa7ba75f885965e0"
+    },
+    {
+      "path": "tests/gate.sh",
+      "sha256": "9c6e14d7c8cc72c06418175142a74eed048d03b47a75ad02096d5de154c39c42"
+    },
+    {
+      "path": "tests/persistfix2.py",
+      "sha256": "b1b0bc03b2eb9a1a5aab00f9318a47788828298171da7a01d7575e54c9b2e5d7"
+    },
+    {
+      "path": "tests/router_uniform.py",
+      "sha256": "f3d5595efa54b433daf08f848c074f9133229ec353e8cd5b1dbd9fcb16c510d1"
+    },
+    {
+      "path": "tests/shutdown_unit.cc",
+      "sha256": "cfec6ea4ad42d78b9bbb88f1bf08621386577abda143868760e3eb55628c9f88"
+    }
+  ],
+  "arm_hashes_rechecked": {
+    "PRE": {
+      "binary": "build/tomokv-persistfix2-pre",
+      "sha256": "85bf1643126b63a140cf864ffa63c8d7abe75ebdb161831c3c3a9a7d84e6b0aa",
+      "bytes": 209924960
+    },
+    "POST": {
+      "binary": "build/tomokv",
+      "sha256": "edbdf2c72fae34a716669b5b522954df8b288d6a4fd0611520e41ce6cc992d43",
+      "bytes": 210096344
+    },
+    "PAD-A": {
+      "binary": "build/tomokv-persistfix2-pad-a",
+      "sha256": "2a444235324881c04d1740615c9c5ae02e4c6bf6217ffc4adf858140eb850550",
+      "bytes": 209937296
+    },
+    "D8 planted control": {
+      "binary": "build/tomokv-persistfix2-control-d8",
+      "sha256": "45146dfab18e1a64b8907457d6e6a387f05e5fdcf4bbb01405cf3c8f9919d56a",
+      "bytes": 210098136
+    }
+  },
+  "freshness_checks_per_arm": 44,
+  "source_labels": 789,
+  "unchanged_expect_quick": 768,
+  "unchanged_expect_full": 785,
+  "prospective_quick": 772,
+  "prospective_full": 789,
+  "raw_label_checker_expected_refusal": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=785, fixture=789, source declarations=789\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.",
+  "prospective_label_check": "PASS",
+  "new_collect_lines": {
+    "persistfix2_lastsave": 5306,
+    "persistfix2_shutdown": 5307,
+    "persistfix2_commands": 5308,
+    "persistfix2_errors": 5309
+  },
+  "remaining_listeners_in_assigned_ports": [],
+  "verified_proof_archives": [
+    {
+      "path": "docs/persistfix2/proof/before-eval-post-regression/job-evidence.tar.gz",
+      "sha256": "5bdfbd47b77c7d0ee85c1782ddca0b7625336f5adc5127893d1f623bfd0be652"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-post-epoll-armed-fused/evidence.tar.gz",
+      "sha256": "4475d68d69f2e8ad59c37649f10fcfea38d56a31d864c23840ed3c542cef38eb"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-post-epoll-split/evidence.tar.gz",
+      "sha256": "8678ff438b1afecb1c7961e2e14cd06a060c968794ba27e0a14b394ba410867a"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-post-uring-armed-fused/evidence.tar.gz",
+      "sha256": "13453ceb312323ee831e1c6424487482aaa8d7ae1332162518042744e85cbada"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-post-uring-split/evidence.tar.gz",
+      "sha256": "1a1f126bab942ac365a20a08720617171405be6062ae6e6b5cc98f337f2d5173"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-pre-epoll-armed-fused/evidence.tar.gz",
+      "sha256": "d6eedeabdf0abae45803d33e3386348daedca1d42cca087a3441be6d0772017a"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-pre-epoll-split/evidence.tar.gz",
+      "sha256": "f9b62619b667117cbd488881c8536ce0965056986aa800f56948a11e664e79f4"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-pre-uring-armed-fused/evidence.tar.gz",
+      "sha256": "7928969c5a0a5fa2bef02f933f0c71f91a59dc9fa93e6113bde9572774df3af0"
+    },
+    {
+      "path": "docs/persistfix2/proof/differ-final-pre-uring-split/evidence.tar.gz",
+      "sha256": "fcae7d112ee46274bce276b5cad64637babfbd9bd27d7aeb62c3e2e38460ca3f"
+    },
+    {
+      "path": "docs/persistfix2/proof/eval-corrected/job-evidence.tar.gz",
+      "sha256": "2684a1e8ddcfeaaa8da5f8b5c69312c31e65f6bd098d28c89d7a2935bdbeb1f2"
+    },
+    {
+      "path": "docs/persistfix2/proof/eval-initial/job-evidence.tar.gz",
+      "sha256": "c622a80c9b4d282185463af9c54170bb8da32b8702b46319da5623bf66b35baa"
+    },
+    {
+      "path": "docs/persistfix2/proof/eval-reproduced/job-evidence.tar.gz",
+      "sha256": "2a987aa86a9ef810432b8f6bc193fb2c9587d2d9c49874f511fce7ba77f8e5c5"
+    },
+    {
+      "path": "docs/persistfix2/proof/final-control-errors/job-evidence.tar.gz",
+      "sha256": "f524cb6a4dd36395a34e0b8a609dcf1561d6db8aabe029617ae425547f9e0efe"
+    },
+    {
+      "path": "docs/persistfix2/proof/final-post-fused/job-evidence.tar.gz",
+      "sha256": "a27154b2516fccf8c1d9065b9cd1fe7826cd815ca4090046921bec5258891b8f"
+    },
+    {
+      "path": "docs/persistfix2/proof/final-post-regression/job-evidence.tar.gz",
+      "sha256": "324dfd0fcb026031ffaf6e518d0d46e2a53ef162eb7da496589f4403346d7b49"
+    },
+    {
+      "path": "docs/persistfix2/proof/final-pre-errors/job-evidence.tar.gz",
+      "sha256": "e8818a26aa6693fc9b6c36183d965a635ede876282fa556c269ad5c473e242fe"
+    },
+    {
+      "path": "docs/persistfix2/proof/final-pre-new-rows/job-evidence.tar.gz",
+      "sha256": "be77c7d24a36f6882c9d42c516835466dc09d27d390b2c7c42e7ee5f48d8855d"
+    },
+    {
+      "path": "docs/persistfix2/proof/functions-corrected/job-evidence.tar.gz",
+      "sha256": "61016a7fb4afd37322530bb049cea3e6a90daef281fded42e6a7acf26261121f"
+    },
+    {
+      "path": "docs/persistfix2/proof/functions-reproduced/job-evidence.tar.gz",
+      "sha256": "314ed24c18200881061c69bf0dfe5e81d881dbbc7f52da6d7c38efc3b3f3f65a"
+    },
+    {
+      "path": "docs/persistfix2/proof/post-aof-corrected/job-evidence.tar.gz",
+      "sha256": "8946bc9b932bf714bfcae0eb1afe6cd24fabd50be9d62d7e264ee1eee76a0719"
+    },
+    {
+      "path": "docs/persistfix2/proof/post-extra/job-evidence.tar.gz",
+      "sha256": "67a5ef28ca9e00641bdab766143830a8c0c2d182f0c1eb538f93ab301f96a953"
+    },
+    {
+      "path": "docs/persistfix2/proof/post-fused/job-evidence.tar.gz",
+      "sha256": "c77932807a1676046da769a3a2f0e8af9bf46b2f99082ace79be67dc8d3bc65b"
+    },
+    {
+      "path": "docs/persistfix2/proof/post-initial/job-evidence.tar.gz",
+      "sha256": "150d36cc6f954052752b3ff26bdfd784a44bdf68f1f036c1046992939c83c256"
+    },
+    {
+      "path": "docs/persistfix2/proof/pre-fused/job-evidence.tar.gz",
+      "sha256": "072d203cf5830c2872960601a279226ee0b6d21ac3737534bfc756197b283b7c"
+    },
+    {
+      "path": "docs/persistfix2/proof/pre-regression/job-evidence.tar.gz",
+      "sha256": "ffab85ff59f88016feb6a5d6df4a6fa641d6a568e49b518b8da1bdf153bca6ee"
+    }
+  ],
+  "remaining_owned_correctness_servers": []
+}

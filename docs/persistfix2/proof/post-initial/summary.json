@@ -1,0 +1,182 @@
+{
+  "run": "build/gate-run.LaUzQA",
+  "rows": [
+    {
+      "job": "aof-epoll",
+      "exit": 0,
+      "passed": 53,
+      "failed": 1
+    },
+    {
+      "job": "aof-uring",
+      "exit": 0,
+      "passed": 53,
+      "failed": 1
+    },
+    {
+      "job": "aof_frame",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "job": "aoforder",
+      "exit": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "job": "atomic_batteries",
+      "exit": 0,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "job": "atomic_units",
+      "exit": 0,
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "job": "climonfix",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "job": "debug-0",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "debug-1",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "dispatch_arity",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "dispatch_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "feature-armed-0",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "job": "feature-armed-1",
+      "exit": 0,
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "job": "feature-split-0",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "job": "feature-split-1",
+      "exit": 0,
+      "passed": 34,
+      "failed": 0
+    },
+    {
+      "job": "fused-0",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "job": "fused-1",
+      "exit": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "job": "iofix-signal",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix2_commands",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix2_lastsave",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix2_shutdown",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "persistfix_units",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "release_batteries",
+      "exit": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "job": "router_uniform",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "snapshot-epoll",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-uring",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    }
+  ],
+  "passed": 384,
+  "failed": 5,
+  "archive_sha256": "150d36cc6f954052752b3ff26bdfd784a44bdf68f1f036c1046992939c83c256"
+}

@@ -87,7 +87,7 @@ struct MultiCommand {
 };
 
 enum class MultiStateKind : uint8_t { Execute, WatchAdd, Unwatch, Close };
-enum class MultiFinalReply : uint8_t { Exec, Ok, ExecAbort };
+enum class MultiFinalReply : uint8_t { Exec, Ok, ExecAbort, ExecDiskError };
 
 struct MultiWriteKey {
     std::string key;
@@ -1178,6 +1178,10 @@ MultiExecState* prepare_unwatch_state(Server& server, Client& client, uint32_t o
 }
 
 void set_state_reply(MultiExecState& state, Op& public_op) {
+    if (state.final_reply == MultiFinalReply::ExecDiskError) {
+        state.server->aof().reply_write_error(public_op, true);
+        return;
+    }
     if (state.final_reply == MultiFinalReply::Ok) {
         reply_ok(public_op.sink());
         return;
@@ -2029,6 +2033,35 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         if (!session || !session->active) {
             reply_err(op.sink(), "ERR EXEC without MULTI");
             return MultiIoAction::LocalDone;
+        }
+        if (server.aof().failed()) {
+            bool writes = false;
+            for (const auto& queued : session->queue) {
+                Op probe;
+                probe.spec = queued.spec;
+                // Metadata resolution needs only the command and child name.
+                for (size_t i = 0; i < std::min<size_t>(2, queued.argv.size()); ++i)
+                    probe.push_arg(Slice(queued.argv[i].data(), queued.argv[i].size()));
+                writes |= command_metadata_write(probe);
+            }
+            if (writes) {
+                MultiExecState* cleanup = nullptr;
+                if (!session->watched.empty()) {
+                    cleanup = prepare_unwatch_state(server, client, owner_io, *session,
+                        MultiStateKind::Unwatch, MultiFinalReply::ExecDiskError);
+                    if (!cleanup) { reply_err(op.sink(), "ERR out of memory"); return MultiIoAction::LocalDone; }
+                }
+                session->active = session->queue_error = false;
+                session->clear_queue();
+                if (cleanup) {
+                    session->pending = dispatch = cleanup;
+                    return MultiIoAction::Dispatch;
+                }
+                client.next_watch_generation();
+                client.clear_watch_dirty();
+                server.aof().reply_write_error(op, true);
+                return MultiIoAction::LocalDone;
+            }
         }
         bool swaps = false;
         if constexpr (!kSingleDatabase)

@@ -329,6 +329,48 @@ struct EncodingConfig {
     }
 };
 
+// Redis's signal policy is a set of flags. Its CONFIG value is split on literal
+// spaces (empty tokens are invalid), and its canonical order is fixed.
+enum ShutdownFlags : uint8_t {
+    ShutdownSaveFlag = 1, ShutdownNoSaveFlag = 2, ShutdownNowFlag = 4, ShutdownForceFlag = 8
+};
+__attribute__((noipa)) inline bool cfg_shutdown_flags(Slice input, uint8_t& flags,
+                                                     const char*& error) {
+    flags = 0;
+    static constexpr const char* names[] = {"default", "save", "nosave", "now", "force"};
+    static constexpr uint8_t values[] = {0, 1, 2, 4, 8};
+    for (uint32_t begin = 0; ; ) {
+        uint32_t end = begin;
+        while (end < input.n && input.p[end] != ' ') ++end;
+        const std::string word(input.p + begin, end - begin);
+        bool found = false;
+        for (unsigned i = 0; i < 5; ++i) {
+            if (!::strcasecmp(word.c_str(), names[i])) { flags |= values[i]; found = true; break; }
+        }
+        if (!found) {
+            error = "argument(s) must be one of the following: default, save, nosave, now, force";
+            return false;
+        }
+        if (end == input.n) break;
+        begin = end + 1;
+    }
+    if ((flags & (ShutdownSaveFlag | ShutdownNoSaveFlag)) == (ShutdownSaveFlag | ShutdownNoSaveFlag)) {
+        error = "shutdown options SAVE and NOSAVE can't be used simultaneously";
+        return false;
+    }
+    return true;
+}
+__attribute__((noipa)) inline std::string cfg_shutdown_string(uint8_t flags) {
+    if (!flags) return "default";
+    std::string result;
+    static constexpr const char* names[] = {"save", "nosave", "now", "force"};
+    for (unsigned i = 0; i < 4; ++i) if (flags & (1u << i)) {
+        if (!result.empty()) result += ' ';
+        result += names[i];
+    }
+    return result;
+}
+
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
     const char* place       = nullptr;   // complete role@cpu list; null = --ratio / default
@@ -392,6 +434,8 @@ struct Config {
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
     bool aof_load_truncated = true;     // boot recovery policy; CONFIG overrides the next live load
+    uint8_t shutdown_on_sigint = 0;     // existing alignment bytes, live through atomic_ref
+    uint8_t shutdown_on_sigterm = 0;
 
     // Logical databases share the sharded store; physical namespace IDs are one byte.
     uint32_t databases = 16;
@@ -1095,6 +1139,20 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--dir"))        cfg.dir = next(".");
         else if (!std::strcmp(a, "--dbfilename")) cfg.dbfilename = next("dump.tomo");
+        else if (!std::strcmp(a, "--shutdown-on-sigint") || !std::strcmp(a, "--shutdown-on-sigterm")) {
+            const char* value = next(nullptr);
+            std::string words = value ? value : "";
+            while (i + 1 < argc && std::strncmp(args[i + 1], "--", 2)) {
+                words += ' '; words += args[++i];
+            }
+            uint8_t flags = 0;
+            const char* error = nullptr;
+            if (!cfg_shutdown_flags(Slice(words.data(), words.size()), flags, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, error);
+                return kConfigError;
+            }
+            (!std::strcmp(a, "--shutdown-on-sigint") ? cfg.shutdown_on_sigint : cfg.shutdown_on_sigterm) = flags;
+        }
         else if (!std::strcmp(a, "--appendonly")) {
             const char* value = next(nullptr);
             if (cfg_eq_icase(value, "yes")) cfg.appendonly = true;

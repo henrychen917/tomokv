@@ -315,7 +315,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown
 };
 struct ConfigValue {
     const char* name;
@@ -350,6 +350,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"unixsocketperm", ConfigKind::String, unix_mode, true});
     g_proto_max_bulk_len.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
     g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
+    g_config.push_back({"shutdown-on-sigint", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigint)});
+    g_config.push_back({"shutdown-on-sigterm", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigterm)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
@@ -529,6 +531,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             input.n = static_cast<const char*>(end) - input.p;
     }
     switch (entry.kind) {
+        case ConfigKind::Shutdown: {
+            uint8_t flags = 0;
+            if (!cfg_shutdown_flags(input, flags, error)) return false;
+            out = cfg_shutdown_string(flags);
+            return true;
+        }
         case ConfigKind::Hz: {
             uint32_t value = 0;
             if (!ClientHz::parse(input, value, error)) return false;
@@ -799,9 +807,8 @@ void snapshot_command(Op& op, bool blocking) {
     if (result == SnapshotManager::StartResult::Busy) {
         reply_err(op.sink(), "ERR Background save already in progress");
     } else if (result == SnapshotManager::StartResult::Failed) {
-        std::string message = "ERR ";
-        message += error.empty() ? "snapshot failed" : error;
-        reply_err(op.sink(), message.c_str());
+        std::fprintf(stderr, "Snapshot error: %s\n", error.c_str());
+        reply_err(op.sink(), "ERR");
     } else if (blocking) {
         reply_ok(op.sink());
     } else {
@@ -810,17 +817,44 @@ void snapshot_command(Op& op, bool blocking) {
 }
 
 void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
-void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
-void cmd_bgrewriteaof(Shard&, Op& op) {
-    if (!g_server || !g_server->aof().recording()) {
-        reply_err(op.sink(), "ERR Background append only file rewriting not scheduled");
+void cmd_bgsave(Shard&, Op& op) {
+    if (op.argc() > 1 && (op.argc() != 2 || !eq_icase(op.arg(1), "SCHEDULE"))) {
+        reply_syntax(op.sink()); return;
+    }
+    if (g_server && g_server->aof().rewrite_in_progress()) {
+        if (op.argc() == 2) {
+            g_server->schedule_bgsave();
+            reply_simple(op.sink(), "Background saving scheduled");
+        } else reply_err(op.sink(), "ERR Another child process is active (AOF?): can't BGSAVE right now. "
+            "Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.");
         return;
     }
-    if (!g_server->aof().request_rewrite()) {
+    snapshot_command(op, false);
+}
+void cmd_bgrewriteaof(Shard&, Op& op) {
+    if (g_server && g_server->aof().rewrite_in_progress()) {
         reply_err(op.sink(), "ERR Background append only file rewriting already in progress");
         return;
     }
-    reply_simple(op.sink(), "Background append only file rewriting started");
+    static constexpr const char* failed = "ERR Can't execute an AOF background rewriting. "
+        "Please check the server logs for more information.";
+    if (!g_server) { reply_err(op.sink(), failed); return; }
+    const bool scheduled = g_server->snapshot().in_progress();
+    if (!g_server->aof().request_rewrite()) { reply_err(op.sink(), failed); return; }
+    if (!g_server->aof().configured()) {
+        if (scheduled) g_server->schedule_offline_rewrite();
+        else {
+            const auto context = snapshot_io_context();
+            std::string error;
+            if (!context.thread || !context.ring ||
+                !g_server->aof().start_offline_rewrite(*context.thread, *context.ring, error)) {
+                std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+                reply_err(op.sink(), failed); return;
+            }
+        }
+    }
+    reply_simple(op.sink(), scheduled ? "Background append only file rewriting scheduled" :
+                                      "Background append only file rewriting started");
 }
 void cmd_lastsave(Shard&, Op& op) {
     reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
@@ -1663,6 +1697,12 @@ void cmd_config(Shard& sh, Op& op) {
                     if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
                                                  clauses)) std::abort();
                     g_server->set_save_schedule(clauses);
+                } else if (update.first->kind == ConfigKind::Shutdown) {
+                    uint8_t flags = 0;
+                    const char* error = nullptr;
+                    if (!cfg_shutdown_flags(Slice(update.second.data(), update.second.size()), flags, error))
+                        std::abort();
+                    g_server->set_shutdown_policy(!std::strcmp(update.first->name, "shutdown-on-sigint"), flags);
                 } else if (!std::strcmp(update.first->name, "proto-max-bulk-len")) {
                     uint64_t value = 0;
                     if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
@@ -2477,7 +2517,8 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->loading() ? 1u : 0u,
                 static_cast<unsigned long long>(
                     g_server ? g_server->save_changes_since_last_save() : 0),
-                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                g_server && g_server->snapshot().in_progress() &&
+                    !g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 snapshot_last_bgsave_ok() ? "ok" : "err",
                 static_cast<unsigned long long>(snapshot_completed_saves()),
@@ -3112,7 +3153,7 @@ static const CommandSpec kTable[] = {
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
     {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
     {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
-    {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
+    {"BGSAVE",     1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
     {"BGREWRITEAOF",1, 1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgrewriteaof,0, 0, 0},
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},

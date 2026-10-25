@@ -1,0 +1,81 @@
+{
+  "Background append only file rewriting": [
+    "tests/router_uniform.py:203:                        assert c.cmd('BGREWRITEAOF') == b'Background append only file rewriting started'",
+    "tests/redisgap.py:262:                assert c.command('BGREWRITEAOF') == 'Background append only file rewriting started'",
+    "tests/aof_rewrite_triggers.py:245:            if response != b\"Background append only file rewriting started\":",
+    "tests/aof_frame_order_test.py:47:            return b\"Background append only file rewriting started\"",
+    "tests/aof_rewrite.py:234:        if response != b\"Background append only file rewriting started\":",
+    "tests/persistfix2.py:155:            assert command(watch, 'BGREWRITEAOF') == b'Background append only file rewriting started'",
+    "tests/persistfix2.py:344:            assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting started'",
+    "tests/persistfix2.py:353:            assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting started'",
+    "tests/persistfix2.py:394:                assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting scheduled'",
+    "tests/persistfix2.py:399:                assert command(conn, 'BGREWRITEAOF') == b'Background append only file rewriting scheduled'",
+    "tests/persistfix2.py:424:                assert command(watch, 'BGREWRITEAOF') == b'Background append only file rewriting started'",
+    "tests/persistfix2.py:439:                    'ERR Background append only file rewriting already in progress')",
+    "tests/aof_frame_order.py:239:        if control.cmd(\"BGREWRITEAOF\") != b\"Background append only file rewriting started\":"
+  ],
+  "Background sav": [
+    "tests/snap_cut_battery.py:292:    if save_reply != b\"+Background saving started\":",
+    "tests/psfix_test.py:24:            peer.must.return_value = b'Background saving started'",
+    "tests/snap_typed_race.py:213:    if reply != b\"+Background saving started\":",
+    "tests/debug_load_test.py:136:        for reply in (RuntimeError(\"ERR Background save already in progress\"),",
+    "tests/persistfix2.py:299:                assert command(conn, 'BGSAVE') == b'Background saving started'",
+    "tests/persistfix2.py:335:            assert command(conn, 'BGSAVE', 'ScHeDuLe') == b'Background saving started'",
+    "tests/persistfix2.py:390:                assert command(conn, 'BGSAVE') == b'Background saving started'",
+    "tests/persistfix2.py:400:                assert command(conn, 'BGSAVE') == RespError('ERR Background save already in progress')",
+    "tests/persistfix2.py:401:                assert command(conn, 'SAVE') == RespError('ERR Background save already in progress')",
+    "tests/persistfix2.py:442:                assert command(watch, 'BGSAVE', 'SCHEDULE') == b'Background saving scheduled'",
+    "tests/persistfix2.py:443:                assert command(watch, 'BGSAVE', 'SCHEDULE') == b'Background saving scheduled'",
+    "tests/psfix.py:68:            assert peer.must('BGSAVE') == b'Background saving started'",
+    "tests/shutsave.py:72:                assert conn.read() == b'Background saving started'",
+    "tests/differ.py:6227:    if reply == b\"-ERR Background save already in progress\\r\\n\":",
+    "tests/differ.py:6231:    assert reply == (b\"+OK\\r\\n\" if command == \"SAVE\" else b\"+Background saving started\\r\\n\"), (",
+    "tests/differ_test.py:313:                        label, command, b'-ERR Background save already in progress\\r\\n')",
+    "tests/differ_test.py:315:        self.differ.psfix_check_save_reply('oracle', 'BGSAVE', b'+Background saving started\\r\\n')",
+    "tests/differ_test.py:317:            self.differ.psfix_check_save_reply('target', 'SAVE', b'+Background saving started\\r\\n')",
+    "tests/differ_test.py:365:                return b'+Background saving started\\r\\n'"
+  ],
+  "Errors trying to SHUTDOWN": [
+    "tests/shutdown_unit.cc:103:        require(f.command({\"SHUTDOWN\"}).starts_with(\"-ERR Errors trying to SHUTDOWN.\"),",
+    "tests/shutdown_unit.cc:191:            require(driver.stalled_passes != 0 && reply == \"-ERR Errors trying to SHUTDOWN. Check logs.\\r\\n\" &&",
+    "tests/shutdown_unit.cc:345:        require(f->command({\"SHUTDOWN\"}).starts_with(\"-ERR Errors trying to SHUTDOWN.\"),",
+    "tests/shutdown_persist.py:116:        require(isinstance(reply, RespError) and b'Errors trying to SHUTDOWN' in reply.message,",
+    "tests/iofix_signal.py:58:                              else b'Errors trying to SHUTDOWN:')",
+    "tests/persistfix2.py:232:                                  'Errors trying to SHUTDOWN' in logfile.read_text(errors='replace')),",
+    "tests/persistfix2.py:245:                    assert reply == RespError('ERR Errors trying to SHUTDOWN. Check logs.'), repr(reply)"
+  ],
+  "No shutdown in progress": [
+    "tests/shutdown_unit.cc:359:    require(f->command({\"SHUTDOWN\", \"ABORT\"}) == \"-ERR No shutdown in progress.\\r\\n\",",
+    "tests/servertail.py:415:    check(\"SHUTDOWN ABORT\", c.cmd(\"SHUTDOWN\", \"ABORT\"), err(\"ERR No shutdown in progress.\"))",
+    "tests/persistfix2.py:200:                expected = 'ERR No shutdown in progress.' if set(words) == {'ABORT'} else 'ERR syntax error'"
+  ],
+  "Another child process is active": [
+    "tests/persistfix2.py:441:                    \"ERR Another child process is active (AOF?): can't BGSAVE right now. Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.\")"
+  ],
+  "Can.t execute an AOF": [
+    "tests/persistfix2.py:367:                \"ERR Can't execute an AOF background rewriting. Please check the server logs for more information.\")"
+  ],
+  "SHUTDOWN without NOW": [],
+  "MISCONF Errors writing to the AOF": [
+    "tests/persistfix2.py:459:    expected = RespError('MISCONF Errors writing to the AOF file: File too large')",
+    "tests/persistfix2.py:496:                        'EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large')"
+  ],
+  "Transaction discarded because of:": [
+    "tests/persistfix2.py:496:                        'EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large')",
+    "tests/auth.py:208:        wanted = \"EXECABORT Transaction discarded because of: NOAUTH Authentication required.\""
+  ],
+  "shutdown options SAVE and NOSAVE": [
+    "tests/persistfix2.py:274:                    suffix = \"shutdown options SAVE and NOSAVE can't be used simultaneously\" \\"
+  ],
+  "argument\\(s\\) must be one of the following: default": [
+    "tests/persistfix2.py:276:                        'argument(s) must be one of the following: default, save, nosave, now, force'"
+  ],
+  "[\"']ERR[\"']": [
+    "tests/dbdefault.py:105:            for actual, select in (([], b\"OK\"), ([b\"databases\", b\"16\"], RespError(\"ERR\"))):",
+    "tests/serverfix_config.py:72:                    run.check(label + ' immutable ' + key, result, lambda r: is_error(r, 'ERR'))",
+    "tests/serverfix_config.py:77:                              b'OK' if case == 'valid' else lambda r: is_error(r, 'ERR'))",
+    "tests/serverfix_scalar.py:51:                      (lambda r: is_error(r, 'ERR')) if expected is None else b'OK')",
+    "tests/persistfix2.py:375:            assert command(conn, 'SAVE') == RespError('ERR')",
+    "tests/flakeaudit_test.py:81:        for reply in (b\"id=8 flags=b\\n\", b\"id=7\\n\", b\"flags=b\\n\", RuntimeError(\"ERR\"),"
+  ]
+}

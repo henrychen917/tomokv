@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; persistfix2 LASTSAVE and rewrite INFO
+  persistfix2 LASTSAVE and rewrite INFO                FAIL (see /home/user/Projects/cx-persistfix2/build/gate-run.0VY7Wq/jobs/persistfix2_lastsave/lastsave-*.log)

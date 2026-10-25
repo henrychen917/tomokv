@@ -1,0 +1,20 @@
+{
+  "run": "build/gate-run.wn21yx",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 2,
+  "failed": 0,
+  "archive_sha256": "61016a7fb4afd37322530bb049cea3e6a90daef281fded42e6a7acf26261121f"
+}

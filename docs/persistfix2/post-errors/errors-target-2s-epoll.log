@@ -1,0 +1,77 @@
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.66JFnr/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no", "--reorder", "0", "--read-local", "0"], "event": "boot", "pid": 312162}
+{"event": "durability window armed", "file_limit": 184, "policy": "no", "reorder": 0}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before"]}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_auto_rewrite_backoff_skips": "0", "aof_auto_rewrite_triggers": "0", "aof_base_size": "0", "aof_control_frames_deferred": "0", "aof_current_size": "184", "aof_enabled": "1", "aof_fsyncs": "0", "aof_groups_committed": "0", "aof_groups_skipped_on_replay": "0", "aof_history_unlinks": "0", "aof_last_bgrewrite_status": "ok", "aof_last_write_status": "err", "aof_pending_rewrite": "0", "aof_records_written": "1", "aof_replayed_records": "0", "aof_rewrite_base_size": "80", "aof_rewrite_failures": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_requests": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "aof_send_gate_waits": "0", "loading": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "0", "rdb_last_bgsave_status": "ok", "rdb_last_save_time": "1792873046", "rdb_save_cron_checks": "0", "rdb_saves": "0", "rdb_scheduled_saves": "0", "snapshot_cut_ticket": "0", "snapshot_cuts_armed": "0", "snapshot_cuts_waited": "0", "snapshot_groups_drained": "0", "snapshot_preimages": "0"}, "policy": "no"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.66JFnr/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no", "--reorder", "1", "--read-local", "0"], "event": "boot", "pid": 312386}
+{"event": "durability window armed", "file_limit": 184, "policy": "no", "reorder": 1}
+{"event": "durability window", "initial_reply": "OK", "policy": "no"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before"]}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_auto_rewrite_backoff_skips": "0", "aof_auto_rewrite_triggers": "0", "aof_base_size": "0", "aof_control_frames_deferred": "0", "aof_current_size": "184", "aof_enabled": "1", "aof_fsyncs": "0", "aof_groups_committed": "0", "aof_groups_skipped_on_replay": "0", "aof_history_unlinks": "0", "aof_last_bgrewrite_status": "ok", "aof_last_write_status": "err", "aof_pending_rewrite": "0", "aof_records_written": "1", "aof_replayed_records": "0", "aof_rewrite_base_size": "80", "aof_rewrite_failures": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_requests": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "aof_send_gate_waits": "0", "loading": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "0", "rdb_last_bgsave_status": "ok", "rdb_last_save_time": "1792873046", "rdb_save_cron_checks": "0", "rdb_saves": "0", "rdb_scheduled_saves": "0", "snapshot_cut_ticket": "0", "snapshot_cuts_armed": "0", "snapshot_cuts_waited": "0", "snapshot_groups_drained": "0", "snapshot_preimages": "0"}, "policy": "no"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.66JFnr/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec", "--reorder", "0", "--read-local", "0"], "event": "boot", "pid": 312806}
+{"event": "durability window armed", "file_limit": 184, "policy": "everysec", "reorder": 0}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before"]}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_auto_rewrite_backoff_skips": "0", "aof_auto_rewrite_triggers": "0", "aof_base_size": "0", "aof_control_frames_deferred": "0", "aof_current_size": "184", "aof_enabled": "1", "aof_fsyncs": "1", "aof_groups_committed": "0", "aof_groups_skipped_on_replay": "0", "aof_history_unlinks": "0", "aof_last_bgrewrite_status": "ok", "aof_last_write_status": "err", "aof_pending_rewrite": "0", "aof_records_written": "1", "aof_replayed_records": "0", "aof_rewrite_base_size": "80", "aof_rewrite_failures": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_requests": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "aof_send_gate_waits": "2", "loading": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "0", "rdb_last_bgsave_status": "ok", "rdb_last_save_time": "1792873046", "rdb_save_cron_checks": "0", "rdb_saves": "0", "rdb_scheduled_saves": "0", "snapshot_cut_ticket": "0", "snapshot_cuts_armed": "0", "snapshot_cuts_waited": "0", "snapshot_groups_drained": "0", "snapshot_preimages": "0"}, "policy": "everysec"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv", "--bind", "127.0.0.1", "--port", "36861", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.66JFnr/jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "everysec", "--reorder", "1", "--read-local", "0"], "event": "boot", "pid": 313293}
+{"event": "durability window armed", "file_limit": 184, "policy": "everysec", "reorder": 1}
+{"event": "durability window", "initial_reply": "OK", "policy": "everysec"}
+{"command": ["PING"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["PING", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["SET", "refused-write", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["MSET", "refused-one", "1", "refused-two", "2"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["DEL", "acknowledged-write"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["GET", "acknowledged-write"], "event": "reply", "reply": "before"}
+{"command": ["MGET", "refused-write", "refused-one", "refused-two"], "event": "reply", "reply": [null, null, null]}
+{"command": ["PFCOUNT", "absent-hll"], "event": "reply", "reply": 0}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of: MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "ERR EXEC without MULTI"}}
+{"command": ["GET", "queued-write"], "event": "reply", "reply": null}
+{"command": ["EXEC"], "event": "reply", "reply": ["before"]}
+{"command": ["SET", "queue-error", "value"], "event": "reply", "reply": {"error": "MISCONF Errors writing to the AOF file: File too large"}}
+{"command": ["EXEC"], "event": "reply", "reply": {"error": "EXECABORT Transaction discarded because of previous errors."}}
+{"event": "AOF error refusal", "info": {"aof_auto_rewrite_backoff_skips": "0", "aof_auto_rewrite_triggers": "0", "aof_base_size": "0", "aof_control_frames_deferred": "0", "aof_current_size": "184", "aof_enabled": "1", "aof_fsyncs": "1", "aof_groups_committed": "0", "aof_groups_skipped_on_replay": "0", "aof_history_unlinks": "0", "aof_last_bgrewrite_status": "ok", "aof_last_write_status": "err", "aof_pending_rewrite": "0", "aof_records_written": "1", "aof_replayed_records": "0", "aof_rewrite_base_size": "80", "aof_rewrite_failures": "0", "aof_rewrite_in_progress": "0", "aof_rewrite_requests": "0", "aof_rewrite_scheduled": "0", "aof_rewrites": "0", "aof_rewrites_consecutive_failures": "0", "aof_send_gate_waits": "2", "loading": "0", "rdb_bgsave_in_progress": "0", "rdb_changes_since_last_save": "0", "rdb_last_bgsave_status": "ok", "rdb_last_save_time": "1792873046", "rdb_save_cron_checks": "0", "rdb_saves": "0", "rdb_scheduled_saves": "0", "snapshot_cut_ticket": "0", "snapshot_cuts_armed": "0", "snapshot_cuts_waited": "0", "snapshot_groups_drained": "0", "snapshot_preimages": "0"}, "policy": "everysec"}
+{"code": 0, "event": "exit"}
+{"case": "errors", "engine": "epoll", "event": "PASS", "mode": "2s", "oracle": false}

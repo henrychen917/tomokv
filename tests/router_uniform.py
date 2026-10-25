@@ -144,10 +144,12 @@ def run(a):
     record = os.environ.get('DISPATCHFIX_RECORD_PRE') == '1'
     data = a.output / 'written'
     data.mkdir()
+    # Use the third reserved gate port so both listeners can avoid even
+    # ephemeral source ports used by concurrent lanes. The gate reserves three.
     with server(a.binary, a.output / 'balance', a.port, a.cores, a.mode, a.engine,
                 extra=options(data, aof=record)), \
-         server(a.oracle, a.output / 'oracle', a.port + 1, a.cores, oracle=True):
-        with Client(a.port) as c, Client(a.port + 1) as oracle:
+         server(a.oracle, a.output / 'oracle', a.port + 2, a.cores, oracle=True):
+        with Client(a.port) as c, Client(a.port + 2) as oracle:
             keys, balanced = distribution(c, data, a.output)
             if record:
                 sha = hashlib.sha256(a.binary.read_bytes()).hexdigest()

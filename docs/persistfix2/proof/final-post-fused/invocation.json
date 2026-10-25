@@ -1,0 +1,30 @@
+{
+  "name": "gate-final-post-fused",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "36861-36899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-persistfix2/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_ONLY_JOBS": "aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix",
+    "GATE_TXN_FUSED": "1",
+    "GATE_SHUTDOWN_NET_IO": "epoll"
+  },
+  "expected_exit": 0,
+  "started": 1792883164.3175147,
+  "exit": 0,
+  "finished": 1792883357.476468
+}

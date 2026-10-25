@@ -1,0 +1,20 @@
+{
+  "run": "build/gate-run.4DEZJm",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 2,
+  "failed": 0,
+  "archive_sha256": "2684a1e8ddcfeaaa8da5f8b5c69312c31e65f6bd098d28c89d7a2935bdbeb1f2"
+}
