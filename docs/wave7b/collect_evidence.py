@@ -48,7 +48,9 @@ paths = [ROOT / 'docs/wave7/correctness/wave7b-before/receipt.json',
          *sorted((OUT / 'correctness').glob('*/receipt.json'))]
 for path in paths:
     receipt = json.loads(path.read_text())
-    if 'exit' not in receipt: continue
+    if 'exit' not in receipt:
+        assert not args.final, ('unfinished job receipt', path)
+        continue
     name = path.parent.name
     entry = dict(name=name, receipt=str(path.relative_to(ROOT)), exit=receipt['exit'],
                  wall_seconds=receipt['end']-receipt['start'],

@@ -57,5 +57,17 @@
     "src/core/lbplanner.cc": "f4fcea06afafa42ab909175e6a73e0d42df62aed0a5c8cfc67e1b4cf5529ca5a",
     "src/core/server.h": "d6710b1b79dbdf35636a6db19e03fffcd0a689ea676c89d10fed75d03d4ddedd",
     "src/cmd/t_server.cc": "d8bb80f6a2f649403aef670b50e0b822de342a3096d5d14bf272d9b6ebdc554c"
+  },
+  "exit": 0,
+  "end": 1792967262.171677,
+  "binary_sha256_after": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.OPIjiB",
+  "jobs": {
+    "abba_selftest": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t438.250000\tABBA comparison + saturation negative controls"
+      ]
+    }
   }
 }

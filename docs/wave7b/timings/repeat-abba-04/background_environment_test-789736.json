@@ -1,0 +1,56 @@
+{
+  "argv": [
+    "tests/background_environment_test.py"
+  ],
+  "affinity": [
+    88,
+    89
+  ],
+  "seconds": 0.010023286566138268,
+  "tests": [
+    {
+      "test": "__main__.Controls.test_cpu_budget_overrun_never_becomes_green",
+      "seconds": 0.00021973997354507446
+    },
+    {
+      "test": "__main__.Controls.test_latched_failure_and_unfinished_observer_fail",
+      "seconds": 0.00016383081674575806
+    },
+    {
+      "test": "__main__.Controls.test_missing_samples_or_artifact_fail",
+      "seconds": 0.00011400971561670303
+    },
+    {
+      "test": "__main__.Controls.test_old_inventory_policy_cannot_certify_current_observations",
+      "seconds": 6.0220248997211456e-05
+    },
+    {
+      "test": "__main__.Controls.test_port_checks_cannot_be_omitted",
+      "seconds": 0.00016011111438274384
+    },
+    {
+      "test": "__main__.Controls.test_runtime_cpu_observations_cannot_claim_foreign_attribution",
+      "seconds": 5.733966827392578e-05
+    },
+    {
+      "test": "__main__.Controls.test_selected_core_preflight_needs_no_process_inventory",
+      "seconds": 3.0479393899440765e-05
+    },
+    {
+      "test": "__main__.Controls.test_selected_cpu_rows_cannot_disappear",
+      "seconds": 0.00011811032891273499
+    },
+    {
+      "test": "__main__.Controls.test_short_preflight_is_not_complete",
+      "seconds": 5.340017378330231e-05
+    },
+    {
+      "test": "__main__.Controls.test_stored_budget_cannot_relax_the_fixed_screening_policy",
+      "seconds": 0.00011307094246149063
+    },
+    {
+      "test": "__main__.Controls.test_unselected_cpu_rows_cannot_enter_the_accounting",
+      "seconds": 2.1070241928100586e-05
+    }
+  ]
+}

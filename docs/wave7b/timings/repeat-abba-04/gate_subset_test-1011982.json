@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "tests/gate_subset_test.py"
+  ],
+  "affinity": [
+    88,
+    89
+  ],
+  "seconds": 0.057784116826951504,
+  "tests": [
+    {
+      "test": "__main__.Subset.test_atomic_barrier_does_not_pull_in_unrequested_work",
+      "seconds": 0.004624293185770512
+    },
+    {
+      "test": "__main__.Subset.test_differ_alias_keeps_all_fold_children",
+      "seconds": 0.005409693345427513
+    },
+    {
+      "test": "__main__.Subset.test_disabled_selector_is_byte_identical",
+      "seconds": 0.004034481011331081
+    },
+    {
+      "test": "__main__.Subset.test_finalizer_failure_is_not_hidden_by_partial_collection",
+      "seconds": 0.0027291467413306236
+    },
+    {
+      "test": "__main__.Subset.test_only_requested_jobs_and_transitive_builds",
+      "seconds": 0.010943319648504257
+    },
+    {
+      "test": "__main__.Subset.test_partial_ledger_cannot_be_a_receipt",
+      "seconds": 0.000356101430952549
+    },
+    {
+      "test": "__main__.Subset.test_unknown_empty_and_wrong_tier_fail_before_workers",
+      "seconds": 0.01325126551091671
+    },
+    {
+      "test": "__main__.Subset.test_unset_selector_defaults_to_complete_under_nounset",
+      "seconds": 0.003824549727141857
+    }
+  ]
+}

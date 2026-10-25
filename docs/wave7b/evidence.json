@@ -873,6 +873,546 @@
       "fixtures": []
     },
     {
+      "name": "peer-feature-06",
+      "receipt": "docs/wave7b/correctness/peer-feature-06/receipt.json",
+      "exit": 0,
+      "wall_seconds": 218.0317883491516,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/peer-feature-06.tar.gz",
+        "sha256": "8a673cd7f8eed694559b9e1281b302be9187ec13caaece178389685a9602343f",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "feature-armed-0": {
+          "done": "0\t35\t0",
+          "rows": [
+            "ok\t0.260000\tfused+armed boot line (atomic 0)",
+            "ok\t1.170000\tfused+armed s6 battery (atomic 0)",
+            "ok\t2.090000\tfused+armed multi_exec battery (atomic 0)",
+            "ok\t1.610000\tfused+armed blocking battery (atomic 0)",
+            "ok\t0.450000\tfused+armed blockmulti battery (atomic 0)",
+            "ok\t0.510000\tfused+armed stream battery (atomic 0)",
+            "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+            "ok\t0.920000\tfused+armed pubsub battery (atomic 0)",
+            "ok\t0.040000\tfused+armed lua_scripting battery (atomic 0)",
+            "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+            "ok\t14.980000\tfused+armed limits battery (atomic 0)",
+            "ok\t0.030000\tfused+armed resp3 battery (atomic 0)",
+            "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+            "ok\t0.070000\tfused+armed dumprestore battery (atomic 0)",
+            "ok\t0.050000\tfused+armed zsetops battery (atomic 0)",
+            "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+            "ok\t1.140000\tfused+armed climon battery (atomic 0)",
+            "ok\t3.350000\tfused+armed climon2 battery (atomic 0)",
+            "ok\t13.230000\tfused+armed tracking battery (atomic 0)",
+            "ok\t3.060000\tfused+armed hexpire battery (atomic 0)",
+            "ok\t0.570000\tfused+armed servertail battery (atomic 0)",
+            "ok\t0.160000\tfused+armed lcs battery (atomic 0)",
+            "ok\t2.860000\tfused+armed concur battery (atomic 0)",
+            "ok\t0.740000\tfused+armed edgeproto battery (atomic 0)",
+            "ok\t0.370000\tfused+armed edgeenc battery (atomic 0)",
+            "ok\t3.820000\tfused+armed edgetime battery (atomic 0)",
+            "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed contarity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed cmdgap battery (atomic 0)",
+            "ok\t0.040000\tfused+armed aclsel battery (atomic 0)",
+            "ok\t43.450000\tfused+armed expwide battery (atomic 0)",
+            "ok\t4.210000\tfused+armed infofix battery (atomic 0)",
+            "ok\t2.950000\tfused+armed pushtear battery (atomic 0)",
+            "ok\t0.030000\tfused+armed netcmd battery (atomic 0)",
+            "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          ]
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0",
+          "rows": [
+            "ok\t2.440000\ts6 battery (atomic 0)",
+            "ok\t2.080000\tmulti_exec battery (atomic 0)",
+            "ok\t1.510000\tblocking battery (atomic 0)",
+            "ok\t0.460000\tblockmulti battery (atomic 0)",
+            "ok\t0.520000\tstream battery (atomic 0)",
+            "ok\t0.050000\tstreamgroups battery (atomic 0)",
+            "ok\t0.920000\tpubsub battery (atomic 0)",
+            "ok\t0.030000\tlua_scripting battery (atomic 0)",
+            "ok\t0.050000\tscriptsurf battery (atomic 0)",
+            "ok\t14.990000\tlimits battery (atomic 0)",
+            "ok\t0.040000\tresp3 battery (atomic 0)",
+            "ok\t0.040000\tbitfield battery (atomic 0)",
+            "ok\t0.060000\tdumprestore battery (atomic 0)",
+            "ok\t0.050000\tzsetops battery (atomic 0)",
+            "ok\t0.030000\tgeo battery (atomic 0)",
+            "ok\t1.140000\tclimon battery (atomic 0)",
+            "ok\t3.330000\tclimon2 battery (atomic 0)",
+            "ok\t13.220000\ttracking battery (atomic 0)",
+            "ok\t3.300000\thexpire battery (atomic 0)",
+            "ok\t0.550000\tservertail battery (atomic 0)",
+            "ok\t0.160000\tlcs battery (atomic 0)",
+            "ok\t2.800000\tconcur battery (atomic 0)",
+            "ok\t0.750000\tedgeproto battery (atomic 0)",
+            "ok\t0.350000\tedgeenc battery (atomic 0)",
+            "ok\t3.800000\tedgetime battery (atomic 0)",
+            "ok\t0.030000\tarity battery (atomic 0)",
+            "ok\t0.040000\tcontarity battery (atomic 0)",
+            "ok\t0.030000\tcmdgap battery (atomic 0)",
+            "ok\t0.030000\taclsel battery (atomic 0)",
+            "ok\t39.250000\texpwide battery (atomic 0)",
+            "ok\t4.160000\tinfofix battery (atomic 0)",
+            "ok\t5.440000\tpushtear battery (atomic 0)",
+            "ok\t0.040000\tnetcmd battery (atomic 0)",
+            "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
+      "name": "peer-feature-07",
+      "receipt": "docs/wave7b/correctness/peer-feature-07/receipt.json",
+      "exit": 0,
+      "wall_seconds": 246.64071798324585,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/peer-feature-07.tar.gz",
+        "sha256": "14bf42c759310b7f185251b66b2f482d4f4c25dc056be63414a574a168e2b67c",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "feature-armed-0": {
+          "done": "0\t35\t0",
+          "rows": [
+            "ok\t0.260000\tfused+armed boot line (atomic 0)",
+            "ok\t1.180000\tfused+armed s6 battery (atomic 0)",
+            "ok\t2.080000\tfused+armed multi_exec battery (atomic 0)",
+            "ok\t1.570000\tfused+armed blocking battery (atomic 0)",
+            "ok\t0.470000\tfused+armed blockmulti battery (atomic 0)",
+            "ok\t0.540000\tfused+armed stream battery (atomic 0)",
+            "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+            "ok\t0.900000\tfused+armed pubsub battery (atomic 0)",
+            "ok\t0.040000\tfused+armed lua_scripting battery (atomic 0)",
+            "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+            "ok\t15.110000\tfused+armed limits battery (atomic 0)",
+            "ok\t0.040000\tfused+armed resp3 battery (atomic 0)",
+            "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+            "ok\t0.070000\tfused+armed dumprestore battery (atomic 0)",
+            "ok\t0.050000\tfused+armed zsetops battery (atomic 0)",
+            "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+            "ok\t1.140000\tfused+armed climon battery (atomic 0)",
+            "ok\t3.320000\tfused+armed climon2 battery (atomic 0)",
+            "ok\t13.230000\tfused+armed tracking battery (atomic 0)",
+            "ok\t3.050000\tfused+armed hexpire battery (atomic 0)",
+            "ok\t0.560000\tfused+armed servertail battery (atomic 0)",
+            "ok\t0.170000\tfused+armed lcs battery (atomic 0)",
+            "ok\t2.830000\tfused+armed concur battery (atomic 0)",
+            "ok\t0.720000\tfused+armed edgeproto battery (atomic 0)",
+            "ok\t0.380000\tfused+armed edgeenc battery (atomic 0)",
+            "ok\t3.820000\tfused+armed edgetime battery (atomic 0)",
+            "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed contarity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed cmdgap battery (atomic 0)",
+            "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+            "ok\t50.970000\tfused+armed expwide battery (atomic 0)",
+            "ok\t4.170000\tfused+armed infofix battery (atomic 0)",
+            "ok\t5.440000\tfused+armed pushtear battery (atomic 0)",
+            "ok\t0.040000\tfused+armed netcmd battery (atomic 0)",
+            "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          ]
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0",
+          "rows": [
+            "ok\t2.440000\ts6 battery (atomic 0)",
+            "ok\t2.080000\tmulti_exec battery (atomic 0)",
+            "ok\t1.520000\tblocking battery (atomic 0)",
+            "ok\t0.460000\tblockmulti battery (atomic 0)",
+            "ok\t0.520000\tstream battery (atomic 0)",
+            "ok\t0.040000\tstreamgroups battery (atomic 0)",
+            "ok\t0.910000\tpubsub battery (atomic 0)",
+            "ok\t0.030000\tlua_scripting battery (atomic 0)",
+            "ok\t0.050000\tscriptsurf battery (atomic 0)",
+            "ok\t14.710000\tlimits battery (atomic 0)",
+            "ok\t0.040000\tresp3 battery (atomic 0)",
+            "ok\t0.030000\tbitfield battery (atomic 0)",
+            "ok\t0.060000\tdumprestore battery (atomic 0)",
+            "ok\t0.050000\tzsetops battery (atomic 0)",
+            "ok\t0.030000\tgeo battery (atomic 0)",
+            "ok\t1.150000\tclimon battery (atomic 0)",
+            "ok\t3.280000\tclimon2 battery (atomic 0)",
+            "ok\t13.270000\ttracking battery (atomic 0)",
+            "ok\t3.300000\thexpire battery (atomic 0)",
+            "ok\t0.560000\tservertail battery (atomic 0)",
+            "ok\t0.160000\tlcs battery (atomic 0)",
+            "ok\t2.800000\tconcur battery (atomic 0)",
+            "ok\t0.580000\tedgeproto battery (atomic 0)",
+            "ok\t0.350000\tedgeenc battery (atomic 0)",
+            "ok\t3.790000\tedgetime battery (atomic 0)",
+            "ok\t0.030000\tarity battery (atomic 0)",
+            "ok\t0.030000\tcontarity battery (atomic 0)",
+            "ok\t0.030000\tcmdgap battery (atomic 0)",
+            "ok\t0.030000\taclsel battery (atomic 0)",
+            "ok\t58.360000\texpwide battery (atomic 0)",
+            "ok\t4.170000\tinfofix battery (atomic 0)",
+            "ok\t5.440000\tpushtear battery (atomic 0)",
+            "ok\t0.030000\tnetcmd battery (atomic 0)",
+            "ok\t0.030000\tfeature shutdown invariants (atomic 0)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
+      "name": "peer-feature-08",
+      "receipt": "docs/wave7b/correctness/peer-feature-08/receipt.json",
+      "exit": 0,
+      "wall_seconds": 230.38802671432495,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/peer-feature-08.tar.gz",
+        "sha256": "cd701a47a70e90fdd20d239aac17f53417f5f1d6eea28cb6183f627989ea5ca1",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "feature-armed-0": {
+          "done": "0\t35\t0",
+          "rows": [
+            "ok\t0.250000\tfused+armed boot line (atomic 0)",
+            "ok\t1.170000\tfused+armed s6 battery (atomic 0)",
+            "ok\t2.080000\tfused+armed multi_exec battery (atomic 0)",
+            "ok\t1.600000\tfused+armed blocking battery (atomic 0)",
+            "ok\t0.470000\tfused+armed blockmulti battery (atomic 0)",
+            "ok\t0.500000\tfused+armed stream battery (atomic 0)",
+            "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+            "ok\t0.890000\tfused+armed pubsub battery (atomic 0)",
+            "ok\t0.040000\tfused+armed lua_scripting battery (atomic 0)",
+            "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+            "ok\t15.110000\tfused+armed limits battery (atomic 0)",
+            "ok\t0.040000\tfused+armed resp3 battery (atomic 0)",
+            "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+            "ok\t0.070000\tfused+armed dumprestore battery (atomic 0)",
+            "ok\t0.060000\tfused+armed zsetops battery (atomic 0)",
+            "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+            "ok\t1.170000\tfused+armed climon battery (atomic 0)",
+            "ok\t3.370000\tfused+armed climon2 battery (atomic 0)",
+            "ok\t13.230000\tfused+armed tracking battery (atomic 0)",
+            "ok\t3.050000\tfused+armed hexpire battery (atomic 0)",
+            "ok\t0.560000\tfused+armed servertail battery (atomic 0)",
+            "ok\t0.170000\tfused+armed lcs battery (atomic 0)",
+            "ok\t2.850000\tfused+armed concur battery (atomic 0)",
+            "ok\t0.710000\tfused+armed edgeproto battery (atomic 0)",
+            "ok\t0.380000\tfused+armed edgeenc battery (atomic 0)",
+            "ok\t3.820000\tfused+armed edgetime battery (atomic 0)",
+            "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed contarity battery (atomic 0)",
+            "ok\t0.020000\tfused+armed cmdgap battery (atomic 0)",
+            "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+            "ok\t53.500000\tfused+armed expwide battery (atomic 0)",
+            "ok\t4.200000\tfused+armed infofix battery (atomic 0)",
+            "ok\t5.440000\tfused+armed pushtear battery (atomic 0)",
+            "ok\t0.040000\tfused+armed netcmd battery (atomic 0)",
+            "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          ]
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0",
+          "rows": [
+            "ok\t2.460000\ts6 battery (atomic 0)",
+            "ok\t2.090000\tmulti_exec battery (atomic 0)",
+            "ok\t1.510000\tblocking battery (atomic 0)",
+            "ok\t0.450000\tblockmulti battery (atomic 0)",
+            "ok\t0.530000\tstream battery (atomic 0)",
+            "ok\t0.050000\tstreamgroups battery (atomic 0)",
+            "ok\t0.890000\tpubsub battery (atomic 0)",
+            "ok\t0.040000\tlua_scripting battery (atomic 0)",
+            "ok\t0.050000\tscriptsurf battery (atomic 0)",
+            "ok\t14.710000\tlimits battery (atomic 0)",
+            "ok\t0.040000\tresp3 battery (atomic 0)",
+            "ok\t0.040000\tbitfield battery (atomic 0)",
+            "ok\t0.070000\tdumprestore battery (atomic 0)",
+            "ok\t0.050000\tzsetops battery (atomic 0)",
+            "ok\t0.030000\tgeo battery (atomic 0)",
+            "ok\t1.120000\tclimon battery (atomic 0)",
+            "ok\t3.300000\tclimon2 battery (atomic 0)",
+            "ok\t13.270000\ttracking battery (atomic 0)",
+            "ok\t3.050000\thexpire battery (atomic 0)",
+            "ok\t0.560000\tservertail battery (atomic 0)",
+            "ok\t0.160000\tlcs battery (atomic 0)",
+            "ok\t2.800000\tconcur battery (atomic 0)",
+            "ok\t0.630000\tedgeproto battery (atomic 0)",
+            "ok\t0.350000\tedgeenc battery (atomic 0)",
+            "ok\t3.600000\tedgetime battery (atomic 0)",
+            "ok\t0.030000\tarity battery (atomic 0)",
+            "ok\t0.030000\tcontarity battery (atomic 0)",
+            "ok\t0.030000\tcmdgap battery (atomic 0)",
+            "ok\t0.040000\taclsel battery (atomic 0)",
+            "ok\t39.740000\texpwide battery (atomic 0)",
+            "ok\t4.200000\tinfofix battery (atomic 0)",
+            "ok\t5.440000\tpushtear battery (atomic 0)",
+            "ok\t0.030000\tnetcmd battery (atomic 0)",
+            "ok\t0.030000\tfeature shutdown invariants (atomic 0)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
+      "name": "peer-feature-09",
+      "receipt": "docs/wave7b/correctness/peer-feature-09/receipt.json",
+      "exit": 0,
+      "wall_seconds": 211.19395232200623,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/peer-feature-09.tar.gz",
+        "sha256": "b8232c4a28b0c893558b58030fe3f80b21efd56d621298128e5d1db27594a003",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "feature-armed-0": {
+          "done": "0\t35\t0",
+          "rows": [
+            "ok\t0.260000\tfused+armed boot line (atomic 0)",
+            "ok\t1.180000\tfused+armed s6 battery (atomic 0)",
+            "ok\t2.080000\tfused+armed multi_exec battery (atomic 0)",
+            "ok\t1.610000\tfused+armed blocking battery (atomic 0)",
+            "ok\t0.450000\tfused+armed blockmulti battery (atomic 0)",
+            "ok\t0.510000\tfused+armed stream battery (atomic 0)",
+            "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+            "ok\t0.890000\tfused+armed pubsub battery (atomic 0)",
+            "ok\t0.030000\tfused+armed lua_scripting battery (atomic 0)",
+            "ok\t0.050000\tfused+armed scriptsurf battery (atomic 0)",
+            "ok\t14.710000\tfused+armed limits battery (atomic 0)",
+            "ok\t0.040000\tfused+armed resp3 battery (atomic 0)",
+            "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+            "ok\t0.060000\tfused+armed dumprestore battery (atomic 0)",
+            "ok\t0.060000\tfused+armed zsetops battery (atomic 0)",
+            "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+            "ok\t1.150000\tfused+armed climon battery (atomic 0)",
+            "ok\t3.330000\tfused+armed climon2 battery (atomic 0)",
+            "ok\t13.250000\tfused+armed tracking battery (atomic 0)",
+            "ok\t3.050000\tfused+armed hexpire battery (atomic 0)",
+            "ok\t0.560000\tfused+armed servertail battery (atomic 0)",
+            "ok\t0.160000\tfused+armed lcs battery (atomic 0)",
+            "ok\t2.830000\tfused+armed concur battery (atomic 0)",
+            "ok\t0.710000\tfused+armed edgeproto battery (atomic 0)",
+            "ok\t0.390000\tfused+armed edgeenc battery (atomic 0)",
+            "ok\t3.810000\tfused+armed edgetime battery (atomic 0)",
+            "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed contarity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed cmdgap battery (atomic 0)",
+            "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+            "ok\t38.700000\tfused+armed expwide battery (atomic 0)",
+            "ok\t4.200000\tfused+armed infofix battery (atomic 0)",
+            "ok\t2.940000\tfused+armed pushtear battery (atomic 0)",
+            "ok\t0.040000\tfused+armed netcmd battery (atomic 0)",
+            "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          ]
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0",
+          "rows": [
+            "ok\t2.440000\ts6 battery (atomic 0)",
+            "ok\t2.080000\tmulti_exec battery (atomic 0)",
+            "ok\t1.510000\tblocking battery (atomic 0)",
+            "ok\t0.450000\tblockmulti battery (atomic 0)",
+            "ok\t0.510000\tstream battery (atomic 0)",
+            "ok\t0.040000\tstreamgroups battery (atomic 0)",
+            "ok\t0.890000\tpubsub battery (atomic 0)",
+            "ok\t0.030000\tlua_scripting battery (atomic 0)",
+            "ok\t0.050000\tscriptsurf battery (atomic 0)",
+            "ok\t14.950000\tlimits battery (atomic 0)",
+            "ok\t0.040000\tresp3 battery (atomic 0)",
+            "ok\t0.040000\tbitfield battery (atomic 0)",
+            "ok\t0.060000\tdumprestore battery (atomic 0)",
+            "ok\t0.050000\tzsetops battery (atomic 0)",
+            "ok\t0.030000\tgeo battery (atomic 0)",
+            "ok\t1.160000\tclimon battery (atomic 0)",
+            "ok\t3.370000\tclimon2 battery (atomic 0)",
+            "ok\t13.270000\ttracking battery (atomic 0)",
+            "ok\t3.300000\thexpire battery (atomic 0)",
+            "ok\t0.550000\tservertail battery (atomic 0)",
+            "ok\t0.160000\tlcs battery (atomic 0)",
+            "ok\t2.820000\tconcur battery (atomic 0)",
+            "ok\t0.580000\tedgeproto battery (atomic 0)",
+            "ok\t0.350000\tedgeenc battery (atomic 0)",
+            "ok\t3.940000\tedgetime battery (atomic 0)",
+            "ok\t0.030000\tarity battery (atomic 0)",
+            "ok\t0.030000\tcontarity battery (atomic 0)",
+            "ok\t0.030000\tcmdgap battery (atomic 0)",
+            "ok\t0.030000\taclsel battery (atomic 0)",
+            "ok\t37.520000\texpwide battery (atomic 0)",
+            "ok\t4.200000\tinfofix battery (atomic 0)",
+            "ok\t5.440000\tpushtear battery (atomic 0)",
+            "ok\t0.040000\tnetcmd battery (atomic 0)",
+            "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
+      "name": "peer-feature-10",
+      "receipt": "docs/wave7b/correctness/peer-feature-10/receipt.json",
+      "exit": 0,
+      "wall_seconds": 237.92289233207703,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/peer-feature-10.tar.gz",
+        "sha256": "e4ca0c40a3376cc17fa358306520a857c9ba3b65add70618a794c9ac433d8745",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "feature-armed-0": {
+          "done": "0\t35\t0",
+          "rows": [
+            "ok\t0.260000\tfused+armed boot line (atomic 0)",
+            "ok\t1.170000\tfused+armed s6 battery (atomic 0)",
+            "ok\t2.090000\tfused+armed multi_exec battery (atomic 0)",
+            "ok\t1.580000\tfused+armed blocking battery (atomic 0)",
+            "ok\t0.460000\tfused+armed blockmulti battery (atomic 0)",
+            "ok\t0.510000\tfused+armed stream battery (atomic 0)",
+            "ok\t0.050000\tfused+armed streamgroups battery (atomic 0)",
+            "ok\t0.900000\tfused+armed pubsub battery (atomic 0)",
+            "ok\t0.030000\tfused+armed lua_scripting battery (atomic 0)",
+            "ok\t0.060000\tfused+armed scriptsurf battery (atomic 0)",
+            "ok\t15.390000\tfused+armed limits battery (atomic 0)",
+            "ok\t0.040000\tfused+armed resp3 battery (atomic 0)",
+            "ok\t0.040000\tfused+armed bitfield battery (atomic 0)",
+            "ok\t0.070000\tfused+armed dumprestore battery (atomic 0)",
+            "ok\t0.060000\tfused+armed zsetops battery (atomic 0)",
+            "ok\t0.030000\tfused+armed geo battery (atomic 0)",
+            "ok\t1.140000\tfused+armed climon battery (atomic 0)",
+            "ok\t3.330000\tfused+armed climon2 battery (atomic 0)",
+            "ok\t13.240000\tfused+armed tracking battery (atomic 0)",
+            "ok\t3.050000\tfused+armed hexpire battery (atomic 0)",
+            "ok\t0.560000\tfused+armed servertail battery (atomic 0)",
+            "ok\t0.160000\tfused+armed lcs battery (atomic 0)",
+            "ok\t2.800000\tfused+armed concur battery (atomic 0)",
+            "ok\t0.720000\tfused+armed edgeproto battery (atomic 0)",
+            "ok\t0.370000\tfused+armed edgeenc battery (atomic 0)",
+            "ok\t3.810000\tfused+armed edgetime battery (atomic 0)",
+            "ok\t0.030000\tfused+armed arity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed contarity battery (atomic 0)",
+            "ok\t0.030000\tfused+armed cmdgap battery (atomic 0)",
+            "ok\t0.030000\tfused+armed aclsel battery (atomic 0)",
+            "ok\t52.020000\tfused+armed expwide battery (atomic 0)",
+            "ok\t4.210000\tfused+armed infofix battery (atomic 0)",
+            "ok\t2.970000\tfused+armed pushtear battery (atomic 0)",
+            "ok\t0.040000\tfused+armed netcmd battery (atomic 0)",
+            "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+          ]
+        },
+        "feature-split-0": {
+          "done": "0\t34\t0",
+          "rows": [
+            "ok\t2.450000\ts6 battery (atomic 0)",
+            "ok\t2.080000\tmulti_exec battery (atomic 0)",
+            "ok\t1.580000\tblocking battery (atomic 0)",
+            "ok\t0.450000\tblockmulti battery (atomic 0)",
+            "ok\t0.510000\tstream battery (atomic 0)",
+            "ok\t0.050000\tstreamgroups battery (atomic 0)",
+            "ok\t0.930000\tpubsub battery (atomic 0)",
+            "ok\t0.030000\tlua_scripting battery (atomic 0)",
+            "ok\t0.050000\tscriptsurf battery (atomic 0)",
+            "ok\t15.370000\tlimits battery (atomic 0)",
+            "ok\t0.040000\tresp3 battery (atomic 0)",
+            "ok\t0.040000\tbitfield battery (atomic 0)",
+            "ok\t0.070000\tdumprestore battery (atomic 0)",
+            "ok\t0.060000\tzsetops battery (atomic 0)",
+            "ok\t0.030000\tgeo battery (atomic 0)",
+            "ok\t1.130000\tclimon battery (atomic 0)",
+            "ok\t3.350000\tclimon2 battery (atomic 0)",
+            "ok\t13.220000\ttracking battery (atomic 0)",
+            "ok\t3.050000\thexpire battery (atomic 0)",
+            "ok\t0.550000\tservertail battery (atomic 0)",
+            "ok\t0.160000\tlcs battery (atomic 0)",
+            "ok\t2.800000\tconcur battery (atomic 0)",
+            "ok\t0.740000\tedgeproto battery (atomic 0)",
+            "ok\t0.350000\tedgeenc battery (atomic 0)",
+            "ok\t3.790000\tedgetime battery (atomic 0)",
+            "ok\t0.030000\tarity battery (atomic 0)",
+            "ok\t0.040000\tcontarity battery (atomic 0)",
+            "ok\t0.030000\tcmdgap battery (atomic 0)",
+            "ok\t0.040000\taclsel battery (atomic 0)",
+            "ok\t52.840000\texpwide battery (atomic 0)",
+            "ok\t4.200000\tinfofix battery (atomic 0)",
+            "ok\t2.940000\tpushtear battery (atomic 0)",
+            "ok\t0.040000\tnetcmd battery (atomic 0)",
+            "ok\t0.020000\tfeature shutdown invariants (atomic 0)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
+      "name": "perfio-owner",
+      "receipt": "docs/wave7b/correctness/perfio-owner/receipt.json",
+      "exit": 0,
+      "wall_seconds": 2.623192310333252,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/perfio-owner.tar.gz",
+        "sha256": "7a7d18b27bfc40e9db399ce2cf860885f42dfee01f9b9bc54586114596a63b8d",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "perfio_stream": {
+          "done": "0\t2\t0",
+          "rows": [
+            "ok\t0.400000\tperfio XREADGROUP bounded delivery + Redis metadata (1s)",
+            "ok\t0.390000\tperfio XREADGROUP bounded delivery + Redis metadata (2s)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      },
+      "suite_seconds": {},
+      "fixtures": []
+    },
+    {
       "name": "reorder-owner",
       "receipt": "docs/wave7b/correctness/reorder-owner/receipt.json",
       "exit": 0,
@@ -1215,6 +1755,318 @@
             "ordered": false
           },
           "seconds": 31.067865165881813
+        }
+      ]
+    },
+    {
+      "name": "repeat-abba-04",
+      "receipt": "docs/wave7b/correctness/repeat-abba-04/receipt.json",
+      "exit": 0,
+      "wall_seconds": 439.7405757904053,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/repeat-abba-04.tar.gz",
+        "sha256": "248a2cb2b939f048eb8bcca7f0b2efb0fc2c14ce0ae7d580dc21c7f22473bd47",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "abba_selftest": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t438.250000\tABBA comparison + saturation negative controls"
+          ]
+        }
+      },
+      "suite_seconds": {
+        "abba_instrument": 1.2189325401559472,
+        "gate_measurements": 2.710761558264494,
+        "tailgen_stall": 0.04443556070327759,
+        "gate_receipt": 133.4026734083891,
+        "abbagate": 118.6712886504829,
+        "gate_subset_test": 0.057784116826951504,
+        "background_environment_test": 0.010023286566138268,
+        "gate_history": 20.845961538143456,
+        "gate_quiet": 0.058442914858460426,
+        "gate_process_test": 0.4979931879788637,
+        "gateprod": 1.8849551398307085,
+        "gates_test": 157.59233879297972
+      },
+      "fixtures": [
+        {
+          "fixture": {
+            "reverse": true
+          },
+          "seconds": 17.90461651235819
+        },
+        {
+          "fixture": {},
+          "seconds": 17.909258475527167
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 12.823587643913925
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "failure": "core_tsan_build",
+            "behavior": "before-affinity"
+          },
+          "seconds": 12.933823461644351
+        },
+        {
+          "fixture": {
+            "slots": 1
+          },
+          "seconds": 35.0666092550382
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "empty"
+          },
+          "seconds": 17.720621830783784
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "red"
+          },
+          "seconds": 17.9333237959072
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "return"
+          },
+          "seconds": 18.335484088398516
+        },
+        {
+          "fixture": {
+            "failure": "globcase",
+            "behavior": "crash"
+          },
+          "seconds": 18.366522164084017
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true
+          },
+          "seconds": 13.73336113896221
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true,
+            "remove_atomic_publication": true
+          },
+          "seconds": 13.432420572265983
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "remove_atomic_dependency": true
+          },
+          "seconds": 18.957783710211515
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "failure": "release",
+            "behavior": "crash"
+          },
+          "seconds": 18.709319279529154
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true,
+            "add_asan_dependency": true
+          },
+          "seconds": 18.499011129140854
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true
+          },
+          "seconds": 27.534753656946123
+        },
+        {
+          "fixture": {
+            "_gate_path": "/home/user/Projects/cx-wave7/build/tmp602pibm1/gate.sh",
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 31.354289665818214
+        }
+      ]
+    },
+    {
+      "name": "repeat-abba-05",
+      "receipt": "docs/wave7b/correctness/repeat-abba-05/receipt.json",
+      "exit": 0,
+      "wall_seconds": 442.71399879455566,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/repeat-abba-05.tar.gz",
+        "sha256": "45be6ede9cf46d5764be0591b5d808657bfa057960b5730d8e26540758577a8b",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "abba_selftest": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t441.270000\tABBA comparison + saturation negative controls"
+          ]
+        }
+      },
+      "suite_seconds": {
+        "gate_measurements": 2.7103680837899446,
+        "gate_quiet": 0.05961086228489876,
+        "gate_process_test": 0.5010357769206166,
+        "tailgen_stall": 0.03986265789717436,
+        "gate_history": 21.003364487551153,
+        "gates_test": 157.3205499034375,
+        "gate_receipt": 132.83963454235345,
+        "abbagate": 122.1037867050618,
+        "gateprod": 1.8878920059651136,
+        "gate_subset_test": 0.05689146462827921,
+        "abba_instrument": 1.2978248987346888,
+        "background_environment_test": 0.0111997714266181
+      },
+      "fixtures": [
+        {
+          "fixture": {},
+          "seconds": 17.902515444904566
+        },
+        {
+          "fixture": {
+            "reverse": true
+          },
+          "seconds": 18.07914398610592
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 12.84988421946764
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "failure": "core_tsan_build",
+            "behavior": "before-affinity"
+          },
+          "seconds": 12.928676331415772
+        },
+        {
+          "fixture": {
+            "slots": 1
+          },
+          "seconds": 35.09875257592648
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "empty"
+          },
+          "seconds": 17.70126587897539
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "red"
+          },
+          "seconds": 17.92923254147172
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "return"
+          },
+          "seconds": 17.955191689543426
+        },
+        {
+          "fixture": {
+            "failure": "globcase",
+            "behavior": "crash"
+          },
+          "seconds": 18.382743867114186
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true
+          },
+          "seconds": 13.96045950613916
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true,
+            "remove_atomic_publication": true
+          },
+          "seconds": 13.61623503267765
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "remove_atomic_dependency": true
+          },
+          "seconds": 18.740892376750708
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "failure": "release",
+            "behavior": "crash"
+          },
+          "seconds": 18.72786435019225
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true
+          },
+          "seconds": 27.548169125802815
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true,
+            "add_asan_dependency": true
+          },
+          "seconds": 18.762150891125202
+        },
+        {
+          "fixture": {
+            "_gate_path": "/home/user/Projects/cx-wave7/build/tmpn79d31rt/gate.sh",
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 30.628337206318974
         }
       ]
     },
@@ -1687,6 +2539,318 @@
       ]
     },
     {
+      "name": "repeat-abba-09",
+      "receipt": "docs/wave7b/correctness/repeat-abba-09/receipt.json",
+      "exit": 0,
+      "wall_seconds": 438.4509925842285,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/repeat-abba-09.tar.gz",
+        "sha256": "3d25e843c58c1f15b970157af44ff1e3f2241a33f535677ec133adb31a665684",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "abba_selftest": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t437.080000\tABBA comparison + saturation negative controls"
+          ]
+        }
+      },
+      "suite_seconds": {
+        "background_environment_test": 0.010027557611465454,
+        "gate_receipt": 133.2632007645443,
+        "gates_test": 158.23370844870806,
+        "gate_measurements": 2.7194203017279506,
+        "abbagate": 116.86748081631958,
+        "abba_instrument": 1.256707846187055,
+        "gate_process_test": 0.5032932367175817,
+        "gate_subset_test": 0.054953789338469505,
+        "tailgen_stall": 0.040042939595878124,
+        "gate_quiet": 0.05778541415929794,
+        "gate_history": 20.91522859223187,
+        "gateprod": 1.92585629504174
+      },
+      "fixtures": [
+        {
+          "fixture": {},
+          "seconds": 18.164149911142886
+        },
+        {
+          "fixture": {
+            "reverse": true
+          },
+          "seconds": 18.35107757523656
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 12.914134328253567
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "failure": "core_tsan_build",
+            "behavior": "before-affinity"
+          },
+          "seconds": 12.955887140706182
+        },
+        {
+          "fixture": {
+            "slots": 1
+          },
+          "seconds": 35.53739689942449
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "empty"
+          },
+          "seconds": 17.75280051957816
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "red"
+          },
+          "seconds": 18.169307185336947
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "return"
+          },
+          "seconds": 18.203485402278602
+        },
+        {
+          "fixture": {
+            "failure": "globcase",
+            "behavior": "crash"
+          },
+          "seconds": 18.78660132177174
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true
+          },
+          "seconds": 14.14346738345921
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true,
+            "remove_atomic_publication": true
+          },
+          "seconds": 14.223772456869483
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "remove_atomic_dependency": true
+          },
+          "seconds": 19.31843799352646
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "failure": "release",
+            "behavior": "crash"
+          },
+          "seconds": 18.906382016837597
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true
+          },
+          "seconds": 27.2988193994388
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true,
+            "add_asan_dependency": true
+          },
+          "seconds": 18.493333631195128
+        },
+        {
+          "fixture": {
+            "_gate_path": "/home/user/Projects/cx-wave7/build/tmpkvvehcl7/gate.sh",
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 29.377603815868497
+        }
+      ]
+    },
+    {
+      "name": "repeat-abba-10",
+      "receipt": "docs/wave7b/correctness/repeat-abba-10/receipt.json",
+      "exit": 0,
+      "wall_seconds": 439.3111774921417,
+      "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+      "unchanged_binary": true,
+      "archive": {
+        "path": "docs/wave7b/archives/repeat-abba-10.tar.gz",
+        "sha256": "8d64f89cd4d2d0cf21d942c15757205d01e2b9110f56635b30061dded4cd345a",
+        "omitted_generated_binaries_or_disassembly": []
+      },
+      "jobs": {
+        "abba_selftest": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t437.940000\tABBA comparison + saturation negative controls"
+          ]
+        }
+      },
+      "suite_seconds": {
+        "gate_receipt": 134.2073027640581,
+        "gate_history": 20.781865475699306,
+        "gates_test": 157.9041556501761,
+        "tailgen_stall": 0.039156016893684864,
+        "abba_instrument": 1.2389995651319623,
+        "gateprod": 1.8721542991697788,
+        "gate_subset_test": 0.05509126931428909,
+        "gate_process_test": 0.4981009215116501,
+        "abbagate": 117.377262564376,
+        "gate_measurements": 2.672340807504952,
+        "gate_quiet": 0.05910708103328943,
+        "background_environment_test": 0.009963996708393097
+      },
+      "fixtures": [
+        {
+          "fixture": {},
+          "seconds": 18.574011465534568
+        },
+        {
+          "fixture": {
+            "reverse": true
+          },
+          "seconds": 18.761096158064902
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 12.886398801580071
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "failure": "core_tsan_build",
+            "behavior": "before-affinity"
+          },
+          "seconds": 12.987380594946444
+        },
+        {
+          "fixture": {
+            "slots": 1
+          },
+          "seconds": 35.76708581671119
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "empty"
+          },
+          "seconds": 17.786025711335242
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "red"
+          },
+          "seconds": 18.18643466476351
+        },
+        {
+          "fixture": {
+            "failure": "flipctl",
+            "behavior": "return"
+          },
+          "seconds": 17.943004404194653
+        },
+        {
+          "fixture": {
+            "failure": "globcase",
+            "behavior": "crash"
+          },
+          "seconds": 17.936618805862963
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true
+          },
+          "seconds": 13.494217881001532
+        },
+        {
+          "fixture": {
+            "slots": 3,
+            "ordered": false,
+            "delayed_completion": true,
+            "remove_atomic_publication": true
+          },
+          "seconds": 13.779246636666358
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "remove_atomic_dependency": true
+          },
+          "seconds": 19.31289624981582
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "failure": "release",
+            "behavior": "crash"
+          },
+          "seconds": 18.86596464458853
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true
+          },
+          "seconds": 27.50778505951166
+        },
+        {
+          "fixture": {
+            "slots": 2,
+            "ordered": false,
+            "dependency_probe": true,
+            "add_asan_dependency": true
+          },
+          "seconds": 18.467760678380728
+        },
+        {
+          "fixture": {
+            "_gate_path": "/home/user/Projects/cx-wave7/build/tmpfn5x9cyo/gate.sh",
+            "slots": 3,
+            "ordered": false
+          },
+          "seconds": 29.793270700611174
+        }
+      ]
+    },
+    {
       "name": "repeat-flip-01",
       "receipt": "docs/wave7b/correctness/repeat-flip-01/receipt.json",
       "exit": 0,
@@ -2077,6 +3241,18 @@
       "label": "ABBA comparison + saturation negative controls"
     },
     {
+      "name": "repeat-abba-04",
+      "verdict": "ok",
+      "seconds": 438.25,
+      "label": "ABBA comparison + saturation negative controls"
+    },
+    {
+      "name": "repeat-abba-05",
+      "verdict": "ok",
+      "seconds": 441.27,
+      "label": "ABBA comparison + saturation negative controls"
+    },
+    {
       "name": "repeat-abba-06",
       "verdict": "ok",
       "seconds": 435.91,
@@ -2092,6 +3268,18 @@
       "name": "repeat-abba-08",
       "verdict": "ok",
       "seconds": 437.13,
+      "label": "ABBA comparison + saturation negative controls"
+    },
+    {
+      "name": "repeat-abba-09",
+      "verdict": "ok",
+      "seconds": 437.08,
+      "label": "ABBA comparison + saturation negative controls"
+    },
+    {
+      "name": "repeat-abba-10",
+      "verdict": "ok",
+      "seconds": 437.94,
       "label": "ABBA comparison + saturation negative controls"
     }
   ],
@@ -2222,11 +3410,11 @@
     }
   ],
   "abba_statistics": {
-    "count": 6,
-    "passed": 6,
+    "count": 10,
+    "passed": 10,
     "minimum": 433.44,
-    "median": 437.425,
-    "maximum": 440.62
+    "median": 437.83000000000004,
+    "maximum": 441.27
   },
   "epoll_statistics": {
     "count": 10,

@@ -1,0 +1,475 @@
+{
+  "argv": [
+    "tests/gates_test.py"
+  ],
+  "affinity": [
+    90,
+    91
+  ],
+  "seconds": 157.9041556501761,
+  "tests": [
+    {
+      "test": "__main__.ABBATermination.test_terminating_gate_reaps_driver_and_owned_child_but_not_foreign_process",
+      "seconds": 0.27532046288251877
+    },
+    {
+      "test": "__main__.CompleteTierDispatch.test_real_coordinator_keeps_full_jobs_and_measures_only_after_join",
+      "seconds": 0.3795724883675575
+    },
+    {
+      "test": "__main__.CorrectnessBudgetWiring.test_watchdogs_use_fixed_or_explicit_budgets_including_contextual_rows",
+      "seconds": 1.6391188986599445
+    },
+    {
+      "test": "__main__.EarlyGateDispatch.test_perf_self_test_reaches_abba_and_common_options_reach_planner",
+      "seconds": 0.004449712112545967
+    },
+    {
+      "test": "__main__.FeatureFailures.test_disabled_features_cannot_fire",
+      "seconds": 0.0002647712826728821
+    },
+    {
+      "test": "__main__.FeatureFailures.test_every_enabled_witness_must_fire",
+      "seconds": 0.00021751970052719116
+    },
+    {
+      "test": "__main__.FeatureFailures.test_full_inventory_and_values",
+      "seconds": 0.0005539823323488235
+    },
+    {
+      "test": "__main__.FeatureFailures.test_r7_requires_fresh_permutations_and_disabled_storage_is_absent",
+      "seconds": 0.0006365422159433365
+    },
+    {
+      "test": "__main__.FeatureFailures.test_reader_roles_and_each_hit_counter",
+      "seconds": 0.0001732492819428444
+    },
+    {
+      "test": "__main__.FeatureFailures.test_reorder_off_has_no_schedule_storage",
+      "seconds": 0.00022853072732686996
+    },
+    {
+      "test": "__main__.FeatureFailures.test_retired_overlap_fields_are_rejected",
+      "seconds": 0.00022300146520137787
+    },
+    {
+      "test": "__main__.GateLocaleInheritance.test_gate_and_standalone_differ_pin_child_collation",
+      "seconds": 0.09245759155601263
+    },
+    {
+      "test": "__main__.LedgerWiring.test_each_instrument_helper_failure_reaches_the_same_gate_row",
+      "seconds": 0.14279457088559866
+    },
+    {
+      "test": "__main__.LedgerWiring.test_feature_rows_precede_quick_exit",
+      "seconds": 0.013997047208249569
+    },
+    {
+      "test": "__main__.LedgerWiring.test_headline_abba_emits_zero_scored_rows",
+      "seconds": 0.009954996407032013
+    },
+    {
+      "test": "__main__.LedgerWiring.test_multidb_rows_fail_independently",
+      "seconds": 0.02441189717501402
+    },
+    {
+      "test": "__main__.LedgerWiring.test_quick_abba_self_test_is_one_independent_failure_row",
+      "seconds": 0.009707646444439888
+    },
+    {
+      "test": "__main__.NICOwnership.test_cancellation_reclaims_recorded_process_outside_driver_ancestry",
+      "seconds": 1.023192415945232
+    },
+    {
+      "test": "__main__.NICOwnership.test_unowned_listener_refuses_cleanup_without_signalling_its_pid",
+      "seconds": 0.007731270976364613
+    },
+    {
+      "test": "__main__.NetfixOracleWiringTests.test_every_netfix_job_passes_explicit_tls_oracle",
+      "seconds": 0.0012650536373257637
+    },
+    {
+      "test": "__main__.NetfixOracleWiringTests.test_missing_tls_oracle_names_path_without_tcp_fallback",
+      "seconds": 0.0007481519132852554
+    },
+    {
+      "test": "__main__.PerfCandidateDispatch.test_explicit_candidate_bypasses_build",
+      "seconds": 0.0016501843929290771
+    },
+    {
+      "test": "__main__.PerfCandidateDispatch.test_failed_build_cannot_measure_stale_candidate",
+      "seconds": 0.0020930469036102295
+    },
+    {
+      "test": "__main__.PerfCandidateDispatch.test_omitted_candidate_builds_before_abba",
+      "seconds": 0.00156401377171278
+    },
+    {
+      "test": "__main__.PerfCandidateDispatch.test_unquiet_box_cannot_start_candidate_build",
+      "seconds": 0.02232412062585354
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_adjacent_null_pairs_cannot_hide_drift",
+      "seconds": 0.00016879010945558548
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_ladder_requires_both_saturation_and_plateau",
+      "seconds": 0.0010453341528773308
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_missing_and_unarmed_refs_exit_three_loudly",
+      "seconds": 0.00032366160303354263
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_null_derivation_rejects_noisy_or_non_null_experiments",
+      "seconds": 0.00020173098891973495
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_population_counter_and_clock_tripwires",
+      "seconds": 0.0002718903124332428
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_reference_cannot_omit_cells",
+      "seconds": 0.00035084132105112076
+    },
+    {
+      "test": "__main__.PerformanceFailures.test_saturation_is_per_thread_and_p32_only",
+      "seconds": 0.00018711015582084656
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_banner_without_owned_listener_is_not_ready",
+      "seconds": 0.0011529531329870224
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_both_boots_guard_and_record_distinct_identities",
+      "seconds": 0.003626580350100994
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_empty_and_wrong_logs_never_probe",
+      "seconds": 0.0013839341700077057
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_exercise_wraps_boot_get_and_report_failures",
+      "seconds": 0.009735235944390297
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_foreign_arrival_after_handshake_is_fatal",
+      "seconds": 0.0011780830100178719
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_foreign_info_is_fatal_without_ping_or_retry",
+      "seconds": 0.001287303864955902
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_foreign_listener_fails_before_connection",
+      "seconds": 0.001043892465531826
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_half_open_and_reset_probes_never_count_as_ready",
+      "seconds": 0.001781645230948925
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_live_assertion_and_reaped_report_failures_keep_original_reason",
+      "seconds": 0.000857403501868248
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_missing_identity_and_bad_ping_fail",
+      "seconds": 0.0017490340396761894
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_own_banner_and_info_ping_keep_the_same_connection",
+      "seconds": 0.001291343942284584
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_preflight_foreign_owner_never_spawns_at_either_boot",
+      "seconds": 0.001944415271282196
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_real_socket_owner_reports_pid_cmdline_and_refuses_boot",
+      "seconds": 0.08730075880885124
+    },
+    {
+      "test": "persistfix.self_test.<locals>.IdentityTests.test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed",
+      "seconds": 0.0013176128268241882
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_driver_identity_and_recovery_diagnostics",
+      "seconds": 0.117265441454947
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_driver_reuses_stopped_port_but_refuses_live_listener",
+      "seconds": 0.04734855890274048
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_fused_shutdown_work_requires_complete_matching_counters",
+      "seconds": 0.00023619085550308228
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_live_rows_receive_reaped_slot_and_private_artifacts",
+      "seconds": 0.016707684844732285
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_recovery_requires_owned_pid_reply_and_records_the_peer",
+      "seconds": 0.0023075463250279427
+    },
+    {
+      "test": "__main__.PersistfixWiring.test_unit_row_requires_build_and_success_in_its_own_job",
+      "seconds": 0.00540409330278635
+    },
+    {
+      "test": "__main__.QuietShellPreflight.test_listener_without_visible_pid_refuses_intended_port",
+      "seconds": 0.0015011439099907875
+    },
+    {
+      "test": "__main__.QuietShellPreflight.test_missing_selected_cpu_cannot_claim_quiet",
+      "seconds": 0.026446962729096413
+    },
+    {
+      "test": "__main__.QuietShellPreflight.test_only_selected_cores_contribute_cpu_activity",
+      "seconds": 0.052442463114857674
+    },
+    {
+      "test": "__main__.SchedulerAffinity.test_live_query_observes_the_exact_assigned_cpu",
+      "seconds": 0.00206148624420166
+    },
+    {
+      "test": "__main__.SchedulerAffinity.test_missing_malformed_wrong_or_failed_observation_cannot_start",
+      "seconds": 0.005842246115207672
+    },
+    {
+      "fixture": {},
+      "seconds": 18.574011465534568
+    },
+    {
+      "fixture": {
+        "reverse": true
+      },
+      "seconds": 18.761096158064902
+    },
+    {
+      "fixture": {
+        "slots": 3,
+        "ordered": false
+      },
+      "seconds": 12.886398801580071
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_atomic_boot_waits_for_all_other_families_and_their_cleanup",
+      "seconds": 31.460761358961463
+    },
+    {
+      "fixture": {
+        "slots": 3,
+        "ordered": false,
+        "failure": "core_tsan_build",
+        "behavior": "before-affinity"
+      },
+      "seconds": 12.987380594946444
+    },
+    {
+      "fixture": {
+        "slots": 1
+      },
+      "seconds": 35.76708581671119
+    },
+    {
+      "fixture": {
+        "failure": "flipctl",
+        "behavior": "empty"
+      },
+      "seconds": 17.786025711335242
+    },
+    {
+      "fixture": {
+        "failure": "flipctl",
+        "behavior": "red"
+      },
+      "seconds": 18.18643466476351
+    },
+    {
+      "fixture": {
+        "failure": "flipctl",
+        "behavior": "return"
+      },
+      "seconds": 17.943004404194653
+    },
+    {
+      "fixture": {
+        "failure": "globcase",
+        "behavior": "crash"
+      },
+      "seconds": 17.936618805862963
+    },
+    {
+      "fixture": {
+        "slots": 3,
+        "ordered": false,
+        "delayed_completion": true
+      },
+      "seconds": 13.494217881001532
+    },
+    {
+      "fixture": {
+        "slots": 3,
+        "ordered": false,
+        "delayed_completion": true,
+        "remove_atomic_publication": true
+      },
+      "seconds": 13.779246636666358
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_completion_is_not_visible_before_its_record_is_written",
+      "seconds": 72.99950085487217
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green",
+      "seconds": 0.0014424445107579231
+    },
+    {
+      "fixture": {
+        "slots": 2,
+        "ordered": false,
+        "remove_atomic_dependency": true
+      },
+      "seconds": 19.31289624981582
+    },
+    {
+      "fixture": {
+        "slots": 2,
+        "ordered": false,
+        "failure": "release",
+        "behavior": "crash"
+      },
+      "seconds": 18.86596464458853
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_failed_prerequisite_cannot_leave_the_queue_waiting_forever",
+      "seconds": 18.83525404985994
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_failure_evidence_survives_a_named_pipe_in_the_fixture",
+      "seconds": 0.0029585780575871468
+    },
+    {
+      "fixture": {
+        "slots": 2,
+        "ordered": false,
+        "dependency_probe": true
+      },
+      "seconds": 27.50778505951166
+    },
+    {
+      "fixture": {
+        "slots": 2,
+        "ordered": false,
+        "dependency_probe": true,
+        "add_asan_dependency": true
+      },
+      "seconds": 18.467760678380728
+    },
+    {
+      "fixture": {
+        "_gate_path": "/home/user/Projects/cx-wave7/build/tmpfn5x9cyo/gate.sh",
+        "slots": 3,
+        "ordered": false
+      },
+      "seconds": 29.793270700611174
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_large_gate_script_avoids_single_argument_limit",
+      "seconds": 29.795505297370255
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_limited_workers_reuse_slots_without_losing_or_repeating_jobs",
+      "seconds": 0.0008783424273133278
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_missing_helper_witness_stays_red_and_keeps_its_explanation",
+      "seconds": 0.02810391690582037
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment",
+      "seconds": 0.0005448320880532265
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage",
+      "seconds": 0.0005877511575818062
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers",
+      "seconds": 0.0010319631546735764
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_partial_jobs_use_the_real_scheduler_and_finalizers",
+      "seconds": 0.5090971449390054
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_release_boots_do_not_wait_for_independent_asan_build",
+      "seconds": 0.0012655425816774368
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_removing_atomic_exclusivity_fails_before_its_boot",
+      "seconds": 0.0005063218995928764
+    },
+    {
+      "test": "__main__.SchedulerWiring.test_worker_exit_before_done_is_a_failure",
+      "seconds": 0.0004986710846424103
+    },
+    {
+      "test": "__main__.ShutdownBootWiring.test_generic_boots_disable_save_but_keep_explicit_overrides",
+      "seconds": 0.020301404409110546
+    },
+    {
+      "test": "__main__.ShutdownBootWiring.test_shutdown_live_geometry_and_explicit_save_overrides",
+      "seconds": 0.00046974048018455505
+    },
+    {
+      "test": "__main__.TSANWiring.test_core_build_instruments_every_dependency_and_failed_build_publishes_no_ready_marker",
+      "seconds": 0.005148734897375107
+    },
+    {
+      "test": "__main__.TSANWiring.test_core_rows_execute_both_matching_controls",
+      "seconds": 0.013884108513593674
+    },
+    {
+      "test": "__main__.TSANWiring.test_core_runtime_report_unavailability_and_missing_witness_all_fail",
+      "seconds": 0.04640395753085613
+    },
+    {
+      "test": "__main__.TSANWiring.test_slowlog_negative_requires_failure_and_exact_witness",
+      "seconds": 0.025181368924677372
+    },
+    {
+      "test": "__main__.TSANWiring.test_topology_rows_require_ready_success_and_exact_witness",
+      "seconds": 0.06810927670449018
+    },
+    {
+      "test": "__main__.TSANWiring.test_waits_keeps_existing_rows_and_adds_one_tsan_execution",
+      "seconds": 0.0060814255848526955
+    },
+    {
+      "test": "__main__.TlsBootGeometry.test_ratio_follows_thread_mode_value_and_preserves_other_arguments",
+      "seconds": 0.029927591793239117
+    },
+    {
+      "test": "__main__.WorkerCompletion.test_collection_preserves_each_rows_own_duration",
+      "seconds": 0.004666423425078392
+    },
+    {
+      "test": "__main__.WorkerCompletion.test_completion_must_be_one_complete_record",
+      "seconds": 0.012726745568215847
+    },
+    {
+      "test": "__main__.WorkerCompletion.test_empty_or_malformed_fragment_cannot_supply_passing_rows",
+      "seconds": 0.016124133951961994
+    },
+    {
+      "test": "__main__.WorkerCompletion.test_explicit_failure_or_wrong_counts_cannot_be_hidden_by_a_passing_fragment",
+      "seconds": 0.014707600697875023
+    },
+    {
+      "test": "__main__.WorkerCompletion.test_matching_completion_preserves_both_verdicts",
+      "seconds": 0.008949633687734604
+    }
+  ]
+}

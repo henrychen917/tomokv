@@ -1,0 +1,233 @@
+{
+  "argv": [
+    "tests/gate_history.py",
+    "self-test"
+  ],
+  "affinity": [
+    90,
+    91
+  ],
+  "seconds": 20.91522859223187,
+  "tests": [
+    {
+      "test": "__main__.HistoryTests.test_abba_context_uses_actual_geometry_window_and_cell_bytes",
+      "seconds": 0.034226082265377045
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_abba_timeout_publishes_fragment_at_its_original_position",
+      "seconds": 0.8083264976739883
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_job_term_ignoring_teardown_is_bounded_and_reaped",
+      "seconds": 5.392358349636197
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_job_timeout_preserves_partial_ledger_and_publishes_done",
+      "seconds": 1.0687883710488677
+    },
+    {
+      "test": "__main__.HistoryTests.test_cancel_receipt_rejects_stale_generation_or_extra_records",
+      "seconds": 0.0033923806622624397
+    },
+    {
+      "test": "__main__.HistoryTests.test_cancel_request_survives_preexec_first_term_loss",
+      "seconds": 3.428043288178742
+    },
+    {
+      "test": "__main__.HistoryTests.test_canonical_preserves_geometry",
+      "seconds": 0.0002507399767637253
+    },
+    {
+      "test": "__main__.HistoryTests.test_correctness_context_falls_back_to_its_explicit_base_plan",
+      "seconds": 0.0003439411520957947
+    },
+    {
+      "test": "__main__.HistoryTests.test_correctness_uses_fixed_fallback_and_keeps_explicit_plan_entries",
+      "seconds": 0.010636919178068638
+    },
+    {
+      "test": "__main__.HistoryTests.test_corrupt_history_cannot_be_read_or_appended",
+      "seconds": 0.00046066101640462875
+    },
+    {
+      "test": "__main__.HistoryTests.test_corrupt_middle_with_restored_mtime_and_truncated_tail_are_never_appended",
+      "seconds": 0.005343114957213402
+    },
+    {
+      "test": "__main__.HistoryTests.test_crash_after_append_or_index_commit_recovers_authoritative_record",
+      "seconds": 0.13953982573002577
+    },
+    {
+      "test": "__main__.HistoryTests.test_duplicate_in_external_history_edit_fails_before_rebuilding_index",
+      "seconds": 0.003004787489771843
+    },
+    {
+      "test": "__main__.HistoryTests.test_first_cold_cache_and_unseen_clock_phase_keep_mechanism_floors",
+      "seconds": 0.007429569959640503
+    },
+    {
+      "test": "__main__.HistoryTests.test_floor_and_cold_build_guard",
+      "seconds": 0.006012755446135998
+    },
+    {
+      "test": "__main__.HistoryTests.test_forced_watcher_signal_rejects_reuse_and_foreign_parent",
+      "seconds": 0.0013627437874674797
+    },
+    {
+      "test": "__main__.HistoryTests.test_healthy_index_appends_and_deduplicates_without_decoding_old_history",
+      "seconds": 0.013467816635966301
+    },
+    {
+      "test": "__main__.HistoryTests.test_hidden_build_names_are_independent_of_cpu_slot_and_source_line",
+      "seconds": 0.00037989113479852676
+    },
+    {
+      "test": "__main__.HistoryTests.test_index_preserves_all_json_string_ids_including_escaped_surrogates",
+      "seconds": 0.008386101573705673
+    },
+    {
+      "test": "__main__.HistoryTests.test_inherited_exit_trap_cannot_finalize_the_workers_active_row",
+      "seconds": 0.35476037580519915
+    },
+    {
+      "test": "__main__.HistoryTests.test_inherited_root_cleanup_cannot_publish_the_parents_abba_fragment",
+      "seconds": 0.2216256381943822
+    },
+    {
+      "test": "__main__.HistoryTests.test_invalid_duration_or_expired_pass_rejected",
+      "seconds": 0.0006107017397880554
+    },
+    {
+      "test": "__main__.HistoryTests.test_late_cancellation_cannot_override_expiry",
+      "seconds": 0.0021214261651039124
+    },
+    {
+      "test": "__main__.HistoryTests.test_legacy_never_becomes_exact_and_duplicates_count_once",
+      "seconds": 0.0004662405699491501
+    },
+    {
+      "test": "__main__.HistoryTests.test_malformed_legacy_refused",
+      "seconds": 0.0005673523992300034
+    },
+    {
+      "test": "__main__.HistoryTests.test_modified_missing_and_corrupt_indexes_rebuild_without_losing_duplicate_checks",
+      "seconds": 0.012513264082372189
+    },
+    {
+      "test": "__main__.HistoryTests.test_no_history_says_default",
+      "seconds": 0.0002408493310213089
+    },
+    {
+      "test": "__main__.HistoryTests.test_parallel_indexed_appends_preserve_every_observation",
+      "seconds": 0.4004044206812978
+    },
+    {
+      "test": "__main__.HistoryTests.test_pause_rearm_has_distinct_cancellation_generations",
+      "seconds": 0.15339377336204052
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_cli_records_prepares_and_resolves",
+      "seconds": 0.23223884589970112
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_hidden_build_scope_records_success_and_failure_without_gate_rows",
+      "seconds": 0.4344208613038063
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_missing_scope_is_a_failure",
+      "seconds": 0.004665473476052284
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_records_only_the_rows_own_duration",
+      "seconds": 1.1745859859511256
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_scope_expiry_cannot_report_success",
+      "seconds": 0.44945582188665867
+    },
+    {
+      "test": "__main__.HistoryTests.test_recovery_never_overwrites_partial_rows_or_writes_old_two_columns",
+      "seconds": 0.008358023129403591
+    },
+    {
+      "test": "__main__.HistoryTests.test_replaced_history_file_forces_full_validation",
+      "seconds": 0.006503657437860966
+    },
+    {
+      "test": "__main__.HistoryTests.test_stalled_cancellation_is_bounded_reaped_and_red",
+      "seconds": 5.251770889386535
+    },
+    {
+      "test": "__main__.HistoryTests.test_success_median_and_hang_cannot_enlarge_it",
+      "seconds": 0.007343660108745098
+    },
+    {
+      "test": "__main__.HistoryTests.test_unexpected_watchdog_exit_still_fails_after_ownership_guards",
+      "seconds": 0.14781360886991024
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_cancelled_completed_row",
+      "seconds": 0.001928185112774372
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_interrupts_infinite_builtin_loop",
+      "seconds": 0.25943818036466837
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_kills_owned_term_ignorer_and_leaves_outsider_alive",
+      "seconds": 0.3711232403293252
+    },
+    {
+      "test": "__main__.HistoryTests.test_watchdog_exit_zero_without_receipt_is_still_red",
+      "seconds": 0.1515301587060094
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_duplicate_event_is_rejected_without_changing_denominator",
+      "seconds": 0.0036551905795931816
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_empty_history_reports_zero_without_creating_or_truncating_it",
+      "seconds": 0.00016709137707948685
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_every_flipping_label_is_printed_without_truncation",
+      "seconds": 0.05127206910401583
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_incomplete_append_is_loud_and_preserves_existing_bytes",
+      "seconds": 0.00433479156345129
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_interrupted_run_keeps_completed_observations",
+      "seconds": 0.003925051540136337
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_parallel_process_appends_keep_every_observation",
+      "seconds": 0.034789104014635086
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_pass_fail_pass_across_runs_keeps_both_transitions_and_rate",
+      "seconds": 0.005220044404268265
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_report_cli_surfaces_flips_without_overriding_current_gate_verdict",
+      "seconds": 0.17736282758414745
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_run_order_uses_first_durable_observation_not_wall_clock",
+      "seconds": 0.005628175102174282
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_same_run_duplicates_are_observations_not_extra_runs",
+      "seconds": 0.005005263723433018
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_single_mixed_run_is_still_a_loud_defect",
+      "seconds": 0.0037706494331359863
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_stable_pass_and_stable_fail_are_not_verdict_flips",
+      "seconds": 0.008144082501530647
+    }
+  ]
+}

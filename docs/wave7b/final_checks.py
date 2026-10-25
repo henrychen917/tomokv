@@ -25,12 +25,27 @@ def run(tag, command, env):
     with (OUT/(tag+'.log')).open('w') as log:
         result=subprocess.run(command,env=env,stdout=log,stderr=subprocess.STDOUT)
     return dict(command=command,exit=result.returncode,seconds=time.monotonic()-start)
+def perfio_after_peers(command, env):
+    # ABBA is complete; let any already-started background feature job finish
+    # before running perfio's fixed latency guard on that slot. Standalone
+    # scheduler tests can use their own disjoint CPUs in the meantime.
+    while True:
+        pending=False
+        for path in (ROOT/'docs/wave7b/correctness').glob('peer-feature-*/receipt.json'):
+            try: data=json.loads(path.read_text())
+            except json.JSONDecodeError: pending=True; continue
+            if 'exit' not in data: pending=True
+            else: assert data['exit']==0, path
+        if not pending: break
+        time.sleep(.2)
+    return run('perfio-owner', command, env)
+
 env=dict(os.environ,LANG='en_US.UTF-8');env.pop('LC_ALL',None)
 standalone=dict(env,GATE_TEST_PORT='26896',PYTHONPATH=str(ROOT/'docs/wave7b/observe'),
                 WAVE7B_TIMINGS=str(OUT/'timings'))
 with ThreadPoolExecutor(2) as pool:
     a=pool.submit(run,'gates_test',['taskset','-c','64-79','python3','tests/gates_test.py'],standalone)
-    b=pool.submit(run,'perfio-owner',['taskset','-c','80-95','python3','docs/wave7b/run_job.py',
+    b=pool.submit(perfio_after_peers,['taskset','-c','80-95','python3','docs/wave7b/run_job.py',
         'perfio-owner','perfio_stream','--server-cores','80-87','--load-cores','88-95',
         '--ports','26830-26839','--test-port','26897'],env)
     receipt['standalone']=a.result();receipt['perfio_owner']=b.result()

@@ -1,0 +1,20 @@
+{
+  "branch": "cx-wave7",
+  "maintainer_commits_preserved": true,
+  "gate_unchanged": true,
+  "gate_sha256": "4c2e1a84917d71e74bd24daaf5a142884baea7da445f7d92fd45f131fefd89cb",
+  "measure_request_original_prefix_preserved": true,
+  "DQ": 0,
+  "DF": 0,
+  "expect_quick": 798,
+  "expect_full": 815,
+  "owned_port_listeners": [],
+  "owned_correctness_servers": [],
+  "owned_cpu_burners": [],
+  "source_whitespace_check": 0,
+  "artifacts": {
+    "/home/user/Projects/cx-wave7/build/tomokv": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+    "/home/user/Projects/cx-wave7/build/tomokv-wave7b-PAD-A": "98780c486c3578810a498e836888075ce3e944e85801393b952c1af0f2e5ff4a",
+    "/home/user/Projects/bench-bins/tomokv-headline-05a5e01a9": "ff538ad1bebb30a7272e5396ef7daca90df14f2a84db3dd6f3cfc2acc8c1acd8"
+  }
+}

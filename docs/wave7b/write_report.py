@@ -18,6 +18,7 @@ def fixture(options):
     return span([row['seconds'] for r in records for row in r['fixtures'] if row['fixture']==options])
 standalone=next(s for s in f['standalone_summary'] if s.startswith('Ran 72 '))
 post=f['binary_sha256_after']
+instrument=json.loads((DOC/'instrument.json').read_text())['sha256']
 report=f"""## wave7b
 
 Completed from `f974e5c50` on branch `cx-wave7`. Both maintainer commits (`b7d6b42da`, `f974e5c50`) remain ancestors. **DQ/DF = 0/0**; `tests/gate.sh` is byte-identical to the supplied HEAD, including **EXPECT 798/815** and the **1620-second ABBA row budget**. No push. All execution uses CPUs **64–95**; correctness listeners use **26800–26899**.
@@ -33,7 +34,7 @@ Two separate costs explain the approximately 1250-second row:
 
 The one-slot change from wave 7 was helpful: it stopped pinning the coordinator onto its single worker CPU. It did not address the gate's inherited two-CPU client mask or the other fixtures' worker explosion. Commit `6496c622c` changes only `docs/wave7/prebuilt_validation.py` and `docs/wave7/watch_validation.py`; neither is on these rows' execution path.
 
-The fixed job ran **10/10 PASS** while other whole correctness jobs ran. Three active slots used server CPUs **64–71 / 72–79 / 80–87** and client CPUs **88–89 / 90–91 / 92–93**. Every server slot used the gate's **8 threads, 6:2 ratio, 16 shards**. Independent invocations each selected 16 physical CPUs to satisfy the planner minimum; surplus selected CPUs were inactive. The third slot ran ten complete `flip` jobs, then complete `feature-split-0` and `feature-armed-0` jobs throughout the remaining ABBA work. No full iteration ran.
+The fixed job ran **10/10 PASS** while other whole correctness jobs ran. Three active slots used server CPUs **64–71 / 72–79 / 80–87** and client CPUs **88–89 / 90–91 / 92–93**. Each slot received **eight server CPUs and two client CPUs**, with the split-server defaults **6:2 and 16 shards**. Independent invocations each selected 16 physical CPUs to satisfy the planner minimum; surplus selected CPUs were unused by that invocation's worker slot, and prerequisite builds were already fresh. The third slot ran ten complete `flip` jobs, then complete `feature-split-0` and `feature-armed-0` jobs throughout the remaining ABBA work. No full iteration ran.
 
 | Timed scope | PRE under contention | POST under contention, 10 whole rows |
 |---|---:|---:|
@@ -65,8 +66,8 @@ All **10 complete `flip` jobs passed under contention**; the epoll-LB row took *
 
 ### Validation and final artifacts
 
-- Ten complete `abba_selftest` jobs: **10 PASS**. Ten complete `flip` jobs: **10 PASS**. Receipts include prerequisites, full ledgers, source hashes, commands, allocated CPUs/ports and unchanged executable hashes.
-- Final standalone `taskset -c 64-79 python3 tests/gates_test.py`: **{standalone}; OK**. It ran alongside `perfio_stream` on disjoint CPUs. [Standalone receipt](docs/wave7b/final-checks/receipt.json).
+- Ten complete `abba_selftest` jobs: **10 PASS**. Ten complete `flip` jobs: **10 PASS**. Receipts retain prerequisites, full ledgers, commands, allocated CPUs/ports and unchanged executable hashes. Per-file source hashes were added after the initial `abba-smoke` run; that first run retains its commit/gate/binary binding and complete timing/log evidence.
+- Final standalone `taskset -c 64-79 python3 tests/gates_test.py`: **{standalone}; OK**. `perfio_stream` used disjoint CPUs 80–95 after the background contention jobs finished. [Standalone receipt](docs/wave7b/final-checks/receipt.json).
 - Complete owning jobs `lbplanner_units`, `flip_unit`, `debug-0`, `debug-1`, `perfio_stream`, and `reorder_identity`: **PASS**, as did every background `feature-split-0` / `feature-armed-0` job. The feature/stream owners exercise both thread modes. [All finished jobs and archives](docs/wave7b/evidence.json).
 - `make all`, every literal `job_production_units` target, `mdbqsbr-live-arms`, and the custom blockfix-cost makefile targets: **PASS**. All **46 make -q freshness checks pass**, including concrete outputs of both MDBQSBR live arms. Freshness was checked again after the correctness campaign. [Build commands and results](docs/wave7b/build-proof/receipt.json), [final freshness](docs/wave7b/final-checks/receipt.json).
 - R7's full off-path identity and every negative control pass. The strict linked comparison against the supplied wave-7 executable has **85 changed groups**, including the two new debug methods. Every selected GET/SET/MGET/MSET group is unchanged. Of **247 command-counted groups**, 245 are strict-identical; the other two differ only in switch-table offsets, with every instruction encoding and bounded case destination verified equal, including changed-branch/destination negative controls. The raw differences remain visible. [Linked inventory](docs/wave7b/identity.json), [exact two-body diffs](docs/wave7b/counted-body-diffs.txt), [switch proof](docs/wave7b/switch-provenance.json).
@@ -83,7 +84,9 @@ PAD is **kind A, behaviour twin**: unmodified headline behavior with final POST'
 
 ### Maintainer measurement request
 
-The instrument closure includes `gate_history.py` and `gate_receipt.py`; their changed bytes require fresh instrument/null provenance even though fingerprint scope and verdict rules are preserved. Using the gate's own instrument, rerun the affected **PRE/PRE null**, then **PRE/POST landing** and **PRE/PAD-A** section-origin/size control. Retain every existing [headline cell](tests/headline_cells.txt), [multi-key cell](tests/mkprobe_cells.txt), and [multi-DB cell](docs/lbplanner/multidb-cells.txt), including separate **2s SET depth 1** and **eight-key MSET depth 1/8** decisions. Record rate at matched offered load, declared depth-1 latency, cycles/op, IPC and instructions/op for every cell. Rate/latency decide; do not average away a regressed SET/MSET cell. The ordinary server path must stay within the established null floor.
+The instrument closure includes `gate_history.py` and `gate_receipt.py`; their changed bytes require fresh instrument/null provenance even though fingerprint scope and verdict rules are preserved. The final [instrument manifest](docs/wave7b/instrument.json) has SHA-256 `{instrument}`. Using the gate's own instrument, rerun the affected **PRE/PRE null**, then **PRE/POST landing** and **PRE/PAD-A** section-origin/size control. Retain every existing [headline cell](tests/headline_cells.txt), [multi-key cell](tests/mkprobe_cells.txt), and [multi-DB cell](docs/lbplanner/multidb-cells.txt), including separate **2s SET depth 1** and **eight-key MSET depth 1/8** decisions. Record rate at matched offered load, declared depth-1 latency, cycles/op, IPC and instructions/op for every cell. Rate/latency decide; do not average away a regressed SET/MSET cell. The ordinary server path must stay within the established null floor.
+
+[Final cleanup audit](docs/wave7b/final-audit.json): no remaining owned correctness servers, CPU contenders, or listeners on ports 26800–26899.
 
 **NOT RUN:** the 112-physical-core, 10-slot full `tests/gate.sh iteration`; all performance benchmarks, ABBA/NIC measurements, null campaigns and performance-only jobs. These remain with the maintainer under this lane's runtime authorization. The correctness reproduction uses the authorized 32 CPUs with matching per-slot geometry, not the full landing allocation. The next landing supplies the new whole-row budget.
 """
