@@ -77,7 +77,8 @@ def prebuilt_watch_effects(admin, target):
         key, sibling, owner, shard = "wave7:prebuilt:key", "wave7:prebuilt:sibling", None, None
     writer = None
     for attempt in range(128):
-        candidate = Conn(admin.host, admin.port, buffering=0)
+        # Conn's bulk reader requires a buffered file for multi-packet values.
+        candidate = Conn(admin.host, admin.port)
         io = candidate.must("DEBUG", "IO-THREAD") if target else None
         if not target or io != owner:
             writer = candidate
@@ -93,6 +94,8 @@ def prebuilt_watch_effects(admin, target):
                 for size in (513, 1024, 200000):
                     value = b"p" * size
                     for case in ("sibling", "replace", "nx", "xx-missing", "get"):
+                        print("PREBUILT", dict(target=target, shard=shard, owner=owner,
+                              writer_io=io, mask=mask, size=size, case=case), flush=True)
                         assert admin.must("SET", sibling, "untouched") == b"OK"
                         assert admin.must("SET", key, "old") == b"OK"
                         if case == "xx-missing": assert admin.must("DEL", key) == 1
