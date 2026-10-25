@@ -69,65 +69,65 @@
     {
       "variant": 0,
       "repeat": 0,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 0,
       "repeat": 1,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 0,
       "repeat": 2,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 0,
       "repeat": 3,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 1,
       "repeat": 0,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 1,
       "repeat": 1,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 1,
       "repeat": 2,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     },
     {
       "variant": 1,
       "repeat": 3,
-      "constructed_bytes": 27984,
-      "retained_bytes": 26672,
-      "lua_gc_bytes": 23817,
+      "constructed_bytes": 32256,
+      "retained_bytes": 30944,
+      "lua_gc_bytes": 26805,
       "after_close_bytes": 0
     }
   ]

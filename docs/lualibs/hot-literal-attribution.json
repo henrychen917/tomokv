@@ -1,0 +1,23 @@
+[
+  {
+    "pre_reference": "0x634",
+    "post_reference": "0x644",
+    "pre_bytes": "ffffffff00000000",
+    "post_bytes": "ffffffff00000000",
+    "equal": true
+  },
+  {
+    "pre_reference": "0x664",
+    "post_reference": "0x674",
+    "pre_bytes": "0200000001000000",
+    "post_bytes": "0200000001000000",
+    "equal": true
+  },
+  {
+    "pre_reference": "0x6a4",
+    "post_reference": "0x6b4",
+    "pre_bytes": "0100000002000000",
+    "post_bytes": "0100000002000000",
+    "equal": true
+  }
+]

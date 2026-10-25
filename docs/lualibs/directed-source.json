@@ -1,0 +1,7 @@
+{
+  "source_commit": "1909358b1",
+  "test_sha256": "ad6cf1a600abf19c17de02e0b2e4f198759ce67b2eb24837244c24e8d9302f26",
+  "gate_sha256": "a33388624b29afe47aadabc9dcf6451cc35b7fcbf5dbe13dd1302f2e7e309810",
+  "pre_pad_frames_identical": true,
+  "frames_checked": 10992
+}
