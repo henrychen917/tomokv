@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <pthread.h> /* TomoKV: concurrent Lua state initialization. */
 
 #include "fpconv.h"
 
@@ -40,8 +41,7 @@
  *
  * This avoids the need for per thread storage or expensive checks
  * for call. */
-/* TomoKV: Lua states initialize concurrently on different executors. */
-static _Thread_local char locale_decimal_point = '.';
+static char locale_decimal_point = '.';
 
 /* In theory multibyte decimal_points are possible, but
  * Lua CJSON only supports UTF-8 and known locales only have
@@ -199,7 +199,10 @@ int fpconv_g_fmt(char *str, double num, int precision)
 
 void fpconv_init()
 {
-    fpconv_update_locale();
+    /* The process locale is fixed, as required above. Publish it once before
+     * any state converts numbers; no synchronization on the conversion path. */
+    static pthread_once_t once = PTHREAD_ONCE_INIT;
+    pthread_once(&once, fpconv_update_locale);
 }
 
 /* vi:ai et sw=4 ts=4:

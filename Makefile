@@ -54,6 +54,10 @@ LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
 OBJ      := $(SRC:%.cc=$(BUILD_ROOT)/%.o)
+# Redis 7.4's permissively licensed helpers share the existing Lua VM between
+# the two database variants. Compile as C, including the caller's sanitizer flags.
+LUA_HELPER_SRC := $(addprefix third_party/lua/helpers/,lua_cjson.c lua_cmsgpack.c lua_bit.c lua_struct.c strbuf.c fpconv.c)
+OBJ      += $(LUA_HELPER_SRC:%.c=$(BUILD_ROOT)/%.o)
 DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
@@ -372,6 +376,10 @@ $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
 # The only shared code is third-party Lua; all database state is variant-private.
+$(BUILD_ROOT)/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(CXXFLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c $< -o $@
+
 $(BUILD_ROOT)/db0/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@

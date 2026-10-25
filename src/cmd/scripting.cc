@@ -42,6 +42,10 @@ extern "C" {
 #else
 #include "../../third_party/lua/lua_amalgamation.c"
 #endif
+int luaopen_cjson(lua_State*);
+int luaopen_cmsgpack(lua_State*);
+int luaopen_bit(lua_State*);
+int luaopen_struct(lua_State*);
 }
 #pragma GCC diagnostic pop
 
@@ -764,6 +768,34 @@ void open_library(lua_State* state, lua_CFunction open, const char* name) {
     lua_call(state, 1, 0);
 }
 
+int redis_sha1hex(lua_State* state) {
+    if (lua_gettop(state) != 1) {
+        lua_createtable(state, 0, 1);
+        lua_pushliteral(state, "ERR wrong number of arguments");
+        lua_setfield(state, -2, "err");
+        return lua_error(state);
+    }
+    size_t length = 0;
+    const char* input = lua_tolstring(state, 1, &length);
+    // Redis coerces numbers to strings; other types hash the empty string.
+    const std::string digest = sha1_hex({input, static_cast<uint32_t>(length)});
+    lua_pushlstring(state, digest.data(), digest.size());
+    return 1;
+}
+
+// One cold registration seam for both EVAL and FUNCTION. The redis table is on
+// top. Its tables and helper tables
+// are frozen by the existing sandbox traversal after registration. Keeping this
+// seam out of line also permits an exact-layout PRE-behaviour PAD-A control.
+__attribute__((noinline, noclone)) void open_helper_libraries(lua_State* state) {
+    open_library(state, luaopen_cjson, "cjson");
+    open_library(state, luaopen_struct, "struct");
+    open_library(state, luaopen_cmsgpack, "cmsgpack");
+    open_library(state, luaopen_bit, "bit");
+    lua_pushcfunction(state, redis_sha1hex);
+    lua_setfield(state, -2, "sha1hex");
+}
+
 // Built ONCE per thread state: libraries, strips, the redis table (closures over the stable
 // per-state context slot), the hook registry entry, and — last — the globals protection.
 void create_sandbox_static(lua_State* state, ScriptContext** slot) {
@@ -800,6 +832,7 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_setresp, 1);
     lua_setfield(state, -2, "setresp");
+    open_helper_libraries(state);
     lua_setglobal(state, "redis");
 
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -1111,6 +1144,18 @@ std::string script_clean_error(const char* text, size_t length) {
 int script_pcall_library(lua_State* state) {
     ScriptContext context;
     ScriptContext* current = &context;
+    // Redis exposes helpers to FUNCTION callbacks, but not to the registration
+    // body executed by FUNCTION LOAD. Keep each table rooted below the callable
+    // and restore it even when registration throws or exceeds its budget.
+    static constexpr const char* helpers[] = {"cjson", "struct", "cmsgpack", "bit"};
+    const int helper_base = lua_gettop(state);
+    for (const char* name : helpers) {
+        lua_pushstring(state, name);
+        lua_rawget(state, LUA_GLOBALSINDEX);
+        lua_insert(state, -2);
+        lua_pushnil(state);
+        set_global_raw(state, name);
+    }
     // Keep the previous context slot rooted below the callable while the library runs. This
     // works for both the temporary LOAD interpreter and an executor's persistent interpreter.
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -1127,6 +1172,11 @@ int script_pcall_library(lua_State* state) {
     lua_pushvalue(state, saved);
     lua_rawset(state, LUA_REGISTRYINDEX);
     lua_remove(state, saved);
+    for (int i = 3; i >= 0; --i) {
+        lua_pushvalue(state, helper_base + i);
+        set_global_raw(state, helpers[i]);
+        lua_remove(state, helper_base + i);
+    }
     if (context.timed_out) {
         if (status != 0) lua_pop(state, 1);
         lua_pushliteral(state, "ERR function library exceeded the instruction limit");

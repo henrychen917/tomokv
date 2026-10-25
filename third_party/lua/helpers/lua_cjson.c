@@ -38,6 +38,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <strings.h> /* TomoKV: POSIX strncasecmp declaration. */
 #include <math.h>
 #include <stdint.h>
 #include <limits.h>

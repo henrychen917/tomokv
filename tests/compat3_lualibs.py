@@ -140,6 +140,8 @@ def cases():
 
 
 SMOKE = "return {cjson.encode({}),cmsgpack.pack(1),bit.tohex(-1),struct.pack('>I2',258),redis.sha1hex('abc')}"
+LOOPS = ('cjson.encode({1})', 'cmsgpack.pack(1)', 'bit.band(7,3)',
+         "struct.pack('I2',12)", "redis.sha1hex('abc')")
 
 
 def protected(body):
@@ -211,6 +213,9 @@ def main():
         source = '#!lua name=lualibs\n' + '\n'.join(
             f"redis.register_function('lualib_{i}',function(keys,args) {protected(body)} end)"
             for i, (_, body) in enumerate(matrix))
+        source += '\n' + '\n'.join(
+            f"redis.register_function('lualibs_spin_{i}',function() while true do {body} end end)"
+            for i, body in enumerate(LOOPS))
         for c in (oracle, target):
             assert c.command('FUNCTION', 'FLUSH') == b'+OK\r\n'
         check('FUNCTION LOAD callbacks', target.command('FUNCTION', 'LOAD', source),
@@ -219,13 +224,21 @@ def main():
             for surface, argv in (('EVAL', ('EVAL', protected(body), 1, key)),
                                   ('FCALL', ('FCALL', 'lualib_' + str(i), 1, key))):
                 check(surface + ':' + name, target.command(*argv), oracle.command(*argv))
-        load_source = ("#!lua name=lualibs_load\nlocal v=(function() " + SMOKE +
-                       " end)(); redis.register_function('lualibs_load_probe',function() return v end)")
-        check('FUNCTION LOAD uses helpers', target.command('FUNCTION', 'LOAD', load_source),
-              oracle.command('FUNCTION', 'LOAD', load_source))
+        for helper in ('cjson', 'cmsgpack', 'bit', 'struct', 'redis.sha1hex'):
+            load_source = ("#!lua name=lualibs_load\nlocal v=" + helper +
+                           "; redis.register_function('lualibs_load_probe',function() return v end)")
+            expected = oracle.command('FUNCTION', 'LOAD', load_source)
+            assert expected.startswith(b'-ERR '), expected
+            check('FUNCTION LOAD forbids ' + helper, target.command('FUNCTION', 'LOAD', load_source), expected)
         for owner in topo.owners:
-            argv = ('FCALL', 'lualibs_load_probe', 1, keys[owner][0])
-            check('FUNCTION loaded helper upvalues owner:' + str(owner),
+            argv = ('FCALL', 'lualib_0', 1, keys[owner][0])
+            check('FUNCTION callback helper globals owner:' + str(owner),
+                  target.command(*argv), oracle.command(*argv))
+        for c in (target, oracle):
+            assert c.command('SCRIPT', 'FLUSH') == b'+OK\r\n'
+        for owner in topo.owners:
+            argv = ('FCALL', 'lualib_0', 1, keys[owner][0])
+            check('FUNCTION helpers after SCRIPT FLUSH owner:' + str(owner),
                   target.command(*argv), oracle.command(*argv))
         # The main singleton cjson table remains frozen; C-backed configuration
         # methods are intentionally legal, as in Redis. Restore it before leaving.
@@ -233,6 +246,45 @@ def main():
         check('cjson singleton configuration', target.command('EVAL', protected(body), 1, key),
               oracle.command('EVAL', protected(body), 1, key))
         check('SCRIPT KILL idle', target.command('SCRIPT', 'KILL'), oracle.command('SCRIPT', 'KILL'))
+        # TomoKV deliberately retains its pre-existing instruction budget, while
+        # Redis admits a time-limited busy window and then accepts explicit KILL.
+        # Prove both behaviours with every helper and both invocation surfaces;
+        # do not claim byte equivalence for this documented execution-policy gap.
+        old_limit = oracle.cmd('CONFIG', 'GET', 'lua-time-limit')[1]
+        assert oracle.cmd('CONFIG', 'SET', 'lua-time-limit', 1) == b'OK'
+        try:
+            for i, body in enumerate(LOOPS):
+                for surface, argv, kill in (
+                    ('EVAL', ('EVAL', 'while true do ' + body + ' end', 1, key), ('SCRIPT', 'KILL')),
+                    ('FCALL', ('FCALL', 'lualibs_spin_' + str(i), 1, key), ('FUNCTION', 'KILL')),
+                ):
+                    got = target.command(*argv)
+                    bounded = got.startswith(b'-BUSY ') and b'instruction limit' in got
+                    if not bounded:
+                        failures.append(surface + ':instruction-budget:' + body)
+                    running = Wire(args.oracle[0], int(args.oracle[1]), timeout=15)
+                    try:
+                        running.send(*argv)
+                        busy = oracle.command('PING')
+                        # If PING won the socket race, retry after the invocation
+                        # is definitely sent. Bound attempts; never skip the arm.
+                        for _ in range(100):
+                            if busy.startswith(b'-BUSY '):
+                                break
+                            busy = oracle.command('PING')
+                        assert busy.startswith(b'-BUSY '), busy
+                        killed = oracle.command(*kill)
+                        assert killed == b'+OK\r\n', killed
+                        reply = running.frame()
+                        assert b'killed' in reply.lower(), reply
+                        print(json.dumps(dict(control=surface + ':' + body, target=describe(got),
+                            target_instruction_budget=bounded, oracle_busy=describe(busy),
+                            oracle_kill=describe(killed), oracle_reply=describe(reply))), flush=True)
+                    finally:
+                        oracle.command(*kill)
+                        running.close()
+        finally:
+            assert oracle.cmd('CONFIG', 'SET', 'lua-time-limit', old_limit) == b'OK'
         assert compared >= 300, compared
         print(json.dumps(dict(compared=compared, failed=len(failures), failures=failures)), flush=True)
         assert not failures, f'{len(failures)}/{compared} exact-frame comparisons failed'

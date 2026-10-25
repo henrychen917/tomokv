@@ -20,9 +20,11 @@ Upstream source: https://github.com/redis/redis/tree/f103d127b9747965e28f20615ef
 
 Local changes: `lua_cjson.c` drops the Solaris-only Redis server header include
 (the header has a different license and is **not imported**); platform `math.h`
-provides the needed operations on this Linux target. `fpconv.c` makes its locale
-cache C11 thread-local, preventing concurrent initialization/read races between
-executor Lua states. It costs one byte of TLS per OS thread. All other helper
+provides the needed operations on this Linux target; `<strings.h>` supplies the
+POSIX `strncasecmp` declaration. `fpconv.c` publishes its immutable locale cache
+with `pthread_once`, preventing concurrent initialization/read races between
+executor Lua states, without adding TLS or synchronization to conversion calls.
+The process locale is fixed, as the upstream code requires. All other helper
 files are byte-identical to the origin. Redis uses libc fpconv, and this build
 uses the same backend and the same default options and limits.
 
