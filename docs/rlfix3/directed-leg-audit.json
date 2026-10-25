@@ -1,0 +1,162 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "epoll",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-1s-epoll-0.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "epoll",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-1s-epoll-1.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "uring",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-1s-uring-0.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "uring",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-1s-uring-1.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "epoll",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-2s-epoll-0.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "epoll",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-2s-epoll-1.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "uring",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-2s-uring-0.log"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "uring",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 34,
+    "wire_unions": true,
+    "source": "build/gate-run.NUpHEQ/jobs/rlfix3_info/info-2s-uring-1.log"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "epoll",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-1s-epoll-0.log"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "epoll",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-1s-epoll-1.log"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "uring",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-1s-uring-0.log"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "uring",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-1s-uring-1.log"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "epoll",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-2s-epoll-0.log"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "epoll",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-2s-epoll-1.log"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "uring",
+    "read_local": 0,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-2s-uring-0.log"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "uring",
+    "read_local": 1,
+    "native_legs": 52,
+    "negative_controls_faulted": 0,
+    "wire_unions": true,
+    "source": "build/gate-run.VBz7uv/jobs/rlfix3_info/info-2s-uring-1.log"
+  }
+]

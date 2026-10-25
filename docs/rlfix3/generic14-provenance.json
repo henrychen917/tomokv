@@ -1,0 +1,6 @@
+{
+  "source": "/tmp/claude-1000/generic_merit_cells.txt",
+  "source_sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+  "local_equal": "tests/wbland_merit_cells.txt",
+  "copied_verbatim": true
+}

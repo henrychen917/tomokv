@@ -1,0 +1,66 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "epoll",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.CbTkcC",
+    "ledger": "docs/rlfix3/pre-zc-1s-epoll-ledger.tsv"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "engine": "uring",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.pHnfUJ",
+    "ledger": "docs/rlfix3/pre-zc-1s-uring-ledger.tsv"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.TCfP52",
+    "ledger": "docs/rlfix3/pre-zc-2s-epoll-ledger.tsv"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.1tMXgh",
+    "ledger": "docs/rlfix3/pre-zc-2s-uring-ledger.tsv"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "epoll",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.VdTF97",
+    "ledger": "docs/rlfix3/post-zc-1s-epoll-ledger.tsv"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "engine": "uring",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.rRGprX",
+    "ledger": "docs/rlfix3/post-zc-1s-uring-ledger.tsv"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.rDNNuF",
+    "ledger": "docs/rlfix3/post-zc-2s-epoll-ledger.tsv"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.mkrbP1",
+    "ledger": "docs/rlfix3/post-zc-2s-uring-ledger.tsv"
+  }
+]

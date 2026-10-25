@@ -1,0 +1,16 @@
+read_local=1 bytes=1024 zc_min=0 lane_hits=4 zc_sends=0
+read_local=1 bytes=1024 zc_min=1024 lane_hits=4 zc_sends=0
+read_local=1 bytes=1024 zc_min=1025 lane_hits=4 zc_sends=0
+read_local=1 bytes=16384 zc_min=0 lane_hits=4 zc_sends=0
+read_local=1 bytes=16384 zc_min=16384 lane_hits=4 zc_sends=0
+read_local=1 bytes=16384 zc_min=16385 lane_hits=4 zc_sends=0
+read_local=1 bytes=262144 zc_min=0 lane_hits=4 zc_sends=0
+read_local=1 bytes=262144 zc_min=262144 lane_hits=4 zc_sends=0
+read_local=1 bytes=262144 zc_min=262145 lane_hits=4 zc_sends=0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix3/tests/rlfix3_zc.py", line 61, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix3/tests/rlfix3_zc.py", line 46, in main
+    assert c.cmd("CONFIG", "GET", "zc-min-read-local") == [b"zc-min-read-local", b"0"], "missing/false lane borrow capability"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: missing/false lane borrow capability

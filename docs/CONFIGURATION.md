@@ -61,7 +61,7 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
 | `flip-auto` | T | u32, 0 or 1 | `0` | Boot/GET | `flip_auto`, `flip_fingerprint_window` (derived) | Automatic IO/executor split controller; 1s rejects 1; `src/core/config.h:863`, `:1168`. |
 | `hash` | T | `mix64` or `siphash` | `mix64` | Boot | `hash` | Select key hash implementation; `src/core/config.h:1057`. |
-| `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Single GET borrow threshold (0 disables); scatter cutover has a separate zero caveat below; `src/core/config.h:1042`. |
+| `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Owner-served GET borrow threshold (0 disables). Lane-served GET/MGET replies always copy; see the lifetime constraint below. |
 | `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable grouping for ordinary multi-key mutations. EXEC and cross-shard scripts use the shared admission window at either setting; see `Server::atomic_try_admit` and `src/cmd/scatter_engine.inc`. |
 
 Each write EXEC is one version-ordered unit. Its version is fixed at first
@@ -355,10 +355,20 @@ values (`:653`, `:723`). It writes save clauses separately and skips the fixed
 AOF preamble declaration (`:643`, `:707`). This is not an export of CLI-only
 placement overrides. See [FINDINGS](FINDINGS.md#configuration-round-tripping).
 
-The single-GET zero-copy gate and scatter gather cutover differ at zero:
-`src/cmd/t_string.cc:354` tests whether zc-min is enabled, whereas
-`src/cmd/scatter_engine.inc:2985` takes `min(zc-min, ValueSlot::kInline)`.
-Thus zero cannot be advertised as disabling all scatter borrow allocations.
+`CONFIG GET zc-min*` reports the live owner threshold (`zc-min`) and the
+read-only lane capability (`zc-min-read-local`, always `0`). Owner-served GETs,
+including fallbacks from an armed lane, borrow at value length >= `zc-min`;
+0 disables borrowing. Scatter gather uses `min(zc-min, ValueSlot::kInline)`
+when enabled and also copies when disabled. Userspace TLS copies replies.
+
+Lane-served GET/MGET replies always copy the value before completing the read.
+Their immutable capture is protected by QSBR only through the current reader
+rotation. A blocked socket can retain a reply through later rotations, after
+the owner may reclaim that value. The owner's borrow registry is an
+unsynchronized, owner-only vector/index; a foreign lane cannot register there.
+Consequently a lane borrow would need a new lifetime protocol. Merely assigning
+`Op::zc_ptr`, or calling the owner's `FlatStore::borrow` on the lane, is unsafe.
+The existing lane design keeps no store pointer in a completed reply.
 
 ## Worked example
 

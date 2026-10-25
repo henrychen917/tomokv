@@ -1,0 +1,245 @@
+{
+  "pre": "build/tomokv-pre",
+  "post": "build/tomokv",
+  "pre_sha256": "2906fb8cf8279b880d64103dc1a70d89c9b88b54079f61edce0c7f59c7cdca4a",
+  "post_sha256": "d00d4c6ba6dba4d76b5a07fbdce632a22b4bf5aac9eb8138d45391daa9181997",
+  "literal_pools": true,
+  "strict_noop": false,
+  "categories": {
+    "commands": {
+      "total": 16,
+      "equal": 16
+    },
+    "dispatch": {
+      "total": 92,
+      "equal": 82
+    },
+    "envelope": {
+      "total": 120,
+      "equal": 119
+    },
+    "multi-key commands": {
+      "total": 32,
+      "equal": 32
+    },
+    "retire": {
+      "total": 8,
+      "equal": 8
+    },
+    "scheduler": {
+      "total": 72,
+      "equal": 72
+    }
+  },
+  "changed": [
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "pre_address": "0x749660",
+      "pre_size": 20676,
+      "pre_instructions": 4079,
+      "post_address": "0x748c60",
+      "post_size": 20517,
+      "post_instructions": 4049,
+      "equal": false,
+      "diff": "048.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "pre_address": "0x5132e",
+      "pre_size": 280,
+      "pre_instructions": 62,
+      "post_address": "0x51254",
+      "post_size": 281,
+      "post_instructions": 62,
+      "equal": false,
+      "diff": "049.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)"
+      ],
+      "pre_address": "0x751f90",
+      "pre_size": 21103,
+      "pre_instructions": 4157,
+      "post_address": "0x7514f0",
+      "post_size": 20956,
+      "post_instructions": 4128,
+      "equal": false,
+      "diff": "050.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "instance": 1,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "pre_address": "0x73fe50",
+      "pre_size": 12161,
+      "pre_instructions": 2450,
+      "post_address": "0x73f4f0",
+      "post_size": 12025,
+      "post_instructions": 2416,
+      "equal": false,
+      "diff": "053.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "instance": 1,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "pre_address": "0x51052",
+      "pre_size": 244,
+      "pre_instructions": 55,
+      "post_address": "0x50f70",
+      "post_size": 248,
+      "post_instructions": 55,
+      "equal": false,
+      "diff": "057.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]"
+      ],
+      "pre_address": "0x7435d0",
+      "pre_size": 20830,
+      "pre_instructions": 4108,
+      "post_address": "0x742be0",
+      "post_size": 20802,
+      "post_instructions": 4092,
+      "equal": false,
+      "diff": "061.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "pre_address": "0x5118a",
+      "pre_size": 284,
+      "pre_instructions": 63,
+      "post_address": "0x510ac",
+      "post_size": 287,
+      "post_instructions": 63,
+      "equal": false,
+      "diff": "063.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "instance": 0,
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)"
+      ],
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)"
+      ],
+      "pre_address": "0x757200",
+      "pre_size": 21014,
+      "pre_instructions": 4146,
+      "post_address": "0x7566d0",
+      "post_size": 20910,
+      "post_instructions": 4126,
+      "equal": false,
+      "diff": "065.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "instance": 2,
+      "pre_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "post_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "pre_address": "0x3d2fb0",
+      "pre_size": 9885,
+      "pre_instructions": 1989,
+      "post_address": "0x3d28d0",
+      "post_size": 9904,
+      "post_instructions": 1991,
+      "equal": false,
+      "diff": "117.diff"
+    },
+    {
+      "category": "dispatch",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "instance": 2,
+      "pre_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "post_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]"
+      ],
+      "pre_address": "0x37ef8",
+      "pre_size": 166,
+      "pre_instructions": 32,
+      "post_address": "0x37e6a",
+      "post_size": 166,
+      "post_instructions": 32,
+      "equal": false,
+      "diff": "121.diff"
+    },
+    {
+      "category": "envelope",
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "instance": 0,
+      "pre_aliases": [
+        "void tomo::IoLoop::run_loop<false, true, false, true, false>()"
+      ],
+      "post_aliases": [
+        "void tomo::IoLoop::run_loop<false, true, false, true, false>()"
+      ],
+      "pre_address": "0x7350b0",
+      "pre_size": 5591,
+      "pre_instructions": 1099,
+      "post_address": "0x734970",
+      "post_size": 5575,
+      "post_instructions": 1097,
+      "equal": false,
+      "diff": "290.diff"
+    }
+  ]
+}

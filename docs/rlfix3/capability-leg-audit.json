@@ -1,0 +1,418 @@
+[
+  {
+    "arm": "pre",
+    "leg": "zc-1s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-1s-epoll-0.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-1s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-1s-epoll-1.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-1s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-1s-uring-0.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-1s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-1s-uring-1.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-2s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-2s-epoll-0.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-2s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-2s-epoll-1.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-2s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-2s-uring-0.log"
+  },
+  {
+    "arm": "pre",
+    "leg": "zc-2s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.dWOFrJ/jobs/rlfix3_zc/zc-2s-uring-1.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-1s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-1s-epoll-0.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-1s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-1s-epoll-1.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-1s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-1s-uring-0.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-1s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-1s-uring-1.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-2s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-2s-epoll-0.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-2s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-2s-epoll-1.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-2s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-2s-uring-0.log"
+  },
+  {
+    "arm": "post",
+    "leg": "zc-2s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.3x4T01/jobs/rlfix3_zc/zc-2s-uring-1.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-1s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-1s-epoll-0.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-1s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-1s-epoll-1.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-1s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-1s-uring-0.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-1s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-1s-uring-1.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-2s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-2s-epoll-0.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-2s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-2s-epoll-1.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-2s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-2s-uring-0.log"
+  },
+  {
+    "arm": "pad-a",
+    "leg": "zc-2s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "FAIL",
+      "FAIL",
+      "FAIL",
+      "FAIL"
+    ],
+    "source": "build/gate-run.BNZwIa/jobs/rlfix3_zc/zc-2s-uring-1.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-1s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-1s-epoll-0.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-1s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-1s-epoll-1.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-1s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-1s-uring-0.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-1s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-1s-uring-1.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-2s-epoll-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-2s-epoll-0.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-2s-epoll-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-2s-epoll-1.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-2s-uring-0",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-2s-uring-0.log"
+  },
+  {
+    "arm": "pad-b",
+    "leg": "zc-2s-uring-1",
+    "threshold_cases": 9,
+    "watch_fallback": true,
+    "capability_checks": [
+      "PASS",
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "source": "build/gate-run.YaumKh/jobs/rlfix3_zc/zc-2s-uring-1.log"
+  }
+]

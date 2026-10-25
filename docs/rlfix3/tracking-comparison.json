@@ -1,0 +1,7 @@
+{
+  "mark": "DIFF-TRK-1",
+  "pre": "No redundant invalidation-frame difference observed in these standard-seed split and armed-fused runs.",
+  "post": "No redundant invalidation-frame difference observed in these standard-seed split and armed-fused runs.",
+  "scope": "Both engines, permanent seeds 7,19,20,23 plus rotating 21, atomic 0/1; this is not statistical proof of absence.",
+  "environmental_failures": "Original split climon failures were reader-control bind refusals, not redundant-frame mismatches; focused gate reruns passed all ten seed/atomic legs on PRE uring, PRE epoll and POST uring."
+}
