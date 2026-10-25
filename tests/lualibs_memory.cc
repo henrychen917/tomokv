@@ -3,6 +3,7 @@
 // report jemalloc's net thread allocation as well. No server or load generator.
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <cstdio>
 #include <jemalloc/jemalloc.h>
 extern "C" {
@@ -10,6 +11,16 @@ extern "C" {
 }
 namespace tomo { lua_State* script_new_sandbox_state(); }
 namespace tomo_db0 { lua_State* script_new_sandbox_state(); }
+
+// PRE's frozen scripting object predates this callback. The registry objects
+// are not executed by this constructor-only census; fail loudly if that ever
+// changes. POST's real strong definitions override these unreachable stubs.
+namespace tomo {
+__attribute__((weak)) void script_sync_function_helpers(lua_State*, uint64_t) { std::abort(); }
+}
+namespace tomo_db0 {
+__attribute__((weak)) void script_sync_function_helpers(lua_State*, uint64_t) { std::abort(); }
+}
 
 static uint64_t allocated() {
     uint64_t a = 0, d = 0;

@@ -136,6 +136,7 @@ public:
     void flush() {
         std::lock_guard<std::mutex> lock(mu_);
         libraries_.clear();
+        ++flush_generation_;
         bump();
     }
 
@@ -163,13 +164,15 @@ public:
     // Copies every library out for a per-thread materialization pass, together with the
     // generation the copy was taken at (read under the same lock, so the stamp cannot race ahead
     // of the contents it describes).
-    bool snapshot(std::vector<LibraryDef>& out, uint64_t& stamp) const {
+    bool snapshot(std::vector<LibraryDef>& out, uint64_t& stamp,
+                  uint64_t* flush_generation = nullptr) const {
         try {
             std::lock_guard<std::mutex> lock(mu_);
             out.clear();
             out.reserve(libraries_.size());
             for (const auto& entry : libraries_) out.push_back(entry.second);
             stamp = generation_.load(std::memory_order_relaxed);
+            if (flush_generation) *flush_generation = flush_generation_;
             return true;
         } catch (const std::bad_alloc&) {
             return false;
@@ -231,6 +234,7 @@ private:
     mutable std::mutex mu_;
     std::map<std::string, LibraryDef> libraries_;
     std::atomic<uint64_t> generation_{0};
+    uint64_t flush_generation_ = 0; // guarded by mu_; published with the library snapshot
 };
 
 FunctionRegistry g_functions;
@@ -602,8 +606,8 @@ bool function_thread_sync(lua_State* state, std::string& error) {
     if (synced) return true;
 
     std::vector<LibraryDef> libraries;
-    uint64_t stamp = 0;
-    if (!g_functions.snapshot(libraries, stamp)) { error = "out of memory"; return false; }
+    uint64_t stamp = 0, flush_generation = 0;
+    if (!g_functions.snapshot(libraries, stamp, &flush_generation)) { error = "out of memory"; return false; }
 
     const int base = lua_gettop(state);
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
@@ -653,6 +657,7 @@ bool function_thread_sync(lua_State* state, std::string& error) {
     lua_setfield(state, LUA_REGISTRYINDEX, kRegistryRevisions);
     push_revision(state, stamp);
     lua_setfield(state, LUA_REGISTRYINDEX, kRegistryGeneration);
+    script_sync_function_helpers(state, flush_generation);
     lua_settop(state, base);
     g_thread_rebuilds.fetch_add(1, std::memory_order_relaxed);
     return true;

@@ -81,6 +81,11 @@ constexpr uint8_t kScriptFunctionAdmitted = 4;
 // Flattens a Lua error string into one RESP-safe line (CR/LF/NUL to spaces, 2 KiB cap).
 std::string script_clean_error(const char* text, size_t length);
 
+// Synchronize FUNCTION-only helper configuration with the registry's FLUSH
+// epoch, captured under the same lock as its library snapshot. LOAD/DELETE and
+// SCRIPT FLUSH leave this configuration intact.
+void script_sync_function_helpers(lua_State* state, uint64_t flush_generation);
+
 struct ScriptStats {
     uint64_t cached_scripts    = 0;
     uint64_t compile_hits      = 0;   // per-thread compiled-chunk cache hits

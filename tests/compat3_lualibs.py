@@ -140,6 +140,8 @@ def cases():
         add("sha1hex." + name, f"return redis.sha1hex({value})")
     add("sha1hex.noargs", "return redis.sha1hex()")
     add("sha1hex.extraargs", "return redis.sha1hex('a','b')")
+    for length in (55, 56, 63, 64, 65):
+        add(f"sha1hex.block.{length}", f"return redis.sha1hex(string.rep('x',{length}))")
     for lib, field in (("cjson", "encode"), ("cmsgpack", "pack"), ("bit", "band"), ("struct", "pack"), ("redis", "sha1hex")):
         for op, statement in (("existing", f"{lib}.{field}=0"), ("new", f"{lib}.added=0"),
                               ("rawset", f"rawset({lib},'{field}',0)"),
@@ -226,6 +228,9 @@ def main():
         source += '\n' + '\n'.join(
             f"redis.register_function('lualibs_spin_{i}',function() while true do {body} end end)"
             for i, body in enumerate(LOOPS))
+        source += ("\nredis.register_function('lualibs_config',function(keys,args) "
+                   "if args[1] then cjson.encode_number_precision(tonumber(args[1])) end; "
+                   "return cjson.encode(1/3) end)")
         for c in (oracle, target):
             assert c.command('FUNCTION', 'FLUSH') == b'+OK\r\n'
         check('FUNCTION LOAD callbacks', target.command('FUNCTION', 'LOAD', source),
@@ -255,6 +260,19 @@ def main():
         body = "local old=cjson.encode_number_precision(); cjson.encode_number_precision(3); local v=cjson.encode(1/3); cjson.encode_number_precision(old); return v"
         check('cjson singleton configuration', target.command('EVAL', protected(body), 1, key),
               oracle.command('EVAL', protected(body), 1, key))
+        # Redis's EVAL interpreter and FUNCTION engine have independent cjson
+        # configurations. SCRIPT FLUSH resets only the EVAL configuration.
+        for label, argv in (
+            ('eval set', ('EVAL', 'cjson.encode_number_precision(3); return cjson.encode(1/3)', 1, key)),
+            ('function unaffected', ('FCALL', 'lualibs_config', 1, key)),
+            ('function set', ('FCALL', 'lualibs_config', 1, key, '5')),
+            ('eval unaffected', ('EVAL', 'return cjson.encode(1/3)', 1, key)),
+            ('flush', ('SCRIPT', 'FLUSH')),
+            ('eval reset', ('EVAL', 'return cjson.encode(1/3)', 1, key)),
+            ('function retained', ('FCALL', 'lualibs_config', 1, key)),
+            ('function restore', ('FCALL', 'lualibs_config', 1, key, '14')),
+        ):
+            check('cjson state:' + label, target.command(*argv), oracle.command(*argv))
         check('SCRIPT KILL idle', target.command('SCRIPT', 'KILL'), oracle.command('SCRIPT', 'KILL'))
         # TomoKV deliberately retains its pre-existing instruction budget, while
         # Redis admits a time-limited busy window and then accepts explicit KILL.
@@ -295,6 +313,25 @@ def main():
                         running.close()
         finally:
             assert oracle.cmd('CONFIG', 'SET', 'lua-time-limit', old_limit) == b'OK'
+        # FUNCTION FLUSH rebuilds Redis's function engine, leaving EVAL's alone.
+        # Exercise both spellings and LOAD immediately after FLUSH, so an owner
+        # that misses the empty-registry interval must still reset its helpers.
+        config_source = ("#!lua name=lualibs_config_only\n"
+                         "redis.register_function('lualibs_config',function(keys,args) "
+                         "if args[1] then cjson.encode_number_precision(tonumber(args[1])) end; "
+                         "return cjson.encode(1/3) end)")
+        for spelling in ('SYNC', 'ASYNC'):
+            for label, argv in (
+                ('function set', ('FCALL', 'lualibs_config', 1, key, '5')),
+                ('eval set', ('EVAL', 'cjson.encode_number_precision(3); return cjson.encode(1/3)', 1, key)),
+                ('flush', ('FUNCTION', 'FLUSH', spelling)),
+                ('load', ('FUNCTION', 'LOAD', config_source)),
+                ('function reset', ('FCALL', 'lualibs_config', 1, key)),
+                ('eval retained', ('EVAL', 'return cjson.encode(1/3)', 1, key)),
+                ('eval restore', ('SCRIPT', 'FLUSH')),
+            ):
+                check('FUNCTION FLUSH ' + spelling + ':' + label,
+                      target.command(*argv), oracle.command(*argv))
         assert compared >= 300, compared
         print(json.dumps(dict(compared=compared, failed=len(failures), failures=failures)), flush=True)
         assert not failures, f'{len(failures)}/{compared} exact-frame comparisons failed'
