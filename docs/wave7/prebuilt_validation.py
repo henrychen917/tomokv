@@ -14,13 +14,16 @@ os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
 p = argparse.ArgumentParser()
 p.add_argument('--spare-slot', action='store_true', help='64-71 server, 72-79 client, ports 26890-26898')
 p.add_argument('--name', default='prebuilt-watch-negative-final')
+p.add_argument('--read-existing', action='store_true', help='verify a completed whole-job receipt without rerunning it')
 args = p.parse_args()
 allocation = ['--server-cores', '64-71', '--load-cores', '72-79', '--ports', '26890-26898'] if args.spare_slot else []
 name = args.name
-result = subprocess.run(['python3', 'docs/wave7/run_jobs.py', name,
-    'datafix2_watch', '--binary', 'build/tomokv-wave7-before-prebuiltfix', *allocation])
+if not args.read_existing:
+    result = subprocess.run(['python3', 'docs/wave7/run_jobs.py', name,
+        'datafix2_watch', '--binary', 'build/tomokv-wave7-before-prebuiltfix', *allocation])
 receipt = json.loads((ROOT / 'docs/wave7/correctness' / name / 'receipt.json').read_text())
-assert result.returncode == receipt['exit'] == 1
+assert receipt['exit'] == 1
+if not args.read_existing: assert result.returncode == receipt['exit']
 logs = sorted((Path(receipt['run_dir']) / 'jobs/datafix2_watch').glob('watch-*.log'))
 assert len(logs) == 24
 legs = []
@@ -32,15 +35,18 @@ for log in logs:
     target = [probe for probe in probes if probe['target']]
     assert target, log
     fused = '-1s-' in log.name
+    fatal = next((signal for signal in ('Aborted', 'Segmentation fault') if signal in text), None)
     if fused:
-        assert 'Traceback (most recent call last)' in text and 'Aborted' in text, log
+        # The invalid KvObj-as-snapshot pointer can fail either the invariant
+        # check or an invalid memory access before that check. Retain which one.
+        assert 'Traceback (most recent call last)' in text and fatal, log
         assert 'PASS watch\n' not in text, log
         assert all(probe['writer_io'] != probe['owner'] for probe in target), log
     else:
         assert text.rstrip().endswith('PASS watch'), log
     legs.append(dict(leg=log.name, prebuilt_path=fused,
-                     expected_failure=fused, target_cases_reached=target))
-out = dict(expected_gate_exit=1, actual_gate_exit=result.returncode,
+                     expected_failure=fused, fatal_signal=fatal, target_cases_reached=target))
+out = dict(expected_gate_exit=1, actual_gate_exit=receipt['exit'],
            broken_binary_sha256=receipt['binary_sha256'],
            fixed_binary_sha256=hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest(),
            helper_sha256=hashlib.sha256((ROOT / 'tests/wave7.py').read_bytes()).hexdigest(),
