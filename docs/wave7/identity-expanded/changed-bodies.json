@@ -11981,6 +11981,23 @@
     ]
   },
   {
+    "name": "tomo::l4prebuild_notify_spec()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166
+    ],
+    "post_sizes": [
+      173
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Integration fix: both prebuilt SET specifications initialize handler_notify to cmd_set_prebuilt<true>, so WATCH dispatch consumes the prebuilt sidecar before recording effects. Only cold specification initialization changes; the ordinary SET handler and dispatch path add no work.",
+    "local_clone_files": []
+  },
+  {
     "name": "tomo::l4prebuild_prepare_set(tomo::Op&)",
     "hot": false,
     "counted_command_scope": false,
@@ -11990,15 +12007,13 @@
       2221
     ],
     "post_sizes": [
-      2364
+      2380
     ],
-    "matches": [
-      "datafix2"
-    ],
+    "matches": [],
     "changed_lanes": [
       "datafix2"
     ],
-    "reason": "Exact linked body from datafix2; lane change retained.",
+    "reason": "Integration fix: both prebuilt SET specifications initialize handler_notify to cmd_set_prebuilt<true>, so WATCH dispatch consumes the prebuilt sidecar before recording effects. Only cold specification initialization changes; the ordinary SET handler and dispatch path add no work.",
     "local_clone_files": []
   },
   {
@@ -22524,6 +22539,23 @@
     "local_clone_files": []
   },
   {
+    "name": "tomo_db0::l4prebuild_notify_spec()",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166
+    ],
+    "post_sizes": [
+      173
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Integration fix: both prebuilt SET specifications initialize handler_notify to cmd_set_prebuilt<true>, so WATCH dispatch consumes the prebuilt sidecar before recording effects. Only cold specification initialization changes; the ordinary SET handler and dispatch path add no work.",
+    "local_clone_files": []
+  },
+  {
     "name": "tomo_db0::l4prebuild_prepare_set(tomo_db0::Op&)",
     "hot": false,
     "counted_command_scope": false,
@@ -22533,15 +22565,13 @@
       2088
     ],
     "post_sizes": [
-      2183
+      2199
     ],
-    "matches": [
-      "datafix2"
-    ],
+    "matches": [],
     "changed_lanes": [
       "datafix2"
     ],
-    "reason": "Exact linked body from datafix2; lane change retained.",
+    "reason": "Integration fix: both prebuilt SET specifications initialize handler_notify to cmd_set_prebuilt<true>, so WATCH dispatch consumes the prebuilt sidecar before recording effects. Only cold specification initialization changes; the ordinary SET handler and dispatch path add no work.",
     "local_clone_files": []
   },
   {
@@ -26409,7 +26439,7 @@
     "changed_lanes": [
       "datafix2"
     ],
-    "reason": "datafix2 changes this body; merged compiler propagation differs from isolated POST.",
+    "reason": "Intentional composition: the three headline notify_record calls use CD4.9 actual-effect metadata; the older datafix2 POST lacks wave 6 notify_elapsed_set and instead calls Op::key plus erase_notify. The merged body retains that wave 6 elapsed-SET behavior. All other named call sites agree with headline; no plain unarmed SET body changes.",
     "local_clone_files": [
       "t_string_notify.cc"
     ],
@@ -29494,7 +29524,7 @@
     "changed_lanes": [
       "datafix2"
     ],
-    "reason": "datafix2 changes this body; merged compiler propagation differs from isolated POST.",
+    "reason": "Intentional composition: the three headline notify_record calls use CD4.9 actual-effect metadata; the older datafix2 POST lacks wave 6 notify_elapsed_set and instead calls Op::key plus erase_notify. The merged body retains that wave 6 elapsed-SET behavior. All other named call sites agree with headline; no plain unarmed SET body changes.",
     "local_clone_files": [
       "t_string_notify.cc"
     ],

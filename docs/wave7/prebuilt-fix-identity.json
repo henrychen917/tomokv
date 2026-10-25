@@ -1,0 +1,81 @@
+{
+  "before_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "after_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753",
+  "changed": [
+    {
+      "name": "tomo::l4prebuild_notify_spec()",
+      "before": [
+        {
+          "size": 166,
+          "address": "0x7928d0",
+          "digest": "dbb4e858d6a1a792721cf707dc05787bed46aea2b10f007d6ae33fcb4b0b5cea"
+        }
+      ],
+      "after": [
+        {
+          "size": 173,
+          "address": "0x7928e0",
+          "digest": "909dbf02daa1b904e69a88310a4165546931a043e1f570b5078f043802e56fdd"
+        }
+      ]
+    },
+    {
+      "name": "tomo::l4prebuild_prepare_set(tomo::Op&)",
+      "before": [
+        {
+          "size": 2364,
+          "address": "0x792990",
+          "digest": "b686a23fed04d8a8975f5e7fcf1d3fec5b70a1e8616af600b688658947b58ef9"
+        }
+      ],
+      "after": [
+        {
+          "size": 2380,
+          "address": "0x7929a0",
+          "digest": "6bfc0082d1e37ddec63d496e93ed747899e1a9ad9b3fb8a4fd79b403175b098e"
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::l4prebuild_notify_spec()",
+      "before": [
+        {
+          "size": 166,
+          "address": "0x3be0e0",
+          "digest": "2ebab910f82d2ddeeb737466e57a9a3640e5fe46cd64ccca5bcd04bc0dc4f439"
+        }
+      ],
+      "after": [
+        {
+          "size": 173,
+          "address": "0x3be0e0",
+          "digest": "9ce5847679670c45bb3bba52fad8a38f4ace57a011f9ecbc3d327111593972a6"
+        }
+      ]
+    },
+    {
+      "name": "tomo_db0::l4prebuild_prepare_set(tomo_db0::Op&)",
+      "before": [
+        {
+          "size": 2183,
+          "address": "0x3be1a0",
+          "digest": "bc11108db477dea83eb57e6fb5ab9350b27b57a0880a14536897fde6e605b3d9"
+        }
+      ],
+      "after": [
+        {
+          "size": 2199,
+          "address": "0x3be1a0",
+          "digest": "aa321facbf85a822f6e7fc0a0c7d4712e373f939f2acdd2adc6eeb89e066917d"
+        }
+      ]
+    }
+  ],
+  "proof": "Every other strict linked group is unchanged. The 80 retained command traces are rebound to final POST by command_provenance.py, including exact constant bytes and switch destinations. No counted body changed.",
+  "hot_groups": 787,
+  "pad_hot_groups": 785,
+  "trace_post_sha256": {
+    "results-post.json": "e252cee850a59196d76db4b66184c47c17069c6d099084b5946a242f2f722154",
+    "results-pre.json": "e486243ad18b9b0face5049e4c821cdcd81131291f337d6947f047f205ab24d8"
+  }
+}

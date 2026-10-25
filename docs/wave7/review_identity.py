@@ -15,7 +15,9 @@ for r in rows:
  if '::l4prebuild_notify_spec(' in n or '::l4prebuild_prepare_set(' in n:
   r['reason']='Integration fix: both prebuilt SET specifications initialize handler_notify to cmd_set_prebuilt<true>, so WATCH dispatch consumes the prebuilt sidecar before recording effects. Only cold specification initialization changes; the ordinary SET handler and dispatch path add no work.'
  if r['matches']:continue
- if '::xshard_execute(' in n and r['counted_command_scope']:
+ if '::cmd_set<true>' in n:
+  r['reason']='Intentional composition: the three headline notify_record calls use CD4.9 actual-effect metadata; the older datafix2 POST lacks wave 6 notify_elapsed_set and instead calls Op::key plus erase_notify. The merged body retains that wave 6 elapsed-SET behavior. All other named call sites agree with headline; no plain unarmed SET body changes.'
+ elif '::xshard_execute(' in n and r['counted_command_scope']:
   r['reason']='CD4.7 no-touch collection reads and CD4.9 actual-effect WATCH dispatch compose with wave 6 unique-key scans and scheduling. The shared notification-selection predicate now includes shard watches: +5/+6 instructions per ordinary fragment (normal/db0); atomic MSET has the reported additional code-generation/admission delta. Handler/expiry/script cold inlining differences remain fully listed in call-site receipts.'
  elif '::classify_keys(' in n and r['counted_command_scope']:
   r['reason']='Unchanged key-classification semantics in enlarged scatter TU. Normal runtime inlines one append_key_span call; both runtimes have changed constant-pool/branch placement. All counted paths retain the same instruction count here; actual eight-byte loads in probes are proved separately.'
