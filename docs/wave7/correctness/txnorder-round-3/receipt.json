@@ -45,5 +45,45 @@
     "GATE_TXN_ATOMIC": "1",
     "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/txnorder-round-3/ledger"
   },
-  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls"
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792899939.4209137,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.IvYbjU",
+  "jobs": {
+    "production_units": {
+      "done": "0\t0\t0",
+      "rows": []
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    "txnorder-fused-0": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t49.900000\ttxnorder battery (fused, atomic 0)"
+      ]
+    },
+    "txnorder-fused-1": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t49.040000\ttxnorder battery (fused, atomic 1)"
+      ]
+    },
+    "txnorder-split-0": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t48.660000\ttxnorder battery (split, atomic 0)"
+      ]
+    },
+    "txnorder-split-1": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t48.610000\ttxnorder battery (split, atomic 1)"
+      ]
+    }
+  }
 }

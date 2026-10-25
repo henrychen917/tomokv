@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=release_batteries notify sort script_bounds dump_restore auth replyoff zc aof-epoll aof-uring snapshot-epoll snapshot-uring aof_frame debug-0 debug-1 asan_batteries; NOT A RECEIPT
