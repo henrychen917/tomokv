@@ -935,7 +935,12 @@ collect_job(){
         order = canonical[::-1] if reverse else canonical
         order = [name for name in order if name != 'atomic_batteries'] + (
             ['atomic_batteries'] if 'atomic_batteries' in canonical else [])
-        prelude = '''set -u
+        # Extracted scheduler code must retain the real entry point's locale,
+        # even when this standalone test starts with LC_ALL unset. The startup
+        # prefix itself (including removal of this pin) is checked below.
+        locale_pin = [line for line in gate.splitlines() if line.startswith('export LC_ALL=')]
+        self.assertEqual(locale_pin, ['export LC_ALL=C'])
+        prelude = locale_pin[0] + '\n' + '''set -u
 PASS=0; FAIL=0; TIER=full; CORES=0; LOAD_CORES=0; PORT=19000; GATE_RATIO=6:2; ALL_BUILD_CORES=0
 GATE_PARTIAL=${WIRE_PARTIAL:-0}
 source tests/gate_subset.sh
@@ -1126,8 +1131,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             # all of them to one CPU serialized their watchdog/ledger work and exhausted
             # the unchanged 45s deadline under correctness contention. Use up to four
             # permitted CPUs so publication is exercised concurrently, while an explicit
-            # caller affinity still limits the fixture. No jobs or assertions are removed.
-            fixture_cpus = list(map(str, (_cpus or sorted(os.sched_getaffinity(0)))[:min(4, count)]))
+            # caller affinity still limits the fixture. The coordinator retains
+            # this allocation even with one worker slot, as the real gate does;
+            # each worker remains pinned to its single assigned slot CPU. Sharing
+            # one CPU with the collector exhausted 45s after wave 7 expanded the
+            # inventory, despite 219 workers already publishing completion.
+            # No jobs, assertions or deadlines are removed or widened.
+            fixture_cpus = list(map(str, (_cpus or sorted(os.sched_getaffinity(0)))[:4]))
             cpu_list = ','.join(fixture_cpus)
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
@@ -1370,6 +1380,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
         self.assertEqual({row[1] for row in result['families']}, {'0'})
+        self.assertEqual(len(result['observed_cpus']), 1)
         self.assertEqual(result['cleaned'], set(self.canonical))
 
     def test_failed_prerequisite_cannot_leave_the_queue_waiting_forever(self):
