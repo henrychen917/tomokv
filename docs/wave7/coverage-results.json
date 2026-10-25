@@ -2,9 +2,25 @@
   "post_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
   "jobs": {
     "abba_selftest": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "abba-selftest"
+      ],
+      "invocations": [
+        {
+          "selection": "abba-selftest",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "ABBA comparison + saturation negative controls"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        }
+      ]
     },
     "acl_metadata": {
       "status": "NOT COMPLETE",
@@ -27,19 +43,174 @@
       "invocations": []
     },
     "aof-epoll": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 54
+          },
+          "labels": [
+            "configuration reduction + actual geometry (epoll, atomic 0)",
+            "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+            "AOF writer fired (records=N)",
+            "AOF process-restart script replay (epoll, atomic 0)",
+            "AOF native snapshot streams byte-exact",
+            "AOF replay fired (records=N skipped=N)",
+            "configuration reduction + actual geometry (epoll, atomic 1)",
+            "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+            "AOF writer fired (records=N)",
+            "AOF process-restart script replay (epoll, atomic 1)",
+            "AOF native snapshot streams byte-exact",
+            "AOF replay fired (records=N skipped=N)",
+            "AOF directed group interruption fired",
+            "AOF atomic-group recovery + writer order",
+            "AOF group shutdown invariants",
+            "AOF always sync + reply gate fired",
+            "AOF always recovery after quiescent SIGKILL",
+            "AOF in-window kill recovery (2s, epoll)",
+            "AOF in-window term recovery (2s, epoll)",
+            "AOF in-window kill recovery (1s, epoll)",
+            "AOF in-window term recovery (1s, epoll)",
+            "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+            "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+            "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+            "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+            "AOF everysec write gate + idle sync fired",
+            "AOF everysec durability window + tail warning",
+            "AOF no-sync bypassed sync + reply gate",
+            "AOF rewrite atomic/stage/corruption matrix",
+            "AOF rewrite triggers + observability matrix",
+            "AOF-off negative-control seed landed",
+            "AOF-off negative control lost data",
+            "aoffix2 snapshot (1s, epoll)",
+            "aoffix2 filename (1s, epoll)",
+            "aoffix2 error (1s, epoll)",
+            "aoffix2 tickets (1s, epoll)",
+            "aoffix2 exec_tickets (1s, epoll)",
+            "aoffix2 resurrection (1s, epoll)",
+            "aoffix2 rewrite_fail2 (1s, epoll)",
+            "aoffix2 manifest_missing (1s, epoll)",
+            "aoffix2 off-writer acknowledgement everysec (1s, epoll)",
+            "aoffix2 off-writer acknowledgement always (1s, epoll)",
+            "aoffix2 snapshot (2s, epoll)",
+            "aoffix2 filename (2s, epoll)",
+            "aoffix2 error (2s, epoll)",
+            "aoffix2 tickets (2s, epoll)",
+            "aoffix2 exec_tickets (2s, epoll)",
+            "aoffix2 resurrection (2s, epoll)",
+            "aoffix2 rewrite_fail2 (2s, epoll)",
+            "aoffix2 manifest_missing (2s, epoll)",
+            "aoffix2 off-writer acknowledgement everysec (2s, epoll)",
+            "aoffix2 off-writer acknowledgement always (2s, epoll)",
+            "aoffix2 large (1s, epoll)",
+            "aoffix2 large_placed (1s, epoll)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "aof-uring": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 54
+          },
+          "labels": [
+            "configuration reduction + actual geometry (uring, atomic 0)",
+            "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+            "AOF writer fired (records=N)",
+            "AOF process-restart script replay (uring, atomic 0)",
+            "AOF native snapshot streams byte-exact",
+            "AOF replay fired (records=N skipped=N)",
+            "configuration reduction + actual geometry (uring, atomic 1)",
+            "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+            "AOF writer fired (records=N)",
+            "AOF process-restart script replay (uring, atomic 1)",
+            "AOF native snapshot streams byte-exact",
+            "AOF replay fired (records=N skipped=N)",
+            "AOF directed group interruption fired",
+            "AOF atomic-group recovery + writer order",
+            "AOF group shutdown invariants",
+            "AOF always sync + reply gate fired",
+            "AOF always recovery after quiescent SIGKILL",
+            "AOF in-window kill recovery (2s, uring)",
+            "AOF in-window term recovery (2s, uring)",
+            "AOF in-window kill recovery (1s, uring)",
+            "AOF in-window term recovery (1s, uring)",
+            "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+            "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+            "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+            "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+            "AOF everysec write gate + idle sync fired",
+            "AOF everysec durability window + tail warning",
+            "AOF no-sync bypassed sync + reply gate",
+            "AOF rewrite atomic/stage/corruption matrix",
+            "AOF rewrite triggers + observability matrix",
+            "AOF-off negative-control seed landed",
+            "AOF-off negative control lost data",
+            "aoffix2 snapshot (1s, uring)",
+            "aoffix2 filename (1s, uring)",
+            "aoffix2 error (1s, uring)",
+            "aoffix2 tickets (1s, uring)",
+            "aoffix2 exec_tickets (1s, uring)",
+            "aoffix2 resurrection (1s, uring)",
+            "aoffix2 rewrite_fail2 (1s, uring)",
+            "aoffix2 manifest_missing (1s, uring)",
+            "aoffix2 off-writer acknowledgement everysec (1s, uring)",
+            "aoffix2 off-writer acknowledgement always (1s, uring)",
+            "aoffix2 snapshot (2s, uring)",
+            "aoffix2 filename (2s, uring)",
+            "aoffix2 error (2s, uring)",
+            "aoffix2 tickets (2s, uring)",
+            "aoffix2 exec_tickets (2s, uring)",
+            "aoffix2 resurrection (2s, uring)",
+            "aoffix2 rewrite_fail2 (2s, uring)",
+            "aoffix2 manifest_missing (2s, uring)",
+            "aoffix2 off-writer acknowledgement everysec (2s, uring)",
+            "aoffix2 off-writer acknowledgement always (2s, uring)",
+            "aoffix2 large (1s, uring)",
+            "aoffix2 large_placed (1s, uring)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "aof_frame": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 2
+          },
+          "labels": [
+            "AOF control frame never inside a large record (atomic 0)",
+            "AOF control frame never inside a large record (atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "aoforder": {
       "status": "NOT COMPLETE",
@@ -47,14 +218,50 @@
       "invocations": []
     },
     "asan": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "ASAN build"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "asan_batteries": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 5
+          },
+          "labels": [
+            "torture under ASAN",
+            "RYOW under ASAN",
+            "atomic torn/window under ASAN",
+            "atomic RYOW under ASAN",
+            "ASAN clean"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "atomfix5_accounting": {
       "status": "NOT COMPLETE",
@@ -82,9 +289,31 @@
       "invocations": []
     },
     "auth": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 7
+          },
+          "labels": [
+            "reject bad protected-mode",
+            "reject bad enable-debug-command",
+            "AUTH/HELLO/protected state machine",
+            "ACL battery (atomic off)",
+            "ACL battery (atomic on)",
+            "DEBUG toggle/reload battery",
+            "typed snapshot round-trip incl stream"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "authfix": {
       "status": "NOT COMPLETE",
@@ -255,14 +484,76 @@
       "invocations": []
     },
     "debug-0": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 16
+          },
+          "labels": [
+            "plain-write lost updates (atomic 0)",
+            "lbsignals battery (atomic 0)",
+            "slowlog battery (atomic 0)",
+            "atomfix battery (atomic 0)",
+            "scriptatomic battery (atomic 0)",
+            "execatomic battery (atomic 0)",
+            "execiso battery (atomic 0)",
+            "execfix battery (atomic 0)",
+            "multires battery (atomic 0)",
+            "multirace battery (atomic 0)",
+            "session_monotonic battery (atomic 0)",
+            "xacct battery (atomic 0)",
+            "xmove battery (atomic 0)",
+            "xscript battery (atomic 0)",
+            "txn_nx battery (atomic 0)",
+            "txniso battery (atomic 0)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "debug-1": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 16
+          },
+          "labels": [
+            "plain-write lost updates (atomic 1)",
+            "lbsignals battery (atomic 1)",
+            "slowlog battery (atomic 1)",
+            "atomfix battery (atomic 1)",
+            "scriptatomic battery (atomic 1)",
+            "execatomic battery (atomic 1)",
+            "execiso battery (atomic 1)",
+            "execfix battery (atomic 1)",
+            "multires battery (atomic 1)",
+            "multirace battery (atomic 1)",
+            "session_monotonic battery (atomic 1)",
+            "xacct battery (atomic 1)",
+            "xmove battery (atomic 1)",
+            "xscript battery (atomic 1)",
+            "txn_nx battery (atomic 1)",
+            "txniso battery (atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "differ-armed-0": {
       "status": "PASS",
@@ -455,9 +746,27 @@
       "invocations": []
     },
     "dump_restore": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 3
+          },
+          "labels": [
+            "DUMP/RESTORE prepare + native SAVE",
+            "DUMP/RESTORE cross-restart round-trip",
+            "DUMP/RESTORE restart shutdown invariants"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "efficiency": {
       "status": "NOT RUN: throughput/latency benchmark with timing verdicts",
@@ -904,9 +1213,30 @@
       "invocations": []
     },
     "notify": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 6
+          },
+          "labels": [
+            "MULTI feature battery",
+            "blocking feature battery",
+            "pubsub feature battery",
+            "Lua feature battery",
+            "keyspace notification battery (atomic 0/1)",
+            "feature battery shutdown invariants"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "notify_aof": {
       "status": "NOT COMPLETE",
@@ -944,9 +1274,26 @@
       "invocations": []
     },
     "perfio_stream": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "perfio-quiet"
+      ],
+      "invocations": [
+        {
+          "selection": "perfio-quiet",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 2
+          },
+          "labels": [
+            "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
+            "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        }
+      ]
     },
     "persistfix2_commands": {
       "status": "NOT COMPLETE",
@@ -990,7 +1337,9 @@
     "production_units": {
       "status": "PASS",
       "successful_selections": [
-        "txnorder-round-2"
+        "legacy-fused",
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
@@ -1003,7 +1352,25 @@
           "fused": "0"
         },
         {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {},
+          "labels": [],
+          "engine": "uring",
+          "fused": "1"
+        },
+        {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {},
+          "labels": [],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {},
@@ -1038,7 +1405,10 @@
       "successful_selections": [
         "differ-epoll",
         "differ-uring",
-        "txnorder-round-2"
+        "legacy-fused",
+        "perfio-quiet",
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
@@ -1081,7 +1451,46 @@
           "fused": "0"
         },
         {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "release build (+footprint locks)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        },
+        {
+          "selection": "perfio-quiet",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "release build (+footprint locks)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "release build (+footprint locks)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {
@@ -1096,9 +1505,32 @@
       ]
     },
     "release_batteries": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 8
+          },
+          "labels": [
+            "torture battery",
+            "RYOW battery",
+            "ACL category runtime table",
+            "ACL LOAD/SAVE no-file errors",
+            "idle loop ceiling (LBSIGNALS, 1s)",
+            "shutdown invariants (nothing stuck)",
+            "direct-reply fired (direct=N)",
+            "dispatched==executed (N)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "reorder_engagement": {
       "status": "NOT COMPLETE",
@@ -1116,9 +1548,26 @@
       "invocations": []
     },
     "replyoff": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 2
+          },
+          "labels": [
+            "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+            "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "respcompat": {
       "status": "NOT COMPLETE",
@@ -1238,9 +1687,26 @@
       "invocations": []
     },
     "script_bounds": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 2
+          },
+          "labels": [
+            "xscript limit control",
+            "xscript window control"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "scriptfix": {
       "status": "NOT COMPLETE",
@@ -1288,19 +1754,98 @@
       "invocations": []
     },
     "snapshot-epoll": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 16
+          },
+          "labels": [
+            "snapshot concurrent cut (epoll)",
+            "snapshot cut reload (epoll)",
+            "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+            "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+            "typed snapshot save (epoll)",
+            "typed snapshot reload (epoll)",
+            "typed snapshot preimage race (epoll)",
+            "typed snapshot race reload (epoll)",
+            "shutdown keeps acknowledged writes (1s, sigterm, epoll)",
+            "shutdown keeps acknowledged writes (1s, command, epoll)",
+            "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)",
+            "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)",
+            "shutdown keeps acknowledged writes (2s, sigterm, epoll)",
+            "shutdown keeps acknowledged writes (2s, command, epoll)",
+            "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
+            "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "snapshot-uring": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 16
+          },
+          "labels": [
+            "snapshot concurrent cut (uring)",
+            "snapshot cut reload (uring)",
+            "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+            "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+            "typed snapshot save (uring)",
+            "typed snapshot reload (uring)",
+            "typed snapshot preimage race (uring)",
+            "typed snapshot race reload (uring)",
+            "shutdown keeps acknowledged writes (1s, sigterm, uring)",
+            "shutdown keeps acknowledged writes (1s, command, uring)",
+            "shutdown cancels BGSAVE capture (1s, atomic 0, uring)",
+            "shutdown cancels BGSAVE capture (1s, atomic 1, uring)",
+            "shutdown keeps acknowledged writes (2s, sigterm, uring)",
+            "shutdown keeps acknowledged writes (2s, command, uring)",
+            "shutdown cancels BGSAVE capture (2s, atomic 0, uring)",
+            "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "sort": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 2
+          },
+          "labels": [
+            "cross-owner SORT battery (atomic 0)",
+            "cross-owner SORT battery (atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     },
     "splitlocal_units": {
       "status": "NOT COMPLETE",
@@ -1350,11 +1895,25 @@
     "txnorder-fused-0": {
       "status": "PASS",
       "successful_selections": [
-        "txnorder-round-2"
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "txnorder battery (fused, atomic 0)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {
@@ -1371,11 +1930,25 @@
     "txnorder-fused-1": {
       "status": "PASS",
       "successful_selections": [
-        "txnorder-round-2"
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "txnorder battery (fused, atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {
@@ -1392,11 +1965,25 @@
     "txnorder-split-0": {
       "status": "PASS",
       "successful_selections": [
-        "txnorder-round-2"
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "txnorder battery (split, atomic 0)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {
@@ -1413,11 +2000,25 @@
     "txnorder-split-1": {
       "status": "PASS",
       "successful_selections": [
-        "txnorder-round-2"
+        "txnorder-round-2",
+        "txnorder-round-3"
       ],
       "invocations": [
         {
           "selection": "txnorder-round-2",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 1
+          },
+          "labels": [
+            "txnorder battery (split, atomic 1)"
+          ],
+          "engine": "uring",
+          "fused": "0"
+        },
+        {
+          "selection": "txnorder-round-3",
           "current_post": true,
           "exit": "0",
           "rows": {
@@ -1467,9 +2068,28 @@
       "invocations": []
     },
     "zc": {
-      "status": "NOT COMPLETE",
-      "successful_selections": [],
-      "invocations": []
+      "status": "PASS",
+      "successful_selections": [
+        "legacy-fused"
+      ],
+      "invocations": [
+        {
+          "selection": "legacy-fused",
+          "current_post": true,
+          "exit": "0",
+          "rows": {
+            "ok": 4
+          },
+          "labels": [
+            "zc borrow battery",
+            "zc fired (zc_sends=N)",
+            "zc borrow battery under ASAN",
+            "zc ASAN clean"
+          ],
+          "engine": "uring",
+          "fused": "1"
+        }
+      ]
     }
   },
   "coverage": {
@@ -1484,23 +2104,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -1529,8 +2149,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -1539,7 +2159,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -1626,7 +2246,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -1634,7 +2254,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -1646,11 +2266,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -1670,7 +2290,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -1680,9 +2300,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -1703,7 +2323,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -1746,23 +2366,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -1791,8 +2411,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -1801,7 +2421,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -1888,7 +2508,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -1896,7 +2516,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -1908,11 +2528,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -1932,7 +2552,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -1942,9 +2562,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -1965,7 +2585,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -2090,23 +2710,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -2135,8 +2755,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -2145,7 +2765,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -2232,7 +2852,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -2240,7 +2860,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -2252,11 +2872,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -2276,7 +2896,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -2286,9 +2906,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -2309,7 +2929,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -2344,23 +2964,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -2389,8 +3009,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -2399,7 +3019,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -2486,7 +3106,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -2494,7 +3114,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -2506,11 +3126,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -2530,7 +3150,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -2540,9 +3160,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -2563,7 +3183,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -2574,7 +3194,7 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE"
+          "abba_selftest": "PASS"
         }
       },
       {
@@ -2597,23 +3217,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -2642,8 +3262,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -2652,7 +3272,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -2739,7 +3359,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -2747,7 +3367,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -2759,11 +3379,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -2783,7 +3403,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -2793,9 +3413,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -2816,7 +3436,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -2958,23 +3578,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -3003,8 +3623,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -3013,7 +3633,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -3100,7 +3720,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -3108,7 +3728,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -3120,11 +3740,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -3144,7 +3764,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -3154,9 +3774,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -3177,7 +3797,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -3196,23 +3816,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -3241,8 +3861,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -3251,7 +3871,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -3338,7 +3958,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -3346,7 +3966,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -3358,11 +3978,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -3382,7 +4002,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -3392,9 +4012,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -3415,7 +4035,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -3429,23 +4049,23 @@
         "standalone_audit": false,
         "note": "",
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -3474,8 +4094,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -3484,7 +4104,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -3571,7 +4191,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -3579,7 +4199,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -3591,11 +4211,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -3615,7 +4235,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -3625,9 +4245,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -3648,7 +4268,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -3851,23 +4471,23 @@
           "tests/redisgap_atomic.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -3896,8 +4516,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -3906,7 +4526,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -3993,7 +4613,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -4001,7 +4621,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -4013,11 +4633,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -4037,7 +4657,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -4047,9 +4667,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -4070,7 +4690,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -4125,23 +4745,23 @@
           "tests/psfix_test.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -4170,8 +4790,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -4180,7 +4800,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -4267,7 +4887,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -4275,7 +4895,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -4287,11 +4907,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -4311,7 +4931,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -4321,9 +4941,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -4344,7 +4964,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -4503,23 +5123,23 @@
         ],
         "not_resolved_by_static_scan": [],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -4548,8 +5168,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -4558,7 +5178,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -4645,7 +5265,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -4653,7 +5273,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -4665,11 +5285,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -4689,7 +5309,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -4699,9 +5319,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -4722,7 +5342,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -4990,23 +5610,23 @@
           "tests/differ_test.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -5035,8 +5655,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -5045,7 +5665,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -5132,7 +5752,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -5140,7 +5760,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -5152,11 +5772,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -5176,7 +5796,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -5186,9 +5806,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -5209,7 +5829,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -5294,23 +5914,23 @@
         ],
         "not_resolved_by_static_scan": [],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -5339,8 +5959,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -5349,7 +5969,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -5436,7 +6056,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -5444,7 +6064,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -5456,11 +6076,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -5480,7 +6100,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -5490,9 +6110,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -5513,7 +6133,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -5538,23 +6158,23 @@
         ],
         "not_resolved_by_static_scan": [],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -5583,8 +6203,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -5593,7 +6213,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -5680,7 +6300,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -5688,7 +6308,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -5700,11 +6320,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -5724,7 +6344,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -5734,9 +6354,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -5757,7 +6377,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -5775,7 +6395,7 @@
         ],
         "not_resolved_by_static_scan": [],
         "gate_jobs": {
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -5808,23 +6428,23 @@
           "tests/flip_cost_gate.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -5853,8 +6473,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -5863,7 +6483,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -5950,7 +6570,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -5958,7 +6578,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -5970,11 +6590,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -5994,7 +6614,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -6004,9 +6624,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -6027,7 +6647,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -6103,23 +6723,23 @@
           "tests/replyschema.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -6148,8 +6768,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -6158,7 +6778,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -6245,7 +6865,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -6253,7 +6873,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -6265,11 +6885,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -6289,7 +6909,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -6299,9 +6919,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -6322,7 +6942,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -6345,7 +6965,7 @@
           "tests/replyschema.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -6396,23 +7016,23 @@
           "tests/shutsave.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -6441,8 +7061,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -6451,7 +7071,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -6538,7 +7158,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -6546,7 +7166,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -6558,11 +7178,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -6582,7 +7202,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -6592,9 +7212,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -6615,7 +7235,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -6841,23 +7461,23 @@
           "tests/writer_atomic.py"
         ],
         "gate_jobs": {
-          "abba_selftest": "NOT COMPLETE",
+          "abba_selftest": "PASS",
           "acl_metadata": "NOT COMPLETE",
           "acl_recheck": "NOT COMPLETE",
           "acl_subcommands": "NOT COMPLETE",
           "aclfix": "NOT COMPLETE",
-          "aof-epoll": "NOT COMPLETE",
-          "aof-uring": "NOT COMPLETE",
-          "aof_frame": "NOT COMPLETE",
+          "aof-epoll": "PASS",
+          "aof-uring": "PASS",
+          "aof_frame": "PASS",
           "aoforder": "NOT COMPLETE",
-          "asan": "NOT COMPLETE",
-          "asan_batteries": "NOT COMPLETE",
+          "asan": "PASS",
+          "asan_batteries": "PASS",
           "atomfix5_accounting": "NOT COMPLETE",
           "atomfix5_watch": "NOT COMPLETE",
           "atomic_batteries": "NOT RUN: Whole job contains explicit pipelined-versus-serial throughput measurement; forbidden in this lane. Same non-rate correctness checks run via asan_batteries in both modes.",
           "atomic_floor": "NOT RUN: memtier throughput floor",
           "atomic_units": "NOT COMPLETE",
-          "auth": "NOT COMPLETE",
+          "auth": "PASS",
           "authfix": "NOT COMPLETE",
           "blockfix_mkstream": "NOT COMPLETE",
           "blockfix_registry": "NOT COMPLETE",
@@ -6886,8 +7506,8 @@
           "datafix2_subkeys": "NOT COMPLETE",
           "datafix2_watch": "NOT COMPLETE",
           "dbdefault": "NOT COMPLETE",
-          "debug-0": "NOT COMPLETE",
-          "debug-1": "NOT COMPLETE",
+          "debug-0": "PASS",
+          "debug-1": "PASS",
           "differ-armed-0": "PASS",
           "differ-armed-1": "PASS",
           "differ-equivalence": "PASS",
@@ -6896,7 +7516,7 @@
           "dispatch_arity": "NOT COMPLETE",
           "dispatch_children": "NOT COMPLETE",
           "dispatch_errors": "NOT COMPLETE",
-          "dump_restore": "NOT COMPLETE",
+          "dump_restore": "PASS",
           "efficiency": "NOT RUN: throughput/latency benchmark with timing verdicts",
           "evict-lfu-armed-0": "NOT COMPLETE",
           "evict-lfu-armed-1": "NOT COMPLETE",
@@ -6983,7 +7603,7 @@
           "netfix_unix": "NOT COMPLETE",
           "netio-1s": "NOT COMPLETE",
           "netio-2s": "NOT COMPLETE",
-          "notify": "NOT COMPLETE",
+          "notify": "PASS",
           "notify_aof": "NOT COMPLETE",
           "notify_order": "NOT COMPLETE",
           "notifycompat": "NOT COMPLETE",
@@ -6991,7 +7611,7 @@
           "ntnew4_live": "NOT COMPLETE",
           "perfex_live": "NOT COMPLETE",
           "perfex_units": "NOT COMPLETE",
-          "perfio_stream": "NOT COMPLETE",
+          "perfio_stream": "PASS",
           "persistfix2_commands": "NOT COMPLETE",
           "persistfix2_errors": "NOT COMPLETE",
           "persistfix2_lastsave": "NOT COMPLETE",
@@ -7003,11 +7623,11 @@
           "racefix_tsan_build": "NOT COMPLETE",
           "readonly": "NOT COMPLETE",
           "release": "PASS",
-          "release_batteries": "NOT COMPLETE",
+          "release_batteries": "PASS",
           "reorder_engagement": "NOT COMPLETE",
           "reorder_identity": "NOT COMPLETE",
           "reorder_sync": "NOT COMPLETE",
-          "replyoff": "NOT COMPLETE",
+          "replyoff": "PASS",
           "respcompat": "NOT COMPLETE",
           "respresume-cpu-1s-epoll": "NOT COMPLETE",
           "respresume-cpu-1s-uring": "NOT COMPLETE",
@@ -7027,7 +7647,7 @@
           "rlfix3_info": "NOT COMPLETE",
           "rlfix3_zc": "NOT COMPLETE",
           "router_uniform": "NOT COMPLETE",
-          "script_bounds": "NOT COMPLETE",
+          "script_bounds": "PASS",
           "scriptfix": "NOT COMPLETE",
           "serverfix_acllog": "NOT COMPLETE",
           "serverfix_config": "NOT COMPLETE",
@@ -7037,9 +7657,9 @@
           "serverfix_scalar": "NOT COMPLETE",
           "serverfix_slowlog": "NOT COMPLETE",
           "serverfix_waitaof": "NOT COMPLETE",
-          "snapshot-epoll": "NOT COMPLETE",
-          "snapshot-uring": "NOT COMPLETE",
-          "sort": "NOT COMPLETE",
+          "snapshot-epoll": "PASS",
+          "snapshot-uring": "PASS",
+          "sort": "PASS",
           "splitlocal_units": "NOT COMPLETE",
           "storage_units": "NOT COMPLETE",
           "tailgen_build": "COMPILE ONLY: build/tailgen is built by make all; no measurement generator runs",
@@ -7060,7 +7680,7 @@
           "wb_policy": "NOT COMPLETE",
           "wb_rule_units": "NOT COMPLETE",
           "wbland_units": "NOT COMPLETE",
-          "zc": "NOT COMPLETE"
+          "zc": "PASS"
         }
       },
       {
@@ -7124,9 +7744,9 @@
   },
   "unresolved_functions": [],
   "transaction_successful_runs": {
-    "txnorder-fused-0": 1,
-    "txnorder-fused-1": 1,
-    "txnorder-split-0": 1,
-    "txnorder-split-1": 1
+    "txnorder-fused-0": 2,
+    "txnorder-fused-1": 2,
+    "txnorder-split-0": 2,
+    "txnorder-split-1": 2
   }
 }

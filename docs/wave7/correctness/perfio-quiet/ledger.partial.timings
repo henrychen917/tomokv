@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
+ok	0.380000	perfio XREADGROUP bounded delivery + Redis metadata (2s)

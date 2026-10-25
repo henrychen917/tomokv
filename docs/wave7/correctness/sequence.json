@@ -299,5 +299,32 @@
       "--fused"
     ],
     "exit": 0
+  },
+  {
+    "name": "gates-test",
+    "exit": 1
+  },
+  {
+    "name": "abba-selftest",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "abba-selftest",
+      "abba_selftest",
+      "--selftest",
+      "--root",
+      "/home/user/Projects/cx-wave7/build/wave7/selftest-source"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "perfio-quiet",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "perfio-quiet",
+      "perfio_stream"
+    ],
+    "exit": 0
   }
 ]

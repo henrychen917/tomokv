@@ -54,8 +54,8 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
-| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:470`. |
-| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:471`. |
+| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:514`. |
+| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:515`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
 | `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
@@ -234,6 +234,8 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `dir` | R | Nonempty directory path | `.` | Boot/GET | — | Persistence directory; `src/core/config.h:953`, `:1211`. |
 | `dbfilename` | R | Nonempty filename without `/` | `dump.tomo` | Boot/GET | — | Snapshot filename; `<dir>/<dbfilename>` auto-loads at boot when AOF recovery supplied no base or increment plan; `src/core/config.h:954`, `src/main.cc:249`. |
 | `save` | R | Repeatable positive seconds / u64 changes pairs; empty string disables | `3600 1 300 100 60 10000` | Live | Related: `rdb_changes_since_last_save`, `rdb_scheduled_saves` | Periodic snapshot clauses; first clause in a new source replaces prior source's schedule; `src/core/config.h:145`, `:905`. |
+| `shutdown-on-sigint` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGINT shutdown policy; default follows the configured persistence policy, force permits exit after a failed final save; `src/core/config.h:337`, `:1142`. |
+| `shutdown-on-sigterm` | R | Space-separated `default`, `save`, `nosave`, `now`, `force` (case-insensitive); `save` and `nosave` conflict | `default` | Live | — | SIGTERM shutdown policy, with the same modifier grammar as SIGINT; `src/core/config.h:337`, `:1142`. |
 | `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | `aof_enabled` | Enable multipart AOF; runtime toggle unsupported; `src/core/config.h:955`. |
 | `appendfsync` | R | `always`, `everysec`, `no` (case-insensitive) | `everysec` | Live | Related: `aof_fsyncs` | AOF batch sync policy; `src/core/config.h:964`, `tomokv.conf:273`. |
 | `appendfilename` | R | Nonempty name without `/` | `appendonly.aof` | Boot/GET | — | AOF name prefix; `src/core/config.h:983`, `:1216`. |

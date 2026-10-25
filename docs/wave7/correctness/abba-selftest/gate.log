@@ -2,3 +2,6 @@ GATE(full): 32 physical cores; 1 correctness slots = min(8/8 server, 24/2 load),
   artifacts: /home/user/Projects/cx-wave7/build/wave7/selftest-source/build/gate-run.GgpzUX
 PARTIAL jobs (including prerequisites): abba_selftest
 PARTIAL jobs (including prerequisites): abba_selftest
+  row budget: 1200s; median=-s; abba-selftest-cx-compat2-851.44s-plus-40pct-rounded; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       ok
+GATE(PARTIAL): 1 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave7/docs/wave7/correctness/abba-selftest/ledger.partial

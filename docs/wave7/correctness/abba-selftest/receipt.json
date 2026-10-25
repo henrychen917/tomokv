@@ -45,5 +45,17 @@
     "GATE_TXN_ATOMIC": "1",
     "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/abba-selftest/ledger"
   },
-  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls"
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792900673.9122012,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/wave7/selftest-source/build/gate-run.GgpzUX",
+  "jobs": {
+    "abba_selftest": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t379.930000\tABBA comparison + saturation negative controls"
+      ]
+    }
+  }
 }

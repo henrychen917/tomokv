@@ -1,7 +1,44 @@
 {
   "post_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
-  "pending": [],
+  "pending": [
+    "merged-sweep-final"
+  ],
   "selections": [
+    {
+      "name": "abba-selftest",
+      "exit": 0,
+      "current_post": true,
+      "unchanged_binary": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "abba_selftest",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/abba-selftest/ledger"
+      },
+      "jobs": {
+        "abba_selftest": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t379.930000\tABBA comparison + saturation negative controls"
+          ]
+        }
+      }
+    },
     {
       "name": "differ-epoll",
       "exit": 0,
@@ -575,6 +612,48 @@
       "jobs": {}
     },
     {
+      "name": "perfio-quiet",
+      "exit": 0,
+      "current_post": true,
+      "unchanged_binary": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "perfio_stream",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/perfio-quiet/ledger"
+      },
+      "jobs": {
+        "perfio_stream": {
+          "done": "0\t2\t0",
+          "rows": [
+            "ok\t0.400000\tperfio XREADGROUP bounded delivery + Redis metadata (1s)",
+            "ok\t0.380000\tperfio XREADGROUP bounded delivery + Redis metadata (2s)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
       "name": "txnorder-round-2",
       "exit": 0,
       "current_post": true,
@@ -702,6 +781,21 @@
     }
   ],
   "jobs": {
+    "abba_selftest": [
+      {
+        "selection": "abba-selftest",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "ABBA comparison + saturation negative controls"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      }
+    ],
     "differ-armed-0": [
       {
         "selection": "differ-epoll",
@@ -894,6 +988,19 @@
         ],
         "engine": "uring",
         "fused": "1"
+      },
+      {
+        "selection": "perfio-quiet",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
       },
       {
         "selection": "txnorder-round-2",
@@ -1493,6 +1600,22 @@
         ],
         "engine": "uring",
         "fused": "1"
+      }
+    ],
+    "perfio_stream": [
+      {
+        "selection": "perfio-quiet",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 2
+        },
+        "labels": [
+          "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
+          "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+        ],
+        "engine": "uring",
+        "fused": "0"
       }
     ],
     "txnorder-fused-0": [
