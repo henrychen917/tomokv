@@ -150,8 +150,8 @@ def main():
     cases = [(arm, ns, command, mode, batch, 1, threshold) for arm in arms
              for ns in ("normal", "db0") for command in ("GET", "SET", "INCR")
              for mode in ("1s", "2s") for batch in (1, 32) for threshold in (-1, 10000)]
-    cases += [(arm, ns, "MGET", mode, batch, atomic, -1) for arm in arms
-              for ns in ("normal", "db0") for mode in ("1s", "2s")
+    cases += [(arm, ns, command, mode, batch, atomic, -1) for arm in arms
+              for ns in ("normal", "db0") for command in ("MGET", "MSET") for mode in ("1s", "2s")
               for batch in (1, 8) for atomic in (0, 1)]
     with concurrent.futures.ThreadPoolExecutor(4) as pool:
         rows = list(pool.map(trace, cases))

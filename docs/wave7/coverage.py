@@ -69,6 +69,14 @@ for job in ('job_serverfix_slowlog','job_serverfix_acllog'):
 for name in jobfiles:
  if name.startswith('job_iofix_'):jobfiles[name].update(closure({name.removeprefix('job_')+'.py','_iofix.py'}))
 jobfiles['job_compat3'].update(closure({p.name for p in tests.glob('compat3_*.py')}))
+for suffix in ('notouch','encoding','subkeys','watch','idle'):
+ jobfiles['job_datafix2_'+suffix].update(closure({'datafix2_'+suffix+'.py'}))
+for suffix in ('registry','mkstream','structure'):
+ jobfiles['job_blockfix_'+suffix].update(closure({'compat3_blockfix.py'}))
+for suffix in ('lastsave','shutdown','commands','errors'):
+ jobfiles['job_persistfix2_'+suffix].update(closure({'persistfix2.py'}))
+jobfiles['job_atomfix5_watch'].update(closure({'atomfix5.py'}))
+jobfiles['job_atomfix5_accounting'].update(closure({'atomfix5_accounting.py'}))
 for _ in range(len(blocks)):
  changed=False
  for name,body in blocks.items():

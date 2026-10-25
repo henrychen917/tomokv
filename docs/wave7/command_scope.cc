@@ -77,30 +77,54 @@ struct CoreConcurrencyTest {
     need(std::string(op.reply.data(),op.reply.size()) == expected);
    })==n);
   }else{
-   need(command=="MGET"&&n<=8);
-   auto ops=std::make_unique<Op[]>(n);ScatterArenaPool pool;Ring ring;
+   need((command=="MGET"||command=="MSET")&&n<=8);
+   Op* ops[8];uint32_t ids[8];ScatterArenaPool pool;Ring ring;
+   const std::string updated(64,'w');
    for(unsigned i=0;i<n;i++){
-    ops[i].reset();need(ops[i].push_arg(Slice("MGET")));
-    for(const auto& key:keys)need(ops[i].push_arg({key.data(),uint32_t(key.size())}));
-    ops[i].spec=command_lookup(ops[i].arg(0));
+    ids[i]=client.rob().dispatch_id();ops[i]=client.rob().template acquire<false>();need(ops[i]);
+    need(ops[i]->push_arg({command.data(),uint32_t(command.size())}));
+    for(const auto& key:keys){
+     need(ops[i]->push_arg({key.data(),uint32_t(key.size())}));
+     if(command=="MSET")need(ops[i]->push_arg({updated.data(),uint32_t(updated.size())}));
+    }
+    ops[i]->spec=command_lookup(ops[i]->arg(0));
+    ops[i]->state.store(OpState::Issued,std::memory_order_relaxed);client.rob().publish();
    }
+   if(command=="MSET"&&atomic)for(unsigned i=0;i<n;i++)client.atomic_group_started();
    scope_begin();
    for(unsigned i=0;i<n;i++){
-    auto& op=ops[i];ScatterDispatch dispatch;
+    auto& op=*ops[i];ScatterDispatch dispatch;
     need(xshard_prepare(server,op,pool,io,client.id(),dispatch,false,&client)==ScatterPrepare::Ready);
     need(dispatch.nshards==8);op.attach_scatter_state(dispatch.state);
     for(unsigned k=0;k<dispatch.nshards;k++){
      const auto sid=xshard_dispatch_shard(dispatch,k);const auto owner=server.worker_of_shard(sid);auto& shard=server.shard(sid);
-     const Task task{&client,i,sid,dispatch.state};need(!xshard_task_should_defer(server,shard,task,op));
+     const Task task{&client,ids[i],sid,dispatch.state};need(!xshard_task_should_defer(server,shard,task,op));
      need(xshard_execute(task,shard,op,owner)==ScatterTaskResult::Complete);
      const auto done=Fused?xshard_complete_iofused(server,server.thread(owner),ring,task,op):xshard_complete(server,server.thread(owner),ring,task,op);
-     need(done==(k+1==dispatch.nshards?ScatterFinish::Final:ScatterFinish::Waiting));
+     if(k+1<dispatch.nshards)need(done==ScatterFinish::Waiting);
+     else if(done==ScatterFinish::CommitQueued){
+      need(command=="MSET"&&atomic);
+      xshard_queue_commit(server,server.thread(owner),task);
+      xshard_flush_commits(server,server.thread(owner),ring,nullptr,[](void*,Client*){});
+      need(op.state.load(std::memory_order_acquire)==OpState::Done);
+     }else need(done==ScatterFinish::Final);
     }
     xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
    }
    scope_end();
-   std::string want="*8\r\n";for(unsigned i=0;i<8;i++)want+="$64\r\n"+value+"\r\n";
-   for(unsigned i=0;i<n;i++)need(std::string(ops[i].reply.data(),ops[i].reply.size())==want);
+   std::string want="+OK\r\n";
+   if(command=="MGET"){want="*8\r\n";for(unsigned i=0;i<8;i++)want+="$64\r\n"+value+"\r\n";}
+   for(unsigned i=0;i<n;i++){
+    need(std::string(ops[i]->reply.data(),ops[i]->reply.size())==want);
+    ops[i]->state.store(OpState::Done,std::memory_order_release);
+   }
+   need(client.rob().drain([](Op&){})==n);
+   if(command=="MSET")for(const auto& key:keys){
+    Op op;op.reset();need(op.push_arg(Slice("GET")));need(op.push_arg({key.data(),uint32_t(key.size())}));
+    op.spec=command_lookup(op.arg(0));op.hash=FlatStore::hash_key(op.arg(1));
+    op.spec->handler(server.shard(server.router().shard_of(op.hash)),op);
+    need(std::string(op.reply.data(),op.reply.size())=="$64\r\n"+updated+"\r\n");
+   }
   }
   command_bind_server(nullptr);
   std::puts("PASS bounded production command scope");

@@ -6,6 +6,7 @@ workers/listeners. It protects filter pages, so PRE deterministically faults;
 no latency threshold is involved. --unit may name the frozen PRE-linked unit.
 """
 import argparse
+import os
 import resource
 import subprocess
 
@@ -24,6 +25,16 @@ def headings(body):
     names = [line[2:].decode().lower() for line in body.split(b"\r\n") if line.startswith(b"# ")]
     assert len(names) == len(set(names)), names
     return set(names)
+
+
+def native(unit, *arguments):
+    # The Python wire client belongs to the gate's load allocation, which may
+    # contain only two CPUs per slot. This fixture models eight worker CPUs.
+    # Use the same slot-owned server mask as the real boot, without widening
+    # the lane allocation or hard-coding machine CPU numbers.
+    cores = os.environ.get("GATE_CORES")
+    command = (["taskset", "-c", cores] if cores else []) + [unit, *arguments]
+    return subprocess.run(command, capture_output=True)
 
 
 def main():
@@ -61,21 +72,21 @@ def main():
     # they execute with their pages accessible before the protected call.
     for unit in args.unit:
         print(f"Native image: {unit}", flush=True)
-        r = subprocess.run([unit, "rewrite", mode, "16"], capture_output=True)
+        r = native(unit, "rewrite", mode, "16")
         print(f"RL4.11 CONFIG REWRITE rc={r.returncode}", flush=True)
         if r.returncode: failures.append((unit, "rewrite", r.returncode, r.stderr.decode(errors="replace")))
         for shards in (16, 256):
             for names in (("server",), ("clients",), ("server", "clients"), ("unknown",)):
-                r = subprocess.run([unit, "metadata", mode, str(shards), *names], capture_output=True)
+                r = native(unit, "metadata", mode, str(shards), *names)
                 print(f"RL4.15 metadata {mode} shards={shards} sections={names} rc={r.returncode}", flush=True)
                 if r.returncode: failures.append((unit, "metadata", shards, names, r.returncode))
             for names in (("server",), ("all",), ("everything",), ("server", "clients")):
                 for arm in ("snapshot", "guard"):
-                    r = subprocess.run([unit, arm, mode, str(shards), *names], capture_output=True)
+                    r = native(unit, arm, mode, str(shards), *names)
                     print(f"RL4.15 unit {mode} shards={shards} sections={names} {arm} rc={r.returncode}", flush=True)
                     if r.returncode:
                         failures.append((unit, shards, names, arm, r.returncode, r.stderr.decode(errors="replace")))
-        r = subprocess.run([unit, "counts"], capture_output=True)
+        r = native(unit, "counts")
         print(f"RL4.15 counter transitions rc={r.returncode}", flush=True)
         if r.returncode: failures.append((unit, "counts", r.returncode, r.stderr.decode(errors="replace")))
     assert not failures, failures

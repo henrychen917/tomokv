@@ -61,6 +61,26 @@ def main():
             result = c.cmd("CONFIG", "GET", "zc-min-read-local")
             check("unchanged after SET", result == expected, result)
             assert not failures, failures
+            # CT4.1 consumes manual completions without changing lane/send lifetime.
+            if info(observer, "server")["thread_mode"] == "2s":
+                placement = c.cmd("FLIP")
+                placement = dict(zip(placement[::2], placement[1::2]))
+                original_io, original_ex = placement[b"live_io"], placement[b"live_ex"]
+                total = original_io + original_ex
+                assert total == 8
+                before = int(info(observer, "stats")["flip_completed"])
+                for io_count, ex_count in ((4, 4), (original_io, original_ex)):
+                    assert c.cmd("FLIP", io_count, ex_count) == b"OK"
+                    assert c.cmd("CONFIG", "GET", "zc-min-read-local") == expected
+                    # Re-prime admission after migration, then prove the actual venue.
+                    assert c.cmd("GET", "rlfix3:zc") == value
+                    start = info(observer, "stats")
+                    for _ in range(4): assert c.cmd("GET", "rlfix3:zc") == value
+                    end = info(observer, "stats")
+                    assert int(end["read_local_hits"]) - int(start["read_local_hits"]) == (4 if armed else 0)
+                    assert (int(end["zc_sends"]) > int(start["zc_sends"])) == (not armed)
+                assert int(info(observer, "stats")["flip_completed"]) >= before + 2
+                print("wave7 FLIP completion preserves copying lane and owner borrowing", flush=True)
             print("RL4.11 PASS: exact threshold, lane venue, owner fallback and read-only capability")
         finally:
             assert c.cmd("CONFIG", "SET", "zc-min", original) == b"OK"
