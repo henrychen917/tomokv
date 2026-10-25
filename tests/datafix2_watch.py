@@ -4,6 +4,7 @@ import json
 import time
 from compat3_lib import equal, run, wire
 from _lib import Conn, RespError, cross_owner_pair, info
+from wave7 import prebuilt_watch_effects
 
 K, D = "k", "dst"
 DATABASES = 1
@@ -191,6 +192,7 @@ def probe(c, _case):
                     outcomes[identity]=executed is None
                     print("CASE",json.dumps({"case":identity,"write_reply":wire(reply),"dirty":executed is None}),flush=True)
                 finally: w.close()
+    outcomes["prebuilt-set-watch"] = prebuilt_watch_effects(c, (c.host, c.port) == TARGET)
     # Physical expiry is independent of command success. A WATCH armed on an
     # already-expired key is Redis's expired registration, not a live deadline.
     equal(c.cmd("DEBUG","SET-ACTIVE-EXPIRE",0),b"OK","freeze active expiry")

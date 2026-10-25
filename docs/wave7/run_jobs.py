@@ -14,6 +14,7 @@ os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
 p = argparse.ArgumentParser()
 p.add_argument('name')
 p.add_argument('jobs', nargs='+')
+p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
 p.add_argument('--engine', choices=['epoll', 'uring'], default='uring')
 p.add_argument('--fused', action='store_true')
 p.add_argument('--atomic', choices=['0', '1'], default='1')
@@ -22,7 +23,7 @@ p.add_argument('--selftest', action='store_true', help='one gate slot; 24 CPUs f
 a = p.parse_args()
 out = ROOT / 'docs/wave7/correctness' / a.name
 out.mkdir(parents=True, exist_ok=False)
-binary = ROOT / 'build/tomokv'
+binary = a.binary.resolve()
 source = a.root.resolve()
 oracle_root = ROOT / 'build/wave7/redis74-oracle'
 (oracle_root / 'src').mkdir(parents=True, exist_ok=True)

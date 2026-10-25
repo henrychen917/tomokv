@@ -6,7 +6,7 @@ import sys
 import time
 import uuid
 
-from _lib import Conn, info, cross_owner_pair
+from _lib import Conn, info, cross_owner_pair, same_shard_pair, shards_of
 
 
 @contextlib.contextmanager
@@ -63,6 +63,64 @@ def watch_effects(admin):
         assert watcher.must("EXEC") == [b"a"]
         count(watcher, admin, 0)
     print("PASS wave7 cross-owner WATCH counts, effects and EXEC scheduling", flush=True)
+
+
+
+def prebuilt_watch_effects(admin, target):
+    """WATCH must select the notifying form of a remote prebuilt SET."""
+    if target:
+        key, sibling, shard = same_shard_pair(admin, "wave7:prebuilt")
+        routes = shards_of(admin, [key, sibling])
+        assert routes[0] == routes[1] and routes[0][0] == shard, routes
+        owner = routes[0][1]
+    else:
+        key, sibling, owner, shard = "wave7:prebuilt:key", "wave7:prebuilt:sibling", None, None
+    writer = None
+    for attempt in range(128):
+        candidate = Conn(admin.host, admin.port, buffering=0)
+        io = candidate.must("DEBUG", "IO-THREAD") if target else None
+        if not target or io != owner:
+            writer = candidate
+            break
+        candidate.close()
+    assert writer is not None, "remote prebuilt SET writer never armed"
+    old_mask = admin.must("CONFIG", "GET", "notify-keyspace-events")[1]
+    outcomes = {}
+    try:
+        with connection(admin) as watcher:
+            for mask in ("", "K$"):
+                assert admin.must("CONFIG", "SET", "notify-keyspace-events", mask) == b"OK"
+                for size in (513, 1024, 200000):
+                    value = b"p" * size
+                    for case in ("sibling", "replace", "nx", "xx-missing", "get"):
+                        assert admin.must("SET", sibling, "untouched") == b"OK"
+                        assert admin.must("SET", key, "old") == b"OK"
+                        if case == "xx-missing": assert admin.must("DEL", key) == 1
+                        watched = sibling if case == "sibling" else key
+                        assert watcher.must("WATCH", watched) == b"OK"
+                        count(watcher, admin, 1)
+                        tail = ("NX",) if case == "nx" else ("XX",) if case == "xx-missing" else ("GET",) if case == "get" else ()
+                        result = writer.must("SET", key, value, *tail)
+                        expected = None if case in ("nx", "xx-missing") else b"old" if case == "get" else b"OK"
+                        assert result == expected, (mask, size, case, result)
+                        assert watcher.must("MULTI") == b"OK"
+                        assert watcher.must("PING") == b"QUEUED"
+                        dirty = case in ("replace", "get")
+                        assert watcher.must("EXEC") == (None if dirty else [b"PONG"]), (mask, size, case)
+                        count(watcher, admin, 0)
+                        wanted = b"old" if case == "nx" else None if case == "xx-missing" else value
+                        assert writer.must("GET", key) == wanted
+                        assert writer.must("GET", sibling) == b"untouched"
+                        if case in ("sibling", "replace", "get"):
+                            assert writer.must("OBJECT", "ENCODING", key) == b"raw"
+                        outcomes[str((mask, size, case))] = dirty
+    finally:
+        writer.close()
+        admin.must("CONFIG", "SET", "notify-keyspace-events", old_mask)
+        admin.must("DEL", key, sibling)
+    print("PASS wave7 prebuilt SET WATCH forms", dict(target=target, shard=shard,
+          owner=owner, writer_io=io, cases=len(outcomes)), flush=True)
+    return outcomes
 
 
 def selected_fields(c):

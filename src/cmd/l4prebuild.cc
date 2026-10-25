@@ -117,6 +117,7 @@ const CommandSpec* l4prebuild_notify_spec() {
     static const CommandSpec spec = [] {
         CommandSpec copy = *command_notify_variant(g_hot_command_specs.set);
         copy.handler = cmd_set_prebuilt<true>;
+        copy.handler_notify = cmd_set_prebuilt<true>;
         return copy;
     }();
     return &spec;
@@ -136,6 +137,10 @@ void l4prebuild_prepare_set(Op& op) {
     static const CommandSpec clean = [] {
         CommandSpec copy = *g_hot_command_specs.set;
         copy.handler = cmd_set_prebuilt<false>;
+        // WATCH selects handler_notify on the owner, independently of the IO
+        // notification mask. It must consume the same prebuilt value before
+        // recording effects; ordinary SET would leave that sidecar attached.
+        copy.handler_notify = cmd_set_prebuilt<true>;
         return copy;
     }();
     op.spec = (op.spec->flags & CmdFlags::NotifySelected) ? l4prebuild_notify_spec() : &clean;
