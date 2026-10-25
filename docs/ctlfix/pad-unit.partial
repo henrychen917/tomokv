@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=flip_unit; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	5.060000	flip controller model unit

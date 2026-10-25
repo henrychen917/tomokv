@@ -1383,10 +1383,20 @@ job_flip_unit(){
 # The flip-controller MODEL (fingerprint classes, ramp gate, count-noise rejection) has a unit
 # test that nothing built; a model regression surfaced only in flipctl.py's live 2-5 min row.
 row_begin "flip controller model unit"
+local controller_ok=1
 g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomokv-flipctl-unit \
     2>$TMPDIR/gate-flipctl-unit.txt \
     && $TMPDIR/tomokv-flipctl-unit >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
-    && ok "flip controller model unit" \
+    || controller_ok=0
+pausable taskset -c "$BUILD_CORES" make -f tests/ctlfix.mk -j"$BUILD_JOBS" build/ctlfix-unit \
+    >>$TMPDIR/gate-flipctl-unit.txt 2>&1 || controller_ok=0
+if make -f tests/ctlfix.mk -q build/ctlfix-unit; then
+  for regression in completions boot calibration; do
+    taskset -c "$CORES" build/ctlfix-unit "$regression" >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
+        || controller_ok=0
+  done
+else controller_ok=0; fi
+[ "$controller_ok" = 1 ] && ok "flip controller model unit" \
     || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
 }
 
@@ -5073,7 +5083,8 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;

@@ -1468,12 +1468,19 @@ public:
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
     }
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
-                    std::string& error) {
+                    std::string& error, uint64_t observed_completed = UINT64_MAX) {
         if (cfg_.thread_mode == ThreadMode::Fused) {
             error = "ERR FLIP is unavailable with --thread-mode 1s: threads are fused";
             return false;
         }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        // The automatic controller's evidence belongs to this completion epoch.
+        // Check under admission's lock so a manual completion between its sample
+        // and this call cannot be silently acknowledged as part of the new move.
+        if (observed_completed != UINT64_MAX && flip_completed() != observed_completed) {
+            error = "ERR FLIP controller evidence was superseded by a completed FLIP";
+            return false;
+        }
         const LbStage live_lb_stage = lb_stage();
         if (live_lb_stage == LbStage::IoDrain || live_lb_stage == LbStage::ExDrain ||
             live_lb_stage == LbStage::ClientDrain || live_lb_stage == LbStage::PlanReady) {

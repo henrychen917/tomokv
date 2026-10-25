@@ -1,0 +1,18 @@
+{
+  "target": 35831,
+  "oracle_incorrect": 35833,
+  "control": 35833,
+  "oracle_correct": 35832,
+  "reason": "climon reader control owns target+2",
+  "runner_pid": 1789823,
+  "action": "Pause outer differential loop; allow current matrix to finish, then retire this loop and rerun all four matrices with consecutive ports.",
+  "completed_failed_matrices": [
+    "uring-split",
+    "uring-armed-fused"
+  ],
+  "not_started_with_bad_ports": [
+    "epoll-split",
+    "epoll-armed-fused"
+  ],
+  "retired_after_complete_current_matrix": true
+}

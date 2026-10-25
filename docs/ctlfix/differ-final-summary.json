@@ -1,0 +1,200 @@
+{
+  "matrices": [
+    {
+      "label": "differ-final-uring-split",
+      "passed": 663,
+      "failed": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21,
+        22,
+        24
+      ],
+      "declared_sort_skips": 0,
+      "read_local_witnesses": [],
+      "mode_equivalence": [
+        "MODE EQUIVALENCE: 16/16 cells, seed=24, 28 command types, 6154 replies per cell"
+      ],
+      "coverage": {
+        "registered": 245,
+        "compared": 232,
+        "artifacts": 662,
+        "missing": [
+          "BGREWRITEAOF",
+          "FLIP",
+          "HELLO",
+          "LOLWUT",
+          "MONITOR",
+          "QUIT",
+          "REPLICAOF",
+          "SHUTDOWN",
+          "SLAVEOF",
+          "TIME",
+          "UNWATCH",
+          "WATCH",
+          "ZREVRANGE"
+        ]
+      }
+    },
+    {
+      "label": "differ-final-uring-armed-fused",
+      "passed": 650,
+      "failed": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21,
+        22,
+        26
+      ],
+      "declared_sort_skips": 14,
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=20 final_fallbacks=240)"
+      ],
+      "mode_equivalence": [],
+      "coverage": {
+        "registered": 245,
+        "compared": 232,
+        "artifacts": 648,
+        "missing": [
+          "BGREWRITEAOF",
+          "FLIP",
+          "HELLO",
+          "LOLWUT",
+          "MONITOR",
+          "QUIT",
+          "REPLICAOF",
+          "SHUTDOWN",
+          "SLAVEOF",
+          "TIME",
+          "UNWATCH",
+          "WATCH",
+          "ZREVRANGE"
+        ]
+      }
+    },
+    {
+      "label": "differ-final-epoll-split",
+      "passed": 663,
+      "failed": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21,
+        22,
+        25
+      ],
+      "declared_sort_skips": 0,
+      "read_local_witnesses": [],
+      "mode_equivalence": [
+        "MODE EQUIVALENCE: 16/16 cells, seed=25, 28 command types, 6188 replies per cell"
+      ],
+      "coverage": {
+        "registered": 245,
+        "compared": 232,
+        "artifacts": 662,
+        "missing": [
+          "BGREWRITEAOF",
+          "FLIP",
+          "HELLO",
+          "LOLWUT",
+          "MONITOR",
+          "QUIT",
+          "REPLICAOF",
+          "SHUTDOWN",
+          "SLAVEOF",
+          "TIME",
+          "UNWATCH",
+          "WATCH",
+          "ZREVRANGE"
+        ]
+      }
+    },
+    {
+      "label": "differ-final-epoll-armed-fused",
+      "passed": 650,
+      "failed": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21,
+        22,
+        27
+      ],
+      "declared_sort_skips": 14,
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1256 fallbacks=3 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=20 final_fallbacks=240)"
+      ],
+      "mode_equivalence": [],
+      "coverage": {
+        "registered": 245,
+        "compared": 232,
+        "artifacts": 648,
+        "missing": [
+          "BGREWRITEAOF",
+          "FLIP",
+          "HELLO",
+          "LOLWUT",
+          "MONITOR",
+          "QUIT",
+          "REPLICAOF",
+          "SHUTDOWN",
+          "SLAVEOF",
+          "TIME",
+          "UNWATCH",
+          "WATCH",
+          "ZREVRANGE"
+        ]
+      }
+    }
+  ],
+  "unchanged_standard_proof_drivers": [
+    {
+      "path": "tests/differ_gate.sh",
+      "sha256": "e741f837fb9bed5a0927fefe38aa3361d29ec699964f140a93a05fb9f17e8c63"
+    },
+    {
+      "path": "tests/differ.py",
+      "sha256": "8a7e7a4154896434b1808c74c6c9c87578213a3d5670ce3868dae4a37a8cbfec"
+    },
+    {
+      "path": "tests/_differ_history.py",
+      "sha256": "1379d8e431b8a051b9aefafe10c9d6d398a9e9c8249e39e0c00bd2149e57a53b"
+    },
+    {
+      "path": "tests/mode_equivalence.py",
+      "sha256": "2b2702bbcb9382258e631bd2e0c832beadfebbd7f9c5cdd9a795ee478ef9c02f"
+    },
+    {
+      "path": "tests/gates_test.py",
+      "sha256": "e797681adc8559df7ca394ab865f5bc5f8dde3c8497ad3cddfa2924111181ffe"
+    },
+    {
+      "path": "tests/flip.py",
+      "sha256": "6f1190bc76143ace7919617a7e25ff908a7a92b295c1432111a80bd0ffb3e5a3"
+    },
+    {
+      "path": "tests/flipctl.py",
+      "sha256": "3b608c33be5a9c80c353d01689be44129091d909aa676d12f33146bab0571c8b"
+    },
+    {
+      "path": "tests/fliplisten.py",
+      "sha256": "21df315d11c18241dc1792aec9224cbe4a476ea64650064c7aa8ad59bbc43316"
+    },
+    {
+      "path": "tests/flipfix.py",
+      "sha256": "121e7cbf9f54b2d7e7da19c9dba7a5c72bccb382a54fee7b6b95d1381da8be88"
+    }
+  ]
+}

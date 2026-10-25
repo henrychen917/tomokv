@@ -1,0 +1,1 @@
+{"target": 35861, "oracle": 35862, "control": 35863, "server_cores": "48-55", "load_cores": "56-63", "precondition": "All three binds succeeded before the matrix"}
