@@ -1,6 +1,6 @@
 #!/bin/bash
 # Reproduce CC4.7 correctness via complete gate jobs, never the performance tier.
-# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ|recheck|differ_recheck.
+# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh ACTION (see usage below).
 set -u
 cd "$(dirname "$0")/.."
 export PYTHONPATH="$PWD/docs/lualibs/port_guard${PYTHONPATH:+:$PYTHONPATH}"
@@ -64,6 +64,21 @@ case "${1:-}" in
     printf '%s\t%s\n' "$name" "$rc" >> build/lualibs-proof/differ-status.tsv
     echo "END $name rc=$rc"
     ;;
+  pre_epoll_recheck)
+    # Preserve PRE's initial PSFIX SAVE/background-save race, then repeat the
+    # complete standard matrix, including the preceding suites and their state.
+    export GATE_LOAD_CORES=56-63 GATE_DIFFER_ORACLE_CORES=48-55
+    export GATE_DIFFER_HISTORY="$PWD/.gate-history/lualibs-differ"
+    export GATE_RUN_ID=lualibs-standard-proof
+    name=pre-differ-epoll-split-recheck
+    GATE_DIFFER_NET_IO=epoll GATE_DIFFER_GEOMETRY=split \
+        GATE_DIFFER_OUT="$PWD/build/lualibs-proof/$name" \
+        tests/differ_gate.sh "$PWD/build/tomokv-lualibs-pre" 40840 40841 48-55 6:2 \
+        >"build/lualibs-proof/$name.log" 2>&1
+    rc=$?
+    printf '%s\t%s\n' "$name" "$rc" >> build/lualibs-proof/differ-status.tsv
+    echo "END $name rc=$rc"
+    ;;
   differ)
     export GATE_LOAD_CORES=56-63 GATE_DIFFER_ORACLE_CORES=48-55
     export GATE_DIFFER_HISTORY="$PWD/.gate-history/lualibs-differ"
@@ -86,5 +101,5 @@ case "${1:-}" in
       done; done
     done
     ;;
-  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ|recheck|differ_recheck' >&2; exit 2;;
+  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ|recheck|differ_recheck|pre_epoll_recheck' >&2; exit 2;;
 esac

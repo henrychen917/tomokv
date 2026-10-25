@@ -1,0 +1,127 @@
+{
+  "time": 1792906641.404262,
+  "scope": "snapshot of active correctness driver and port lease, with their descendants",
+  "processes": [
+    {
+      "pid": 517565,
+      "parent": 4023700,
+      "command": "/bin/bash tests/differ_gate.sh /home/user/Projects/cx-lualibs/build/tomokv-lualibs-pre 40840 40841 48-55 6:2",
+      "cpus": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "pid": 517575,
+      "parent": 517565,
+      "command": "/tmp/claude-1000/redis74/src/redis-server 127.0.0.1:40841",
+      "cpus": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ]
+    },
+    {
+      "pid": 517600,
+      "parent": 517565,
+      "command": "/home/user/Projects/cx-lualibs/build/tomokv-lualibs-pre --port 40840 --bind 127.0.0.1 --shards 16 --thread-mode fused --read-local 1 --net-io uring --databases 16 --atomic 0 --save  --dir /home/user/Projects/cx-lualibs/build/lualibs-proof/pre-differ-uring-armed-fused/target-atomic-0 --enable-debug-command yes --aclfile /home/user/Projects/cx-lualibs/build/lualibs-proof/pre-differ-uring-armed-fused/ccfix.acl",
+      "cpus": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ]
+    },
+    {
+      "pid": 536585,
+      "parent": 517565,
+      "command": "timeout 900 python3 tests/differ.py 127.0.0.1 40840 127.0.0.1 40841 climon 19",
+      "cpus": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "pid": 536586,
+      "parent": 536585,
+      "command": "python3 tests/differ.py 127.0.0.1 40840 127.0.0.1 40841 climon 19",
+      "cpus": [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "pid": 4023700,
+      "parent": 4023699,
+      "command": "bash build/lualibs-proof-driver-final.sh differ",
+      "cpus": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    {
+      "pid": 4126986,
+      "parent": 4126984,
+      "command": "python3 docs/lualibs/port_guard/lease.py",
+      "cpus": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    }
+  ]
+}

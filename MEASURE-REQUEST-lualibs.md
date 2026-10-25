@@ -163,6 +163,14 @@ It changes no sysctl, comparison, deadline or protocol. The whole first matrix
 is queued for a standard-seed rerun under this reservation; original failures
 remain retained. The lease will be closed after verification.
 
+PRE split/epoll's atomic-1 seed-7 PSFIX leg also refused a target SAVE reply:
+`ERR Background save already in progress` after its both-peer idle barrier.
+The test explicitly classifies this as a harness race and refuses comparison.
+POST's matching full-matrix leg passed. A full PRE split/epoll rerun is queued
+after the other matrices, preserving the preceding suites and accumulated
+state as well as the same seeds. The original failure remains in the receipts;
+no test, barrier or timeout is changed.
+
 
 ### Binary identity, size and per-state memory
 
