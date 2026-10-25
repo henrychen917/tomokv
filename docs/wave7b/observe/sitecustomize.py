@@ -40,5 +40,5 @@ if out and (Path(sys.argv[0]).name in {"gates_test.py", "gate_process_test.py", 
             path = Path(out); path.mkdir(parents=True, exist_ok=True)
             (path / (Path(sys.argv[0]).stem + "-" + str(os.getpid()) + ".json")).write_text(
                 json.dumps(dict(argv=sys.argv, affinity=sorted(os.sched_getaffinity(0)),
-                                seconds=time.monotonic()-started, tests=rows), indent=2)+"\n")
+                                seconds=time.monotonic()-started, tests=rows), indent=2, default=str)+"\n")
     atexit.register(save)

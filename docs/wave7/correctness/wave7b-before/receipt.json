@@ -46,5 +46,116 @@
     "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/wave7b-before/ledger"
   },
   "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
-  "diagnostic_preload": null
+  "diagnostic_preload": null,
+  "exit": 1,
+  "end": 1792964712.2923594,
+  "binary_sha256_after": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.EnUHer",
+  "jobs": {
+    "abba_selftest": {
+      "done": "0\t0\t1",
+      "rows": [
+        "FAIL\t1246.230000\tABBA comparison + saturation negative controls"
+      ]
+    },
+    "feature-armed-0": {
+      "done": "0\t35\t0",
+      "rows": [
+        "ok\t0.260000\tfused+armed boot line (atomic 0)",
+        "ok\t1.190000\tfused+armed s6 battery (atomic 0)",
+        "ok\t2.100000\tfused+armed multi_exec battery (atomic 0)",
+        "ok\t1.600000\tfused+armed blocking battery (atomic 0)",
+        "ok\t0.470000\tfused+armed blockmulti battery (atomic 0)",
+        "ok\t0.530000\tfused+armed stream battery (atomic 0)",
+        "ok\t0.060000\tfused+armed streamgroups battery (atomic 0)",
+        "ok\t0.910000\tfused+armed pubsub battery (atomic 0)",
+        "ok\t0.050000\tfused+armed lua_scripting battery (atomic 0)",
+        "ok\t0.070000\tfused+armed scriptsurf battery (atomic 0)",
+        "ok\t14.700000\tfused+armed limits battery (atomic 0)",
+        "ok\t0.060000\tfused+armed resp3 battery (atomic 0)",
+        "ok\t0.050000\tfused+armed bitfield battery (atomic 0)",
+        "ok\t0.090000\tfused+armed dumprestore battery (atomic 0)",
+        "ok\t0.070000\tfused+armed zsetops battery (atomic 0)",
+        "ok\t0.040000\tfused+armed geo battery (atomic 0)",
+        "ok\t1.150000\tfused+armed climon battery (atomic 0)",
+        "ok\t3.350000\tfused+armed climon2 battery (atomic 0)",
+        "ok\t13.260000\tfused+armed tracking battery (atomic 0)",
+        "ok\t3.070000\tfused+armed hexpire battery (atomic 0)",
+        "ok\t0.580000\tfused+armed servertail battery (atomic 0)",
+        "ok\t0.180000\tfused+armed lcs battery (atomic 0)",
+        "ok\t2.860000\tfused+armed concur battery (atomic 0)",
+        "ok\t0.730000\tfused+armed edgeproto battery (atomic 0)",
+        "ok\t0.390000\tfused+armed edgeenc battery (atomic 0)",
+        "ok\t3.820000\tfused+armed edgetime battery (atomic 0)",
+        "ok\t0.040000\tfused+armed arity battery (atomic 0)",
+        "ok\t0.050000\tfused+armed contarity battery (atomic 0)",
+        "ok\t0.040000\tfused+armed cmdgap battery (atomic 0)",
+        "ok\t0.050000\tfused+armed aclsel battery (atomic 0)",
+        "ok\t53.780000\tfused+armed expwide battery (atomic 0)",
+        "ok\t4.160000\tfused+armed infofix battery (atomic 0)",
+        "ok\t5.480000\tfused+armed pushtear battery (atomic 0)",
+        "ok\t0.040000\tfused+armed netcmd battery (atomic 0)",
+        "ok\t1.180000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      ]
+    },
+    "feature-split-0": {
+      "done": "0\t34\t0",
+      "rows": [
+        "ok\t2.480000\ts6 battery (atomic 0)",
+        "ok\t2.100000\tmulti_exec battery (atomic 0)",
+        "ok\t1.560000\tblocking battery (atomic 0)",
+        "ok\t0.480000\tblockmulti battery (atomic 0)",
+        "ok\t0.510000\tstream battery (atomic 0)",
+        "ok\t0.060000\tstreamgroups battery (atomic 0)",
+        "ok\t0.950000\tpubsub battery (atomic 0)",
+        "ok\t0.050000\tlua_scripting battery (atomic 0)",
+        "ok\t0.070000\tscriptsurf battery (atomic 0)",
+        "ok\t15.640000\tlimits battery (atomic 0)",
+        "ok\t0.050000\tresp3 battery (atomic 0)",
+        "ok\t0.050000\tbitfield battery (atomic 0)",
+        "ok\t0.080000\tdumprestore battery (atomic 0)",
+        "ok\t0.070000\tzsetops battery (atomic 0)",
+        "ok\t0.040000\tgeo battery (atomic 0)",
+        "ok\t1.180000\tclimon battery (atomic 0)",
+        "ok\t3.360000\tclimon2 battery (atomic 0)",
+        "ok\t13.240000\ttracking battery (atomic 0)",
+        "ok\t3.320000\thexpire battery (atomic 0)",
+        "ok\t0.580000\tservertail battery (atomic 0)",
+        "ok\t0.180000\tlcs battery (atomic 0)",
+        "ok\t2.820000\tconcur battery (atomic 0)",
+        "ok\t0.600000\tedgeproto battery (atomic 0)",
+        "ok\t0.360000\tedgeenc battery (atomic 0)",
+        "ok\t3.860000\tedgetime battery (atomic 0)",
+        "ok\t0.050000\tarity battery (atomic 0)",
+        "ok\t0.040000\tcontarity battery (atomic 0)",
+        "ok\t0.040000\tcmdgap battery (atomic 0)",
+        "ok\t0.050000\taclsel battery (atomic 0)",
+        "ok\t69.560000\texpwide battery (atomic 0)",
+        "ok\t4.210000\tinfofix battery (atomic 0)",
+        "ok\t2.940000\tpushtear battery (atomic 0)",
+        "ok\t0.040000\tnetcmd battery (atomic 0)",
+        "ok\t0.030000\tfeature shutdown invariants (atomic 0)"
+      ]
+    },
+    "flip": {
+      "done": "0\t9\t0",
+      "rows": [
+        "ok\t0.170000\tFLIP state battery",
+        "ok\t1.080000\tFLIP under verified load",
+        "ok\t1.450000\tFLIP TTL + expiry events",
+        "ok\t2.240000\tpartial-frame conn parks (no io spin)",
+        "ok\t2.240000\tFLIP close during FLIP (uring)",
+        "ok\t2.170000\tFLIP close during FLIP (epoll)",
+        "ok\t1.070000\tFLIP signal stop during FLIP + second SIGINT",
+        "ok\t0.550000\tperfio stale epoll registration (epoll-flip)",
+        "ok\t12.200000\tperfio stale epoll registration (epoll-lb)"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
 }

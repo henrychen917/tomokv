@@ -880,7 +880,15 @@ collect_job(){
         # source-declared inventory. Prepare independent disposable fixtures on
         # disjoint CPU groups instead of serializing hundreds of Python starts
         # per scenario. Identical scenarios share one immutable class fixture.
-        cpus = sorted(os.sched_getaffinity(0))
+        # Gate clients inherit only their slot's load CPUs. This serverless
+        # fixture owns the same slot's otherwise idle server CPUs too: use that
+        # explicit allocation, never the box-wide affinity or another slot.
+        cpus = set(os.sched_getaffinity(0))
+        if os.environ.get('GATE_RUN_ID') and os.environ.get('GATE_CORES'):
+            from _gate_process import cpus as parse_cpus
+            cpus.update(parse_cpus(os.environ['GATE_CORES']))
+        cls.fixture_cpus = sorted(cpus)
+        cpus = cls.fixture_cpus
         workers = min(4, max(1, len(cpus) // 4))
         cls.cpu_groups = queue.Queue()
         for index in range(workers):
@@ -1048,8 +1056,15 @@ __SCHEDULER_AFFINITY_PROBE__
       : > "$RUN_DIR/dependency-handshake"
     fi
   fi
-  if [ "$GATE_SLOTS" != 1 ] && [ "$FORCE_ORDER" = 1 ]; then
-    for dependency in "${CANONICAL[@]}"; do
+  # Start each row's real budget/watchdog in parallel. Only verdict completion
+  # is ordered; serializing Python startup ahead of every FIFO token made the
+  # synthetic critical path grow with the full inventory instead of slot count.
+  row_begin "$(job_label "$current")"
+  if [ "$GATE_SLOTS" != 1 ] && [ "$FORCE_ORDER" = 1 ] &&
+      [ "$current" = "${COMPLETION_ORDER[0]}" ]; then
+    # Synchronize the first wave; later jobs reuse these same bounded slots.
+    # Their FIFO predecessor tokens still force the complete opposite orders.
+    for dependency in "${COMPLETION_ORDER[@]:0:$GATE_SLOTS}"; do
       [ "$dependency" != atomic_batteries ] || continue
       while [ ! -f "$RUN_DIR/started/$dependency" ]; do pause; done
     done
@@ -1063,7 +1078,6 @@ __SCHEDULER_AFFINITY_PROBE__
       [ "$dependency" = completed ] || exit 21
     fi
   fi
-  row_begin "$(job_label "$current")"
   if [ "$current" = "$FAILED_JOB" ] && [ "$FAILURE_BEHAVIOR" = crash ]; then exit 17; fi
   if [ "$current" = "$FAILED_JOB" ] && [ "$FAILURE_BEHAVIOR" = red ]; then
     bad "$(job_label "$current")" 'deliberately broken mechanism'
@@ -1111,6 +1125,28 @@ if [ "$ADD_ASAN_DEPENDENCY" = 1 ]; then
     [ "$1" != release_batteries ] || echo asan
   }
 fi
+# Change dispatch priority only for completion-order probes. Retain exactly the
+# real planner's registered jobs: adding a missing collector job here would hide
+# a lost registration. The unordered probes retain the original dependency graph
+# and priority, including atomic exclusivity and the release/ASAN handshake.
+if [ "$FORCE_ORDER" = 1 ] && [ "$GATE_SLOTS" != 1 ]; then
+  original_plan=$(declare -f plan_jobs)
+  eval "${original_plan/plan_jobs/registered_plan_jobs}"
+  plan_jobs(){
+    registered_plan_jobs
+    local original=("${JOB_NAMES[@]}") name
+    JOB_NAMES=()
+    for name in "${original[@]}"; do
+      case " ${COMPLETION_ORDER[*]} " in
+        *" $name "*) ;; # reordered below, never invented
+        *) JOB_NAMES+=("$name");; # unscored build prerequisites
+      esac
+    done
+    for name in "${COMPLETION_ORDER[@]}"; do
+      case " ${original[*]} " in *" $name "*) JOB_NAMES+=("$name");; esac
+    done
+  }
+fi
 mkdir "$RUN_DIR/order"
 for requested in "${CANONICAL[@]}"; do mkfifo "$RUN_DIR/order/$requested"; done
 start_workers
@@ -1126,19 +1162,14 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                        REMOVE_ATOMIC_DEPENDENCY=str(int(remove_atomic_dependency)),
                        ADD_ASAN_DEPENDENCY=str(int(add_asan_dependency)),
                        GATE_FEATURE_OUTPUT=str(directory / 'features'))
-            count = slots or len(canonical) + 1
-            # The full-inventory order probes synchronize about 100 real shells. Pinning
-            # all of them to one CPU serialized their watchdog/ledger work and exhausted
-            # the unchanged 45s deadline under correctness contention. Use up to four
-            # permitted CPUs so publication is exercised concurrently, while an explicit
-            # caller affinity still limits the fixture. The coordinator retains
-            # this allocation even with one worker slot, as the real gate does;
-            # each worker remains pinned to its single assigned slot CPU. Sharing
-            # one CPU with the collector exhausted 45s after wave 7 expanded the
-            # inventory, despite 219 workers already publishing completion.
-            # No jobs, assertions or deadlines are removed or widened.
-            fixture_cpus = list(map(str, (_cpus or sorted(os.sched_getaffinity(0)))[:4]))
+            # Bound fixture concurrency to its actual CPU allocation. Ordered
+            # probes reorder only the registered queue, then use FIFO tokens to
+            # prove opposite completions across the full inventory. Hundreds of
+            # waiting workers used to repeatedly scan the pending atomic barrier.
+            # Keep the coordinator's allocation even in the one-slot control.
+            fixture_cpus = list(map(str, (_cpus or self.fixture_cpus)[:4]))
             cpu_list = ','.join(fixture_cpus)
+            count = slots or len(fixture_cpus)
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',

@@ -481,10 +481,13 @@ bool Server::lb_debug_move_client(uint64_t id, uint32_t destination, std::string
         return false;
     }
     for (uint32_t tid = 0; tid < nthreads(); ++tid)
-        lb_ack_[tid].store(tid == destination, std::memory_order_relaxed);
+        lb_ack_[tid].store(0, std::memory_order_relaxed);
     lb_coordinator_ = destination;
     lb_client_move_ = move;
-    lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
+    const uint64_t epoch = lb_epoch_.fetch_add(1, std::memory_order_acq_rel) + 1;
+    // Match lb_ack's epoch/stage tag BEFORE ClientDrain makes the record visible.
+    lb_ack_[destination].store((epoch << 8) | static_cast<uint8_t>(LbStage::ClientDrain),
+                               std::memory_order_relaxed);
     lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs, std::memory_order_release);
     lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
     return true;

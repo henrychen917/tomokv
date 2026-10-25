@@ -49,8 +49,9 @@ if a.control.startswith('timing-'):
     raise SystemExit(0)
 s = Path('src/core/lbplanner.cc').read_text()
 changes = {
-    'no-publish': ('lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);',
-                   'lb_stage_.store(LbStage::Idle, std::memory_order_release);'),
+    # Target the monitor publication, not DEBUG CLIENT-LB's record-reuse gate.
+    'no-publish': ('lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);\n        return true;',
+                   'lb_stage_.store(LbStage::Idle, std::memory_order_release);\n        return true;'),
     'stale-flip': ('flip_epoch() != plan.flip_epoch || ', ''),
     'stale-lb': ('lb_epoch() != plan.lb_epoch ||', 'false ||'),
     'copy-on-io': ('lb_shard_moves_.swap(plan.shards);',
