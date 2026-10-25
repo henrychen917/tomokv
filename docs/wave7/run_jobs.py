@@ -20,6 +20,9 @@ p.add_argument('--fused', action='store_true')
 p.add_argument('--atomic', choices=['0', '1'], default='1')
 p.add_argument('--root', type=Path, default=ROOT)
 p.add_argument('--selftest', action='store_true', help='one gate slot; 24 CPUs for scheduler self-tests')
+p.add_argument('--server-cores', help='explicit disjoint correctness allocation')
+p.add_argument('--load-cores', help='explicit disjoint correctness client allocation')
+p.add_argument('--ports', default='26800-26889')
 a = p.parse_args()
 out = ROOT / 'docs/wave7/correctness' / a.name
 out.mkdir(parents=True, exist_ok=False)
@@ -41,9 +44,9 @@ env = dict(os.environ, LANG='en_US.UTF-8', REDIS74_ROOT=str(oracle_root),
 env.pop('NETFIX_TLS_ORACLE', None)
 env.pop('LC_ALL', None)
 command = ['taskset', '-c', '64-95', 'bash', 'tests/gate.sh', 'full',
-           '--server-cores', '64-71' if a.selftest else '64-87', '--server-smt', '',
-           '--load-cores', '72-95' if a.selftest else '88-95', '--load-smt', '',
-           '--ports', '26800-26889', '--candidate-binary', str(binary)]
+           '--server-cores', a.server_cores or ('64-71' if a.selftest else '64-87'), '--server-smt', '',
+           '--load-cores', a.load_cores or ('72-95' if a.selftest else '88-95'), '--load-smt', '',
+           '--ports', a.ports, '--candidate-binary', str(binary)]
 receipt = dict(command=command, cwd=str(source), start=time.time(),
                commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),

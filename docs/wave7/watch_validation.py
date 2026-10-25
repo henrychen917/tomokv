@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Whole WATCH-table jobs plus a target-only missing-eviction-window control."""
 import hashlib
+import concurrent.futures
 import json
 import os
 from pathlib import Path
@@ -10,9 +11,21 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
-for index in range(1, 4):
-    subprocess.run(['python3', 'docs/wave7/run_jobs.py', f'watch-final-{index}',
-                    'datafix2_watch'], check=True)
+# Three complete invocations, each with its own eight-server/two-client core
+# allocation and nonoverlapping ports, exactly as the gate's three slots do.
+# These jobs use a frozen external candidate, so their release prerequisites
+# do not build or mutate shared artifacts.
+def positive(item):
+    index, server, client, ports = item
+    return subprocess.run(['python3', 'docs/wave7/run_jobs.py', f'watch-final-{index}',
+        'datafix2_watch', '--server-cores', server, '--load-cores', client,
+        '--ports', ports]).returncode
+allocations = [(1, '64-71', '88-89', '26800-26829'),
+               (2, '72-79', '90-91', '26830-26859'),
+               (3, '80-87', '92-93', '26860-26889')]
+with concurrent.futures.ThreadPoolExecutor(3) as pool:
+    results = list(pool.map(positive, allocations))
+assert results == [0, 0, 0], results
 
 source = ROOT / 'build/wave7/selftest-source-final'
 copy = ROOT / 'build/wave7/watch-negative-source'
