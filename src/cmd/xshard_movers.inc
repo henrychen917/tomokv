@@ -42,6 +42,10 @@ ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op
                                         UINT64_MAX, state.origin_conn_id);
             plain_active = error == WorkError::None;
         }
+        bool set_member_present = false;
+        if (shard.has_watches() && state.kind == Kind::Smove && pos == 1)
+            xshard_set_contains(shard.store().find_no_touch(key.hash, op.arg(key.arg)),
+                                op.arg(3), set_member_present);
         XshardElementResult moved = XshardElementResult::Missing;
         if (error == WorkError::None) {
             if (state.kind == Kind::Smove) {
@@ -65,6 +69,8 @@ ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op
             error = element_work_error(moved);
         }
         state.status[pos] = static_cast<uint8_t>(error);
+        if (moved == XshardElementResult::Ok && !set_member_present)
+            watch_record_modified(shard, op.arg(key.arg));
         if (plain_active) shard.store().atomic_finish_plain();
         if (pos == 0)
             state.direct_ready.store(moved == XshardElementResult::Ok ? 1 : 2,

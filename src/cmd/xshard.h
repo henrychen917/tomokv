@@ -183,8 +183,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
 // on the sampled path, keeping ScatterState's private grouping layout out of ExLoop.
 void xshard_visit_task_hashes(const Task& task, void* context,
                               void (*visit)(void*, uint64_t));
-void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
-                         ScatterTaskResult result);
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);
 // DEBUG-only #77 probe. Fragment entry latches per-key atomic_needs_version answers in process-
 // cold state; xshard_execute consumes them immediately before the actual lookups.

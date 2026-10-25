@@ -1,0 +1,7 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.390000	configuration docs match parser
+ok	5.390000	Redis config quoting + mid-value #
+ok	7.820000	persistfix2 LASTSAVE and rewrite INFO
+ok	68.560000	persistfix2 shutdown modifiers and signal policy
+ok	56.670000	persistfix2 persistence command replies and scheduling
+ok	5.480000	persistfix2 AOF write-error refusal and read availability

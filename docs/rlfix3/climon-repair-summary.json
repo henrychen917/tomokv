@@ -1,0 +1,53 @@
+[
+  {
+    "name": "pre-climon-uring-repair",
+    "pass_count": 10,
+    "fail_count": 0,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "atomic_modes": [
+      0,
+      1
+    ],
+    "summary": "DIFFER FOCUSED PROOF: pass=10 fail=0 runtime=12m04s"
+  },
+  {
+    "name": "pre-climon-epoll-repair",
+    "pass_count": 10,
+    "fail_count": 0,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "atomic_modes": [
+      0,
+      1
+    ],
+    "summary": "DIFFER FOCUSED PROOF: pass=10 fail=0 runtime=12m04s"
+  },
+  {
+    "name": "post-climon-uring-repair",
+    "pass_count": 10,
+    "fail_count": 0,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "atomic_modes": [
+      0,
+      1
+    ],
+    "summary": "DIFFER FOCUSED PROOF: pass=10 fail=0 runtime=12m04s"
+  }
+]

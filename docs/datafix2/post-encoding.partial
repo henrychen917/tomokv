@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_encoding; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	33.820000	datafix2 CD4.15 string encoding vs Redis 7.4

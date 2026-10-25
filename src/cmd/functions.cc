@@ -199,6 +199,16 @@ public:
         for (const auto& entry : libraries_) functions += entry.second.functions.size();
     }
 
+    bool writes(Slice name, bool unknown) const {
+        std::lock_guard<std::mutex> lock(mu_);
+        for (const auto& entry : libraries_)
+            for (const FunctionDef& function : entry.second.functions)
+                if (name.n == function.name.size() &&
+                    std::memcmp(name.p, function.name.data(), name.n) == 0)
+                    return !(function.flags & kFlagNoWrites);
+        return unknown;
+    }
+
 private:
     void bump() { generation_.fetch_add(1, std::memory_order_release); }
 
@@ -688,6 +698,15 @@ bool invoke_fcall(Shard& shard, Op& op, Prepare&& prepare) {
     lua_replace(state, -3);      // callback takes the function-table slot
     lua_pop(state, 1);           // drop the entry table; the callback is now on top
 
+    // A library can be replaced between IO admission and owner execution. Check
+    // the selected callback's flags again before an AOF-error admission takes effect.
+    if (__builtin_expect(shard.server() && shard.server()->aof().failed(), false) &&
+        !(flags & kFlagNoWrites)) {
+        lua_settop(state, 0);
+        shard.server()->aof().reply_write_error(op);
+        return true;
+    }
+
     if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
         !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
         lua_settop(state, 0);
@@ -1055,6 +1074,11 @@ FunctionStats function_stats() {
 
 bool function_is_fcall(const Op& op) {
     return op.spec && std::strncmp(op.spec->name, "FCALL", 5) == 0;
+}
+
+bool function_metadata_write(const Op& op) {
+    const bool fallback = op.spec && (op.spec->flags & CmdFlags::Write);
+    return op.argc() > 1 ? g_functions.writes(op.arg(1), fallback) : fallback;
 }
 
 bool function_execute_exec(Shard& shard, Op& op, void* context,

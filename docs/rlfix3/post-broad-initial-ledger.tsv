@@ -1,0 +1,221 @@
+PARTIAL	0	GATE_ONLY_JOBS=netcmd_units atomic_units rlfix3_zc rlfix3_info bplus filter_unit config_unit feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 zc replyoff ntfix_input netfix_query_stats; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	83.640000	ASAN build
+ok	0.430000	configuration docs match parser
+ok	5.290000	Redis config quoting + mid-value #
+ok	0.300000	B+ counting-fingerprint filter unit
+ok	2.990000	s6 battery (atomic 0)
+ok	2.130000	multi_exec battery (atomic 0)
+ok	1.540000	blocking battery (atomic 0)
+ok	0.450000	blockmulti battery (atomic 0)
+ok	0.550000	stream battery (atomic 0)
+ok	0.050000	streamgroups battery (atomic 0)
+ok	0.930000	pubsub battery (atomic 0)
+ok	0.030000	lua_scripting battery (atomic 0)
+ok	0.040000	scriptsurf battery (atomic 0)
+ok	15.320000	limits battery (atomic 0)
+ok	0.040000	resp3 battery (atomic 0)
+ok	0.050000	bitfield battery (atomic 0)
+ok	0.080000	dumprestore battery (atomic 0)
+ok	0.070000	zsetops battery (atomic 0)
+ok	0.030000	geo battery (atomic 0)
+ok	1.110000	climon battery (atomic 0)
+ok	3.350000	climon2 battery (atomic 0)
+ok	13.510000	tracking battery (atomic 0)
+ok	3.320000	hexpire battery (atomic 0)
+ok	0.690000	servertail battery (atomic 0)
+ok	0.240000	lcs battery (atomic 0)
+ok	3.970000	concur battery (atomic 0)
+ok	0.610000	edgeproto battery (atomic 0)
+ok	0.450000	edgeenc battery (atomic 0)
+ok	3.720000	edgetime battery (atomic 0)
+ok	0.030000	arity battery (atomic 0)
+ok	0.030000	contarity battery (atomic 0)
+ok	0.030000	cmdgap battery (atomic 0)
+ok	0.040000	aclsel battery (atomic 0)
+ok	43.600000	expwide battery (atomic 0)
+ok	4.200000	infofix battery (atomic 0)
+ok	3.000000	pushtear battery (atomic 0)
+ok	0.030000	netcmd battery (atomic 0)
+ok	0.030000	feature shutdown invariants (atomic 0)
+ok	0.280000	fused+armed boot line (atomic 0)
+ok	8.160000	fused+armed s6 battery (atomic 0)
+ok	2.210000	fused+armed multi_exec battery (atomic 0)
+ok	1.600000	fused+armed blocking battery (atomic 0)
+ok	0.460000	fused+armed blockmulti battery (atomic 0)
+ok	0.780000	fused+armed stream battery (atomic 0)
+ok	0.050000	fused+armed streamgroups battery (atomic 0)
+ok	0.940000	fused+armed pubsub battery (atomic 0)
+ok	0.040000	fused+armed lua_scripting battery (atomic 0)
+ok	0.060000	fused+armed scriptsurf battery (atomic 0)
+ok	14.860000	fused+armed limits battery (atomic 0)
+ok	0.040000	fused+armed resp3 battery (atomic 0)
+ok	0.040000	fused+armed bitfield battery (atomic 0)
+ok	0.100000	fused+armed dumprestore battery (atomic 0)
+ok	0.070000	fused+armed zsetops battery (atomic 0)
+ok	0.020000	fused+armed geo battery (atomic 0)
+ok	1.140000	fused+armed climon battery (atomic 0)
+ok	3.290000	fused+armed climon2 battery (atomic 0)
+ok	13.340000	fused+armed tracking battery (atomic 0)
+ok	3.360000	fused+armed hexpire battery (atomic 0)
+ok	1.450000	fused+armed servertail battery (atomic 0)
+ok	0.820000	fused+armed lcs battery (atomic 0)
+ok	12.320000	fused+armed concur battery (atomic 0)
+ok	0.810000	fused+armed edgeproto battery (atomic 0)
+ok	1.490000	fused+armed edgeenc battery (atomic 0)
+ok	4.260000	fused+armed edgetime battery (atomic 0)
+ok	0.040000	fused+armed arity battery (atomic 0)
+ok	0.040000	fused+armed contarity battery (atomic 0)
+ok	0.020000	fused+armed cmdgap battery (atomic 0)
+ok	0.030000	fused+armed aclsel battery (atomic 0)
+ok	69.000000	fused+armed expwide battery (atomic 0)
+ok	4.240000	fused+armed infofix battery (atomic 0)
+ok	3.560000	fused+armed pushtear battery (atomic 0)
+ok	0.050000	fused+armed netcmd battery (atomic 0)
+ok	1.180000	fused+armed shutdown report + lane fired (hits=N, atomic 0)
+ok	2.660000	s6 battery (atomic 1)
+ok	2.130000	multi_exec battery (atomic 1)
+ok	1.550000	blocking battery (atomic 1)
+ok	0.470000	blockmulti battery (atomic 1)
+ok	0.730000	stream battery (atomic 1)
+ok	0.040000	streamgroups battery (atomic 1)
+ok	0.890000	pubsub battery (atomic 1)
+ok	0.040000	lua_scripting battery (atomic 1)
+ok	0.050000	scriptsurf battery (atomic 1)
+ok	14.840000	limits battery (atomic 1)
+ok	0.030000	resp3 battery (atomic 1)
+ok	0.030000	bitfield battery (atomic 1)
+ok	0.060000	dumprestore battery (atomic 1)
+ok	0.040000	zsetops battery (atomic 1)
+ok	0.030000	geo battery (atomic 1)
+ok	1.130000	climon battery (atomic 1)
+ok	3.280000	climon2 battery (atomic 1)
+ok	13.300000	tracking battery (atomic 1)
+ok	3.310000	hexpire battery (atomic 1)
+ok	0.680000	servertail battery (atomic 1)
+ok	0.190000	lcs battery (atomic 1)
+ok	4.810000	concur battery (atomic 1)
+ok	0.660000	edgeproto battery (atomic 1)
+ok	0.590000	edgeenc battery (atomic 1)
+ok	4.010000	edgetime battery (atomic 1)
+ok	0.030000	arity battery (atomic 1)
+ok	0.030000	contarity battery (atomic 1)
+ok	0.020000	cmdgap battery (atomic 1)
+ok	0.030000	aclsel battery (atomic 1)
+ok	44.480000	expwide battery (atomic 1)
+ok	4.210000	infofix battery (atomic 1)
+ok	2.970000	pushtear battery (atomic 1)
+ok	0.030000	netcmd battery (atomic 1)
+ok	0.020000	feature shutdown invariants (atomic 1)
+ok	0.280000	fused+armed boot line (atomic 1)
+ok	6.370000	fused+armed s6 battery (atomic 1)
+ok	2.100000	fused+armed multi_exec battery (atomic 1)
+ok	1.580000	fused+armed blocking battery (atomic 1)
+ok	0.470000	fused+armed blockmulti battery (atomic 1)
+ok	0.670000	fused+armed stream battery (atomic 1)
+ok	0.060000	fused+armed streamgroups battery (atomic 1)
+ok	0.920000	fused+armed pubsub battery (atomic 1)
+ok	0.030000	fused+armed lua_scripting battery (atomic 1)
+ok	0.060000	fused+armed scriptsurf battery (atomic 1)
+ok	15.500000	fused+armed limits battery (atomic 1)
+ok	0.040000	fused+armed resp3 battery (atomic 1)
+ok	0.040000	fused+armed bitfield battery (atomic 1)
+ok	0.140000	fused+armed dumprestore battery (atomic 1)
+ok	0.130000	fused+armed zsetops battery (atomic 1)
+ok	0.030000	fused+armed geo battery (atomic 1)
+ok	1.150000	fused+armed climon battery (atomic 1)
+ok	3.330000	fused+armed climon2 battery (atomic 1)
+ok	13.270000	fused+armed tracking battery (atomic 1)
+ok	3.080000	fused+armed hexpire battery (atomic 1)
+ok	0.790000	fused+armed servertail battery (atomic 1)
+ok	0.210000	fused+armed lcs battery (atomic 1)
+ok	4.840000	fused+armed concur battery (atomic 1)
+ok	0.760000	fused+armed edgeproto battery (atomic 1)
+ok	1.820000	fused+armed edgeenc battery (atomic 1)
+ok	4.200000	fused+armed edgetime battery (atomic 1)
+ok	0.020000	fused+armed arity battery (atomic 1)
+ok	0.040000	fused+armed contarity battery (atomic 1)
+ok	0.030000	fused+armed cmdgap battery (atomic 1)
+ok	0.030000	fused+armed aclsel battery (atomic 1)
+ok	34.180000	fused+armed expwide battery (atomic 1)
+ok	4.200000	fused+armed infofix battery (atomic 1)
+ok	3.330000	fused+armed pushtear battery (atomic 1)
+ok	0.080000	fused+armed netcmd battery (atomic 1)
+ok	1.170000	fused+armed shutdown report + lane fired (hits=N, atomic 1)
+FAIL	0.010000	atomic commit publication catches up at quiescence
+ok	4.350000	flushfix flush witnesses
+ok	0.280000	flushfix headers witnesses
+FAIL	0.010000	multidb serverless owners
+FAIL	0.000000	multidb global namespace boundary
+ok	12.750000	storesize published monitoring
+FAIL	0.010000	MULTI admin command replies
+FAIL	0.000000	EXECABORT releases WATCH reservation
+FAIL	0.010000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.000000	atomic survivor: script_apply
+ok	0.000000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.000000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+FAIL	0.000000	armed resize retirement: atomic-growth
+FAIL	0.010000	armed resize retirement: flush-prepared
+FAIL	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+FAIL	0.000000	encodingfix knob
+FAIL	0.010000	encodingfix precedence
+FAIL	0.000000	NET1 serverless bounds + scan + reclamation
+ok	1.570000	netfix NT4.6 query-limit INFO parity
+ok	2.140000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.060000	read-local MGET fence battery (1s)
+ok	1.900000	read-local GET miss battery (1s)
+ok	0.050000	read-local one-key delete battery (1s)
+ok	0.330000	read-local MGET fence battery (2s)
+ok	1.900000	read-local GET miss battery (2s)
+ok	0.050000	read-local one-key delete battery (2s)
+ok	0.320000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.320000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.330000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.320000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.320000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.320000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.330000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.320000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.750000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.740000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (1s, uring, read-local 0)
+ok	0.750000	INFO selective collection (1s, uring, read-local 1)
+ok	0.730000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.730000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (2s, uring, read-local 0)
+ok	0.720000	INFO selective collection (2s, uring, read-local 1)
+ok	5.560000	INFO received bytes exact (ntfix N1)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+FAIL	0	zc boot
+FAIL	0.220000	zc borrow battery
+FAIL	0.060000	zc fired (zc_sends=N)
+FAIL	0	zc ASAN boot
+FAIL	0.180000	zc borrow battery under ASAN
+FAIL	0.030000	zc ASAN clean

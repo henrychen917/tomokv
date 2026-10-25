@@ -1,0 +1,1 @@
+{"ports": [35841, 35842, 35843], "precondition": "TCP and TLS bind succeeded before invoking the whole gate job"}

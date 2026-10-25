@@ -539,7 +539,7 @@ private:
     FlipCostVerdict model_cost_{};
     uint32_t model_verify_readings_ = 0;   // planned target readings of the current hypothesis
     double model_kappa_ = 1.0;
-    // The hypothesis under test: predicted gain (kappa-scaled), the origin's noise and sample
+    // The hypothesis under test: raw predicted gain (before kappa), the origin's noise and sample
     // count it is judged against, planned readings, and what the target delivered so far.
     double hyp_predicted_ = 0;
     double hyp_sigma_ = 0;

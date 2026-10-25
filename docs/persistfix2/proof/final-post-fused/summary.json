@@ -1,0 +1,50 @@
+{
+  "run": "build/gate-run.c6ZXew",
+  "rows": [
+    {
+      "job": "aof-epoll",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "aof-uring",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "climonfix",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-epoll",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-uring",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    }
+  ],
+  "passed": 148,
+  "failed": 0,
+  "archive_sha256": "a27154b2516fccf8c1d9065b9cd1fe7826cd815ca4090046921bec5258891b8f"
+}

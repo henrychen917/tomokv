@@ -1,0 +1,8 @@
+ok	0.750000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.740000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (1s, uring, read-local 0)
+ok	0.750000	INFO selective collection (1s, uring, read-local 1)
+ok	0.730000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.730000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.740000	INFO selective collection (2s, uring, read-local 0)
+ok	0.720000	INFO selective collection (2s, uring, read-local 1)

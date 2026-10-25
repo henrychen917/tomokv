@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "python3",
+    "/home/user/Projects/cx-datafix2/docs/datafix2/verify.py",
+    "gate",
+    "--prefix",
+    "pre-snapshot-repeat-",
+    "--binary",
+    "/home/user/Projects/cx-datafix2/build/pre-objects/build/tomokv",
+    "--source-root",
+    "/home/user/Projects/cx-datafix2/build/pre-objects",
+    "--jobs",
+    "snapshot-epoll"
+  ],
+  "returncode": 0
+}

@@ -298,9 +298,8 @@ bool update_object_header(KvObj* object, const StreamHeader& header) {
     if (!stream.is_embedded()) {
         StreamVal* value = stream.external_as<StreamVal>();
         value->header = header;
-        // XGROUP MKSTREAM deliberately keeps an externally owned, internally compact empty log
-        // so it has a cold-state pointer without manufacturing a macro node. Keep that compact
-        // header authoritative for scanners as the first XADD arrives.
+        // Legacy snapshots can still contain an externally owned Compact log.
+        // Keep its header authoritative until the append path promotes it.
         if (stream.encoding() == CollectionEncoding::Compact) {
             Compact::Entry entry;
             if (!stream.compact().at(0, entry)) return false;
@@ -601,7 +600,9 @@ bool externalize_stream(Shard& shard, Op& op, KvObj*& object) {
         reply_err(op.sink(), "ERR out of memory"); return false;
     }
     auto* value = new (std::nothrow) StreamVal;
-    if (!value || !build_external(*value, header, records, shard.stream_limits())) {
+    // Embedded storage is one existing macro node. A CONFIG change affects the
+    // next append, not the boundaries of records that are already present.
+    if (!value || !build_external(*value, header, records, StreamLimits{0, 0})) {
         delete value; reply_err(op.sink(), "ERR out of memory"); return false;
     }
     KvObj* replacement = kvobj_new_stream(object->key(), value,
@@ -1166,8 +1167,32 @@ void cmd_xadd(Shard& shard, Op& op) {
             }
             const uint64_t next = before.compact().encoded_bytes() +
                                   Compact::entry_encoded_size(encoded.size());
-            if (before.is_embedded() && !before.embedded_bytes_fit(next)) {
+            const StreamLimits& limits = shard.stream_limits();
+            const bool rollover = before.compact().size() > 1 &&
+                ((limits.node_max_bytes && next > limits.node_max_bytes) ||
+                 (limits.node_max_entries && before.compact().size() - 1 >= limits.node_max_entries));
+            if (before.is_embedded() && (rollover || !before.embedded_bytes_fit(next))) {
                 if (!externalize_stream<kNotify>(shard, op, object)) return;
+            } else if (!before.is_embedded()) {
+                // Old MKSTREAM snapshots carry groups on an external Compact
+                // value. Promote in place through a temporary so allocation
+                // failure preserves both the log and its group/PEL lifetime.
+                std::vector<OwnedRecord> records;
+                StreamVal replacement;
+                if (!collect_compact(before.compact(), header.base_id, records) ||
+                    !build_external(replacement, header, records, limits)) {
+                    reply_err(op.sink(), "ERR out of memory"); return;
+                }
+                ObjectSizeTracker tracker(shard.store(), object);
+                StreamVal* value = before.external_as<StreamVal>();
+                value->nodes.swap(replacement.nodes);
+                value->index.swap(replacement.index);
+                value->head_fields.swap(replacement.head_fields);
+                value->tail_fields.swap(replacement.tail_fields);
+                value->first_id = replacement.first_id;
+                value->node_allocation_bytes = replacement.node_allocation_bytes;
+                value->promote(CollectionEncoding::Deque, value->node_allocation_bytes,
+                               replacement.entries(), replacement.payload_bytes());
             }
         }
 
@@ -1512,8 +1537,9 @@ bool stream_create_empty_external(Shard& shard, Op& op, bool notify, KvObj*& obj
     object = nullptr;
     auto* value = new (std::nothrow) StreamVal;
     if (!value) { reply_err(op.sink(), "ERR out of memory"); return false; }
-    const std::string header = header_bytes(value->header);
-    if (!value->append(Slice(header.data(), static_cast<uint32_t>(header.size())))) {
+    // An empty macro-node stream has no nodes, but already uses the same append
+    // path as an XADD-created stream after promotion. Groups remain cold state.
+    if (!build_external(*value, value->header, {}, shard.stream_limits())) {
         delete value;
         reply_err(op.sink(), "ERR out of memory");
         return false;

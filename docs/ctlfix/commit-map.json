@@ -1,0 +1,22 @@
+{
+  "commits": [
+    {
+      "item": "CT4.1",
+      "old": "40ff5e56f7ed48a892cbc943246e035d4a478d4f",
+      "new": "337cad6bcb2ec206ff75e64b25b3ce2643a1de7e"
+    },
+    {
+      "item": "CT4.2",
+      "old": "032e922e1a2e55bb2be3891b6d2316fd379bd3b7",
+      "new": "8fcc3feeed4f0440fce5215112de2c79d566bfd4"
+    },
+    {
+      "item": "CT4.7",
+      "old": "c1d9755b07351a238d2e06e5dba756de68fc5571",
+      "new": "a693400c7201bbc273622c128642191221b49f2b"
+    }
+  ],
+  "folded_fixup": "024317f3fa140c4f819d4a1d5de0623b7ec9577e",
+  "final_tree_unchanged": true,
+  "source_content_and_mtimes_unchanged": true
+}

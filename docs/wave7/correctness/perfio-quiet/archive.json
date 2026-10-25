@@ -1,0 +1,133 @@
+{
+  "format": 2,
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.DHAJ0l",
+  "archive_sha256": "6415c9357192086eda202bc7853aaf3f481f4d0a87d2aeda008330e90cb9e931",
+  "included": [
+    {
+      "path": "families.tsv",
+      "bytes": 110,
+      "sha256": "725626765a09a802adec278d71a0ff9f20deb06d44e85e8d04fe929ee1f4f754"
+    },
+    {
+      "path": "jobs/perfio_stream/done",
+      "bytes": 6,
+      "sha256": "d819e1df0d38b302f00dec563af85695b5ff6662bc6d34f351ceb19beaf032cc"
+    },
+    {
+      "path": "jobs/perfio_stream/family.tsv",
+      "bytes": 58,
+      "sha256": "4c941b5134e7b4efc0cfbaa10986e3fe814dfb40508e4e4692d7a5e970067e78"
+    },
+    {
+      "path": "jobs/perfio_stream/ledger",
+      "bytes": 138,
+      "sha256": "7c4ff12f26a99548075ef2109277fad57f4ca6a4af19abe04b93d65b8bcdd744"
+    },
+    {
+      "path": "jobs/perfio_stream/output.log",
+      "bytes": 366,
+      "sha256": "fce3d94cc57646b66d9cf6024e20d059a483567b824a22b94607d64fd4977d99"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-1s/metadata.json",
+      "bytes": 13339,
+      "sha256": "c5ee93ab761cc37b88509ec5a7ac45152473e941ec840e40d88c27fd9ab5c1e2"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-1s/stream/server.log",
+      "bytes": 7611,
+      "sha256": "190a63c19d417d6a5db6c0f9dacffedf8c31e53f9d14233be9200e46288cd55d"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-1s.log",
+      "bytes": 2230,
+      "sha256": "6657029ef1fdddbb80f92ae0bfe1321afe22b988b7d06db4286907f59599781b"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-2s/metadata.json",
+      "bytes": 13339,
+      "sha256": "c5ee93ab761cc37b88509ec5a7ac45152473e941ec840e40d88c27fd9ab5c1e2"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-2s/stream/server.log",
+      "bytes": 6691,
+      "sha256": "f41aaccc13291ee479c19f5d5ec97fc492b2b0f59b246ef2b3475c7a22d8bc0b"
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-2s.log",
+      "bytes": 2227,
+      "sha256": "b1724986aeb167f0476e80034602eb99c05e8936c127e8aef6ebadb1e2862b31"
+    },
+    {
+      "path": "jobs/perfio_stream/timings",
+      "bytes": 138,
+      "sha256": "7c4ff12f26a99548075ef2109277fad57f4ca6a4af19abe04b93d65b8bcdd744"
+    },
+    {
+      "path": "jobs/release/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "f0adc2635263261c521fd5a9fa5df428717e472e4f75f3893d7929d45a5113f0"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "43ff8a8e3020c2c3ffec540d4dde00619c5e7d08e4a0971db2c99cc67322f99b"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1227,
+      "sha256": "db301750d608f613f9f9f2f79af29040c8fd6d6d8e9f51ccbffb0e6d57f40813"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 57003,
+      "sha256": "f4fd2424411fe57ef8535cbb66444beb9209d56f19f95d59b88b9902afff6a5c"
+    }
+  ],
+  "excluded_runtime_data": [
+    {
+      "path": "jobs/perfio_stream/perfio-1s/stream/dump.tomo",
+      "bytes": 1105
+    },
+    {
+      "path": "jobs/perfio_stream/perfio-2s/stream/dump.tomo",
+      "bytes": 1105
+    },
+    {
+      "path": "jobs/perfio_stream/row-timeout-3808079.3808079.455678753.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/perfio_stream/row-timeout-3808079.3808079.455678753.2.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/release/row-timeout-3808009.3808009.455678711.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0
+    }
+  ]
+}

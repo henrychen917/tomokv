@@ -1,0 +1,13 @@
+{
+  "retired_outer_loop": 2578659,
+  "reason": "Run independent correctness engine queues concurrently within the allocated 16 CPUs; preserve every standard suite and seed",
+  "uring_server": "48-55",
+  "uring_load": "56-63",
+  "epoll_server": "56-63",
+  "epoll_load": "48-55",
+  "uring_ports": "35861-35879",
+  "epoll_ports": "35881-35899",
+  "note": "Server groups are disjoint; each queue shares client CPUs with the other queue. No performance result is claimed.",
+  "original_split_finished_normally": true,
+  "original_split_result_from_complete_summary": 0
+}

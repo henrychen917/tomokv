@@ -1,0 +1,9 @@
+GATE(full): 32 physical cores; 3 correctness slots = min(24/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 24 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave7/build/gate-run.kK7i5z
+PARTIAL jobs (including prerequisites): release persistfix2_errors
+PARTIAL jobs (including prerequisites): release persistfix2_errors
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=3.92s; correctness-plan-fallback; persistfix2 AOF write-error refusal and read availability
+  persistfix2 AOF write-error refusal and read availability FAIL (see /home/user/Projects/cx-wave7/build/gate-run.kK7i5z/jobs/persistfix2_errors/errors-*.log)
+GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-5/ledger.partial

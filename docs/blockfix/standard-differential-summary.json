@@ -1,0 +1,279 @@
+{
+  "post-differ-uring": {
+    "legs": 938,
+    "passed": 932,
+    "failed": [
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      }
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ]
+  },
+  "post-differ-epoll": {
+    "legs": 938,
+    "passed": 933,
+    "failed": [
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 22,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      }
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      22,
+      23
+    ]
+  },
+  "pre-differ-uring": {
+    "legs": 938,
+    "passed": 930,
+    "failed": [
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 7,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 24,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      }
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      24
+    ]
+  },
+  "pre-differ-epoll": {
+    "legs": 938,
+    "passed": 932,
+    "failed": [
+      {
+        "job": "differ-armed-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 25,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-armed-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 25,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-0",
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 19,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      },
+      {
+        "job": "differ-split-1",
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "repeat": 0,
+        "rc": 1,
+        "reason": "reader control bind EADDRINUSE"
+      }
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      25
+    ]
+  }
+}

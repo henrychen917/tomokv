@@ -1,0 +1,14 @@
+{
+  "kind": "A (behaviour twin)",
+  "definition": "PRE behavior and unchanged locked object layouts, with unreachable trailing NOPs matching POST total .text size.",
+  "pre_text": 8124983,
+  "post_text": 8156535,
+  "pad_text": 8156535,
+  "padding_bytes": 31552,
+  "limit": "Total text size only; this does not match each POST function address or instruction-cache alignment.",
+  "sha256": {
+    "PRE": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f",
+    "POST": "e04e787a192cd2ab0b3f9f0ef22df0e9ba3651843aeaa2802c697ef24ed37909",
+    "PAD_A": "88221d10464fd62014ffba52e2b6e15c23d61ece794ba4ec95d5803046c5eb5c"
+  }
+}

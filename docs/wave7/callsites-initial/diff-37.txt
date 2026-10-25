@@ -1,0 +1,233 @@
+tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent) [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -651,7 +651,7 @@
+
+ CLONE 3 0009 [ 2] push %r12
+ CLONE 3 000b [ 1] push %rbp
+ CLONE 3 000c [ 1] push %rbx
+-CLONE 3 000d [ 3] mov %rsi,%rbp
++CLONE 3 000d [ 3] mov %rsi,%r12
+ CLONE 3 0010 [ 4] sub $0x58,%rsp
+ CLONE 3 0014 [ 3] mov %rdx,%r14
+ CLONE 3 0017 [ 3] mov %rcx,%r13
+@@ -664,13 +664,13 @@
+
+ CLONE 3 0039 [ 5] mov %rcx,0x28(%rsp)
+ CLONE 3 003e [ 7] mov 0xd0(%rdi),%rax
+ CLONE 3 0045 [ 3] test %rax,%rax
+-CLONE 3 0048 [ 6] je <+0x210>
+-CLONE 3 004e [ 3] mov %rbp,%rbx
++CLONE 3 0048 [ 6] je <+0x1e0>
++CLONE 3 004e [ 3] mov %r12,%rbx
+ CLONE 3 0051 [10] movabs $0xff51afd7ed558ccd,%rdx
+ CLONE 3 005b [ 2] xor %ecx,%ecx
+ CLONE 3 005d [10] movabs $0xffffffffffff,%r8
+ CLONE 3 0067 [ 4] shr $0x21,%rbx
+-CLONE 3 006b [ 3] xor %rbp,%rbx
++CLONE 3 006b [ 3] xor %r12,%rbx
+ CLONE 3 006e [ 4] imul %rdx,%rbx
+ CLONE 3 0072 [ 4] shr $0x31,%rsi
+ CLONE 3 0076 [ 3] mov %rbx,%rdx
+@@ -690,12 +690,12 @@
+
+ CLONE 3 00b2 [ 2] inc %ecx
+ CLONE 3 00b4 [ 7] and 0xe8(%r15),%ebx
+ CLONE 3 00bb [ 7] cmp %ecx,0xe0(%r15)
+-CLONE 3 00c2 [ 6] jb <+0x210>
++CLONE 3 00c2 [ 6] jb <+0x1e0>
+ CLONE 3 00c8 [ 7] mov 0xd0(%r15),%rax
+ CLONE 3 00cf [ 2] mov %ebx,%edx
+ CLONE 3 00d1 [ 4] mov (%rax,%rdx,8),%rax
+ CLONE 3 00d5 [ 3] test %rax,%rax
+-CLONE 3 00d8 [ 6] je <+0x210>
++CLONE 3 00d8 [ 6] je <+0x1e0>
+ CLONE 3 00de [ 3] mov %rax,%rdx
+ CLONE 3 00e1 [ 3] and %r8,%rdx
+ CLONE 3 00e4 [ 2] je <+0xb0>
+@@ -705,7 +705,7 @@
+
+ CLONE 3 00f0 [ 3] mov %rdx,%rdi
+ CLONE 3 00f3 [ 4] mov %ecx,0x10(%rsp)
+ CLONE 3 00f7 [ 5] mov %r9d,0xc(%rsp)
+-CLONE 3 00fc [ 3] mov %rdx,%r12
++CLONE 3 00fc [ 3] mov %rdx,%rbp
+ CLONE 3 00ff [ 5] call <tomo_db0::KvObj::key() const>
+ CLONE 3 0104 [ 5] lea 0x20(%rsp),%rsi
+ CLONE 3 0109 [ 5] lea 0x30(%rsp),%rdi
+@@ -718,96 +718,79 @@
+
+ CLONE 3 0128 [10] movabs $0xffffffffffff,%r8
+ CLONE 3 0132 [ 6] je <+0xb0>
+ CLONE 3 0138 [ 7] mov 0x188(%r15),%rcx
+-CLONE 3 013f [ 6] movzbl 0x2(%r12),%eax
+-CLONE 3 0145 [ 2] test $0x1,%al
+-CLONE 3 0147 [ 6] je <+0x240>
+-CLONE 3 014d [ 6] movzbl 0x2(%r12),%eax
+-CLONE 3 0153 [ 2] test $0x1,%al
+-CLONE 3 0155 [ 6] je <+0x240>
+-CLONE 3 015b [ 6] movzbl 0x2(%r12),%eax
+-CLONE 3 0161 [ 2] shr $1,%al
+-CLONE 3 0163 [ 3] and $0x1,%eax
+-CLONE 3 0166 [ 5] mov 0x8(%r12,%rax,4),%rax
+-CLONE 3 016b [ 3] test %rax,%rax
+-CLONE 3 016e [ 6] js <+0x240>
+-CLONE 3 0174 [ 3] cmp %rax,%rcx
+-CLONE 3 0177 [ 6] jle <+0x240>
+-CLONE 3 017d [ 3] mov %r12,%rdi
+-CLONE 3 0180 [ 5] call <tomo_db0::KvObj::key() const>
+-CLONE 3 0185 [ 5] mov 0x18(%rsp),%rdi
+-CLONE 3 018a [ 3] mov %rax,%r12
+-CLONE 3 018d [ 3] mov %rdx,%rbx
+-CLONE 3 0190 [ 3] test %rdi,%rdi
+-CLONE 3 0193 [ 2] je <+0x1d0>
+-CLONE 3 0195 [ 4] mov 0x8(%rdi),%rax
+-CLONE 3 0199 [ 3] test %rax,%rax
+-CLONE 3 019c [ 2] je <+0x1d0>
+-CLONE 3 019e [ 3] mov (%rdi),%rdi
+-CLONE 3 01a1 [ 5] mov $0x100,%esi
+-CLONE 3 01a6 [ 2] call *%rax
+-CLONE 3 01a8 [ 2] test %al,%al
+-CLONE 3 01aa [ 2] je <+0x1d0>
+-CLONE 3 01ac [ 5] mov 0x18(%rsp),%rdi
+-CLONE 3 01b1 [ 4] mov 0x10(%rdi),%rax
+-CLONE 3 01b5 [ 3] test %rax,%rax
+-CLONE 3 01b8 [ 2] je <+0x1d0>
+-CLONE 3 01ba [ 3] mov (%rdi),%rdi
+-CLONE 3 01bd [ 3] mov %r12,%rcx
+-CLONE 3 01c0 [ 3] mov %rbx,%r8
+-CLONE 3 01c3 [ 5] mov $0x3d,%edx
+-CLONE 3 01c8 [ 5] mov $0x100,%esi
+-CLONE 3 01cd [ 2] call *%rax
+-CLONE 3 01cf [ 1] nop
+-CLONE 3 01d0 [ 5] mov 0x48(%rsp),%rax
+-CLONE 3 01d5 [ 9] sub %fs:0x28,%rax
+-CLONE 3 01de [ 6] jne <+0x29c>
+-CLONE 3 01e4 [ 4] add $0x58,%rsp
+-CLONE 3 01e8 [ 3] mov %r14,%rdx
+-CLONE 3 01eb [ 3] mov %r13,%rcx
+-CLONE 3 01ee [ 3] mov %rbp,%rsi
+-CLONE 3 01f1 [ 1] pop %rbx
+-CLONE 3 01f2 [ 3] mov %r15,%rdi
+-CLONE 3 01f5 [ 1] pop %rbp
+-CLONE 3 01f6 [ 2] pop %r12
+-CLONE 3 01f8 [ 2] pop %r13
+-CLONE 3 01fa [ 2] pop %r14
+-CLONE 3 01fc [ 2] pop %r15
+-CLONE 3 01fe [ 5] jmp <tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)>
+-CLONE 3 0203 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 3 020e [ 2] xchg %ax,%ax
+-CLONE 3 0210 [ 8] cmpq $0x0,0xd8(%r15)
+-CLONE 3 0218 [ 2] je <+0x1d0>
+-CLONE 3 021a [ 3] mov %r14,%rcx
+-CLONE 3 021d [ 3] mov %r13,%r8
+-CLONE 3 0220 [ 3] mov %rbp,%rdx
+-CLONE 3 0223 [ 5] mov $0x1,%esi
+-CLONE 3 0228 [ 3] mov %r15,%rdi
+-CLONE 3 022b [ 5] call <tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const>
+-CLONE 3 0230 [ 3] mov %rax,%r12
+-CLONE 3 0233 [ 3] test %rax,%rax
+-CLONE 3 0236 [ 2] je <+0x1d0>
+-CLONE 3 0238 [ 5] jmp <+0x138>
+-CLONE 3 023d [ 3] nopl (%rax)
+-CLONE 3 0240 [ 5] cmpb $0x0,0x14(%rsp)
+-CLONE 3 0245 [ 2] je <+0x275>
+-CLONE 3 0247 [ 5] cmpb $0x1,0x14(%rsp)
+-CLONE 3 024c [ 2] jne <+0x1d0>
+-CLONE 3 024e [ 3] mov %r12,%rdi
+-CLONE 3 0251 [ 5] call <tomo_db0::KvObj::key() const>
+-CLONE 3 0256 [ 5] mov 0x18(%rsp),%rdi
+-CLONE 3 025b [ 5] mov $0x200,%esi
+-CLONE 3 0260 [ 3] mov %rdx,%r8
+-CLONE 3 0263 [ 3] mov %rax,%rcx
+-CLONE 3 0266 [ 5] mov $0x3e,%edx
+-CLONE 3 026b [ 5] call <tomo_db0::FlatStore::notify_emit(tomo_db0::FlatNotifySink*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)>
+-CLONE 3 0270 [ 5] jmp <+0x1d0>
+-CLONE 3 0275 [ 3] mov %r12,%rdi
+-CLONE 3 0278 [ 5] call <tomo_db0::KvObj::key() const>
+-CLONE 3 027d [ 5] mov 0x18(%rsp),%rdi
+-CLONE 3 0282 [ 5] mov $0x4,%esi
+-CLONE 3 0287 [ 3] mov %rdx,%r8
+-CLONE 3 028a [ 3] mov %rax,%rcx
+-CLONE 3 028d [ 5] mov $0x2,%edx
+-CLONE 3 0292 [ 5] call <tomo_db0::FlatStore::notify_emit(tomo_db0::FlatNotifySink*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)>
+-CLONE 3 0297 [ 5] jmp <+0x1d0>
+-CLONE 3 029c [ 5] call <__stack_chk_fail@plt>
++CLONE 3 013f [ 4] movzbl 0x2(%rbp),%eax
++CLONE 3 0143 [ 2] test $0x1,%al
++CLONE 3 0145 [ 6] je <+0x210>
++CLONE 3 014b [ 4] movzbl 0x2(%rbp),%eax
++CLONE 3 014f [ 2] test $0x1,%al
++CLONE 3 0151 [ 6] je <+0x210>
++CLONE 3 0157 [ 4] movzbl 0x2(%rbp),%eax
++CLONE 3 015b [ 2] shr $1,%al
++CLONE 3 015d [ 3] and $0x1,%eax
++CLONE 3 0160 [ 5] mov 0x8(%rbp,%rax,4),%rax
++CLONE 3 0165 [ 3] test %rax,%rax
++CLONE 3 0168 [ 6] js <+0x210>
++CLONE 3 016e [ 3] cmp %rax,%rcx
++CLONE 3 0171 [ 6] jle <+0x210>
++CLONE 3 0177 [ 3] mov %rbp,%rdi
++CLONE 3 017a [ 5] call <tomo_db0::KvObj::key() const>
++CLONE 3 017f [ 5] mov 0x18(%rsp),%rdi
++CLONE 3 0184 [ 5] mov $0x100,%esi
++CLONE 3 0189 [ 3] mov %rdx,%r8
++CLONE 3 018c [ 3] mov %rax,%rcx
++CLONE 3 018f [ 5] mov $0x3d,%edx
++CLONE 3 0194 [ 5] call <tomo_db0::FlatStore::notify_emit(tomo_db0::FlatNotifySink*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)>
++CLONE 3 0199 [ 7] nopl 0x0(%rax)
++CLONE 3 01a0 [ 5] mov 0x48(%rsp),%rax
++CLONE 3 01a5 [ 9] sub %fs:0x28,%rax
++CLONE 3 01ae [ 6] jne <+0x26c>
++CLONE 3 01b4 [ 4] add $0x58,%rsp
++CLONE 3 01b8 [ 3] mov %r14,%rdx
++CLONE 3 01bb [ 3] mov %r13,%rcx
++CLONE 3 01be [ 3] mov %r12,%rsi
++CLONE 3 01c1 [ 1] pop %rbx
++CLONE 3 01c2 [ 3] mov %r15,%rdi
++CLONE 3 01c5 [ 1] pop %rbp
++CLONE 3 01c6 [ 2] pop %r12
++CLONE 3 01c8 [ 2] pop %r13
++CLONE 3 01ca [ 2] pop %r14
++CLONE 3 01cc [ 2] pop %r15
++CLONE 3 01ce [ 5] jmp <tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)>
++CLONE 3 01d3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 3 01de [ 2] xchg %ax,%ax
++CLONE 3 01e0 [ 8] cmpq $0x0,0xd8(%r15)
++CLONE 3 01e8 [ 2] je <+0x1a0>
++CLONE 3 01ea [ 3] mov %r14,%rcx
++CLONE 3 01ed [ 3] mov %r13,%r8
++CLONE 3 01f0 [ 3] mov %r12,%rdx
++CLONE 3 01f3 [ 5] mov $0x1,%esi
++CLONE 3 01f8 [ 3] mov %r15,%rdi
++CLONE 3 01fb [ 5] call <tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const>
++CLONE 3 0200 [ 3] mov %rax,%rbp
++CLONE 3 0203 [ 3] test %rax,%rax
++CLONE 3 0206 [ 2] je <+0x1a0>
++CLONE 3 0208 [ 5] jmp <+0x138>
++CLONE 3 020d [ 3] nopl (%rax)
++CLONE 3 0210 [ 5] cmpb $0x0,0x14(%rsp)
++CLONE 3 0215 [ 2] je <+0x245>
++CLONE 3 0217 [ 5] cmpb $0x1,0x14(%rsp)
++CLONE 3 021c [ 2] jne <+0x1a0>
++CLONE 3 021e [ 3] mov %rbp,%rdi
++CLONE 3 0221 [ 5] call <tomo_db0::KvObj::key() const>
++CLONE 3 0226 [ 5] mov 0x18(%rsp),%rdi
++CLONE 3 022b [ 5] mov $0x200,%esi
++CLONE 3 0230 [ 3] mov %rdx,%r8
++CLONE 3 0233 [ 3] mov %rax,%rcx
++CLONE 3 0236 [ 5] mov $0x3e,%edx
++CLONE 3 023b [ 5] call <tomo_db0::FlatStore::notify_emit(tomo_db0::FlatNotifySink*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)>
++CLONE 3 0240 [ 5] jmp <+0x1a0>
++CLONE 3 0245 [ 3] mov %rbp,%rdi
++CLONE 3 0248 [ 5] call <tomo_db0::KvObj::key() const>
++CLONE 3 024d [ 5] mov 0x18(%rsp),%rdi
++CLONE 3 0252 [ 5] mov $0x4,%esi
++CLONE 3 0257 [ 3] mov %rdx,%r8
++CLONE 3 025a [ 3] mov %rax,%rcx
++CLONE 3 025d [ 5] mov $0x2,%edx
++CLONE 3 0262 [ 5] call <tomo_db0::FlatStore::notify_emit(tomo_db0::FlatNotifySink*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)>
++CLONE 3 0267 [ 5] jmp <+0x1a0>
++CLONE 3 026c [ 5] call <__stack_chk_fail@plt>

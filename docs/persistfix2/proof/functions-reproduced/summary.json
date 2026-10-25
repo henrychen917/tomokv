@@ -1,0 +1,20 @@
+{
+  "run": "build/gate-run.Q6UvNE",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 1,
+  "failed": 1,
+  "archive_sha256": "314ed24c18200881061c69bf0dfe5e81d881dbbc7f52da6d7c38efc3b3f3f65a"
+}

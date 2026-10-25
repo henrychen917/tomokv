@@ -1,0 +1,255 @@
+[
+  {
+    "leg": "1s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 2646,
+        "TRYAGAIN Cross-shard script conflicted, retry": 3754
+      },
+      "FCALL": {
+        "OK": 2676,
+        "TRYAGAIN Cross-shard script conflicted, retry": 3724
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic0",
+    "case": "pops",
+    "result": {
+      "LMPOP": {
+        "counts": {
+          "OK": 6347,
+          "null": 53
+        },
+        "fallback_remaining": 8853
+      },
+      "ZMPOP": {
+        "counts": {
+          "OK": 6358,
+          "null": 42
+        },
+        "fallback_remaining": 8842
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic0",
+    "case": "slots",
+    "result": {
+      "counts": {
+        "1": 81920
+      },
+      "source": 32,
+      "destination": 0
+    }
+  },
+  {
+    "leg": "1s-atomic0",
+    "case": "window",
+    "result": {
+      "samples": [
+        {
+          "atomic_credit_pool": "0",
+          "atomic_inflight": "256",
+          "atomic_window_stalls": "0"
+        }
+      ],
+      "before": "0",
+      "after": "64"
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3748,
+        "OK": 2652
+      },
+      "FCALL": {
+        "OK": 2661,
+        "TRYAGAIN Cross-shard script conflicted, retry": 3739
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "pops",
+    "result": {
+      "LMPOP": {
+        "counts": {
+          "OK": 6400
+        },
+        "fallback_remaining": 8800
+      },
+      "ZMPOP": {
+        "counts": {
+          "OK": 6400
+        },
+        "fallback_remaining": 8800
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "slots",
+    "result": {
+      "counts": {
+        "1": 81920
+      },
+      "source": 32,
+      "destination": 0
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "window",
+    "result": {
+      "samples": [
+        {
+          "atomic_credit_pool": "0",
+          "atomic_inflight": "256",
+          "atomic_window_stalls": "0"
+        }
+      ],
+      "before": "0",
+      "after": "0"
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3830,
+        "OK": 2570
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3818,
+        "OK": 2582
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "pops",
+    "result": {
+      "LMPOP": {
+        "counts": {
+          "OK": 6396,
+          "null": 4
+        },
+        "fallback_remaining": 8804
+      },
+      "ZMPOP": {
+        "counts": {
+          "OK": 6396,
+          "null": 4
+        },
+        "fallback_remaining": 8804
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "slots",
+    "result": {
+      "counts": {
+        "1": 81920
+      },
+      "source": 32,
+      "destination": 0
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "window",
+    "result": {
+      "samples": [
+        {
+          "atomic_credit_pool": "1",
+          "atomic_inflight": "255",
+          "atomic_window_stalls": "0"
+        },
+        {
+          "atomic_credit_pool": "0",
+          "atomic_inflight": "256",
+          "atomic_window_stalls": "0"
+        }
+      ],
+      "before": "0",
+      "after": "67"
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 2570,
+        "TRYAGAIN Cross-shard script conflicted, retry": 3830
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3816,
+        "OK": 2584
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "pops",
+    "result": {
+      "LMPOP": {
+        "counts": {
+          "OK": 6400
+        },
+        "fallback_remaining": 8800
+      },
+      "ZMPOP": {
+        "counts": {
+          "OK": 6400
+        },
+        "fallback_remaining": 8800
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "slots",
+    "result": {
+      "counts": {
+        "1": 81920
+      },
+      "source": 32,
+      "destination": 0
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "window",
+    "result": {
+      "samples": [
+        {
+          "atomic_credit_pool": "0",
+          "atomic_inflight": "256",
+          "atomic_window_stalls": "0"
+        }
+      ],
+      "before": "0",
+      "after": "0"
+    }
+  },
+  {
+    "leg": "Redis7.4",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  }
+]

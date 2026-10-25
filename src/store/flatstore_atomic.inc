@@ -572,6 +572,8 @@
 
     bool atomic_admit(Slice protected_key, const KvObj* incoming) {
         const size_t bytes = incoming ? kvobj_size(incoming) : 0;
+        if (__builtin_expect(maxmemory_enabled_, false) && incoming &&
+            !object_idle_install(hash_key(protected_key), incoming)) return false;
         if (!__builtin_expect(maxmemory_enabled_, false) || snapshot_active_) {
             atomic_version_bytes_ += bytes;
             return true;

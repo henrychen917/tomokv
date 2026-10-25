@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=rlfix3_zc; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.310000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.300000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.350000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.360000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.300000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.400000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.350000	read-local borrow capability (2s, uring, read-local 1)

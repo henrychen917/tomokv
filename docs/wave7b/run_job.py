@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Invoke whole gate jobs and retain source, binary, environment and row receipts."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import time
+
+ROOT = Path(__file__).resolve().parents[2]
+os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
+p = argparse.ArgumentParser()
+p.add_argument('name')
+p.add_argument('jobs', nargs='+')
+p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
+p.add_argument('--engine', choices=['epoll', 'uring'], default='uring')
+p.add_argument('--fused', action='store_true')
+p.add_argument('--atomic', choices=['0', '1'], default='1')
+p.add_argument('--root', type=Path, default=ROOT)
+p.add_argument('--selftest', action='store_true', help='one gate slot; 24 CPUs for scheduler self-tests')
+p.add_argument('--server-cores', help='explicit disjoint correctness allocation')
+p.add_argument('--load-cores', help='explicit disjoint correctness client allocation')
+p.add_argument('--ports', default='26800-26889')
+p.add_argument('--test-port', type=int, default=26898)
+a = p.parse_args()
+out = ROOT / 'docs/wave7b/correctness' / a.name
+out.mkdir(parents=True, exist_ok=False)
+binary = a.binary.resolve()
+source = a.root.resolve()
+oracle_root = ROOT / 'build/wave7/redis74-oracle'
+(oracle_root / 'src').mkdir(parents=True, exist_ok=True)
+for item in Path('/home/user/Projects/redis/src').iterdir():
+    target = oracle_root / 'src' / item.name
+    if not target.exists():
+        target.symlink_to('/home/user/Projects/redis74/src/redis-server'
+                          if item.name == 'redis-server' else item)
+env = dict(os.environ, LANG='en_US.UTF-8', REDIS74_ROOT=str(oracle_root),
+           GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
+           GATE_DIFFER_NET_IO=a.engine, GATE_TEST_PORT=str(a.test_port),
+           GATE_ONLY_JOBS=' '.join(a.jobs), GATE_TXN_FUSED=str(int(a.fused)),
+           GATE_TXN_ATOMIC=a.atomic,
+           GATE_LEDGER=str(out / 'ledger'))
+env.pop('NETFIX_TLS_ORACLE', None)
+env.pop('LC_ALL', None)
+command = ['taskset', '-c', '64-95', 'bash', 'tests/gate.sh', 'full',
+           '--server-cores', a.server_cores or ('64-71' if a.selftest else '64-87'), '--server-smt', '',
+           '--load-cores', a.load_cores or ('72-95' if a.selftest else '88-95'), '--load-smt', '',
+           '--ports', a.ports, '--candidate-binary', str(binary)]
+receipt = dict(command=command, cwd=str(source), start=time.time(),
+               commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+               binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+               gate_sha256=hashlib.sha256((source / 'tests/gate.sh').read_bytes()).hexdigest(),
+               environment={k: v for k, v in env.items() if k.startswith(('GATE_', 'WAVE7_', 'REDIS74_', 'LANG', 'LC_'))},
+               netfix_tls_oracle='unset: gate default /home/user/Projects/redis74-tls',
+               diagnostic_preload=(dict(path=env['LD_PRELOAD'],
+                   sha256=hashlib.sha256(Path(env['LD_PRELOAD']).read_bytes()).hexdigest())
+                   if env.get('LD_PRELOAD') else None))
+receipt['source_files'] = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+    for name in ('tests/gates_test.py', 'tests/gate_history.py', 'tests/gate_receipt.py',
+                 'tests/perfio.py', 'tests/lbplanner_unit.cc', 'tools/lbplanner_controls.py',
+                 'src/core/lbplanner.cc', 'src/core/server.h', 'src/cmd/t_server.cc')}
+(out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+with (out / 'gate.log').open('w') as log:
+    result = subprocess.run(command, cwd=source, env=env, stdout=log, stderr=subprocess.STDOUT)
+text = (out / 'gate.log').read_text()
+match = re.search(r'artifacts: (.+)', text)
+receipt.update(exit=result.returncode, end=time.time(),
+               binary_sha256_after=hashlib.sha256(binary.read_bytes()).hexdigest(),
+               run_dir=match[1] if match else None)
+if match:
+    run = Path(match[1])
+    receipt['jobs'] = {}
+    for job in sorted((run / 'jobs').iterdir()):
+        receipt['jobs'][job.name] = dict(
+            done=(job / 'done').read_text().strip() if (job / 'done').exists() else None,
+            rows=(job / 'ledger').read_text().splitlines() if (job / 'ledger').exists() else [])
+(out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+print(a.name, result.returncode, match[1] if match else 'no run', flush=True)
+assert receipt['binary_sha256'] == receipt['binary_sha256_after'], 'candidate changed during job'
+raise SystemExit(result.returncode)

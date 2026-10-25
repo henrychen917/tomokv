@@ -1,0 +1,5 @@
+tests/mode_equivalence.py:205:        replay(Sink(), io.BytesIO(b'-BUSY Cross-shard script snapshot window is full\r\n'),
+tests/xscript.py:17:    "TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
+tests/xscript.py:18:    "BUSY Cross-shard script snapshot window is full": "BUSY",
+tests/txnorder.py:21:    b"TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
+tests/txnorder.py:22:    b"BUSY Cross-shard script snapshot window is full": "BUSY",

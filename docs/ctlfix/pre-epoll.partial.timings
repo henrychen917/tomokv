@@ -1,0 +1,15 @@
+ok	0.010000	release build (+footprint locks)
+ok	135.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+ok	42.370000	stationary balanced LB holds still (1s)
+ok	42.370000	stationary balanced LB holds still (2s)
+ok	0.120000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.500000	FLIP TTL + expiry events
+ok	2.240000	partial-frame conn parks (no io spin)
+ok	2.310000	FLIP close during FLIP (uring)
+ok	2.150000	FLIP close during FLIP (epoll)
+ok	1.550000	FLIP signal stop during FLIP + second SIGINT
+ok	0.500000	perfio stale epoll registration (epoll-flip)
+ok	12.170000	perfio stale epoll registration (epoll-lb)
+ok	6.060000	FLIP applies under saturated load
+ok	0.020000	flip battery shutdown invariants

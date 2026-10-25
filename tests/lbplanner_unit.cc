@@ -566,7 +566,63 @@ struct LbPlannerTest {
         std::puts("PASS LBOSC3 both modes: real moves and stationary hold");
     }
 
+    static void directed_client_admission() {
+        Core::Fixture<false> f;
+        Client client(-1);
+        f.client(client);
+        const uint32_t destination = 1;
+        unsigned capacity_calls = 0;
+        auto& target = f.server.thread(destination);
+        target.bind_io_role_hooks(&capacity_calls, [](void*) { return true; }, [](void*) {});
+        target.bind_client_capacity_hook([](void* context, uint32_t incoming) {
+            ++*static_cast<unsigned*>(context);
+            return incoming == 1;
+        });
+        std::string error;
+        require(!f.server.lb_debug_move_client(client.id(), destination, error) &&
+                error.find("no owner observation") != std::string::npos && capacity_calls == 0,
+                "directed move needs a real owner observation");
+        f.server.lb_publish_client_observations(f.io_id, {{client.id(), 1, 0}});
+        require(!f.server.lb_debug_move_client(client.id(), f.io_id, error) && capacity_calls == 0,
+                "directed move refuses its current owner");
+        f.server.lb_stage_.store(LbStage::ClientDrain);
+        {
+            auto reader = f.server.lb_client_read();
+            require(bool(reader), "old drain reader must arm");
+            f.server.lb_stage_.store(LbStage::Idle);
+            require(!f.server.lb_debug_move_client(client.id(), destination, error) &&
+                    f.server.lb_epoch() == 0 && f.server.lb_stage() == LbStage::Idle,
+                    "directed move cannot overwrite a retiring move record");
+        }
+        f.server.thread(f.io_id).add_client(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
+        // An admitted debug plan must still refuse the unchanged executor fence.
+        Op* completed = client.rob().acquire<false>();
+        require(completed != nullptr, "directed move completion witness arms");
+        client.rob().publish();
+        {
+            Server::ClientWorkScope unfinished(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "retire reply before executor scope");
+            require(f.server.lb_debug_move_client(client.id(), destination, error) &&
+                    f.server.lb_stage() == LbStage::ClientDrain && f.server.lb_acked(destination) &&
+                    f.server.lb_epoch() == 1, "destination capacity precedes directed drain publication");
+            f.io.lb_control_pass();
+            require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_moves() == 0 &&
+                    f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+                    "debug admission cannot bypass source executor readiness");
+        }
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+        Core::Fixture<false> off(false);
+        require(!off.server.lb_debug_move_client(1, 1, error) && !off.server.lb_policy_ && !off.server.lb_plan_,
+                "disabled client-LB debug trigger allocates no LB state");
+        std::puts("PASS directed client-LB admission: observed owner, prepared destination, record lifetime, source fence, disabled storage");
+    }
+
     static void all() {
+        directed_client_admission();
         record_republication();
         parse_gate();
         for (bool client : {false, true}) for (unsigned stale : {0u, 1u, 2u}) {

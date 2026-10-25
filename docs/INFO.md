@@ -15,6 +15,21 @@ Counters are independently sampled across shards; INFO is not a global MVCC
 snapshot. The bound is an owner progress boundary, not a millisecond deadline.
 `DBSIZE NOW` retains the exact owner scatter when callers need a census.
 
+INFO collects each section only when selected. `DEFAULT` expands the default
+set; `ALL` and `EVERYTHING` select all supported sections (there are no module
+sections). Multiple arguments select their union, case-insensitively, with no
+duplicate sections. An unknown section alone returns an empty body.
+
+In `STATS`, `foreign_read_occupied_cells` and `foreign_read_wildcard_cells` are
+owner-maintained counts, summed over shards. Sampling them reads two atomic
+words per armed shard, without scanning the 4096 filter cells. They are exact
+after each owner transition completes, including poison/saturation rebuilds;
+concurrent INFO can sample the update in progress, just as with the other
+independent counters. There is no timed cache or millisecond staleness bound.
+Both counts are zero when read-local is disabled and retain their gauge values
+through RESETSTAT. These counters consume the filter's existing tail padding;
+the disabled lane creates no filter allocation.
+
 The published path is enabled in both database images. Multi-DB counters are
 indexed by **physical namespace** within each shard. DBSIZE uses the operation's
 stamped namespace; INFO captures one immutable logical-to-physical map, so SWAPDB
@@ -51,3 +66,16 @@ emits nonempty logical databases, and [active expiry](https://github.com/redis/r
 maintains a sampled TTL estimate. Redis 7.4 also emits `subexpiry`; TomoKV's
 pre-existing omission of that fourth field is unchanged by this requested
 three-field change. `DBSIZE NOW` is an existing TomoKV extension, not Redis grammar.
+
+### Hash-field expiry counters
+
+`expired_subkeys` is the number of hash fields physically removed because their
+field deadline elapsed, including active expiry, lazy expiry and an immediately
+elapsed HEXPIRE-family deadline. Explicit HDEL/key deletion is not subkey expiry.
+CONFIG RESETSTAT resets this counter, as in Redis 7.4.
+
+TomoKV also retains two diagnostic fields used by the expiry batteries:
+`expired_hash_fields` is the lifetime (not RESETSTAT-rebased) version of that
+removal counter; `hash_field_expires` counts hashes registered for field-expiry
+attention. The latter is an attention gauge, not a count of volatile fields:
+stale registrations can remain until the owner's expiry cycle visits them.

@@ -1,0 +1,273 @@
+[New LWP 138751]
+[New LWP 138750]
+[New LWP 138749]
+[New LWP 138748]
+[New LWP 138747]
+[New LWP 138746]
+[New LWP 138745]
+[New LWP 138744]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+0x000077ee2ed1b79d in __GI___poll (fds=fds@entry=0x7fffb07e5810, nfds=nfds@entry=1, timeout=timeout@entry=100) at ../sysdeps/unix/sysv/linux/poll.c:29
+
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+
+Thread 9 (Thread 0x77ee2de7f6c0 (LWP 138744) "tomokv"):
+#0  syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+#1  0x000077ee2fe03379 in trace_abort (signal_number=6) at docs/wave7/abort_trace.c:18
+#2  0x000077ee2fe03518 in abort () at docs/wave7/abort_trace.c:40
+#3  0x00005ea31ed9b2ae in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x77ee2e092d28, server=..., state=state@entry=0x77ee280dc530, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:502
+#4  0x00005ea31eeb3c21 in tomo_db0::ScatterArenaPool::unregister_snapshot (owner_io=0, state=0x77ee280dc530, server=..., this=0x77ee2e092d28) at src/cmd/atomics_glue.inc:498
+#5  tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x77ee2e092a40, release_fn=0x5ea31ee40390 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)>, suppressed_fn=0x5ea31ede4770 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*)#1}::_FUN(void*)>) at src/cmd/xshard.cc:4349
+#6  0x00005ea31edf89a1 in tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const (__closure=<optimized out>, ctx=0x77ee2e092a40, client=..., op=...) at src/core/io_loop.h:119
+#7  0x00005ea31f0b36fa in tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const (__closure=0x77ee2de7dd30, op=...) at src/core/../net/wb.h:851
+#8  0x00005ea31f0bc450 in tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}>(tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}&&) (sink=..., this=0x77ee2807f080) at src/core/../net/rob.h:771
+#9  tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true> (submit_allowed=0x0, c=..., this=0x77ee2e094278) at src/core/../net/wb.h:851
+#10 tomo_db0::WbEngine::serve<true, false, true> (c=..., this=0x77ee2e094278) at src/core/../net/wb.h:208
+#11 tomo_db0::WbEngine::serve<true, false, true> (this=0x77ee2e094278, c=...) at src/core/../net/wb.h:206
+
+Thread 8 (Thread 0x77ee2d67e6c0 (LWP 138745) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=18, events=0x77ee2e095284, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e094668, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e094668) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd060) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 7 (Thread 0x77ee2ce7d6c0 (LWP 138746) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=12, events=0x77ee2e096eac, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e096290, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e096290) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd0c0) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 6 (Thread 0x77ee2c3ff6c0 (LWP 138747) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=6, events=0x77ee2e098ad4, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e097eb8, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e097eb8) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd120) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 5 (Thread 0x77ee2bbfe6c0 (LWP 138748) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=15, events=0x77ee2e09a6fc, maxevents=256, timeout=34) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=34, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e099ae0, timeout_ms=timeout_ms@entry=34) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e099ae0) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd180) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 4 (Thread 0x77ee2afff6c0 (LWP 138749) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=21, events=0x77ee2e09c324, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e09b708, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e09b708) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd1e0) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 3 (Thread 0x77ee2a7fe6c0 (LWP 138750) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=24, events=0x77ee2e09df4c, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e09d330, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e09d330) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd240) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 2 (Thread 0x77ee29bff6c0 (LWP 138751) "tomokv"):
+#0  0x000077ee2ed2a2d2 in epoll_wait (epfd=27, events=0x77ee2e09fb74, maxevents=256, timeout=50) at ../sysdeps/unix/sysv/linux/epoll_wait.c:30
+#1  0x00005ea31f169d6a in tomo_db0::EpollSet::wait (timeout_ms=50, this=<optimized out>) at src/core/../net/epoll.h:86
+#2  tomo_db0::IoLoop::r7_epoll_pass<false, false, true> (this=this@entry=0x77ee2e09ef58, timeout_ms=timeout_ms@entry=50) at src/core/reorder.cc:1617
+#3  0x00005ea31f17e8ca in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e09ef58) at src/core/reorder.cc:963
+#4  0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+#5  std::__invoke_impl<void, tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+#6  std::__invoke<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > (__fn=...) at /usr/include/c++/13/bits/invoke.h:96
+#7  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::_M_invoke<0> (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:292
+#8  std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > >::operator() (this=<optimized out>) at /usr/include/c++/13/bits/std_thread.h:299
+#9  std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > > >::_M_run(void) (this=0x77ee2e0bd2a0) at /usr/include/c++/13/bits/std_thread.h:244
+#10 0x000077ee2f0ecdb4 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#11 0x000077ee2ec9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+
+Thread 1 (Thread 0x77ee2fd0c480 (LWP 138742) "tomokv"):
+#0  0x000077ee2ed1b79d in __GI___poll (fds=fds@entry=0x7fffb07e5810, nfds=nfds@entry=1, timeout=timeout@entry=100) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x00005ea31f13048b in poll (__timeout=100, __nfds=1, __fds=0x7fffb07e5810) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo_db0::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:97
+#3  tomo_db0::Server::monitor_controllers (this=this@entry=0x7fffb07e9080) at src/core/lbplanner.cc:522
+#4  0x00005ea31edb11bd in tomo_db0::run_fused_server_reordered (srv=..., aof_base_plan=<optimized out>, aof_plans=..., load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/reorder.cc:3199
+#5  0x00005ea31edb12f5 in tomo_db0::run_fused_server_selected (srv=..., aof_base_plan=<optimized out>, aof_plans=std::vector of length 0, capacity 0, load_plan=<optimized out>, tls_context=<optimized out>, unix_listener=..., final_report=...) at src/core/reorder.cc:3221
+#6  0x00005ea31edd018c in main (argc=<optimized out>, argv=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:199
+#0  syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+No locals.
+#1  0x000077ee2fe03379 in trace_abort (signal_number=6) at docs/wave7/abort_trace.c:18
+        frames = {...}
+        count = 13
+        action = {...}
+        unblocked = {...}
+#2  0x000077ee2fe03518 in abort () at docs/wave7/abort_trace.c:40
+No locals.
+#3  0x00005ea31ed9b2ae in tomo_db0::ScatterArenaPool::unregister_snapshot (this=this@entry=0x77ee2e092d28, server=..., state=state@entry=0x77ee280dc530, owner_io=owner_io@entry=0) at src/cmd/atomics_glue.inc:502
+        cut = <optimized out>
+        moved = <optimized out>
+        slot = <optimized out>
+#4  0x00005ea31eeb3c21 in tomo_db0::ScatterArenaPool::unregister_snapshot (owner_io=0, state=0x77ee280dc530, server=..., this=0x77ee2e092d28) at src/cmd/atomics_glue.inc:498
+        slot = <optimized out>
+        cut = <optimized out>
+        moved = <optimized out>
+        exact = <optimized out>
+#5  tomo_db0::xshard_retire (server=..., self=..., ring=..., client=..., op=..., pool=..., owner_io=0, release_ctx=0x77ee2e092a40, release_fn=0x5ea31ee40390 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)>, suppressed_fn=0x5ea31ede4770 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*)#1}::_FUN(void*)>) at src/cmd/xshard.cc:4349
+        state = 0x77ee280dc530
+#6  0x00005ea31edf89a1 in tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const (__closure=<optimized out>, ctx=0x77ee2e092a40, client=..., op=...) at src/core/io_loop.h:119
+        loop = 0x77ee2e092a40
+        was_blocked = false
+        notifications = 0x0
+#7  0x00005ea31f0b36fa in tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const (__closure=0x77ee2de7dd30, op=...) at src/core/../net/wb.h:851
+        conn = {...}
+        this = 0x77ee2e094278
+#8  0x00005ea31f0bc450 in tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}>(tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}&&) (sink=..., this=0x77ee2807f080) at src/core/../net/rob.h:771
+        op = <optimized out>
+        d = 8
+        f = 7
+        n = 0
+        d = <optimized out>
+        f = <optimized out>
+        n = <optimized out>
+        op = <optimized out>
+#9  tomo_db0::WbEngine::serve_impl<true, false, true, true, false, true> (submit_allowed=0x0, c=..., this=0x77ee2e094278) at src/core/../net/wb.h:851
+        conn = {...}
+        retired = <optimized out>
+        did = <optimized out>
+        conn = <optimized out>
+        retired = <optimized out>
+        did = <optimized out>
+#10 tomo_db0::WbEngine::serve<true, false, true> (c=..., this=0x77ee2e094278) at src/core/../net/wb.h:208
+No locals.
+#11 tomo_db0::WbEngine::serve<true, false, true> (this=0x77ee2e094278, c=...) at src/core/../net/wb.h:206
+No locals.
+#12 0x00005ea31f17d461 in tomo_db0::wb_rule::Phase2::serve<false, true, tomo_db0::IoLoop, true> (loop=...) at src/core/wb_rule.h:175
+        c = 0x77ee2807f000
+        visits = 1
+        work = 0
+        served = 1
+        ready_now = 1
+        serve_budget = 1
+        work = <optimized out>
+        served = <optimized out>
+        ready_now = <optimized out>
+        serve_budget = <optimized out>
+        visits = <optimized out>
+        c = <optimized out>
+#13 tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false> (this=this@entry=0x77ee2e092a40) at src/core/reorder.cc:1285
+        work = 0
+#14 0x00005ea31f17e1a4 in tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false> (this=0x77ee2e092a40) at src/core/reorder.cc:886
+        pass_time_cached = <optimized out>
+        pause_armed = <optimized out>
+        did = <optimized out>
+        sweep_work = <optimized out>
+        wait_ms = <optimized out>
+        pass_ns = <optimized out>
+        database_work = <optimized out>
+        client_cron_armed = <optimized out>
+        save_cron_armed = <optimized out>
+        client_cron_newly_armed = <optimized out>
+        client_lb_signal_armed = <optimized out>
+        idle = {...}
+        sig = <optimized out>
+        tenure = {...}
+        sleep_worker = {...}
+        io_tenure = {...}
+#15 0x00005ea31f15838d in operator() (__closure=<optimized out>) at src/core/reorder.cc:3136
+        shutdown_io = <optimized out>
+        snapshot_worker = <optimized out>
+        persistence_worker = <optimized out>
+        self = <optimized out>
+        ok = <optimized out>
+        database_worker = <optimized out>
+        local_error = ""
+        tid = <optimized out>
+        tls_context = <optimized out>
+        boot = <optimized out>
+        aof_base_plan = <optimized out>
+        load_plan = <optimized out>
+        srv = <optimized out>
+        ios = <optimized out>
+        cfg = <optimized out>
+        executors = <optimized out>
+        aof_plans = <optimized out>
+        tid = <optimized out>
+        srv = <optimized out>
+        ios = <optimized out>
+        cfg = <optimized out>
+        executors = <optimized out>
+        aof_base_plan = <optimized out>
+        aof_plans = <optimized out>
+        load_plan = <optimized out>
+        tls_context = <optimized out>
+        boot = <optimized out>
+        database_worker = <optimized out>
+        shutdown_io = <optimized out>
+        snapshot_worker = <optimized out>
+        persistence_worker = <optimized out>
+        self = <optimized out>
+        ok = <optimized out>
+        local_error = <optimized out>
+        plan = <optimized out>
+        __for_range = <optimized out>
+        __for_begin = <optimized out>
+        __for_end = <optimized out>
+server = <error reading variable: value of type `tomo_db0::Server' requires 141312 bytes, which is more than max-value-size>
+self = <optimized out>
+ring = <optimized out>
+client = @0x77ee2807f000: {static kMinRecv = 2048, static kNoWbSlot = 4294967295, static kWbMigrationInstalling = 4294967294, static kNoTlsSlot = 4294967295, fd_ = 37, rlen_ = 200048, rpos_ = 200048, last_interaction_s_ = 4559664, rbuf_ = 0x77ee280f8a00 "*3\r\n$3\r\n"..., rcap_ = 262144, wsent_ = 12, fill_ = 1 '\001', recv_armed_ = true, send_inflight_ = false, segmented_send_ = false, send_requested_ = 12, serve_pending_ = false, in_active_ = true, closing_ = false, dead_ = false, barrier_owners_ = 0 '\000', static kAtomicBackpressure = 1 '\001', static kFlipBackpressure = 2 '\002', parse_backpressure_ = 0 '\000', subscriber_mode_ = false, static kBlocked = 128 '\200', static kResp3 = 4 '\004', static kNoTouch = 16 '\020', connection_flags_ = 0 '\000', obuf_bytes_ = 0, atomic_groups_io_ = 0, session_ = {db_index = 0}, wb_deferrals_ = 0 '\000', inline_scanned_ = 0, r7_long_slots_ = 0, r7_long_newest_ = 0, multibulk_ = {args = 0x77ee280f6000, capacity = 16, expected = 0, completed = 0, next = 0, bulk = 18446744073709551615}, rob_ = {static kChunkOps = 8, static kChunks = 8, chunks_ = {0x77ee280a1008, 0x77ee280a2808, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, dispatch_ = std::atomic<unsigned long> = { 8 }, read_local_write_valid_ = 0, read_local_write_wide_ = 0, read_local_write_force_ = 0, read_local_arm_state_ = 1, read_local_unarmed_write_id_ = 7, local_mget_fence_id_ = 18446744073709551615, read_local_arm_stats_ = 0x77ee2e9f4158, flush_ = std::atomic<unsigned long> = { 7 }, read_local_pending_slots_ = 0, read_local_owner_slots_ = 0, read_local_state_ = 0, read_local_pending_filter_ = {static kWords = 4, words = {...}}}, buf_ = {{data_ = 0x77ee2807f158 "$6\r\nbefo"..., len_ = 12, cap_ = 512, inline_ = "$6\r\nbefo"...}, {data_ = 0x77ee2807f800 "+OK\r\n", len_ = 0, cap_ = 2048, inline_ = '\000' <repeats 511 times>}}, static kMaxSendIov = 16, segments_ = {inline_ = {{...}, {...}, {...}, {...}, {...}, {...}, {...}, {...}}, segs_ = 0x77ee2807f570, head_ = 0, size_ = 0, cap_ = 8, offset_ = 0}, send_iov_ = {{iov_base = 0x0, iov_len = 0} <repeats 16 times>}, send_msg_ = {msg_name = 0x0, msg_namelen = 0, msg_iov = 0x0, msg_iovlen = 0, msg_control = 0x0, msg_controllen = 0, msg_flags = 0}, retire_queued_ = std::atomic<bool> = { false }, wb_slot_ = std::atomic<unsigned int> = { 0 }, ifid_thread_ = std::atomic<unsigned int> = { 0 }, multi_session_ = 0x0, watch_generation_ = std::atomic<unsigned long> = { 0 }, watched_refs_ = std::atomic<unsigned int> = { 0 }, watch_dirty_ = std::atomic<bool> = { false }, id_ = 1, obuf_soft_since_s_ = 0, obuf_tracking_ = true, authenticated_ = true, acl_user_idx_ = 0, tls_slot_ = 4294967295}
+op = @0x77ee280a1938: {static kScatterStateMarker = -2, static kLocalXshardMarker = -3, static kBlockingStateMarker = -4, static kMultiStateMarker = -5, static kScatterReplyMarker = -6, static kShrinkKeep = 4096, spec = 0x5ea31f703ae0 <tomo_db0::l4prebuild_prepare_set(tomo_db0::Op&)::clean>, shard = 13, read_cut_lo = 0, hash = 17997935174177388537, rbuf_off = 0, route_flags_ = 128 '\200', reply_code_ = 1 '\001', reply_code_ok_ = 1 '\001', db = 0 '\000', reply = {data_ = 0x77ee280a1970 "", len_ = 0, cap_ = 96, inline_ = '\000' <repeats 95 times>}, direct = 0x0, direct_cap = 2048, direct_len = 0, zc_ptr = 0x77ee280dc530 "", zc_len = 0, zc_shard = -6, state = std::atomic<tomo_db0::OpState> = { tomo_db0::OpState::Done }, physical_db = 0 '\000', secondary_db = 0 '\000', target_db = 0 '\000', reply_ival_ = 0, static kAtomicHazard = 1 '\001', static kNoBorrow = 2 '\002', static kResp3 = 4 '\004', static kReplySkip = 8 '\b', static kNoTouch = 16 '\020', static kReadCut = 32 ' ', static kReadLocal = 64 '@', static kReadLocalPreciseWrite = 128 '\200', argv_heap_ = 0x0, argv_cap_ = 0, argc_ = 3, argv_inline_ = {{p = 0x77ee280f8a08 "SET\r\n$17"..., n = 3, static ns = 0}, {p = 0x77ee280f8a12 "durabili"..., n = 17, static ns = 0}, {p = 0x77ee280f8a2e "vvvvvvvv"..., n = 200000, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}}}
+pool = @0x77ee2e092d28: {static kCached = 64, static kCommonBytes = 16384, cached_ = {0x0 <repeats 64 times>}, count_ = 0, unresolved_snapshots_ = std::vector of length 0, capacity 0, deferred_destroy_ = std::vector of length 0, capacity 0, observed_snapshot_completions_ = 0, unresolved_snapshot_floor_ = 18446744073709551615, unresolved_floor_refs_ = 0, published_snapshot_floor_ = 18446744073709551615}
+owner_io = 0
+release_ctx = 0x77ee2e092a40
+release_fn = 0x5ea31ee40390 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)>
+suppressed_fn = 0x5ea31ede4770 <tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*)#1}::_FUN(void*)>
+state = 0x77ee280dc530
+$1 = (tomo_db0::Op &) @0x77ee280a1938: {static kScatterStateMarker = -2, static kLocalXshardMarker = -3, static kBlockingStateMarker = -4, static kMultiStateMarker = -5, static kScatterReplyMarker = -6, static kShrinkKeep = 4096, spec = 0x5ea31f703ae0 <tomo_db0::l4prebuild_prepare_set(tomo_db0::Op&)::clean>, shard = 13, read_cut_lo = 0, hash = 17997935174177388537, rbuf_off = 0, route_flags_ = 128 '\200', reply_code_ = 1 '\001', reply_code_ok_ = 1 '\001', db = 0 '\000', reply = {data_ = 0x77ee280a1970 "", len_ = 0, cap_ = 96, inline_ = '\000' <repeats 95 times>}, direct = 0x0, direct_cap = 2048, direct_len = 0, zc_ptr = 0x77ee280dc530 "", zc_len = 0, zc_shard = -6, state = std::atomic<tomo_db0::OpState> = { tomo_db0::OpState::Done }, physical_db = 0 '\000', secondary_db = 0 '\000', target_db = 0 '\000', reply_ival_ = 0, static kAtomicHazard = 1 '\001', static kNoBorrow = 2 '\002', static kResp3 = 4 '\004', static kReplySkip = 8 '\b', static kNoTouch = 16 '\020', static kReadCut = 32 ' ', static kReadLocal = 64 '@', static kReadLocalPreciseWrite = 128 '\200', argv_heap_ = 0x0, argv_cap_ = 0, argc_ = 3, argv_inline_ = {{p = 0x77ee280f8a08 "SET\r\n$17"..., n = 3, static ns = 0}, {p = 0x77ee280f8a12 "durabili"..., n = 17, static ns = 0}, {p = 0x77ee280f8a2e "vvvvvvvv"..., n = 200000, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}, {p = 0x0, n = 0, static ns = 0}}}
+$2 = {<tomo_db0::SnapshotCut> = {snapshot = 858993744675328, snapshot_slot = 1634891108, snapshot_registered = 98, snapshot_complete = std::atomic<bool> = { 105 }}, pending = std::atomic<unsigned int> = { 1999468916 }, record_refs = std::atomic<unsigned int> = { 1868852841 }, watch_refs = std::atomic<unsigned int> = { 328663159 }, conditional_failed = std::atomic<bool> = { 40 }, script_conflict = std::atomic<bool> = { 238 }, direct_ready = std::atomic<unsigned char> = { 119 'w' }, exact_sum = std::atomic<unsigned long> = { 3977017550854959104 }, swap_ready_count = std::atomic<unsigned int> = { 0 }, swap_succeeded = false, swap_done = std::atomic<bool> = { false }, kind = tomo_db0::(anonymous namespace)::Kind::AllShards, final_reply = tomo_db0::(anonymous namespace)::FinalReply::None, final_error = tomo_db0::(anonymous namespace)::WorkError::None, phase = 0 '\000', script_phase = tomo_db0::(anonymous namespace)::ScriptPhase::None, script_resume_post = false, script_pins_live = false, script_ticket_live = false, script_apply_after_unpin = false, script_commit_after_unpin = false, script_has_writes = 4, script_stage_limit = std::atomic<bool> = { true }, script_certifier = false, runtime_loading = false, multi_child = 128, multi_parent = 0xc, barrier = 64, pooled = 117, copy_replace = 115, from_left = 101, to_left = 114, pop_edge = 95, pop_reply_shape = (tomo_db0::(anonymous namespace)::PopReplyShape::ListPair | tomo_db0::(anonymous namespace)::PopReplyShape::ZsetTriple | unknown: 0x70), atomic_write = 99, atomic_apply = 114, atomic_pop = 105, atomic_group = 112, atomic_direct = 116, pop_missed = false, sort_general_done = false, sort_conversion_error = false, admitted = false, apply_open = std::atomic<bool> = { false }, contents_freed = true, retired = false, two_hop = false, owner_io = 0, owner_slots = 671990464, admission_generation = 518, origin_conn_id = 131864758013952, server = 0x77ee2808e050, arena_bytes = 672096640, key_count = 30702, nsub = 0, group_cap = 0, shard_slots = 0, phase1_first = 0, set_first = 0, set_count = 0, hop2_count = 0, selected = 0, pop_retries = 0, script_retries = 0, script_coordinator_shard = 0, debug_direct_defer = 0, debug_fanout_deadline = 0, debug_fanout_lead = 0, debug_script_defer_us = 0, debug_script_defer_deadline = 0, sinter_limit = 0, zset_limit = 0, lcs_options = {len = false, idx = false, withmatchlen = false, minmatchlen = 0}, pop_count = 0, xread_count = 0, script_cut = 0, script_ticket = 0, script_staged_bytes = std::atomic<unsigned long> = { 0 }, now_cut_ms = 0, pop_retry_snapshot = 0, final_integer = 0, range_options = {kind = tomo_db0::(anonymous namespace)::ImageRangeKind::Rank, reverse = false, limit_seen = false, offset = 0, limit = 0}, range_spec = {rank_start = 0, rank_stop = 0, score = {min = 0, max = 0, min_exclusive = false, max_exclusive = false}, lex = {min = {...}, max = {...}}}, sort_options = {alpha = false, descending = false, store = false, store_arg = 0, offset = 0, count = 0, by_arg = 0, get_args = std::vector of length 0, capacity 0, deref = false}, zset_aggregate = tomo_db0::(anonymous namespace)::ZAggregate::Sum, zset_withscores = false, zset_weights = std::vector of length 0, capacity 0, geo_store = false, geo_store_distance = false, geo_source_arg = 0, geo_destination_arg = 0, xread_first_key = 0, xread_first_id = 0, groups = 0x0, keys = 0x0, key_order = 0x0, values = 0x0, status = 0x0, script_pinned = 0x0, images = 0x0, apply = 0x0, hop2 = 0x0, shard_groups = 0x0, owner_record_refs = 0x0, result = 0x0, reload_plan = std::unique_ptr<tomo_db0::SnapshotLoadPlan> = {get() = 0x0}, aof_reload_base = std::unique_ptr<tomo_db0::SnapshotLoadPlan> = {get() = 0x0}, aof_reload_increments = std::vector of length 0, capacity 0, aof_group = std::shared_ptr<tomo_db0::AofGroupDecision> (empty) = {get() = 0x0}, blocking_origin = 0x0, notify = std::atomic<tomo_db0::NotifyBatch *> = { 0x0 }, commit_next = 0x0, commit_client = 0x0, commit_op_id = 0, commit_shard = 0, sort_deref = 0x0, debug_hop_deadline = 0, debug_hop_lead_owner = 0, debug_conditional_deadline = 0, static kGroupAttemptRef = 2147483648, group_attempt_storage = 0x0, epoch = std::atomic<unsigned long> = { 0 }, aborted = std::atomic<bool> = { false }, decision_line_pad = '\000' <repeats 54 times>}
+$3 = (tomo_db0::ScatterArenaPool &) @0x77ee2e092d28: {static kCached = 64, static kCommonBytes = 16384, cached_ = {0x0 <repeats 64 times>}, count_ = 0, unresolved_snapshots_ = std::vector of length 0, capacity 0, deferred_destroy_ = std::vector of length 0, capacity 0, observed_snapshot_completions_ = 0, unresolved_snapshot_floor_ = 18446744073709551615, unresolved_floor_refs_ = 0, published_snapshot_floor_ = 18446744073709551615}
+[Inferior 1 (process 138742) detached]

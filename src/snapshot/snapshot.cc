@@ -209,6 +209,32 @@ void SnapshotManager::cancel_after_join(Server& server) {
     server.set_shutdown_snapshot_active(false);
 }
 
+SnapshotManager::StartResult SnapshotManager::cancel_for_shutdown(
+        Server& server, ThreadCtx& writer, Ring& ring, std::string& error) {
+    if (!in_progress()) return StartResult::Started;
+    // Without a running IO owner there is nobody who can retire this capture.
+    if (!writer.ring()) {
+        error = "snapshot IO owner is unavailable";
+        return StartResult::Busy;
+    }
+    fail(epoch(), "snapshot cancelled for final shutdown save");
+    const uint64_t deadline = now_ns() + Server::kShutdownSaveWaitNs;
+    while (in_progress() || server.shutdown_snapshot_holds()) {
+        if (now_ns() >= deadline) {
+            error = "snapshot cancellation timed out";
+            return StartResult::Failed;
+        }
+        writer.progress_fused_executor();
+        if (writer_is(writer.id())) {
+            writer_pass(writer, ring, true);
+            if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, ring);
+        }
+        ring.submit_and_reap();
+        std::this_thread::yield();
+    }
+    return StartResult::Started;
+}
+
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {
@@ -239,6 +265,24 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
                                                      const char* target_filename, bool shutdown) {
+    // SAVE can run while Redis's AOF child is active. The native format shares
+    // one snapshot coordinator, so finish that capture before taking SAVE's cut.
+    // The caller may own its IO ring or a fused shard and must advance both.
+    const bool finish_rewrite = is_blocking && !shutdown && !rewrite &&
+        server.aof().rewrite_in_progress();
+    while (finish_rewrite && (server.aof().rewrite_in_progress() || in_progress())) {
+        writer.progress_fused_executor();
+        if (writer_is(writer.id())) {
+            writer_pass(writer, writer_ring, true);
+            if (engine_ == PersistIoEngine::Uring) pump_io_completions(writer, writer_ring);
+        }
+        writer_ring.submit_and_reap();
+        if (server.shutting_down()) {
+            error = "save cancelled by shutdown";
+            return StartResult::Failed;
+        }
+        std::this_thread::yield();
+    }
     {
         // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
         // two IO owners could both observe the other's atomic state as idle and publish Preparing
@@ -782,10 +826,12 @@ bool SnapshotManager::complete_file_success() {
     if (!rewrite_) {
         completed_saves.fetch_add(1, std::memory_order_relaxed);
         last_bgsave_ok.store(true, std::memory_order_relaxed);
+        // A native AOF base is a snapshot, but is not an RDB save for LASTSAVE
+        // or the elapsed-time test of the configured save schedule.
+        last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     }
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
     if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();
-    last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);
     server_ = nullptr;

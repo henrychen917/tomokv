@@ -1,0 +1,19 @@
+{"affinity": [94, 95], "argv": ["taskset", "-c", "80-87", "/home/user/Projects/cx-wave7/build/tomokv", "--bind", "127.0.0.1", "--port", "26850", "--dir", "/home/user/Projects/cx-wave7/build/wave7b/perfio-stale-negative/epoll-lb", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--databases", "1", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+{"duplicates": 0, "event": "epoll", "phase": "lb-initial", "registrations": 97, "stale": 0}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-initial"}
+{"after": 1, "attempts": 92, "before": 0, "client_id": 4, "destination_io": 1, "event": "lb-witness", "source_io": 5, "trigger": "DEBUG CLIENT-LB"}
+{"duplicates": 1, "event": "epoll", "phase": "lb-moved", "registrations": 99, "stale": 1}
+{"event": "stop", "pid": 3941528, "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave7/tests/perfio.py", line 350, in <module>
+    main()
+  File "/home/user/Projects/cx-wave7/tests/perfio.py", line 332, in main
+    elif args.case == "epoll-lb": epoll_lb(args)
+                                  ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-wave7/tests/perfio.py", line 214, in epoll_lb
+    moved = audit(p.pid, "lb-moved", len(peers)+1)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-wave7/tests/perfio.py", line 108, in audit
+    assert not row["stale"] and not row["duplicates"], (phase, row)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('lb-moved', {'stale': [[32, 130, 472429042]], 'duplicates': {'472429042': [16, 32, 32]}, 'registrations': 99})

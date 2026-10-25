@@ -1,0 +1,301 @@
+tests/txnorder_watch.py:2:"""Redis-7.4 WATCH oracle cases for FLUSH, SWAPDB and blocking command serves.
+tests/txnorder_watch.py:21:            watch.must('SELECT',db);assert watch.must('WATCH','watched')==b'OK'
+tests/txnorder_watch.py:39:            run(command+' key expired before WATCH',expired,
+tests/txnorder_watch.py:44:            run(command+' key expires after WATCH',
+tests/txnorder_watch.py:79:        run('XREADGROUP metadata preserves WATCH',stream,lambda:admin.must(*xread),False)
+tests/txnorder_watch.py:85:        run('EXEC XREADGROUP metadata preserves WATCH',stream,
+tests/txnorder_watch.py:87:        run('EXEC XREADGROUP then XADD dirties WATCH',stream,
+tests/txnorder_watch.py:89:        run('EXEC XADD then XREADGROUP dirties WATCH',stream,
+tests/txnorder_watch_unit.cc:1:// Deterministic owner-turn witnesses for async serves and read-only WATCH.
+tests/txnorder_watch_unit.cc:18:        require(shard.watch_add(slice(key),&watcher,watcher.watch_generation()),"WATCH after producer");
+tests/txnorder_watch_unit.cc:19:        require(!watcher.watch_dirty(),"WATCH clean in real producer/serve window");
+tests/txnorder_watch_unit.cc:41:        require(watcher.watch_dirty(),"successful serve must dirty the watched key");
+tests/txnorder_watch_unit.cc:43:        std::printf("PASS served %s: WATCH saw one, serve removed it and dirtied WATCH\n",verb);
+tests/txnorder_watch_unit.cc:82:    require(multi_io(server,client,{"WATCH",b})=="+OK\r\n","WATCH registered");
+tests/txnorder_watch_unit.cc:102:    require(!client.watch_dirty(),"WATCH clean at CAS");
+tests/txnorder_watch_unit.cc:113:        require(client.watch_dirty(),"foreign write committed after CAS");
+tests/txnorder_watch_unit.cc:128:            "EXEC final reply obeys held WATCH ordering");
+tests/txnorder_watch_unit.cc:149:    else require(false,"known WATCH regression");
+tests/txnorder_watch_unit.cc:151:    std::puts("PASS WATCH owner-turn regression");
+tests/gate_history.py:1220:  ROW_WATCHDOG=$!
+tests/gate_history.py:1224:            'row_begin fixture\nwait "$ROW_WATCHDOG"\nok fixture\n', extra_functions=broken_monitor)
+tests/gate_history.py:1268:  if [ "$ROW_WATCHDOG" -gt 0 ]; then
+tests/gate_history.py:1269:    kill -TERM "$ROW_WATCHDOG" 2>/dev/null
+tests/gate_history.py:1270:    wait "$ROW_WATCHDOG" 2>/dev/null || :
+tests/gate_history.py:1271:    ROW_WATCHDOG=0
+tests/gate_history.py:1282:  ROW_WATCHDOG=$!
+tests/gate_history.py:1286:            'row_begin fixture\nwait "$ROW_WATCHDOG"\nok fixture\n', extra_functions=broken)
+tests/gate_history.py:1295:first=$ROW_WATCH_GENERATION
+tests/gate_history.py:1298:[ "$first" != "$ROW_WATCH_GENERATION" ] || exit 71
+tests/gate_history.py:1324:        body = '''ROW_WATCH_PARENT=101; ROW_WATCH_PARENT_START=202
+tests/gate_history.py:1325:ROW_WATCHDOG=303; ROW_WATCHDOG_START=404; ROW_WATCH_GENERATION=101.202.2
+tests/gate_history.py:1326:ROW_WATCH_RECEIPT="$FIXTURE/receipt"
+tests/gate_history.py:1327:printf 'CANCELLED\\t101\\t202\\t303\\t404\\t101.202.1\\n' > "$ROW_WATCH_RECEIPT"
+tests/gate_history.py:1329:printf 'CANCELLED\\t101\\t202\\t303\\t404\\t101.202.2\\nextra\\n' > "$ROW_WATCH_RECEIPT"
+tests/gate_history.py:1331:printf 'CANCELLED\\t101\\t202\\t303\\t404\\t101.202.2\\t\\n' > "$ROW_WATCH_RECEIPT"
+tests/gate_history.py:1333:printf 'CANCELLED\\t101\\t202\\t303\\t404\\t101.202.2' > "$ROW_WATCH_RECEIPT"
+tests/gate_history.py:1335:printf 'CANCELLED\\t101\\t202\\t303\\t404\\t101.202.2\\n' > "$ROW_WATCH_RECEIPT"
+tests/gate_history.py:1419:      ROW_WATCHDOG=0
+tests/atomic_survivors_unit.cc:103:        multi_plain_write_committed(shard, r.op);
+tests/atomic_survivors_unit.cc:138:    if (state->reset_watch) { client.next_watch_generation(); client.clear_watch_dirty(); }
+tests/atomic_survivors_unit.cc:234:    if (watch) require(multi_io(server, client, {"WATCH", a}) == "+OK\r\n", "WATCH registered");
+tests/atomic_survivors_unit.cc:479:        require(state != nullptr, "WATCH arrival attempt allocated");
+tests/atomic_survivors_unit.cc:488:                        state->watch_generation), "WATCH arrival registry armed");
+tests/atomic_survivors_unit.cc:492:                "a writer cannot hide missing EXEC fragments behind a WATCH claim");
+tests/atomic_survivors_unit.cc:497:                "all arrivals allow the existing WATCH validation barrier to finish");
+tests/atomic_survivors_unit.cc:500:                "validated WATCH claims still block ordinary writers");
+tests/atomic_survivors_unit.cc:640:        for (Client* c : {&a, &b}) require(s->watch_add(key, c, c->watch_generation()), "WATCH armed");
+tests/atomic_survivors_unit.cc:651:    require(ar == 2 && br == 2 && !a.watch_dirty() && !b.watch_dirty(), "read-only claims coexist cleanly");
+tests/atomic_survivors_unit.cc:733:        Request watch({"WATCH", key});
+tests/atomic_survivors_unit.cc:741:                    "injected WATCH preparation failure reported");
+tests/atomic_survivors_unit.cc:744:            require(!session || session->watched.empty(), "failed WATCH did not leave a phantom session key");
+tests/atomic_survivors_unit.cc:747:                    "successful retry posts real WATCH work");
+tests/atomic_survivors_unit.cc:749:            require(action == MultiIoAction::Dispatch, "WATCH success reached");
+tests/atomic_survivors_unit.cc:763:        require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
+tests/datafix2_watch.py:2:"""CD4.9: table of every registered Redis write, with per-key WATCH outcomes."""
+tests/datafix2_watch.py:172:        # the requested writer-command/WATCH/EXEC case still runs for both.
+tests/datafix2_watch.py:182:                    equal(w.cmd("WATCH",watched),b"OK","WATCH")
+tests/datafix2_watch.py:194:    # Physical expiry is independent of command success. A WATCH armed on an
+tests/datafix2_watch.py:202:                w.cmd("UNWATCH");c.cmd("DEL",K)
+tests/datafix2_watch.py:207:                    equal(w.cmd("WATCH",K),b"OK","expired WATCH")
+tests/datafix2_watch.py:209:                equal(w.cmd("WATCH",K),b"OK","live expiry WATCH")
+tests/datafix2_watch.py:211:            else: raise AssertionError("fresh expiry WATCH window never armed")
+tests/datafix2_watch.py:225:            w.cmd("WATCH",*keys)
+tests/datafix2_watch.py:232:            equal(w.cmd("EXEC"),None,"physical eviction invalidates WATCH")
+tests/mdbstamp_checks.cc:126:                             "SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE", "WATCH"}) {
+tests/execabort_watch_gate_test.py:15:        start = source.index('row_begin "EXECABORT releases WATCH reservation"')
+tests/execabort_watch_gate_test.py:29:    echo 'FAIL execabort-watch: WATCH window never armed'
+tests/multi_exec.py:2:"""Directed MULTI/EXEC/WATCH gate. Usage: multi_exec.py HOST PORT."""
+tests/multi_exec.py:167:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:168:        ok &= c.cmd("UNWATCH") == b"OK"
+tests/multi_exec.py:174:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:176:        ok &= c.cmd("UNWATCH") == b"QUEUED"
+tests/multi_exec.py:181:        ok &= c.cmd("WATCH", key) == b"OK"
+tests/multi_exec.py:199:        note("DISCARD/UNWATCH/nested-MULTI/reset-on-EXEC semantics", ok,
+tests/multi_exec.py:216:                # debug-disabled boot doesn't read as a MULTI/WATCH defect (atomfix
+tests/multi_exec.py:218:                print("  SKIP script WATCH declared-key detector: DEBUG SHARD "
+tests/multi_exec.py:224:            note("script WATCH declared-key detector", False, "no same-owner key pair")
+tests/multi_exec.py:229:        ok = watcher.cmd("WATCH", argument) == b"OK"
+tests/multi_exec.py:240:        ok &= watcher.cmd("WATCH", declared) == b"OK"
+tests/multi_exec.py:249:        note("script WATCH declared-key detector", ok,
+tests/multi_exec.py:411:                    if c.cmd("WATCH", key) != b"OK":
+tests/multi_exec.py:412:                        raise AssertionError("WATCH failed")
+tests/multi_exec.py:441:    note("WATCH CAS race has exactly one EXEC winner per round",
+tests/multi_exec.py:455:    raise SystemExit("%d MULTI/WATCH checks failed" % FAIL)
+tests/multi_exec.py:456:print("MULTI/WATCH directed battery passed", flush=True)
+tests/ntnew4_clock.py:172:        # WATCH sees a live key: its later expiry must abort EXEC (Redis isWatchedKeyExpired).
+tests/ntnew4_clock.py:173:        require(w.must("WATCH", "nt7:watch") == b"OK", "WATCH at deadline")
+tests/ntnew4_clock.py:174:        require(c.must("WATCH", "nt7:exec") == b"OK", "same-ms WATCH control")
+tests/ntnew4_clock.py:176:        note("WATCH and EXEC at deadline", c.must("EXEC"), [b"v"])
+tests/ntnew4_clock.py:187:        note("WATCH armed at deadline aborts after it", w.must("EXEC"), None)
+tests/wave5_dispatch_checks.inc:2:// shortcut with a real WATCH reservation, including the retry that must park.
+tests/wave5_dispatch_checks.inc:18:            "dispatch WATCH claim armed");
+tests/wave5_dispatch_checks.inc:38:    std::printf("PASS wave5 dispatch WATCH retry (%s)\n", Fused ? "1s" : "2s");
+tests/txnorder_episodes.cc:52:                "WATCH validation follows successful placement in the same turn");
+tests/execabort_watch_unit.cc:1:// Exercise production WATCH/MULTI/EXEC and the ordinary SET reservation guard.
+tests/execabort_watch_unit.cc:70:        // All dispatched commands here are WATCH or an empty/queue-error EXEC;
+tests/execabort_watch_unit.cc:145:            require(fixture.multi({"WATCH", "execabort:watched"}) == "+OK\r\n", "WATCH reply");
+tests/execabort_watch_unit.cc:147:            require(fixture.watches() > 0, "WATCH window never armed");
+tests/execabort_watch_unit.cc:171:                "WATCH reservations and parent references released");
+tests/multidb.py:156:        pipeline(c, [("WATCH", b"md:\0key"), ("SELECT", 1), ("WATCH", b"md:\0key")],
+tests/multidb.py:157:                 [b"OK"] * 3, "WATCH across DBs")
+tests/multidb.py:161:                 [b"OK", b"QUEUED", [b"db1"]], "WATCH isolation")
+tests/multidb.py:162:        expect(c.cmd("WATCH", b"md:\0key"), b"OK", "WATCH before swap")
+tests/multidb.py:166:                 [b"OK", b"QUEUED", b"QUEUED", None], "WATCH swap-back abort")
+tests/multidb.py:168:        expect(c.cmd("WATCH", "md:missing"), b"OK", "WATCH absent in both DBs")
+tests/multidb.py:171:                 [b"OK", b"QUEUED", [None]], "absent WATCH survives swap")
+tests/multidb.py:172:        expect(c.cmd("WATCH", "md:missing"), b"OK", "WATCH follows DB")
+tests/multidb.py:173:        expect(admin.cmd("SWAPDB", 0, 1), b"OK", "restore map with absent WATCH")
+tests/multidb.py:174:        expect(one.cmd("SET", "md:missing", "after-swap"), b"OK", "write through new WATCH alias")
+tests/multidb.py:176:                 [b"OK", b"QUEUED", None], "WATCH sees write after swap")
+tests/multidb.py:177:        expect(one.cmd("DEL", "md:missing"), 1, "WATCH alias cleanup")
+tests/multidb.py:302:        print("multidb PASS: namespace commands, transactions, WATCH, SWAPDB, blocking, notifications and persistence", flush=True)
+tests/exbatch_unit.cc:103:    check(!watches(sh), "empty WATCH gate");
+tests/exbatch_unit.cc:104:    check(sh.watch_add(key, &a, ga) && watches(sh), "WATCH add arms gate");
+tests/exbatch_unit.cc:105:    check(sh.watch_add(key, &a, ga), "duplicate WATCH");
+tests/exbatch_unit.cc:106:    check(sh.watch_add(key, &b, gb), "second WATCH");
+tests/exbatch_unit.cc:110:    check(b.watch_dirty(), "armed write dirties watcher");
+tests/exbatch_unit.cc:112:    check(!watches(sh), "last UNWATCH clears gate");
+tests/exbatch_unit.cc:114:    a.clear_watch_dirty();
+tests/exbatch_unit.cc:131:    a.clear_watch_dirty(); epoch = 0;
+tests/exbatch_unit.cc:138:    // an aborted private write stays invisible; a committed write dirties WATCH.
+tests/exbatch_unit.cc:139:    check(!a.watch_dirty(), "undecided private writers do not dirty WATCH");
+tests/exbatch_unit.cc:141:    check(sh.watch_finalize_reservation(owned) && refs == 0 && watches(sh) && !a.watch_dirty(),
+tests/exbatch_unit.cc:146:    check(refs == 2 && !a.watch_dirty(), "fresh private writer reservations armed");
+tests/exbatch_unit.cc:148:    check(sh.watch_finalize_reservation(owned) && refs == 0 && watches(sh) && a.watch_dirty(),
+tests/exbatch_unit.cc:149:          "committed private writers dirty WATCH");
+tests/exbatch_unit.cc:154:    ga = a.watch_generation(); a.clear_watch_dirty();
+tests/exbatch_unit.cc:157:    check(sh.watch_database_swap(0, 1, 0, 1) && a.watch_dirty() && watches(sh),
+tests/exbatch_unit.cc:168:    check(memory != MAP_FAILED, "map cold WATCH fixture");
+tests/exbatch_unit.cc:172:    check(child >= 0, "fork WATCH load witness");
+tests/exbatch_unit.cc:180:    check(waitpid(child, &status, 0) == child, "wait WATCH load witness");
+tests/exbatch_unit.cc:182:          "unarmed WATCH gate must not read either cold map (inaccessible page)");
+tests/exbatch_unit.cc:206:            check(watches(sh) == added, "allocation failure preserves WATCH cache truth");
+tests/at15.py:95:    watch = connection.command(['WATCH', 'at15:watched'])
+tests/at15.py:97:    assert watch == b'-ERR WATCH inside MULTI is not allowed\r\n'
+tests/at15.py:100:    assert result == b'*1\r\n+PONG\r\n', 'nested MULTI/WATCH do not dirty EXEC'
+tests/edgeproto.py:13:  1  remote abort: WATCH + disconnect  (P0; runs last, it can leave the server dead)
+tests/edgeproto.py:478:    """P0: a connection that closes while it still WATCHes a key aborted the whole server.
+tests/edgeproto.py:485:    reply = victim.cmd("WATCH", "ep:watchkey")
+tests/edgeproto.py:486:    check("WATCH replies OK", reply, b"+OK\r\n")
+tests/edgeproto.py:499:    failures.append("WATCH + disconnect killed the server (no PING after 2s)")
+tests/edgeproto.py:528:        print("edgeproto: server is DOWN after the WATCH row; later runs need a fresh boot")
+tests/execatomic.py:226:        # WATCH routes MGET through its owners on armed read-local boots. A local
+tests/execatomic.py:229:        assert reader.cmd("WATCH", keys[0]) == b"OK"
+tests/txnorder_checks.inc:120:                                   &holder->watch_refs, &client, 0, false, true}), "F2 WATCH claim");
+tests/txnorder_checks.inc:122:                !holder->decision.aborted.load(), "F2 EXEC waits on rule P with its WATCH claim");
+tests/txnorder_checks.inc:134:                    "F2 APPLY must yield while EXEC holds WATCH and waits on its open bracket");
+tests/txnorder_checks.inc:156:        require(shard.watch_add(slice(dst), &client, client.watch_generation()), "F4 WATCH dst");
+tests/txnorder_checks.inc:169:        require(client.watch_dirty(), "F4 SORT STORE dirties destination WATCH");
+tests/txnorder_checks.inc:200:                "F8 WATCH waits for a blind candidate even without an earlier watcher");
+tests/txnorder_checks.inc:203:                "F8 WATCH starts after blind decision");
+tests/resp3.py:271:    watcher.command("WATCH", "resp3:watched")
+tests/core_concurrency_unit.cc:174:        Op& op = prepare(client, {Slice("WATCH"), slice(key)}, f.server);
+tests/core_concurrency_unit.cc:175:        // Logical WATCH pre-registers each possible physical alias so a later
+tests/core_concurrency_unit.cc:183:                    state && multi_dispatch_count(state) == expected.size(), "WATCH owner fragments prepared");
+tests/core_concurrency_unit.cc:187:        require(actual == expected, "every physical WATCH alias has its owner");
+tests/core_concurrency_unit.cc:194:                multi_make_task(&client, 0, target, state)), "WATCH alias executed");
+tests/core_concurrency_unit.cc:204:            require(false, "WATCH alias barriers failed to drain");
+tests/core_concurrency_unit.cc:209:                "WATCH replied successfully");
+tests/core_concurrency_unit.cc:210:        require(deferred.empty() && f.server.shard(sid).has_watches(), "WATCH registration exists");
+tests/edgetime.py:12:The server must be booted with ``--enable-debug-command yes``.  Lazy-expiry and WATCH cases run
+tests/edgetime.py:381:# MULTI / EXEC and WATCH.
+tests/edgetime.py:414:        assert conn.cmd("DISCARD" if queued else "UNWATCH") == b"OK"
+tests/edgetime.py:440:        # A key that was ALIVE when WATCH armed and whose deadline has since passed must abort
+tests/edgetime.py:445:            conn, other, "watch:elapsed", 70, [("WATCH", "watch:elapsed")], [b"OK"])
+tests/edgetime.py:446:        check("WATCH elapsed setup", replies[0], b"OK")
+tests/edgetime.py:448:        check("WATCH key is still physically present", conn.cmd("DBSIZE"), 1)
+tests/edgetime.py:449:        check("WATCH did not reap on arm", info_counter(conn, "expired_keys") - before, 0)
+tests/edgetime.py:452:        check("WATCH expiry aborts EXEC", conn.cmd("EXEC"), None)
+tests/edgetime.py:453:        check("WATCH abort did not rely on a lazy reap",
+tests/edgetime.py:458:        # A key that was ALREADY past its deadline when WATCH armed is redis's `wk->expired`: its
+tests/edgetime.py:460:        # above from passing for the trivial reason "every WATCH on a TTL key aborts".
+tests/edgetime.py:465:        conn.cmd("WATCH", "watch:prexp")
+tests/edgetime.py:469:        check("WATCH on already-elapsed key does NOT abort", conn.cmd("EXEC"), [None])
+tests/edgetime.py:472:        conn.cmd("WATCH", "watch:future")
+tests/edgetime.py:475:        check("unelapsed WATCH negative control", conn.cmd("EXEC"), [b"v"])
+tests/edgetime.py:478:        conn.cmd("WATCH", "watch:nottl")
+tests/edgetime.py:481:        check("TTL-free WATCH negative control", conn.cmd("EXEC"), [b"v"])
+tests/edgetime.py:484:        conn.cmd("WATCH", "watch:missing")
+tests/edgetime.py:488:        check("unchanged missing WATCH control", conn.cmd("EXEC"), [None])
+tests/edgetime.py:491:        conn.cmd("WATCH", "watch:changed")
+tests/edgetime.py:504:            conn, other, keys[2], 80, [("WATCH", *keys)], [b"OK"])
+tests/edgetime.py:508:        check("cross-shard WATCH aborts on one elapsed key", conn.cmd("EXEC"), None)
+tests/edgetime.py:512:        conn.cmd("WATCH", *keys)
+tests/edgetime.py:516:        check("cross-shard WATCH TTL-free control", conn.cmd("EXEC"), [b"v"])
+tests/watchlive.py:2:"""WATCH liveness: EXEC must always answer while the server is answering PING.
+tests/watchlive.py:9:With WATCH armed and several connections pipelining a wide multi-key write plus a transaction
+tests/watchlive.py:27:- THE DETECTOR CAN REPORT NON-ZERO.  It did: see NOTES-WATCHLIVE.md for the pre-fix rates
+tests/watchlive.py:29:- THE DETECTOR CAN REPORT ZERO.  The --no-watch control runs the identical shape with the WATCH
+tests/watchlive.py:31:  and the WATCH arm's number means nothing.
+tests/watchlive.py:118:# The shape.  One connection: WATCH over the shared key band, a wide MSET and a wide DEL over the
+tests/watchlive.py:133:    Each round is: [WATCH band-slice] wide MSET, wide DEL, MULTI(SET xN, wide DEL), EXEC.
+tests/watchlive.py:134:    Odd rounds put the WATCH *after* the connection's own wide writes.  That matters: a client's
+tests/watchlive.py:135:    own write dirties its own WATCH (redis semantics, matched here), so a WATCH placed first makes
+tests/watchlive.py:150:        watch_frame = frame("WATCH", *keys[:half]) if watch else None
+tests/watchlive.py:301:# SEMANTICS.  The liveness fix chose a serialization instead of waiting for one, so the WATCH
+tests/watchlive.py:325:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:339:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:349:    a.cmd("WATCH", *keys[:4])
+tests/watchlive.py:361:    a.cmd("WATCH", *keys[:8])
+tests/watchlive.py:381:                    help="run the zero control: identical shape, WATCH frames removed")
+tests/watchlive.py:386:                    help="run only the deterministic WATCH-contract checks and exit non-zero on "
+tests/watchlive.py:399:    label = "WATCH" if watch else "NO-WATCH(control)"
+tests/exbatch_checks.py:58:            rows.append(invoke(control(source, 'watch-no-update'), 'watch', 'WATCH add arms gate'))
+tests/exbatch_checks.py:60:                ('watch-no-add', 'WATCH add arms gate'),
+tests/exbatch_checks.py:61:                ('watch-no-remove', 'last UNWATCH clears gate'),
+tests/exbatch_checks.py:64:                ('watch-no-append', 'allocation failure preserves WATCH cache truth'),
+tests/exbatch_checks.py:68:                               'unarmed WATCH gate must not read either cold map'))
+tests/session_monotonic.py:34:- ROUTING. One reader WATCHes the probe to exercise the owner read-cut/delay path; the remaining
+tests/session_monotonic.py:35:  readers keep ordinary GET/MGET admission, including local reads when enabled. WATCH changes
+tests/session_monotonic.py:36:  routing, not the value or ordering oracle. Armed local boots must witness WATCH fallback.
+tests/session_monotonic.py:150:    if owner_route and c.command("WATCH", PROBE) != b"OK":
+tests/session_monotonic.py:325:                failures.append("%s: owner-routed reader never reached WATCH fallback" % tag)
+tests/gates_test.py:278:row_watch(){ printf 'WATCH\t%s\t%s\n' "$ROW_TIMEOUT" "$ROW_BASIS"; }
+tests/gates_test.py:295:                        self.assertIn(f'WATCH\t{expected}\t', result.stdout)
+tests/gates_test.py:297:                            self.assertIn('WATCH\t1200\tabba-selftest-cx-compat2-851.44s-plus-40pct-rounded',
+tests/at15_unit.cc:263:        require(f.multi({"WATCH", "at15:key"}) == "-ERR WATCH inside MULTI is not allowed\r\n", "WATCH exact error");
+tests/at15_unit.cc:312:    for (const char* name : {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
+tests/xscript.py:428:        quiet_ok = watcher.cmd("WATCH", argument) == b"OK"
+tests/xscript.py:437:        fired_ok = watcher.cmd("WATCH", declared) == b"OK"
+tests/xscript.py:446:        note("WATCH ignores script ARGV on the same owner", quiet_ok,
+tests/xscript.py:448:        note("WATCH detector fires for the script's declared key", fired_ok,
+tests/txnfix_audit/t18_watch_cas.py:1:# T18: the canonical WATCH/MULTI/EXEC optimistic-increment loop. C clients each perform N
+tests/txnfix_audit/t18_watch_cas.py:2:# successful CAS increments: WATCH k; v = GET k; MULTI; SET k v+1; INCR k2(other executor); EXEC
+tests/txnfix_audit/t18_watch_cas.py:25:            x.cmd("WATCH", k)
+tests/txnfix_audit/t18_watch_cas.py:44:assert (vk, vk2, dup, sum(seen.values())) == (C*N, C*N, 0, C*N), "WATCH CAS accounting"
+tests/txniso.py:89:            assert holder.must("WATCH", watch) == b"OK"
+tests/txniso.py:142:                        assert holder.read() is None, "changed WATCH must yield null"
+tests/txniso.py:168:                        assert result is None, ("changed WATCH must yield null", result)
+tests/txniso.py:239:        c.must("WATCH", a)
+tests/txniso.py:281:                print("re-arm crossed WATCH on fresh keys", arm + 1, flush=True)
+tests/txniso.py:300:                    assert time.monotonic() < end, "crossed WATCH deadline"
+tests/txniso.py:301:                    c.must("WATCH", watch)
+tests/txniso.py:327:                print("crossed WATCH progress", progress, "counters", {
+tests/txniso.py:336:                raise WindowMiss("crossed WATCH reservation conflict never occurred")
+tests/txniso.py:347:            assert younger.must("WATCH", watch) == b"OK"
+tests/txnfix_audit/t19_crossed_watch.py:2:"""Crossed WATCH reservations: a bounded PRE deadlock probe (design 3.12).
+tests/txnfix_audit/t19_crossed_watch.py:5:DEBUG SLEEP parks both transactions after their WATCH phase, before either write.
+tests/txnfix_audit/t19_crossed_watch.py:22:    assert one.cmd("WATCH", a) == two.cmd("WATCH", b) == "OK"
+tests/txnfix_audit/t19_crossed_watch.py:33:    print("crossed WATCH", replies, flush=True)
+tests/txnfix_audit/t19_crossed_watch.py:37:    assert "TIMEOUT" not in replies, "crossed WATCH did not decide within 20 s"
+tests/txnorder.py:274:        # WATCH and plain multi-key writers share the EXEC churn keys. Keeping
+tests/txnorder.py:315:                c.must("WATCH", watched_key)
+tests/replyschema.py:494:    connection.command("WATCH", prefix + ":watched")
+tests/replyschema.py:714:add("unwatch", "UNWATCH")
+tests/replyschema.py:717:add("watch", "WATCH", "{p}:k")
+tests/exbatch.py:52:        assert a.must('WATCH', key) == b'OK'
+tests/exbatch.py:58:        for cleanup in ('UNWATCH', 'DISCARD'):
+tests/exbatch.py:59:            assert a.must('WATCH', key) == b'OK'
+tests/exbatch.py:66:        assert a.must('WATCH', key) == b'OK'
+tests/exbatch.py:73:        print(f'PASS exbatch {shape.mode}: non-last shard gauges, WATCH/UNWATCH/EXEC/DISCARD/SWAPDB')
+tests/respresume.py:98:        [('WATCH', 'k'), ('UNWATCH',)], [('LMOVE', 'a', 'b', 'LEFT', 'RIGHT')],
+tests/xacct.py:132:# Negative control: without invalidation, WATCH must not abort and the write must execute.
+tests/xacct.py:134:admin.cmd("WATCH", "xacct:watch-control")
+tests/xacct.py:138:note("WATCH abort detector negative control reports no abort",
+tests/xacct.py:147:        admin.cmd("WATCH", "xacct:watched")
+tests/xacct.py:163:note("dirty WATCH fired before writes in every measured EXEC",
+tests/execiso.py:317:    # On an armed local boot, WATCH fallback proves owner routing in either atomic mode.
+tests/execiso.py:329:        # This reference specifically tests the scatter read-cut path. WATCH routes a bare
+tests/execiso.py:334:        if reader.cmd("WATCH", KEYS[0]) != b"OK":
+tests/owner_prefetch_unit.cc:1:// Real owner batches and WATCH reservations, without a listener, ring, or worker loop.
+tests/owner_prefetch_unit.cc:174:        require(sh.watch_add(key, &watcher, watcher.watch_generation()), "WATCH registration");
+tests/owner_prefetch_unit.cc:176:                    &watcher, &epoch, &aborted, &refs, false), "reserve live WATCH claim");
+tests/owner_prefetch_unit.cc:196:        require(sh.watch_write_ready(key), "decided WATCH releases writer");
+tests/owner_prefetch_unit.cc:198:        require(refs.load() == 0, "WATCH reference released");
+tests/multidb_unit.cc:179:    // precondition used by edgetime and expwide, including while WATCH is armed.
+tests/multidb_unit.cc:238:    if (write) require(multi_plain_write_ready(shard, r.op), "plain WATCH readiness");
+tests/multidb_unit.cc:250:        multi_plain_write_committed(shard, r.op);
+tests/multidb_unit.cc:522:    require(transaction(server, client, {"WATCH", "k"}) == "+OK\r\n", "WATCH logical DB");
+tests/multidb_unit.cc:527:            "other database cannot dirty WATCH");
+tests/multidb_unit.cc:528:    require(transaction(server, client, {"WATCH", "k"}) == "+OK\r\n", "WATCH before swaps");
+tests/multidb_unit.cc:533:    require(transaction(server, client, {"EXEC"}) == "*-1\r\n", "WATCH sees swap-back generation");
+tests/multidb_unit.cc:534:    require(transaction(server, client, {"WATCH", "never-created"}) == "+OK\r\n", "WATCH absent");
+tests/multidb_unit.cc:535:    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "absent WATCH swap");
+tests/multidb_unit.cc:536:    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "absent WATCH MULTI");
+tests/multidb_unit.cc:537:    require(transaction(server, client, {"GET", "never-created"}) == "+QUEUED\r\n", "absent WATCH GET");
+tests/multidb_unit.cc:539:            "absent in both namespaces preserves WATCH");
+tests/multidb_unit.cc:540:    require(transaction(server, client, {"WATCH", "never-created"}) == "+OK\r\n", "WATCH alias before swap");
+tests/multidb_unit.cc:541:    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "WATCH alias swap back");
+tests/multidb_unit.cc:542:    require(local(server, 1, {"SET", "never-created", "other"}) == "+OK\r\n", "inactive WATCH alias write");
+tests/multidb_unit.cc:543:    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "inactive WATCH alias MULTI");
+tests/multidb_unit.cc:544:    require(transaction(server, client, {"GET", "never-created"}) == "+QUEUED\r\n", "inactive WATCH alias GET");
+tests/multidb_unit.cc:547:    require(transaction(server, client, {"WATCH", "later-created"}) == "+OK\r\n", "WATCH future active alias");
+tests/multidb_unit.cc:548:    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "activate different WATCH alias");
+tests/multidb_unit.cc:549:    require(local(server, 0, {"SET", "later-created", "ours"}) == "+OK\r\n", "active WATCH alias write");
+tests/multidb_unit.cc:550:    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "active WATCH alias MULTI");
+tests/multidb_unit.cc:551:    require(transaction(server, client, {"GET", "later-created"}) == "+QUEUED\r\n", "active WATCH alias GET");
+tests/multidb_unit.cc:552:    require(transaction(server, client, {"EXEC"}) == "*-1\r\n", "WATCH follows logical DB after absent swap");
+tests/multidb_unit.cc:597:    require(transaction(server, watcher, {"WATCH", "watched-move"}) == "+OK\r\n", "WATCH destination");
+tests/multidb_unit.cc:601:    require(transaction(server, watcher, {"MULTI"}) == "+OK\r\n", "destination WATCH MULTI");
+tests/multidb_unit.cc:602:    require(transaction(server, watcher, {"GET", "watched-move"}) == "+QUEUED\r\n", "destination WATCH GET");
+tests/multidb_unit.cc:603:    require(transaction(server, watcher, {"EXEC"}) == "*-1\r\n", "MOVE dirties destination WATCH");
+tests/multidb_unit.cc:623:    require(transaction(server, swapping, {"WATCH", "tx-swap"}) == "+OK\r\n", "WATCH before aborted swap");
+tests/multidb_unit.cc:627:    require(transaction(server, swapping, {"EXEC"}) == "*-1\r\n", "WATCH abort hides map");
+tests/multidb_unit.cc:633:    require(transaction(server, transient_watcher, {"WATCH", "transient-swap"}) == "+OK\r\n", "WATCH transient destination");
+tests/multidb_unit.cc:642:    require(transaction(server, transient_watcher, {"EXEC"}) == "*-1\r\n", "WATCH remembers a key swapped in, deleted, and swapped back");
+tests/multidb_unit.cc:644:    // are empty when the final swap executes. The other absent WATCH stays clean.
+tests/multidb_unit.cc:647:    require(transaction(server, original_watcher, {"WATCH", "vanished-before-swap"}) == "+OK\r\n", "WATCH original logical DB");
+tests/multidb_unit.cc:648:    require(transaction(server, transient_watcher, {"WATCH", "vanished-before-swap"}) == "+OK\r\n", "WATCH untouched destination");
+tests/multidb_unit.cc:658:            (watching == &original_watcher ? "*-1\r\n" : "*1\r\n$-1\r\n"), "WATCH uses write-time logical identity");
+tests/multidb_unit.cc:663:    std::puts("PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH");

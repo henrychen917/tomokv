@@ -1,0 +1,276 @@
+{
+  "operation": "Strip debug only from disposable unit/helper binaries; all SHF_ALLOC sections verified unchanged",
+  "files": [
+    {
+      "path": "build/expire-notify-unit",
+      "before_bytes": 97388712,
+      "after_bytes": 5064872,
+      "allocated_sections_sha256": "cab5e264dc610f862e682f1f5c566558aecbfd392b723ea5ca20f93d30464978"
+    },
+    {
+      "path": "build/ktls-lifetime-unit",
+      "before_bytes": 100354880,
+      "after_bytes": 5154504,
+      "allocated_sections_sha256": "dcc2c380462e189c6b882f65d70132aea03e7f7a812a77b27f9a829c61299fbd"
+    },
+    {
+      "path": "build/moverfix-unit",
+      "before_bytes": 97773776,
+      "after_bytes": 5155824,
+      "allocated_sections_sha256": "00f23bc65d9d6353cb283d56ad2f20c3b2d081fb1c576b516daf86d63ca805a8"
+    },
+    {
+      "path": "build/moverfix-db0-unit",
+      "before_bytes": 192231192,
+      "after_bytes": 9831080,
+      "allocated_sections_sha256": "de158e2d658be4906569bd49f2053e2a123c88ffe94fdb7e2e498683d982ad07"
+    },
+    {
+      "path": "build/publishfix-unit",
+      "before_bytes": 97555192,
+      "after_bytes": 5106120,
+      "allocated_sections_sha256": "4d2b16634d96b1b067fe7e03fd9109d3b2809f70da64bd6cfbb84434b98db876"
+    },
+    {
+      "path": "build/at15-unit",
+      "before_bytes": 98948128,
+      "after_bytes": 5181104,
+      "allocated_sections_sha256": "a635e699a126669ada74fcfae2ba13c17d6b77bb14abe91b579d16dc4f096f48"
+    },
+    {
+      "path": "build/at15-db0-unit",
+      "before_bytes": 193379632,
+      "after_bytes": 9856424,
+      "allocated_sections_sha256": "708ce6eead12d952371ca032624a87d0faa18155f2eaa1db8fba932fbc43c2c9"
+    },
+    {
+      "path": "build/execabort-watch-unit",
+      "before_bytes": 98607704,
+      "after_bytes": 5142376,
+      "allocated_sections_sha256": "ef1fb2c444404ec2949b0e0339ce58bd33d675e9a6b20c57a31391652c10d982"
+    },
+    {
+      "path": "build/execabort-watch-db0-unit",
+      "before_bytes": 193079448,
+      "after_bytes": 9821520,
+      "allocated_sections_sha256": "64b40ff0c199ee64b3d55f3df6c2b298a46678e013008f9db80b2860bb4b6614"
+    },
+    {
+      "path": "build/core-concurrency-unit",
+      "before_bytes": 303798408,
+      "after_bytes": 151947048,
+      "allocated_sections_sha256": "b8171c7c6aaccb2e6365493d49dd568f8a80e9e44e5ee548334fd283aabbca1a"
+    },
+    {
+      "path": "build/atomic-survivors-unit",
+      "before_bytes": 99071640,
+      "after_bytes": 5315064,
+      "allocated_sections_sha256": "1c8269812242e980ce67b4d677a99273860ef32e5d248560a1a2f4f24f138100"
+    },
+    {
+      "path": "build/txnorder-wake-unit",
+      "before_bytes": 1388064,
+      "after_bytes": 22056,
+      "allocated_sections_sha256": "ddf0400a609e302e4fe36ac633637ed5ad63a225d9d634898dd4bf4ae25daedb"
+    },
+    {
+      "path": "build/txnorder-episodes",
+      "before_bytes": 94769736,
+      "after_bytes": 7717944,
+      "allocated_sections_sha256": "b9af4f2b4a632f86caf2f9b31d08e54cbade3b0fbc36201199f6bdd549c53fcf"
+    },
+    {
+      "path": "build/txnorder-episodes-debug",
+      "before_bytes": 94906920,
+      "after_bytes": 7760424,
+      "allocated_sections_sha256": "9202cc66297006e7ba7a7fd435e619c5d3fd4a2bc80fc8741eb134a2ccfb57cf"
+    },
+    {
+      "path": "build/txnorder-watch-unit",
+      "before_bytes": 94552928,
+      "after_bytes": 7646656,
+      "allocated_sections_sha256": "fedec6bf42de6d6d97eba8dc2abf188d9624f6e7e6b18553d2b99f43ac77b757"
+    },
+    {
+      "path": "build/txnorder-watch-db0-unit",
+      "before_bytes": 189037176,
+      "after_bytes": 12361784,
+      "allocated_sections_sha256": "80ab9b7c2e67db976690a99a5056ffd435c00a9b89aa4fbad5c8fe8564ea11cd"
+    },
+    {
+      "path": "build/netcmd-unit",
+      "before_bytes": 111816040,
+      "after_bytes": 6261800,
+      "allocated_sections_sha256": "1de465eafe136095e2dd4b3306aca3f48d28d655eaaf429d71019696161551d5"
+    },
+    {
+      "path": "build/encodingfix-unit",
+      "before_bytes": 98033048,
+      "after_bytes": 5111400,
+      "allocated_sections_sha256": "1426fcace9489b4680c2646de166312f72fa616c1818bd61ea805d73869c06f4"
+    },
+    {
+      "path": "build/netcap-unit",
+      "before_bytes": 100696672,
+      "after_bytes": 5184696,
+      "allocated_sections_sha256": "59daa99448690eb4ffba0908573f57c20ca5e5990ab5edc4383be862eb8eb0ec"
+    },
+    {
+      "path": "build/waits-unit",
+      "before_bytes": 238736,
+      "after_bytes": 24280,
+      "allocated_sections_sha256": "c1805e20fa530ca5e18b97c19830bd12fb51c2590f112d64eb213406fb51bdc7"
+    },
+    {
+      "path": "build/rehash-waits-unit",
+      "before_bytes": 98936184,
+      "after_bytes": 5144184,
+      "allocated_sections_sha256": "ebac6ec1cbf1eacbc620f17ad4788d5235b892beed4ae874cc92028768442205"
+    },
+    {
+      "path": "build/multidb-unit",
+      "before_bytes": 197712080,
+      "after_bytes": 10091512,
+      "allocated_sections_sha256": "4332ac81e6b3dcdbc3dd28386939547fb4661b4d3170e23263cbf83d593c34ad"
+    },
+    {
+      "path": "build/multidb-boundary-unit",
+      "before_bytes": 103769968,
+      "after_bytes": 5375448,
+      "allocated_sections_sha256": "e1c83bf5b9124c1e4d686b224f1bfe76b2618e6c32852d0049adb9864818df78"
+    },
+    {
+      "path": "build/storesize-unit",
+      "before_bytes": 194008368,
+      "after_bytes": 9962968,
+      "allocated_sections_sha256": "a34923213190f4179e410b7a54cdbcfe9aa798ec045147fcfa6780b7724d489c"
+    },
+    {
+      "path": "build/respresume-unit",
+      "before_bytes": 678088,
+      "after_bytes": 72120,
+      "allocated_sections_sha256": "c5eb917e448cf1076d269a46d03b0f48b84c9a8b1e10f6f58277f9730f124a32"
+    },
+    {
+      "path": "build/respresume-migration",
+      "before_bytes": 101633856,
+      "after_bytes": 5197328,
+      "allocated_sections_sha256": "6a06d5d0e3ce9099b462059eb8bc14e3370a7573e613f68d31019c518c7beb6c"
+    },
+    {
+      "path": "build/exbatch-unit",
+      "before_bytes": 97913096,
+      "after_bytes": 5104624,
+      "allocated_sections_sha256": "b75282efd9f19d372fe8666f69ea8d1ac40c4e02e961a2ec6f712c3e003ebfa1"
+    },
+    {
+      "path": "build/exbatch-db0-unit",
+      "before_bytes": 192379456,
+      "after_bytes": 9783160,
+      "allocated_sections_sha256": "0fa8932fbc64687a4e93c6ab540c06999241d4863c14dbb0335a07b119d838e2"
+    },
+    {
+      "path": "build/rltopo-unit",
+      "before_bytes": 284975016,
+      "after_bytes": 142113288,
+      "allocated_sections_sha256": "e53afe40f8d73222b0c5605b57de6cc244cf6a7c8305cfcb3de30a1f2001b263"
+    },
+    {
+      "path": "build/shutdown-unit",
+      "before_bytes": 101982336,
+      "after_bytes": 5233248,
+      "allocated_sections_sha256": "fe764e00ae03eca81e0e7be2b3a4b577aafdd5c20645dc0d33b73e9007432a12"
+    },
+    {
+      "path": "build/ktls-keyupdate",
+      "before_bytes": 219496,
+      "after_bytes": 31832,
+      "allocated_sections_sha256": "e574114c197cae6faa4323b526c364740a624cd318a36bea833a8c0f4bddd3fd"
+    },
+    {
+      "path": "build/ktls-keyupdate-unit",
+      "before_bytes": 966512,
+      "after_bytes": 92648,
+      "allocated_sections_sha256": "4584a7c51a12e613d4f4306d888bfae0abf8dc83f0259e6ef3bf80ea44f912cd"
+    },
+    {
+      "path": "build/splitlocal-unit",
+      "before_bytes": 22360,
+      "after_bytes": 15816,
+      "allocated_sections_sha256": "0ffd94fe3f95406d8b2d9118b7da4f211b050fe025bdef77eba27e1360644755"
+    },
+    {
+      "path": "build/reorder-engagement-unit",
+      "before_bytes": 103159032,
+      "after_bytes": 5311680,
+      "allocated_sections_sha256": "85986b94fc9ec2123d72aadbdc2f609fa82337069a71fec7e4d644cbe0b10d0d"
+    },
+    {
+      "path": "build/reorder-engagement-unit-db0",
+      "before_bytes": 197600840,
+      "after_bytes": 9984096,
+      "allocated_sections_sha256": "39fa6a657788e8c35ce8ac94b21bfedde459ecd4bc3be8d8710b76175afe4599"
+    },
+    {
+      "path": "build/racefix-climon",
+      "before_bytes": 209914736,
+      "after_bytes": 10545712,
+      "allocated_sections_sha256": "b48d7e155f3a36f6024e13047f3b5372a3e7c0364026169527a4d7fa16bf7512"
+    },
+    {
+      "path": "build/aoforder-scheduled",
+      "before_bytes": 209908744,
+      "after_bytes": 10544240,
+      "allocated_sections_sha256": "98df932e7a7844cfac917ba6717fcfb2843b5408f565d0ca204b5fd6d19661e1"
+    },
+    {
+      "path": "build/rlfix3-info-unit",
+      "before_bytes": 98632680,
+      "after_bytes": 5142616,
+      "allocated_sections_sha256": "8f832ce1d38a3f117a923624c4193ab99f32dca42ce07638625ee3ce51619ebe"
+    },
+    {
+      "path": "build/rlfix3-info-db0-unit",
+      "before_bytes": 193091704,
+      "after_bytes": 9817920,
+      "allocated_sections_sha256": "6654534ea73bdff7526c759d12fdf7b5c3f845fd3dc764e9104b3db716e43899"
+    },
+    {
+      "path": "build/mdbqsbr2-park/tomokv",
+      "before_bytes": 209894600,
+      "after_bytes": 10535928,
+      "allocated_sections_sha256": "97e76c00df0229faa6b35a21f85c803c4830f9502847eb73ff509828e2f07b5e"
+    },
+    {
+      "path": "build/mdbqsbr2-no-wake/tomokv",
+      "before_bytes": 209889864,
+      "after_bytes": 10531744,
+      "allocated_sections_sha256": "895fc3953fe32ddb55eb81b39161cff6657970720ade3d752f48e7d161e7669f"
+    },
+    {
+      "path": "build/rlfix3/info-pre-db0",
+      "before_bytes": 193100968,
+      "after_bytes": 9821608,
+      "allocated_sections_sha256": "2254af11a6e1b4371dd8a3a64474be3b76defb3c870991606cc041bb18b60311"
+    },
+    {
+      "path": "build/rlfix3/info-unit-pre-final",
+      "before_bytes": 98558688,
+      "after_bytes": 5141840,
+      "allocated_sections_sha256": "8998ce94ed2b603bb9c39f649e1780b1daad21abb48a9c119779c1690b4f5e00"
+    },
+    {
+      "path": "build/rlfix3/info-pre-multi",
+      "before_bytes": 98635448,
+      "after_bytes": 5146424,
+      "allocated_sections_sha256": "03d41d61b1b85bbcbbfd7d60d937092763ad6973abad653dbebb8bfc8a6e86d0"
+    },
+    {
+      "path": "build/rlfix3/info-unit-pre",
+      "before_bytes": 98488040,
+      "after_bytes": 5132912,
+      "allocated_sections_sha256": "9299dcaf40de51e20069fb4ec7f325bba7275a42a19b4927f5c783e6d7d2def2"
+    }
+  ],
+  "saved_bytes": 5088158320
+}

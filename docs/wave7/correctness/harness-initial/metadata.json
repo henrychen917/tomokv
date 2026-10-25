@@ -1,0 +1,49 @@
+{
+  "command": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "affinity": [
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95
+  ],
+  "port": 26897,
+  "start": 1792900160.5110068,
+  "end": 1792900292.4321172,
+  "exit": 1,
+  "environment": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "unset"
+  },
+  "log": "/home/user/Projects/cx-wave7/build/wave7/gates-test.log"
+}

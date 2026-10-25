@@ -1,0 +1,2377 @@
+{
+  "final-pad-a-replay-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.fiwS0M",
+    "complete": true,
+    "rows": 4,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 3
+    },
+    "failures": [
+      "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "structure": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "final-pad-a-replay-gate-receipts.tar.gz",
+    "archive_sha256": "9f07717b99a579c401a5a2a93a0fc5bab820a01663aa7c7ecdbb31343a354cc0"
+  },
+  "final-post-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.JhVC5j",
+    "complete": true,
+    "rows": 168,
+    "verdicts": {
+      "ok": 167,
+      "FAIL": 1
+    },
+    "failures": [
+      "compat3 CC4.14 history vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "structure": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "final-post-gate-receipts.tar.gz",
+    "archive_sha256": "f73bc739dfddf4ad202441e79c2cd565cb62fc64f39efacbd474225d85776f21"
+  },
+  "final-pre-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.bZOvdo",
+    "complete": true,
+    "rows": 149,
+    "verdicts": {
+      "ok": 135,
+      "FAIL": 14
+    },
+    "failures": [
+      "streamgroups battery (atomic 0)",
+      "fused+armed streamgroups battery (atomic 0)",
+      "streamgroups battery (atomic 1)",
+      "fused+armed streamgroups battery (atomic 1)",
+      "fused+armed servertail battery (atomic 1)",
+      "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4",
+      "compat3 CC4.12 pubsub vs Redis 7.4",
+      "compat3 CC4.13 pending vs Redis 7.4",
+      "compat3 CC4.14 history vs Redis 7.4",
+      "compat3 CC4.16 grammar vs Redis 7.4",
+      "compat3 CC4.5 glob vs Redis 7.4",
+      "compat3 CC4.17 flags vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 0,
+        "passed": 0,
+        "oracle_legs": 0,
+        "names": []
+      },
+      "registry": {
+        "legs": 0,
+        "passed": 0,
+        "oracle_legs": 0,
+        "names": []
+      },
+      "structure": {
+        "legs": 0,
+        "passed": 0,
+        "oracle_legs": 0,
+        "names": []
+      }
+    },
+    "differential": {},
+    "archive": "final-pre-gate-receipts.tar.gz",
+    "archive_sha256": "bc3379eeb92acfe49ca8ac616e0e3394f6e6d6f55d3d4a48b8ea5b1f79461743"
+  },
+  "pad-a-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.EbuMIj",
+    "complete": true,
+    "rows": 4,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 3
+    },
+    "failures": [
+      "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "structure": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "pad-a-gate-receipts.tar.gz",
+    "archive_sha256": "afef3dd45a4044f581b1f349a50b7863af05b634579e927e3cc4483fc9b466c7"
+  },
+  "post-differ-epoll-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.Cmpgho",
+    "complete": true,
+    "rows": 6,
+    "verdicts": {
+      "ok": 3,
+      "FAIL": 3
+    },
+    "failures": [
+      "Redis 7.4 differential part (split, atomic 0)",
+      "Redis 7.4 differential part (split, atomic 1)",
+      "Redis 7.4 differential part (armed fused, atomic 0)"
+    ],
+    "directed": {},
+    "differential": {
+      "differ-armed-0": {
+        "legs": 230,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "1",
+            "climon-a0-s23.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "0",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "1",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "22",
+            "0",
+            "0",
+            "climon-a0-s22.txt"
+          ]
+        ]
+      },
+      "differ-armed-1": {
+        "legs": 234,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23
+        ],
+        "failed": [],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "0",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "22",
+            "0",
+            "0",
+            "climon-a1-s22.txt"
+          ]
+        ]
+      },
+      "differ-equivalence": {
+        "legs": 0,
+        "seeds": [],
+        "failed": [],
+        "climon": []
+      },
+      "differ-split-0": {
+        "legs": 235,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "22",
+            "0",
+            "0",
+            "climon-a0-s22.txt"
+          ]
+        ]
+      },
+      "differ-split-1": {
+        "legs": 239,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "22",
+            "0",
+            "1",
+            "climon-a1-s22.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "0",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "22",
+            "0",
+            "1",
+            "climon-a1-s22.txt"
+          ]
+        ]
+      }
+    },
+    "archive": "post-differ-epoll-gate-receipts.tar.gz",
+    "archive_sha256": "f3f4b86ec4fb280c28437389405c15ea5cb16ab7c3ccaa0d571c5716dfe92551"
+  },
+  "post-differ-uring-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.goRwHF",
+    "complete": true,
+    "rows": 6,
+    "verdicts": {
+      "ok": 3,
+      "FAIL": 3
+    },
+    "failures": [
+      "Redis 7.4 differential part (split, atomic 1)",
+      "Redis 7.4 differential part (armed fused, atomic 0)",
+      "Redis 7.4 differential part (armed fused, atomic 1)"
+    ],
+    "directed": {},
+    "differential": {
+      "differ-armed-0": {
+        "legs": 230,
+        "seeds": [
+          7,
+          19,
+          20,
+          21,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "21",
+            "0",
+            "0",
+            "climon-a0-s21.txt"
+          ]
+        ]
+      },
+      "differ-armed-1": {
+        "legs": 234,
+        "seeds": [
+          7,
+          19,
+          20,
+          21,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "21",
+            "0",
+            "0",
+            "climon-a1-s21.txt"
+          ]
+        ]
+      },
+      "differ-equivalence": {
+        "legs": 0,
+        "seeds": [],
+        "failed": [],
+        "climon": []
+      },
+      "differ-split-0": {
+        "legs": 235,
+        "seeds": [
+          7,
+          19,
+          20,
+          21,
+          23
+        ],
+        "failed": [],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "0",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "21",
+            "0",
+            "0",
+            "climon-a0-s21.txt"
+          ]
+        ]
+      },
+      "differ-split-1": {
+        "legs": 239,
+        "seeds": [
+          7,
+          19,
+          20,
+          21,
+          23
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "21",
+            "0",
+            "0",
+            "climon-a1-s21.txt"
+          ]
+        ]
+      }
+    },
+    "archive": "post-differ-uring-gate-receipts.tar.gz",
+    "archive_sha256": "95d7cb5c2dda973f5102da52254602ab245bfd0c10d88de3ed22765e1369a72d"
+  },
+  "post-families-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.O7CEIB",
+    "complete": true,
+    "rows": 146,
+    "verdicts": {
+      "ok": 144,
+      "FAIL": 2
+    },
+    "failures": [
+      "streamgroups battery (atomic 0)",
+      "fused+armed streamgroups battery (atomic 0)"
+    ],
+    "directed": {},
+    "differential": {},
+    "archive": "post-families-gate-receipts.tar.gz",
+    "archive_sha256": "ba3b4db79889d0ee41a125f77918491ef2ccdc374192f7357aaa63ca287b5a4d"
+  },
+  "post-mkstream-final-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.9wczLo",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 2
+    },
+    "failures": [],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "post-mkstream-final-gate-receipts.tar.gz",
+    "archive_sha256": "df78e8ace8d94158ccd19b758ae4dfbbd6b2910a2edef3adb0e0feb55ae65391"
+  },
+  "post-registry-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.mR4tTj",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 2
+    },
+    "failures": [],
+    "directed": {
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "post-registry-gate-receipts.tar.gz",
+    "archive_sha256": "8f0d1edbcbf9938d396d1ce620b58833412400e32b146e11be6912dea7fbc5df"
+  },
+  "post-stream-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.Avz2Dd",
+    "complete": true,
+    "rows": 3,
+    "verdicts": {
+      "ok": 2,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 2,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "structure": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "post-stream-gate-receipts.tar.gz",
+    "archive_sha256": "393a34eb20edba4c1acdd8768e3b5d703af0fa3d127a6e940fbecf4ccb22cefe"
+  },
+  "pre-differ-epoll-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.W31Uz0",
+    "complete": true,
+    "rows": 6,
+    "verdicts": {
+      "ok": 2,
+      "FAIL": 4
+    },
+    "failures": [
+      "Redis 7.4 differential part (split, atomic 0)",
+      "Redis 7.4 differential part (split, atomic 1)",
+      "Redis 7.4 differential part (armed fused, atomic 0)",
+      "Redis 7.4 differential part (armed fused, atomic 1)"
+    ],
+    "directed": {},
+    "differential": {
+      "differ-armed-0": {
+        "legs": 230,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "25",
+            "0",
+            "1",
+            "climon-a0-s25.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "0",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "25",
+            "0",
+            "1",
+            "climon-a0-s25.txt"
+          ]
+        ]
+      },
+      "differ-armed-1": {
+        "legs": 234,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "25",
+            "0",
+            "1",
+            "climon-a1-s25.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "0",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "25",
+            "0",
+            "1",
+            "climon-a1-s25.txt"
+          ]
+        ]
+      },
+      "differ-equivalence": {
+        "legs": 0,
+        "seeds": [],
+        "failed": [],
+        "climon": []
+      },
+      "differ-split-0": {
+        "legs": 235,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "25",
+            "0",
+            "0",
+            "climon-a0-s25.txt"
+          ]
+        ]
+      },
+      "differ-split-1": {
+        "legs": 239,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "1",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "1",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "25",
+            "0",
+            "0",
+            "climon-a1-s25.txt"
+          ]
+        ]
+      }
+    },
+    "archive": "pre-differ-epoll-gate-receipts.tar.gz",
+    "archive_sha256": "1a508be6503c4d624b3689373c25ab78067802cef616eb0e3b9eb5ff14ef16d8"
+  },
+  "pre-differ-uring-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.n2ATz4",
+    "complete": true,
+    "rows": 6,
+    "verdicts": {
+      "ok": 2,
+      "FAIL": 4
+    },
+    "failures": [
+      "Redis 7.4 differential part (split, atomic 0)",
+      "Redis 7.4 differential part (split, atomic 1)",
+      "Redis 7.4 differential part (armed fused, atomic 0)",
+      "Redis 7.4 differential part (armed fused, atomic 1)"
+    ],
+    "directed": {},
+    "differential": {
+      "differ-armed-0": {
+        "legs": 230,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "1",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "24",
+            "0",
+            "0",
+            "climon-a0-s24.txt"
+          ]
+        ]
+      },
+      "differ-armed-1": {
+        "legs": 234,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "1",
+            "climon-a1-s7.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "1",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "0",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "24",
+            "0",
+            "0",
+            "climon-a1-s24.txt"
+          ]
+        ]
+      },
+      "differ-equivalence": {
+        "legs": 0,
+        "seeds": [],
+        "failed": [],
+        "climon": []
+      },
+      "differ-split-0": {
+        "legs": 235,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "failed": [
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "1",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "24",
+            "0",
+            "1",
+            "climon-a0-s24.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "0",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "1",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "1",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "1",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "24",
+            "0",
+            "1",
+            "climon-a0-s24.txt"
+          ]
+        ]
+      },
+      "differ-split-1": {
+        "legs": 239,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "failed": [
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ]
+        ],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "1",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "1",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "24",
+            "0",
+            "0",
+            "climon-a1-s24.txt"
+          ]
+        ]
+      }
+    },
+    "archive": "pre-differ-uring-gate-receipts.tar.gz",
+    "archive_sha256": "0536531dc51e8b980929f234ad6647114373060694dc0c2e0d83d4b0e547bb2e"
+  },
+  "pre-mkstream-final-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.uZpIex",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "pre-mkstream-final-gate-receipts.tar.gz",
+    "archive_sha256": "ea6d66050c682eec6ae7e249c90d197c559f01bbf5ceb94bf156d0b9cebf5a64"
+  },
+  "pre-mkstream-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.ve00Pk",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "pre-mkstream-gate-receipts.tar.gz",
+    "archive_sha256": "49584082b36578ebdf014b469aa5d1275b1c004d35c8f3ff09f14ca4e5b44faf"
+  },
+  "pre-registry-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.9Lx4G7",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+    ],
+    "directed": {
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "pre-registry-gate-receipts.tar.gz",
+    "archive_sha256": "843b0d98344c943c02bebaaf0acc790f07f084f24bbd123667e6324a16687506"
+  },
+  "pre-structure-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.qkZs0p",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+    ],
+    "directed": {
+      "structure": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "pre-structure-gate-receipts.tar.gz",
+    "archive_sha256": "4f9197e70b38d63b5a1264c5ca4bcfacaa41bec9263ebd23b5b5f43080196c5c"
+  },
+  "quiet-post-perfio-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.Ca6k7A",
+    "complete": true,
+    "rows": 3,
+    "verdicts": {
+      "ok": 3
+    },
+    "failures": [],
+    "directed": {},
+    "differential": {},
+    "archive": "quiet-post-perfio-gate-receipts.tar.gz",
+    "archive_sha256": "cd853265f713adc8afa5c4b8c13f448d6b76e678d2fb55df61fe52633e3b71d9"
+  },
+  "quiet-pre-perfio-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.02nCGN",
+    "complete": true,
+    "rows": 3,
+    "verdicts": {
+      "ok": 3
+    },
+    "failures": [],
+    "directed": {},
+    "differential": {},
+    "archive": "quiet-pre-perfio-gate-receipts.tar.gz",
+    "archive_sha256": "9d6d797edc06725c74d2485c3b927cd5584c197346632f6d4c2b0248cd624ffb"
+  },
+  "reserved-post-compat3-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.6Ye2f5",
+    "complete": true,
+    "rows": 7,
+    "verdicts": {
+      "ok": 7
+    },
+    "failures": [],
+    "directed": {},
+    "differential": {},
+    "archive": "reserved-post-compat3-gate-receipts.tar.gz",
+    "archive_sha256": "508d83f6e7e2cc432b41fdf3fff1e87810b21ca40ec8ff3d54d26870aefcb540"
+  },
+  "reserved-post-differ-epoll-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.FAcbhE",
+    "complete": true,
+    "rows": 4,
+    "verdicts": {
+      "ok": 4
+    },
+    "failures": [],
+    "directed": {},
+    "differential": {
+      "differ-equivalence": {
+        "legs": 0,
+        "seeds": [],
+        "failed": [],
+        "climon": []
+      },
+      "differ-split-0": {
+        "legs": 329,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23,
+          24,
+          26
+        ],
+        "failed": [],
+        "climon": [
+          [
+            "climon",
+            "0",
+            "7",
+            "0",
+            "0",
+            "climon-a0-s7.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "19",
+            "0",
+            "0",
+            "climon-a0-s19.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "20",
+            "0",
+            "0",
+            "climon-a0-s20.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "23",
+            "0",
+            "0",
+            "climon-a0-s23.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "22",
+            "0",
+            "0",
+            "climon-a0-s22.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "24",
+            "0",
+            "0",
+            "climon-a0-s24.txt"
+          ],
+          [
+            "climon",
+            "0",
+            "26",
+            "0",
+            "0",
+            "climon-a0-s26.txt"
+          ]
+        ]
+      },
+      "differ-split-1": {
+        "legs": 333,
+        "seeds": [
+          7,
+          19,
+          20,
+          22,
+          23,
+          24,
+          26
+        ],
+        "failed": [],
+        "climon": [
+          [
+            "climon",
+            "1",
+            "7",
+            "0",
+            "0",
+            "climon-a1-s7.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "19",
+            "0",
+            "0",
+            "climon-a1-s19.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "20",
+            "0",
+            "0",
+            "climon-a1-s20.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "23",
+            "0",
+            "0",
+            "climon-a1-s23.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "22",
+            "0",
+            "0",
+            "climon-a1-s22.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "24",
+            "0",
+            "0",
+            "climon-a1-s24.txt"
+          ],
+          [
+            "climon",
+            "1",
+            "26",
+            "0",
+            "0",
+            "climon-a1-s26.txt"
+          ]
+        ]
+      }
+    },
+    "archive": "reserved-post-differ-epoll-gate-receipts.tar.gz",
+    "archive_sha256": "c7a093080aaf6cc6a6c1e9a6aa44bdd4cb33ef47642210bf10e19e2683c62d57"
+  },
+  "reserved-pre-directed-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.3UzVTX",
+    "complete": true,
+    "rows": 10,
+    "verdicts": {
+      "ok": 7,
+      "FAIL": 3
+    },
+    "failures": [
+      "blockfix CC4.19 XINFO structural counts vs Redis 7.4",
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4",
+      "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+    ],
+    "directed": {
+      "mkstream": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "mkstream-db1-1s-epoll-a0-rl0.log",
+          "mkstream-db1-1s-epoll-a0-rl1.log",
+          "mkstream-db1-1s-epoll-a1-rl0.log",
+          "mkstream-db1-1s-epoll-a1-rl1.log",
+          "mkstream-db1-1s-uring-a0-rl0.log",
+          "mkstream-db1-1s-uring-a0-rl1.log",
+          "mkstream-db1-1s-uring-a1-rl0.log",
+          "mkstream-db1-1s-uring-a1-rl1.log",
+          "mkstream-db1-2s-epoll-a0-rl0.log",
+          "mkstream-db1-2s-epoll-a1-rl0.log",
+          "mkstream-db1-2s-uring-a0-rl0.log",
+          "mkstream-db1-2s-uring-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl0.log",
+          "mkstream-db16-1s-epoll-a0-rl1.log",
+          "mkstream-db16-1s-epoll-a1-rl0.log",
+          "mkstream-db16-1s-epoll-a1-rl1.log",
+          "mkstream-db16-1s-uring-a0-rl0.log",
+          "mkstream-db16-1s-uring-a0-rl1.log",
+          "mkstream-db16-1s-uring-a1-rl0.log",
+          "mkstream-db16-1s-uring-a1-rl1.log",
+          "mkstream-db16-2s-epoll-a0-rl0.log",
+          "mkstream-db16-2s-epoll-a1-rl0.log",
+          "mkstream-db16-2s-uring-a0-rl0.log",
+          "mkstream-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      },
+      "structure": {
+        "legs": 24,
+        "passed": 0,
+        "oracle_legs": 24,
+        "names": [
+          "structure-db1-1s-epoll-a0-rl0.log",
+          "structure-db1-1s-epoll-a0-rl1.log",
+          "structure-db1-1s-epoll-a1-rl0.log",
+          "structure-db1-1s-epoll-a1-rl1.log",
+          "structure-db1-1s-uring-a0-rl0.log",
+          "structure-db1-1s-uring-a0-rl1.log",
+          "structure-db1-1s-uring-a1-rl0.log",
+          "structure-db1-1s-uring-a1-rl1.log",
+          "structure-db1-2s-epoll-a0-rl0.log",
+          "structure-db1-2s-epoll-a1-rl0.log",
+          "structure-db1-2s-uring-a0-rl0.log",
+          "structure-db1-2s-uring-a1-rl0.log",
+          "structure-db16-1s-epoll-a0-rl0.log",
+          "structure-db16-1s-epoll-a0-rl1.log",
+          "structure-db16-1s-epoll-a1-rl0.log",
+          "structure-db16-1s-epoll-a1-rl1.log",
+          "structure-db16-1s-uring-a0-rl0.log",
+          "structure-db16-1s-uring-a0-rl1.log",
+          "structure-db16-1s-uring-a1-rl0.log",
+          "structure-db16-1s-uring-a1-rl1.log",
+          "structure-db16-2s-epoll-a0-rl0.log",
+          "structure-db16-2s-epoll-a1-rl0.log",
+          "structure-db16-2s-uring-a0-rl0.log",
+          "structure-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "reserved-pre-directed-gate-receipts.tar.gz",
+    "archive_sha256": "f6d659cd4c78e45f2c3632c7df48cca09dc79ead212bb6930c718edea3b7e396"
+  },
+  "wired-post-registry-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.fjLVUL",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 2
+    },
+    "failures": [],
+    "directed": {
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "wired-post-registry-gate-receipts.tar.gz",
+    "archive_sha256": "ddf4090cff1a850e6e11e0cb1cadba0260d347453649a385e11b1a0b4a848cd9"
+  },
+  "wired-pre-registry-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.e3nQC5",
+    "complete": true,
+    "rows": 2,
+    "verdicts": {
+      "ok": 1,
+      "FAIL": 1
+    },
+    "failures": [
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+    ],
+    "directed": {
+      "registry": {
+        "legs": 20,
+        "passed": 20,
+        "oracle_legs": 20,
+        "names": [
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "wired-pre-registry-gate-receipts.tar.gz",
+    "archive_sha256": "55f455d4404d8bc7bbfd3f64850541a5ebfedcb56c9caa7979f672b935954a77"
+  },
+  "wired-pre-replay-gate.log": {
+    "run": "/home/user/Projects/cx-blockfix/build/gate-run.3QFTN9",
+    "complete": true,
+    "rows": 37,
+    "verdicts": {
+      "ok": 35,
+      "FAIL": 2
+    },
+    "failures": [
+      "fused+armed streamgroups battery (atomic 1)",
+      "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+    ],
+    "directed": {
+      "registry": {
+        "legs": 24,
+        "passed": 24,
+        "oracle_legs": 24,
+        "names": [
+          "registry-db1-1s-epoll-a0-rl0.log",
+          "registry-db1-1s-epoll-a0-rl1.log",
+          "registry-db1-1s-epoll-a1-rl0.log",
+          "registry-db1-1s-epoll-a1-rl1.log",
+          "registry-db1-1s-uring-a0-rl0.log",
+          "registry-db1-1s-uring-a0-rl1.log",
+          "registry-db1-1s-uring-a1-rl0.log",
+          "registry-db1-1s-uring-a1-rl1.log",
+          "registry-db1-2s-epoll-a0-rl0.log",
+          "registry-db1-2s-epoll-a1-rl0.log",
+          "registry-db1-2s-uring-a0-rl0.log",
+          "registry-db1-2s-uring-a1-rl0.log",
+          "registry-db16-1s-epoll-a0-rl0.log",
+          "registry-db16-1s-epoll-a0-rl1.log",
+          "registry-db16-1s-epoll-a1-rl0.log",
+          "registry-db16-1s-epoll-a1-rl1.log",
+          "registry-db16-1s-uring-a0-rl0.log",
+          "registry-db16-1s-uring-a0-rl1.log",
+          "registry-db16-1s-uring-a1-rl0.log",
+          "registry-db16-1s-uring-a1-rl1.log",
+          "registry-db16-2s-epoll-a0-rl0.log",
+          "registry-db16-2s-epoll-a1-rl0.log",
+          "registry-db16-2s-uring-a0-rl0.log",
+          "registry-db16-2s-uring-a1-rl0.log"
+        ]
+      }
+    },
+    "differential": {},
+    "archive": "wired-pre-replay-gate-receipts.tar.gz",
+    "archive_sha256": "75bfff4b2d38e60c8f7f7c28c3b0249431cea01f240aa0a2b3f9ef80468eff4c"
+  }
+}

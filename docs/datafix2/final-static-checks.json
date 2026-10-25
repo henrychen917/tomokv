@@ -1,0 +1,43 @@
+{
+  "report_links": 23,
+  "missing_links": [],
+  "listener_ports": [],
+  "live_build_executables": [],
+  "gate_sha256": "c4c71c2d3fee8d7b41e2495c83148c302e2c9251bf3cf1005a688879d3b12ea1",
+  "constants_unchanged": {
+    "QUICK": 739,
+    "FULL": 756
+  },
+  "fixture_unchanged": true,
+  "fixture_sha256": "b5f7dfed1c7276d32e4123d1883736ed44e14f8bf8195ad07875e75d3776a422",
+  "collect_lines": [
+    {
+      "line": 4898,
+      "job": "datafix2_notouch"
+    },
+    {
+      "line": 4899,
+      "job": "datafix2_encoding"
+    },
+    {
+      "line": 4900,
+      "job": "datafix2_subkeys"
+    },
+    {
+      "line": 4901,
+      "job": "datafix2_watch"
+    },
+    {
+      "line": 4902,
+      "job": "datafix2_idle"
+    }
+  ],
+  "quick_branch_line": 5025,
+  "quick_exit_line": 5029,
+  "DQ": 5,
+  "DF": 5,
+  "maintainer_expected": {
+    "QUICK": 744,
+    "FULL": 761
+  }
+}

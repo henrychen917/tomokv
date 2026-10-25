@@ -202,7 +202,9 @@ void txnorder_checks(Server& server, const std::string& name) {
         require(!multi_plain_write_ready(shard, request.op), "F4 SORT STORE checks destination claim");
         aborted.store(true);
         require(multi_plain_write_ready(shard, request.op), "F4 claim and writer mark released");
-        multi_plain_write_committed(shard, request.op);
+        require(local(server, {"RPUSH", src, "1"}) == ":1\r\n", "F4 real SORT source");
+        require(local(server, {"SORT", src, "STORE", dst}, 91, true) == ":1\r\n",
+                "F4 SORT STORE actually installs the destination");
         require(client.watch_dirty(), "F4 SORT STORE dirties destination WATCH");
         shard.watch_remove(slice(dst), &client, client.watch_generation());
     } else if (name == "txnorder_f5") {

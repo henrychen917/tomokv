@@ -1,0 +1,38 @@
+[
+  {
+    "job": "txnorder-fused-0",
+    "mode": "1s",
+    "atomic": 0,
+    "script_refusals": {
+      "BUSY": 0,
+      "TRYAGAIN": 8830
+    }
+  },
+  {
+    "job": "txnorder-split-0",
+    "mode": "2s",
+    "atomic": 0,
+    "script_refusals": {
+      "BUSY": 0,
+      "TRYAGAIN": 2455
+    }
+  },
+  {
+    "job": "txnorder-split-1",
+    "mode": "2s",
+    "atomic": 1,
+    "script_refusals": {
+      "BUSY": 0,
+      "TRYAGAIN": 12040
+    }
+  },
+  {
+    "job": "txnorder-fused-1",
+    "mode": "1s",
+    "atomic": 1,
+    "script_refusals": {
+      "BUSY": 0,
+      "TRYAGAIN": 3217
+    }
+  }
+]

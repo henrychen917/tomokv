@@ -1,0 +1,236 @@
+tests/knobs.py:144:        actual = conn.must("OBJECT", "ENCODING", key)
+tests/encodingfix.py:33:        add("OBJECT", "ENCODING", key)
+tests/encodingfix.py:97:    add("OBJECT", "ENCODING", "efx:lower")
+tests/encodingfix.py:167:                        encoding=endpoint.cmd("OBJECT", "ENCODING", keys[0]).decode()))
+tests/evict_battery.py:7:#   lfu       hot-set survival under pressure PLUS the mechanism: OBJECT FREQ rises for ordinary
+tests/evict_battery.py:199:    freqs = sorted(x for x in (as_int(cmd("OBJECT", "FREQ", k)) for k in survivors) if x is not None)
+tests/evict_battery.py:209:    check("allkeys-lfu: hot counters stay clear of the cold band (median OBJECT FREQ >= 8)",
+tests/evict_battery.py:219:    check("allkeys-lfu: fresh key starts at OBJECT FREQ 5", as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5,
+tests/evict_battery.py:220:          cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:227:    check("allkeys-lfu: 20 NO-TOUCH reads leave OBJECT FREQ at 5",
+tests/evict_battery.py:228:          as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5, cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:233:    freq = as_int(cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:234:    check("allkeys-lfu: 20 ordinary reads raise OBJECT FREQ above 5", freq is not None and freq > 5, freq)
+tests/evict_battery.py:259:        aged = as_int(cmd("OBJECT", "IDLETIME", "lruold:2999"))
+tests/evict_battery.py:269:        return as_int(cmd("OBJECT", "IDLETIME", key))
+tests/evict_battery.py:275:    check("lruclock: one ordinary read resets OBJECT IDLETIME to 0", idle == 0, idle)
+tests/evict_battery.py:282:    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:no-touch"))
+tests/evict_battery.py:301:        old_ages = [as_int(cmd("OBJECT", "IDLETIME", key)) for key in HOT]
+tests/evict_battery.py:309:        hot_ages = [as_int(cmd("OBJECT", "IDLETIME", key)) for key in HOT]
+tests/evict_battery.py:318:    cold_ages = [as_int(cmd("OBJECT", "IDLETIME", "lruold:%d" % i))
+tests/differ.py:464:        ["SET", "adv", "42"], ["APPEND", "adv", ""], ["OBJECTENCODINGSKIP"],
+tests/differ.py:481:    return [o for o in ops if o[0] != "OBJECTENCODINGSKIP"]
+tests/differ.py:837:            ["OBJECT", "ENCODING", "geo:expanded"],
+tests/differ.py:839:            ["OBJECT", "ENCODING", "geo:expanded"],
+tests/differ.py:841:            ["OBJECT", "ENCODING", "geo:expanded"]]
+tests/differ.py:963:                initial = integer(sock, file, ["OBJECT", "FREQ", fresh])
+tests/differ.py:971:                    before = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:981:            encoding = issue(sock, file, ["OBJECT", "ENCODING", key])
+tests/differ.py:985:            after = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:988:            check(issue(sock, file, ["OBJECT", "ENCODING", key]) == encoding,
+tests/differ.py:992:                before = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:995:                after = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:999:                check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",
+tests/differ.py:1383:    entries per call and the states drift apart), OBJECT ENCODING (comparable only with the
+tests/differ.py:2113:      * OBJECT ENCODING on STRINGS and LISTS. The embstr/raw line is 192 here and 44 in redis, an
+tests/differ.py:2116:        src/store/typeval.h). OBJECT ENCODING on hash/set/zset IS generated: those align exactly.
+tests/differ.py:2181:        elif c == 15: ops.append(["OBJECT", "ENCODING", H()])
+tests/differ.py:2187:        elif c == 21: ops.append(["OBJECT", "ENCODING", T()])
+tests/differ.py:2198:        elif c == 29: ops.append(["OBJECT", "ENCODING", Z()])
+tests/differ.py:2239:                    ops.append(["OBJECT", "ENCODING", k])
+tests/differ.py:2249:            ops += [["OBJECT", "ENCODING", k], ["DEL", k]]
+tests/differ.py:2262:        ops += [["HSET", k, "f0", "H" * 150], ["HGETALL", k], ["OBJECT", "ENCODING", k],
+tests/differ.py:2267:                ["OBJECT", "ENCODING", k], ["DEL", k]]
+tests/differ.py:2270:        ops += [["SADD", k, "S" * 200], ["SMEMBERS", k], ["OBJECT", "ENCODING", k], ["DEL", k]]
+tests/differ.py:2303:                ["OBJECT", "ENCODING", "edge:iset"], ["SISMEMBER", "edge:iset", text]]
+tests/differ.py:2344:      - OBJECT ENCODING on strings of 45..192 bytes. Our embstr/raw boundary is kEmbedThreshold
+tests/differ.py:2394:    # OBJECT ENCODING across type mutations, restricted to shapes both servers agree on.
+tests/differ.py:2399:        ops.append(["OBJECT", "ENCODING", name])
+tests/differ.py:2406:    ops.append(["OBJECT", "ENCODING", "st:enc:absent"])
+tests/differ.py:2418:        ops.append(["OBJECT", "ENCODING", key])
+tests/differ.py:2423:        ops.append(["OBJECT", "ENCODING", key])
+tests/differ.py:2429:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:2431:    ops.append(["OBJECT", "ENCODING", "st:enc:intset"])
+tests/differ.py:2434:    ops.append(["OBJECT", "ENCODING", "st:enc:stream"])
+tests/differ.py:2490:        ["OBJECT", "ENCODING", "arity:key", "x"],
+tests/differ.py:2492:        ["OBJECT", "IDLETIME", "arity:key", "x"],
+tests/differ.py:2493:        ["OBJECT", "FREQ", "arity:key", "x"], ["OBJECT", "HELP", "x"],
+tests/differ.py:3438:      * wall-clock replies (auto stream IDs, TTL seconds, TIME, OBJECT IDLETIME);
+tests/differ.py:3525:        ["XINFO", "GROUPS", "ep:x", "extra"], ["OBJECT", "ENCODING"],
+tests/differ.py:5620:        ["OBJECT", "ENCODING", "k"], ["MEMORY", "USAGE", "k"],
+tests/encodingfix_unit.cc:47:    const auto actual = fixture.run({"OBJECT", "ENCODING", key});
+tests/edgetime.py:318:        ("object", lambda: conn.cmd("OBJECT", "ENCODING", "lazy:object"), None, 1),
+tests/edgetime.py:319:        ("idletime", lambda: conn.cmd("OBJECT", "IDLETIME", "lazy:idletime"), None, 1),
+tests/edgetime.py:645:    missing = {"OBJECT ENCODING": 0, "MEMORY USAGE": 0, "GET": 0}
+tests/edgetime.py:646:    stale = {"OBJECT ENCODING": 0, "MEMORY USAGE": 0, "GET": 0}
+tests/edgetime.py:651:            ("OBJECT", "ENCODING", probe_key),
+tests/edgetime.py:656:            missing["OBJECT ENCODING"] += 1
+tests/edgetime.py:664:            ("OBJECT", "ENCODING", probe_key),
+tests/edgetime.py:669:            stale["OBJECT ENCODING"] += 1
+tests/edgetime.py:675:    for name in ("OBJECT ENCODING", "GET"):
+tests/edgetime.py:686:    check_true("OBJECT ENCODING present control",
+tests/edgetime.py:687:               conn.cmd("OBJECT", "ENCODING", probe_key) is not None, "live key reported nil")
+tests/differ_test.py:140:                    'OBJECT IDLETIME', 'GET', 'HGETALL', 'DBSIZE', 'EXISTS', 'EXPIRE',
+tests/scancompact.py:20:            assert c.must('OBJECT', 'ENCODING', key) == b'listpack'
+tests/scancompact.py:29:                assert c.must('OBJECT', 'ENCODING', key) == b'hashtable'
+tests/scancompact.py:54:            assert c.must('OBJECT', 'ENCODING', key) == encoding
+tests/resp3.py:186:    encoding = client.command("OBJECT", "ENCODING", "resp3:z")
+tests/resp3.py:192:    encoding = client.command("OBJECT", "ENCODING", "resp3:zbig")
+tests/cmdmeta.py:197:    flagged(connection, ["OBJECT", "ENCODING", "k"], [("k", ["RO"])])
+tests/snap_typed_roundtrip.py:61: ("OBJECT","ENCODING","h:c"),("OBJECT","ENCODING","h:x"),
+tests/snap_typed_roundtrip.py:63: ("OBJECT","ENCODING","l:c"),("OBJECT","ENCODING","l:x"),
+tests/snap_typed_roundtrip.py:65: ("OBJECT","ENCODING","st:int"),("OBJECT","ENCODING","st:tab"),
+tests/snap_typed_roundtrip.py:68: ("OBJECT","ENCODING","z:c"),("OBJECT","ENCODING","z:x"),
+tests/snap_typed_roundtrip.py:70: ("OBJECT","ENCODING","x:c"),
+tests/snap_typed_roundtrip.py:72: ("OBJECT","ENCODING","x:x"),
+tests/datafix2_idle.py:9:LFU_ERROR = ("ERR An LFU maxmemory policy is selected, idle time not tracked. Please note that "
+tests/datafix2_idle.py:19:        equal(c.cmd("OBJECT", "IDLETIME", key), 0, "new key idle")
+tests/datafix2_idle.py:22:            age = c.cmd("OBJECT", "IDLETIME", key)
+tests/datafix2_idle.py:37:        equal(c.cmd("OBJECT", "FREQ", "missing"), None, "FREQ missing before policy check")
+tests/datafix2_idle.py:39:            reply = c.cmd("OBJECT", "IDLETIME", "idle:k")
+tests/datafix2_idle.py:42:            equal(c.cmd("OBJECT", "IDLETIME", "missing"), None, "LFU missing key")
+tests/datafix2_idle.py:45:        equal(c.cmd("OBJECT", "IDLETIME", "missing"), None, "missing key")
+tests/datafix2_idle.py:50:                        ("OBJECT", "ENCODING", "idle:k"), ("OBJECT", "REFCOUNT", "idle:k"),
+tests/datafix2_idle.py:53:            age = c.cmd("OBJECT", "IDLETIME", "idle:k")
+tests/datafix2_idle.py:57:        assert c.cmd("OBJECT", "IDLETIME", "idle:k") >= 1, policy
+tests/datafix2_idle.py:59:        assert c.cmd("OBJECT", "IDLETIME", "idle:k") >= 1, (policy, "no-touch SET")
+tests/datafix2_idle.py:62:        equal(c.cmd("OBJECT", "IDLETIME", "idle:k"), 0, "GET resets idle")
+tests/datafix2_idle.py:65:        equal(c.cmd("OBJECT", "IDLETIME", "idle:k"), 0, "MGET resets idle")
+tests/aof.py:382:    ("TYPE", "s:int"), ("GET", "s:int"), ("OBJECT", "ENCODING", "s:int"),
+tests/aof.py:384:    ("OBJECT", "ENCODING", "s:embed192"), ("OBJECT", "ENCODING", "s:extern193"),
+tests/aof.py:386:    ("OBJECT", "ENCODING", "s:i64min"), ("OBJECT", "ENCODING", "s:i64max"),
+tests/aof.py:395:    ("OBJECT", "ENCODING", "h:compact"), ("OBJECT", "ENCODING", "h:expanded"),
+tests/aof.py:397:    ("OBJECT", "ENCODING", "l:compact"), ("OBJECT", "ENCODING", "l:expanded"),
+tests/aof.py:400:    ("OBJECT", "ENCODING", "set:int"), ("OBJECT", "ENCODING", "set:expanded"),
+tests/aof.py:404:    ("OBJECT", "ENCODING", "z:compact"), ("OBJECT", "ENCODING", "z:expanded"),
+tests/aof.py:406:    ("OBJECT", "ENCODING", "x:compact"),
+tests/aof.py:408:    ("XLEN", "x:expanded"), ("OBJECT", "ENCODING", "x:expanded"),
+tests/storeorder.py:193:            stream.append((["OBJECT", "ENCODING", read[1]], "forensic", kind, None))
+tests/datafix2_subkeys.py:2:"""CD4.14: expired_subkeys counts actual deadline removals and RESETSTAT resets it."""
+tests/datafix2_subkeys.py:11:        assert "expired_subkeys" in stats, "INFO stats lacks expired_subkeys"
+tests/datafix2_subkeys.py:12:        return int(stats["expired_subkeys"])
+tests/zsetops.py:93:    got = c.command("OBJECT", "ENCODING", key)
+tests/zsetops.py:133:    expect(c.command("OBJECT", "ENCODING", "nz:promote"), b"skiplist",
+tests/zsetops.py:156:    expect(c.command("OBJECT", "ENCODING", "nz:fresh"), b"listpack",
+tests/zsetops.py:257:        expect(c.command("OBJECT", "ENCODING", "nz:dst"), b"listpack",
+tests/zsetops.py:484:        expect(c.command("OBJECT", "ENCODING", "zrs:sorted"), b"listpack",
+tests/zsetops.py:487:        expect(c.command("OBJECT", "ENCODING", "zrs:sorted"), b"skiplist",
+tests/zsetops.py:508:    expect(c.command("OBJECT", "ENCODING", "zrs:twice"), b"skiplist",
+tests/edgeenc.py:18:OBJECT ENCODING actually changed at the threshold AND that it had not changed one entry earlier
+tests/edgeenc.py:182:          c.cmd("OBJECT", "ENCODING", k), small)
+tests/edgeenc.py:186:          c.cmd("OBJECT", "ENCODING", k), big)
+tests/edgeenc.py:218:          c.cmd("OBJECT", "ENCODING", k), big)
+tests/edgeenc.py:247:              c.cmd("OBJECT", "ENCODING", k), expect)
+tests/edgeenc.py:259:check("list under the aggregate byte budget is listpack", c.cmd("OBJECT", "ENCODING", k),
+tests/edgeenc.py:263:    if c.cmd("OBJECT", "ENCODING", k) == b"quicklist":
+tests/edgeenc.py:268:check("list promoted once the aggregate budget was passed", c.cmd("OBJECT", "ENCODING", k),
+tests/edgeenc.py:287:          c.cmd("OBJECT", "ENCODING", k), expect)
+tests/edgeenc.py:299:    check("grown value starts embstr at %d" % start, c.cmd("OBJECT", "ENCODING", k), b"embstr")
+tests/edgeenc.py:302:          c.cmd("OBJECT", "ENCODING", k), expect)
+tests/edgeenc.py:311:          c.cmd("OBJECT", "ENCODING", k), expect)
+tests/edgeenc.py:513:    check("OBJECT ENCODING of %r" % text, c.cmd("OBJECT", "ENCODING", k), expect)
+tests/edgeenc.py:536:check("APPEND materialises an int", c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
+tests/edgeenc.py:541:      c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
+tests/edgeenc.py:544:check("APPEND past the embed line gives raw", c.cmd("OBJECT", "ENCODING", "int:app"), b"raw")
+tests/edgeenc.py:549:check("SETRANGE materialises an int", c.cmd("OBJECT", "ENCODING", "int:sr"), b"raw")
+tests/edgeenc.py:553:check("empty SETRANGE into an int keeps int", c.cmd("OBJECT", "ENCODING", "int:sr"), b"int")
+tests/edgeenc.py:561:check("all-integer set is intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:563:check("set stays intset over the 32-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:565:check("set stays intset over the 64-bit step", c.cmd("OBJECT", "ENCODING", "int:set"), b"intset")
+tests/edgeenc.py:569:check("a non-integer member leaves intset", c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/edgeenc.py:575:      c.cmd("OBJECT", "ENCODING", "int:set"), b"listpack")
+tests/edgeenc.py:632:    enc_before = c.cmd("OBJECT", "ENCODING", k)
+tests/edgeenc.py:641:          c.cmd("OBJECT", "ENCODING", k), enc_before)
+tests/edgeenc.py:662:        expected[(kind, k)] = (snapshot(kind, k), c.cmd("OBJECT", "ENCODING", k))
+tests/edgeenc.py:666:        check("RELOAD round-trips the encoding of %s" % k, c.cmd("OBJECT", "ENCODING", k),
+tests/read_local_lfu.py:65:                assert ctl.must('OBJECT', 'FREQ', key) == 5
+tests/read_local_lfu.py:85:            counts = [ctl.must('OBJECT', 'FREQ', k) for k in keys]
+tests/hexpire.py:11:because a reply looked plausible: each one reads INFO's expired_hash_fields / hash_field_expires
+tests/hexpire.py:381:        before = info_counter(c, "expired_hash_fields")
+tests/hexpire.py:393:        registered = info_counter(c, "hash_field_expires")
+tests/hexpire.py:405:    check("no ttls => nothing registered", info_counter(c, "hash_field_expires"), 0)
+tests/hexpire.py:406:    before_plain = info_counter(c, "expired_hash_fields")
+tests/hexpire.py:409:    check("TTL-free traffic expires nothing", info_counter(c, "expired_hash_fields"),
+tests/hexpire.py:416:               "hash_field_expires is 0 with a live field deadline")
+tests/hexpire.py:433:    after = info_counter(c, "expired_hash_fields")
+tests/hexpire.py:442:    check("lazy key removal FIRED", info_counter(c, "expired_hash_fields") - before, 1)
+tests/hexpire.py:452:    before = info_counter(c, "expired_hash_fields")
+tests/hexpire.py:463:    check_true("active reap FIRED", info_counter(c, "expired_hash_fields") > before,
+tests/hexpire.py:464:               "expired_hash_fields did not move (was %d)" % before)
+tests/hexpire.py:470:    settled = info_counter(c, "expired_hash_fields")
+tests/hexpire.py:472:    check("future deadline survives the cycle", info_counter(c, "expired_hash_fields"), settled)
+tests/hexpire.py:485:    check("small hash starts listpack (redis encoding name)", c.cmd("OBJECT", "ENCODING", "small"), b"listpack")
+tests/hexpire.py:502:    check("big hash promoted", c.cmd("OBJECT", "ENCODING", "big"), b"hashtable")
+tests/hexpire.py:585:    check_true("reloaded hash is re-registered", info_counter(c, "hash_field_expires") >= 1,
+tests/hexpire.py:586:               "a reloaded field deadline left hash_field_expires at 0")
+tests/hexpire.py:632:    check_true("restart: re-registered", info_counter(c, "hash_field_expires") >= 1,
+tests/hexpire.py:633:               "hash_field_expires is 0 after a restart that restored field deadlines")
+tests/replyschema.py:1137:add("object|encoding", "OBJECT", "ENCODING", "{p}:missing", arm=0)
+tests/replyschema.py:1138:add("object|encoding", "OBJECT", "ENCODING", "{p}:k", setup=STRING, arm=1)
+tests/replyschema.py:1139:add("object|freq", "OBJECT", "FREQ", "{p}:k",
+tests/replyschema.py:1142:add("object|idletime", "OBJECT", "IDLETIME", "{p}:k",
+tests/hexpread.py:221:            assert during['expired_hash_fields'] == before['expired_hash_fields'], \
+tests/hexpread.py:234:            assert after_later['expired_hash_fields'] - before_later['expired_hash_fields'] == 1
+tests/hexpread.py:236:            assert during['expired_hash_fields'] == before['expired_hash_fields'] and not early
+tests/objectpread.py:2:"""OBJECT IDLETIME must resolve, and must not expire, a foreign atomic candidate."""
+tests/objectpread.py:54:                    idle = c.cmd('OBJECT', 'IDLETIME', a)
+tests/datafix2_notouch.py:13:                ("OBJECT", "ENCODING", "k"), ("OBJECT", "REFCOUNT", "k"),
+tests/datafix2_notouch.py:14:                ("OBJECT", "FREQ", "k"), ("SCAN", 0, "TYPE", "string")]
+tests/datafix2_notouch.py:19:        before = c.cmd("OBJECT", "FREQ", "k")
+tests/datafix2_notouch.py:23:        after = c.cmd("OBJECT", "FREQ", "k")
+tests/datafix2_notouch.py:30:        after_exec = c.cmd("OBJECT", "FREQ", "k")
+tests/datafix2_notouch.py:37:        equal(c.cmd("OBJECT", "FREQ", "k"), 6, name + " must touch (first LFU increment certain)")
+tests/dumpttl.py:125:    expect("unarmed hash-field expiry control", info_counter(target, "hash_field_expires"), 0)
+tests/dumpttl.py:133:    expect("TTL-free negative registration control", info_counter(target, "hash_field_expires"), 0)
+tests/dumpttl.py:138:    before_restore = info_counter(target, "hash_field_expires")
+tests/dumpttl.py:146:           info_counter(target, "hash_field_expires"), before_restore + 1)
+tests/dumpttl.py:191:            info_counter(target, "hash_field_expires") > 0,
+tests/dumpttl.py:192:            "hash_field_expires stayed zero after reload")
+tests/servertail.py:284:        check("OBJECT ENCODING %s" % key, c.cmd("OBJECT", "ENCODING", key), want)
+tests/servertail.py:289:    check("OBJECT ENCODING promoted set", c.cmd("OBJECT", "ENCODING", "ob:bigset"), "hashtable")
+tests/servertail.py:292:    check("OBJECT ENCODING promoted zset", c.cmd("OBJECT", "ENCODING", "ob:bigzset"), "skiplist")
+tests/servertail.py:295:    check("OBJECT IDLETIME", c.cmd("OBJECT", "IDLETIME", "ob:raw"), lambda v: isinstance(v, int))
+tests/servertail.py:296:    check("OBJECT FREQ without lfu", c.cmd("OBJECT", "FREQ", "ob:raw"),
+tests/servertail.py:298:    check("OBJECT missing key", c.cmd("OBJECT", "ENCODING", "ob:nosuch"), None)
+tests/servertail.py:303:    check("OBJECT bad arity", c.cmd("OBJECT", "ENCODING"),
+tests/servertail.py:310:    check("OBJECT FREQ with lfu", c.cmd("OBJECT", "FREQ", "ob:raw"), lambda v: isinstance(v, int))
+tests/servertail.py:311:    check("OBJECT IDLETIME with lfu", c.cmd("OBJECT", "IDLETIME", "ob:raw"),
+tests/servertail.py:491:    check("reboot applies list count mode", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "listpack")
+tests/servertail.py:493:    check("reboot applies list promotion", c.cmd("OBJECT", "ENCODING", "st:rewrite:list"), "quicklist")
+tests/aclkeys_unit.cc:203:    keys(user, {"OBJECT", "ENCODING", "block:a"}, {2});
+tests/mdbstamp_checks.cc:220:    {"object-key", {"OBJECT", "ENCODING", "key"}, {2}},
+tests/arity.py:79:    ("OBJECT ENCODING above", ["OBJECT", "ENCODING", "k", "x"], wrong("object|encoding")),
+tests/arity.py:81:    ("OBJECT IDLETIME above", ["OBJECT", "IDLETIME", "k", "x"], wrong("object|idletime")),
+tests/arity.py:82:    ("OBJECT FREQ above", ["OBJECT", "FREQ", "k", "x"], wrong("object|freq")),
+tests/arity.py:121:    ("OBJECT ENCODING below", ["OBJECT", "ENCODING"], wrong("object|encoding")),
+tests/arity.py:123:    ("OBJECT IDLETIME below", ["OBJECT", "IDLETIME"], wrong("object|idletime")),
+tests/arity.py:124:    ("OBJECT FREQ below", ["OBJECT", "FREQ"], wrong("object|freq")),
+tests/arity.py:138:    ("OBJECT", ["OBJECT", "ENCODING", "__arity_missing__"]),
+tests/datafix2_encoding.py:19:            encoding = c.cmd("OBJECT", "ENCODING", "k")
+tests/datafix2_encoding.py:22:            after_expire = c.cmd("OBJECT", "ENCODING", "k")
+tests/datafix2_encoding.py:24:            after_persist = c.cmd("OBJECT", "ENCODING", "k")
+tests/datafix2_encoding.py:27:    c.cmd("MULTI");c.cmd("APPEND", "k", "");c.cmd("OBJECT", "ENCODING", "k")
+tests/cdfix_unit.cc:176:        require(f.run({"OBJECT", "ENCODING", "geo"}) == bulk("skiplist"), "expanded witness");
+tests/cdfix_unit.cc:178:        require(f.run({"OBJECT", "ENCODING", "geo"}) == bulk("skiplist"), "CD13 GEOADD demoted encoding");
+tests/cdfix_unit.cc:181:        require(f.run({"OBJECT", "ENCODING", "geo"}) == bulk("listpack"), "STORE must allow compaction");
+tests/gate.sh:3278:  row_begin "datafix2 CD4.14 expired_subkeys vs Redis 7.4"
+tests/gate.sh:3279:  datafix2_case subkeys subkeys && ok "datafix2 CD4.14 expired_subkeys vs Redis 7.4" \
+tests/gate.sh:3280:      || bad "datafix2 CD4.14 expired_subkeys vs Redis 7.4" "see $TMPDIR/subkeys-*.log"
+tests/gate.sh:3290:  row_begin "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4"
+tests/gate.sh:3291:  datafix2_case idle idle && ok "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4" \
+tests/gate.sh:3292:      || bad "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4" "see $TMPDIR/idle-*.log"
+tests/gate.sh:4915:# FLUSHALL). lfu proves OBJECT FREQ rises for ordinary reads and stays put for CLIENT NO-TOUCH
+tests/cd13b_wire.py:107:                        initial = integer(call, ["OBJECT", "FREQ", destination])
+tests/cd13b_wire.py:113:                        assert call(["OBJECT", "ENCODING", destination]) == b"$8\r\nskiplist\r\n"
+tests/cd13b_wire.py:118:                        before = integer(call, ["OBJECT", "FREQ", destination])
+tests/cd13b_wire.py:138:                        after_raw = call(["OBJECT", "FREQ", destination])
+tests/cd13b_wire.py:141:                        encoding = call(["OBJECT", "ENCODING", destination])
+tests/stream.py:365:# OBJECT ENCODING reports the redis name for both forms. What the current design promises —
+tests/stream.py:373:     admin.cmd("OBJECT", "ENCODING", "stream:migrate") == b"stream")
+tests/redisgap.py:176:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:178:                    assert c.command('OBJECT', 'ENCODING', key) == 'hashtable'
+tests/redisgap.py:181:                    assert c.command('OBJECT', 'ENCODING', key) == 'listpack'
+tests/redisgap.py:183:                    assert c.command('OBJECT', 'ENCODING', key) == 'skiplist'
+tests/redisgap.py:191:                    assert c.command('OBJECT', 'ENCODING', key) == encoding
+tests/redisgap.py:210:                assert c.command('OBJECT', 'ENCODING', key) == ('hashtable' if family == 'hash' else 'skiplist')
+tests/exbatch_unit.cc:285:    for (auto args : {std::vector<std::string>{"OBJECT", "ENCODING", "k"},

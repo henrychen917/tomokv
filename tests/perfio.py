@@ -16,7 +16,7 @@ import statistics
 import subprocess
 import time
 
-from _lib import Conn, encode, info, wait_ready
+from _lib import Conn, RespError, encode, info, wait_ready
 
 FIXTURE = Path(__file__).parent / "fixtures/perfio-stream.json"
 
@@ -157,12 +157,13 @@ def epoll_flip(args):
 
 
 def epoll_lb(args):
-    # Natural skew: select several sockets registered with the same actual epoll owner.
-    # Unlike a single elephant, moving one of these clients strictly improves the spread.
+    # Policy admission and a three-source-pass destination ACK are allowed to
+    # refuse a move. They are not an arming mechanism for a transport regression.
+    # DEBUG CLIENT-LB requests the normal source transfer from a destination whose
+    # own IO has already reserved capacity; readiness/lifetime fences still apply.
     with boot(args, "epoll-lb", ["--client-lb", "1"]) as (admin, p), ExitStack() as stack:
         peers = [stack.enter_context(closing(Conn("127.0.0.1", args.port))) for _ in range(96)]
         traffic(peers, 1)
-        assert admin.must("SET", "perfio-lb", "v") == b"OK"
         registered = audit(p.pid, "lb-initial", len(peers)+1)
         events(admin, peers, "lb-initial")
         ports = {}
@@ -175,26 +176,44 @@ def epoll_lb(args):
             inode = ports[c.sock.getsockname()[1]]
             assert len(registered[inode]) == 1
             owners[registered[inode][0]].append(c)
-        hot = max(owners.values(), key=len)
-        assert len(hot) >= 4, "failed to arm multiple clients on one IO owner"
+        source_ep, source_peers = max(owners.items(), key=lambda item: len(item[1]))
+        assert len(source_peers) >= 2 and len(owners) >= 2, "missing source/waker/destination owners"
+        selected, waker = source_peers[:2]
+        destination_ep, destination_peers = next((ep, group) for ep, group in owners.items()
+                                                 if ep != source_ep)
+        destination = destination_peers[0]
+        client_id = selected.must("CLIENT", "ID")
+        source_io = selected.must("DEBUG", "IO-THREAD")
+        destination_io = destination.must("DEBUG", "IO-THREAD")
+        assert source_io != destination_io, "same IO cannot arm a transfer"
+        inode = ports[selected.sock.getsockname()[1]]
         before = int(info(admin, "LB")["tomokv_clientlb_moves"])
-        request = encode("GET", "perfio-lb") * 32
-        deadline, rounds = time.monotonic() + 35, 0
+        deadline = time.monotonic() + 35
+        attempts = 0
+        while True:
+            attempts += 1
+            reply = destination.cmd("DEBUG", "CLIENT-LB", client_id)
+            if reply == b"OK":
+                break
+            assert isinstance(reply, RespError) and str(reply) == "ERR DEBUG CLIENT-LB client has no owner observation", reply
+            assert time.monotonic() < deadline, "client-LB owner observation never armed within 35 seconds"
+            time.sleep(.01)
+        # Wake the source through a DIFFERENT client, leaving the selected client
+        # idle until the normal LB counter witnesses its committed transfer.
+        assert waker.must("PING") == b"PONG"
         after = before
-        while time.monotonic() < deadline and after == before:
-            for c in hot:
-                c.raw(request)
-            for c in hot:
-                for _ in range(32):
-                    assert c.read() == b"v"
-            rounds += 1
-            if rounds % 32 == 0:
-                after = int(info(admin, "LB")["tomokv_clientlb_moves"])
-            time.sleep(.001)
-        emit(event="lb-witness", hot_clients=len(hot), rounds=rounds, before=before, after=after)
-        assert after > before, "client-lb move never armed within 35 seconds"
-        time.sleep(.05)  # let the already witnessed transfer finish before the fd snapshot
-        audit(p.pid, "lb-moved", len(peers)+1)
+        while after == before and time.monotonic() < deadline:
+            after = int(info(admin, "LB")["tomokv_clientlb_moves"])
+            if after == before:
+                time.sleep(.001)
+        emit(event="lb-witness", trigger="DEBUG CLIENT-LB", attempts=attempts,
+             client_id=client_id, source_io=source_io, destination_io=destination_io,
+             before=before, after=after)
+        assert after == before + 1, "directed client-LB move never completed within 35 seconds"
+        traffic(peers, 2)  # replies prove destination installation, without a guessed sleep
+        moved = audit(p.pid, "lb-moved", len(peers)+1)
+        assert moved[inode] == [destination_ep], ("selected socket did not move", inode, moved[inode])
+        assert selected.must("DEBUG", "IO-THREAD") == destination_io
         events(admin, peers, "lb-moved")
 
 

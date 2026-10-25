@@ -1,0 +1,92 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792903026.936345,
+  "commit": "2db5dd9c029d20674a2613f84ef16f464c226826",
+  "binary_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "config_unit persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-final/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792903097.65412,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.eFq0Z0",
+  "jobs": {
+    "config_unit": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t0.390000\tconfiguration docs match parser",
+        "ok\t5.390000\tRedis config quoting + mid-value #"
+      ]
+    },
+    "persistfix2_commands": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t56.670000\tpersistfix2 persistence command replies and scheduling"
+      ]
+    },
+    "persistfix2_errors": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t5.480000\tpersistfix2 AOF write-error refusal and read availability"
+      ]
+    },
+    "persistfix2_lastsave": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t7.820000\tpersistfix2 LASTSAVE and rewrite INFO"
+      ]
+    },
+    "persistfix2_shutdown": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t68.560000\tpersistfix2 shutdown modifiers and signal policy"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}

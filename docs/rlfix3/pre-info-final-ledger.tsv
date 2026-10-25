@@ -1,0 +1,8 @@
+FAIL	38.410000	INFO selective collection (1s, epoll, read-local 0)
+FAIL	38.710000	INFO selective collection (1s, epoll, read-local 1)
+FAIL	38.610000	INFO selective collection (1s, uring, read-local 0)
+FAIL	38.170000	INFO selective collection (1s, uring, read-local 1)
+FAIL	40.100000	INFO selective collection (2s, epoll, read-local 0)
+FAIL	38.190000	INFO selective collection (2s, epoll, read-local 1)
+FAIL	38.290000	INFO selective collection (2s, uring, read-local 0)
+FAIL	38.190000	INFO selective collection (2s, uring, read-local 1)

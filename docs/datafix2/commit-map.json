@@ -1,0 +1,27 @@
+[
+  {
+    "item": "CD4.7",
+    "commit": "a80b14c36248f0367983b09c06e258757d4c4a47",
+    "title": "Match Redis no-touch key inspection lookups (CD4.7)"
+  },
+  {
+    "item": "CD4.15",
+    "commit": "ad6f45465f3e715c54d8d2ed353721fe7ed728c2",
+    "title": "Preserve Redis raw string mutation encodings (CD4.15)"
+  },
+  {
+    "item": "CD4.14",
+    "commit": "65e48a4835b063b20bdc6d320a3fce0d2540f6b5",
+    "title": "Expose Redis expired_subkeys accounting (CD4.14)"
+  },
+  {
+    "item": "CD4.9",
+    "commit": "97fabf456ca59f9fc4cf919a6cdadea1891cbf40",
+    "title": "Dirty WATCH from actual owner-local command effects (CD4.9)"
+  },
+  {
+    "item": "SO4.2",
+    "commit": "488f5c2b18143c31bda46427d9ae9f35099ad324",
+    "title": "Track full OBJECT idle clocks under every enabled policy (SO4.2)"
+  }
+]

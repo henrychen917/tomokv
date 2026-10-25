@@ -1,0 +1,13 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-datafix2/build/gate-run.oRd7HN
+PARTIAL jobs (including prerequisites): release datafix2_notouch
+GATE PREFLIGHT: /home/user/Projects/redis74 is not a built vanilla Redis 7.4 checkout (missing: src/server.h src/acl.c src/commands.def).
+  Expected: symlink /tmp/claude-1000/redis74 -> <redis 7.4 source tree with src/ built>,
+  or export REDIS74_ROOT=/path/to/redis-7.4.
+  The 'generated Redis 7.4 ACL categories' row FAILS with this reason; every other row runs.
+PARTIAL jobs (including prerequisites): release datafix2_notouch
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; datafix2 CD4.7 no-touch lookups vs Redis 7.4
+  datafix2 CD4.7 no-touch lookups vs Redis 7.4         FAIL (see /home/user/Projects/cx-datafix2/build/gate-run.oRd7HN/jobs/datafix2_notouch/notouch-*.log)
+GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix2/docs/datafix2/pre-notouch.partial

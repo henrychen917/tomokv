@@ -1,0 +1,59 @@
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/bgsave-grammar/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "event": "boot", "pid": 3495379}
+{"command": ["BGSAVE", "bogus"], "event": "reply", "reply": "Background saving started"}
+{"command": ["BGSAVE", "SCHEDULE", "bogus"], "event": "reply", "reply": {"error": "ERR wrong number of arguments for 'bgsave' command"}}
+{"command": ["BGSAVE", "SCHEDULE", "SCHEDULE"], "event": "reply", "reply": {"error": "ERR wrong number of arguments for 'bgsave' command"}}
+{"command": ["BGSAVE", "ScHeDuLe"], "event": "reply", "reply": "Background saving started"}
+{"code": 0, "event": "exit"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/aof-disabled/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "event": "boot", "pid": 3495587}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": {"error": "ERR Background append only file rewriting not scheduled"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "disabled AOF rewrite"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/aof-directory-error/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "event": "boot", "pid": 3495765}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": {"error": "ERR Background append only file rewriting not scheduled"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "AOF directory error"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/save-error/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "event": "boot", "pid": 3495967}
+{"command": ["SAVE"], "event": "reply", "reply": {"error": "ERR could not finalize snapshot file"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "SAVE error reply"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-1-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 3496170}
+{"command": ["BGSAVE"], "event": "reply", "reply": "Background saving started"}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": "Background append only file rewriting started"}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "rewrite during BGSAVE enabled"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/scheduled-0-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "no", "--appendfsync", "no"], "event": "boot", "pid": 3496433}
+{"command": ["BGSAVE"], "event": "reply", "reply": "Background saving started"}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": {"error": "ERR Background append only file rewriting not scheduled"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "rewrite during BGSAVE disabled"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-0/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 3496689}
+{"command": ["DEBUG", "AOF-REWRITE-PAUSE", "before-manifest"], "event": "reply", "reply": "OK"}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": "Background append only file rewriting started"}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": {"error": "ERR Background append only file rewriting already in progress"}}
+{"command": ["BGSAVE"], "event": "reply", "reply": {"error": "ERR Background save already in progress"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "BGSAVE during rewrite"}
+{"argv": ["taskset", "-c", "64-71", "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre", "--bind", "127.0.0.1", "--port", "36800", "--dir", "/home/user/Projects/cx-persistfix2/build/gate-run.Xk5Qll/jobs/persistfix2_commands/commands-target-2s-uring/save-during-rewrite-1/data", "--dbfilename", "dump.rdb", "--save", "", "--appendonly", "no", "--protected-mode", "no", "--enable-debug-command", "yes", "--auto-aof-rewrite-percentage", "0", "--databases", "1", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2", "--appendonly", "yes", "--appendfsync", "no"], "event": "boot", "pid": 3496924}
+{"command": ["DEBUG", "AOF-REWRITE-PAUSE", "before-manifest"], "event": "reply", "reply": "OK"}
+{"command": ["BGREWRITEAOF"], "event": "reply", "reply": "Background append only file rewriting started"}
+{"command": ["SAVE"], "event": "reply", "reply": {"error": "ERR Background save already in progress"}}
+{"code": 0, "event": "exit"}
+{"error": "", "event": "assertion", "name": "SAVE during rewrite"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 475, in <module>
+    main()
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 470, in main
+    globals()[args.case](args)
+  File "/home/user/Projects/cx-persistfix2/tests/persistfix2.py", line 454, in commands
+    assert not failures, '\n'.join(failures)
+           ^^^^^^^^^^^^
+AssertionError: BGSAVE ('bogus',): b'Background saving started'
+BGSAVE ('SCHEDULE', 'bogus'): RespError(b"ERR wrong number of arguments for 'bgsave' command")
+BGSAVE ('SCHEDULE', 'SCHEDULE'): RespError(b"ERR wrong number of arguments for 'bgsave' command")
+disabled AOF rewrite: 
+AOF directory error: 
+SAVE error reply: 
+rewrite during BGSAVE enabled: 
+rewrite during BGSAVE disabled: 
+BGSAVE during rewrite: 
+SAVE during rewrite: 

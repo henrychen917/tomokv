@@ -106,11 +106,34 @@ struct BlockingEntry {
     uint32_t key_index = 0;
 };
 
-struct BlockingQueue {
+struct BlockingQueueKey {
     std::string key;
     uint8_t ns = 0;
     uint64_t hash = 0;
+};
+
+struct BlockingQueueProbe { uint64_t hash; Slice key; };
+struct BlockingQueueHash {
+    using is_transparent = void;
+    size_t operator()(const BlockingQueueKey& key) const { return key.hash; }
+    size_t operator()(const BlockingQueueProbe& key) const { return key.hash; }
+};
+struct BlockingQueueEqual {
+    using is_transparent = void;
+    bool operator()(const BlockingQueueKey& a, const BlockingQueueKey& b) const {
+        return a.hash == b.hash && a.ns == b.ns && a.key == b.key;
+    }
+    bool operator()(const BlockingQueueProbe& a, const BlockingQueueKey& b) const {
+        return a.hash == b.hash && a.key.ns == b.ns && a.key.n == b.key.size() &&
+               (!a.key.n || std::memcmp(a.key.p, b.key.data(), a.key.n) == 0);
+    }
+};
+
+struct BlockingQueue {
     std::deque<BlockingEntry> waiters;
+    // Membership is separate from service order: duplicate aliases/retried
+    // registration must neither scan the FIFO nor move an existing waiter.
+    std::unordered_set<BlockingState*> members;
 };
 
 void blocking_state_retain(BlockingState* state) {
@@ -799,7 +822,7 @@ bool blocking_dispatch_selected(BlockingState& state, Shard& shard, ThreadCtx& s
 class BlockingRegistry {
 public:
     ~BlockingRegistry() {
-        for (BlockingQueue& queue : queues_)
+        for (auto& [key, queue] : queues_)
             while (!queue.waiters.empty()) {
                 BlockingState* state = queue.waiters.front().state;
                 queue.waiters.pop_front();
@@ -809,20 +832,18 @@ public:
 
     bool add(Shard& shard, BlockingState& state, uint32_t key_index) {
         const BlockingKey& key = state.keys[key_index];
-        // Duplicate keys in one command are one registry alias at their earliest argument position.
-        for (const BlockingQueue& queue : queues_)
-            if (queue.hash == key.hash && queue.ns == key.ns && queue.key == key.key)
-                for (const BlockingEntry& waiter : queue.waiters)
-                    if (waiter.state == &state) return true;
-        BlockingQueue* queue = find(key.hash, blocking_key_slice(key));
+        // Keep the earliest argument position for duplicate keys in one command.
+        auto position = queues_.find(BlockingQueueProbe{key.hash, blocking_key_slice(key)});
         try {
-            if (!queue) {
-                queues_.push_back(BlockingQueue{key.key, key.ns, key.hash, {}});
-                queue = &queues_.back();
+            if (position == queues_.end()) {
+                position = queues_.try_emplace(BlockingQueueKey{key.key, key.ns, key.hash}).first;
             }
-            queue->waiters.push_back(BlockingEntry{&state, key_index});
+            BlockingQueue& queue = position->second;
+            if (!queue.members.insert(&state).second) return true;
+            try { queue.waiters.push_back(BlockingEntry{&state, key_index}); }
+            catch (...) { queue.members.erase(&state); throw; }
         } catch (const std::bad_alloc&) {
-            if (queue && queue->waiters.empty()) erase_empty();
+            if (position != queues_.end() && position->second.waiters.empty()) queues_.erase(position);
             return false;
         }
         blocking_state_retain(&state);
@@ -833,17 +854,18 @@ public:
 
     uint32_t publish(Shard& shard, uint64_t hash, Slice key, int64_t now_ms,
                      ThreadCtx& self, Ring& ring) {
-        BlockingQueue* queue = find(hash, key);
-        if (!queue) return 0;
-        const uint32_t work = service(shard, *queue, now_ms, self, ring);
-        erase_empty();
+        auto position = queues_.find(BlockingQueueProbe{hash, key});
+        if (position == queues_.end()) return 0;
+        const uint32_t work = service(shard, position->second, now_ms, self, ring);
+        if (position->second.waiters.empty()) queues_.erase(position);
         return work;
     }
 
     uint32_t sweep(Shard& shard, int64_t now_ms, bool check_values,
                    ThreadCtx& self, Ring& ring) {
         uint32_t work = 0;
-        for (BlockingQueue& queue : queues_) {
+        for (auto position = queues_.begin(); position != queues_.end();) {
+            BlockingQueue& queue = position->second;
             // Deadline/stale scan covers EVERY entry, not just the front: a waiter parked behind
             // a longer-lived one still times out at ITS deadline (redis semantics), and dead
             // entries (disconnects, completions from other queues) must not accumulate mid-queue
@@ -885,21 +907,16 @@ public:
             }
             if (check_values && !queue.waiters.empty())
                 work += service(shard, queue, now_ms, self, ring);
+            if (queue.waiters.empty()) position = queues_.erase(position);
+            else ++position;
         }
-        erase_empty();
         return work;
     }
 
 private:
-    BlockingQueue* find(uint64_t hash, Slice key) {
-        for (BlockingQueue& queue : queues_)
-            if (queue.hash == hash && queue.ns == key.ns && queue.key.size() == key.n &&
-                (!key.n || std::memcmp(queue.key.data(), key.p, key.n) == 0)) return &queue;
-        return nullptr;
-    }
-
     void remove_at_from_shard(Shard& shard, BlockingQueue& queue, size_t index) {
         BlockingState* state = queue.waiters[index].state;
+        queue.members.erase(state);
         queue.waiters.erase(queue.waiters.begin() + static_cast<ptrdiff_t>(index));
         shard.blocking_waiter_removed();
         state->server->blocking_waiter_removed();
@@ -971,15 +988,7 @@ private:
         return work;
     }
 
-    void erase_empty() {
-        for (size_t i = 0; i < queues_.size();) {
-            if (!queues_[i].waiters.empty()) { i++; continue; }
-            queues_[i] = std::move(queues_.back());
-            queues_.pop_back();
-        }
-    }
-
-    std::vector<BlockingQueue> queues_;
+    std::unordered_map<BlockingQueueKey, BlockingQueue, BlockingQueueHash, BlockingQueueEqual> queues_;
 };
 
 // Registry destruction runs only after all executor and IO threads have joined. Gauge values are no

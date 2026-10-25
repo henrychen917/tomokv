@@ -1,0 +1,378 @@
+[
+  {
+    "arm": "pre",
+    "engine": "uring",
+    "geometry": "split",
+    "pass_count": 474,
+    "fail_count": 2,
+    "runtime": "22m17s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "ValueError: no comparison witness recorded by differential leg: /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split/climon-a1-s19.txt.coverage.json"
+    ],
+    "failures": [
+      "  differ climon (atomic=1 seed=19)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split/climon-a1-s19.txt; OSError: [Errno 98] Address already in use)"
+    ],
+    "skipped": [],
+    "armed_witnesses": [],
+    "mode_equivalence": [
+      "mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)"
+    ]
+  },
+  {
+    "arm": "pre",
+    "engine": "uring",
+    "geometry": "armed",
+    "pass_count": 466,
+    "fail_count": 0,
+    "runtime": "18m14s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098650 recorded comparison witnesses, 464 legs)"
+    ],
+    "failures": [],
+    "skipped": [
+      "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    ],
+    "armed_witnesses": [
+      "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=22 final_fallbacks=238)"
+    ],
+    "mode_equivalence": []
+  },
+  {
+    "arm": "pre",
+    "engine": "epoll",
+    "geometry": "split",
+    "pass_count": 471,
+    "fail_count": 5,
+    "runtime": "16m59s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "ValueError: no comparison witness recorded by differential leg: /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-epoll-split/climon-a0-s23.txt.coverage.json"
+    ],
+    "failures": [
+      "  differ climon (atomic=0 seed=23)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-epoll-split/climon-a0-s23.txt; OSError: [Errno 98] Address already in use)",
+      "  differ climon (atomic=1 seed=20)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-epoll-split/climon-a1-s20.txt; OSError: [Errno 98] Address already in use)",
+      "  differ climon (atomic=1 seed=23)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-epoll-split/climon-a1-s23.txt; OSError: [Errno 98] Address already in use)",
+      "  differ climon (atomic=1 seed=21)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-epoll-split/climon-a1-s21.txt; OSError: [Errno 98] Address already in use)"
+    ],
+    "skipped": [],
+    "armed_witnesses": [],
+    "mode_equivalence": [
+      "mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)"
+    ]
+  },
+  {
+    "arm": "pre",
+    "engine": "epoll",
+    "geometry": "armed",
+    "pass_count": 466,
+    "fail_count": 0,
+    "runtime": "18m03s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2099154 recorded comparison witnesses, 464 legs)"
+    ],
+    "failures": [],
+    "skipped": [
+      "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    ],
+    "armed_witnesses": [
+      "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=19 final_fallbacks=241)"
+    ],
+    "mode_equivalence": []
+  },
+  {
+    "arm": "post",
+    "engine": "uring",
+    "geometry": "split",
+    "pass_count": 473,
+    "fail_count": 3,
+    "runtime": "17m08s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "ValueError: no comparison witness recorded by differential leg: /home/user/Projects/cx-rlfix3/build/rlfix3/post-differ-uring-split/climon-a0-s21.txt.coverage.json"
+    ],
+    "failures": [
+      "  differ climon (atomic=0 seed=23)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/post-differ-uring-split/climon-a0-s23.txt; OSError: [Errno 98] Address already in use)",
+      "  differ climon (atomic=0 seed=21)                           FAIL (see /home/user/Projects/cx-rlfix3/build/rlfix3/post-differ-uring-split/climon-a0-s21.txt; OSError: [Errno 98] Address already in use)"
+    ],
+    "skipped": [],
+    "armed_witnesses": [],
+    "mode_equivalence": [
+      "mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)"
+    ]
+  },
+  {
+    "arm": "post",
+    "engine": "uring",
+    "geometry": "armed",
+    "pass_count": 466,
+    "fail_count": 0,
+    "runtime": "18m08s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098494 recorded comparison witnesses, 464 legs)"
+    ],
+    "failures": [],
+    "skipped": [
+      "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    ],
+    "armed_witnesses": [
+      "read-local lane fired (atomic=0)                           ok (hits=1258 fallbacks=1 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=19 final_fallbacks=241)"
+    ],
+    "mode_equivalence": []
+  },
+  {
+    "arm": "post",
+    "engine": "epoll",
+    "geometry": "split",
+    "pass_count": 475,
+    "fail_count": 0,
+    "runtime": "19m36s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145377 recorded comparison witnesses, 474 legs)"
+    ],
+    "failures": [],
+    "skipped": [],
+    "armed_witnesses": [],
+    "mode_equivalence": [
+      "mode equivalence: all execution/knob combinations          ok (exact replies and mechanism witnesses)"
+    ]
+  },
+  {
+    "arm": "post",
+    "engine": "epoll",
+    "geometry": "armed",
+    "pass_count": 466,
+    "fail_count": 0,
+    "runtime": "17m57s",
+    "seeds": {
+      "run": "/home/user/Projects/cx-rlfix3/build/rlfix3/pre-differ-uring-split",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [
+        19,
+        20,
+        21,
+        23
+      ],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-rlfix3/.gate-history/differ"
+    },
+    "coverage": [
+      "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098779 recorded comparison witnesses, 464 legs)"
+    ],
+    "failures": [],
+    "skipped": [
+      "differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=0 seed=21)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+      "differ sort (atomic=1 seed=21)                             SKIP (suite requires the split 6:2 geometry)"
+    ],
+    "armed_witnesses": [
+      "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+      "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=18 final_fallbacks=242)"
+    ],
+    "mode_equivalence": []
+  }
+]

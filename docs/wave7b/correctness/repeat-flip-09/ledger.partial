@@ -1,0 +1,11 @@
+PARTIAL	0	GATE_ONLY_JOBS=flip; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.160000	FLIP state battery
+ok	1.060000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	4.440000	partial-frame conn parks (no io spin)
+ok	2.240000	FLIP close during FLIP (uring)
+ok	2.190000	FLIP close during FLIP (epoll)
+ok	1.090000	FLIP signal stop during FLIP + second SIGINT
+ok	0.530000	perfio stale epoll registration (epoll-flip)
+ok	1.100000	perfio stale epoll registration (epoll-lb)

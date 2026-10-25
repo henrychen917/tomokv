@@ -1,0 +1,23 @@
+{
+  "kind": "A: PRE behaviour with POST text size/layout",
+  "source": "build/tomokv",
+  "twin": "build/tomokv-PAD-A",
+  "post_sha256": "9ce7cd18c4900705c71f31780b12a04c518ffceb28c4ac3287f1a50dcd73c27d",
+  "pad_sha256": "c48293d8990ee9da0c4604c97548a9dec5f51fb752ac6b5b67b6951bd4a72705",
+  "every_function_address_and_size_identical": true,
+  "all_other_bytes_identical": true,
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db018ctlfix_correctnessEv",
+      "offset": 3223877,
+      "before": 1,
+      "after": 0
+    },
+    {
+      "symbol": "_ZN4tomo18ctlfix_correctnessEv",
+      "offset": 7219157,
+      "before": 1,
+      "after": 0
+    }
+  ]
+}

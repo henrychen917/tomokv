@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_identity; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	112.070000	R7 FIFO twin off-path identity + negative controls

@@ -1,0 +1,24 @@
+[
+  {
+    "name": "post-final-v2-directed-gate",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/post-final-v2-directed-gate.ledger"
+    },
+    "returncode": 0
+  }
+]

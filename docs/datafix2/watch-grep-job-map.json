@@ -1,0 +1,315 @@
+[
+  {
+    "file": "tests/at15.py",
+    "jobs": [],
+    "note": "NOT RUN: standalone live inventory; no declared gate job. at15 units run in atomic_units."
+  },
+  {
+    "file": "tests/at15_unit.cc",
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/atomic_survivors_unit.cc",
+    "jobs": [
+      "atomic_units",
+      "debug-0",
+      "debug-1",
+      "fused-0",
+      "fused-1",
+      "txn_group_fused",
+      "txn_group_split"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/core_concurrency_unit.cc",
+    "jobs": [
+      "core_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/datafix2_watch.py",
+    "jobs": [
+      "datafix2_watch"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "jobs": [
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1",
+      "fused-0",
+      "fused-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/edgetime.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/exbatch.py",
+    "jobs": [
+      "exbatch_live"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/exbatch_checks.py",
+    "jobs": [
+      "exbatch_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/exbatch_unit.cc",
+    "jobs": [
+      "exbatch_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/execabort_watch_gate_test.py",
+    "jobs": [],
+    "note": "PASS standalone gate-wrapper self-test; execabort-watch-gate-selftest.log."
+  },
+  {
+    "file": "tests/execabort_watch_unit.cc",
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/execatomic.py",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/execiso.py",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/gate_history.py",
+    "jobs": [],
+    "note": "Harness history support exercised by gates_test.py; no standalone protocol battery."
+  },
+  {
+    "file": "tests/gates_test.py",
+    "jobs": [],
+    "note": "PASS 70 harness tests; gates-test.log."
+  },
+  {
+    "file": "tests/mdbstamp_checks.cc",
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Included by multidb-unit."
+  },
+  {
+    "file": "tests/multi_exec.py",
+    "jobs": [
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1",
+      "fused-0",
+      "fused-1",
+      "release_batteries"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/multidb.py",
+    "jobs": [
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/multidb_unit.cc",
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "jobs": [
+      "ntnew4_live"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/owner_prefetch_unit.cc",
+    "jobs": [],
+    "note": "NOT RUN: standalone target, no declared gate job."
+  },
+  {
+    "file": "tests/replyschema.py",
+    "jobs": [],
+    "note": "Standalone oracle inventory; no gate job declares it."
+  },
+  {
+    "file": "tests/resp3.py",
+    "jobs": [
+      "feature-armed-0",
+      "feature-armed-1",
+      "feature-split-0",
+      "feature-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/respresume.py",
+    "jobs": [
+      "respresume-fragment-1s-epoll",
+      "respresume-fragment-1s-uring",
+      "respresume-fragment-2s-epoll",
+      "respresume-fragment-2s-uring",
+      "respresume-cpu-1s-epoll",
+      "respresume-cpu-1s-uring",
+      "respresume-cpu-2s-epoll",
+      "respresume-cpu-2s-uring",
+      "respresume-neighbour-1s-epoll",
+      "respresume-neighbour-1s-uring",
+      "respresume-neighbour-2s-epoll",
+      "respresume-neighbour-2s-uring"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/session_monotonic.py",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "jobs": [
+      "storage_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnfix_audit/t18_watch_cas.py",
+    "jobs": [],
+    "note": "NOT RUN: standalone historical audit, no declared gate job."
+  },
+  {
+    "file": "tests/txnfix_audit/t19_crossed_watch.py",
+    "jobs": [],
+    "note": "NOT RUN: standalone historical audit, no declared gate job."
+  },
+  {
+    "file": "tests/txniso.py",
+    "jobs": [
+      "debug-0",
+      "debug-1",
+      "fused-0",
+      "fused-1",
+      "txnorder2"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnorder.py",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnorder_checks.inc",
+    "jobs": [
+      "atomic_units",
+      "debug-0",
+      "debug-1",
+      "fused-0",
+      "fused-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnorder_episodes.cc",
+    "jobs": [
+      "txnorder2"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnorder_watch.py",
+    "jobs": [
+      "txnorder2"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/txnorder_watch_unit.cc",
+    "jobs": [
+      "txnorder2"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/watchlive.py",
+    "jobs": [],
+    "note": "NOT RUN: separate watchlive_gate.sh driver, no tests/gate.sh job."
+  },
+  {
+    "file": "tests/wave5_dispatch_checks.inc",
+    "jobs": [
+      "core_units"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/xacct.py",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "note": ""
+  },
+  {
+    "file": "tests/xscript.py",
+    "jobs": [
+      "debug-0",
+      "debug-1",
+      "script_bounds"
+    ],
+    "note": ""
+  }
+]

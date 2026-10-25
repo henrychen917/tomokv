@@ -1,0 +1,10 @@
+{
+  "ephemeral_port_range": "32768\t60999",
+  "reserved_ports": "",
+  "pre_registry_bind_log": "build/gate-run.e3nQC5/jobs/blockfix_registry/output.log",
+  "pre_servertail_bind_logs": [
+    "build/gate-run.bZOvdo/jobs/feature-armed-1/servertail-boot-vqx9g4sc/server.log",
+    "build/gate-run.bZOvdo/jobs/feature-armed-1/servertail-boot-_pcpnvr1/server.log"
+  ],
+  "post_epoll_climon_bind_log": "build/gate-run.Cmpgho/jobs/differ-split-0/differ/climon-a0-s7.txt"
+}

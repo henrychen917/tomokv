@@ -1,0 +1,102 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792896493.2922847,
+  "commit": "9d113e456733c7ba2df6a2a21d909f97763e934c",
+  "binary_sha256": "537cac172622cf8b8db0d9dbabc06b87a6222326803457e7f5d498c793d5209a",
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "execfair rlfix3_info blockfix_registry persistfix2_shutdown datafix2_watch",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/initial-interactions/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 1,
+  "end": 1792897287.8926024,
+  "binary_sha256_after": "537cac172622cf8b8db0d9dbabc06b87a6222326803457e7f5d498c793d5209a",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.UXU7kz",
+  "jobs": {
+    "blockfix_registry": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t39.010000\tblockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+      ]
+    },
+    "datafix2_watch": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t131.320000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+      ]
+    },
+    "execfair": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t21.590000\tEXEC fast-lane polls"
+      ]
+    },
+    "persistfix2_shutdown": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t93.440000\tpersistfix2 shutdown modifiers and signal policy"
+      ]
+    },
+    "production_units": {
+      "done": "0\t0\t0",
+      "rows": []
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    },
+    "rlfix3_info": {
+      "done": "0\t6\t2",
+      "rows": [
+        "FAIL\t56.050000\tINFO selective collection (1s, epoll, read-local 0)",
+        "FAIL\t55.910000\tINFO selective collection (1s, epoll, read-local 1)",
+        "ok\t0.860000\tINFO selective collection (1s, uring, read-local 0)",
+        "ok\t0.870000\tINFO selective collection (1s, uring, read-local 1)",
+        "ok\t0.850000\tINFO selective collection (2s, epoll, read-local 0)",
+        "ok\t0.920000\tINFO selective collection (2s, epoll, read-local 1)",
+        "ok\t0.890000\tINFO selective collection (2s, uring, read-local 0)",
+        "ok\t0.890000\tINFO selective collection (2s, uring, read-local 1)"
+      ]
+    }
+  }
+}

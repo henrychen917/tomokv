@@ -447,7 +447,10 @@ void cmd_xgroup(Shard& shard, Op& op) {
         if (object && find_group(object, op.arg(3))) {
             reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
         }
-        if (!object && !stream_create_empty_external(shard, op, kNotify, object)) return;
+        if (!object) {
+            if (!stream_create_empty_external(shard, op, kNotify, object)) return;
+            watch_record_modified(shard, key);
+        }
         if (!stream_force_external(shard, op, object, kNotify)) return;
         StreamHeader header;
         if (!stream_object_header(object, header)) {
@@ -1003,6 +1006,35 @@ void reply_nullable_i64(Op& op, int64_t value) {
     else reply_int(op.sink(), value);
 }
 
+uint8_t stream_index_byte(const StreamID& id, unsigned depth) {
+    const uint64_t word = depth < 8 ? id.ms : id.seq;
+    return static_cast<uint8_t>(word >> (8 * (7 - (depth & 7))));
+}
+
+// The physical node index is sorted, rather than allocated as a radix tree.
+// Expose Redis's radix topology of these ACTUAL macro-node base IDs: each
+// compressed run, branch and terminal counts once, including the empty root.
+// Big-endian 128-bit IDs have fixed length, so recursion is bounded by 16 and
+// needs no allocation or maintained counters on XADD's operation path.
+uint64_t stream_index_nodes(const std::vector<StreamNodeIndex>& index,
+                            size_t begin, size_t end, unsigned depth = 0) {
+    if (begin == end || depth == 16) return 1;
+    if (end - begin == 1) return 2;  // remaining compressed run and terminal
+    unsigned shared = depth;
+    while (shared < 16 && stream_index_byte(index[begin].base_id, shared) ==
+                           stream_index_byte(index[end - 1].base_id, shared)) ++shared;
+    if (shared != depth) return 1 + stream_index_nodes(index, begin, end, shared);
+    uint64_t nodes = 1;  // branch edges consume one byte before each child
+    for (size_t first = begin; first < end;) {
+        size_t last = first + 1;
+        while (last < end && stream_index_byte(index[first].base_id, depth) ==
+                             stream_index_byte(index[last].base_id, depth)) ++last;
+        nodes += stream_index_nodes(index, first, last, depth + 1);
+        first = last;
+    }
+    return nodes;
+}
+
 void reply_group_info(Op& op, KvObj* object, const StreamHeader& header,
                       const std::string& name, const StreamGroup& group, bool full,
                       uint64_t count) {
@@ -1120,7 +1152,12 @@ void cmd_xinfo(Shard& shard, Op& op) {
         }
     }
     const uint64_t length = stream_object_live_length(object);
-    const uint64_t physical = stream_object_physical_length(object);
+    CollectionRef stream(object);
+    const StreamVal* external = stream.encoding() == CollectionEncoding::Compact
+        ? nullptr : stream.external_as<StreamVal>();
+    const uint64_t tree_keys = external ? external->index.size() : (stream.compact().size() > 1);
+    const uint64_t tree_nodes = external
+        ? stream_index_nodes(external->index, 0, external->index.size()) : (tree_keys ? 2 : 1);
     StreamID first{}, last{};
     if (!stream_object_first_live(object, first) || !stream_object_last_live(object, last)) {
         reply_err(op.sink(), "ERR corrupt stream encoding"); return;
@@ -1139,8 +1176,8 @@ void cmd_xinfo(Shard& shard, Op& op) {
     if (!full) {
         reply_info_header(op, 10);
         reply_name(op, "length"); reply_int(op.sink(), length);
-        reply_name(op, "radix-tree-keys"); reply_int(op.sink(), physical ? 1 : 0);
-        reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), physical ? 2 : 1);
+        reply_name(op, "radix-tree-keys"); reply_int(op.sink(), tree_keys);
+        reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), tree_nodes);
         reply_name(op, "last-generated-id"); reply_id(op, header.last_id);
         reply_name(op, "max-deleted-entry-id"); reply_id(op, header.max_deleted_entry_id);
         reply_name(op, "entries-added"); reply_int(op.sink(), header.entries_added);
@@ -1156,8 +1193,8 @@ void cmd_xinfo(Shard& shard, Op& op) {
     }
     reply_info_header(op, 9);
     reply_name(op, "length"); reply_int(op.sink(), length);
-    reply_name(op, "radix-tree-keys"); reply_int(op.sink(), physical ? 1 : 0);
-    reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), physical ? 2 : 1);
+    reply_name(op, "radix-tree-keys"); reply_int(op.sink(), tree_keys);
+    reply_name(op, "radix-tree-nodes"); reply_int(op.sink(), tree_nodes);
     reply_name(op, "last-generated-id"); reply_id(op, header.last_id);
     reply_name(op, "max-deleted-entry-id"); reply_id(op, header.max_deleted_entry_id);
     reply_name(op, "entries-added"); reply_int(op.sink(), header.entries_added);

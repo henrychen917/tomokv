@@ -1,0 +1,20 @@
+[
+  {
+    "arm": "pre-unpaired",
+    "exit": 1,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.nIgrb4",
+    "ledger": "docs/rlfix3/pre-unpaired-info-paired-final-ledger.tsv"
+  },
+  {
+    "arm": "pre",
+    "exit": 1,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.NUpHEQ",
+    "ledger": "docs/rlfix3/pre-info-paired-final-ledger.tsv"
+  },
+  {
+    "arm": "post",
+    "exit": 0,
+    "run": "/home/user/Projects/cx-rlfix3/build/gate-run.VBz7uv",
+    "ledger": "docs/rlfix3/post-info-paired-final-ledger.tsv"
+  }
+]

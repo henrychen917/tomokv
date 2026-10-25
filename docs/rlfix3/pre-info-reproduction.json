@@ -1,0 +1,50 @@
+[
+  {
+    "mode": "1s",
+    "shards": 16,
+    "arm": "snapshot",
+    "returncode": 0
+  },
+  {
+    "mode": "1s",
+    "shards": 16,
+    "arm": "guard",
+    "returncode": -11
+  },
+  {
+    "mode": "1s",
+    "shards": 256,
+    "arm": "snapshot",
+    "returncode": 0
+  },
+  {
+    "mode": "1s",
+    "shards": 256,
+    "arm": "guard",
+    "returncode": -11
+  },
+  {
+    "mode": "2s",
+    "shards": 16,
+    "arm": "snapshot",
+    "returncode": 0
+  },
+  {
+    "mode": "2s",
+    "shards": 16,
+    "arm": "guard",
+    "returncode": -11
+  },
+  {
+    "mode": "2s",
+    "shards": 256,
+    "arm": "snapshot",
+    "returncode": 0
+  },
+  {
+    "mode": "2s",
+    "shards": 256,
+    "arm": "guard",
+    "returncode": -11
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "104",
+    "/home/user/Projects/redis74/src/redis-server",
+    "--port",
+    "33800",
+    "--bind",
+    "127.0.0.1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-datafix2/build/datafix2/script-apply-oracle"
+  ],
+  "command": [
+    "EVAL",
+    "redis.call('GET',KEYS[2]); return redis.call('APPEND',KEYS[1],'S')",
+    2,
+    "apply-x",
+    "apply-y"
+  ],
+  "reply": 2,
+  "value": {
+    "bytes": "4253"
+  },
+  "passed": true,
+  "internal_assertion": "POST requires read|staged-write|modified (11); PRE requires read|staged-write (3). No wire expectation changed."
+}

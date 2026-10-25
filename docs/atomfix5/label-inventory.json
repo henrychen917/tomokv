@@ -1,0 +1,16 @@
+{
+  "pre_source": 756,
+  "post_source": 758,
+  "fixture": 758,
+  "missing": [],
+  "extra": [],
+  "added": [
+    "atomfix5 WATCH key count (both modes, both engines, atomic 0/1)",
+    "atomfix5 undecided-unit exact accounting (both modes, both engines, atomic 1)"
+  ],
+  "quick_exit": 4950,
+  "collection_lines": {
+    "collect_job atomfix5_watch": 4751,
+    "collect_job atomfix5_accounting": 4753
+  }
+}

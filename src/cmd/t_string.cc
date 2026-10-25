@@ -7,6 +7,8 @@
 #include "xshard.h"
 #include "notify.h"
 #include "serialize.h"
+#include "lookup_notouch.h"
+#include "string_mutation.h"
 #include "../core/shard.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
@@ -349,7 +351,9 @@ void reply_string_bulk(Op& op, const KvObj* o) {
 // borrow protocol to mutation replies would turn a string-only fast path into collection policy.
 template <bool kNotify, bool kAllowBorrow = true>
 void cmd_get(Shard& sh, Op& op) {
-    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
+    // Keep this small accessor at the call site: the larger armed string unit
+    // otherwise outlines Op::key here. This is its exact argc/argv expression.
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.argc() > 1 ? op.arg(1) : Slice{});
     if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -620,6 +624,7 @@ void cmd_del(Shard& sh, Op& op) {
 
 template <bool kNotify>
 void cmd_exists(Shard& sh, Op& op) {
+    LookupNoTouch no_touch(sh.store(), op.cmd_name().eq_icase("exists"));
     uint64_t found = 0;
     for (uint32_t i = 1; i < op.argc(); i++) {
         const uint64_t hash = i == 1 ? op.hash : FlatStore::hash_key(op.arg(i));
@@ -646,9 +651,8 @@ void cmd_append(Shard& sh, Op& op) {
     char integer[24];
     KvObjRawReadBuffer raw;
     const Slice old = string_bytes(o, integer, raw);
-    // A raw empty append changes no observable value or encoding. Integer encoding is the one
-    // exception: Redis's append path materializes it even when the appended byte count is zero.
-    if (op.arg(2).n == 0 && !o->is_int()) {
+    // An existing string is unshared into raw storage, including APPEND "".
+    if (op.arg(2).n == 0 && o->encoding() == Enc::Extern) {
         if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Append, op.key());
         reply_int(op.sink(), old.n); return;
@@ -663,9 +667,9 @@ void cmd_append(Shard& sh, Op& op) {
     std::memcpy(merged, old.p, old.n);
     std::memcpy(merged + old.n, op.arg(2).p, op.arg(2).n);
     const int64_t expire = sh.store().deadline(op.hash, o);
-    const StoreResult result = store_string_for<kNotify>(
-        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire, false,
-        o->has_ttl_slot());
+    const StoreResult result = static_cast<StoreResult>(store_mutable_string(
+        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire,
+        o->has_ttl_slot(), kNotify));
     std::free(merged);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -752,8 +756,9 @@ void cmd_setrange(Shard& sh, Op& op) {
     std::memcpy(changed + offset, op.arg(3).p, op.arg(3).n);
     const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
-                                  o && o->has_ttl_slot());
+        static_cast<StoreResult>(store_mutable_string(
+            sh, op.key(), op.hash, Slice(changed, new_length), expire,
+            o && o->has_ttl_slot(), kNotify));
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -797,7 +802,7 @@ void cmd_setbit(Shard& sh, Op& op) {
 
     // Redis materializes integer-encoded strings before a bit write, even when the selected bit
     // already has the requested value. Raw values with no growth and no change remain untouched.
-    if (o && !o->is_int() && new_length == old.n && old_bit == bit_value) {
+    if (o && o->encoding() == Enc::Extern && new_length == old.n && old_bit == bit_value) {
         reply_int(op.sink(), old_bit);
         return;
     }
@@ -811,8 +816,9 @@ void cmd_setbit(Shard& sh, Op& op) {
                          : static_cast<uint8_t>(selected & ~mask);
     const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
-                                  o && o->has_ttl_slot());
+        static_cast<StoreResult>(store_mutable_string(
+            sh, op.key(), op.hash, Slice(changed, new_length), expire,
+            o && o->has_ttl_slot(), kNotify));
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify) {
@@ -1256,6 +1262,7 @@ void cmd_pfcount(Shard& sh, Op& op) {
         sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
         sh.store().deadline(op.hash, object), false, object->has_ttl_slot());
     if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
+    watch_record_modified(sh, op.key());
     reply_int(op.sink(), static_cast<long long>(cardinality));
 }
 
@@ -1360,6 +1367,7 @@ int64_t rounded_seconds(int64_t ms) {
 
 template <bool kNotify>
 void ttl_generic(Shard& sh, Op& op, bool milliseconds, bool absolute) {
+    LookupNoTouch no_touch(sh.store());
     KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), -2); return; }
     const int64_t expire = sh.store().deadline(op.hash, o);
@@ -1406,6 +1414,7 @@ const char* type_name(const KvObj* o) {
 
 template <bool kNotify>
 void cmd_type(Shard& sh, Op& op) {
+    LookupNoTouch no_touch(sh.store());
     reply_simple(op.sink(), type_name(sh.store_find_read<kNotify>(op.hash, op.key())));
 }
 

@@ -1,0 +1,12 @@
+{
+  "before": {
+    "seconds": 8.538088787347078,
+    "sha256": "9ceb29681b2f4f59008cd1692993b312efe76dd674cd60fcfd1abf45ad0ed879",
+    "entries": 588
+  },
+  "after": {
+    "seconds": 0.46734175737947226,
+    "sha256": "9ceb29681b2f4f59008cd1692993b312efe76dd674cd60fcfd1abf45ad0ed879",
+    "entries": 588
+  }
+}

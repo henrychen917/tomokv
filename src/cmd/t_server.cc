@@ -315,7 +315,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown
 };
 struct ConfigValue {
     const char* name;
@@ -350,6 +350,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"unixsocketperm", ConfigKind::String, unix_mode, true});
     g_proto_max_bulk_len.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
     g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
+    g_config.push_back({"shutdown-on-sigint", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigint)});
+    g_config.push_back({"shutdown-on-sigterm", ConfigKind::Shutdown, cfg_shutdown_string(cfg.shutdown_on_sigterm)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
     g_config.push_back({"dbfilename", ConfigKind::String,
                         (cfg.dbfilename && *cfg.dbfilename) ? cfg.dbfilename : "dump.tomo"});
@@ -429,6 +431,11 @@ void init_config(const Config& cfg) {
     add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
     add_config("client-query-buffer-limit", ConfigKind::Bytes, cfg.client_query_buffer_limit);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
+    // Capability, not a second tuning knob: a lane capture is protected only
+    // through its QSBR rotation, not through a potentially delayed socket send.
+    // Owner fallbacks still obey zc-min, so reporting that value as zero would
+    // misdescribe those GETs. Expose the lane's effective threshold separately.
+    g_config.push_back({"zc-min-read-local", ConfigKind::Unsigned, "0", true});
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
     for (uint32_t i = 0; i < EncodingConfig::Count; i++)
         g_config.push_back({EncodingConfig::settings[i].name, ConfigKind::Encoding,
@@ -524,6 +531,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             input.n = static_cast<const char*>(end) - input.p;
     }
     switch (entry.kind) {
+        case ConfigKind::Shutdown: {
+            uint8_t flags = 0;
+            if (!cfg_shutdown_flags(input, flags, error)) return false;
+            out = cfg_shutdown_string(flags);
+            return true;
+        }
         case ConfigKind::Hz: {
             uint32_t value = 0;
             if (!ClientHz::parse(input, value, error)) return false;
@@ -794,9 +807,8 @@ void snapshot_command(Op& op, bool blocking) {
     if (result == SnapshotManager::StartResult::Busy) {
         reply_err(op.sink(), "ERR Background save already in progress");
     } else if (result == SnapshotManager::StartResult::Failed) {
-        std::string message = "ERR ";
-        message += error.empty() ? "snapshot failed" : error;
-        reply_err(op.sink(), message.c_str());
+        std::fprintf(stderr, "Snapshot error: %s\n", error.c_str());
+        reply_err(op.sink(), "ERR");
     } else if (blocking) {
         reply_ok(op.sink());
     } else {
@@ -805,17 +817,44 @@ void snapshot_command(Op& op, bool blocking) {
 }
 
 void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
-void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
-void cmd_bgrewriteaof(Shard&, Op& op) {
-    if (!g_server || !g_server->aof().recording()) {
-        reply_err(op.sink(), "ERR Background append only file rewriting not scheduled");
+void cmd_bgsave(Shard&, Op& op) {
+    if (op.argc() > 1 && (op.argc() != 2 || !eq_icase(op.arg(1), "SCHEDULE"))) {
+        reply_syntax(op.sink()); return;
+    }
+    if (g_server && g_server->aof().rewrite_in_progress()) {
+        if (op.argc() == 2) {
+            g_server->schedule_bgsave();
+            reply_simple(op.sink(), "Background saving scheduled");
+        } else reply_err(op.sink(), "ERR Another child process is active (AOF?): can't BGSAVE right now. "
+            "Use BGSAVE SCHEDULE in order to schedule a BGSAVE whenever possible.");
         return;
     }
-    if (!g_server->aof().request_rewrite()) {
+    snapshot_command(op, false);
+}
+void cmd_bgrewriteaof(Shard&, Op& op) {
+    if (g_server && g_server->aof().rewrite_in_progress()) {
         reply_err(op.sink(), "ERR Background append only file rewriting already in progress");
         return;
     }
-    reply_simple(op.sink(), "Background append only file rewriting started");
+    static constexpr const char* failed = "ERR Can't execute an AOF background rewriting. "
+        "Please check the server logs for more information.";
+    if (!g_server) { reply_err(op.sink(), failed); return; }
+    const bool scheduled = g_server->snapshot().in_progress();
+    if (!g_server->aof().request_rewrite()) { reply_err(op.sink(), failed); return; }
+    if (!g_server->aof().configured()) {
+        if (scheduled) g_server->schedule_offline_rewrite();
+        else {
+            const auto context = snapshot_io_context();
+            std::string error;
+            if (!context.thread || !context.ring ||
+                !g_server->aof().start_offline_rewrite(*context.thread, *context.ring, error)) {
+                std::fprintf(stderr, "AOF rewrite error: %s\n", error.c_str());
+                reply_err(op.sink(), failed); return;
+            }
+        }
+    }
+    reply_simple(op.sink(), scheduled ? "Background append only file rewriting scheduled" :
+                                      "Background append only file rewriting started");
 }
 void cmd_lastsave(Shard&, Op& op) {
     reply_int(op.sink(), g_server ? static_cast<long long>(g_server->snapshot().last_save_time()) : 0);
@@ -1032,6 +1071,26 @@ void cmd_debug_impl(Shard& shard, Op& op) {
             return;
         }
         g_server->flipctl_debug_cost(per_client);
+        reply_ok(op.sink());
+        return;
+    }
+    // The requesting connection's IO is the destination. Its own callback reserves
+    // capacity; the source's ordinary LB tail retains every readiness/lifetime fence.
+    if (eq_icase(subcommand, "client-lb") && op.argc() == 3) {
+        uint64_t id = 0;
+        if (!parse_u64(op.arg(2), id) || !id) {
+            reply_err(op.sink(), "ERR DEBUG CLIENT-LB wants a positive client ID");
+            return;
+        }
+        if (!g_server || !g_thread || !g_client) {
+            reply_err(op.sink(), "ERR no IO client context");
+            return;
+        }
+        std::string error;
+        if (!g_server->lb_debug_move_client(id, g_thread->id(), error)) {
+            reply_err(op.sink(), error.c_str());
+            return;
+        }
         reply_ok(op.sink());
         return;
     }
@@ -1658,6 +1717,12 @@ void cmd_config(Shard& sh, Op& op) {
                     if (!cfg_parse_save_schedule(update.second.data(), update.second.size(),
                                                  clauses)) std::abort();
                     g_server->set_save_schedule(clauses);
+                } else if (update.first->kind == ConfigKind::Shutdown) {
+                    uint8_t flags = 0;
+                    const char* error = nullptr;
+                    if (!cfg_shutdown_flags(Slice(update.second.data(), update.second.size()), flags, error))
+                        std::abort();
+                    g_server->set_shutdown_policy(!std::strcmp(update.first->name, "shutdown-on-sigint"), flags);
                 } else if (!std::strcmp(update.first->name, "proto-max-bulk-len")) {
                     uint64_t value = 0;
                     if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
@@ -1826,6 +1891,7 @@ struct StatBaseline {
     uint64_t sampled_ops = 0;
     uint64_t connections = 0;
     uint64_t hits = 0, misses = 0, expired = 0, evicted = 0;
+    uint64_t expired_subkeys = 0;
     uint64_t rejected = 0, auth_failures = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0;
     uint64_t keys = 0;
@@ -1890,6 +1956,7 @@ void collect_stat_totals(StatBaseline& out) {
         out.hits += sh.stats().hits;
         out.misses += sh.stats().misses;
         out.expired += sh.stats().expired;
+        out.expired_subkeys += sh.store().field_expired();
         out.evicted += sh.published_evicted();
         out.keys += sh.published_size();
         out.object_bytes += sh.published_obj_bytes();
@@ -1990,6 +2057,12 @@ void cmd_flip(Shard&, Op& op) {
 }
 
 void cmd_info(Shard&, Op& op) {
+    // Match Redis's union of requested sections, including DEFAULT/ALL/EVERYTHING.
+    // Selection precedes collection: INFO SERVER must not touch store statistics.
+    const bool want_stats = info_section(op, "STATS");
+    const bool want_memory = info_section(op, "MEMORY");
+    const bool want_keyspace = info_section(op, "KEYSPACE");
+    const bool want_commands = info_section(op, "COMMANDSTATS", false);
     std::string body;
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
              evicted = 0, keyspace_rehashes = 0, active_expire_reap_lag_ms_max = 0;
@@ -2023,12 +2096,15 @@ void cmd_info(Shard&, Op& op) {
     uint64_t epoll_events = 0, epoll_recvs = 0;
     ReadLocalStats read_local;
     if (g_server) {
+        if (want_stats || want_memory || (kSingleDatabase && want_keyspace))
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
-            keys += sh.published_size(); expires += sh.published_expires();
+            if (want_memory || (kSingleDatabase && want_keyspace)) keys += sh.published_size();
+            if (kSingleDatabase && want_keyspace) expires += sh.published_expires();
+            if (want_memory) obj_bytes += sh.published_obj_bytes();
+            if (!want_stats) continue;
             hash_field_expires += sh.store().field_expire_count();
             expired_hash_fields += sh.store().field_expired();
-            obj_bytes += sh.published_obj_bytes();
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
             evicted += sh.published_evicted();
             keyspace_rehashes += sh.stats().rehashes;
@@ -2056,175 +2132,180 @@ void cmd_info(Shard&, Op& op) {
             foreign_read_poisoned_shards += sh.store().foreign_read_poisoned();
             blocking_waiters += sh.blocking_waiters();
         }
-        for (uint32_t t = 0; t < g_server->nthreads(); t++) {
-            for (uint32_t id = 0; id < command_registry_size(); id++) {
-                const uint64_t calls = g_server->thread(t).command_calls(id);
-                total_ops += calls;
-                if (!op.spec || id != op.spec->id) sampled_ops += calls;
+        if (want_stats) {
+            for (uint32_t t = 0; t < g_server->nthreads(); t++) {
+                for (uint32_t id = 0; id < command_registry_size(); id++) {
+                    const uint64_t calls = g_server->thread(t).command_calls(id);
+                    total_ops += calls;
+                    if (!op.spec || id != op.spec->id) sampled_ops += calls;
+                }
+                connections += g_server->thread(t).sig().accepts;
+                atomic_localfast += g_server->thread(t).atomic_localfast();
+                atomic_scan_holds += g_server->thread(t).atomic_scan_holds();
+                acl_denied_cmd += g_server->thread(t).sig().acl_access_denied_cmd;
+                acl_denied_key += g_server->thread(t).sig().acl_access_denied_key;
+                acl_denied_channel += g_server->thread(t).sig().acl_access_denied_channel;
+                acl_denied_auth += g_server->thread(t).sig().acl_access_denied_auth;
+                const LoopSignals& sig = g_server->thread(t).sig();
+                plain_accepts += sig.plain_accepts;
+                tls_accepts += sig.tls_accepts;
+                tls_handshakes_started += sig.tls_handshakes_started;
+                tls_handshakes_completed += sig.tls_handshakes_completed;
+                tls_handshakes_failed += sig.tls_handshakes_failed;
+                tls_connections_freed += sig.tls_connections_freed;
+                tls_want_read += sig.tls_want_read;
+                tls_want_write += sig.tls_want_write;
+                tls_ciphertext_input += sig.tls_ciphertext_input_bytes;
+                tls_plaintext_input += sig.tls_plaintext_input_bytes;
+                tls_ciphertext_output += sig.tls_ciphertext_output_bytes;
+                tls_plaintext_output += sig.tls_plaintext_output_bytes;
+                tls_zc_suppressed += sig.tls_zc_suppressed;
+                tls_ktls_active += sig.tls_ktls_active;
+                tls_ktls_fallback += sig.tls_ktls_fallback;
+                epoll_events += sig.epoll_events;
+                epoll_recvs += sig.epoll_recvs;
+                net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
+                net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
+                if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
+                    const WbEngine::Stats& stats = wb->stats();
+                    sends_submitted += stats.sends_submitted;
+                    short_writes += stats.short_writes;
+                    bytes_sent += stats.bytes_sent;
+                    peer_aborts += stats.peer_aborts;
+                    send_errors += stats.send_errors;
+                    zc_sends += stats.zc_sends;
+                    zc_releases += stats.zc_releases;
+                }
             }
-            connections += g_server->thread(t).sig().accepts;
-            atomic_localfast += g_server->thread(t).atomic_localfast();
-            atomic_scan_holds += g_server->thread(t).atomic_scan_holds();
-            acl_denied_cmd += g_server->thread(t).sig().acl_access_denied_cmd;
-            acl_denied_key += g_server->thread(t).sig().acl_access_denied_key;
-            acl_denied_channel += g_server->thread(t).sig().acl_access_denied_channel;
-            acl_denied_auth += g_server->thread(t).sig().acl_access_denied_auth;
-            const LoopSignals& sig = g_server->thread(t).sig();
-            plain_accepts += sig.plain_accepts;
-            tls_accepts += sig.tls_accepts;
-            tls_handshakes_started += sig.tls_handshakes_started;
-            tls_handshakes_completed += sig.tls_handshakes_completed;
-            tls_handshakes_failed += sig.tls_handshakes_failed;
-            tls_connections_freed += sig.tls_connections_freed;
-            tls_want_read += sig.tls_want_read;
-            tls_want_write += sig.tls_want_write;
-            tls_ciphertext_input += sig.tls_ciphertext_input_bytes;
-            tls_plaintext_input += sig.tls_plaintext_input_bytes;
-            tls_ciphertext_output += sig.tls_ciphertext_output_bytes;
-            tls_plaintext_output += sig.tls_plaintext_output_bytes;
-            tls_zc_suppressed += sig.tls_zc_suppressed;
-            tls_ktls_active += sig.tls_ktls_active;
-            tls_ktls_fallback += sig.tls_ktls_fallback;
-            epoll_events += sig.epoll_events;
-            epoll_recvs += sig.epoll_recvs;
-            net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
-            net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
-            if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
-                const WbEngine::Stats& stats = wb->stats();
-                sends_submitted += stats.sends_submitted;
-                short_writes += stats.short_writes;
-                bytes_sent += stats.bytes_sent;
-                peer_aborts += stats.peer_aborts;
-                send_errors += stats.send_errors;
-                zc_sends += stats.zc_sends;
-                zc_releases += stats.zc_releases;
+            if (g_server->read_local_enabled()) {
+                for (uint32_t t = 0; t < g_server->nthreads(); t++)
+                    add_read_local_stats(read_local, g_server->thread(t).read_local_stats());
             }
+            // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
+            // (networking.c:1355) and protected-mode denials (networking.c:1306).
+            rejected = g_server->rejected_conns() + g_server->rejected_connections();
+            auth_failures = g_server->auth_failures();
         }
-        if (g_server->read_local_enabled()) {
-            for (uint32_t t = 0; t < g_server->nthreads(); t++)
-                add_read_local_stats(read_local, g_server->thread(t).read_local_stats());
-        }
-        // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
-        // (networking.c:1355) and protected-mode denials (networking.c:1306).
-        rejected = g_server->rejected_conns() + g_server->rejected_connections();
-        auth_failures = g_server->auth_failures();
     }
-    if (g_server && g_server->read_local_enabled()) {
-        hits += read_local.keyspace_hits;
-        misses += read_local.keyspace_misses;
-    }
-    // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes. The
-    // active-expiry lag value is an absolute lifetime high-water gauge, so it is deliberately not
-    // rebased: subtracting two maxima would no longer be a duration in milliseconds.
     StatBaseline baseline;
-    {
+    if (want_stats || want_commands) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
-    total_ops = minus_baseline(total_ops, baseline.total_ops);
-    connections = minus_baseline(connections, baseline.connections);
-    hits = minus_baseline(hits, baseline.hits);
-    misses = minus_baseline(misses, baseline.misses);
-    expired = minus_baseline(expired, baseline.expired);
-    evicted = minus_baseline(evicted, baseline.evicted);
-    rejected = minus_baseline(rejected, baseline.rejected);
-    net_input_bytes = minus_baseline(net_input_bytes, baseline.net_input_bytes);
-    net_output_bytes = minus_baseline(net_output_bytes, baseline.net_output_bytes);
-    auth_failures = minus_baseline(auth_failures, baseline.auth_failures);
-    acl_denied_cmd = minus_baseline(acl_denied_cmd, baseline.acl_denied_cmd);
-    acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
-    acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
-    acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
-    if (g_server && g_server->read_local_enabled()) {
-        read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
-        read_local.keyspace_hits = minus_baseline(
-            read_local.keyspace_hits, baseline.read_local.keyspace_hits);
-        read_local.keyspace_misses = minus_baseline(
-            read_local.keyspace_misses, baseline.read_local.keyspace_misses);
-        read_local.fallback_multi = minus_baseline(
-            read_local.fallback_multi, baseline.read_local.fallback_multi);
-        read_local.fallback_watch = minus_baseline(
-            read_local.fallback_watch, baseline.read_local.fallback_watch);
-        read_local.fallback_context = minus_baseline(
-            read_local.fallback_context, baseline.read_local.fallback_context);
-        read_local.fallback_context_owner_key = minus_baseline(
-            read_local.fallback_context_owner_key,
-            baseline.read_local.fallback_context_owner_key);
-        read_local.fallback_context_connection_state = minus_baseline(
-            read_local.fallback_context_connection_state,
-            baseline.read_local.fallback_context_connection_state);
-        read_local.fallback_context_route = minus_baseline(
-            read_local.fallback_context_route, baseline.read_local.fallback_context_route);
-        read_local.fallback_context_keymiss_notify = minus_baseline(
-            read_local.fallback_context_keymiss_notify,
-            baseline.read_local.fallback_context_keymiss_notify);
-        read_local.fallback_inflight_write = minus_baseline(
-            read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
-        read_local.fallback_arm_transient = minus_baseline(
-            read_local.fallback_arm_transient, baseline.read_local.fallback_arm_transient);
-        read_local.arm.arms = minus_baseline(
-            read_local.arm.arms, baseline.read_local.arm.arms);
-        read_local.arm.sidecars = minus_baseline(
-            read_local.arm.sidecars, baseline.read_local.arm.sidecars);
-        read_local.arm.write_ring_records = minus_baseline(
-            read_local.arm.write_ring_records, baseline.read_local.arm.write_ring_records);
-        read_local.fallback_atomic_pending = minus_baseline(
-            read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
-        read_local.fallback_missing = minus_baseline(
-            read_local.fallback_missing, baseline.read_local.fallback_missing);
-        read_local.fallback_typed = minus_baseline(
-            read_local.fallback_typed, baseline.read_local.fallback_typed);
-        read_local.fallback_expired = minus_baseline(
-            read_local.fallback_expired, baseline.read_local.fallback_expired);
-        read_local.fallback_seq_churn = minus_baseline(
-            read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
-        read_local.fallback_generation = minus_baseline(
-            read_local.fallback_generation, baseline.read_local.fallback_generation);
-        read_local.defer_lane_full = minus_baseline(
-            read_local.defer_lane_full, baseline.read_local.defer_lane_full);
-        read_local.defer_quota = minus_baseline(
-            read_local.defer_quota, baseline.read_local.defer_quota);
-        read_local.mget_local_hits = minus_baseline(
-            read_local.mget_local_hits, baseline.read_local.mget_local_hits);
-        read_local.mget_fallback_multi = minus_baseline(
-            read_local.mget_fallback_multi, baseline.read_local.mget_fallback_multi);
-        read_local.mget_fallback_watch = minus_baseline(
-            read_local.mget_fallback_watch, baseline.read_local.mget_fallback_watch);
-        read_local.mget_fallback_context = minus_baseline(
-            read_local.mget_fallback_context, baseline.read_local.mget_fallback_context);
-        read_local.mget_fallback_context_owner_key = minus_baseline(
-            read_local.mget_fallback_context_owner_key,
-            baseline.read_local.mget_fallback_context_owner_key);
-        read_local.mget_fallback_context_connection_state = minus_baseline(
-            read_local.mget_fallback_context_connection_state,
-            baseline.read_local.mget_fallback_context_connection_state);
-        read_local.mget_fallback_context_route = minus_baseline(
-            read_local.mget_fallback_context_route,
-            baseline.read_local.mget_fallback_context_route);
-        read_local.mget_fallback_context_keymiss_notify = minus_baseline(
-            read_local.mget_fallback_context_keymiss_notify,
-            baseline.read_local.mget_fallback_context_keymiss_notify);
-        read_local.mget_fallback_inflight_write = minus_baseline(
-            read_local.mget_fallback_inflight_write,
-            baseline.read_local.mget_fallback_inflight_write);
-        read_local.mget_fallback_arm_transient = minus_baseline(
-            read_local.mget_fallback_arm_transient,
-            baseline.read_local.mget_fallback_arm_transient);
-        read_local.mget_fallback_atomic_pending = minus_baseline(
-            read_local.mget_fallback_atomic_pending,
-            baseline.read_local.mget_fallback_atomic_pending);
-        read_local.mget_fallback_typed = minus_baseline(
-            read_local.mget_fallback_typed, baseline.read_local.mget_fallback_typed);
-        read_local.mget_fallback_expired = minus_baseline(
-            read_local.mget_fallback_expired, baseline.read_local.mget_fallback_expired);
-        read_local.mget_fallback_seq_churn = minus_baseline(
-            read_local.mget_fallback_seq_churn,
-            baseline.read_local.mget_fallback_seq_churn);
-        read_local.mget_fallback_generation = minus_baseline(
-            read_local.mget_fallback_generation,
-            baseline.read_local.mget_fallback_generation);
+    const uint64_t expired_subkeys = want_stats
+        ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
+    if (want_stats) {
+        if (g_server && g_server->read_local_enabled()) {
+            hits += read_local.keyspace_hits;
+            misses += read_local.keyspace_misses;
+        }
+        // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes. The
+        // active-expiry lag value is an absolute lifetime high-water gauge, so it is deliberately not
+        // rebased: subtracting two maxima would no longer be a duration in milliseconds.
+        total_ops = minus_baseline(total_ops, baseline.total_ops);
+        connections = minus_baseline(connections, baseline.connections);
+        hits = minus_baseline(hits, baseline.hits);
+        misses = minus_baseline(misses, baseline.misses);
+        expired = minus_baseline(expired, baseline.expired);
+        evicted = minus_baseline(evicted, baseline.evicted);
+        rejected = minus_baseline(rejected, baseline.rejected);
+        net_input_bytes = minus_baseline(net_input_bytes, baseline.net_input_bytes);
+        net_output_bytes = minus_baseline(net_output_bytes, baseline.net_output_bytes);
+        auth_failures = minus_baseline(auth_failures, baseline.auth_failures);
+        acl_denied_cmd = minus_baseline(acl_denied_cmd, baseline.acl_denied_cmd);
+        acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
+        acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
+        acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
+        if (g_server && g_server->read_local_enabled()) {
+            read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
+            read_local.keyspace_hits = minus_baseline(
+                read_local.keyspace_hits, baseline.read_local.keyspace_hits);
+            read_local.keyspace_misses = minus_baseline(
+                read_local.keyspace_misses, baseline.read_local.keyspace_misses);
+            read_local.fallback_multi = minus_baseline(
+                read_local.fallback_multi, baseline.read_local.fallback_multi);
+            read_local.fallback_watch = minus_baseline(
+                read_local.fallback_watch, baseline.read_local.fallback_watch);
+            read_local.fallback_context = minus_baseline(
+                read_local.fallback_context, baseline.read_local.fallback_context);
+            read_local.fallback_context_owner_key = minus_baseline(
+                read_local.fallback_context_owner_key,
+                baseline.read_local.fallback_context_owner_key);
+            read_local.fallback_context_connection_state = minus_baseline(
+                read_local.fallback_context_connection_state,
+                baseline.read_local.fallback_context_connection_state);
+            read_local.fallback_context_route = minus_baseline(
+                read_local.fallback_context_route, baseline.read_local.fallback_context_route);
+            read_local.fallback_context_keymiss_notify = minus_baseline(
+                read_local.fallback_context_keymiss_notify,
+                baseline.read_local.fallback_context_keymiss_notify);
+            read_local.fallback_inflight_write = minus_baseline(
+                read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
+            read_local.fallback_arm_transient = minus_baseline(
+                read_local.fallback_arm_transient, baseline.read_local.fallback_arm_transient);
+            read_local.arm.arms = minus_baseline(
+                read_local.arm.arms, baseline.read_local.arm.arms);
+            read_local.arm.sidecars = minus_baseline(
+                read_local.arm.sidecars, baseline.read_local.arm.sidecars);
+            read_local.arm.write_ring_records = minus_baseline(
+                read_local.arm.write_ring_records, baseline.read_local.arm.write_ring_records);
+            read_local.fallback_atomic_pending = minus_baseline(
+                read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
+            read_local.fallback_missing = minus_baseline(
+                read_local.fallback_missing, baseline.read_local.fallback_missing);
+            read_local.fallback_typed = minus_baseline(
+                read_local.fallback_typed, baseline.read_local.fallback_typed);
+            read_local.fallback_expired = minus_baseline(
+                read_local.fallback_expired, baseline.read_local.fallback_expired);
+            read_local.fallback_seq_churn = minus_baseline(
+                read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+            read_local.fallback_generation = minus_baseline(
+                read_local.fallback_generation, baseline.read_local.fallback_generation);
+            read_local.defer_lane_full = minus_baseline(
+                read_local.defer_lane_full, baseline.read_local.defer_lane_full);
+            read_local.defer_quota = minus_baseline(
+                read_local.defer_quota, baseline.read_local.defer_quota);
+            read_local.mget_local_hits = minus_baseline(
+                read_local.mget_local_hits, baseline.read_local.mget_local_hits);
+            read_local.mget_fallback_multi = minus_baseline(
+                read_local.mget_fallback_multi, baseline.read_local.mget_fallback_multi);
+            read_local.mget_fallback_watch = minus_baseline(
+                read_local.mget_fallback_watch, baseline.read_local.mget_fallback_watch);
+            read_local.mget_fallback_context = minus_baseline(
+                read_local.mget_fallback_context, baseline.read_local.mget_fallback_context);
+            read_local.mget_fallback_context_owner_key = minus_baseline(
+                read_local.mget_fallback_context_owner_key,
+                baseline.read_local.mget_fallback_context_owner_key);
+            read_local.mget_fallback_context_connection_state = minus_baseline(
+                read_local.mget_fallback_context_connection_state,
+                baseline.read_local.mget_fallback_context_connection_state);
+            read_local.mget_fallback_context_route = minus_baseline(
+                read_local.mget_fallback_context_route,
+                baseline.read_local.mget_fallback_context_route);
+            read_local.mget_fallback_context_keymiss_notify = minus_baseline(
+                read_local.mget_fallback_context_keymiss_notify,
+                baseline.read_local.mget_fallback_context_keymiss_notify);
+            read_local.mget_fallback_inflight_write = minus_baseline(
+                read_local.mget_fallback_inflight_write,
+                baseline.read_local.mget_fallback_inflight_write);
+            read_local.mget_fallback_arm_transient = minus_baseline(
+                read_local.mget_fallback_arm_transient,
+                baseline.read_local.mget_fallback_arm_transient);
+            read_local.mget_fallback_atomic_pending = minus_baseline(
+                read_local.mget_fallback_atomic_pending,
+                baseline.read_local.mget_fallback_atomic_pending);
+            read_local.mget_fallback_typed = minus_baseline(
+                read_local.mget_fallback_typed, baseline.read_local.mget_fallback_typed);
+            read_local.mget_fallback_expired = minus_baseline(
+                read_local.mget_fallback_expired, baseline.read_local.mget_fallback_expired);
+            read_local.mget_fallback_seq_churn = minus_baseline(
+                read_local.mget_fallback_seq_churn,
+                baseline.read_local.mget_fallback_seq_churn);
+            read_local.mget_fallback_generation = minus_baseline(
+                read_local.mget_fallback_generation,
+                baseline.read_local.mget_fallback_generation);
+        }
     }
-    const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
     if (info_section(op, "SERVER")) {
         const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
@@ -2377,13 +2458,13 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "CLIENTS")) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
                       "tracking_clients:%llu\r\nmonitor_clients:%llu\r\n",
-                static_cast<unsigned long long>(connected),
+                static_cast<unsigned long long>(g_server ? g_server->live_clients() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->blocked_clients() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->climon_tracking_clients() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
     }
-    if (info_section(op, "MEMORY")) {
+    if (want_memory) {
         // used_memory follows the same accounted basis that admits/evicts writes and that MEMORY
         // STATS uses: objects plus the stable per-key slot cost. Redis's dataset excludes keyspace
         // table overhead, so used_memory_dataset remains the object allocation portion here.
@@ -2460,7 +2541,8 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->loading() ? 1u : 0u,
                 static_cast<unsigned long long>(
                     g_server ? g_server->save_changes_since_last_save() : 0),
-                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                g_server && g_server->snapshot().in_progress() &&
+                    !g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
                 snapshot_last_bgsave_ok() ? "ok" : "err",
                 static_cast<unsigned long long>(snapshot_completed_saves()),
@@ -2498,7 +2580,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
-    if (info_section(op, "STATS")) {
+    if (want_stats) {
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
         const AtomicTripwireCounts tripwire = atomic_tripwire_counts();
@@ -2509,7 +2591,7 @@ void cmd_info(Shard&, Op& op) {
                       "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
                       "instantaneous_input_kbps:%.2f\r\ninstantaneous_output_kbps:%.2f\r\n"
                       "latest_fork_usec:0\r\n"
-                      "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
+                      "expired_subkeys:%llu\r\nexpired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
                       "sends_submitted:%llu\r\nshort_writes:%llu\r\nbytes_sent:%llu\r\n"
@@ -2601,6 +2683,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(sampled_rates[0]),
                 double(float(sampled_rates[1]) / 1024),
                 double(float(sampled_rates[2]) / 1024),
+                static_cast<unsigned long long>(expired_subkeys),
                 static_cast<unsigned long long>(expired_hash_fields),
                 static_cast<unsigned long long>(hash_field_expires),
                 static_cast<unsigned long long>(keyspace_rehashes),
@@ -2886,7 +2969,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
     if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
-    if (info_section(op, "COMMANDSTATS", false)) {
+    if (want_commands) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             uint64_t calls = 0, rejected_calls = 0, failed_calls = 0;
@@ -2910,7 +2993,7 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     if (info_section(op, "CLUSTER")) body += "# Cluster\r\ncluster_enabled:0\r\n";
-    if (info_section(op, "KEYSPACE")) {
+    if (want_keyspace) {
         body += "# Keyspace\r\n";
         if (g_database_stats && g_server) {
             DatabaseMap::Read map(g_server->databases());
@@ -3095,7 +3178,7 @@ static const CommandSpec kTable[] = {
     {"PING",       1,  2, CmdFlags::ConnLocal,                                    cmd_ping,       0,  0, 0},
     {"ACL",        2, -1, CmdFlags::ConnLocal,                                    cmd_acl,        0,  0, 0},
     {"SAVE",       1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_save,       0,  0, 0},
-    {"BGSAVE",     1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
+    {"BGSAVE",     1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgsave,     0,  0, 0},
     {"BGREWRITEAOF",1, 1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_bgrewriteaof,0, 0, 0},
     {"LASTSAVE",   1,  1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_lastsave,   0,  0, 0},
     {"ECHO",       2,  2, CmdFlags::ConnLocal,                                    cmd_echo,       0,  0, 0},
@@ -3271,7 +3354,12 @@ void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& o
     std::lock_guard<std::mutex> lock(g_config_mu);
     out.clear();
     out.reserve(g_config.size());
-    for (const ConfigValue& item : g_config) out.emplace_back(item.name, item.value);
+    for (const ConfigValue& item : g_config) {
+        // CONFIG REWRITE consumes this boot-config snapshot. The GET-only lane
+        // capability has no boot directive and must never enter that file.
+        if (!std::strcmp(item.name, "zc-min-read-local")) continue;
+        out.emplace_back(item.name, item.value);
+    }
 }
 
 bool command_aof_load_truncated(bool boot_value) {

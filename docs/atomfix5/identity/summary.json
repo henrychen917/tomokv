@@ -1,0 +1,15 @@
+{
+  "total": 18040,
+  "equal": 18034,
+  "changed": 6,
+  "handlers": 1213,
+  "handlers_equal": 1213,
+  "hot": 1316,
+  "hot_equal": 1316,
+  "changed_handlers": [],
+  "changed_hot": [],
+  "hot_nonerror_equal": 1316,
+  "handlers_nonerror_equal": 1213,
+  "other_handlers": [],
+  "other_hot": []
+}

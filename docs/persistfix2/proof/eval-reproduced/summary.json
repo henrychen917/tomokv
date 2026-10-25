@@ -1,0 +1,20 @@
+{
+  "run": "build/gate-run.Y7mf5T",
+  "rows": [
+    {
+      "job": "persistfix2_errors",
+      "exit": 0,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 1,
+  "failed": 1,
+  "archive_sha256": "2a987aa86a9ef810432b8f6bc193fb2c9587d2d9c49874f511fce7ba77f8e5c5"
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "name": "pre-differ-epoll",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/datafix2/pre-epoll-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/pre-differ-epoll.ledger"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "pre-differ-uring",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "33800-33802",
+      "--candidate-binary",
+      "/home/user/Projects/cx-datafix2/build/datafix2/pre-uring-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "GATE_LEDGER": "/home/user/Projects/cx-datafix2/docs/datafix2/pre-differ-uring.ledger"
+    },
+    "returncode": 0
+  }
+]

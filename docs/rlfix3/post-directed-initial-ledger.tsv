@@ -1,0 +1,29 @@
+PARTIAL	0	GATE_ONLY_JOBS=rlfix3_zc rlfix3_info bplus filter_unit config_unit; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.560000	configuration docs match parser
+ok	8.130000	Redis config quoting + mid-value #
+ok	0.530000	B+ counting-fingerprint filter unit
+ok	2.230000	B+ held-group GET/MGET filter battery
+ok	0.320000	read-local lane admission battery
+ok	0.120000	read-local MGET fence battery (1s)
+ok	2.020000	read-local GET miss battery (1s)
+ok	0.150000	read-local one-key delete battery (1s)
+ok	0.320000	read-local MGET fence battery (2s)
+ok	1.910000	read-local GET miss battery (2s)
+ok	0.070000	read-local one-key delete battery (2s)
+ok	0.300000	read-local borrow capability (1s, epoll, read-local 0)
+ok	0.300000	read-local borrow capability (1s, epoll, read-local 1)
+ok	0.320000	read-local borrow capability (1s, uring, read-local 0)
+ok	0.300000	read-local borrow capability (1s, uring, read-local 1)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 0)
+ok	0.290000	read-local borrow capability (2s, epoll, read-local 1)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 0)
+ok	0.290000	read-local borrow capability (2s, uring, read-local 1)
+ok	0.530000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.520000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.540000	INFO selective collection (1s, uring, read-local 0)
+ok	0.540000	INFO selective collection (1s, uring, read-local 1)
+ok	0.510000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.530000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.510000	INFO selective collection (2s, uring, read-local 0)
+ok	0.510000	INFO selective collection (2s, uring, read-local 1)

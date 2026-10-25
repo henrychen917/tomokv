@@ -829,10 +829,11 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
 }
 
 inline KvObj* kvobj_new_string(
-    Slice key, Slice val, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
+    Slice key, Slice val, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false,
+    bool force_raw = false
 ) {
     const bool  has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
-    const Enc   enc     = (val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
+    const Enc   enc     = (!force_raw && val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
     // Request the CLASS-ROUNDED size explicitly. try_overwrite writes up to good_size(request),
     // which is only within the allocation if the allocation asked for it: on jemalloc the class
     // rounds up anyway (zero cost), on an exact allocator (ASAN, glibc) requesting the raw size
@@ -856,7 +857,9 @@ inline KvObj* kvobj_new_string(
     if (key.identity() >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
-    void* ext = alloc_raw(good_size(val.n));   // same contract as the main block
+    // An empty raw string needs a stable address, but no external allocation.
+    void* ext = val.n ? alloc_raw(good_size(val.n)) : o->val_ptr();
+    if (!val.n) o->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
     if (!ext) { free_sized(mem, n); return nullptr; }
     std::memcpy(ext, val.p, val.n);
     std::memcpy(o->val_ptr(), &ext, sizeof(void*));
@@ -1048,7 +1051,7 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
         replacement = src->is_int()
             ? kvobj_new_int(src->key(), src->int_value(), expire_at_ms, reserve_ttl_slot)
             : kvobj_new_string(src->key(), kvobj_string_value(src, raw), expire_at_ms,
-                               reserve_ttl_slot);
+                               reserve_ttl_slot, src->encoding() == Enc::Extern);
     } else if (static_cast<Enc>(src->enc) == Enc::Compact) {
         const EmbeddedCompact* embedded = embedded_compact(src);
         const Slice key = src->key();

@@ -1,0 +1,9 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(14/8 server, 2/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 14 server + 2 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-wave7/build/gate-run.c4HTKe
+PARTIAL jobs (including prerequisites): release reorder_identity
+PARTIAL jobs (including prerequisites): release reorder_identity
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=108.3s; correctness-plan-fallback; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave7/docs/wave7b/correctness/reorder-owner/ledger.partial

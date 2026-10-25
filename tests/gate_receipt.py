@@ -85,14 +85,16 @@ def fingerprint_entries(entries):
     return {"sha256": digest(canonical(entries)), "entries": entries}
 
 
-def source_fingerprint(root):
-    # Git's index supplies tracked names even when ignored. Nonignored untracked sources count
-    # too, and staging/committing those same bytes later changes neither this manifest nor its hash.
-    # Raw file bytes and executable/symlink modes match Git trees; no HEAD/mtime/index hash is used.
-    names = set(git(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split(b"\0"))
+def source_names(root):
+    # The index includes tracked ignored files; ordinary untracked files count too.
+    return {os.fsdecode(raw) for raw in
+            git(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split(b"\0")
+            if raw}
+
+
+def fingerprint_paths(root, names):
     entries = []
-    for raw in names - {b""}:
-        name = os.fsdecode(raw)
+    for name in names:
         path = root / name
         require(not path.parent.is_symlink(), f"symlinked source parent: {name}")
         try:
@@ -103,15 +105,27 @@ def source_fingerprint(root):
     return fingerprint_entries(entries)
 
 
+def source_fingerprint(root):
+    # Raw bytes and executable/symlink modes, never a HEAD/mtime/index identity.
+    return fingerprint_paths(root, source_names(root))
+
+
+def harness_path(name):
+    return name == "Makefile" or name.startswith(HARNESS_DIRS)
+
+
 def harness_from_source(source):
     # Keep the full release-test/driver binding, even for helpers outside the ABBA
     # instrument. Standing null reuse now has its own transitive measurement scope.
-    return fingerprint_entries([row for row in source["entries"] if
-        row["path"] == "Makefile" or row["path"].startswith(HARNESS_DIRS)])
+    return fingerprint_entries([row for row in source["entries"] if harness_path(row["path"])])
 
 
 def harness_fingerprint(root):
-    return harness_from_source(source_fingerprint(root))
+    # Apply the exact existing scope BEFORE reading bytes. Research receipts and
+    # other non-harness files can number in the tens of thousands; hashing them
+    # repeatedly only to discard them made serverless ABBA controls take minutes.
+    # Every selected byte/mode still receives object_file's race/identity checks.
+    return fingerprint_paths(root, (name for name in source_names(root) if harness_path(name)))
 
 
 def tree_fingerprint(root, revision):
@@ -1115,6 +1129,49 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             self.assertTrue(any(row["path"] == "build/forced-tracked-header.h" for row in fingerprint["entries"]))
             tracked.write_text("tracked bytes changed\n")
             self.assertNotEqual(source_fingerprint(self.root), fingerprint)
+
+        def test_harness_filters_paths_before_reading_without_changing_identity(self):
+            doc = self.root / "research-evidence"
+            doc.write_bytes(b"not a harness input")
+            helper = self.root / "tests/new helper.py"
+            helper.write_bytes(b"first content")
+            ignored = self.root / "tests/__pycache__/tracked.pyc"
+            ignored.parent.mkdir()
+            ignored.write_bytes(b"tracked ignored input")
+            git(self.root, "add", "-f", str(ignored.relative_to(self.root)))
+            link = self.root / ".githooks/link"
+            link.symlink_to("../research-evidence")
+
+            def same():
+                expected = harness_from_source(source_fingerprint(self.root))
+                with mock.patch(__name__ + ".object_file", wraps=object_file) as reads:
+                    actual = harness_fingerprint(self.root)
+                self.assertEqual(actual, expected)
+                self.assertTrue(reads.call_args_list)
+                self.assertTrue(all(harness_path(call.args[0].relative_to(self.root).as_posix())
+                                    for call in reads.call_args_list), "non-harness bytes were read")
+                return actual
+
+            before = same()
+            stamp = helper.stat()
+            helper.write_bytes(b"other content")  # same size, preserved mtime is not identity
+            os.utime(helper, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            changed = same()
+            self.assertNotEqual(before, changed)
+            helper.chmod(0o755)
+            self.assertNotEqual(changed, same())
+            helper.unlink()  # nonignored untracked removal
+            same()
+            ignored.unlink()  # tracked deletion
+            same()
+            link.unlink()
+            link.symlink_to("../other-target")
+            same()
+            # Full release fingerprints must still notice out-of-scope changes.
+            source, harness = source_fingerprint(self.root), same()
+            doc.write_bytes(b"changed research evidence")
+            self.assertNotEqual(source_fingerprint(self.root), source)
+            self.assertEqual(harness_fingerprint(self.root), harness)
 
         def test_actual_history_recorder_matches_context_and_unscored_prerequisites(self):
             import gate_history

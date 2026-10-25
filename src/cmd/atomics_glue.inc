@@ -321,6 +321,16 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
         KvObj* value = state.apply[pos].present ? key.stable_object : nullptr;
         if (value && state.apply[pos].preserve_eviction_meta)
             geo_store_preserve_metadata(shard, op.arg(key.arg), key.hash, value);
+        KvObj* watch_previous = nullptr;
+        if (shard.has_watches())
+            watch_previous = store.atomic_has_records()
+                ? store.atomic_resolve(key.hash, op.arg(key.arg), store.atomic_read_epoch())
+                : store.find_no_touch(key.hash, op.arg(key.arg));
+        const bool watch_changed = shard.has_watches() &&
+            (state.kind != Kind::Script || (state.status[pos] & kScriptModified)) &&
+            (value || watch_previous) &&
+            !(state.kind == Kind::Smove && pos == 1 &&
+              state.images[pos].entries == state.apply[pos].entries);
         KvObj* old = store.atomic_install_group(
             pending_entry, key.hash, op.arg(key.arg), value);
         // Empty STORE results notify only when their owner actually replaced a
@@ -331,6 +341,7 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
              (is_geo_kind(state.kind) && state.geo_store) ||
              (state.kind == Kind::Sort && state.sort_options.store)))
             state.images[pos].present = old != nullptr;
+        if (watch_changed) watch_record_modified(shard, op.arg(key.arg));
         if (old) parked_bytes += kvobj_size(old);
         if (value) {
             installed_bytes += kvobj_size(value);

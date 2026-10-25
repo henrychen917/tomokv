@@ -24,8 +24,16 @@ import statistics
 import sys
 import tempfile
 import time
-import unittest
 import uuid
+
+
+# Budget/record/watch are short-lived CLI children for every gate row. Importing
+# unittest on each of those children put test-framework startup on the one-slot
+# scheduler fixture's critical path. Imported test discovery and the self-test
+# CLI still create real TestCase subclasses; ordinary CLI commands never run them.
+_HistoryTestCase = object
+if __name__ != "__main__" or "self-test" in sys.argv[1:]:
+    from unittest import TestCase as _HistoryTestCase
 
 
 SCHEMA = 1
@@ -731,7 +739,7 @@ def watch(pid: int, parent_start: int, marker: Path, *, seconds: float | None = 
         signal_identity(child, born, signal.SIGKILL)
 
 
-class HistoryTests(unittest.TestCase):
+class HistoryTests(_HistoryTestCase):
     def setUp(self):
         build = Path(__file__).resolve().parents[1] / "build"
         build.mkdir(exist_ok=True)
@@ -1570,7 +1578,7 @@ inherited_exit=$(trap -p EXIT)
         self.assertEqual((self.directory / "timings").read_text(), "ok\t.3\tabba\n")
 
 
-class FlakeHistoryTests(unittest.TestCase):
+class FlakeHistoryTests(_HistoryTestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -1828,6 +1836,7 @@ def main() -> int:
             arguments = args.arguments[1:] if args.arguments[:1] == ["--"] else args.arguments
             print(dependency_label(arguments) if args.command == "dependency-label" else abba_context(arguments))
         else:
+            import unittest
             suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(case)
                                        for case in (HistoryTests, FlakeHistoryTests))
             return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1

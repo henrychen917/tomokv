@@ -1,0 +1,55 @@
+$ make -j16 all build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled mdbqsbr-live-arms
+make: Nothing to be done for 'all'.
+make: 'build/expire-notify-unit' is up to date.
+make: 'build/ktls-lifetime-unit' is up to date.
+make: 'build/moverfix-unit' is up to date.
+make: 'build/moverfix-db0-unit' is up to date.
+make: 'build/publishfix-unit' is up to date.
+make: 'build/at15-unit' is up to date.
+make: 'build/at15-db0-unit' is up to date.
+make: 'build/execabort-watch-unit' is up to date.
+make: 'build/execabort-watch-db0-unit' is up to date.
+make: 'build/core-concurrency-unit' is up to date.
+make: 'build/atomic-survivors-unit' is up to date.
+make: 'build/txnorder-wake-unit' is up to date.
+make: 'build/txnorder-episodes' is up to date.
+make: 'build/txnorder-episodes-debug' is up to date.
+make: 'build/txnorder-watch-unit' is up to date.
+make: 'build/txnorder-watch-db0-unit' is up to date.
+make: 'build/netcmd-unit' is up to date.
+make: 'build/encodingfix-unit' is up to date.
+make: 'build/netcap-unit' is up to date.
+make: 'build/waits-unit' is up to date.
+make: 'build/rehash-waits-unit' is up to date.
+make: 'build/multidb-unit' is up to date.
+make: 'build/multidb-boundary-unit' is up to date.
+make: 'build/storesize-unit' is up to date.
+make: 'build/respresume-unit' is up to date.
+make: 'build/respresume-migration' is up to date.
+make: 'build/exbatch-unit' is up to date.
+make: 'build/exbatch-db0-unit' is up to date.
+make: 'build/wb-rule-units' is up to date.
+make: 'build/wbland-units' is up to date.
+make: 'build/rltopo-unit' is up to date.
+make: 'build/lbplanner-units' is up to date.
+make: 'build/shutdown-unit' is up to date.
+make: 'build/persistfix-units' is up to date.
+make: 'build/ktls-keyupdate' is up to date.
+make: 'build/ktls-keyupdate-unit' is up to date.
+make: 'build/flushfix-units' is up to date.
+make: 'build/splitlocal-unit' is up to date.
+make: 'build/reorder-engagement-unit' is up to date.
+make: 'build/reorder-engagement-unit-db0' is up to date.
+make: 'build/racefix-climon' is up to date.
+make: 'build/aoforder-scheduled' is up to date.
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-blockfix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-blockfix'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-blockfix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-blockfix'
+$ make -f Makefile -f tools/blockfix_cost.mk -j16 build/blockfix-cost build/tomokv.blockfix-cost.sha256
+make: 'build/blockfix-cost' is up to date.
+make: 'build/tomokv.blockfix-cost.sha256' is up to date.

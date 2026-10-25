@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "tests/tailgen_stall.py",
+    "--self-test"
+  ],
+  "affinity": [
+    90,
+    91
+  ],
+  "seconds": 0.039528959430754185,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Stall.test_boundaries_and_nonvacuity",
+      "seconds": 0.0003757011145353317
+    },
+    {
+      "test": "__main__.self_test.<locals>.Stall.test_gate_row_fails_closed_and_stops_its_server",
+      "seconds": 0.005969075486063957
+    },
+    {
+      "test": "__main__.self_test.<locals>.Stall.test_population_and_argv_use_the_valid_instrument",
+      "seconds": 0.0015759337693452835
+    }
+  ]
+}

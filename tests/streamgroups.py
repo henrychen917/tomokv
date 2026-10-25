@@ -197,7 +197,8 @@ group_info = pairs(admin.cmd("XINFO", "GROUPS", "sg")[0])
 consumer_info = [pairs(item) for item in admin.cmd("XINFO", "CONSUMERS", "sg", "g")]
 note("XINFO GROUPS cross-checks cursor, PEL, entries-read and lag",
      group_info[b"last-delivered-id"] == b"8-0" and group_info[b"pending"] == 2 and
-     group_info[b"entries-read"] == 8 and group_info[b"lag"] == 0)
+     group_info[b"entries-read"] == 7 and group_info[b"lag"] == 1,
+     repr(group_info))
 note("XINFO CONSUMERS exposes all created consumers and exact pending sum",
      len(consumer_info) == 4 and sum(item[b"pending"] for item in consumer_info) == 2 and
      all(item[b"idle"] >= 0 and item[b"inactive"] >= -1 for item in consumer_info))

@@ -1,0 +1,228 @@
+[
+  {
+    "name": "post-differ-epoll",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=differ-split differ-armed; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 6
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-differ-epoll.ledger.partial",
+    "archive": "docs/datafix2/post-differ-epoll-evidence.tar.gz"
+  },
+  {
+    "name": "post-differ-uring",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=differ-split differ-armed; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 6
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-differ-uring.ledger.partial",
+    "archive": "docs/datafix2/post-differ-uring-evidence.tar.gz"
+  },
+  {
+    "name": "post-eviction-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 9
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-eviction-gate.ledger.partial",
+    "archive": "docs/datafix2/post-eviction-gate-evidence.tar.gz"
+  },
+  {
+    "name": "post-final-v2-directed-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 6
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-final-v2-directed-gate.ledger.partial",
+    "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz"
+  },
+  {
+    "name": "post-related-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomic_units netcmd_units exbatch_units exbatch_live storage_units hexpread notify notify_order notify_aof scriptfix script_bounds sort moverfix bugs5 dump_restore aof-epoll aof-uring snapshot-epoll snapshot-uring bplus cmd_metadata; NOT A RECEIPT",
+    "returncode": 1,
+    "counts": {
+      "ok": 450,
+      "FAIL": 14
+    },
+    "failures": [
+      "storage unlinked regression",
+      "storage randomkey regression",
+      "storage rehash regression",
+      "storage rollback regression",
+      "storage snapshot-eviction regression",
+      "storage flags regression",
+      "storage aof-eviction regression",
+      "storage intents regression",
+      "storage imported-hash regression",
+      "storage field-index-failure regression",
+      "storage hash-bytes regression",
+      "storage deadline-allocation-failure regression",
+      "storage flush-prepared-capacity regression",
+      "atomic survivor: script_apply"
+    ],
+    "ledger": "docs/datafix2/post-related-gate.ledger.partial",
+    "archive": "docs/datafix2/post-related-gate-evidence.tar.gz"
+  },
+  {
+    "name": "post-repaired-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=atomic_units debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder2; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 96
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-repaired-gate.ledger.partial",
+    "archive": "docs/datafix2/post-repaired-gate-evidence.tar.gz"
+  },
+  {
+    "name": "post-storage-final-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=storage_units; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 13
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-storage-final-gate.ledger.partial",
+    "archive": "docs/datafix2/post-storage-final-gate-evidence.tar.gz"
+  },
+  {
+    "name": "post-watch-related-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=core_units ntnew4_live release_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 57
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/post-watch-related-gate.ledger.partial",
+    "archive": "docs/datafix2/post-watch-related-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-differ-epoll",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=differ-split differ-armed; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 6
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/pre-differ-epoll.ledger.partial",
+    "archive": "docs/datafix2/pre-differ-epoll-evidence.tar.gz"
+  },
+  {
+    "name": "pre-differ-uring",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=differ-split differ-armed; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 6
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/pre-differ-uring.ledger.partial",
+    "archive": "docs/datafix2/pre-differ-uring-evidence.tar.gz"
+  },
+  {
+    "name": "pre-eviction-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=evict-lruclock-split-0 evict-lruclock-split-1 evict-lruclock-armed-0 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 9
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/pre-eviction-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-eviction-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-final-directed-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle; NOT A RECEIPT",
+    "returncode": 1,
+    "counts": {
+      "ok": 1,
+      "FAIL": 5
+    },
+    "failures": [
+      "datafix2 CD4.7 no-touch lookups vs Redis 7.4",
+      "datafix2 CD4.15 string encoding vs Redis 7.4",
+      "datafix2 CD4.14 expired_subkeys vs Redis 7.4",
+      "datafix2 CD4.9 write WATCH table vs Redis 7.4",
+      "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4"
+    ],
+    "ledger": "docs/datafix2/pre-final-directed-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-final-directed-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-final-v2-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=datafix2_watch datafix2_idle; NOT A RECEIPT",
+    "returncode": 1,
+    "counts": {
+      "ok": 1,
+      "FAIL": 2
+    },
+    "failures": [
+      "datafix2 CD4.9 write WATCH table vs Redis 7.4",
+      "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4"
+    ],
+    "ledger": "docs/datafix2/pre-final-v2-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-final-v2-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-related-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 fused-0 fused-1 txn_group_fused txn_group_split txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1 atomic_units netcmd_units exbatch_units exbatch_live storage_units hexpread notify notify_order notify_aof scriptfix script_bounds sort moverfix bugs5 dump_restore aof-epoll aof-uring snapshot-epoll snapshot-uring bplus cmd_metadata; NOT A RECEIPT",
+    "returncode": 1,
+    "counts": {
+      "ok": 459,
+      "FAIL": 5
+    },
+    "failures": [
+      "edgeenc battery (atomic 0)",
+      "fused+armed edgeenc battery (atomic 0)",
+      "edgeenc battery (atomic 1)",
+      "fused+armed edgeenc battery (atomic 1)",
+      "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+    ],
+    "ledger": "docs/datafix2/pre-related-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-related-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-snapshot-repeat-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=snapshot-epoll; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 17
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/pre-snapshot-repeat-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-snapshot-repeat-gate-evidence.tar.gz"
+  },
+  {
+    "name": "pre-watch-related-gate",
+    "receipt_kind": "partial diagnostic, not a full gate receipt",
+    "selector": "GATE_ONLY_JOBS=core_units ntnew4_live release_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring; NOT A RECEIPT",
+    "returncode": 0,
+    "counts": {
+      "ok": 57
+    },
+    "failures": [],
+    "ledger": "docs/datafix2/pre-watch-related-gate.ledger.partial",
+    "archive": "docs/datafix2/pre-watch-related-gate-evidence.tar.gz"
+  }
+]

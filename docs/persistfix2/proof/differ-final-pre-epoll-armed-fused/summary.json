@@ -1,0 +1,30 @@
+{
+  "name": "differ-final-pre-epoll-armed-fused",
+  "command": [
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+    "36881",
+    "36885",
+    "72-79",
+    "6:2"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_LOAD_CORES": "64-71",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_DIFFER_GEOMETRY": "armed-fused",
+    "GATE_RUN_ID": "persistfix2-standard",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-armed-fused"
+  },
+  "expected_exit": 0,
+  "started": 1792884577.8425581,
+  "exit": 0,
+  "finished": 1792885650.4139304,
+  "passed": 466,
+  "failed": 0,
+  "runtime": "17m53s",
+  "archive_sha256": "d6eedeabdf0abae45803d33e3386348daedca1d42cca087a3441be6d0772017a",
+  "comparison_failures": []
+}

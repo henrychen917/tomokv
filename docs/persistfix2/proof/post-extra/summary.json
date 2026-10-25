@@ -1,0 +1,62 @@
+{
+  "run": "build/gate-run.0k7bu8",
+  "rows": [
+    {
+      "job": "auth",
+      "exit": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "job": "dbdefault",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "dispatch_arity",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "dispatch_errors",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "router_uniform",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_config",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_scalar",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "serverfix_waitaof",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "passed": 15,
+  "failed": 0,
+  "archive_sha256": "67a5ef28ca9e00641bdab766143830a8c0c2d182f0c1eb538f93ab301f96a953"
+}

@@ -208,6 +208,7 @@ public:
     bool post_chunk(uint32_t producer, std::unique_ptr<AofChunk>& chunk,
                     Ring& producer_ring, LoopSignals& signals);
     bool request_rewrite();
+    bool start_offline_rewrite(ThreadCtx& writer, Ring& ring, std::string& error);
     bool rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_epoch,
                       int64_t cut_ms, std::string& error);
     bool rewrite_complete(const std::string& base_path, uint64_t snapshot_epoch);
@@ -297,7 +298,9 @@ public:
         debug_rewrite_pause_.store(stage, std::memory_order_release);
     }
 
-    void fail(const char* message);
+    void fail(const char* message, int error = 0);
+    bool deny_command(Op& op) const;
+    void reply_write_error(Op& op, bool transaction = false) const;
     bool wait_until_drained(uint32_t timeout_ms);
 
     // AOF-only completion batches. Done is the retirement capability: publishing it before
@@ -398,6 +401,7 @@ private:
     void maybe_pause_rewrite(AofRewriteDebugStage stage);
     void cleanup_unreferenced_files();
     bool schedule_rewrite(bool automatic);
+    bool complete_offline_rewrite(const std::string& base_path, uint64_t epoch);
 
     bool configured_ = false;
     bool routing_upgrade_ = false;
@@ -412,6 +416,7 @@ private:
     std::atomic<bool> recording_{false};
     std::atomic<bool> failed_{false};
     std::atomic<bool> writer_ready_{false};
+    std::atomic<int> last_write_errno_{0}; // existing alignment bytes; published before failed_
     std::atomic<uint64_t> pending_chunks_{0};
     std::atomic<uint64_t> posted_sequence_{0};
     std::atomic<uint64_t> written_sequence_{0};

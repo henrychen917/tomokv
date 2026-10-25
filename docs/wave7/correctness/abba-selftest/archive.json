@@ -1,0 +1,67 @@
+{
+  "format": 2,
+  "run_dir": "/home/user/Projects/cx-wave7/build/wave7/selftest-source/build/gate-run.GgpzUX",
+  "archive_sha256": "88dcc565d793a545e1428274e4b80abba4ae8f1a2bad2af799abdde86bbd86b8",
+  "included": [
+    {
+      "path": "families.tsv",
+      "bytes": 58,
+      "sha256": "1ffff0280ace4cc4f23decaf0b2c6294ff039a56755ae12579b2f7f85e3b6f52"
+    },
+    {
+      "path": "jobs/abba_selftest/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/abba_selftest/family.tsv",
+      "bytes": 58,
+      "sha256": "1ffff0280ace4cc4f23decaf0b2c6294ff039a56755ae12579b2f7f85e3b6f52"
+    },
+    {
+      "path": "jobs/abba_selftest/gate-abbagate-unit.txt",
+      "bytes": 157017,
+      "sha256": "b0f27f1b7e9d7bee063e1cb1da9963ce5a39582c08a3b876a2ecf167658d3bd0"
+    },
+    {
+      "path": "jobs/abba_selftest/ledger",
+      "bytes": 61,
+      "sha256": "2115edf73ef03723997c52898451cd70fb8214822e1775ddca2928bee3ed8fe4"
+    },
+    {
+      "path": "jobs/abba_selftest/output.log",
+      "bytes": 190,
+      "sha256": "8835b8cb51e6ecdfd6d798d57bbfb0e5ea90b3431cf7be5c3976279081475609"
+    },
+    {
+      "path": "jobs/abba_selftest/timings",
+      "bytes": 61,
+      "sha256": "2115edf73ef03723997c52898451cd70fb8214822e1775ddca2928bee3ed8fe4"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "fb8eace66f502d70e85d0b21d42aebfc9dc7b4f44e99815ff1bf26f72f1c6501"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1172,
+      "sha256": "982c481bfaa8aca09aa0ae2df9d58fcbad0dfd1b87eb11f2f31f5ccbd67cc198"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 190,
+      "sha256": "8342002be375b55e4aa3225befe8ec892125796bd77b426ab0a4a17f6a8df54f"
+    }
+  ],
+  "excluded_runtime_data": [
+    {
+      "path": "jobs/abba_selftest/row-timeout-3399039.3399039.455640524.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0
+    }
+  ]
+}

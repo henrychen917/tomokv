@@ -1,0 +1,1555 @@
+[
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 950,
+    "post": 949,
+    "delta": -1,
+    "pre_per_command": 950.0,
+    "post_per_command": 949.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -1
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1330,
+    "post": 1330,
+    "delta": 0,
+    "pre_per_command": 1330.0,
+    "post_per_command": 1330.0,
+    "function_delta": {},
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 18930,
+    "post": 18898,
+    "delta": -32,
+    "pre_per_command": 591.5625,
+    "post_per_command": 590.5625,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -32
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 18966,
+    "post": 18934,
+    "delta": -32,
+    "pre_per_command": 592.6875,
+    "post_per_command": 591.6875,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -32
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1575,
+    "post": 1575,
+    "delta": 0,
+    "pre_per_command": 1575.0,
+    "post_per_command": 1575.0,
+    "function_delta": {},
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1940,
+    "post": 1940,
+    "delta": 0,
+    "pre_per_command": 1940.0,
+    "post_per_command": 1940.0,
+    "function_delta": {},
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 18935,
+    "post": 18935,
+    "delta": 0,
+    "pre_per_command": 591.71875,
+    "post_per_command": 591.71875,
+    "function_delta": {},
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 18971,
+    "post": 18971,
+    "delta": 0,
+    "pre_per_command": 592.84375,
+    "post_per_command": 592.84375,
+    "function_delta": {},
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1084,
+    "post": 1078,
+    "delta": -6,
+    "pre_per_command": 1084.0,
+    "post_per_command": 1078.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -6
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1462,
+    "post": 1457,
+    "delta": -5,
+    "pre_per_command": 1462.0,
+    "post_per_command": 1457.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 23218,
+    "post": 23026,
+    "delta": -192,
+    "pre_per_command": 725.5625,
+    "post_per_command": 719.5625,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 23254,
+    "post": 23062,
+    "delta": -192,
+    "pre_per_command": 726.6875,
+    "post_per_command": 720.6875,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1709,
+    "post": 1704,
+    "delta": -5,
+    "pre_per_command": 1709.0,
+    "post_per_command": 1704.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 2072,
+    "post": 2067,
+    "delta": -5,
+    "pre_per_command": 2072.0,
+    "post_per_command": 2067.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 23223,
+    "post": 23063,
+    "delta": -160,
+    "pre_per_command": 725.71875,
+    "post_per_command": 720.71875,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 23259,
+    "post": 23099,
+    "delta": -160,
+    "pre_per_command": 726.84375,
+    "post_per_command": 721.84375,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1547,
+    "post": 1541,
+    "delta": -6,
+    "pre_per_command": 1547.0,
+    "post_per_command": 1541.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -6
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1925,
+    "post": 1920,
+    "delta": -5,
+    "pre_per_command": 1925.0,
+    "post_per_command": 1920.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 38563,
+    "post": 38371,
+    "delta": -192,
+    "pre_per_command": 1205.09375,
+    "post_per_command": 1199.09375,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 38599,
+    "post": 38407,
+    "delta": -192,
+    "pre_per_command": 1206.21875,
+    "post_per_command": 1200.21875,
+    "function_delta": {
+      "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 2172,
+    "post": 2167,
+    "delta": -5,
+    "pre_per_command": 2172.0,
+    "post_per_command": 2167.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 2535,
+    "post": 2530,
+    "delta": -5,
+    "pre_per_command": 2535.0,
+    "post_per_command": 2530.0,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 38568,
+    "post": 38408,
+    "delta": -160,
+    "pre_per_command": 1205.25,
+    "post_per_command": 1200.25,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 38604,
+    "post": 38444,
+    "delta": -160,
+    "pre_per_command": 1206.375,
+    "post_per_command": 1201.375,
+    "function_delta": {
+      "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 839,
+    "post": 828,
+    "delta": -11,
+    "pre_per_command": 839.0,
+    "post_per_command": 828.0,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -24,
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -1,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 14
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1219,
+    "post": 1209,
+    "delta": -10,
+    "pre_per_command": 1219.0,
+    "post_per_command": 1209.0,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -24,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 14
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 19377,
+    "post": 19025,
+    "delta": -352,
+    "pre_per_command": 605.53125,
+    "post_per_command": 594.53125,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -768,
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -32,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 448
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 19413,
+    "post": 19061,
+    "delta": -352,
+    "pre_per_command": 606.65625,
+    "post_per_command": 595.65625,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -32,
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -768,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 448
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1077,
+    "post": 1067,
+    "delta": -10,
+    "pre_per_command": 1077.0,
+    "post_per_command": 1067.0,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -24,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 14
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1442,
+    "post": 1432,
+    "delta": -10,
+    "pre_per_command": 1442.0,
+    "post_per_command": 1432.0,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -24,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 14
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 18995,
+    "post": 18675,
+    "delta": -320,
+    "pre_per_command": 593.59375,
+    "post_per_command": 583.59375,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -768,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 448
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "GET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 19031,
+    "post": 18711,
+    "delta": -320,
+    "pre_per_command": 594.71875,
+    "post_per_command": 584.71875,
+    "function_delta": {
+      "tomo_db0::Op::Sink::reserve(unsigned long)": -768,
+      "void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]": 448
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 971,
+    "post": 965,
+    "delta": -6,
+    "pre_per_command": 971.0,
+    "post_per_command": 965.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -6
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1349,
+    "post": 1344,
+    "delta": -5,
+    "pre_per_command": 1349.0,
+    "post_per_command": 1344.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 23601,
+    "post": 23409,
+    "delta": -192,
+    "pre_per_command": 737.53125,
+    "post_per_command": 731.53125,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 23637,
+    "post": 23445,
+    "delta": -192,
+    "pre_per_command": 738.65625,
+    "post_per_command": 732.65625,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1209,
+    "post": 1204,
+    "delta": -5,
+    "pre_per_command": 1209.0,
+    "post_per_command": 1204.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1572,
+    "post": 1567,
+    "delta": -5,
+    "pre_per_command": 1572.0,
+    "post_per_command": 1567.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 23219,
+    "post": 23059,
+    "delta": -160,
+    "pre_per_command": 725.59375,
+    "post_per_command": 720.59375,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "SET",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 23255,
+    "post": 23095,
+    "delta": -160,
+    "pre_per_command": 726.71875,
+    "post_per_command": 721.71875,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1330,
+    "post": 1324,
+    "delta": -6,
+    "pre_per_command": 1330.0,
+    "post_per_command": 1324.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -6
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1708,
+    "post": 1703,
+    "delta": -5,
+    "pre_per_command": 1708.0,
+    "post_per_command": 1703.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 35618,
+    "post": 35426,
+    "delta": -192,
+    "pre_per_command": 1113.0625,
+    "post_per_command": 1107.0625,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "1s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 35654,
+    "post": 35462,
+    "delta": -192,
+    "pre_per_command": 1114.1875,
+    "post_per_command": 1108.1875,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)": -192
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 1568,
+    "post": 1563,
+    "delta": -5,
+    "pre_per_command": 1568.0,
+    "post_per_command": 1563.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 1931,
+    "post": 1926,
+    "delta": -5,
+    "pre_per_command": 1931.0,
+    "post_per_command": 1926.0,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)": -5
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 35236,
+    "post": 35076,
+    "delta": -160,
+    "pre_per_command": 1101.125,
+    "post_per_command": 1096.125,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "INCR",
+    "mode": "2s",
+    "batch": 32,
+    "atomic": 1,
+    "threshold": 10000,
+    "pre": 35272,
+    "post": 35112,
+    "delta": -160,
+    "pre_per_command": 1102.25,
+    "post_per_command": 1097.25,
+    "function_delta": {
+      "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)": -160
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10182,
+    "post": 10222,
+    "delta": 40,
+    "pre_per_command": 10182.0,
+    "post_per_command": 10222.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 10203,
+    "post": 10243,
+    "delta": 40,
+    "pre_per_command": 10203.0,
+    "post_per_command": 10243.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 81190,
+    "post": 81510,
+    "delta": 320,
+    "pre_per_command": 10148.75,
+    "post_per_command": 10188.75,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 81358,
+    "post": 81678,
+    "delta": 320,
+    "pre_per_command": 10169.75,
+    "post_per_command": 10209.75,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10182,
+    "post": 10222,
+    "delta": 40,
+    "pre_per_command": 10182.0,
+    "post_per_command": 10222.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 10203,
+    "post": 10243,
+    "delta": 40,
+    "pre_per_command": 10203.0,
+    "post_per_command": 10243.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 81190,
+    "post": 81510,
+    "delta": 320,
+    "pre_per_command": 10148.75,
+    "post_per_command": 10188.75,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 81358,
+    "post": 81678,
+    "delta": 320,
+    "pre_per_command": 10169.75,
+    "post_per_command": 10209.75,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10854,
+    "post": 10894,
+    "delta": 40,
+    "pre_per_command": 10854.0,
+    "post_per_command": 10894.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 17024,
+    "post": 17080,
+    "delta": 56,
+    "pre_per_command": 17024.0,
+    "post_per_command": 17080.0,
+    "function_delta": {
+      "tomo::FlatStore::atomic_admit(tomo::Slice, tomo::KvObj const*)": -8,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 64
+    },
+    "library_call_delta": {
+      "tomo::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-normal/probe": -1,
+      "tomo::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-normal/probe": 1
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 86797,
+    "post": 87117,
+    "delta": 320,
+    "pre_per_command": 10849.625,
+    "post_per_command": 10889.625,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 161490,
+    "post": 161938,
+    "delta": 448,
+    "pre_per_command": 20186.25,
+    "post_per_command": 20242.25,
+    "function_delta": {
+      "tomo::FlatStore::atomic_admit(tomo::Slice, tomo::KvObj const*)": -64,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 512
+    },
+    "library_call_delta": {
+      "tomo::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-normal/probe": -8,
+      "tomo::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-normal/probe": 8
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10650,
+    "post": 10690,
+    "delta": 40,
+    "pre_per_command": 10650.0,
+    "post_per_command": 10690.0,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 40
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 16670,
+    "post": 16726,
+    "delta": 56,
+    "pre_per_command": 16670.0,
+    "post_per_command": 16726.0,
+    "function_delta": {
+      "tomo::FlatStore::atomic_admit(tomo::Slice, tomo::KvObj const*)": -8,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 64
+    },
+    "library_call_delta": {
+      "tomo::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-normal/probe": -1,
+      "tomo::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-normal/probe": 1
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 85165,
+    "post": 85485,
+    "delta": 320,
+    "pre_per_command": 10645.625,
+    "post_per_command": 10685.625,
+    "function_delta": {
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 320
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "normal",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 158658,
+    "post": 159106,
+    "delta": 448,
+    "pre_per_command": 19832.25,
+    "post_per_command": 19888.25,
+    "function_delta": {
+      "tomo::FlatStore::atomic_admit(tomo::Slice, tomo::KvObj const*)": -64,
+      "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 512
+    },
+    "library_call_delta": {
+      "tomo::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-normal/probe": -8,
+      "tomo::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo::Client*)#1}::_FUN(void*, tomo::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-normal/probe": 8
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10301,
+    "post": 10349,
+    "delta": 48,
+    "pre_per_command": 10301.0,
+    "post_per_command": 10349.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 10322,
+    "post": 10370,
+    "delta": 48,
+    "pre_per_command": 10322.0,
+    "post_per_command": 10370.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 82142,
+    "post": 82526,
+    "delta": 384,
+    "pre_per_command": 10267.75,
+    "post_per_command": 10315.75,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 82310,
+    "post": 82694,
+    "delta": 384,
+    "pre_per_command": 10288.75,
+    "post_per_command": 10336.75,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10301,
+    "post": 10349,
+    "delta": 48,
+    "pre_per_command": 10301.0,
+    "post_per_command": 10349.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 10322,
+    "post": 10370,
+    "delta": 48,
+    "pre_per_command": 10322.0,
+    "post_per_command": 10370.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 82142,
+    "post": 82526,
+    "delta": 384,
+    "pre_per_command": 10267.75,
+    "post_per_command": 10315.75,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MGET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 82310,
+    "post": 82694,
+    "delta": 384,
+    "pre_per_command": 10288.75,
+    "post_per_command": 10336.75,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 11095,
+    "post": 11143,
+    "delta": 48,
+    "pre_per_command": 11095.0,
+    "post_per_command": 11143.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 16457,
+    "post": 16497,
+    "delta": 40,
+    "pre_per_command": 16457.0,
+    "post_per_command": 16497.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48,
+      "tomo_db0::FlatStore::atomic_admit(tomo_db0::Slice, tomo_db0::KvObj const*)": -8
+    },
+    "library_call_delta": {
+      "tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-db0/probe": 1,
+      "tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-db0/probe": -1
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 88725,
+    "post": 89109,
+    "delta": 384,
+    "pre_per_command": 11090.625,
+    "post_per_command": 11138.625,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "1s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 157626,
+    "post": 157946,
+    "delta": 320,
+    "pre_per_command": 19703.25,
+    "post_per_command": 19743.25,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384,
+      "tomo_db0::FlatStore::atomic_admit(tomo_db0::Slice, tomo_db0::KvObj const*)": -64
+    },
+    "library_call_delta": {
+      "tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-db0/probe": 8,
+      "tomo_db0::CoreConcurrencyTest::run<true>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-db0/probe": -8
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 10914,
+    "post": 10962,
+    "delta": 48,
+    "pre_per_command": 10914.0,
+    "post_per_command": 10962.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 1,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 16126,
+    "post": 16166,
+    "delta": 40,
+    "pre_per_command": 16126.0,
+    "post_per_command": 16166.0,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 48,
+      "tomo_db0::FlatStore::atomic_admit(tomo_db0::Slice, tomo_db0::KvObj const*)": -8
+    },
+    "library_call_delta": {
+      "tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-db0/probe": 1,
+      "tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-db0/probe": -1
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 0,
+    "threshold": -1,
+    "pre": 87277,
+    "post": 87661,
+    "delta": 384,
+    "pre_per_command": 10909.625,
+    "post_per_command": 10957.625,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384
+    },
+    "library_call_delta": {},
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  },
+  {
+    "namespace": "db0",
+    "command": "MSET",
+    "mode": "2s",
+    "batch": 8,
+    "atomic": 1,
+    "threshold": -1,
+    "pre": 154978,
+    "post": 155298,
+    "delta": 320,
+    "pre_per_command": 19372.25,
+    "post_per_command": 19412.25,
+    "function_delta": {
+      "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)": 384,
+      "tomo_db0::FlatStore::atomic_admit(tomo_db0::Slice, tomo_db0::KvObj const*)": -64
+    },
+    "library_call_delta": {
+      "tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/post-db0/probe": 8,
+      "tomo_db0::CoreConcurrencyTest::run<false>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int, bool, long)::{lambda(void*, tomo_db0::Client*)#1}::_FUN(void*, tomo_db0::Client*) in section .text of /home/user/Projects/cx-wave7/build/wave7/commands/pre-db0/probe": -8
+    },
+    "post_watch_functions": {},
+    "external_library_call_counts_equal": true
+  }
+]

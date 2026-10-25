@@ -1330,6 +1330,8 @@ public:
     // The monitor alone gathers and searches. The IO tail only installs a finished result.
     bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms);
     bool lb_consume_plan(uint32_t coordinator);
+    // DEBUG-only admission from the destination's own IO thread. Normal LB policy is unchanged.
+    bool lb_debug_move_client(uint64_t id, uint32_t destination, std::string& error);
     void monitor_controllers();
 
     // Offline PAD-A targets only. No production call reaches these retained PRE bodies;
@@ -1468,12 +1470,19 @@ public:
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
     }
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
-                    std::string& error) {
+                    std::string& error, uint64_t observed_completed = UINT64_MAX) {
         if (cfg_.thread_mode == ThreadMode::Fused) {
             error = "ERR FLIP is unavailable with --thread-mode 1s: threads are fused";
             return false;
         }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        // The automatic controller's evidence belongs to this completion epoch.
+        // Check under admission's lock so a manual completion between its sample
+        // and this call cannot be silently acknowledged as part of the new move.
+        if (observed_completed != UINT64_MAX && flip_completed() != observed_completed) {
+            error = "ERR FLIP controller evidence was superseded by a completed FLIP";
+            return false;
+        }
         const LbStage live_lb_stage = lb_stage();
         if (live_lb_stage == LbStage::IoDrain || live_lb_stage == LbStage::ExDrain ||
             live_lb_stage == LbStage::ClientDrain || live_lb_stage == LbStage::PlanReady) {
@@ -1858,7 +1867,10 @@ public:
 
     enum class ShutdownSave : uint8_t { Configured, Save, NoSave };
     SnapshotManager::StartResult shutdown(ShutdownSave save, ThreadCtx* writer, Ring* ring,
-                                          std::string& error);
+                                          std::string& error, bool force = false,
+                                          bool from_signal = false);
+    void set_shutdown_policy(bool interrupt, uint8_t flags);
+    bool abort_signal_shutdown();
     void finish_shutdown();
     uint32_t shutdown_from_cron(ThreadCtx& writer, Ring& ring);
     bool shutdown_snapshot_active() const {
@@ -1880,16 +1892,12 @@ public:
     static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
     // Signal-safe request. The elected IO owns allocation and IO, woken by the signal doorbell.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
-    bool request_signal_shutdown() {
-        if (loading()) return false; // retain the existing interrupted-boot teardown
-        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner
-        uint64_t unset = 0;
-        signal_shutdown_deadline_ns_.compare_exchange_strong(
-            unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
-        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_release);
-        return true;
-    }
+    bool request_signal_shutdown(bool interrupt = false);
     static constexpr uint8_t kSaveConfigured = 1, kSignalShutdown = 2;
+    static constexpr uint8_t kScheduledBgsave = 64, kOfflineRewrite = 128;
+    void schedule_bgsave();
+    void schedule_offline_rewrite();
+    uint32_t persistence_command_cron(ThreadCtx& writer, Ring& ring);
     bool save_schedule_armed() const {
         return live_save_armed_.load(std::memory_order_relaxed) & kSaveConfigured;
     }
@@ -1944,6 +1952,8 @@ public:
         if (!save_cron_writer(writer.id())) return 0;
         if (live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown)
             return shutdown_from_cron(writer, ring);
+        if (live_save_armed_.load(std::memory_order_relaxed) & (kScheduledBgsave | kOfflineRewrite))
+            return persistence_command_cron(writer, ring);
         if (snapshot_.in_progress()) return 0;
         save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
         const uint64_t changes = save_changes_since_last_save();

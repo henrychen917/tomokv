@@ -1,0 +1,15 @@
+tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)
+--- persistfix2
+
++++ post
+
+@@ -250,7 +250,7 @@
+
+ CLONE 0 0568 [ 4] movb $0x6,0x1d(%rbx)
+ CLONE 0 056c [10] movl $0x0,0xbc(%rbx)
+ CLONE 0 0576 [11] movq $0x0,0x98(%rbx)
+-CLONE 0 0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>
++CLONE 0 0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x920>
+ CLONE 0 0588 [ 8] movb $0x0,0x90(%rsp)
+ CLONE 0 0590 [ 8] mov %rax,0x94(%rsp)
+ CLONE 0 0598 [ 5] jmp <+0x120>

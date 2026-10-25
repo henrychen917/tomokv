@@ -1,0 +1,14 @@
+# Private size-aware cells. Maintainer only; report instructions and payload-copy bytes, no throughput claims.
+# rl0 is an owner reference; six rl1 cells are the requested lane cells. Fixed 4096-key working set.
+rlfix3_1s_rl1_1024 | 1s | rl=1 | ov=0 | ro=1 | GET:1024 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_1s_rl1_16384 | 1s | rl=1 | ov=0 | ro=1 | GET:16384 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_1s_rl1_262144 | 1s | rl=1 | ov=0 | ro=1 | GET:262144 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_1s_rl0_1024 | 1s | rl=0 | ov=0 | ro=1 | GET:1024 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_1s_rl0_16384 | 1s | rl=0 | ov=0 | ro=1 | GET:16384 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_1s_rl0_262144 | 1s | rl=0 | ov=0 | ro=1 | GET:262144 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl1_1024 | 2s | rl=1 | ov=0 | ro=1 | GET:1024 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl1_16384 | 2s | rl=1 | ov=0 | ro=1 | GET:16384 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl1_262144 | 2s | rl=1 | ov=0 | ro=1 | GET:262144 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl0_1024 | 2s | rl=0 | ov=0 | ro=1 | GET:1024 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl0_16384 | 2s | rl=0 | ov=0 | ro=1 | GET:16384 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096
+rlfix3_2s_rl0_262144 | 2s | rl=0 | ov=0 | ro=1 | GET:262144 | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--databases 1 --zc-min 1 | keys=4096

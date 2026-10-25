@@ -1,0 +1,15 @@
+{
+  "name": "final-serverless-shutsave_test.py",
+  "command": [
+    "python3",
+    "tests/shutsave_test.py"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_TEST_PORT": "36897"
+  },
+  "expected_exit": 0,
+  "started": 1792883482.6152942,
+  "exit": 0,
+  "finished": 1792883482.697428
+}

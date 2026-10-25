@@ -1,0 +1,617 @@
+[
+  {
+    "name": "before-eval-artifact-pad",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "pad"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792878796.6562722,
+    "exit": 0,
+    "finished": 1792878804.6805525
+  },
+  {
+    "name": "before-eval-artifact-control",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "control"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792878804.6808374,
+    "exit": 0,
+    "finished": 1792878831.4312565
+  },
+  {
+    "name": "preliminary-unit-inclusive-identity",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "identity"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792878831.431566,
+    "exit": 0,
+    "finished": 1792879213.7162838,
+    "excluded": "Object scan also included unit artifacts; replaced by a complete production-link inventory scan."
+  },
+  {
+    "name": "before-eval-artifact-hot-explain",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "hot-explain"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792879213.716596,
+    "exit": 0,
+    "finished": 1792879218.3734252
+  },
+  {
+    "name": "before-eval-artifact-identity",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "identity"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792879230.5370104,
+    "exit": 0,
+    "finished": 1792879386.2836185
+  },
+  {
+    "name": "gate-before-eval-post-regression",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix iofix-signal persistfix_units router_uniform aof_frame aoforder debug-0 debug-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 dispatch_arity dispatch_errors atomic_units release_batteries atomic_batteries serverfix_config serverfix_scalar serverfix_waitaof auth dbdefault",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 0,
+    "started": 1792879386.9064612,
+    "exit": 0,
+    "finished": 1792880964.663923,
+    "binary_sha256": "0ed778a80c61ece49bad82066c0680c609575e51ba8b04382d994bf25ace4d02",
+    "completion_evidence": "Gate child exit status 0 and complete 400/400 job ledgers; queue paused at completion."
+  },
+  {
+    "name": "final-artifact-pad",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "pad"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881575.2432427,
+    "exit": 0,
+    "finished": 1792881583.3842864
+  },
+  {
+    "name": "final-artifact-control",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "control"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881583.384635,
+    "exit": 0,
+    "finished": 1792881609.9795492
+  },
+  {
+    "name": "final-artifact-identity",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "identity"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881609.9798846,
+    "exit": 0,
+    "finished": 1792881765.4555779
+  },
+  {
+    "name": "final-artifact-hot-explain",
+    "command": [
+      "python3",
+      "tools/persistfix2_artifacts.py",
+      "hot-explain"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {},
+    "expected_exit": 0,
+    "started": 1792881765.4559655,
+    "exit": 0,
+    "finished": 1792881770.1158118
+  },
+  {
+    "name": "gate-final-post-regression",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix iofix-signal persistfix_units router_uniform aof_frame aoforder debug-0 debug-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 dispatch_arity dispatch_errors atomic_units release_batteries atomic_batteries serverfix_config serverfix_scalar serverfix_waitaof auth dbdefault",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 0,
+    "started": 1792881770.73522,
+    "exit": 0,
+    "finished": 1792883152.9343982
+  },
+  {
+    "name": "gate-final-pre-errors",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_errors",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 1,
+    "started": 1792883152.934821,
+    "exit": 1,
+    "finished": 1792883158.639439
+  },
+  {
+    "name": "gate-final-control-errors",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-control-d8"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "persistfix2_errors",
+      "GATE_TXN_FUSED": "0",
+      "GATE_SHUTDOWN_NET_IO": "uring"
+    },
+    "expected_exit": 1,
+    "started": 1792883158.6398745,
+    "exit": 1,
+    "finished": 1792883164.3170733
+  },
+  {
+    "name": "gate-final-post-fused",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_ONLY_JOBS": "aof-epoll aof-uring snapshot-epoll snapshot-uring climonfix",
+      "GATE_TXN_FUSED": "1",
+      "GATE_SHUTDOWN_NET_IO": "epoll"
+    },
+    "expected_exit": 0,
+    "started": 1792883164.3175147,
+    "exit": 0,
+    "finished": 1792883357.476468
+  },
+  {
+    "name": "final-serverless-gates_test.py",
+    "command": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883359.5581143,
+    "exit": 0,
+    "finished": 1792883482.5327864
+  },
+  {
+    "name": "final-serverless-psfix_test.py",
+    "command": [
+      "python3",
+      "tests/psfix_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.5332012,
+    "exit": 0,
+    "finished": 1792883482.6147947
+  },
+  {
+    "name": "final-serverless-shutsave_test.py",
+    "command": [
+      "python3",
+      "tests/shutsave_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.6152942,
+    "exit": 0,
+    "finished": 1792883482.697428
+  },
+  {
+    "name": "final-serverless-differ_test.py",
+    "command": [
+      "python3",
+      "tests/differ_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883482.6978683,
+    "exit": 0,
+    "finished": 1792883488.3812673
+  },
+  {
+    "name": "final-serverless-aof_frame_order_test.py",
+    "command": [
+      "python3",
+      "tests/aof_frame_order_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.3817666,
+    "exit": 0,
+    "finished": 1792883488.478352
+  },
+  {
+    "name": "final-serverless-debug_load_test.py",
+    "command": [
+      "python3",
+      "tests/debug_load_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.478806,
+    "exit": 0,
+    "finished": 1792883488.560425
+  },
+  {
+    "name": "final-serverless-flakeaudit_test.py",
+    "command": [
+      "python3",
+      "tests/flakeaudit_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_TEST_PORT": "36897"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.5608726,
+    "exit": 0,
+    "finished": 1792883488.6683571
+  },
+  {
+    "name": "differ-final-post-epoll-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-epoll-split"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.6701968,
+    "exit": 0,
+    "finished": 1792884576.3792737
+  },
+  {
+    "name": "differ-final-pre-epoll-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-split"
+    },
+    "expected_exit": 0,
+    "started": 1792883488.6706731,
+    "exit": 0,
+    "finished": 1792884577.8420253
+  },
+  {
+    "name": "differ-final-post-epoll-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-epoll-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792884576.3798153,
+    "exit": 0,
+    "finished": 1792885641.01244
+  },
+  {
+    "name": "differ-final-pre-epoll-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "epoll",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-epoll-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792884577.8425581,
+    "exit": 0,
+    "finished": 1792885650.4139304
+  },
+  {
+    "name": "differ-final-post-uring-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-uring-split"
+    },
+    "expected_exit": 0,
+    "started": 1792885641.0129778,
+    "exit": 0,
+    "finished": 1792886724.201666
+  },
+  {
+    "name": "differ-final-pre-uring-split",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-uring-split"
+    },
+    "expected_exit": 0,
+    "started": 1792885650.4144628,
+    "exit": 0,
+    "finished": 1792886735.1931345
+  },
+  {
+    "name": "differ-final-post-uring-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv",
+      "36861",
+      "36865",
+      "64-71",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "72-79",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-uring-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792886724.202279,
+    "exit": 0,
+    "finished": 1792887787.375794
+  },
+  {
+    "name": "differ-final-pre-uring-armed-fused",
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre",
+      "36881",
+      "36885",
+      "72-79",
+      "6:2"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2",
+    "environment": {
+      "GATE_LOAD_CORES": "64-71",
+      "GATE_DIFFER_NET_IO": "uring",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_RUN_ID": "persistfix2-standard",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-persistfix2/.gate-history/persistfix2-differ",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-uring-armed-fused"
+    },
+    "expected_exit": 0,
+    "started": 1792886735.193713,
+    "exit": 0,
+    "finished": 1792887799.0276961
+  },
+  {
+    "name": "gate-final-pre-new-rows",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+      "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors"
+    },
+    "expected_exit": 1,
+    "started": 1792887799.720251,
+    "exit": 1,
+    "finished": 1792887912.5575044
+  }
+]

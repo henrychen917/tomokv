@@ -172,6 +172,7 @@ struct CoreConcurrencyTest {
                 static_cast<Driver*>(value)->owners.front()->begin_snapshot(snapshot);
             });
         if (background) {
+            writer.set_ring(&f->ring);
             std::string error;
             require(real_snapshot_start(&server.snapshot(), server, writer, f->ring, false, error,
                                         nullptr, nullptr, nullptr, false) == SnapshotManager::StartResult::Started,
@@ -179,21 +180,15 @@ struct CoreConcurrencyTest {
             require(server.snapshot().phase() == Phase::Capture,
                     "BGSAVE window is open before shutdown request");
             f->signal(); real_save = true; f->cron(); real_save = false;
-            require(server.snapshot().phase() == Phase::Capture && !server.shutting_down(),
-                    "shutdown yields without stealing the BGSAVE writer");
-            for (unsigned pass = 0; pass < 1024 && server.snapshot().in_progress(); ++pass) {
-                driver.progress(); server.snapshot().writer_pass(writer, f->ring, true);
-            }
-            require(!server.snapshot().in_progress() && !server.shutting_down(),
-                    "pre-request BGSAVE completion does not authorize shutdown");
+            require(!server.snapshot().in_progress() && server.shutting_down(),
+                    "shutdown cancels BGSAVE and completes a fresh final save");
         }
         test_clock_ns = 1; real_save = true;
         std::string reply;
-        if (background) f->cron();
-        else reply = f->command({"SHUTDOWN"});
+        if (!background) reply = f->command({"SHUTDOWN"});
         real_save = false; test_clock_ns = 0;
         if (stall) {
-            require(driver.stalled_passes != 0 && reply.find("coordination timed out") != std::string::npos &&
+            require(driver.stalled_passes != 0 && reply == "-ERR Errors trying to SHUTDOWN. Check logs.\r\n" &&
                     !server.shutting_down(), "stalled saving owner returns a bounded refusal");
             require(server.snapshot().phase() == SnapshotManager::Phase::Failed,
                     "timed-out epoch remains owned until cancellation is acknowledged");
@@ -354,6 +349,15 @@ int main(int argc, char** argv) {
     f->reset(); next_result = SnapshotManager::StartResult::Failed;
     f->signal(); f->cron();
     require(saves == 1 && !f->server.shutting_down(), "signal save failure leaves server alive");
+    f->reset();
+    f->server.set_save_schedule(Config{}.save);
+    f->signal();
+    require(f->command({"SHUTDOWN", "ABORT"}) == "+OK\r\n",
+            "ABORT cancels a signal request before save admission");
+    require(!f->server.signal_shutdown_pending() && !f->server.shutting_down(),
+            "cancelled signal request leaves service running");
+    require(f->command({"SHUTDOWN", "ABORT"}) == "-ERR No shutdown in progress.\r\n",
+            "ABORT after cancellation has the Redis reply");
     f->reset();
     CoreConcurrencyTest::busy_snapshot(*f);
     f->reset();

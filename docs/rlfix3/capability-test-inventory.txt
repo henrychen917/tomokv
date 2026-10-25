@@ -1,0 +1,6 @@
+tests/rlfix3_zc.py:53:            expected = [b"zc-min-read-local", b"0"]
+tests/rlfix3_zc.py:54:            result = c.cmd("CONFIG", "GET", "zc-min-read-local")
+tests/rlfix3_zc.py:58:                  {b"zc-min": b"1024", b"zc-min-read-local": b"0"}, wildcard)
+tests/rlfix3_zc.py:59:            result = c.cmd("CONFIG", "SET", "zc-min-read-local", 1)
+tests/rlfix3_zc.py:61:            result = c.cmd("CONFIG", "GET", "zc-min-read-local")
+tests/rlfix3_info_unit.cc:176:        assert(body.find("zc-min-read-local") == std::string::npos);

@@ -1,0 +1,509 @@
+{
+  "format": 2,
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.IvYbjU",
+  "archive_sha256": "2a07603da1c01981943534ae84a83d2c25f210deb139b8ccb7c482ea6b2808ab",
+  "included": [
+    {
+      "path": "families.tsv",
+      "bytes": 357,
+      "sha256": "41d76a7afde3696a13a7cdffa8a773f56026285c1936ca09bd9121d6a7d55309"
+    },
+    {
+      "path": "jobs/production_units/blockfix-cost-build.log",
+      "bytes": 207,
+      "sha256": "fad1527462bc4c3141f847296fde1884c6f5ee1543f3feaae39192ef39daa048"
+    },
+    {
+      "path": "jobs/production_units/build.log",
+      "bytes": 3074,
+      "sha256": "40200723614a2ad11f839e1024b978e4060299077582044815c91e892840a21e"
+    },
+    {
+      "path": "jobs/production_units/done",
+      "bytes": 6,
+      "sha256": "4a89136e7ccf303595f11a85a70961af78bba8bcfb5e11f56ec3ad1de3b35ae6"
+    },
+    {
+      "path": "jobs/production_units/family.tsv",
+      "bytes": 61,
+      "sha256": "14f3bcdd481636b07e353538f6a55ee598b64f30f92a2e7f5d9477584f1e684c"
+    },
+    {
+      "path": "jobs/production_units/ledger",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/mdbqsbr-live-build.log",
+      "bytes": 753,
+      "sha256": "f61fc53a57a2e9e11f97bcd25cba9607197dae4d5343d31fc8c019907da08de4"
+    },
+    {
+      "path": "jobs/production_units/output.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/timings",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/release/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "2993691ea4e53b13689f35c376b8aacd4ea97db6cd363c42bffc9923a01b1732"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/family.tsv",
+      "bytes": 61,
+      "sha256": "d8adad33744b19f4184662b0528b5ff067d064af3ea652a3cafdb4ca0e68994c"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/gate-srv-fused.XuZXOA",
+      "bytes": 7924,
+      "sha256": "dbc4e3ba19e6d3637bfd588a96d83db2eb468f954a918d6e48fae8f91460684f"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/gate-srv-fused.o1XeBx",
+      "bytes": 7882,
+      "sha256": "1d90e28b467ed5b86a56189f7337dc6ed52b5bfb70b4c089fdac23a60fe70ee3"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/ledger",
+      "bytes": 48,
+      "sha256": "f951d157dd9fa9a3bf70d628174eac5e21b783561dad91c75413f317a58033ee"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/output.log",
+      "bytes": 155,
+      "sha256": "adc8e775cf4f6841f8e639dd10aca70be7e87c7fd6c51eb74590d0f7f49ef710"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/timings",
+      "bytes": 48,
+      "sha256": "f951d157dd9fa9a3bf70d628174eac5e21b783561dad91c75413f317a58033ee"
+    },
+    {
+      "path": "jobs/txnorder-fused-0/txnorder-2s-0.txt",
+      "bytes": 4951,
+      "sha256": "00f7113aa005806e288c94d3c578a18a25dd6ae0131893ac1f86159277f2df91"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/family.tsv",
+      "bytes": 61,
+      "sha256": "c6847f01a99692c399193410285f17536aa99afba82269b4b59b52461067e8ad"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/gate-data-fused.6LYk19/appendonlydir/appendonly.aof.manifest",
+      "bytes": 222,
+      "sha256": "ea2462b6c3f63c0740f0140e64112f794a638387a0f7a58d54957b61429f06af"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/gate-srv-fused.aDdsp0",
+      "bytes": 7911,
+      "sha256": "5f7199f0f2ee441aab50c7f8d4711503e27eb1bb440c43bf02e5181bb196c3e2"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/gate-srv-fused.stZ1eK",
+      "bytes": 7964,
+      "sha256": "0f93b2570242e015e70de4dc2565b215a6d633be44b6c14d5c3e91ad854dbcbb"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/ledger",
+      "bytes": 48,
+      "sha256": "0b1e291f9bfcbf6bd15b8b4b23cd456e9da5d13252c7062394554a49a66296e2"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/output.log",
+      "bytes": 155,
+      "sha256": "c34925096bcef63ed33dbd34454f3905ab758591128fdc408a4e5e4d39c9613f"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/timings",
+      "bytes": 48,
+      "sha256": "0b1e291f9bfcbf6bd15b8b4b23cd456e9da5d13252c7062394554a49a66296e2"
+    },
+    {
+      "path": "jobs/txnorder-fused-1/txnorder-2s-1.txt",
+      "bytes": 4985,
+      "sha256": "57247c5b897af6fc40783092cd6323bef8722e8cc2a8cf2c59be7e0834df8beb"
+    },
+    {
+      "path": "jobs/txnorder-split-0/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnorder-split-0/family.tsv",
+      "bytes": 61,
+      "sha256": "ffccaa0402462007f006a7a5cb4f1d7372ba9c00b165b3a18a634c3d39f6e77a"
+    },
+    {
+      "path": "jobs/txnorder-split-0/gate-data-main.ISh7TC/appendonlydir/appendonly.aof.manifest",
+      "bytes": 210,
+      "sha256": "23a8eb73afe8eb37622395a2297e732ecd5186c3b59c183daa67425c90b545d0"
+    },
+    {
+      "path": "jobs/txnorder-split-0/gate-srv-main.XYGb7F",
+      "bytes": 6143,
+      "sha256": "55061df78c155eac02f9006b607fb1e7db4b1a52348ff444e8fa37ece7cac806"
+    },
+    {
+      "path": "jobs/txnorder-split-0/gate-srv-main.qYog7t",
+      "bytes": 6204,
+      "sha256": "5ddc7cb99d695f365d034fe8a3df15b8fb379841046fa16b3223d1ef0566d95e"
+    },
+    {
+      "path": "jobs/txnorder-split-0/ledger",
+      "bytes": 48,
+      "sha256": "96d0833477f53f391d6978e3799f2117743d4a32c62212d6680ee97a03878783"
+    },
+    {
+      "path": "jobs/txnorder-split-0/output.log",
+      "bytes": 155,
+      "sha256": "1835baff89d118f6ccf0c6193a4d2b20e6b85f9f08ae70841473ba44b53ea85a"
+    },
+    {
+      "path": "jobs/txnorder-split-0/timings",
+      "bytes": 48,
+      "sha256": "96d0833477f53f391d6978e3799f2117743d4a32c62212d6680ee97a03878783"
+    },
+    {
+      "path": "jobs/txnorder-split-0/txnorder-2s-0.txt",
+      "bytes": 4937,
+      "sha256": "b8a06ed0355fab1bc20baa5a5a9c6234515d5611b3863be96cd8a5e24345c97d"
+    },
+    {
+      "path": "jobs/txnorder-split-1/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/txnorder-split-1/family.tsv",
+      "bytes": 61,
+      "sha256": "666345fdb76621c50226ac03cfaab1abccbf9b411397cf191350f80f29fb70ec"
+    },
+    {
+      "path": "jobs/txnorder-split-1/gate-data-main.4lpaGJ/appendonlydir/appendonly.aof.manifest",
+      "bytes": 222,
+      "sha256": "dc902d5cef2b8c76027651e205a47363e0c8059923e33a614f82ad2b024bed7b"
+    },
+    {
+      "path": "jobs/txnorder-split-1/gate-srv-main.RsyLwA",
+      "bytes": 6205,
+      "sha256": "fd390bee390d3e13fe3e95e089dda3c5a4e34663caaf427dfa1713400d1b2579"
+    },
+    {
+      "path": "jobs/txnorder-split-1/gate-srv-main.uOAweU",
+      "bytes": 6182,
+      "sha256": "4e0c407205b836b31203d72e51a3522113d4422b549a4bfb4c98ee1d7adf0975"
+    },
+    {
+      "path": "jobs/txnorder-split-1/ledger",
+      "bytes": 48,
+      "sha256": "02ab24fbe781d4891a59bbdbbf1a54f14890ebe3b5411a8bcb217018298a1d81"
+    },
+    {
+      "path": "jobs/txnorder-split-1/output.log",
+      "bytes": 155,
+      "sha256": "b424aadf250b4a7b527e17107c1f97775229419563724a25ab14dbfafb17d440"
+    },
+    {
+      "path": "jobs/txnorder-split-1/timings",
+      "bytes": 48,
+      "sha256": "02ab24fbe781d4891a59bbdbbf1a54f14890ebe3b5411a8bcb217018298a1d81"
+    },
+    {
+      "path": "jobs/txnorder-split-1/txnorder-2s-1.txt",
+      "bytes": 4972,
+      "sha256": "3a2a5a77de82f69a87d6c97b45a9e7ddd4915cc05ba3114494486f9e2b12877d"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "87671ba0c420d3020187b7e412f7d5a9f571bd43e46b1c366332279fe6e9a1f2"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1227,
+      "sha256": "db301750d608f613f9f9f2f79af29040c8fd6d6d8e9f51ccbffb0e6d57f40813"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 8585,
+      "sha256": "10e5a0aa6f73225d973458ee3c249dd8062a19d54b8f64303d3f004f4e2ad353"
+    }
+  ],
+  "excluded_runtime_data": [
+    {
+      "path": "jobs/production_units/row-timeout-2954601.2954601.455595093.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/production_units/row-timeout-2954601.2954601.455595093.2.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/production_units/row-timeout-2954601.2954601.455595093.3.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/release/row-timeout-2954536.2954536.455595053.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/txnorder-fused-0/gate-data-fused.BtlRps/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 62619252
+    },
+    {
+      "path": "jobs/txnorder-fused-0/row-timeout-2954901.2954901.455595290.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/txnorder-fused-1/gate-data-fused.6LYk19/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 906
+    },
+    {
+      "path": "jobs/txnorder-fused-1/gate-data-fused.6LYk19/appendonlydir/appendonly.aof.2.incr.tomo",
+      "bytes": 31057529
+    },
+    {
+      "path": "jobs/txnorder-fused-1/row-timeout-2954917.2954917.455595298.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/txnorder-split-0/gate-data-main.ISh7TC/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 764
+    },
+    {
+      "path": "jobs/txnorder-split-0/gate-data-main.ISh7TC/appendonlydir/appendonly.aof.2.incr.tomo",
+      "bytes": 26559718
+    },
+    {
+      "path": "jobs/txnorder-split-0/row-timeout-2954930.2954930.455595298.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "jobs/txnorder-split-1/gate-data-main.4lpaGJ/appendonlydir/appendonly.aof.2.base.tomo",
+      "bytes": 906
+    },
+    {
+      "path": "jobs/txnorder-split-1/gate-data-main.4lpaGJ/appendonlydir/appendonly.aof.2.incr.tomo",
+      "bytes": 35492862
+    },
+    {
+      "path": "jobs/txnorder-split-1/row-timeout-2962241.2962241.455600206.1.cancel",
+      "bytes": 63
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/aoforder-scheduled",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/at15-db0-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/at15-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/atomic-survivors-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/blockfix-cost",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/core-concurrency-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/encodingfix-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/exbatch-db0-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/exbatch-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/execabort-watch-db0-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/execabort-watch-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/expire-notify-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/flushfix-units",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/ktls-keyupdate",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/ktls-keyupdate-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/ktls-lifetime-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/lbplanner-units",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/mdbqsbr-live-arms",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/moverfix-db0-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/moverfix-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/multidb-boundary-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/multidb-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/netcap-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/netcmd-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/persistfix-units",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/publishfix-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/racefix-climon",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/rehash-waits-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/reorder-engagement-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/reorder-engagement-unit-db0",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/respresume-migration",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/respresume-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/rltopo-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/shutdown-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/splitlocal-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/storesize-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/txnorder-episodes",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/txnorder-episodes-debug",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/txnorder-wake-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/txnorder-watch-db0-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/txnorder-watch-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/waits-unit",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/wb-rule-units",
+      "bytes": 0
+    },
+    {
+      "path": "unit-ready/wbland-units",
+      "bytes": 0
+    }
+  ]
+}

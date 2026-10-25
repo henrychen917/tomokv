@@ -1,0 +1,185 @@
+{
+  "build_returncode": 0,
+  "checks": [
+    {
+      "target": "all",
+      "returncode": 0
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/moverfix-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/publishfix-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/at15-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "returncode": 0
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "returncode": 0
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/netcmd-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/netcap-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/waits-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/multidb-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/storesize-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/respresume-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/respresume-migration",
+      "returncode": 0
+    },
+    {
+      "target": "build/exbatch-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/wb-rule-units",
+      "returncode": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "returncode": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/lbplanner-units",
+      "returncode": 0
+    },
+    {
+      "target": "build/shutdown-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/persistfix-units",
+      "returncode": 0
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "returncode": 0
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/flushfix-units",
+      "returncode": 0
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "returncode": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "returncode": 0
+    },
+    {
+      "target": "build/racefix-climon",
+      "returncode": 0
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "returncode": 0
+    },
+    {
+      "target": "mdbqsbr2-park",
+      "returncode": 0
+    },
+    {
+      "target": "mdbqsbr2-no-wake",
+      "returncode": 0
+    }
+  ]
+}

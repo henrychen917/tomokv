@@ -1,0 +1,9 @@
+{"seed_length": 190, "command": ["APPEND", "k", "AB"], "reply": 192, "encoding": {"bytes": "726177"}}
+{"seed_length": 190, "command": ["SETRANGE", "k", 190, "CD"], "reply": 192, "encoding": {"bytes": "726177"}}
+{"seed_length": 191, "command": ["APPEND", "k", "AB"], "reply": 193, "encoding": {"bytes": "726177"}}
+{"seed_length": 191, "command": ["SETRANGE", "k", 191, "CD"], "reply": 193, "encoding": {"bytes": "726177"}}
+{"seed_length": 192, "command": ["APPEND", "k", "AB"], "reply": 194, "encoding": {"bytes": "726177"}}
+{"seed_length": 192, "command": ["SETRANGE", "k", 192, "CD"], "reply": 194, "encoding": {"bytes": "726177"}}
+{"seed": "123", "command": ["APPEND", "k", "45"], "reply": 5, "encoding": {"bytes": "726177"}}
+{"seed": "123", "command": ["APPEND", "k", ""], "reply": 3, "encoding": {"bytes": "726177"}}
+{"seed": "123", "command": ["SETRANGE", "k", 1, "X"], "reply": 3, "encoding": {"bytes": "726177"}}

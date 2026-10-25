@@ -1,0 +1,91 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-ctlfix/build/ctlfix-pre/build/gate-run.jcJrfg
+PARTIAL jobs (including prerequisites): release core_tsan_build config_unit flip_unit production_units flipctl lb-stationary-1s lb-stationary-2s core_units flipfix_units lbplanner_units boot_grammar flip fliplisten flip_saturated
+PARTIAL jobs (including prerequisites): release core_tsan_build config_unit flip_unit production_units flipctl lb-stationary-1s lb-stationary-2s core_units flipfix_units lbplanner_units boot_grammar flip fliplisten flip_saturated
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0.395s; correctness-plan-fallback; configuration docs match parser
+  configuration docs match parser                      ok
+  row budget: 900s; median=5.215s; correctness-plan-fallback; Redis config quoting + mid-value #
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; flip controller model unit
+  flip controller model unit                           FAIL (see /home/user/Projects/cx-ctlfix/build/ctlfix-pre/build/gate-run.jcJrfg/jobs/flip_unit/gate-flipctl-unit.txt)
+  row budget: 900s; median=-s; no-history-conservative-default; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=-s; no-history-conservative-default; stationary balanced LB holds still (1s)
+  stationary balanced LB holds still (1s)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; stationary balanced LB holds still (2s)
+  stationary balanced LB holds still (2s)              ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP planned-connection close lifetime (ASAN+TSAN)
+  FLIP planned-connection close lifetime (ASAN+TSAN)   ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP fingerprint publication (ASAN+TSAN)
+  FLIP fingerprint publication (ASAN+TSAN)             ok
+  row budget: 900s; median=-s; no-history-conservative-default; LB sampler exceptional cleanup + negative control
+  LB sampler exceptional cleanup + negative control    ok
+  row budget: 900s; median=-s; no-history-conservative-default; LB monitor plan handoff + negative controls
+  LB monitor plan handoff + negative controls          ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --mode (flag deleted)
+  reject --mode (flag deleted)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --spread
+  reject --spread                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --nodes
+  reject --nodes                                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject 3-part ratio
+  reject 3-part ratio                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject missing conf
+  reject missing conf                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad conf key
+  reject bad conf key                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject aclfile + conf user lines
+  reject aclfile + conf user lines                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, complete)
+  FLIP listener conservation (io-ex, complete)         FAIL (see /home/user/Projects/cx-ctlfix/build/ctlfix-pre/build/gate-run.jcJrfg/jobs/fliplisten/gate-fliplisten-io-ex-complete.txt)
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (io-ex, rollback)
+  FLIP listener conservation (io-ex, rollback)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, complete)
+  FLIP listener conservation (ex-io, complete)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP listener conservation (ex-io, rollback)
+  FLIP listener conservation (ex-io, rollback)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok
+GATE(PARTIAL): 40 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-ctlfix/docs/ctlfix/pre-broad.partial

@@ -142,25 +142,19 @@ public:
     void fail_closed_permanently() { poison_permanently(); }
 
     uint64_t occupied_cells() const {
-        uint64_t result = 0;
-        for (const auto& cell : cells_)
-            result += cell.load(std::memory_order_relaxed) != 0;
-        return result;
+        return occupied_cells_.load(std::memory_order_relaxed);
     }
 
     uint64_t wildcard_cells() const {
-        uint64_t result = 0;
-        for (const auto& cell : cells_)
-            result += (cell.load(std::memory_order_relaxed) & kWildcardBit) != 0;
-        return result;
+        return wildcard_cells_.load(std::memory_order_relaxed);
     }
 
 #ifdef TOMO_FOREIGN_READ_SAFETY_TEST
     void test_set_cell(uint64_t hash, uint64_t count, bool wildcard = false) {
         if (!count || count > kCountMask) std::abort();
         const uint32_t index = cell_index(hash);
-        cells_[index].store(pack(count, fingerprint(hash), wildcard),
-                            std::memory_order_relaxed);
+        replace_cell(index, cells_[index].load(std::memory_order_relaxed),
+                     pack(count, fingerprint(hash), wildcard));
         saturated_cells_.store(count == kCountMask ? 1 : 0,
                                std::memory_order_relaxed);
     }
@@ -197,11 +191,26 @@ private:
         touch_epoch(index);
     }
 
+    // Owner-only accounting, published for INFO without reading the cell array.
+    // These gauges are exact after a transition completes. Like the other INFO
+    // gauges they can sample an in-progress owner update; no timer/cache lag is
+    // introduced, and readers never retry. Only occupancy/wildcard edges store
+    // a counter. The extra words fit the existing tail cache line.
+    void replace_cell(uint32_t index, uint64_t old, uint64_t next) {
+        cells_[index].store(next, std::memory_order_release);
+        if ((old != 0) != (next != 0))
+            occupied_cells_.store(occupied_cells_.load(std::memory_order_relaxed) +
+                                  (next ? 1 : uint64_t(-1)), std::memory_order_relaxed);
+        if ((old & kWildcardBit) != (next & kWildcardBit))
+            wildcard_cells_.store(wildcard_cells_.load(std::memory_order_relaxed) +
+                                  ((next & kWildcardBit) ? 1 : uint64_t(-1)),
+                                  std::memory_order_relaxed);
+    }
+
     void store_add_cell(uint32_t index, uint32_t fingerprint, bool force_wildcard) {
         const uint64_t old = cells_[index].load(std::memory_order_relaxed);
         if (!old) {
-            cells_[index].store(pack(1, fingerprint, force_wildcard),
-                                std::memory_order_release);
+            replace_cell(index, old, pack(1, fingerprint, force_wildcard));
             return;
         }
         const uint64_t count = cell_count(old);
@@ -210,15 +219,13 @@ private:
         const bool wildcard = force_wildcard || (old & kWildcardBit) != 0 ||
                               cell_fingerprint(old) != fingerprint;
         if (next == kCountMask) {
-            cells_[index].store(pack(kCountMask, cell_fingerprint(old), true),
-                                std::memory_order_release);
+            replace_cell(index, old, pack(kCountMask, cell_fingerprint(old), true));
             saturated_cells_.store(
                 saturated_cells_.load(std::memory_order_relaxed) + 1,
                 std::memory_order_relaxed);
             return;
         }
-        cells_[index].store(pack(next, cell_fingerprint(old), wildcard),
-                            std::memory_order_release);
+        replace_cell(index, old, pack(next, cell_fingerprint(old), wildcard));
     }
 
     // Owner-only. The cell transition is already release-published; a reader that acquires this
@@ -246,7 +253,7 @@ private:
         if (!count) std::abort();
         if (count == kCountMask) return;  // saturation lost the exact high count
         if (count == 1) {
-            cells_[index].store(0, std::memory_order_release);
+            replace_cell(index, old, 0);
             return;
         }
         cells_[index].store(pack(count - 1, cell_fingerprint(old),
@@ -258,6 +265,8 @@ private:
         if (unsafe_refs != 0 || poison_refs_.load(std::memory_order_relaxed) != 0 ||
             saturated_cells_.load(std::memory_order_relaxed) == 0) return;
         for (auto& cell : cells_) cell.store(0, std::memory_order_release);
+        occupied_cells_.store(0, std::memory_order_relaxed);
+        wildcard_cells_.store(0, std::memory_order_relaxed);
         touch_all_epochs();
         saturated_cells_.store(0, std::memory_order_relaxed);
     }
@@ -269,6 +278,8 @@ private:
                                  std::memory_order_relaxed);
         for (auto& cell : cells_)
             cell.store(pack(kCountMask, 1, true), std::memory_order_release);
+        occupied_cells_.store(kCellCount, std::memory_order_relaxed);
+        wildcard_cells_.store(kCellCount, std::memory_order_relaxed);
         touch_all_epochs();
         saturated_cells_.store(kCellCount, std::memory_order_relaxed);
     }
@@ -282,6 +293,8 @@ private:
     std::atomic<uint64_t> unsafe_total_refs_{0};
     std::atomic<uint64_t> saturated_cells_{0};
     std::atomic<uint64_t> poison_refs_{0};
+    std::atomic<uint64_t> occupied_cells_{0};
+    std::atomic<uint64_t> wildcard_cells_{0};
 };
 
 static_assert(ForeignReadSafety::kCellCount == 4096);
@@ -291,7 +304,7 @@ static_assert(std::atomic<uint64_t>::is_always_lock_free,
               "foreign-read filter cells must remain read-pure lock-free loads");
 static_assert(std::atomic<uint32_t>::is_always_lock_free,
               "foreign-read cell epochs must remain read-pure lock-free loads");
-// 32 KiB cells + 16 KiB epochs + three owner witnesses, cacheline rounded. Heap-allocated inside
+// 32 KiB cells + 16 KiB epochs + five owner witnesses, cacheline rounded. Heap-allocated inside
 // ReadLocalStoreState, so no locked FlatStore/Shard footprint moves.
 static_assert(sizeof(ForeignReadSafety) == 49216);
 

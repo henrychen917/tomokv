@@ -1,0 +1,290 @@
+[
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "pre",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "normal",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "1s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 0,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 1,
+    "exit": 0,
+    "stderr": ""
+  },
+  {
+    "arm": "post",
+    "ns": "db0",
+    "mode": "2s",
+    "atomic": 1,
+    "batch": 8,
+    "exit": 0,
+    "stderr": ""
+  }
+]

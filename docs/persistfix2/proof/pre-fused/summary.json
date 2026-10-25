@@ -1,0 +1,50 @@
+{
+  "run": "build/persistfix2/pre-proof-source/build/gate-run.ZcXWP5",
+  "rows": [
+    {
+      "job": "aof-epoll",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "aof-uring",
+      "exit": 0,
+      "passed": 54,
+      "failed": 0
+    },
+    {
+      "job": "climonfix",
+      "exit": 0,
+      "passed": 6,
+      "failed": 1
+    },
+    {
+      "job": "production_units",
+      "exit": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    {
+      "job": "release",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-epoll",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "job": "snapshot-uring",
+      "exit": 0,
+      "passed": 16,
+      "failed": 0
+    }
+  ],
+  "passed": 147,
+  "failed": 1,
+  "archive_sha256": "072d203cf5830c2872960601a279226ee0b6d21ac3737534bfc756197b283b7c"
+}

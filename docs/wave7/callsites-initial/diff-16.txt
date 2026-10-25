@@ -1,0 +1,56 @@
+tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent) [clone .isra.0]
+--- datafix2
+
++++ post
+
+@@ -433,7 +433,7 @@
+
+ CLONE 1 01cf [ 1] nop
+ CLONE 1 01d0 [ 5] mov 0x48(%rsp),%rax
+ CLONE 1 01d5 [ 9] sub %fs:0x28,%rax
+-CLONE 1 01de [ 6] jne <+0x2dc>
++CLONE 1 01de [ 6] jne <+0x29c>
+ CLONE 1 01e4 [ 4] add $0x58,%rsp
+ CLONE 1 01e8 [ 3] mov %r14,%rdx
+ CLONE 1 01eb [ 3] mov %r13,%rcx
+@@ -476,31 +476,14 @@
+
+ CLONE 1 0270 [ 5] jmp <+0x1d0>
+ CLONE 1 0275 [ 3] mov %r12,%rdi
+ CLONE 1 0278 [ 5] call <tomo::KvObj::key() const>
+-CLONE 1 027d [ 5] mov 0x18(%rsp),%rsi
+-CLONE 1 0282 [ 3] mov %rax,%r12
+-CLONE 1 0285 [ 3] mov %rdx,%rbx
+-CLONE 1 0288 [ 3] test %rsi,%rsi
+-CLONE 1 028b [ 6] je <+0x1d0>
+-CLONE 1 0291 [ 4] mov 0x8(%rsi),%rax
+-CLONE 1 0295 [ 3] test %rax,%rax
+-CLONE 1 0298 [ 6] je <+0x1d0>
+-CLONE 1 029e [ 3] mov (%rsi),%rdi
+-CLONE 1 02a1 [ 5] mov $0x4,%esi
+-CLONE 1 02a6 [ 2] call *%rax
+-CLONE 1 02a8 [ 2] test %al,%al
+-CLONE 1 02aa [ 6] je <+0x1d0>
+-CLONE 1 02b0 [ 5] mov 0x18(%rsp),%rsi
+-CLONE 1 02b5 [ 4] mov 0x10(%rsi),%rax
+-CLONE 1 02b9 [ 3] test %rax,%rax
+-CLONE 1 02bc [ 6] je <+0x1d0>
+-CLONE 1 02c2 [ 3] mov (%rsi),%rdi
+-CLONE 1 02c5 [ 3] mov %r12,%rcx
+-CLONE 1 02c8 [ 3] mov %rbx,%r8
+-CLONE 1 02cb [ 5] mov $0x2,%edx
+-CLONE 1 02d0 [ 5] mov $0x4,%esi
+-CLONE 1 02d5 [ 2] call *%rax
+-CLONE 1 02d7 [ 5] jmp <+0x1d0>
+-CLONE 1 02dc [ 5] call <__stack_chk_fail@plt>
++CLONE 1 027d [ 5] mov 0x18(%rsp),%rdi
++CLONE 1 0282 [ 5] mov $0x4,%esi
++CLONE 1 0287 [ 3] mov %rdx,%r8
++CLONE 1 028a [ 3] mov %rax,%rcx
++CLONE 1 028d [ 5] mov $0x2,%edx
++CLONE 1 0292 [ 5] call <tomo::FlatStore::notify_emit(tomo::FlatNotifySink*, unsigned int, tomo::NotifyEventId, tomo::Slice)>
++CLONE 1 0297 [ 5] jmp <+0x1d0>
++CLONE 1 029c [ 5] call <__stack_chk_fail@plt>
+ CLONE 2 0000 [ 2] push %r15
+ CLONE 2 0002 [ 2] push %r14
+ CLONE 2 0004 [ 2] push %r13

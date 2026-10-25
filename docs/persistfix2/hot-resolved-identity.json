@@ -1,0 +1,45 @@
+{
+  "compared": 74,
+  "stock_object_tool_changed": 1,
+  "resolved_differences": [
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "same_section_references": [
+        {
+          "offset": 6502,
+          "targets": [
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD1Ev",
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD2Ev"
+          ],
+          "target_body_equal": true
+        },
+        {
+          "offset": 18783,
+          "targets": [
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD1Ev",
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD2Ev"
+          ],
+          "target_body_equal": true
+        },
+        {
+          "offset": 21725,
+          "targets": [
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD1Ev",
+            "_ZN8tomo_db012_GLOBAL__N_115ScriptWorkbenchD2Ev"
+          ],
+          "target_body_equal": true
+        }
+      ],
+      "instruction_and_resolved_target_identity": true
+    }
+  ],
+  "linked_literal_labels": [
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "offset": 19477,
+      "pre_bytes": "ffffffff00000000",
+      "post_bytes": "ffffffff00000000"
+    }
+  ],
+  "all_hot_instructions_constants_and_targets_equal": true
+}

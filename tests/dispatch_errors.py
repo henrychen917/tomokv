@@ -26,9 +26,11 @@ def error_wire(port, argv):
 def run(a):
     a.output.mkdir(parents=True, exist_ok=False)
     rows, inventory = [], {}
+    # Use the third reserved gate port so both listeners can avoid even
+    # ephemeral source ports used by concurrent lanes. The gate reserves three.
     with server(a.binary, a.output / 'target', a.port, a.cores, a.mode, a.engine), \
-         server(a.oracle, a.output / 'oracle', a.port + 1, a.cores, oracle=True):
-        with Client(a.port) as target, Client(a.port + 1) as oracle:
+         server(a.oracle, a.output / 'oracle', a.port + 2, a.cores, oracle=True):
+        with Client(a.port) as target, Client(a.port + 2) as oracle:
             for c in (target, oracle):
                 assert c.cmd('XADD', 'stream', '1-0', 'f', 'v') == b'1-0'
                 assert c.cmd('SET', 'string', 'v') == b'OK'
@@ -80,7 +82,7 @@ def run(a):
                 rows.append(dict(argv=argv, target=target.cmd(*argv), oracle=oracle.cmd(*argv)))
             for argv in boundaries:
                 rows.append(dict(argv=argv, target=error_wire(a.port, argv),
-                                 oracle=error_wire(a.port + 1, argv)))
+                                 oracle=error_wire(a.port + 2, argv)))
             for c in (target, oracle):
                 assert c.cmd('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lfu') == b'OK'
             for key in ('missing', 'string'):

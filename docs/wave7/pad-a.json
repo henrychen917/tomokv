@@ -1,0 +1,612 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "unmodified headline 05a5e01a9",
+  "matched": "POST .text start address and total byte size; layout locks unchanged",
+  "limitation": "Individual function offsets and data sections retain PRE layout; this is not an exact per-symbol/data-layout twin.",
+  "pre_text": {
+    "address": 125072,
+    "size": 8217911
+  },
+  "post_text": {
+    "address": 129200,
+    "size": 8278231
+  },
+  "pad_text": {
+    "address": 129200,
+    "size": 8278231
+  },
+  "padding_bytes": 60320,
+  "source": ".text\n.balign 1\n.globl tomo_wave7_pad_a\n.type tomo_wave7_pad_a,@function\ntomo_wave7_pad_a:\nendbr64\nret\n.fill 60315,1,0x90\n.size tomo_wave7_pad_a,.-tomo_wave7_pad_a\n.section .note.GNU-stack,\"\",@progbits\n.section .note.gnu.property,\"a\",@note\n.balign 8\n.long 4,16,5\n.asciz \"GNU\"\n.long 0xc0000002,4,3,0\n",
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/main.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/net/tls.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/persist/aof.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/genthread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/reorder.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/version.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/main.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/net/tls.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/commands.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/glob.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/xshard.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/acl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/hll.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_server.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_string.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_list.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_set.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_zset.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/geo.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_stream_groups.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/scripting.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/functions.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/serialize.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/persist/aof.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/climon.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/tracking.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/server_tail.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/lcs.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/flipctl.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/genthread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/rl2s.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/lbstall.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/lbplanner.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/multidb.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/storesize.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/reorder.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/hexpread.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/autharity.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/fliplisten.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/shutdown.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/version.o",
+    "/home/user/Projects/cx-wave7/build/wave7/pad-a/padding.o",
+    "-o",
+    "/home/user/Projects/cx-wave7/build/tomokv-wave7-PAD-A",
+    "-Wl,--wrap=main",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm",
+    "-Wl,--section-start=.text=0x1f8b0",
+    "-Wl,--strip-debug"
+  ],
+  "inputs": [
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/main.o",
+      "sha256": "91569c26756a3c35c7db635c3e40341beefcf1173fb6fc34e205111cef110846"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/net/tls.o",
+      "sha256": "4054244648a8d619163a4d7b3660472084e70e742c5c7ab125791bc8d31b327a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/commands.o",
+      "sha256": "8f8f6761dac64b01450d4d40860a1010c4ffba4d323faaffa1e848944ed81a94"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/glob.o",
+      "sha256": "f362fe2483403cba89d66818ce1ecc0c21fbc0142e18a5971a11ac21b88b9250"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/xshard.o",
+      "sha256": "9fbdc2e6cdc93eafc70eba3a0ef063ef6d1c58f84239d7c630fdfcc705e9235a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/acl.o",
+      "sha256": "12f01ef524323b58af7695beb95f763bdf03183f15844e23c5702dca47c6a8f8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/hll.o",
+      "sha256": "60b05ac005fc2c8f38fc6fcee8f59b28ec1b0e0d58ce16920a6614a4aa11ad30"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_server.o",
+      "sha256": "711d323d5d4ef29348ea84cdcc44f74994783d44fbcef57efdb37ca7ea7b13e1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_string.o",
+      "sha256": "cf39ebadae210778a88ba36a7996082c477830be6401db4d18d6e2f36b1c1edb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_string_notify.o",
+      "sha256": "80661bd7d5460325544c1dda0f86ebbab542efa891c6416999e1ac7397f4c3d1"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_hash.o",
+      "sha256": "ec9108afcfa74669f8d3f72b287ab1c05af5bbf273ca0a1e014e199cabce73ce"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_hash_ttl.o",
+      "sha256": "471f5c908ea6d1a877f9f1e3c604094e86d858306491985cec8938dc0bf091bb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_list.o",
+      "sha256": "1c29f9a832df618c699eeaa7b811bc6c2776fa7ea6163012f1e7c81f02f81db8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_set.o",
+      "sha256": "1f47cd6a8c2934f25f567792e159470076abe6f58f3b8ec6dbd57e3be7a25009"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_zset.o",
+      "sha256": "c757e36036d7acdbd59c8d0b3dbaee6fcf95ed7a39b95e24b350a4437a20f860"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_zset_ops.o",
+      "sha256": "ebd63d6eceaa1e6a45f01b53d569f05c61ee0525be8653a402302ee7d0778f6d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/geo.o",
+      "sha256": "cbbaf69f79d2c4834291936925a5562f94adbe3705413ce6397bf7e7f2e4af57"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_stream.o",
+      "sha256": "e59fec3a98a1d2b6eb16a4de8f5f1e1df536cf56380e47e11ef5b0e72f1ea4b8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_stream_groups.o",
+      "sha256": "68791b5db35f1c3f6d869691988e1e56a338b075cabfe29adebc52251577b94c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/scripting.o",
+      "sha256": "86b93e8d76f8c904b7240bb3e2fd4d05f403f7d8f6383f12e13d294053a27d24"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/functions.o",
+      "sha256": "9c82644a6c32e86c0c5dd5217d1155350fce5e20e62c7f6acd44e2db80f9dc0f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/serialize.o",
+      "sha256": "cee99a0205c4fe2c28f7af1a06b9db0afc5f0639893b4421724f1aa00a5cce70"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/snapshot/snapshot.o",
+      "sha256": "d9585adde843612e2a17e19624b111cd1327f8ddccaf0b030b63e4e5e30a497a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/persist/aof.o",
+      "sha256": "950f4e80946f2036bc8facdc0199a4dff1bd81650255a88ca8a1d169e852f850"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/climon.o",
+      "sha256": "8419aa56cefdb764f6da632b9bef4b364e38f94a23975c0a4ffaf1df2f316d25"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/tracking.o",
+      "sha256": "97d8212f729784c8e1e753dbf7743f65b64e73d18676bbfa31bd175c9dc2803e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/server_tail.o",
+      "sha256": "55fe03e2fa327bd657e97fccdebe156d7042be5c0294015a44b42250c91711ef"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/slowlog.o",
+      "sha256": "e2462d4add0387c35965d516b01b30a147b13425202e61c9a3c259ac6129148f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/lcs.o",
+      "sha256": "2e70578e0fa2f10fd2b6b535781e0fe9b990e5dc99aedcd823ab0bf9a76dd48d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/info_stats.o",
+      "sha256": "f24109cd86dac3452703b2d3d73fba44bb68ccf09d12891fcd754621f6606e52"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/lbsignals.o",
+      "sha256": "b39f683e6f587b37ec6242d51b461c94794f906c9840372f6dd749f384ee2637"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/flipctl.o",
+      "sha256": "f754f512cfde6e825b0701c264ff80e7cbaace09ee81eb3788dec4e5cfb1cdd9"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/genthread.o",
+      "sha256": "19d72db4564dd505ed048cd99e7e576ee25684459d33dd6e3d6f124b33f9ca3b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/rl2s.o",
+      "sha256": "6ff99f43777c99202acfcda485e30616ef4e8c606d7e97afa2e976c335869d46"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/lbstall.o",
+      "sha256": "7030e7e8fa09cd221295f1ab50bbc889861b4d976c23e4b7a37fe53e7cbe5814"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/lbplanner.o",
+      "sha256": "273d472822e806137728c785c251135588c2c29ecb7ad24e985590029b649ce4"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/l4prebuild.o",
+      "sha256": "dc1c473c779092f6a36137b1414ed1dac964c27d18d2623f0b4556e4ccd73969"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/cmdgap.o",
+      "sha256": "f100b4b4bfe373ee27adba0cdb927a6a3ec99305725ae35211c8fec0b58a4f4f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/pfdebug.o",
+      "sha256": "5db32877e302ccb0dec97b7c41523555fe29e4822b40e7d974be9b6971b7f0eb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/cmdmeta.o",
+      "sha256": "6d2edeeccd448aabc10923a9b8086ebaabc6c4e6275ed7fef302e34f0b9e6fa7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/t_sort.o",
+      "sha256": "849a72f082086bee33b7f61ac75250d382ecb5ff18afe11ad5b8d2e3a3c2d64c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/multidb.o",
+      "sha256": "21eb3e292298fc954371cd02cb0a213eeb8f66cabcbc27ed67a0aa61865c7ae0"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/storesize.o",
+      "sha256": "e3964fcd9fbac42e015d719d12d052396f78bb755ebc1f6a987af9276e66bd1c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/multi_admin.o",
+      "sha256": "88b53e27dd36b47ad30ba5f742deef6dc0dff6b3169513f5f543ab25bf48b214"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/reorder.o",
+      "sha256": "bf546102ebf606779d065b608e8392941ed931233a2e92aa2768d352530f15e8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/geo_store.o",
+      "sha256": "80664b8e1017e0b796f7c61cdbae6aa2a62a19cef9d06459a3f370c11596f23e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/persist/aof_frame_debug.o",
+      "sha256": "d0316f3b13251dafbb38f2f77bf9589d3f1693ceb8206a30bd6821a5984f7f83"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/aclkeys.o",
+      "sha256": "571497b3f65ac36bdf0e449e0ef87d8a05d68f0ba3626f0d98e07417280a2c0a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/blocking_debug.o",
+      "sha256": "3148ae6096946817946aff15743852d665e45d06ca2ee794188d5dc399bd8092"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/objectpread.o",
+      "sha256": "4e238a9850ebd7c0bfaf8704de588913e9d8bb6baa8d3c5789bb87fd4d9c440b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/hexpread.o",
+      "sha256": "bfb1da6075316a68404ecc729b74f9891de8ce19865f1580b0ccce9716db0036"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/cmd/autharity.o",
+      "sha256": "1cfe0a79b7385b931c22e1ccf507b1577fdde280c46d87c7753ddbc485611c4c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/fliplisten.o",
+      "sha256": "985d5d63f1954b3bdf9499bd7cc3acf29125b0fd56834136d70635fb25fc78d5"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/shutdown.o",
+      "sha256": "4353f68187695fa93287c406645bcb2e8e4e31db73497fccc28ffc7f1a7cdfbd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/db0/src/core/version.o",
+      "sha256": "c622cb0c5015ddaae7ca73f352e2a59b2652a070ddb8deb6d1155d4666bc4fce"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/main.o",
+      "sha256": "34a4ab3320eb3f6309d464fc0e7d49e429ea9627b390e2b0810134c056806bb0"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/net/tls.o",
+      "sha256": "c0b3dec3955b6324c83f99994e2f67ba39655dacf7e716185991d2d05c9ab74c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/commands.o",
+      "sha256": "8407eb059fcfe71c90e29f048f0d4238e358a5422939e10d1e2684d348a4440c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/glob.o",
+      "sha256": "9efda45279f67202283115c5fd8f9520c45c06fa7fce827ce414b40cad313f90"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/xshard.o",
+      "sha256": "aa3c042a2b9e1c8e9ce0f636995fda8507ec465734d7f077373777c28e910843"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/acl.o",
+      "sha256": "de228d5d3f628d003aacbff6de2e8bd8e588597f468bddaf76b090fbdfca511a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/hll.o",
+      "sha256": "88d9c2072410adecb3163819453af02cc89d151ad88035f210b84e3dd268565c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_server.o",
+      "sha256": "039eecd5a553ef1f73c627509983401c88866c367a82a28a682a01cfd9ba1910"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_string.o",
+      "sha256": "1482dfc9a4bba5d59bc4d6f7285df39746176c361aa1f49383a145c04226fcd9"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_string_notify.o",
+      "sha256": "6cf22b3c9f75c56f21110a9e561809a6d058fc0f87906516d78d89bbb4491fa0"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_hash.o",
+      "sha256": "cf7eef9d9c22a1b1586f9f8078466880f63d7fc2a96114e2d2c295545e481b50"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_hash_ttl.o",
+      "sha256": "985c0f58464c5abbb4c161335e3cbc5d0c43607c5d9625ae89b3ee9301f4ea63"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_list.o",
+      "sha256": "3b86d03f6cc3c45fceee8bae8c8b48369674662ea76c71918fbb18f4a1237b91"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_set.o",
+      "sha256": "5ae39ac5583de5992340998a656313fe9235afd7e32a3480d68d05172b1ff3ac"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_zset.o",
+      "sha256": "ebb3771de396b6be9a7d0c04d6ec0291a824be65ee21e4eb1c7f849f34335f03"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_zset_ops.o",
+      "sha256": "86e3b94572f8e31051df0d0af5b9203a884f2c4fb22f804c0b8304be303cb7ef"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/geo.o",
+      "sha256": "ee712d4fd36c91c738f4b61ea58988a6dcea07354bb481243aaa000b27661c83"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_stream.o",
+      "sha256": "5d4868a02c0452fda7b6af3d9ddba6e6d54156fec117989d637a97aa60400878"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_stream_groups.o",
+      "sha256": "7359de09eeb8fe29537a2152a51b0b6872a51f01461af22c778e08c753d04c42"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/scripting.o",
+      "sha256": "51aee92909bf01e42aa519f45473caccea01ac11f249e602b9dfbb0246ec4f33"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/functions.o",
+      "sha256": "a1c64559e79518b49d8457185f6d4338dfe87a718e1902212956d4c05705cf11"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/serialize.o",
+      "sha256": "e96f0771cf8c69dae44830c50132f63d1f7cb5028d4cbf7b0fe74efa901a6684"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/snapshot/snapshot.o",
+      "sha256": "953c8d5e7db82e7cb74e27e0ba62ba91ee2906bf38591639c518284e37808cfd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/persist/aof.o",
+      "sha256": "7cc374c0d2ff6464ab8b5b1660d9ad08500e401b6cddd192dbb9979d35d53c0e"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/climon.o",
+      "sha256": "9803c2f4872e0dec547aa4782b4f697f1715f74fb9d3f45259c458bcda73f92c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/tracking.o",
+      "sha256": "af5ad025b265a8f7e1f126dbaa52bd984583c566e54f5fbb082ed92f6b56e35d"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/server_tail.o",
+      "sha256": "fef518507fe8342939a2d46f71f48e9007b5c7fcb0d191a471f33e0120513794"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/slowlog.o",
+      "sha256": "c6f796985a25a73057ffc7480eb28b3c4e6e9d908d812ebc97c9c8916c4f6126"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/lcs.o",
+      "sha256": "dc756210053b562259f42ac4883eaa5a9bbb5c6bf5a60e65be1ceacc6c252d0f"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/info_stats.o",
+      "sha256": "0a096369378c034bd255fa32dcf9699746b2dbfaff8d3e53cb07acf583aa5fc5"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/lbsignals.o",
+      "sha256": "f1d89b5b4e46628ff0f6de539ccb860a844df84597a1a36a85af0744d1b5e07c"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/flipctl.o",
+      "sha256": "e4727d3c740458dcb999f36782ae2a922a30fbbb5d4b6a7a1d45baea720a7fa8"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/genthread.o",
+      "sha256": "2f854716a56d23530d917ea2214c4ff567b2b335f53b923f7d5f1508fc14d334"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/rl2s.o",
+      "sha256": "0d2de76397aec48cd3b05f9aa80d790376cf37504bde0840633f13239d8f076a"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/lbstall.o",
+      "sha256": "fc7876bdb0ffd30fc1449f101d494941b65a378e05c2e1f989e65b3633221a38"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/lbplanner.o",
+      "sha256": "99f38421eac5a65f861cee7b6e29f95aab46ca0c89f56c6fb2a8db7bb580df29"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/l4prebuild.o",
+      "sha256": "f5e6ce6d853b7903bbd9df6fc8ffa906c5074738749abfdcbe946708ef183a14"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/cmdgap.o",
+      "sha256": "5e7a354fbc017a11aa856a7da3117dc7e7329c2b4e3a79bcc101f014f04598dd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/pfdebug.o",
+      "sha256": "26b832e31200a1fc7cf995204a4ab887aeca23df2512b24f22085db92081d2e3"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/cmdmeta.o",
+      "sha256": "874fcebaa5c6d37a74a6b367f73bc7fe6689c845f346b22344d5f92ccbaaed9b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/t_sort.o",
+      "sha256": "2362b624cd3d6bc820d0671a3b3ee0baf5063df5492a922cd8713036ff987cdb"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/multidb.o",
+      "sha256": "9e94e82a55baec8c2f056242a3b037c441c830ff9aaa0898cbfa1e0d624ef741"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/storesize.o",
+      "sha256": "ff366df2d625917fcf6b05d43c1d00f47e244404c91f024aa64a7deebbe359b5"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/multi_admin.o",
+      "sha256": "8a13d8edd80ee8ca53e6466bec44825708ecff8d1d732229cc16b5509a0997ef"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/reorder.o",
+      "sha256": "85f602731b45d0433f0c1a24ac8819fbf1d575c908f2f05f4602dc98e127fb37"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/geo_store.o",
+      "sha256": "ab847eb70013774e8df90566026492072f6a4f2fcdcc136be4ee5defef6d1262"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/persist/aof_frame_debug.o",
+      "sha256": "041a43bd4dc02bb7c555e7db4f2eaa604194eb667fa410d1e973c85874315cdd"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/aclkeys.o",
+      "sha256": "20020b00e3224c4d34bccbbfdc31437315009e2a7a567d262f32188312003f03"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/blocking_debug.o",
+      "sha256": "772198009e2128b31a99675fea3de3e2d902c5a07556ea9094f2332f68af361b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/objectpread.o",
+      "sha256": "fdf3b6f2a772dbbecb52b740ae1ca0f907eb4e01b5db51026a51ca525c5bfa25"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/hexpread.o",
+      "sha256": "78686ec2d56bf55147b38c154cbef383673ef615674a807a669822e75bbda491"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/cmd/autharity.o",
+      "sha256": "9150d2eb7a8fd7fffa647ec6c8835d20b5854ca4213641c412f0088aa6f87196"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/fliplisten.o",
+      "sha256": "981ab940b16170000201f0475f8b5a5f4383637da0aa7b2d26549dbf1fb461e7"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/shutdown.o",
+      "sha256": "6b0409e955f1e3e1c29174edc6ad0cca8deb94405cc0d3335a7ec530ce2b3f79"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/src/core/version.o",
+      "sha256": "257ecf002ed324f9d6aa12f45caa6459f8b5bb742824d2ade21deb4aedd0399b"
+    },
+    {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pad-a/padding.o",
+      "sha256": "ac6e039f572a99273578ad72aa221407d08394b97698b4f8b872cb08ace37ecc"
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "path": "/home/user/Projects/cx-wave7/build/wave7/pre-source/build/tomokv",
+      "sha256": "d57665a5879a415b049e5faacbc643432ab18223a16ce0cf5966e858f17da065"
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-wave7/build/tomokv",
+      "sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
+    },
+    "PAD-A": {
+      "path": "/home/user/Projects/cx-wave7/build/tomokv-wave7-PAD-A",
+      "sha256": "900b797991bce0bf12c4c8e2ed92a270281f023f30b784faefaa8e4b1cbcfc68"
+    }
+  }
+}

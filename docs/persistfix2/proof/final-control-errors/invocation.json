@@ -1,0 +1,30 @@
+{
+  "name": "gate-final-control-errors",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "36861-36899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-control-d8"
+  ],
+  "cwd": "/home/user/Projects/cx-persistfix2",
+  "environment": {
+    "GATE_ONLY_JOBS": "persistfix2_errors",
+    "GATE_TXN_FUSED": "0",
+    "GATE_SHUTDOWN_NET_IO": "uring"
+  },
+  "expected_exit": 1,
+  "started": 1792883158.6398745,
+  "exit": 1,
+  "finished": 1792883164.3170733
+}
