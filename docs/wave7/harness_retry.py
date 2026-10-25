@@ -17,6 +17,14 @@ out = ROOT / 'docs/wave7/correctness'
 env = dict(os.environ, LANG='en_US.UTF-8', GATE_TEST_PORT='26897')
 env.pop('LC_ALL', None)
 env.pop('NETFIX_TLS_ORACLE', None)
+# Diagnose the observed limited-file abort first, while this allocation is
+# quiet. Each call retains the complete target/oracle matrix of the owning job.
+for name, jobs in [('persistence-final', ['config_unit', 'persistfix2_lastsave',
+        'persistfix2_shutdown', 'persistfix2_commands', 'persistfix2_errors']),
+        *[(f'persistence-errors-repeat-{index}', ['persistfix2_errors']) for index in range(1, 4)]]:
+    check = subprocess.run(['python3', 'docs/wave7/run_jobs.py', name, *jobs])
+    if check.returncode:
+        raise SystemExit(check.returncode)
 start = time.time()
 command = ['python3', 'tests/gates_test.py']
 log = out / 'gates-test-final.log'
