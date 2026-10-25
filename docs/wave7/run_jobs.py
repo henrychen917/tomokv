@@ -48,7 +48,10 @@ receipt = dict(command=command, cwd=str(source), start=time.time(),
                binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                gate_sha256=hashlib.sha256((source / 'tests/gate.sh').read_bytes()).hexdigest(),
                environment={k: v for k, v in env.items() if k.startswith(('GATE_', 'WAVE7_', 'REDIS74_', 'LANG', 'LC_'))},
-               netfix_tls_oracle='unset: gate default /home/user/Projects/redis74-tls')
+               netfix_tls_oracle='unset: gate default /home/user/Projects/redis74-tls',
+               diagnostic_preload=(dict(path=env['LD_PRELOAD'],
+                   sha256=hashlib.sha256(Path(env['LD_PRELOAD']).read_bytes()).hexdigest())
+                   if env.get('LD_PRELOAD') else None))
 (out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 with (out / 'gate.log').open('w') as log:
     result = subprocess.run(command, cwd=source, env=env, stdout=log, stderr=subprocess.STDOUT)
