@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_watch persistfix2_errors; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	4.380000	persistfix2 AOF write-error refusal and read availability
+ok	111.530000	datafix2 CD4.9 write WATCH table vs Redis 7.4

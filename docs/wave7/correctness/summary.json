@@ -1,14 +1,15 @@
 {
-  "post_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "post_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753",
   "pending": [
-    "watch-diagnostic"
+    "merged-sweep-postfix"
   ],
   "selections": [
     {
       "name": "abba-selftest",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -42,8 +43,9 @@
     {
       "name": "differ-epoll",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -107,8 +109,9 @@
     {
       "name": "differ-uring",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -174,6 +177,7 @@
       "exit": 1,
       "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -248,8 +252,9 @@
     {
       "name": "legacy-fused",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -586,8 +591,9 @@
     {
       "name": "merged-sweep",
       "exit": 2,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -614,8 +620,9 @@
     {
       "name": "merged-sweep-final",
       "exit": 1,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -2476,8 +2483,9 @@
     {
       "name": "perfio-quiet",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -2516,10 +2524,775 @@
       }
     },
     {
-      "name": "txnorder-round-2",
+      "name": "persistence-abort-stop-1",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-1/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.880000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-2",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-2/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.860000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.010000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-3",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-3/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.930000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-4",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-4/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.920000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-5",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-5/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.950000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-6",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-6/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t4.040000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-stop-7",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "WAVE7_ABORT_STOP": "1",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-stop-7/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t7.860000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-trace-1",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-1/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.890000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-trace-2",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-2/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t5.050000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-trace-3",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-3/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.830000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-trace-4",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-4/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t3.950000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-abort-trace-5",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-abort-trace-5/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t5.060000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-errors-repeat-1",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-errors-repeat-1/ledger"
+      },
+      "jobs": {
+        "persistfix2_errors": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t6.250000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "persistence-final",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "config_unit persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-final/ledger"
+      },
+      "jobs": {
+        "config_unit": {
+          "done": "0\t2\t0",
+          "rows": [
+            "ok\t0.390000\tconfiguration docs match parser",
+            "ok\t5.390000\tRedis config quoting + mid-value #"
+          ]
+        },
+        "persistfix2_commands": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t56.670000\tpersistfix2 persistence command replies and scheduling"
+          ]
+        },
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t5.480000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "persistfix2_lastsave": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t7.820000\tpersistfix2 LASTSAVE and rewrite INFO"
+          ]
+        },
+        "persistfix2_shutdown": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t68.560000\tpersistfix2 shutdown modifiers and signal policy"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "prebuilt-fix-check",
+      "exit": 1,
+      "current_post": true,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch persistfix2_errors execfair",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-fix-check/ledger"
+      },
+      "jobs": {
+        "datafix2_watch": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t72.640000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+          ]
+        },
+        "execfair": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t20.780000\tEXEC fast-lane polls"
+          ]
+        },
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t4.250000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "prebuilt-fix-check-2",
       "exit": 0,
       "current_post": true,
       "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch persistfix2_errors",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-fix-check-2/ledger"
+      },
+      "jobs": {
+        "datafix2_watch": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t111.530000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+          ]
+        },
+        "persistfix2_errors": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t4.380000\tpersistfix2 AOF write-error refusal and read availability"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "prebuilt-watch-negative",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-watch-negative/ledger"
+      },
+      "jobs": {
+        "datafix2_watch": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t121.750000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.010000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "txnorder-round-2",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -2581,8 +3354,9 @@
     {
       "name": "txnorder-round-3",
       "exit": 0,
-      "current_post": true,
+      "current_post": false,
       "unchanged_binary": true,
+      "diagnostic": false,
       "environment": {
         "LC_ADDRESS": "en_US.UTF-8",
         "LC_NAME": "en_US.UTF-8",
@@ -2640,13 +3414,62 @@
           ]
         }
       }
+    },
+    {
+      "name": "watch-diagnostic",
+      "exit": 0,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch serverfix_config",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/watch-diagnostic/ledger"
+      },
+      "jobs": {
+        "datafix2_watch": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t110.800000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        },
+        "serverfix_config": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.960000\tserverfix SV4.6 CONFIG validation matrix"
+          ]
+        }
+      }
     }
   ],
   "jobs": {
     "abba_selftest": [
       {
         "selection": "abba-selftest",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2661,7 +3484,8 @@
     "differ-armed-0": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2674,7 +3498,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2689,7 +3514,8 @@
     "differ-armed-1": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2702,7 +3528,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2717,7 +3544,8 @@
     "differ-equivalence": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2730,7 +3558,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2745,7 +3574,8 @@
     "differ-split-0": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2758,7 +3588,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2773,7 +3604,8 @@
     "differ-split-1": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2786,7 +3618,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2801,7 +3634,8 @@
     "release": [
       {
         "selection": "differ-epoll",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2814,7 +3648,8 @@
       },
       {
         "selection": "differ-uring",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2828,6 +3663,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2840,7 +3676,8 @@
       },
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2853,7 +3690,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2866,7 +3704,246 @@
       },
       {
         "selection": "perfio-quiet",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-1",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-2",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-3",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-4",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-5",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-6",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-7",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-1",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-2",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-3",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-4",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-5",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-errors-repeat-1",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check",
         "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check-2",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-watch-negative",
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2879,7 +3956,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2892,7 +3970,22 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "watch-diagnostic",
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2908,6 +4001,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2920,7 +4014,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2936,6 +4031,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2948,10 +4044,67 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "FAIL": 1
+        },
+        "labels": [
+          "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check-2",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-watch-negative",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "watch-diagnostic",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
         },
         "labels": [
           "datafix2 CD4.9 write WATCH table vs Redis 7.4"
@@ -2964,6 +4117,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2976,7 +4130,22 @@
       },
       {
         "selection": "merged-sweep-final",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "EXEC fast-lane polls"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check",
         "current_post": true,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -2992,6 +4161,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -3004,7 +4174,22 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 shutdown modifiers and signal policy"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -3020,6 +4205,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -3028,7 +4214,8 @@
       },
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -3037,7 +4224,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -3046,7 +4234,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -3055,7 +4244,8 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -3067,6 +4257,7 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "FAIL": 2,
@@ -3087,7 +4278,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -3109,7 +4301,8 @@
     "aof-epoll": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 54
@@ -3175,7 +4368,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 54
@@ -3243,7 +4437,8 @@
     "aof-uring": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 54
@@ -3309,7 +4504,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 54
@@ -3377,7 +4573,8 @@
     "aof_frame": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3391,7 +4588,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3407,7 +4605,8 @@
     "asan": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -3420,7 +4619,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -3435,7 +4635,8 @@
     "asan_batteries": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 5
@@ -3452,7 +4653,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 5
@@ -3471,7 +4673,8 @@
     "auth": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 7
@@ -3490,7 +4693,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 7
@@ -3511,7 +4715,8 @@
     "debug-0": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3539,7 +4744,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3569,7 +4775,8 @@
     "debug-1": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3597,7 +4804,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3627,7 +4835,8 @@
     "dump_restore": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -3642,7 +4851,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -3659,7 +4869,8 @@
     "notify": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 6
@@ -3677,7 +4888,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 6
@@ -3697,7 +4909,8 @@
     "release_batteries": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -3717,7 +4930,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -3739,7 +4953,8 @@
     "replyoff": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3753,7 +4968,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3769,7 +4985,8 @@
     "script_bounds": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3783,7 +5000,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3799,7 +5017,8 @@
     "snapshot-epoll": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3827,7 +5046,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3857,7 +5077,8 @@
     "snapshot-uring": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3885,7 +5106,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -3915,7 +5137,8 @@
     "sort": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3929,7 +5152,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -3945,7 +5169,8 @@
     "zc": [
       {
         "selection": "legacy-fused",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -3961,7 +5186,8 @@
       },
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -3979,7 +5205,8 @@
     "acl_metadata": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -3994,7 +5221,8 @@
     "acl_recheck": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -4010,7 +5238,8 @@
     "acl_subcommands": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4025,7 +5254,8 @@
     "aclfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 12
@@ -4051,7 +5281,8 @@
     "aoforder": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -4068,7 +5299,8 @@
     "atomfix5_accounting": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4083,7 +5315,8 @@
     "atomfix5_watch": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4098,7 +5331,8 @@
     "atomic_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 27
@@ -4139,7 +5373,8 @@
     "authfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 5
@@ -4158,7 +5393,8 @@
     "blockfix_mkstream": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4173,7 +5409,8 @@
     "blockfix_structure": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4188,7 +5425,8 @@
     "boot_grammar": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 7
@@ -4209,7 +5447,8 @@
     "bplus": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -4231,7 +5470,8 @@
     "bugs5": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -4248,7 +5488,8 @@
     "clientfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 14
@@ -4276,7 +5517,8 @@
     "climonfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 7
@@ -4297,7 +5539,8 @@
     "cmd_metadata": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4312,7 +5555,8 @@
     "compat2": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -4329,7 +5573,8 @@
     "compat3": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 6
@@ -4349,11 +5594,27 @@
     "config_unit": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "FAIL": 1,
           "ok": 1
+        },
+        "labels": [
+          "configuration docs match parser",
+          "Redis config quoting + mid-value #"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 2
         },
         "labels": [
           "configuration docs match parser",
@@ -4366,7 +5627,8 @@
     "core_tsan_build": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -4377,7 +5639,8 @@
     "core_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 9
@@ -4400,7 +5663,8 @@
     "datafix1_bitfield": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4415,7 +5679,8 @@
     "datafix1_geo": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4430,7 +5695,8 @@
     "datafix1_hexpire": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4445,7 +5711,8 @@
     "datafix1_lists": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4460,7 +5727,8 @@
     "datafix1_locale": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4475,7 +5743,8 @@
     "datafix1_randscan": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4490,7 +5759,8 @@
     "datafix1_spop": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4505,7 +5775,8 @@
     "datafix2_encoding": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4520,7 +5791,8 @@
     "datafix2_idle": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4535,7 +5807,8 @@
     "datafix2_notouch": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4550,7 +5823,8 @@
     "datafix2_subkeys": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4565,7 +5839,8 @@
     "dbdefault": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4580,7 +5855,8 @@
     "dispatch_arity": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4595,7 +5871,8 @@
     "dispatch_children": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4610,7 +5887,8 @@
     "dispatch_errors": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4625,7 +5903,8 @@
     "evict-lfu-armed-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4640,7 +5919,8 @@
     "evict-lfu-armed-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4655,7 +5935,8 @@
     "evict-lfu-split-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4670,7 +5951,8 @@
     "evict-lfu-split-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4685,7 +5967,8 @@
     "evict-lruclock-armed-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4700,7 +5983,8 @@
     "evict-lruclock-armed-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4715,7 +5999,8 @@
     "evict-lruclock-split-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4730,7 +6015,8 @@
     "evict-lruclock-split-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4745,7 +6031,8 @@
     "exbatch_live": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -4761,7 +6048,8 @@
     "exbatch_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -4778,7 +6066,8 @@
     "feature-armed-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 35
@@ -4827,7 +6116,8 @@
     "feature-armed-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 35
@@ -4876,7 +6166,8 @@
     "feature-cell-1s-0-0-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4891,7 +6182,8 @@
     "feature-cell-1s-0-0-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4906,7 +6198,8 @@
     "feature-cell-1s-0-0-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4921,7 +6214,8 @@
     "feature-cell-1s-0-0-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4936,7 +6230,8 @@
     "feature-cell-1s-0-1-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4951,7 +6246,8 @@
     "feature-cell-1s-0-1-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4966,7 +6262,8 @@
     "feature-cell-1s-0-1-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4981,7 +6278,8 @@
     "feature-cell-1s-0-1-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -4996,7 +6294,8 @@
     "feature-cell-1s-1-0-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5011,7 +6310,8 @@
     "feature-cell-1s-1-0-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5026,7 +6326,8 @@
     "feature-cell-1s-1-0-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5041,7 +6342,8 @@
     "feature-cell-1s-1-0-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5056,7 +6358,8 @@
     "feature-cell-1s-1-1-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5071,7 +6374,8 @@
     "feature-cell-1s-1-1-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5086,7 +6390,8 @@
     "feature-cell-1s-1-1-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5101,7 +6406,8 @@
     "feature-cell-1s-1-1-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5116,7 +6422,8 @@
     "feature-cell-2s-0-0-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5131,7 +6438,8 @@
     "feature-cell-2s-0-0-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5146,7 +6454,8 @@
     "feature-cell-2s-0-0-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5161,7 +6470,8 @@
     "feature-cell-2s-0-0-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5176,7 +6486,8 @@
     "feature-cell-2s-0-1-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5191,7 +6502,8 @@
     "feature-cell-2s-0-1-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5206,7 +6518,8 @@
     "feature-cell-2s-0-1-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5221,7 +6534,8 @@
     "feature-cell-2s-0-1-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5236,7 +6550,8 @@
     "feature-cell-2s-1-0-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5251,7 +6566,8 @@
     "feature-cell-2s-1-0-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5266,7 +6582,8 @@
     "feature-cell-2s-1-0-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5281,7 +6598,8 @@
     "feature-cell-2s-1-0-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5296,7 +6614,8 @@
     "feature-cell-2s-1-1-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5311,7 +6630,8 @@
     "feature-cell-2s-1-1-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5326,7 +6646,8 @@
     "feature-cell-2s-1-1-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5341,7 +6662,8 @@
     "feature-cell-2s-1-1-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5356,7 +6678,8 @@
     "feature-cell-fused-home-max-nopin": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5371,7 +6694,8 @@
     "feature-cell-split-home-min": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5386,7 +6710,8 @@
     "feature-cell-split-shards-auto": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5401,7 +6726,8 @@
     "feature-split-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 34
@@ -5449,7 +6775,8 @@
     "feature-split-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 34
@@ -5497,7 +6824,8 @@
     "filter_unit": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5512,7 +6840,8 @@
     "flip": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 9
@@ -5535,7 +6864,8 @@
     "flip_unit": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5550,7 +6880,8 @@
     "flipctl": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5565,7 +6896,8 @@
     "flipfix_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -5581,7 +6913,8 @@
     "fliplisten": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -5599,7 +6932,8 @@
     "fused-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 9
@@ -5622,7 +6956,8 @@
     "fused-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 9
@@ -5645,7 +6980,8 @@
     "globcase": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5660,7 +6996,8 @@
     "hexpread": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -5682,7 +7019,8 @@
     "iofix-hz": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5697,7 +7035,8 @@
     "iofix-signal": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5712,7 +7051,8 @@
     "iofix-sleep": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5727,7 +7067,8 @@
     "lb-stationary-1s": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5742,7 +7083,8 @@
     "lb-stationary-2s": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5757,7 +7099,8 @@
     "lbplanner_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -5773,7 +7116,8 @@
     "moverfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -5795,7 +7139,8 @@
     "multidb-1s-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5812,7 +7157,8 @@
     "multidb-1s-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5829,7 +7175,8 @@
     "multidb-1s-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5846,7 +7193,8 @@
     "multidb-1s-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5863,7 +7211,8 @@
     "multidb-2s-0-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5880,7 +7229,8 @@
     "multidb-2s-0-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5897,7 +7247,8 @@
     "multidb-2s-1-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5914,7 +7265,8 @@
     "multidb-2s-1-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -5931,7 +7283,8 @@
     "netcap": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -5949,7 +7302,8 @@
     "netcmd_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -5979,7 +7333,8 @@
     "netfix_config": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -5994,7 +7349,8 @@
     "netfix_idle_buffers": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6009,7 +7365,8 @@
     "netfix_query_stats": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6024,7 +7381,8 @@
     "netfix_tls": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6039,7 +7397,8 @@
     "netfix_unix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6054,7 +7413,8 @@
     "netio-1s": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6069,7 +7429,8 @@
     "netio-2s": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6084,7 +7445,8 @@
     "notify_aof": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6099,7 +7461,8 @@
     "notify_order": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6114,7 +7477,8 @@
     "notifycompat": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 7
@@ -6135,7 +7499,8 @@
     "ntfix_input": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6150,7 +7515,8 @@
     "ntnew4_live": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -6167,7 +7533,8 @@
     "perfex_live": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -6183,7 +7550,8 @@
     "perfex_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -6199,7 +7567,22 @@
     "persistfix2_commands": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 persistence command replies and scheduling"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6214,10 +7597,235 @@
     "persistfix2_errors": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "FAIL": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-1",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-2",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-3",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-4",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-5",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-6",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-stop-7",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-1",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-2",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-3",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-4",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-abort-trace-5",
+        "current_post": false,
+        "diagnostic": true,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-errors-repeat-1",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 AOF write-error refusal and read availability"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-fix-check-2",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
         },
         "labels": [
           "persistfix2 AOF write-error refusal and read availability"
@@ -6229,7 +7837,22 @@
     "persistfix2_lastsave": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "persistfix2 LASTSAVE and rewrite INFO"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "persistence-final",
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6244,7 +7867,8 @@
     "persistfix_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6259,7 +7883,8 @@
     "racefix_climon": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6274,7 +7899,8 @@
     "racefix_counters": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6289,7 +7915,8 @@
     "racefix_tsan_build": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -6300,7 +7927,8 @@
     "readonly": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -6318,7 +7946,8 @@
     "reorder_engagement": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6333,7 +7962,8 @@
     "reorder_identity": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6348,7 +7978,8 @@
     "reorder_sync": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6363,7 +7994,8 @@
     "respcompat": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6378,7 +8010,8 @@
     "respresume-cpu-1s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6393,7 +8026,8 @@
     "respresume-cpu-1s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6408,7 +8042,8 @@
     "respresume-cpu-2s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6423,7 +8058,8 @@
     "respresume-cpu-2s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6438,7 +8074,8 @@
     "respresume-fragment-1s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6453,7 +8090,8 @@
     "respresume-fragment-1s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6468,7 +8106,8 @@
     "respresume-fragment-2s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6483,7 +8122,8 @@
     "respresume-fragment-2s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6498,7 +8138,8 @@
     "respresume-neighbour-1s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6513,7 +8154,8 @@
     "respresume-neighbour-1s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6528,7 +8170,8 @@
     "respresume-neighbour-2s-epoll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6543,7 +8186,8 @@
     "respresume-neighbour-2s-uring": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6558,7 +8202,8 @@
     "ring_unit": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 3
@@ -6575,7 +8220,8 @@
     "rlcache": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -6591,7 +8237,8 @@
     "rldbg": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6606,7 +8253,8 @@
     "rlfix3_zc": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -6628,7 +8276,8 @@
     "router_uniform": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6643,7 +8292,8 @@
     "scriptfix": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 8
@@ -6665,7 +8315,8 @@
     "serverfix_acllog": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6680,10 +8331,25 @@
     "serverfix_config": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "FAIL": 1
+        },
+        "labels": [
+          "serverfix SV4.6 CONFIG validation matrix"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "watch-diagnostic",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
         },
         "labels": [
           "serverfix SV4.6 CONFIG validation matrix"
@@ -6695,7 +8361,8 @@
     "serverfix_hello": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6710,7 +8377,8 @@
     "serverfix_hll": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6725,7 +8393,8 @@
     "serverfix_lines": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6740,7 +8409,8 @@
     "serverfix_scalar": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6755,7 +8425,8 @@
     "serverfix_slowlog": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6770,7 +8441,8 @@
     "serverfix_waitaof": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6785,7 +8457,8 @@
     "splitlocal_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6800,7 +8473,8 @@
     "storage_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 13
@@ -6827,7 +8501,8 @@
     "tls": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 20
@@ -6861,7 +8536,8 @@
     "trackfix_accounting": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6876,7 +8552,8 @@
     "trackfix_order": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6891,7 +8568,8 @@
     "tracking_redirect": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6906,7 +8584,8 @@
     "txn_group_fused": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6921,7 +8600,8 @@
     "txn_group_split": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6936,7 +8616,8 @@
     "txnorder-fused-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6949,7 +8630,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6962,7 +8644,8 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6977,7 +8660,8 @@
     "txnorder-fused-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -6990,7 +8674,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7003,7 +8688,8 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7018,7 +8704,8 @@
     "txnorder-split-0": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7031,7 +8718,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7044,7 +8732,8 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7059,7 +8748,8 @@
     "txnorder-split-1": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7072,7 +8762,8 @@
       },
       {
         "selection": "txnorder-round-2",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7085,7 +8776,8 @@
       },
       {
         "selection": "txnorder-round-3",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7100,7 +8792,8 @@
     "txnorder2": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 16
@@ -7130,7 +8823,8 @@
     "txnorder_wake": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7145,7 +8839,8 @@
     "wait_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -7161,7 +8856,8 @@
     "waits_tsan_build": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {},
         "labels": [],
@@ -7172,7 +8868,8 @@
     "wb_policy": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -7187,7 +8884,8 @@
     "wb_rule_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 4
@@ -7205,7 +8903,8 @@
     "wbland_units": [
       {
         "selection": "merged-sweep-final",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2
@@ -7221,7 +8920,8 @@
     "perfio_stream": [
       {
         "selection": "perfio-quiet",
-        "current_post": true,
+        "current_post": false,
+        "diagnostic": false,
         "exit": "0",
         "rows": {
           "ok": 2

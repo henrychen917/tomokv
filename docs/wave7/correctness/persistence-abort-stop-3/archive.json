@@ -1,0 +1,723 @@
+{
+  "format": 2,
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.tqnYbF",
+  "archive_sha256": "42a8aaf4d78b2cbe92f21999b58949dfa59ecef8f1e765a82a3b157d36ee7dee",
+  "included": [
+    {
+      "path": "families.tsv",
+      "bytes": 115,
+      "sha256": "51b96d04f7c783b0f8b1b3cf16229d07cb6cfcb064a8fd194597310c85e02877"
+    },
+    {
+      "path": "jobs/persistfix2_errors/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/argv.json",
+      "bytes": 488,
+      "sha256": "8c36878bf70368d0dc1d4fe1fbe7f5aa90a8ffa244ea4528646797aa15cdcbb2"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/server.log",
+      "bytes": 1469,
+      "sha256": "1f0b6192c00e625588b4f551dcb56a8f4a25ba38d7376b1819209e6f70703a53"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/argv.json",
+      "bytes": 488,
+      "sha256": "6e96a859fbf8de3a1c2d60c986f83da5c7513e47d4ed0ab9ebe97155d04c0323"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/server.log",
+      "bytes": 1469,
+      "sha256": "e8497377d7f8f9c5a11c8e380f1d8a5c1e6747afff985fd20d292091914f5069"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/argv.json",
+      "bytes": 476,
+      "sha256": "0ea26e46b5ba4db5b3df4a5ec3d5d0aac14ba7404285f9069c120d5255fee67f"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/server.log",
+      "bytes": 1469,
+      "sha256": "2139d4e9e9e84bdfc03ccf781dc38ba3f2d02abc30a981f9caa682d8ef4cb2c9"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/argv.json",
+      "bytes": 476,
+      "sha256": "b3a7920338f125055a88e0c7159bc2dabe23c1a6929ba0a462a2d5861e1fd6e9"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/server.log",
+      "bytes": 1469,
+      "sha256": "9d2d267135304a13f369d9e2cc5af9191697eaeb5021f55a0c01e01323f3bc9a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll.log",
+      "bytes": 29581,
+      "sha256": "cf6cd7c2e81d466d11d641fb9e1f7082158cca52174b1cd5dfcd8b3a8887e28d"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/argv.json",
+      "bytes": 488,
+      "sha256": "ee23038966b486e148644dd91aae8e54c156217f6e4ee60ea2c89217c3f8130f"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/server.log",
+      "bytes": 1469,
+      "sha256": "9a0ab25c225bd69a3f5effe05fae29584f4d14d6c26c630e8a55907ca31c6eb6"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/argv.json",
+      "bytes": 488,
+      "sha256": "b5cf176cfaaddb33b9e58edf9865ec17a8f42277618fb73a49b94ccb30808f07"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/server.log",
+      "bytes": 1469,
+      "sha256": "6bcf47986d5aed427084a23c6781848345693d709ee489033bfd9cf8eec23c16"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/argv.json",
+      "bytes": 476,
+      "sha256": "e1de3ca4439df42cdff6f4a7dfa12298027c3756955492f15d360d540b459760"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/server.log",
+      "bytes": 1469,
+      "sha256": "d247ed61a25604f2ebc1cef6c9d1936e6c60d76087c1aedf155e26213d1edca7"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/argv.json",
+      "bytes": 476,
+      "sha256": "15e892d12ef28be8da48a3c0a74ad74c677ab537161273b61de43e0c4c9f4335"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/server.log",
+      "bytes": 1469,
+      "sha256": "ea6101834fc3c0711629a3ca161204543c685e76909cf61351505d461cb34d0a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring.log",
+      "bytes": 29581,
+      "sha256": "9764b764cd5f8dbf0067b8792a687be19bce40d0cf3bf1b621e4128d77a1c983"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/argv.json",
+      "bytes": 488,
+      "sha256": "8f2ab0bdd7db6795dbb0dca8e9e03c506dffd1613166361e7a073dd256d1e0ea"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/server.log",
+      "bytes": 1469,
+      "sha256": "93e1ef8ad4d8d57dcf2474b8d5e80f822886f32d72b7392bd9842c63a07e1e5d"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/argv.json",
+      "bytes": 488,
+      "sha256": "b02a1f240629b52335d9c5badea54b0f32c9f357b9581aae5992620ae27ccefc"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/server.log",
+      "bytes": 1469,
+      "sha256": "b92028900bc8a316868666c2077f0f03a5bef83455b856aa7cdeb4acb279051e"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/argv.json",
+      "bytes": 476,
+      "sha256": "62e7acc30379abf2298234224e6fdc52d7d47a711ede74c7ea7f183d851f9373"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/server.log",
+      "bytes": 1469,
+      "sha256": "2b8765179ed2f32846e5026a769b52ad5631aab8124ab0e4a2b9009f7cc51e1a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/argv.json",
+      "bytes": 476,
+      "sha256": "1dd312100ec11d19c7057c92a7457aaf4b68464c51ec9348921f0712188240c6"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/server.log",
+      "bytes": 1469,
+      "sha256": "e1d5674142066d633919b3d198ca20393a2e890146aefc04207ba66575a62961"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll.log",
+      "bytes": 29581,
+      "sha256": "343f10892d41926fed7423f1808948a0d3b24cf2556056ee29daa954f6281e91"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/argv.json",
+      "bytes": 488,
+      "sha256": "c9719460b2d67188d7f68baa39e209a298042da4b942433602ca76155ee23ac4"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/server.log",
+      "bytes": 1469,
+      "sha256": "77f986115551ec7a4dea3973a7134f55f9b5d88b6dd66cbf81710d44e2a53933"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/argv.json",
+      "bytes": 488,
+      "sha256": "6028860f4b5f19a1cee48de58989cdc7dc0d8d963536e380b887eb213db950ea"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/server.log",
+      "bytes": 1469,
+      "sha256": "c3040917f6bebcf11025005416a4678dea7d4b23fb50065714fa3d4100702db7"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/argv.json",
+      "bytes": 476,
+      "sha256": "b61870ecd4b16b1fd452e82419186c6a8a6486a27f2a958f088f6cbb78895726"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/server.log",
+      "bytes": 1469,
+      "sha256": "cd0517cc6b0e330b8b43570fc19472bd191e555cc43ac0da8304f071293fd1dc"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/argv.json",
+      "bytes": 476,
+      "sha256": "3156553c376231165bd1c3e5243cdbb8890018ddb705cbfe510d252181da4758"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.manifest",
+      "bytes": 88,
+      "sha256": "ca465c5845ad4d4c0a2b4cda8853efeb9423cb4242a4eaaa5ecbaa00a4e75492"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/server.log",
+      "bytes": 1469,
+      "sha256": "1dfc872ab82b4211c863e17e8f1c524c80350edcb206b1c9deb6b50610a4623f"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring.log",
+      "bytes": 29581,
+      "sha256": "e253122dc1b535f9a7e73593a6690541207a81e1fd2481e83e315274717549b6"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-0/argv.json",
+      "bytes": 664,
+      "sha256": "d10f664c49d02543e413f62cd7e66d01b324dc141843e945f1a11b81bed1e32a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-0/server.log",
+      "bytes": 7689,
+      "sha256": "0a226a2315d5976ef1f2d44c0ebb792bcbf19e8fb135bbbdb8a682e55ac96b5e"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-1/argv.json",
+      "bytes": 664,
+      "sha256": "a39ae8e76760ebd2f73a5c8faed7edcbab653cffc30dd241ed79b984f5c0dffd"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-1/server.log",
+      "bytes": 7687,
+      "sha256": "5862b33eeda0b54be7b344b963a2b17a48fbcd649ffee1e91ce1848751e7161b"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-0/argv.json",
+      "bytes": 652,
+      "sha256": "067c3c97d81a3ed3fa5c41301bcec1509e641bfa5483a8eaeff4b08fbcdf8dce"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-0/server.log",
+      "bytes": 7663,
+      "sha256": "56e1f659792eee8723d191550e72f13bdde3a4881cc3ae2f20bd17c390ed5cd0"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-1/argv.json",
+      "bytes": 652,
+      "sha256": "b73c6209affe26ae461cd065144f8030bf0ecc4dc33d9d80c6fe129ca2bacc92"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-1/server.log",
+      "bytes": 7668,
+      "sha256": "3298ea05cf846d0b888053144a193494a07e15312f586cb583b733f46d7e5f48"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll.log",
+      "bytes": 30210,
+      "sha256": "e9662d4a43f871a1e06062619bf898d85e5de45862b622ed17724ad0f55e2ca9"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-0/argv.json",
+      "bytes": 664,
+      "sha256": "6fd0d6483c1077e89f5a2700f7a5cd3a2f46890fd863dd5501b474d44aeb270d"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-0/server.log",
+      "bytes": 7544,
+      "sha256": "c4782fe8ce876e7e58bccb764028febdad657c87dd96fab0c235446db8604474"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-1/argv.json",
+      "bytes": 664,
+      "sha256": "011fa82d30ee88d6b88c737685ff3886f20f65ea33b7d961d8f1477dfef3dd8a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-1/server.log",
+      "bytes": 7538,
+      "sha256": "f24343b7dcfa1d0bae5039bb44da4a2858afa6ebb9342d204157497342560d69"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-0/argv.json",
+      "bytes": 652,
+      "sha256": "fad87b264c996001336bcd2f0946f8dca134c60c08aa9b058e9e3d9cc2a94b42"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-0/server.log",
+      "bytes": 7550,
+      "sha256": "1686d0fb070fa2f3d252d7aed472e2f28470db5d6f53e1326621658f76829258"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-1/argv.json",
+      "bytes": 652,
+      "sha256": "175602f02dd56c67889204b9bdcef35436d83817a2f2a8d04f80a35b9502ba39"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-1/server.log",
+      "bytes": 7541,
+      "sha256": "a032170ec9f3a601b44a3f05c7ead32e7c4aa5d4fe389e784cc4194205058262"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring.log",
+      "bytes": 30210,
+      "sha256": "2fba55faaaba64021cee2567f595090b0d738b705f0f21190e19ef709ee0218e"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-0/argv.json",
+      "bytes": 682,
+      "sha256": "d32eefbe86244052acb7bcfc0e546a17771471441d5d34972b8d0f8450258648"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-0/server.log",
+      "bytes": 6785,
+      "sha256": "b649dabc5adef04e718d5c7147d6a8fe856fa6ac45c60d60723936218812367f"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-1/argv.json",
+      "bytes": 682,
+      "sha256": "5b0c1562466361aa3ff324a9a6743a183de7e4e4493cba1754023c2175b22241"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-1/server.log",
+      "bytes": 6791,
+      "sha256": "f9056e7a33bfa4c9a1db44ae99ba3d552190bce0491a4599b85dad3e4e1c9e93"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-0/argv.json",
+      "bytes": 670,
+      "sha256": "07e1aced0a0a6c9922d07a6a8ff618beadb0c100506bd73c807c6a9eeb3726b9"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-0/server.log",
+      "bytes": 6767,
+      "sha256": "436927e1da01e8cc3268e6a22b39ee5329bbbd33b5f584aa3e5e7bc6ca039532"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-1/argv.json",
+      "bytes": 670,
+      "sha256": "a2c3d7254c25682b9e5a423914de3b3da7ac9f518f82cb52d4c45b9284f6fb56"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-1/server.log",
+      "bytes": 6764,
+      "sha256": "334206a53bf593b1bcb246bb9328938b5f4d8e70211559337c4122b933f2c5c9"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll.log",
+      "bytes": 30282,
+      "sha256": "cf00096e2db467de7cd25c4cf679057c1c80f2b8bc45fdb81bf762c7bed29636"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-0/argv.json",
+      "bytes": 682,
+      "sha256": "b2cc7cf950e713eefbd338a3cd12b16578411b9832545fc6489a2b140e16b86a"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-0/server.log",
+      "bytes": 6631,
+      "sha256": "2e0dfff191e8b8bc52233479cf4dab491de045d42b5dc79a6a6e65135c5cad18"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-1/argv.json",
+      "bytes": 682,
+      "sha256": "31b517df32c89cca5dae55d760833b48170fc5f7267afdec9648599686ed459b"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-1/server.log",
+      "bytes": 6645,
+      "sha256": "233e598ac0abd568e0d26870656498f72778a732c4bd8243a44ada14da2e12f4"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-0/argv.json",
+      "bytes": 670,
+      "sha256": "04d831964ab4c67ec1c34a9fe5dce04fdc850582896436a6113fa7b09b984690"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-0/server.log",
+      "bytes": 6644,
+      "sha256": "e82d29b958b4970d113200e7dec7d78bc183039aa77c35952a552ff10c3959da"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-1/argv.json",
+      "bytes": 670,
+      "sha256": "8ebb2796217843d3181d793df07abee29fb606e12afe3c39821765130714f5ec"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-1/server.log",
+      "bytes": 6645,
+      "sha256": "0473dacaa4babe2970562412ae25f80dc1f7d98139add7c46c2ce3b08d4bf51d"
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring.log",
+      "bytes": 30282,
+      "sha256": "d607e22ef98a13286830e19503b7f574c7ae6c46cb1da7b75292ecec842713e0"
+    },
+    {
+      "path": "jobs/persistfix2_errors/family.tsv",
+      "bytes": 63,
+      "sha256": "79943f8a1be4dc7c31953d92a5b355b7c46bbd9750b0d7b253faa28b47f8b973"
+    },
+    {
+      "path": "jobs/persistfix2_errors/ledger",
+      "bytes": 70,
+      "sha256": "b1651b5759662d0c941272fe76942ce3f2ea32261e06649cc653b81168791098"
+    },
+    {
+      "path": "jobs/persistfix2_errors/output.log",
+      "bytes": 183,
+      "sha256": "581f9b0145387b861fdd0e795f4df7f9f8e27cabad83e9e56a8e2d6cea4f6d53"
+    },
+    {
+      "path": "jobs/persistfix2_errors/timings",
+      "bytes": 70,
+      "sha256": "b1651b5759662d0c941272fe76942ce3f2ea32261e06649cc653b81168791098"
+    },
+    {
+      "path": "jobs/release/done",
+      "bytes": 6,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "9dfca86dd89955c42bdf3f628ee93ba09fdc69d02f0a14349dde9616c9809db8"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "1f231d55b9f919b92bfb8491110f0d459d69652ad6285a2d10a386cf570d7416"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1227,
+      "sha256": "db301750d608f613f9f9f2f79af29040c8fd6d6d8e9f51ccbffb0e6d57f40813"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 202482,
+      "sha256": "3a60e5b0a4f72613e001434ba44001f121cea2a2393abb9cf366da9ce705f1bb"
+    }
+  ],
+  "excluded_runtime_data": [
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.base.rdb",
+      "bytes": 89
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-oracle-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.aof",
+      "bytes": 398
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-1s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-epoll/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-everysec-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-0/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/errors-target-2s-uring/write-error-no-1/data/appendonlydir/appendonly.aof.1.incr.tomo",
+      "bytes": 380
+    },
+    {
+      "path": "jobs/persistfix2_errors/row-timeout-133361.133361.455963783.1.cancel",
+      "bytes": 60
+    },
+    {
+      "path": "jobs/release/row-timeout-133315.133315.455963743.1.cancel",
+      "bytes": 60
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0
+    }
+  ]
+}

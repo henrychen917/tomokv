@@ -1,0 +1,2 @@
+ok	0.010000	release build (+footprint locks)
+ok	3.860000	persistfix2 AOF write-error refusal and read availability

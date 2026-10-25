@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_watch; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	121.750000	datafix2 CD4.9 write WATCH table vs Redis 7.4

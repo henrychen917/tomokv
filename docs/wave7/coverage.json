@@ -195,6 +195,14 @@
       "note": "Scheduler/collector interface: all correctness consumer jobs selected; measurement jobs reserved to maintainer."
     },
     {
+      "file": "tests/gates_test.py",
+      "jobs": [
+        "job_abba_selftest"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/multidb_unit.cc",
       "jobs": [
         "job_atomic_units",
@@ -264,6 +272,14 @@
       "note": ""
     },
     {
+      "file": "tests/serverfix_config.py",
+      "jobs": [
+        "job_serverfix_config"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/shutdown_unit.cc",
       "jobs": [
         "job_climonfix",
@@ -324,6 +340,7 @@
         "job_blockfix_registry",
         "job_blockfix_structure",
         "job_compat3",
+        "job_datafix2_watch",
         "job_execfair",
         "job_rlfix3_info"
       ],

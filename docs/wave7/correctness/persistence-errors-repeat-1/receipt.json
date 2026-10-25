@@ -1,0 +1,67 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792903097.9208674,
+  "commit": "570d4ca63b087ebb8de8168bb4e45b311e723827",
+  "binary_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "persistfix2_errors",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/persistence-errors-repeat-1/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 1,
+  "end": 1792903106.2528944,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.epsFcM",
+  "jobs": {
+    "persistfix2_errors": {
+      "done": "0\t0\t1",
+      "rows": [
+        "FAIL\t6.250000\tpersistfix2 AOF write-error refusal and read availability"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-87",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "88-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv-wave7-before-prebuiltfix"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792904437.847104,
+  "commit": "d84ebd2b6c38f39ec7276176b1557d79b9e6be43",
+  "binary_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "gate_sha256": "e3ca78a7b0a76378a9a99445308fc836a8438c51ed9d52f05133a19ff923732b",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26898",
+    "GATE_ONLY_JOBS": "datafix2_watch",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-watch-negative/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "diagnostic_preload": null,
+  "exit": 1,
+  "end": 1792904561.6870637,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.ncsojB",
+  "jobs": {
+    "datafix2_watch": {
+      "done": "0\t0\t1",
+      "rows": [
+        "FAIL\t121.750000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.010000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}
