@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Require the complete WATCH job to reject the frozen prebuilt-spec defect."""
 import ast
+import argparse
 import hashlib
 import json
 import os
@@ -10,9 +11,13 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
+p = argparse.ArgumentParser()
+p.add_argument('--spare-slot', action='store_true', help='64-71 server, 88-89 client, ports 26890-26898')
+args = p.parse_args()
+allocation = ['--server-cores', '64-71', '--load-cores', '88-89', '--ports', '26890-26898'] if args.spare_slot else []
 name = 'prebuilt-watch-negative-final'
 result = subprocess.run(['python3', 'docs/wave7/run_jobs.py', name,
-    'datafix2_watch', '--binary', 'build/tomokv-wave7-before-prebuiltfix'])
+    'datafix2_watch', '--binary', 'build/tomokv-wave7-before-prebuiltfix', *allocation])
 receipt = json.loads((ROOT / 'docs/wave7/correctness' / name / 'receipt.json').read_text())
 assert result.returncode == receipt['exit'] == 1
 logs = sorted((Path(receipt['run_dir']) / 'jobs/datafix2_watch').glob('watch-*.log'))
