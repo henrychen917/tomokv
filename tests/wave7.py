@@ -76,9 +76,19 @@ def selected_fields(c):
     assert int(after["expired_hash_fields"]) == int(before["expired_hash_fields"]) + 1
     fields = {
         "stats": ("expired_subkeys", "expired_hash_fields", "hash_field_expires"),
-        "persistence": ("rdb_bgsave_in_progress", "rdb_last_save_time", "rdb_saves",
-                        "aof_enabled", "aof_rewrite_in_progress", "aof_rewrite_scheduled",
-                        "aof_rewrites", "aof_rewrites_consecutive_failures"),
+        "persistence": ("loading", "rdb_changes_since_last_save", "rdb_bgsave_in_progress",
+                        "rdb_last_save_time", "rdb_last_bgsave_status", "rdb_saves",
+                        "rdb_scheduled_saves", "rdb_save_cron_checks", "snapshot_preimages",
+                        "snapshot_cuts_armed", "snapshot_cuts_waited", "snapshot_groups_drained",
+                        "snapshot_cut_ticket", "aof_enabled", "aof_rewrite_in_progress",
+                        "aof_rewrite_scheduled", "aof_last_bgrewrite_status", "aof_rewrites",
+                        "aof_rewrites_consecutive_failures", "aof_last_write_status",
+                        "aof_current_size", "aof_base_size", "aof_pending_rewrite",
+                        "aof_records_written", "aof_replayed_records", "aof_groups_committed",
+                        "aof_groups_skipped_on_replay", "aof_fsyncs", "aof_send_gate_waits",
+                        "aof_control_frames_deferred", "aof_rewrite_base_size",
+                        "aof_rewrite_requests", "aof_auto_rewrite_triggers", "aof_history_unlinks",
+                        "aof_rewrite_failures", "aof_auto_rewrite_backoff_skips"),
     }
     for resp in (2, 3):
         c.must("HELLO", resp)
