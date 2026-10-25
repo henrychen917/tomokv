@@ -10,6 +10,7 @@ import resource
 import subprocess
 
 from _lib import Conn, info
+from wave7 import selected_fields
 
 
 SECTIONS = ("server", "clients", "memory", "persistence", "stats", "replication",
@@ -50,6 +51,7 @@ def main():
                     elif name in SECTIONS: selected.add(name)
                 got = headings(c.cmd("INFO", *names))
                 assert got == selected, (resp, names, got, selected)
+        selected_fields(c)
         print(f"RL4.15 wire unions PASS: {mode}, read-local {server['read_local']}", flush=True)
     finally:
         c.close()

@@ -313,6 +313,37 @@ def shutdown(args):
                 return
         raise AssertionError('active BGSAVE shutdown state never observed')
     check('active BGSAVE shutdown', active_save)
+
+    def blocked_shutdown(save):
+        name = 'wave7-blocked-' + ('save' if save else 'nosave')
+        with boot(args, name) as (process, conn, data):
+            assert conn.must('SET', 'wave7:acknowledged', 'value') == b'OK'
+            waiters = [Conn('127.0.0.1', args.port, buffering=0) for _ in range(2)]
+            try:
+                waiters[0].send('BLPOP', 'wave7:list', 0)
+                waiters[1].send('XREAD', 'BLOCK', 0, 'STREAMS', 'wave7:stream', '$')
+                wait(lambda: int(info(conn, 'clients')['blocked_clients']) == 2,
+                     'wave7 both blocking registries armed')
+                conn.send('SHUTDOWN', 'SAVE' if save else 'NOSAVE')
+                for peer in [conn, *waiters]:
+                    try:
+                        reply = peer.read()
+                    except (EOFError, ConnectionResetError):
+                        pass
+                    else:
+                        raise AssertionError(('shutdown must close blocked peer', reply))
+                assert process.wait(timeout=15) == 0
+                assert (data / 'dump.rdb').is_file() == save
+                emit('wave7 blocked shutdown', save=save, armed=2, exit=process.returncode)
+            finally:
+                for peer in waiters: peer.close()
+        with boot(args, name + '-reload', existing_data=data) as (_, recovered, _):
+            assert recovered.must('GET', 'wave7:acknowledged') == (b'value' if save else None)
+            assert int(info(recovered, 'clients')['blocked_clients']) == 0
+            assert recovered.must('EXISTS', 'wave7:list', 'wave7:stream') == 0
+            emit('wave7 blocked shutdown recovery', save=save)
+    for save in (False, True):
+        check('wave7 blocked shutdown ' + str(save), lambda save=save: blocked_shutdown(save))
     assert not failures, '\n'.join(failures)
 
 

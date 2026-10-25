@@ -3,6 +3,7 @@
 from compat3_lib import equal, run
 from _lib import Conn, info
 import time
+from wave7 import blocking_effects
 
 
 def parked(c, n):
@@ -63,6 +64,7 @@ def registry(c):
         w.send("BLPOP", "reuse", 0); parked(c, 1); c.cmd("LPUSH", "reuse", "v")
         equal(w.read(), [b"reuse", b"v"], "queue removal and recreation")
         parked(c, 0)
+        outputs.append(blocking_effects(c))
         return outputs
     finally:
         for w in clients:

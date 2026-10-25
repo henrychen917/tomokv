@@ -22,3 +22,9 @@ Headline 768/785 + rlfix3 16 + ctlfix 0 + blockfix 3 + persistfix2 4 + atomfix5 
 - INFO retains selective collection; `expired_subkeys` is computed from the collected lifetime field counter and RESETSTAT baseline only for STATS.
 
 Build, interaction checks, compiler trials, command-scope instruction counts, final correctness receipts and PAD construction are pending. No throughput claim.
+
+### Directed interaction checks
+
+`tests/wave7.py` extends existing jobs without adding rows: cross-owner no-op/real writes both ordinary and in writer EXEC preserve exact CLIENT INFO/LIST watch counts and clear them on both EXEC outcomes; unchanged SETBIT still materializes raw without dirtying WATCH; blocking BLMOVE dirties its watched destination when served; selective INFO asserts each changed field appears exactly once in its owning section and requires a nonzero expired-subkeys transition followed by RESETSTAT. Persistfix2 shutdown adds observed BLPOP+XREAD waiters at SAVE/NOSAVE shutdown, EOF on every peer, clean exit and exact recovery.
+
+Initial serverless plain singleton counts (slowlog disarmed) add no instructions in any of the twelve mode/runtime/command cells. The complete batch and slowlog matrix and MSET causes are still pending. These are instruction counts, not performance measurements.
