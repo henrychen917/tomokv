@@ -3,8 +3,9 @@
 ## lualibs
 
 Lane `cx-lualibs`, base `05a5e01a9d8f1236e11cdbe4f2f7d490eb40edba`.
-No push. Implementation and directed proof are committed; the broader proof
-results below are updated as their complete gate jobs finish.
+No push. Implementation, directed oracle proof and broad correctness results
+are recorded below. Production code is fixed at commit `1909358b1`; subsequent
+commits contain proof tooling, receipts and this report.
 
 **Implemented:** Redis 7.4.10's `cjson`, `cmsgpack`, `bit`, `struct`, and
 `redis.sha1hex` in every lazily created executor Lua state, in both database
@@ -144,9 +145,38 @@ differential leg to start and overlap the end of AOF correctness. The queued
 eight matrices then refused the occupied 40840/40841 ports. The original runner
 and its owned descendants were stopped. These partial/guard-refused attempts
 are **invalid and excluded**, with [receipts retained](docs/lualibs/invalid-differ-starts.tar.gz).
-The full standard sequence is being rerun sequentially from the fixed driver;
-its final results will replace this pending statement. No performance run
-occurred. A partial gate is not a full-gate receipt.
+The full standard sequence and the two complete reruns below finished
+sequentially from fixed driver copies. No performance run occurred. A partial
+gate is not a full-gate receipt.
+
+The final eight `tests/differ_gate.sh` invocations use all 47 discovered
+generators, seeds **7, 19, 20, 23, 21**, atomic **0/1**, and both engines and
+geometries. Each retains the four standard MULTI repetitions. Each split
+invocation also passes all 16 mode-equivalence cells; each armed/fused
+invocation proves that the read-local lane fired in both atomic settings.
+
+| Engine / geometry | POST passed / failed | PRE passed / failed | POST comparison witnesses | PRE comparison witnesses |
+|---|---:|---:|---:|---:|
+| uring / split | 475 / 0 | 475 / 0 | 2,145,479 | 2,145,110 |
+| uring / armed-fused | 466 / 0 | 466 / 0 | 2,098,770 | 2,098,932 |
+| epoll / split | 475 / 0 | 475 / 0 | 2,144,834 | 2,145,677 |
+| epoll / armed-fused | 466 / 0 | 466 / 0 | 2,098,377 | 2,098,602 |
+| Final complete totals | **1,882 / 0** | **1,882 / 0** | **8,487,460** | **8,488,321** |
+
+These are the driver's pass counts and recorded reply/property witnesses.
+Every matrix records coverage of **232 of 245** registered commands; the
+unobserved commands remain listed in its coverage artifact. The driver's
+declared `sort` skip requires split 6:2: ten skipped legs per fused matrix,
+20 per arm. Every split matrix executes those legs. No additional suite or
+seed was skipped. **DIFF-TRK-1 was not reproduced:** all 40 `climon` legs per
+arm in these final matrices passed. This is an observation over these runs,
+not a claim that the existing flake is impossible.
+
+[Differential summary](docs/lualibs/differential-summary.json),
+[POST receipts](docs/lualibs/post-differential.tar.gz),
+[PRE receipts](docs/lualibs/pre-differential.tar.gz).
+Archives include the original failed matrices, final complete reruns,
+coverage files, mechanism witnesses, exact driver copies and status ledger.
 
 The first corrected split/uring POST matrix then encountered nine `climon`
 reader-control bind failures on port 40842; its summary also rejected the
@@ -160,16 +190,20 @@ SO_REUSEADDR sockets for 40840-40842, preventing ephemeral allocation between
 boots while allowing the real Redis/TomoKV/control listeners to bind normally.
 Its listener compatibility was checked with a real command-byte exchange.
 It changes no sysctl, comparison, deadline or protocol. The whole first matrix
-is queued for a standard-seed rerun under this reservation; original failures
-remain retained. The lease will be closed after verification.
+passed its unchanged standard-seed rerun under this reservation: **475/0**.
+Original failures remain retained. The lease was closed after verification;
+[cleanup](docs/lualibs/runtime-cleanup.json) confirms no remaining lane server
+or listener on ports 40800-40899.
 
 PRE split/epoll's atomic-1 seed-7 PSFIX leg also refused a target SAVE reply:
 `ERR Background save already in progress` after its both-peer idle barrier.
 The test explicitly classifies this as a harness race and refuses comparison.
-POST's matching full-matrix leg passed. A full PRE split/epoll rerun is queued
-after the other matrices, preserving the preceding suites and accumulated
-state as well as the same seeds. The original failure remains in the receipts;
-no test, barrier or timeout is changed.
+POST's matching full-matrix leg passed. The original PRE matrix finished at
+**474/1**. A full unchanged PRE split/epoll rerun, preserving the preceding
+suites and accumulated state as well as the same seeds, passed **475/0**;
+the formerly failing PSFIX leg passed all 27 exact/property checks. The
+[original failure](docs/lualibs/pre-psfix-save-race.log) remains in the receipts.
+No test, barrier or timeout was changed.
 
 
 ### Binary identity, size and per-state memory
@@ -178,6 +212,9 @@ Binaries: `build/tomokv-lualibs-pre`, `build/tomokv` (POST),
 `build/tomokv-lualibs-pad-a`. [SHA-256 inventory](docs/lualibs/binaries.sha256)
 includes the Redis 7.4.10 oracle. [Reproduction tool](tools/lualibs_artifacts.py)
 builds the PAD-A and performs the serverless memory and identity audits.
+The [artifact check](docs/lualibs/final-artifact-check.json) rechecks all three
+binary hashes, both oracle paths, the 16-file source manifest, required layout
+sizes and unchanged EXPECT values after the completed POST differential proof.
 
 **PAD-A is kind (A), a behaviour twin:** PRE helper availability with POST's
 exact section sizes and symbol layout. Only the first byte of each namespace's
@@ -244,7 +281,9 @@ correctness tally; this is the requested maintainer merit decision.
 ### Resources and exclusions
 
 All builds use `taskset -c 48-63` and `-j16`. Gate targets use 48-55, clients
-56-63; oracle processes remain within 48-63. Service ports are 40800-40899.
+56-63; oracle processes remain within 48-63. An active-driver descendant
+[affinity snapshot](docs/lualibs/runtime-affinity.json) confirms these masks.
+Service ports are 40800-40899.
 The lane-only Python port guard allocates disposable bind-zero fixtures from
 40890-40898, with gates_test explicitly on 40899. It changes port allocation
 only, not comparisons or deadlines. One early, superseded gates_test run used
@@ -258,5 +297,5 @@ additional binary, without another full build tree.
 **NOT RUN:** full `tests/gate.sh iteration`, performance benchmarks, load
 generators for measurement, generic 14-cell ABBA merit and NIC performance
 work — reserved to the maintainer. Correctness runs above use the explicit
-runtime authorization. Remaining proof gaps, if any, will be listed with their
-reasons before this lane is handed off.
+runtime authorization. No correctness run remains pending. Execution-control
+and cross-executor CJSON-configuration compatibility limits are stated above.
