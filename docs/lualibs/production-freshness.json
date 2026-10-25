@@ -1,0 +1,241 @@
+[
+  {
+    "target": "all",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/moverfix-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/publishfix-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/at15-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-wake-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-episodes",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-episodes-debug",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-watch-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/txnorder-watch-db0-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/netcmd-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/netcap-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/waits-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/multidb-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/storesize-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/respresume-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/respresume-migration",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exbatch-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wb-rule-units",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/wbland-units",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/rltopo-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/lbplanner-units",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/shutdown-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/persistfix-units",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/flushfix-units",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/mdbqsbr2-park/tomokv",
+    "command": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "all"
+    ],
+    "rc": 0,
+    "stderr": ""
+  },
+  {
+    "target": "build/mdbqsbr2-no-wake/tomokv",
+    "command": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "all"
+    ],
+    "rc": 0,
+    "stderr": ""
+  }
+]

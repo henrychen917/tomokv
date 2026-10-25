@@ -1,6 +1,6 @@
 #!/bin/bash
 # Reproduce CC4.7 correctness via complete gate jobs, never the performance tier.
-# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh jobs|differ.
+# Invoke with taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ.
 set -u
 cd "$(dirname "$0")/.."
 export PYTHONPATH="$PWD/docs/lualibs/port_guard${PYTHONPATH:+:$PYTHONPATH}"
@@ -33,6 +33,16 @@ case "${1:-}" in
       done
     done
     ;;
+  persistence)
+    # AOF owns explicit script-group and process-restart script replay rows.
+    for arm in post pre; do
+      binary=build/tomokv
+      [ "$arm" != pre ] || binary=build/tomokv-lualibs-pre
+      for fused in 0 1; do
+        gate_job "$arm-aof-f$fused" "$binary" 'aof-epoll aof-uring' "$fused" 1
+      done
+    done
+    ;;
   differ)
     export GATE_LOAD_CORES=56-63 GATE_DIFFER_ORACLE_CORES=48-55
     export GATE_DIFFER_HISTORY="$PWD/.gate-history/lualibs-differ"
@@ -55,5 +65,5 @@ case "${1:-}" in
       done; done
     done
     ;;
-  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|differ' >&2; exit 2;;
+  *) echo 'usage: taskset -c 48-63 bash tools/lualibs_proof.sh jobs|persistence|differ' >&2; exit 2;;
 esac

@@ -101,6 +101,12 @@ eight scheduler-fixture 45-second timeouts; its failed receipt is retained as
 The label-fixture refusal above is separate and solely the maintainer EXPECT
 count mismatch.
 
+`make all` and every target listed by `job_production_units` built successfully.
+Independent `make -q` checks report **45/45 fresh**: `all`, 42 unit/control
+targets, and both underlying mdbqsbr live-arm build roots. The wrapper
+`mdbqsbr-live-arms` is phony, so freshness is checked on its real outputs.
+[Freshness receipt](docs/lualibs/production-freshness.json).
+
 Remaining complete-job proof is in progress. Commands are retained in
 [tools/lualibs_proof.sh](tools/lualibs_proof.sh), using only GATE_ONLY_JOBS and
 `tests/differ_gate.sh`, never a replacement battery driver. The jobs preserve
