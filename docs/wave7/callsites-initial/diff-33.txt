@@ -1,0 +1,30 @@
+tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const::{lambda(tomo::Op const&)#1}>(unsigned long, tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&)::{lambda(unsigned long, unsigned long)#1}::operator()(unsigned long, unsigned long) const
+--- headline
+
++++ post
+
+@@ -89,8 +89,8 @@
+
+ CLONE 0 0140 [ 4] movswl 0x24(%rax),%edx
+ CLONE 0 0144 [ 4] movswl 0x20(%rax),%ebp
+ CLONE 0 0148 [ 6] mov 0xcc(%rbx),%eax
+-CLONE 0 014e [ 4] mov %edx,0x18(%rsp)
+-CLONE 0 0152 [ 4] mov %eax,0x1c(%rsp)
++CLONE 0 014e [ 4] mov %edx,0x1c(%rsp)
++CLONE 0 0152 [ 4] mov %eax,0x18(%rsp)
+ CLONE 0 0156 [ 2] cmp %eax,%ebp
+ CLONE 0 0158 [ 6] jae <+0x30>
+ CLONE 0 015e [ 7] mov 0xc0(%rbx),%rax
+@@ -104,9 +104,9 @@
+
+ CLONE 0 017e [ 5] call <tomo::FlatStore::hash_key(tomo::Slice)>
+ CLONE 0 0183 [ 5] cmp %rax,0x8(%rsp)
+ CLONE 0 0188 [ 2] je <+0x1c0>
+-CLONE 0 018a [ 4] mov 0x18(%rsp),%eax
++CLONE 0 018a [ 4] mov 0x1c(%rsp),%eax
+ CLONE 0 018e [ 2] add %eax,%ebp
+-CLONE 0 0190 [ 4] mov 0x1c(%rsp),%eax
++CLONE 0 0190 [ 4] mov 0x18(%rsp),%eax
+ CLONE 0 0194 [ 2] cmp %eax,%ebp
+ CLONE 0 0196 [ 6] jae <+0x30>
+ CLONE 0 019c [ 5] mov 0x10(%rsp),%rcx
