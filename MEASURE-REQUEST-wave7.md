@@ -79,3 +79,9 @@ The broad sweep also found that the parser's new `shutdown-on-sigint` and `shutd
 ### Persistence error observation under investigation
 
 The first final broad `persistfix2_errors` job recorded SIGABRT in `1s / uring / appendfsync no / reorder 1 / read-local 1`, after the acknowledged increment was observed and RLIMIT_FSIZE was lowered to 380 bytes. The other target geometries and every oracle geometry passed. The same file limit suppressed the server's assertion text because stderr was a regular file already larger than 380 bytes. The fixture now drains limited children's diagnostics through a parent-owned pipe/file, leaving the AOF limit, commands and assertions intact; setup replies also identify the last completed command and failures include the reorder arm. This is **not yet a diagnosed or fixed server failure**. The complete persistence jobs must be rerun with those diagnostics, and any production defect fixed and revalidated before handoff.
+
+### Further complete-job findings
+
+The SV4.6 configuration matrix still classified `zc-min-read-local` as mutable after RL4.11 intentionally made it immutable. Its four target mode/engine legs correctly refused the update, making the old fixture fail. The immutable inventory now includes that knob; all type, duplicate, transaction rollback and oracle checks remain. The complete owning job is queued again.
+
+One of the 24 CD4.9 WATCH-table legs (`db16 / 2s / uring / atomic 1 / read-local 0`) failed to observe any eviction in its three fresh cohorts. All command-table cases in that leg completed, and the other 23 legs passed. Diagnostics now retain every pressure reply, seed error, remaining-cohort count and memory/eviction counters without changing the required window or outcome. The complete job is queued for diagnosis; this is not passing evidence.

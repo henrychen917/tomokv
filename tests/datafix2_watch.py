@@ -3,7 +3,7 @@
 import json
 import time
 from compat3_lib import equal, run, wire
-from _lib import Conn, RespError, cross_owner_pair
+from _lib import Conn, RespError, cross_owner_pair, info
 
 K, D = "k", "dst"
 DATABASES = 1
@@ -219,14 +219,18 @@ def probe(c, _case):
     for attempt in range(3):
         c.cmd("CONFIG","SET","maxmemory",0);c.cmd("FLUSHALL")
         keys=["datafix2:evicted:"+str(attempt)+":"+str(i) for i in range(128)]
-        for key in keys:c.cmd("SET",key,"v"*1000)
+        seed_replies=[c.cmd("SET",key,"v"*1000) for key in keys]
         w=Conn(c.host,c.port,buffering=0)
         try:
             w.cmd("WATCH",*keys)
             c.cmd("CONFIG","SET","maxmemory-policy","allkeys-lru")
             c.cmd("CONFIG","SET","maxmemory",8192)
-            c.cmd("SET",K,"pressure")
+            pressure=c.cmd("SET",K,"pressure")
             remaining=c.cmd("EXISTS",*keys)
+            print("EVICTION",json.dumps(dict(attempt=attempt, remaining=remaining,
+                seed_errors=[wire(reply) for reply in seed_replies if reply != b"OK"],
+                pressure_reply=wire(pressure), stats=info(c,"stats"),
+                memory=info(c,"memory"))),flush=True)
             if remaining == len(keys): continue
             w.cmd("MULTI");w.cmd("PING")
             equal(w.cmd("EXEC"),None,"physical eviction invalidates WATCH")

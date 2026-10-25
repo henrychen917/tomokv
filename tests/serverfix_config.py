@@ -17,7 +17,7 @@ def inventory():
 
 # Deliberate existing lifetime/representation differences, exercised and recorded.
 IMMUTABLE = set('hll-sparse-max-bytes port bind unixsocket unixsocketperm dir dbfilename appendonly '
-                'net-io thread-mode read-local reorder wb-policy wb-small-pipe wb-complete-visits '
+                'net-io thread-mode read-local zc-min-read-local reorder wb-policy wb-small-pipe wb-complete-visits '
                 'key-lb key-lb-damping client-lb flip-auto appendfilename appenddirname tls-port '
                 'tls-cert-file tls-key-file tls-ca-cert-file tls-ca-cert-dir tls-auth-clients '
                 'tls-protocols tls-ciphers tls-ciphersuites tls-prefer-server-ciphers '
