@@ -1,0 +1,3112 @@
+{
+  "objects": [
+    {
+      "object": "src/cmd/xshard.o",
+      "pre_sha256": "846e1f44c80cfd51ff42c0f3e9e0b72eb404b80229bdfd2fc9d10cce911dbd4f",
+      "post_sha256": "b552172d86d83afd5246cb9b4d71a55fc3503bf773e5db832966fa72f3adaea1"
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "pre_sha256": "16d299fb0e00c7e451b3acc67c547b4bd1ee82440818cf3693359346341bddc2",
+      "post_sha256": "e609ff16057e9177dc77befdf76af8217dfb3ca12d5b98eb12e17a39da612724"
+    }
+  ],
+  "functions": [
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12ScatterStateC1Ev",
+      "name": "tomo::ScatterState::ScatterState()",
+      "pre_size": 773,
+      "post_size": 773,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12ScatterStateC2Ev",
+      "name": "tomo::ScatterState::ScatterState()",
+      "pre_size": 773,
+      "post_size": 773,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12ScatterStateD1Ev",
+      "name": "tomo::ScatterState::~ScatterState()",
+      "pre_size": 751,
+      "post_size": 751,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12ScatterStateD2Ev",
+      "name": "tomo::ScatterState::~ScatterState()",
+      "pre_size": 751,
+      "post_size": 751,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110finish_lcsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::finish_lcs(tomo::ScatterState&)",
+      "pre_size": 576,
+      "post_size": 576,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110finish_lcsERNS_12ScatterStateE.cold",
+      "name": "tomo::(anonymous namespace)::finish_lcs(tomo::ScatterState&) [clone .cold]",
+      "pre_size": 50,
+      "post_size": 50,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_111first_errorERKNS_12ScatterStateERNS0_9WorkErrorE",
+      "name": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+      "pre_size": 192,
+      "post_size": 192,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112build_groupsERNS_12ScatterStateEPKjj",
+      "name": "tomo::(anonymous namespace)::build_groups(tomo::ScatterState&, unsigned int const*, unsigned int)",
+      "pre_size": 510,
+      "post_size": 510,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112reset_groupsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::reset_groups(tomo::ScatterState&)",
+      "pre_size": 424,
+      "post_size": 424,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113ensure_resultERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::ensure_result(tomo::ScatterState&)",
+      "pre_size": 171,
+      "post_size": 171,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)",
+      "pre_size": 9251,
+      "post_size": 9251,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&) [clone .cold]",
+      "pre_size": 1028,
+      "post_size": 1028,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase2ERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::finish_phase2(tomo::ScatterState&)",
+      "pre_size": 494,
+      "post_size": 494,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "pre_size": 7109,
+      "post_size": 7109,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114compute_zsetopERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)",
+      "pre_size": 9118,
+      "post_size": 9118,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114compute_zsetopERNS_12ScatterStateE.cold",
+      "name": "tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&) [clone .cold]",
+      "pre_size": 416,
+      "post_size": 416,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114finish_pfcountERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::finish_pfcount(tomo::ScatterState&)",
+      "pre_size": 362,
+      "post_size": 362,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114publish_phase2ILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_phase2<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_size": 1822,
+      "post_size": 1822,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114publish_phase2ILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_phase2<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_size": 1792,
+      "post_size": 1792,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_115compute_pfmergeERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::compute_pfmerge(tomo::ScatterState&)",
+      "pre_size": 963,
+      "post_size": 963,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_115compute_pfmergeERNS_12ScatterStateE.cold",
+      "name": "tomo::(anonymous namespace)::compute_pfmerge(tomo::ScatterState&) [clone .cold]",
+      "pre_size": 77,
+      "post_size": 77,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_115txn_group_readyERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::txn_group_ready(tomo::ScatterState&, tomo::Shard&, tomo::Op&)",
+      "pre_size": 1423,
+      "post_size": 1423,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEb.isra.0",
+      "name": "tomo::(anonymous namespace)::txn_group_touch(tomo::ScatterState&, tomo::Shard&, unsigned long, tomo::Slice, bool) [clone .isra.0]",
+      "pre_size": 778,
+      "post_size": 778,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEb.isra.0.cold",
+      "name": "tomo::(anonymous namespace)::txn_group_touch(tomo::ScatterState&, tomo::Shard&, unsigned long, tomo::Slice, bool) [clone .isra.0] [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116txn_group_arriveERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::txn_group_arrive(tomo::ScatterState&, tomo::Shard&, tomo::Op&)",
+      "pre_size": 2204,
+      "post_size": 2204,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116txn_group_arriveERNS_12ScatterStateERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::txn_group_arrive(tomo::ScatterState&, tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 227,
+      "post_size": 227,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116txn_group_cancelERNS_12ScatterStateEj",
+      "name": "tomo::(anonymous namespace)::txn_group_cancel(tomo::ScatterState&, unsigned int)",
+      "pre_size": 81,
+      "post_size": 81,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116txn_group_decideERNS_12ScatterStateEm.isra.0",
+      "name": "tomo::(anonymous namespace)::txn_group_decide(tomo::ScatterState&, unsigned long) [clone .isra.0]",
+      "pre_size": 31,
+      "post_size": 31,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116txn_group_decideERNS_12ScatterStateEm.isra.0.cold",
+      "name": "tomo::(anonymous namespace)::txn_group_decide(tomo::ScatterState&, unsigned long) [clone .isra.0] [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117debug_hop_pendingERKNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::debug_hop_pending(tomo::ScatterState const&)",
+      "pre_size": 83,
+      "post_size": 83,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117finish_sort_derefERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::finish_sort_deref(tomo::ScatterState&)",
+      "pre_size": 835,
+      "post_size": 835,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117for_each_task_keyIZZNS_22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES4_S6_iENKUlmNS_5SliceEE_clEmS7_EUlmS7_E_EEbS4_S6_iOT_",
+      "name": "bool tomo::(anonymous namespace)::for_each_task_key<tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}>(tomo::Task const&, tomo::Op&, int, tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}&&)",
+      "pre_size": 1351,
+      "post_size": 1351,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117for_each_task_keyIZZNS_22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES4_S6_iENKUlmNS_5SliceEE_clEmS7_EUlmS7_E_EEbS4_S6_iOT_.cold",
+      "name": "bool tomo::(anonymous namespace)::for_each_task_key<tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}>(tomo::Task const&, tomo::Op&, int, tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const::{lambda(unsigned long, tomo::Slice)#1}&&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117publish_pop_retryILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_pop_retry<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&)",
+      "pre_size": 1940,
+      "post_size": 1940,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117publish_pop_retryILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_pop_retry<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&)",
+      "pre_size": 1924,
+      "post_size": 1924,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117script_post_phaseILb0EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0",
+      "name": "tomo::(anonymous namespace)::ScriptPostResult tomo::(anonymous namespace)::script_post_phase<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&, tomo::(anonymous namespace)::ScriptPhase) [clone .constprop.0]",
+      "pre_size": 1632,
+      "post_size": 1632,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117script_post_phaseILb1EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0",
+      "name": "tomo::(anonymous namespace)::ScriptPostResult tomo::(anonymous namespace)::script_post_phase<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&, tomo::(anonymous namespace)::ScriptPhase) [clone .constprop.0]",
+      "pre_size": 1632,
+      "post_size": 1632,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117txn_group_prepareERNS_12ScatterStateERNS_6ServerEjPNS_16ScatterArenaPoolE",
+      "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
+      "pre_size": 1729,
+      "post_size": 1729,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117txn_group_prepareERNS_12ScatterStateERNS_6ServerEjPNS_16ScatterArenaPoolE.cold",
+      "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*) [clone .cold]",
+      "pre_size": 400,
+      "post_size": 400,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117txn_group_releaseERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::txn_group_release(tomo::ScatterState&)",
+      "pre_size": 105,
+      "post_size": 105,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)",
+      "pre_size": 1961,
+      "post_size": 1961,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&) [clone .cold]",
+      "pre_size": 60,
+      "post_size": 60,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_118publish_sort_derefILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_sort_deref<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&)",
+      "pre_size": 1642,
+      "post_size": 1642,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_118publish_sort_derefILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo::(anonymous namespace)::publish_sort_deref<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::ScatterState&)",
+      "pre_size": 1607,
+      "post_size": 1607,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+      "name": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+      "pre_size": 1000,
+      "post_size": 1000,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_120build_initial_groupsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+      "pre_size": 734,
+      "post_size": 734,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_120script_clear_attemptERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::script_clear_attempt(tomo::ScatterState&, tomo::Op&)",
+      "pre_size": 776,
+      "post_size": 776,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_122free_state_key_anchorsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)",
+      "pre_size": 465,
+      "post_size": 465,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_122txn_group_read_prepareERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::txn_group_read_prepare(tomo::ScatterState&, tomo::Shard&, tomo::Op&)",
+      "pre_size": 398,
+      "post_size": 398,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+      "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_123build_sort_deref_groupsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::build_sort_deref_groups(tomo::ScatterState&)",
+      "pre_size": 520,
+      "post_size": 520,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_123script_select_positionsERNS_12ScatterStateENS0_11ScriptPhaseE",
+      "name": "tomo::(anonymous namespace)::script_select_positions(tomo::ScatterState&, tomo::(anonymous namespace)::ScriptPhase)",
+      "pre_size": 193,
+      "post_size": 193,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_124aof_commit_scatter_groupERNS_12ScatterStateERNS_9ThreadCtxERNS_4RingEm.part.0",
+      "name": "tomo::(anonymous namespace)::aof_commit_scatter_group(tomo::ScatterState&, tomo::ThreadCtx&, tomo::Ring&, unsigned long) [clone .part.0]",
+      "pre_size": 106,
+      "post_size": 106,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_125aof_prepare_scatter_groupERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&)",
+      "pre_size": 870,
+      "post_size": 870,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_125aof_prepare_scatter_groupERNS_12ScatterStateE.cold",
+      "name": "tomo::(anonymous namespace)::aof_prepare_scatter_group(tomo::ScatterState&) [clone .cold]",
+      "pre_size": 118,
+      "post_size": 118,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_125txn_group_barrier_witnessERNS_12ScatterStateERNS_6ClientE",
+      "name": "tomo::(anonymous namespace)::txn_group_barrier_witness(tomo::ScatterState&, tomo::Client&)",
+      "pre_size": 162,
+      "post_size": 162,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_126complete_owner_record_waveERNS_12ScatterStateEj",
+      "name": "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int)",
+      "pre_size": 147,
+      "post_size": 147,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_126complete_owner_record_waveERNS_12ScatterStateEj.cold",
+      "name": "tomo::(anonymous namespace)::complete_owner_record_wave(tomo::ScatterState&, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_127initialize_owner_completionERNS_12ScatterStateE.part.0",
+      "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0]",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_127initialize_owner_completionERNS_12ScatterStateE.part.0.cold",
+      "name": "tomo::(anonymous namespace)::initialize_owner_completion(tomo::ScatterState&) [clone .part.0] [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_127tripwire_scatter_read_phaseERKNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::tripwire_scatter_read_phase(tomo::ScatterState const&)",
+      "pre_size": 110,
+      "post_size": 110,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_127xshard_owner_mutation_phaseERKNS_12ScatterStateERKNS_2OpE.isra.0",
+      "name": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+      "pre_size": 89,
+      "post_size": 89,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_135clear_unpublished_owner_record_refsERNS_12ScatterStateE",
+      "name": "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)",
+      "pre_size": 316,
+      "post_size": 316,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_135clear_unpublished_owner_record_refsERNS_12ScatterStateE.cold",
+      "name": "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19group_forERNS_12ScatterStateEi",
+      "name": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+      "pre_size": 145,
+      "post_size": 145,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E",
+      "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "pre_size": 543,
+      "post_size": 543,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo13xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E.cold",
+      "name": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+      "pre_size": 774,
+      "post_size": 774,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj.cold",
+      "name": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "pre_size": 20700,
+      "post_size": 20700,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "pre_size": 415,
+      "post_size": 415,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "pre_size": 18231,
+      "post_size": 18258,
+      "equal": false
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "pre_size": 573,
+      "post_size": 573,
+      "equal": false
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo15xshard_aof_emitERKNS_4TaskERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+      "name": "tomo::xshard_aof_emit(tomo::Task const&, tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+      "pre_size": 922,
+      "post_size": 922,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo15xshard_completeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo15xshard_is_localERKNS_2OpE",
+      "name": "tomo::xshard_is_local(tomo::Op const&)",
+      "pre_size": 15,
+      "post_size": 15,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool13defer_destroyEPNS_12ScatterStateE",
+      "name": "tomo::ScatterArenaPool::defer_destroy(tomo::ScatterState*)",
+      "pre_size": 434,
+      "post_size": 434,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool13defer_destroyEPNS_12ScatterStateE.cold",
+      "name": "tomo::ScatterArenaPool::defer_destroy(tomo::ScatterState*) [clone .cold]",
+      "pre_size": 38,
+      "post_size": 38,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool13reap_deferredEv",
+      "name": "tomo::ScatterArenaPool::reap_deferred()",
+      "pre_size": 276,
+      "post_size": 276,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "pre_size": 962,
+      "post_size": 962,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj.cold",
+      "name": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .cold]",
+      "pre_size": 38,
+      "post_size": 38,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "name": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+      "pre_size": 17,
+      "post_size": 17,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0",
+      "name": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]",
+      "pre_size": 331,
+      "post_size": 331,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0.cold",
+      "name": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0] [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool22refresh_snapshot_floorERNS_6ServerEj",
+      "name": "tomo::ScatterArenaPool::refresh_snapshot_floor(tomo::Server&, unsigned int)",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool22refresh_snapshot_floorERNS_6ServerEj.cold",
+      "name": "tomo::ScatterArenaPool::refresh_snapshot_floor(tomo::Server&, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool7acquireEmRb",
+      "name": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "pre_size": 153,
+      "post_size": 153,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPool7releaseEPvb",
+      "name": "tomo::ScatterArenaPool::release(void*, bool)",
+      "pre_size": 56,
+      "post_size": 56,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPoolD1Ev",
+      "name": "tomo::ScatterArenaPool::~ScatterArenaPool()",
+      "pre_size": 130,
+      "post_size": 130,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo16ScatterArenaPoolD2Ev",
+      "name": "tomo::ScatterArenaPool::~ScatterArenaPool()",
+      "pre_size": 130,
+      "post_size": 130,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19multi_cancel_intentERNS_18AtomicScriptIntentEPKNS_12ScatterStateE",
+      "name": "tomo::multi_cancel_intent(tomo::AtomicScriptIntent&, tomo::ScatterState const*)",
+      "pre_size": 189,
+      "post_size": 189,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19multi_cancel_recordERNS_11AtomicEntryEPKNS_12ScatterStateE",
+      "name": "tomo::multi_cancel_record(tomo::AtomicEntry&, tomo::ScatterState const*)",
+      "pre_size": 433,
+      "post_size": 433,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE",
+      "name": "tomo::xshard_plain_finish(tomo::Shard&, tomo::PlainForeignReadScope&)",
+      "pre_size": 550,
+      "post_size": 550,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE.cold",
+      "name": "tomo::xshard_plain_finish(tomo::Shard&, tomo::PlainForeignReadScope&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19xshard_queue_commitERNS_6ServerERNS_9ThreadCtxERKNS_4TaskE",
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&)",
+      "pre_size": 375,
+      "post_size": 375,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19xshard_queue_commitERNS_6ServerERNS_9ThreadCtxERKNS_4TaskE.cold",
+      "name": "tomo::xshard_queue_commit(tomo::Server&, tomo::ThreadCtx&, tomo::Task const&) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo19xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE",
+      "name": "tomo::xshard_watch_finish(tomo::Task const&, tomo::Shard&, tomo::Op&, tomo::ScatterTaskResult)",
+      "pre_size": 305,
+      "post_size": 305,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20blocking_resume_moveERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "tomo::blocking_resume_move(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20script_snapshot_doneERNS_6ServerERNS_12ScatterStateE",
+      "name": "tomo::script_snapshot_done(tomo::Server&, tomo::ScatterState&)",
+      "pre_size": 43,
+      "post_size": 43,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_cleanup_shardERNS_6ServerERNS_5ShardEj",
+      "name": "tomo::xshard_cleanup_shard(tomo::Server&, tomo::Shard&, unsigned int)",
+      "pre_size": 108,
+      "post_size": 108,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_size": 1727,
+      "post_size": 1727,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo::ScatterFinish tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_size": 1727,
+      "post_size": 1727,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "pre_size": 1747,
+      "post_size": 1747,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)",
+      "pre_size": 7306,
+      "post_size": 7306,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&) [clone .cold]",
+      "pre_size": 242,
+      "post_size": 242,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo21xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+      "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+      "pre_size": 1375,
+      "post_size": 1375,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo21xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE.cold",
+      "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&) [clone .cold]",
+      "pre_size": 172,
+      "post_size": 172,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo21xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+      "name": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+      "pre_size": 54,
+      "post_size": 54,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22multi_dispatch_attemptILb0EZNS_25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEjEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolES5_S7_PNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo::multi_dispatch_attempt<false, tomo::multi_dispatch_entry_impl<false>(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)::{lambda()#1}>(tomo::Server&, tomo::ThreadCtx&, tomo::ScatterArenaPool&, tomo::Client&, tomo::Op&, tomo::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo::multi_dispatch_entry_impl<false>(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int)::{lambda()#1}&&)",
+      "pre_size": 1712,
+      "post_size": 1712,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE0_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo::multi_dispatch_attempt<false, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#2}>(tomo::Server&, tomo::ThreadCtx&, tomo::ScatterArenaPool&, tomo::Client&, tomo::Op&, tomo::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#2}&&)",
+      "pre_size": 1675,
+      "post_size": 1675,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo::multi_dispatch_attempt<false, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#1}>(tomo::Server&, tomo::ThreadCtx&, tomo::ScatterArenaPool&, tomo::Client&, tomo::Op&, tomo::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)::{lambda()#1}&&)",
+      "pre_size": 1675,
+      "post_size": 1675,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22multi_shutdown_discardERNS_6ServerERNS_8WbEngineERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjRSt6vectorIPNS_14MultiExecStateESaISC_EE",
+      "name": "tomo::multi_shutdown_discard(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&)",
+      "pre_size": 598,
+      "post_size": 598,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22multi_shutdown_discardERNS_6ServerERNS_8WbEngineERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjRSt6vectorIPNS_14MultiExecStateESaISC_EE.cold",
+      "name": "tomo::multi_shutdown_discard(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo::notify_xshard_finished(tomo::Shard&, tomo::Op&, tomo::ScatterState&)",
+      "pre_size": 1909,
+      "post_size": 1909,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_atomic_key_hashEPKNS_12ScatterStateEj",
+      "name": "tomo::xshard_atomic_key_hash(tomo::ScatterState const*, unsigned int)",
+      "pre_size": 52,
+      "post_size": 52,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_atomic_key_hashEPKNS_12ScatterStateEj.cold",
+      "name": "tomo::xshard_atomic_key_hash(tomo::ScatterState const*, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_size": 1901,
+      "post_size": 1901,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo::ScatterFinish tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+      "pre_size": 1901,
+      "post_size": 1901,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES2_S4_i",
+      "name": "tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int)",
+      "pre_size": 1537,
+      "post_size": 1537,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES2_S4_i.cold",
+      "name": "tomo::xshard_tasks_share_key(tomo::Task const&, tomo::Op&, tomo::Task const&, tomo::Op&, int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23blocking_scatter_retireERNS_6ServerERNS_6ClientERNS_12ScatterStateE",
+      "name": "tomo::blocking_scatter_retire(tomo::Server&, tomo::Client&, tomo::ScatterState&)",
+      "pre_size": 118,
+      "post_size": 118,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_atomic_key_sliceEPKNS_12ScatterStateEj",
+      "name": "tomo::xshard_atomic_key_slice(tomo::ScatterState const*, unsigned int)",
+      "pre_size": 213,
+      "post_size": 213,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_atomic_key_sliceEPKNS_12ScatterStateEj.cold",
+      "name": "tomo::xshard_atomic_key_slice(tomo::ScatterState const*, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_cleanup_shard_atERNS_5ShardEmmj",
+      "name": "tomo::xshard_cleanup_shard_at(tomo::Shard&, unsigned long, unsigned long, unsigned int)",
+      "pre_size": 328,
+      "post_size": 328,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_cleanup_shard_atERNS_5ShardEmmj.cold",
+      "name": "tomo::xshard_cleanup_shard_at(tomo::Shard&, unsigned long, unsigned long, unsigned int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_complete_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo::xshard_complete_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_multi_child_bindERNS_12ScatterStateEPKv",
+      "name": "tomo::xshard_multi_child_bind(tomo::ScatterState&, void const*)",
+      "pre_size": 36,
+      "post_size": 36,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_plain_stale_cutsEv",
+      "name": "tomo::xshard_plain_stale_cuts()",
+      "pre_size": 12,
+      "post_size": 12,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE",
+      "name": "tomo::xshard_snapshot_prepare(tomo::Task const&, tomo::Shard&)",
+      "pre_size": 948,
+      "post_size": 948,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo23xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE.cold",
+      "name": "tomo::xshard_snapshot_prepare(tomo::Task const&, tomo::Shard&) [clone .cold]",
+      "pre_size": 60,
+      "post_size": 60,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+      "pre_size": 3864,
+      "post_size": 3864,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE.cold",
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&) [clone .cold]",
+      "pre_size": 34,
+      "post_size": 34,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo24xshard_visit_task_hashesERKNS_4TaskEPvPFvS3_mE",
+      "name": "tomo::xshard_visit_task_hashes(tomo::Task const&, void*, void (*)(void*, unsigned long))",
+      "pre_size": 235,
+      "post_size": 235,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25blocking_atomic_publishedERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_12ScatterStateE",
+      "name": "tomo::blocking_atomic_published(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::ScatterState&)",
+      "pre_size": 413,
+      "post_size": 413,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25blocking_resume_move_implILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo::blocking_resume_move_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "pre_size": 2360,
+      "post_size": 2360,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25blocking_resume_move_implILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo::blocking_resume_move_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "pre_size": 2344,
+      "post_size": 2344,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25script_engine_error_replyERNS_2OpERNS_12ScatterStateENS_12_GLOBAL__N_19WorkErrorE",
+      "name": "tomo::script_engine_error_reply(tomo::Op&, tomo::ScatterState&, tomo::(anonymous namespace)::WorkError)",
+      "pre_size": 190,
+      "post_size": 190,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo26xshard_abandon_unpublishedEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "name": "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+      "pre_size": 49,
+      "post_size": 49,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo26xshard_flush_commits_timedERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "pre_size": 1743,
+      "post_size": 1743,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo26xshard_flush_commits_timedERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo26xshard_task_is_whole_ownerERKNS_4TaskE",
+      "name": "tomo::xshard_task_is_whole_owner(tomo::Task const&)",
+      "pre_size": 33,
+      "post_size": 33,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo27xshard_multi_child_completeERNS_12ScatterStateERNS_2OpEj",
+      "name": "tomo::xshard_multi_child_complete(tomo::ScatterState&, tomo::Op&, unsigned int)",
+      "pre_size": 743,
+      "post_size": 743,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo28blocking_resume_move_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "tomo::blocking_resume_move_iofused(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo29xshard_local_snapshot_prepareERNS_2OpERNS_5ShardE",
+      "name": "tomo::xshard_local_snapshot_prepare(tomo::Op&, tomo::Shard&)",
+      "pre_size": 537,
+      "post_size": 537,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo29xshard_local_snapshot_prepareERNS_2OpERNS_5ShardE.cold",
+      "name": "tomo::xshard_local_snapshot_prepare(tomo::Op&, tomo::Shard&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo30xshard_tripwire_fragment_beginERKNS_4TaskERNS_5ShardERNS_2OpE",
+      "name": "tomo::xshard_tripwire_fragment_begin(tomo::Task const&, tomo::Shard&, tomo::Op&)",
+      "pre_size": 507,
+      "post_size": 507,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo31xshard_multi_child_records_doneERKNS_12ScatterStateE",
+      "name": "tomo::xshard_multi_child_records_done(tomo::ScatterState const&)",
+      "pre_size": 25,
+      "post_size": 25,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo32xshard_tripwire_fragment_executeERKNS_4TaskERNS_5ShardERNS_2OpEbm",
+      "name": "tomo::xshard_tripwire_fragment_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, bool, unsigned long)",
+      "pre_size": 916,
+      "post_size": 916,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo33xshard_multi_child_capture_groupsERNS_12ScatterStateERSt5arrayImLm4EE",
+      "name": "tomo::xshard_multi_child_capture_groups(tomo::ScatterState&, std::array<unsigned long, 4ul>&)",
+      "pre_size": 88,
+      "post_size": 88,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo33xshard_multi_child_capture_groupsERNS_12ScatterStateERSt5arrayImLm4EE.cold",
+      "name": "tomo::xshard_multi_child_capture_groups(tomo::ScatterState&, std::array<unsigned long, 4ul>&) [clone .cold]",
+      "pre_size": 12,
+      "post_size": 12,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore20atomic_prepare_groupEPNS_12ScatterStateEjjPSt6atomicImEPS3_IjEPS3_IbEmPjmbm",
+      "name": "tomo::FlatStore::atomic_prepare_group(tomo::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+      "pre_size": 1376,
+      "post_size": 1376,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore23atomic_visit_key_groupsIZNS_12_GLOBAL__N_122cancel_applied_scriptsERS0_mNS_5SliceEPKNS_12ScatterStateEEUlRT_E_EEvmS4_OS8_",
+      "name": "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&)",
+      "pre_size": 980,
+      "post_size": 980,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore23atomic_visit_key_groupsIZNS_12_GLOBAL__N_122cancel_applied_scriptsERS0_mNS_5SliceEPKNS_12ScatterStateEEUlRT_E_EEvmS4_OS8_.cold",
+      "name": "void tomo::FlatStore::atomic_visit_key_groups<tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo::Slice, tomo::(anonymous namespace)::cancel_applied_scripts(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b.constprop.0",
+      "name": "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]",
+      "pre_size": 1071,
+      "post_size": 1071,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore9scan_homeIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEjijRT_b",
+      "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+      "pre_size": 1345,
+      "post_size": 1345,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZNK4tomo12ScatterState13group_attemptEv",
+      "name": "tomo::ScatterState::group_attempt() const",
+      "pre_size": 21,
+      "post_size": 21,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZNK4tomo16ScatterArenaPool21can_register_snapshotEj",
+      "name": "tomo::ScatterArenaPool::can_register_snapshot(unsigned int) const",
+      "pre_size": 37,
+      "post_size": 37,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt12__move_mergeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEET0_T_SG_SG_SG_SF_T1_",
+      "name": "unsigned int* std::__move_merge<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 217,
+      "post_size": 217,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt12__move_mergeIPjN9__gnu_cxx17__normal_iteratorIS0_St6vectorIjSaIjEEEENS1_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEET0_T_SG_SG_SG_SF_T1_",
+      "name": "__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > > std::__move_merge<unsigned int*, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(unsigned int*, unsigned int*, unsigned int*, unsigned int*, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 217,
+      "post_size": 217,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPN4tomo12_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEElS4_NS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_T0_SJ_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, tomo::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, long, tomo::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 2162,
+      "post_size": 2162,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPZN4tomo12_GLOBAL__N_114compute_zsetopERNS2_12ScatterStateEE6CursorSt6vectorIS6_SaIS6_EEEElS6_NS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopES5_EUlRKS6_SF_E_EEEvT_T0_SJ_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor*, std::vector<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor, std::allocator<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor> > >, long, tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor const&, tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor*, std::vector<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor, std::allocator<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor> > >, long, long, tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor const&, tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::Cursor const&)#1}>)",
+      "pre_size": 1053,
+      "post_size": 1053,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN4tomo12_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEENS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_SI_T0_",
+      "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 2841,
+      "post_size": 2841,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPN4tomo12_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEElNS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_SI_T0_T1_",
+      "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 3455,
+      "post_size": 3455,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt16__merge_adaptiveIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElS2_NS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_T2_",
+      "name": "void std::__merge_adaptive<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 557,
+      "post_size": 557,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt21__inplace_stable_sortIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEENS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_",
+      "name": "void std::__inplace_stable_sort<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 350,
+      "post_size": 350,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt22__merge_without_bufferIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElNS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_",
+      "name": "void std::__merge_without_buffer<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 657,
+      "post_size": 657,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt22__stable_sort_adaptiveIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_T1_",
+      "name": "void std::__stable_sort_adaptive<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 105,
+      "post_size": 105,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt23__merge_adaptive_resizeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElS2_NS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_SG_T2_",
+      "name": "void std::__merge_adaptive_resize<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 1545,
+      "post_size": 1545,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt24__merge_sort_with_bufferIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_T1_",
+      "name": "void std::__merge_sort_with_buffer<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 982,
+      "post_size": 982,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZSt29__stable_sort_adaptive_resizeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_lNS0_5__ops15_Iter_comp_iterIZN4tomo12_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_T1_T2_",
+      "name": "void std::__stable_sort_adaptive_resize<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 204,
+      "post_size": 204,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo12_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEbENKUlRNS_11AtomicEntryEE_clES7_",
+      "name": "tomo::(anonymous namespace)::txn_group_touch(tomo::ScatterState&, tomo::Shard&, unsigned long, tomo::Slice, bool)::{lambda(tomo::AtomicEntry&)#1}::operator()(tomo::AtomicEntry&) const",
+      "pre_size": 585,
+      "post_size": 585,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+      "pre_size": 3686,
+      "post_size": 3686,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+      "pre_size": 162,
+      "post_size": 162,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD1Ev",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_size": 225,
+      "post_size": 225,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD2Ev",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_size": 225,
+      "post_size": 225,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb0EEEDav",
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "pre_size": 1078,
+      "post_size": 1078,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb1EEEDav",
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "pre_size": 1094,
+      "post_size": 1094,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "pre_size": 1190,
+      "post_size": 1190,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlmNS_5SliceEbE_clEmS7_b",
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const",
+      "pre_size": 228,
+      "post_size": 228,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "name": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "pre_size": 158,
+      "post_size": 158,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "name": "tomo::xshard_complete_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+      "pre_size": 158,
+      "post_size": 158,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE0_clEmS8_",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#2}::operator()(unsigned long, tomo::Slice) const",
+      "pre_size": 854,
+      "post_size": 854,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE0_clEmS8_.cold",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#2}::operator()(unsigned long, tomo::Slice) const [clone .cold]",
+      "pre_size": 47,
+      "post_size": 47,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE_clEmS8_",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const",
+      "pre_size": 560,
+      "post_size": 560,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE_clEmS8_.cold",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const [clone .cold]",
+      "pre_size": 47,
+      "post_size": 47,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo21xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextEENKUljE_clEj.isra.0",
+      "name": "tomo::xshard_aof_emit_local(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+      "pre_size": 142,
+      "post_size": 142,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo22notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateEENKUljNS_13NotifyEventIdEjE_clEjS6_j.isra.0",
+      "name": "tomo::notify_xshard_finished(tomo::Shard&, tomo::Op&, tomo::ScatterState&)::{lambda(unsigned int, tomo::NotifyEventId, unsigned int)#1}::operator()(unsigned int, tomo::NotifyEventId, unsigned int) const [clone .isra.0]",
+      "pre_size": 223,
+      "post_size": 223,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo22notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateEENKUljjbE_clEjjb.isra.0",
+      "name": "tomo::notify_xshard_finished(tomo::Shard&, tomo::Op&, tomo::ScatterState&)::{lambda(unsigned int, unsigned int, bool)#1}::operator()(unsigned int, unsigned int, bool) const [clone .isra.0]",
+      "pre_size": 81,
+      "post_size": 81,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo22xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_",
+      "name": "tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "pre_size": 98,
+      "post_size": 98,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo22xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_",
+      "name": "tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo::(anonymous namespace)::ScriptPhase) const",
+      "pre_size": 98,
+      "post_size": 98,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpEENKUlmNS_5SliceEE_clEmS9_",
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const",
+      "pre_size": 775,
+      "post_size": 775,
+      "equal": true
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpEENKUlmNS_5SliceEE_clEmS9_.cold",
+      "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)::{lambda(unsigned long, tomo::Slice)#1}::operator()(unsigned long, tomo::Slice) const [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012ScatterStateC1Ev",
+      "name": "tomo_db0::ScatterState::ScatterState()",
+      "pre_size": 771,
+      "post_size": 771,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012ScatterStateC2Ev",
+      "name": "tomo_db0::ScatterState::ScatterState()",
+      "pre_size": 771,
+      "post_size": 771,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012ScatterStateD1Ev",
+      "name": "tomo_db0::ScatterState::~ScatterState()",
+      "pre_size": 751,
+      "post_size": 751,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012ScatterStateD2Ev",
+      "name": "tomo_db0::ScatterState::~ScatterState()",
+      "pre_size": 751,
+      "post_size": 751,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110finish_lcsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::finish_lcs(tomo_db0::ScatterState&)",
+      "pre_size": 576,
+      "post_size": 576,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110finish_lcsERNS_12ScatterStateE.cold",
+      "name": "tomo_db0::(anonymous namespace)::finish_lcs(tomo_db0::ScatterState&) [clone .cold]",
+      "pre_size": 50,
+      "post_size": 50,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_111first_errorERKNS_12ScatterStateERNS0_9WorkErrorE",
+      "name": "tomo_db0::(anonymous namespace)::first_error(tomo_db0::ScatterState const&, tomo_db0::(anonymous namespace)::WorkError&)",
+      "pre_size": 192,
+      "post_size": 192,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112build_groupsERNS_12ScatterStateEPKjj",
+      "name": "tomo_db0::(anonymous namespace)::build_groups(tomo_db0::ScatterState&, unsigned int const*, unsigned int)",
+      "pre_size": 510,
+      "post_size": 510,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112reset_groupsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::reset_groups(tomo_db0::ScatterState&)",
+      "pre_size": 424,
+      "post_size": 424,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113ensure_resultERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)",
+      "pre_size": 171,
+      "post_size": 171,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::finish_phase1(tomo_db0::ScatterState&, tomo_db0::Op&)",
+      "pre_size": 9251,
+      "post_size": 9251,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::finish_phase1(tomo_db0::ScatterState&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 1028,
+      "post_size": 1028,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase2ERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::finish_phase2(tomo_db0::ScatterState&)",
+      "pre_size": 494,
+      "post_size": 494,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+      "name": "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "pre_size": 7125,
+      "post_size": 7125,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)",
+      "pre_size": 9396,
+      "post_size": 9396,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS_12ScatterStateE.cold",
+      "name": "tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&) [clone .cold]",
+      "pre_size": 419,
+      "post_size": 419,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114finish_pfcountERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::finish_pfcount(tomo_db0::ScatterState&)",
+      "pre_size": 362,
+      "post_size": 362,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114publish_phase2ILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_phase2<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_size": 1822,
+      "post_size": 1822,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114publish_phase2ILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_phase2<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_size": 1792,
+      "post_size": 1792,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115compute_pfmergeERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::compute_pfmerge(tomo_db0::ScatterState&)",
+      "pre_size": 963,
+      "post_size": 963,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115compute_pfmergeERNS_12ScatterStateE.cold",
+      "name": "tomo_db0::(anonymous namespace)::compute_pfmerge(tomo_db0::ScatterState&) [clone .cold]",
+      "pre_size": 77,
+      "post_size": 77,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115txn_group_readyERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_ready(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1423,
+      "post_size": 1423,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEb.isra.0",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_touch(tomo_db0::ScatterState&, tomo_db0::Shard&, unsigned long, tomo_db0::Slice, bool) [clone .isra.0]",
+      "pre_size": 773,
+      "post_size": 773,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEb.isra.0.cold",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_touch(tomo_db0::ScatterState&, tomo_db0::Shard&, unsigned long, tomo_db0::Slice, bool) [clone .isra.0] [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116txn_group_arriveERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_arrive(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 2204,
+      "post_size": 2204,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116txn_group_arriveERNS_12ScatterStateERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_arrive(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 227,
+      "post_size": 227,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116txn_group_cancelERNS_12ScatterStateEj",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_cancel(tomo_db0::ScatterState&, unsigned int)",
+      "pre_size": 81,
+      "post_size": 81,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116txn_group_decideERNS_12ScatterStateEm.isra.0",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_decide(tomo_db0::ScatterState&, unsigned long) [clone .isra.0]",
+      "pre_size": 31,
+      "post_size": 31,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116txn_group_decideERNS_12ScatterStateEm.isra.0.cold",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_decide(tomo_db0::ScatterState&, unsigned long) [clone .isra.0] [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117debug_hop_pendingERKNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::debug_hop_pending(tomo_db0::ScatterState const&)",
+      "pre_size": 83,
+      "post_size": 83,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117finish_sort_derefERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::finish_sort_deref(tomo_db0::ScatterState&)",
+      "pre_size": 835,
+      "post_size": 835,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117for_each_task_keyIZZNS_22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES4_S6_iENKUlmNS_5SliceEE_clEmS7_EUlmS7_E_EEbS4_S6_iOT_",
+      "name": "bool tomo_db0::(anonymous namespace)::for_each_task_key<tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::Task const&, tomo_db0::Op&, int, tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const::{lambda(unsigned long, tomo_db0::Slice)#1}&&)",
+      "pre_size": 1351,
+      "post_size": 1351,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117for_each_task_keyIZZNS_22xshard_tasks_share_keyERKNS_4TaskERNS_2OpES4_S6_iENKUlmNS_5SliceEE_clEmS7_EUlmS7_E_EEbS4_S6_iOT_.cold",
+      "name": "bool tomo_db0::(anonymous namespace)::for_each_task_key<tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::Task const&, tomo_db0::Op&, int, tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const::{lambda(unsigned long, tomo_db0::Slice)#1}&&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117publish_pop_retryILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_pop_retry<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&)",
+      "pre_size": 1940,
+      "post_size": 1940,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117publish_pop_retryILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_pop_retry<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&)",
+      "pre_size": 1924,
+      "post_size": 1924,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117script_post_phaseILb0EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0",
+      "name": "tomo_db0::(anonymous namespace)::ScriptPostResult tomo_db0::(anonymous namespace)::script_post_phase<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&, tomo_db0::(anonymous namespace)::ScriptPhase) [clone .constprop.0]",
+      "pre_size": 1632,
+      "post_size": 1632,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117script_post_phaseILb1EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0",
+      "name": "tomo_db0::(anonymous namespace)::ScriptPostResult tomo_db0::(anonymous namespace)::script_post_phase<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&, tomo_db0::(anonymous namespace)::ScriptPhase) [clone .constprop.0]",
+      "pre_size": 1632,
+      "post_size": 1632,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117txn_group_prepareERNS_12ScatterStateERNS_6ServerEjPNS_16ScatterArenaPoolE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
+      "pre_size": 1729,
+      "post_size": 1729,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117txn_group_prepareERNS_12ScatterStateERNS_6ServerEjPNS_16ScatterArenaPoolE.cold",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*) [clone .cold]",
+      "pre_size": 400,
+      "post_size": 400,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117txn_group_releaseERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_release(tomo_db0::ScatterState&)",
+      "pre_size": 105,
+      "post_size": 105,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::prepare_sort_deref(tomo_db0::ScatterState&, tomo_db0::Op&)",
+      "pre_size": 1961,
+      "post_size": 1961,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::prepare_sort_deref(tomo_db0::ScatterState&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 60,
+      "post_size": 60,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_118publish_sort_derefILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_sort_deref<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&)",
+      "pre_size": 1642,
+      "post_size": 1642,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_118publish_sort_derefILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE",
+      "name": "bool tomo_db0::(anonymous namespace)::publish_sort_deref<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::ScatterState&)",
+      "pre_size": 1607,
+      "post_size": 1607,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0",
+      "name": "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]",
+      "pre_size": 1000,
+      "post_size": 1000,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_120build_initial_groupsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)",
+      "pre_size": 734,
+      "post_size": 734,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_120script_clear_attemptERNS_12ScatterStateERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::script_clear_attempt(tomo_db0::ScatterState&, tomo_db0::Op&)",
+      "pre_size": 841,
+      "post_size": 841,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_122free_state_key_anchorsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)",
+      "pre_size": 529,
+      "post_size": 529,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_122txn_group_read_prepareERNS_12ScatterStateERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_read_prepare(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 452,
+      "post_size": 452,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+      "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_123build_sort_deref_groupsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::build_sort_deref_groups(tomo_db0::ScatterState&)",
+      "pre_size": 520,
+      "post_size": 520,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_123script_select_positionsERNS_12ScatterStateENS0_11ScriptPhaseE",
+      "name": "tomo_db0::(anonymous namespace)::script_select_positions(tomo_db0::ScatterState&, tomo_db0::(anonymous namespace)::ScriptPhase)",
+      "pre_size": 193,
+      "post_size": 193,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_124aof_commit_scatter_groupERNS_12ScatterStateERNS_9ThreadCtxERNS_4RingEm.part.0",
+      "name": "tomo_db0::(anonymous namespace)::aof_commit_scatter_group(tomo_db0::ScatterState&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, unsigned long) [clone .part.0]",
+      "pre_size": 106,
+      "post_size": 106,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_125aof_prepare_scatter_groupERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&)",
+      "pre_size": 870,
+      "post_size": 870,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_125aof_prepare_scatter_groupERNS_12ScatterStateE.cold",
+      "name": "tomo_db0::(anonymous namespace)::aof_prepare_scatter_group(tomo_db0::ScatterState&) [clone .cold]",
+      "pre_size": 118,
+      "post_size": 118,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_125txn_group_barrier_witnessERNS_12ScatterStateERNS_6ClientE",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_barrier_witness(tomo_db0::ScatterState&, tomo_db0::Client&)",
+      "pre_size": 162,
+      "post_size": 162,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_126complete_owner_record_waveERNS_12ScatterStateEj",
+      "name": "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int)",
+      "pre_size": 147,
+      "post_size": 147,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_126complete_owner_record_waveERNS_12ScatterStateEj.cold",
+      "name": "tomo_db0::(anonymous namespace)::complete_owner_record_wave(tomo_db0::ScatterState&, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127initialize_owner_completionERNS_12ScatterStateE.part.0",
+      "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0]",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127initialize_owner_completionERNS_12ScatterStateE.part.0.cold",
+      "name": "tomo_db0::(anonymous namespace)::initialize_owner_completion(tomo_db0::ScatterState&) [clone .part.0] [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127tripwire_scatter_read_phaseERKNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::tripwire_scatter_read_phase(tomo_db0::ScatterState const&)",
+      "pre_size": 110,
+      "post_size": 110,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127xshard_owner_mutation_phaseERKNS_12ScatterStateERKNS_2OpE.isra.0",
+      "name": "tomo_db0::(anonymous namespace)::xshard_owner_mutation_phase(tomo_db0::ScatterState const&, tomo_db0::Op const&) [clone .isra.0]",
+      "pre_size": 89,
+      "post_size": 89,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_135clear_unpublished_owner_record_refsERNS_12ScatterStateE",
+      "name": "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)",
+      "pre_size": 316,
+      "post_size": 316,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_135clear_unpublished_owner_record_refsERNS_12ScatterStateE.cold",
+      "name": "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19group_forERNS_12ScatterStateEi",
+      "name": "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)",
+      "pre_size": 145,
+      "post_size": 145,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db013xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E",
+      "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "pre_size": 543,
+      "post_size": 543,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db013xshard_retireERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjPvPFvSC_iPKcEPFvSC_E.cold",
+      "name": "tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+      "pre_size": 790,
+      "post_size": 790,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj.cold",
+      "name": "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "pre_size": 22856,
+      "post_size": 22856,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "pre_size": 372,
+      "post_size": 372,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+      "pre_size": 18724,
+      "post_size": 18724,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]",
+      "pre_size": 578,
+      "post_size": 578,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db015xshard_aof_emitERKNS_4TaskERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+      "name": "tomo_db0::xshard_aof_emit(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+      "pre_size": 1045,
+      "post_size": 1045,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db015xshard_completeERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo_db0::xshard_complete(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db015xshard_is_localERKNS_2OpE",
+      "name": "tomo_db0::xshard_is_local(tomo_db0::Op const&)",
+      "pre_size": 15,
+      "post_size": 15,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool13defer_destroyEPNS_12ScatterStateE",
+      "name": "tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*)",
+      "pre_size": 434,
+      "post_size": 434,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool13defer_destroyEPNS_12ScatterStateE.cold",
+      "name": "tomo_db0::ScatterArenaPool::defer_destroy(tomo_db0::ScatterState*) [clone .cold]",
+      "pre_size": 38,
+      "post_size": 38,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool13reap_deferredEv",
+      "name": "tomo_db0::ScatterArenaPool::reap_deferred()",
+      "pre_size": 276,
+      "post_size": 276,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "name": "tomo_db0::ScatterArenaPool::register_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int)",
+      "pre_size": 962,
+      "post_size": 962,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool17register_snapshotERNS_6ServerEPNS_11SnapshotCutEj.cold",
+      "name": "tomo_db0::ScatterArenaPool::register_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int) [clone .cold]",
+      "pre_size": 38,
+      "post_size": 38,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj",
+      "name": "tomo_db0::ScatterArenaPool::unregister_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int)",
+      "pre_size": 17,
+      "post_size": 17,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0",
+      "name": "tomo_db0::ScatterArenaPool::unregister_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int) [clone .part.0]",
+      "pre_size": 331,
+      "post_size": 331,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0.cold",
+      "name": "tomo_db0::ScatterArenaPool::unregister_snapshot(tomo_db0::Server&, tomo_db0::SnapshotCut*, unsigned int) [clone .part.0] [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool22refresh_snapshot_floorERNS_6ServerEj",
+      "name": "tomo_db0::ScatterArenaPool::refresh_snapshot_floor(tomo_db0::Server&, unsigned int)",
+      "pre_size": 431,
+      "post_size": 431,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool22refresh_snapshot_floorERNS_6ServerEj.cold",
+      "name": "tomo_db0::ScatterArenaPool::refresh_snapshot_floor(tomo_db0::Server&, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool7acquireEmRb",
+      "name": "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)",
+      "pre_size": 153,
+      "post_size": 153,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPool7releaseEPvb",
+      "name": "tomo_db0::ScatterArenaPool::release(void*, bool)",
+      "pre_size": 56,
+      "post_size": 56,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPoolD1Ev",
+      "name": "tomo_db0::ScatterArenaPool::~ScatterArenaPool()",
+      "pre_size": 130,
+      "post_size": 130,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db016ScatterArenaPoolD2Ev",
+      "name": "tomo_db0::ScatterArenaPool::~ScatterArenaPool()",
+      "pre_size": 130,
+      "post_size": 130,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019multi_cancel_intentERNS_18AtomicScriptIntentEPKNS_12ScatterStateE",
+      "name": "tomo_db0::multi_cancel_intent(tomo_db0::AtomicScriptIntent&, tomo_db0::ScatterState const*)",
+      "pre_size": 189,
+      "post_size": 189,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019multi_cancel_recordERNS_11AtomicEntryEPKNS_12ScatterStateE",
+      "name": "tomo_db0::multi_cancel_record(tomo_db0::AtomicEntry&, tomo_db0::ScatterState const*)",
+      "pre_size": 433,
+      "post_size": 433,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE",
+      "name": "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&)",
+      "pre_size": 550,
+      "post_size": 550,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019xshard_plain_finishERNS_5ShardERNS_21PlainForeignReadScopeE.cold",
+      "name": "tomo_db0::xshard_plain_finish(tomo_db0::Shard&, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019xshard_queue_commitERNS_6ServerERNS_9ThreadCtxERKNS_4TaskE",
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&)",
+      "pre_size": 375,
+      "post_size": 375,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019xshard_queue_commitERNS_6ServerERNS_9ThreadCtxERKNS_4TaskE.cold",
+      "name": "tomo_db0::xshard_queue_commit(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Task const&) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db019xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE",
+      "name": "tomo_db0::xshard_watch_finish(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScatterTaskResult)",
+      "pre_size": 321,
+      "post_size": 321,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020blocking_resume_moveERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "tomo_db0::blocking_resume_move(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020script_snapshot_doneERNS_6ServerERNS_12ScatterStateE",
+      "name": "tomo_db0::script_snapshot_done(tomo_db0::Server&, tomo_db0::ScatterState&)",
+      "pre_size": 43,
+      "post_size": 43,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_cleanup_shardERNS_6ServerERNS_5ShardEj",
+      "name": "tomo_db0::xshard_cleanup_shard(tomo_db0::Server&, tomo_db0::Shard&, unsigned int)",
+      "pre_size": 108,
+      "post_size": 108,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_size": 1727,
+      "post_size": 1727,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_size": 1727,
+      "post_size": 1727,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "pre_size": 1747,
+      "post_size": 1747,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)",
+      "pre_size": 7306,
+      "post_size": 7306,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+      "pre_size": 242,
+      "post_size": 242,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db021xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+      "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+      "pre_size": 1375,
+      "post_size": 1375,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db021xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE.cold",
+      "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&) [clone .cold]",
+      "pre_size": 172,
+      "post_size": 172,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db021xshard_dispatch_shardERKNS_15ScatterDispatchEj",
+      "name": "tomo_db0::xshard_dispatch_shard(tomo_db0::ScatterDispatch const&, unsigned int)",
+      "pre_size": 54,
+      "post_size": 54,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEjEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolES5_S7_PNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_dispatch_entry_impl<false>(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int)::{lambda()#1}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_dispatch_entry_impl<false>(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int)::{lambda()#1}&&)",
+      "pre_size": 1712,
+      "post_size": 1712,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE0_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#2}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#2}&&)",
+      "pre_size": 1675,
+      "post_size": 1675,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_",
+      "name": "bool tomo_db0::multi_dispatch_attempt<false, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#1}>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::ScatterArenaPool&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::MultiExecState*, unsigned long, bool*, unsigned int*, unsigned int&, tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)::{lambda()#1}&&)",
+      "pre_size": 1675,
+      "post_size": 1675,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022multi_shutdown_discardERNS_6ServerERNS_8WbEngineERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjRSt6vectorIPNS_14MultiExecStateESaISC_EE",
+      "name": "tomo_db0::multi_shutdown_discard(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&)",
+      "pre_size": 598,
+      "post_size": 598,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022multi_shutdown_discardERNS_6ServerERNS_8WbEngineERNS_6ClientERNS_2OpERNS_16ScatterArenaPoolEjRSt6vectorIPNS_14MultiExecStateESaISC_EE.cold",
+      "name": "tomo_db0::multi_shutdown_discard(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo_db0::notify_xshard_finished(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_size": 1909,
+      "post_size": 1909,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_atomic_key_hashEPKNS_12ScatterStateEj",
+      "name": "tomo_db0::xshard_atomic_key_hash(tomo_db0::ScatterState const*, unsigned int)",
+      "pre_size": 52,
+      "post_size": 52,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_atomic_key_hashEPKNS_12ScatterStateEj.cold",
+      "name": "tomo_db0::xshard_atomic_key_hash(tomo_db0::ScatterState const*, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_size": 1901,
+      "post_size": 1901,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+      "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+      "pre_size": 1901,
+      "post_size": 1901,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_tasks_share_keyERKNS_4TaskERNS_2OpES2_S4_i",
+      "name": "tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int)",
+      "pre_size": 1501,
+      "post_size": 1501,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db022xshard_tasks_share_keyERKNS_4TaskERNS_2OpES2_S4_i.cold",
+      "name": "tomo_db0::xshard_tasks_share_key(tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::Task const&, tomo_db0::Op&, int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023blocking_scatter_retireERNS_6ServerERNS_6ClientERNS_12ScatterStateE",
+      "name": "tomo_db0::blocking_scatter_retire(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::ScatterState&)",
+      "pre_size": 118,
+      "post_size": 118,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_atomic_key_sliceEPKNS_12ScatterStateEj",
+      "name": "tomo_db0::xshard_atomic_key_slice(tomo_db0::ScatterState const*, unsigned int)",
+      "pre_size": 133,
+      "post_size": 133,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_atomic_key_sliceEPKNS_12ScatterStateEj.cold",
+      "name": "tomo_db0::xshard_atomic_key_slice(tomo_db0::ScatterState const*, unsigned int) [clone .cold]",
+      "pre_size": 6,
+      "post_size": 6,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_cleanup_shard_atERNS_5ShardEmmj",
+      "name": "tomo_db0::xshard_cleanup_shard_at(tomo_db0::Shard&, unsigned long, unsigned long, unsigned int)",
+      "pre_size": 328,
+      "post_size": 328,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_cleanup_shard_atERNS_5ShardEmmj.cold",
+      "name": "tomo_db0::xshard_cleanup_shard_at(tomo_db0::Shard&, unsigned long, unsigned long, unsigned int) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_complete_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE",
+      "name": "tomo_db0::xshard_complete_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_multi_child_bindERNS_12ScatterStateEPKv",
+      "name": "tomo_db0::xshard_multi_child_bind(tomo_db0::ScatterState&, void const*)",
+      "pre_size": 36,
+      "post_size": 36,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_plain_stale_cutsEv",
+      "name": "tomo_db0::xshard_plain_stale_cuts()",
+      "pre_size": 12,
+      "post_size": 12,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE",
+      "name": "tomo_db0::xshard_snapshot_prepare(tomo_db0::Task const&, tomo_db0::Shard&)",
+      "pre_size": 909,
+      "post_size": 909,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db023xshard_snapshot_prepareERKNS_4TaskERNS_5ShardE.cold",
+      "name": "tomo_db0::xshard_snapshot_prepare(tomo_db0::Task const&, tomo_db0::Shard&) [clone .cold]",
+      "pre_size": 60,
+      "post_size": 60,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+      "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)",
+      "pre_size": 3764,
+      "post_size": 3764,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE.cold",
+      "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 34,
+      "post_size": 34,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db024xshard_visit_task_hashesERKNS_4TaskEPvPFvS3_mE",
+      "name": "tomo_db0::xshard_visit_task_hashes(tomo_db0::Task const&, void*, void (*)(void*, unsigned long))",
+      "pre_size": 235,
+      "post_size": 235,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025blocking_atomic_publishedERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_12ScatterStateE",
+      "name": "tomo_db0::blocking_atomic_published(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::ScatterState&)",
+      "pre_size": 413,
+      "post_size": 413,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025blocking_resume_move_implILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo_db0::blocking_resume_move_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "pre_size": 2356,
+      "post_size": 2356,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025blocking_resume_move_implILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo_db0::blocking_resume_move_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "pre_size": 2340,
+      "post_size": 2340,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025script_engine_error_replyERNS_2OpERNS_12ScatterStateENS_12_GLOBAL__N_19WorkErrorE",
+      "name": "tomo_db0::script_engine_error_reply(tomo_db0::Op&, tomo_db0::ScatterState&, tomo_db0::(anonymous namespace)::WorkError)",
+      "pre_size": 190,
+      "post_size": 190,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db026xshard_abandon_unpublishedEPNS_12ScatterStateERNS_16ScatterArenaPoolEj",
+      "name": "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)",
+      "pre_size": 49,
+      "post_size": 49,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db026xshard_flush_commits_timedERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "pre_size": 1743,
+      "post_size": 1743,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db026xshard_flush_commits_timedERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db026xshard_task_is_whole_ownerERKNS_4TaskE",
+      "name": "tomo_db0::xshard_task_is_whole_owner(tomo_db0::Task const&)",
+      "pre_size": 33,
+      "post_size": 33,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db027xshard_multi_child_completeERNS_12ScatterStateERNS_2OpEj",
+      "name": "tomo_db0::xshard_multi_child_complete(tomo_db0::ScatterState&, tomo_db0::Op&, unsigned int)",
+      "pre_size": 743,
+      "post_size": 743,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db028blocking_resume_move_iofusedERNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "tomo_db0::blocking_resume_move_iofused(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "pre_size": 9,
+      "post_size": 9,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db029xshard_local_snapshot_prepareERNS_2OpERNS_5ShardE",
+      "name": "tomo_db0::xshard_local_snapshot_prepare(tomo_db0::Op&, tomo_db0::Shard&)",
+      "pre_size": 534,
+      "post_size": 534,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db029xshard_local_snapshot_prepareERNS_2OpERNS_5ShardE.cold",
+      "name": "tomo_db0::xshard_local_snapshot_prepare(tomo_db0::Op&, tomo_db0::Shard&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db030xshard_tripwire_fragment_beginERKNS_4TaskERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::xshard_tripwire_fragment_begin(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 534,
+      "post_size": 534,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db031xshard_multi_child_records_doneERKNS_12ScatterStateE",
+      "name": "tomo_db0::xshard_multi_child_records_done(tomo_db0::ScatterState const&)",
+      "pre_size": 25,
+      "post_size": 25,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db032xshard_tripwire_fragment_executeERKNS_4TaskERNS_5ShardERNS_2OpEbm",
+      "name": "tomo_db0::xshard_tripwire_fragment_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, bool, unsigned long)",
+      "pre_size": 900,
+      "post_size": 900,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db033xshard_multi_child_capture_groupsERNS_12ScatterStateERSt5arrayImLm4EE",
+      "name": "tomo_db0::xshard_multi_child_capture_groups(tomo_db0::ScatterState&, std::array<unsigned long, 4ul>&)",
+      "pre_size": 88,
+      "post_size": 88,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db033xshard_multi_child_capture_groupsERNS_12ScatterStateERSt5arrayImLm4EE.cold",
+      "name": "tomo_db0::xshard_multi_child_capture_groups(tomo_db0::ScatterState&, std::array<unsigned long, 4ul>&) [clone .cold]",
+      "pre_size": 12,
+      "post_size": 12,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore20atomic_prepare_groupEPNS_12ScatterStateEjjPSt6atomicImEPS3_IjEPS3_IbEmPjmbm",
+      "name": "tomo_db0::FlatStore::atomic_prepare_group(tomo_db0::ScatterState*, unsigned int, unsigned int, std::atomic<unsigned long>*, std::atomic<unsigned int>*, std::atomic<bool>*, unsigned long, unsigned int*, unsigned long, bool, unsigned long)",
+      "pre_size": 1376,
+      "post_size": 1376,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore23atomic_visit_key_groupsIZNS_12_GLOBAL__N_122cancel_applied_scriptsERS0_mNS_5SliceEPKNS_12ScatterStateEEUlRT_E_EEvmS4_OS8_",
+      "name": "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&)",
+      "pre_size": 961,
+      "post_size": 961,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore23atomic_visit_key_groupsIZNS_12_GLOBAL__N_122cancel_applied_scriptsERS0_mNS_5SliceEPKNS_12ScatterStateEEUlRT_E_EEvmS4_OS8_.cold",
+      "name": "void tomo_db0::FlatStore::atomic_visit_key_groups<tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}>(unsigned long, tomo_db0::Slice, tomo_db0::(anonymous namespace)::cancel_applied_scripts(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::ScatterState const*)::{lambda(auto:1&)#1}&&) [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0",
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0]",
+      "pre_size": 2219,
+      "post_size": 2219,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0.cold",
+      "name": "void tomo_db0::FlatStore::atomic_for_each_unique_key<tomo_db0::FlatStore::atomic_for_each_side_key<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}>(unsigned long, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&)::{lambda(unsigned long, tomo_db0::Slice)#1}>(tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEjijRT_b",
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "pre_size": 1422,
+      "post_size": 1422,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZNK8tomo_db012ScatterState13group_attemptEv",
+      "name": "tomo_db0::ScatterState::group_attempt() const",
+      "pre_size": 21,
+      "post_size": 21,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZNK8tomo_db016ScatterArenaPool21can_register_snapshotEj",
+      "name": "tomo_db0::ScatterArenaPool::can_register_snapshot(unsigned int) const",
+      "pre_size": 37,
+      "post_size": 37,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt12__move_mergeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEET0_T_SG_SG_SG_SF_T1_",
+      "name": "unsigned int* std::__move_merge<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 217,
+      "post_size": 217,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt12__move_mergeIPjN9__gnu_cxx17__normal_iteratorIS0_St6vectorIjSaIjEEEENS1_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEET0_T_SG_SG_SG_SF_T1_",
+      "name": "__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > > std::__move_merge<unsigned int*, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(unsigned int*, unsigned int*, unsigned int*, unsigned int*, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 217,
+      "post_size": 217,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPN8tomo_db012_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEElS4_NS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_T0_SJ_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, long, tomo_db0::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, long, long, tomo_db0::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 2625,
+      "post_size": 2625,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS2_12ScatterStateEE6CursorSt6vectorIS6_SaIS6_EEEElS6_NS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopES5_EUlRKS6_SF_E_EEEvT_T0_SJ_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor*, std::vector<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor, std::allocator<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor> > >, long, tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor const&, tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor*, std::vector<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor, std::allocator<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor> > >, long, long, tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor const&, tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::Cursor const&)#1}>)",
+      "pre_size": 1053,
+      "post_size": 1053,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN8tomo_db012_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEENS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_SI_T0_",
+      "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 2841,
+      "post_size": 2841,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPN8tomo_db012_GLOBAL__N_110ZImageItemESt6vectorIS4_SaIS4_EEEElNS0_5__ops15_Iter_comp_iterIZNS3_14compute_zsetopERNS2_12ScatterStateEEUlRKS4_SF_E_EEEvT_SI_T0_T1_",
+      "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ZImageItem*, std::vector<tomo_db0::(anonymous namespace)::ZImageItem, std::allocator<tomo_db0::(anonymous namespace)::ZImageItem> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ZImageItem const&, tomo_db0::(anonymous namespace)::ZImageItem const&)#1}>)",
+      "pre_size": 3455,
+      "post_size": 3455,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt16__merge_adaptiveIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElS2_NS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_T2_",
+      "name": "void std::__merge_adaptive<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 557,
+      "post_size": 557,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt21__inplace_stable_sortIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEENS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_",
+      "name": "void std::__inplace_stable_sort<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 350,
+      "post_size": 350,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt22__merge_without_bufferIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElNS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_",
+      "name": "void std::__merge_without_buffer<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 657,
+      "post_size": 657,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt22__stable_sort_adaptiveIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_T1_",
+      "name": "void std::__stable_sort_adaptive<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 105,
+      "post_size": 105,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt23__merge_adaptive_resizeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEElS2_NS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_SF_T0_SG_T1_SG_T2_",
+      "name": "void std::__merge_adaptive_resize<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, long, long, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 1545,
+      "post_size": 1545,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt24__merge_sort_with_bufferIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_NS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_T1_",
+      "name": "void std::__merge_sort_with_buffer<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 982,
+      "post_size": 982,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZSt29__stable_sort_adaptive_resizeIN9__gnu_cxx17__normal_iteratorIPjSt6vectorIjSaIjEEEES2_lNS0_5__ops15_Iter_comp_iterIZN8tomo_db012_GLOBAL__N_114compute_zsetopERNS9_12ScatterStateEEUljjE_EEEvT_SF_T0_T1_T2_",
+      "name": "void std::__stable_sort_adaptive_resize<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}> >(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, __gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int*, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int)#1}>)",
+      "pre_size": 204,
+      "post_size": 204,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_115txn_group_touchERNS_12ScatterStateERNS_5ShardEmNS_5SliceEbENKUlRNS_11AtomicEntryEE_clES7_",
+      "name": "tomo_db0::(anonymous namespace)::txn_group_touch(tomo_db0::ScatterState&, tomo_db0::Shard&, unsigned long, tomo_db0::Slice, bool)::{lambda(tomo_db0::AtomicEntry&)#1}::operator()(tomo_db0::AtomicEntry&) const",
+      "pre_size": 585,
+      "post_size": 585,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm",
+      "name": "tomo_db0::(anonymous namespace)::prepare_sort_deref(tomo_db0::ScatterState&, tomo_db0::Op&)::{lambda(tomo_db0::SortPattern const&, tomo_db0::Slice, bool, unsigned long)#1}::operator()(tomo_db0::SortPattern const&, tomo_db0::Slice, bool, unsigned long) const",
+      "pre_size": 3659,
+      "post_size": 3659,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db012_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.cold",
+      "name": "tomo_db0::(anonymous namespace)::prepare_sort_deref(tomo_db0::ScatterState&, tomo_db0::Op&)::{lambda(tomo_db0::SortPattern const&, tomo_db0::Slice, bool, unsigned long)#1}::operator()(tomo_db0::SortPattern const&, tomo_db0::Slice, bool, unsigned long) const [clone .cold]",
+      "pre_size": 162,
+      "post_size": 162,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD1Ev",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_size": 209,
+      "post_size": 209,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEN15ScriptApplyPinsD2Ev",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+      "pre_size": 209,
+      "post_size": 209,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb0EEEDav",
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "pre_size": 1133,
+      "post_size": 1133,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb0ELb1EEEDav",
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "pre_size": 1094,
+      "post_size": 1094,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "pre_size": 1190,
+      "post_size": 1190,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlmNS_5SliceEbE_clEmS7_b",
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const",
+      "pre_size": 228,
+      "post_size": 228,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "name": "tomo_db0::xshard_complete_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "pre_size": 158,
+      "post_size": 158,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv",
+      "name": "tomo_db0::xshard_complete_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda()#1}::operator()() const",
+      "pre_size": 158,
+      "post_size": 158,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE0_clEmS8_",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#2}::operator()(unsigned long, tomo_db0::Slice) const",
+      "pre_size": 811,
+      "post_size": 811,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE0_clEmS8_.cold",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#2}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]",
+      "pre_size": 47,
+      "post_size": 47,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE_clEmS8_",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const",
+      "pre_size": 560,
+      "post_size": 560,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeEENKUlmNS_5SliceEE_clEmS8_.cold",
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]",
+      "pre_size": 47,
+      "post_size": 47,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db021xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextEENKUljE_clEj.isra.0",
+      "name": "tomo_db0::xshard_aof_emit_local(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+      "pre_size": 142,
+      "post_size": 142,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db022notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateEENKUljNS_13NotifyEventIdEjE_clEjS6_j.isra.0",
+      "name": "tomo_db0::notify_xshard_finished(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(unsigned int, tomo_db0::NotifyEventId, unsigned int)#1}::operator()(unsigned int, tomo_db0::NotifyEventId, unsigned int) const [clone .isra.0]",
+      "pre_size": 255,
+      "post_size": 255,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db022notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateEENKUljjbE_clEjjb.isra.0",
+      "name": "tomo_db0::notify_xshard_finished(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(unsigned int, unsigned int, bool)#1}::operator()(unsigned int, unsigned int, bool) const [clone .isra.0]",
+      "pre_size": 81,
+      "post_size": 81,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db022xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_",
+      "name": "tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "pre_size": 98,
+      "post_size": 98,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db022xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_",
+      "name": "tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)::{lambda(tomo_db0::(anonymous namespace)::ScriptPhase)#1}::operator()(tomo_db0::(anonymous namespace)::ScriptPhase) const",
+      "pre_size": 98,
+      "post_size": 98,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpEENKUlmNS_5SliceEE_clEmS9_",
+      "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const",
+      "pre_size": 756,
+      "post_size": 756,
+      "equal": true
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpEENKUlmNS_5SliceEE_clEmS9_.cold",
+      "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)::{lambda(unsigned long, tomo_db0::Slice)#1}::operator()(unsigned long, tomo_db0::Slice) const [clone .cold]",
+      "pre_size": 5,
+      "post_size": 5,
+      "equal": true
+    }
+  ]
+}

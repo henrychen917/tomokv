@@ -3129,7 +3129,12 @@ uint32_t multi_session_queue_size(const Client& client) {
 
 uint32_t multi_session_watch_size(const Client& client) {
     const MultiSession* session = client.multi_session();
-    return session ? static_cast<uint32_t>(session->watched.size()) : 0;
+    if (!session) return 0;
+    if constexpr (kSingleDatabase) return static_cast<uint32_t>(session->watched.size());
+    // WATCH installs one alias per physical namespace for each (logical DB, key).
+    // Exactly one alias has ns=0, even after SWAPDB; count that representative.
+    return static_cast<uint32_t>(std::count_if(session->watched.begin(), session->watched.end(),
+        [](const MultiWatchedKey& watched) { return watched.ns == 0; }));
 }
 
 uint64_t multi_session_memory(const Client& client) {

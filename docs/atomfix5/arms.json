@@ -1,0 +1,44 @@
+{
+  "pad_kind": "A: PRE behaviour with exact POST text size, function addresses and data layout",
+  "broken_writer": "Test-only unconditional readiness bypass; never a candidate or merit arm",
+  "patches": [
+    {
+      "arm": "PAD-A",
+      "symbol": "_ZN4tomo24multi_session_watch_sizeERKNS_6ClientE",
+      "address": "0x4d4370",
+      "offset": 5063536,
+      "before": "f30f1efa488b87900700004885c07430488b4840488b50384839ca742331c090807a2c014883d0004883c2304839d175efc366662e0f1f8400000000000f1f0031c0c3",
+      "after": "f30f1efa488b979007000031c04885d27412488b4240482b423848c1f80469c0abaaaaaac3909090909090909090909090909090909090909090909090909090909090"
+    },
+    {
+      "arm": "broken-writer",
+      "symbol": "_ZN4tomo23multi_plain_write_readyERNS_5ShardERNS_2OpE",
+      "address": "0x50f094",
+      "offset": 5304468,
+      "before": "415741564155",
+      "after": "b801000000c3"
+    },
+    {
+      "arm": "PAD-A",
+      "symbol": "_ZN8tomo_db024multi_session_watch_sizeERKNS_6ClientE",
+      "address": "0x11e200",
+      "offset": 1171968,
+      "before": "f30f1efa488b97900700004885d27420488b4240482b423848c1f80469c0abaaaaaac366662e0f1f840000000000669031c0c3",
+      "after": "f30f1efa488b979007000031c04885d27412488b4240482b423848c1f80469c0abaaaaaac39090909090909090909090909090"
+    },
+    {
+      "arm": "broken-writer",
+      "symbol": "_ZN8tomo_db023multi_plain_write_readyERNS_5ShardERNS_2OpE",
+      "address": "0x158a24",
+      "offset": 1411620,
+      "before": "415741564155",
+      "after": "b801000000c3"
+    }
+  ],
+  "binaries": {
+    "build/tomokv-pre": "adaa817d5be4fb08cc433a25c981af2dedb950fba102faed797f90e2acc47487",
+    "build/tomokv": "6388844742d94aaa373064dab3a2aedd18b2f03c9e58b36728a6283b75513b4f",
+    "build/tomokv-pad-a": "f205bbbb3d97e6b8f1f9cc757b236768b6027475407e5dc4a0f37392042afa93",
+    "build/atomfix5-broken-writer": "c36d5c10349787fe8bb51f2f89c5e7d6799a73c409beb561a6e13a1987c5f41c"
+  }
+}

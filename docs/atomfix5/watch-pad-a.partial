@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomfix5_watch; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	3.000000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)

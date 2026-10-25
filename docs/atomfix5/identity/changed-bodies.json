@@ -1,0 +1,68 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db024multi_session_watch_sizeERKNS_6ClientE",
+    "name": "tomo_db0::multi_session_watch_size(tomo_db0::Client const&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 37,
+    "post_size": 51,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 945,
+    "post_size": 961,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 18231,
+    "post_size": 18258,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 573,
+    "post_size": 573,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo24multi_session_watch_sizeERKNS_6ClientE",
+    "name": "tomo::multi_session_watch_size(tomo::Client const&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 37,
+    "post_size": 67,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo6IoLoop26pubsub_handle_home_requestERNS_11PubSubEventE",
+    "name": "tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 5423,
+    "post_size": 5391,
+    "classification": "other"
+  }
+]

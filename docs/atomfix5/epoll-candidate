@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Supply epoll only where an existing gate boot leaves the engine unspecified."""
+import os
+from pathlib import Path
+import sys
+args=sys.argv[1:]
+if not any(arg=='--net-io' or arg.startswith('--net-io=') for arg in args):
+    args+=['--net-io','epoll']
+binary=Path(__file__).resolve().parents[2]/'build/tomokv'
+os.execv(str(binary),[str(binary),*args])

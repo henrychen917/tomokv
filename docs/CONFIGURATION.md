@@ -64,6 +64,18 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Owner-served GET borrow threshold (0 disables). Lane-served GET/MGET replies always copy; see the lifetime constraint below. |
 | `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable grouping for ordinary multi-key mutations. EXEC and cross-shard scripts use the shared admission window at either setting; see `Server::atomic_try_admit` and `src/cmd/scatter_engine.inc`. |
 
+`INFO stats`'s `atomic_window_stalls` counts failed **attempts** at
+`Server::atomic_try_admit` whose credit result is `Full`. It is neither elapsed
+wait time nor a count of distinct stalled commands. EXEC first calls
+`atomic_can_admit`; a full-window rejection there applies parse backpressure
+without incrementing this counter. Snapshot-barrier refusals also do not count.
+An EXEC racing for the last credit can increment it after its pre-check passes,
+so zero does not establish absence of EXEC throttling and a nonzero value does
+not identify a particular command family. Observe `atomic_credit_pool` and
+`atomic_inflight` alongside it when diagnosing saturation. This definition
+retains the pre-check and existing fast polling behaviour; it does not claim to
+measure all admission backpressure (AT4.11).
+
 Each write EXEC is one version-ordered unit. Its version is fixed at first
 admission and retained across placement restarts; all its writes publish under
 one commit ticket. Units place read/write claims for their complete key sets.
