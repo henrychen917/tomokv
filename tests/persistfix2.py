@@ -73,7 +73,23 @@ def boot(args, name, extra=(), fsize=None, existing_data=None):
             signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
 
     with (directory / 'server.log').open('wb') as logfile:
-        process = subprocess.Popen(argv, stdout=logfile, stderr=logfile, preexec_fn=limits)
+        # RLIMIT_FSIZE must reach the AOF, while diagnostics remain readable.
+        # A regular stderr file also hits the lowered limit (often only 380 B),
+        # hiding precisely the assertion/error text this failure arm needs.
+        process = subprocess.Popen(argv, stdout=subprocess.PIPE if fsize is not None else logfile,
+                                   stderr=subprocess.STDOUT, preexec_fn=limits)
+        drain_errors = []
+        def drain_log():
+            try:
+                while block := process.stdout.read1(65536):
+                    logfile.write(block)
+                    logfile.flush()
+            except Exception as error:
+                drain_errors.append(error)
+        drainer = None
+        if fsize is not None:
+            drainer = threading.Thread(target=drain_log, daemon=True)
+            drainer.start()
         conn = None
         emit('boot', argv=argv, pid=process.pid)
         try:
@@ -101,6 +117,11 @@ def boot(args, name, extra=(), fsize=None, existing_data=None):
                     emit('unclean stop', reason='owned test cleanup after refusal', code=process.returncode)
             wait(lambda: not subprocess.check_output(
                 ['ss', '-ltnH', f'sport = :{args.port}']).strip(), 'owned listener closed', 5)
+            if drainer is not None:
+                drainer.join(timeout=5)
+                assert not drainer.is_alive(), 'owned diagnostic pipe never reached EOF'
+                process.stdout.close()
+                assert not drain_errors, drain_errors
             emit('exit', code=process.returncode)
 
 
