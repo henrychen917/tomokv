@@ -52,4 +52,6 @@ assert adjusted != gate
                                     fromfile='protected gate', tofile='throwaway gate'))), indent=2) + '\n')
 abba = subprocess.run(['python3', 'docs/wave7/run_jobs.py', 'abba-selftest-final', 'abba_selftest',
                        '--selftest', '--root', str(copy)])
-raise SystemExit(int(bool(result.returncode or abba.returncode)))
+configuration = subprocess.run(['python3', 'docs/wave7/run_jobs.py',
+                                'config-unit-final', 'config_unit'])
+raise SystemExit(int(bool(result.returncode or abba.returncode or configuration.returncode)))
