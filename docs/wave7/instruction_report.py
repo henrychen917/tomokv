@@ -35,7 +35,7 @@ for cmd in ('MGET','MSET'):
  for batch in (1,8):
   for atomic in (0,1):
    lines.append('| '+' | '.join([cmd,str(batch),str(atomic),*[cell(cmd,batch,atomic,-1,ns,mode) for ns in ('normal','db0') for mode in ('1s','2s')]])+' |')
-lines+=['','Per-function and excluded library-call changes are retained in comparison.json. External library call counts match in all 80 cells; the retained raw excluded-target differences are only the fixture callback's PRE/POST path names. There is no assertion that equal named instruction totals imply equal cycles or rate.']
+lines+=['','Per-function and excluded library-call changes are retained in comparison.json. External library call counts match in all 80 cells; the retained raw excluded-target differences are only the fixture callback PRE/POST path names. There is no assertion that equal named instruction totals imply equal cycles or rate.']
 (OUT/'table.md').write_text('\n'.join(lines)+'\n')
 for r in rows:
  if r['command']=='MSET' and r['batch']==1:print(r['namespace'],r['mode'],r['atomic'],r['delta'],r['function_delta'])

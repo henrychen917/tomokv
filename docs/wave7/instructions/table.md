@@ -32,4 +32,4 @@ All 48 plain cells add zero instructions. The unarmed SET body is identical to h
 | MSET | 8 | 0 | 86797 → 87117 (+320) | 85165 → 85485 (+320) | 88725 → 89109 (+384) | 87277 → 87661 (+384) |
 | MSET | 8 | 1 | 161490 → 161938 (+448) | 158658 → 159106 (+448) | 157626 → 157946 (+320) | 154978 → 155298 (+320) |
 
-Per-function and excluded library-call changes are retained in comparison.json. There is no assertion that equal named instruction totals imply equal cycles or rate.
+Per-function and excluded library-call changes are retained in comparison.json. External library call counts match in all 80 cells; the retained raw excluded-target differences are only the fixture callback PRE/POST path names. There is no assertion that equal named instruction totals imply equal cycles or rate.
