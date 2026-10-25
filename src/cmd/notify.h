@@ -123,6 +123,11 @@ enum class NotifyEventId : uint8_t {
     Expired, Evicted, Keymiss, New,
 };
 
+// Independent of pub/sub configuration; only armed handlers call this observer.
+void watch_record_modified(Shard&, Slice);
+bool watch_notification_mutates(NotifyEventId);
+void watch_record_notification(Shard&, NotifyEventId, Slice);
+
 struct FlatNotifySink {
     void* context = nullptr;
     bool (*enabled)(void*, uint32_t) = nullptr;
@@ -184,7 +189,10 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t mask, uint32_t cls,
 // sole feature-off gate at every candidate fire point. Subscriber/batch machinery is out of line.
 template <typename ShardLike>
 inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
-                          NotifyEventId event, Slice key) {
+                          NotifyEventId event, Slice key, bool report_watch = true) {
+    if constexpr (requires { shard.has_watches(); })
+        if (report_watch && watch_notification_mutates(event))
+            watch_record_notification(shard, event, key);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
     if (__builtin_expect((mask & cls) == 0 && !observed, true)) return false;
@@ -198,6 +206,9 @@ inline bool notify_record(ShardLike& shard, Op& source, uint32_t cls,
 template <typename ShardLike>
 inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
                                   NotifyEventId event, Slice key) {
+    if constexpr (requires { shard.has_watches(); })
+        if (watch_notification_mutates(event))
+            watch_record_notification(shard, event, key);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
     if (__builtin_expect((mask & cls) == 0 && !observed, true)) return false;

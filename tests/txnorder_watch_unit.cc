@@ -113,7 +113,6 @@ void readonly_watch(Server& server, bool handshake=false) {
                 server.worker_of_shard(0),0,nullptr)),"lead runs; late read held");
         require(!state->finalized.load() && !state->execution_joined[1],"held read window exists");
         local(server,{"SET",b,"new"},631);
-        multi_plain_write_committed(server.shard(1),write.op);
         require(client.watch_dirty(),"foreign write committed after CAS");
     }
     std::vector<bool> done(server.nshards(),false);

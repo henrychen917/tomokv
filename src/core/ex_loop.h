@@ -988,6 +988,9 @@ private:
     __attribute__((noinline, cold))
     void note_local_read_access(const Op& op, const KvObj* object, uint8_t flags) {
         if (op.no_touch()) { srv_->climon_note_no_touch(); return; }
+        const uint64_t idle_hash = FlatStore::hash_key(object->key());
+        srv_->shard(srv_->router().shard_of(idle_hash)).store()
+            .note_object_access(object, cached_now_ms_);
         KvObj* touched = const_cast<KvObj*>(object);
         const uint8_t meta = static_cast<uint8_t>(flags >> 3);
         if (foreign_touch_policy_ == kForeignTouchLru) {

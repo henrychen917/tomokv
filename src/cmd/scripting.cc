@@ -629,7 +629,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                               "ERR Script attempted to access an undeclared key");
                 failed = true;
             } else {
-                if (context->notify) spec = command_notify_variant(spec);
+                if (context->notify || context->shard->has_watches() || (spec->flags & CmdFlags::Write))
+                    spec = command_notify_variant(spec);
                 nested.spec = spec;
                 nested.hash = FlatStore::hash_key(key);
                 nested.shard = context->shard->id();
@@ -637,6 +638,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 if (context->notify)
                     notify_execute_source(*context->shard, nested,
                                           context->call_index++ * 0x10000u);
+                bool modified = false;
+                WatchEffectScope effects(*context->shard, modified);
                 const bool logical_write = (spec->flags & CmdFlags::Write) &&
                                            command_metadata_write(nested);
                 Server* server = context->shard->server();
@@ -658,8 +661,12 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 if (spec->flags & CmdFlags::Write) {
                     const bool errored = !nested.zc_ptr && nested.reply.size() &&
                                          nested.reply.data()[0] == '-';
-                    if (!errored) {
-                        mark_declared(*context, key, 2 | (context->function_admitted ? kScriptFunctionAdmitted : 0));
+                    // A command can report an error after a partial effect (for
+                    // example a later hash-field TTL allocation failure). Keep
+                    // that image and its WATCH signal, as for an earlier Lua call.
+                    if (!errored || modified) {
+                        mark_declared(*context, key, 2 | (modified ? kScriptModified : 0) |
+                            (context->function_admitted ? kScriptFunctionAdmitted : 0));
                         context->effect_writes++;
                         g_effect_writes.fetch_add(1, std::memory_order_relaxed);
                     }

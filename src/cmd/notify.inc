@@ -490,6 +490,7 @@ NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint3
 }
 
 void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
+    shard.watch_physical_delete(key, true);
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
     if (!(mask & cls) && !observed) return;
@@ -599,6 +600,7 @@ void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_de
 
 bool notify_flat_enabled(void* context, uint32_t cls) {
     auto& shard = *static_cast<Shard*>(context);
+    if (shard.has_watches() && (cls & (NOTIFY_ALL | NOTIFY_NEW))) return true;
     const uint32_t mask = shard.notify_mask();
     const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
     if (!(mask & cls) && !observed) return false;
@@ -951,7 +953,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
         state.final_reply == FinalReply::SortConversion) return;
 
     auto emit = [&](uint32_t cls, NotifyEventId event, uint32_t arg) {
-        notify_record(shard, op, cls, event, op.arg(arg));
+        notify_record(shard, op, cls, event, op.arg(arg), false);
     };
     auto emit_atomic_new = [&](uint32_t image_pos, uint32_t arg, bool creates = true) {
         if (creates && state.atomic_apply && state.images && !state.images[image_pos].present)

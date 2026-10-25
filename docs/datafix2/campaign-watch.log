@@ -1,0 +1,6 @@
+reserved gate ports 33800-33802
+post-storage-final-gate 0
+reserved gate ports 33800-33802
+post-watch-related-gate 0
+reserved gate ports 33800-33802
+pre-watch-related-gate 0

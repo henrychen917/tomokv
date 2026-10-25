@@ -91,8 +91,17 @@ std::string local(Server& server, std::vector<std::string> args, uint64_t conn =
     if (local_multi) r.op.mark_local_xshard();
     PlainForeignReadScope scope;
     require(xshard_plain_prepare(server, shard, r.op, conn, scope), "plain preparation");
+#if __has_include("src/cmd/watch_modified.h")
+    if (shard.has_watches()) watch_execute_handler(shard, r.op);
+    else r.op.spec->handler(shard, r.op);
+#else
     r.op.spec->handler(shard, r.op);
+#endif
     xshard_plain_finish(shard, scope);
+#if !__has_include("src/cmd/watch_modified.h")
+    if (r.op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+        multi_plain_write_committed(shard, r.op);
+#endif
     return r.reply();
 }
 void release_records(Server& server) {
@@ -602,7 +611,11 @@ void script_apply(Server& server) {
     run.state->script_cut = server.atomic_snapshot();
     run.phase(ScriptPhase::Read);
     run.phase(ScriptPhase::Run);
-    require(run.request.reply() == ":2\r\n" && run.state->status[0] == 3,
+    uint8_t expected_access = 3;  // Exact read + staged-write bits in both builds.
+#if __has_include("src/cmd/watch_modified.h")
+    expected_access |= kScriptModified;  // The APPEND also changed the key.
+#endif
+    require(run.request.reply() == ":2\r\n" && run.state->status[0] == expected_access,
             "script produced the saved BS image from a read-modify-write");
     run.state->script_ticket = server.atomic_commit_reserve();
     run.phase(ScriptPhase::Validate);

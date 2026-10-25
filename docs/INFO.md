@@ -66,3 +66,16 @@ emits nonempty logical databases, and [active expiry](https://github.com/redis/r
 maintains a sampled TTL estimate. Redis 7.4 also emits `subexpiry`; TomoKV's
 pre-existing omission of that fourth field is unchanged by this requested
 three-field change. `DBSIZE NOW` is an existing TomoKV extension, not Redis grammar.
+
+### Hash-field expiry counters
+
+`expired_subkeys` is the number of hash fields physically removed because their
+field deadline elapsed, including active expiry, lazy expiry and an immediately
+elapsed HEXPIRE-family deadline. Explicit HDEL/key deletion is not subkey expiry.
+CONFIG RESETSTAT resets this counter, as in Redis 7.4.
+
+TomoKV also retains two diagnostic fields used by the expiry batteries:
+`expired_hash_fields` is the lifetime (not RESETSTAT-rebased) version of that
+removal counter; `hash_field_expires` counts hashes registered for field-expiry
+attention. The latter is an attention gauge, not a count of volatile fields:
+stale registrations can remain until the owner's expiry cycle visits them.

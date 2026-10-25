@@ -79,6 +79,7 @@
 #include "../cmd/notify.h"
 #include "kv_block_cache.h"
 #include "kvobj.h"
+#include "object_idle.h"
 #include "atomic_mvcc.h"
 #include "foreign_read_safety.h"
 #include "read_local_reclaim.h"
@@ -679,6 +680,8 @@ public:
     }
 
     explicit FlatStore(uint32_t initial_cap = 1024) {
+        std::construct_at(reinterpret_cast<std::atomic<ObjectIdleClock*>*>(
+            reader_owner_gap_ + 12), nullptr);
         const uint32_t cap = round_pow2(initial_cap);
         if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
         if (!init_storesize()) {
@@ -704,6 +707,8 @@ public:
         for (const Borrow& b : borrows_)
             if (b.retired) kvobj_free(b.retired);
         destroy_storesize();
+        delete object_idle_slot()->load(std::memory_order_relaxed);
+        std::destroy_at(object_idle_slot());
     }
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
@@ -1447,6 +1452,7 @@ public:
     }
     // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
     // maxmemory is enabled, so it costs nothing in the default configuration.
+    bool no_touch() const { return no_touch_; }
     void set_no_touch(bool value) { no_touch_ = value; }
 
     // OBJECT IDLETIME/FREQ report the same five-bit eviction metadata the victim chooser reads, so
@@ -1492,8 +1498,52 @@ public:
     // does not move has not exercised resize-during-iteration at all, and its "0 keys missed"
     // would be vacuous.
     void bind_rehash_counter(uint64_t* counter) { rehash_counter_ = counter; }
+    // The slot has a real atomic lifetime in reserved, eight-byte-aligned storage.
+    // Shard migration moves the store and its already-bound QSBR sink together.
+    std::atomic<ObjectIdleClock*>* object_idle_slot() const {
+        return std::launder(reinterpret_cast<std::atomic<ObjectIdleClock*>*>(
+            const_cast<char*>(reader_owner_gap_) + 12));
+    }
+    [[gnu::noinline]] void note_object_access(const KvObj* object, int64_t now_ms) const {
+        if (auto* clock = object_idle_slot()->load(std::memory_order_acquire))
+            clock->touch(object, now_ms);
+    }
+    [[gnu::noinline]] uint32_t object_idle_seconds(const KvObj* object) const {
+        auto* clock = object_idle_slot()->load(std::memory_order_acquire);
+        return clock ? clock->idle(object, cached_now_ms_) : 0;
+    }
+    [[gnu::noinline]] bool object_idle_install(uint64_t hash, const KvObj* object) {
+        auto* clock = object_idle_slot()->load(std::memory_order_acquire);
+        if (!clock) return true;
+        uint32_t stamp = ObjectIdleClock::clock(cached_now_ms_);
+        if (no_touch_) {
+            auto* old = find_resident(hash, object->key());
+            if (old && !deadline_elapsed(hash, old, cached_now_ms_))
+                stamp = clock->timestamp(old, stamp);
+        }
+        return clock->install(object, stamp);
+    }
+    [[gnu::noinline, gnu::cold]] void configure_object_idle(bool enabled) {
+        auto* current = object_idle_slot()->load(std::memory_order_relaxed);
+        if (enabled == (current != nullptr)) return;
+        if (enabled) {
+            auto fresh = std::make_unique<ObjectIdleClock>();
+            const auto now = ObjectIdleClock::clock(cached_now_ms_);
+            for_each([&](KvObj* object) {
+                if (!fresh->install(object, now)) throw std::bad_alloc();
+            });
+            object_idle_slot()->store(fresh.release(), std::memory_order_release);
+        } else {
+            auto* retired = object_idle_slot()->exchange(nullptr, std::memory_order_acq_rel);
+            if (read_local_enabled_)
+                read_local_store_state_required().retire_sink.retire(nullptr, retired, 0,
+                    [](void*, void* payload, size_t) { delete static_cast<ObjectIdleClock*>(payload); });
+            else delete retired;
+        }
+    }
     void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
+        configure_object_idle(enabled);
         maxmemory_enabled_ = enabled;
         maxmemory_limit_ = shard_limit;
         maxmemory_policy_ = policy;
@@ -1721,9 +1771,12 @@ public:
         // SUSPENDED while a capture is active: make_room_for deletes sampled victims, and the
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
-        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
-            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
-            if (o->eviction_meta() == 0) initialize_meta(o);
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!object_idle_install(h, o)) return InsertResult::Failed;
+            if (!snapshot_active_) {
+                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
+                if (o->eviction_meta() == 0) initialize_meta(o);
+            }
         }
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
@@ -2360,10 +2413,12 @@ private:
     }
 
     void touch(KvObj* o) {
+        if (no_touch_) return;
         if (__builtin_expect(read_local_enabled_, false)) {
             touch_read_local(o);
             return;
         }
+        note_object_access(o, cached_now_ms_);
         if (maxmemory_policy_is_lru(maxmemory_policy_)) {
             o->set_eviction_meta(lru_clock());
             return;
@@ -2768,7 +2823,16 @@ private:
             return rewrite_expire_read_local(h, old, expire_at_ms);
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
+        if (maxmemory_enabled_) {
+            replacement->set_eviction_meta(old->eviction_meta());
+            if (!object_idle_install(h, replacement)) {
+                if (replacement->type != static_cast<uint8_t>(Type::String) &&
+                    replacement->encoding() == Enc::Extern)
+                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+                kvobj_free(replacement);
+                return TtlResult::Oom;
+            }
+        }
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -2957,9 +3021,12 @@ private:
                                cap_[0])
                 return InsertResult::Failed;
         }
-        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
-            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
-            if (o->eviction_meta() == 0) initialize_meta_read_local(o);
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!object_idle_install(h, o)) return InsertResult::Failed;
+            if (!snapshot_active_) {
+                if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
+                if (o->eviction_meta() == 0) initialize_meta_read_local(o);
+            }
         }
         const bool moves_from_old = rehashing() && find_in(1, h, o->key()) != nullptr;
         ReadLocalTableGuard table_move(*this, moves_from_old);
@@ -3061,6 +3128,7 @@ private:
     }
 
     void touch_read_local(KvObj* o) {
+        note_object_access(o, cached_now_ms_);
         if (maxmemory_policy_is_lru(maxmemory_policy_)) {
             write_eviction_meta_read_local(o, lru_clock());
             return;
@@ -3217,7 +3285,16 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
+        if (maxmemory_enabled_) {
+            replacement->set_eviction_meta(old->eviction_meta());
+            if (!object_idle_install(h, replacement)) {
+                if (replacement->type != static_cast<uint8_t>(Type::String) &&
+                    replacement->encoding() == Enc::Extern)
+                    replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+                kvobj_free(replacement);
+                return TtlResult::Oom;
+            }
+        }
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -3826,6 +3903,8 @@ struct FlatStoreLayoutLock {
     static constexpr size_t atomic_separator_first = offsetof(FlatStore, atomic_ticket_fn_);
     static constexpr size_t line         = 64;
     static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_);
+    static_assert((offsetof(FlatStore, reader_owner_gap_) + 12) %
+                  alignof(std::atomic<ObjectIdleClock*>) == 0);
 };
 
 // THE INVARIANT, STATED TWICE BECAUSE THE READER BLOCK HAS OWNER WRITES ON BOTH SIDES OF IT: no

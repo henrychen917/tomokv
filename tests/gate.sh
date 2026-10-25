@@ -1134,7 +1134,7 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               atomfix5_watch atomfix5_accounting core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3497,6 +3497,73 @@ local NET_IO=${1##*-}
   done
 }
 
+datafix2_case(){
+local script=$1 case=$2
+# One counted row; every declared leg runs even when an earlier leg fails.
+local mode atomic engine read_local compatible=1 booted oracle_ready=0
+local oracle_port=$((PORT+1)) oracle_dir
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/datafix2-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_DATAFIX2_ORACLE_CORES:-${GATE_DIFFER_ORACLE_CORES:-$CORES}}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no \
+      --enable-debug-command yes --dir "$oracle_dir" >"$TMPDIR/oracle.log" 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep .1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+  for databases in 1 16; do for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
+    local reads="1 0"
+    [ "$mode" = 1s ] || reads=0
+    for read_local in $reads; do
+      booted=0
+      local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      if [ "$mode" = 1s ]; then
+        boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
+      else
+        boot "$CANDIDATE_BINARY" --thread-mode 2s "${options[@]}" && booted=1
+      fi
+      if [ "$booted" != 1 ] || ! py "tests/datafix2_$script.py" 127.0.0.1 "$PORT" \
+          --case "$case" --oracle 127.0.0.1 "$oracle_port" \
+          --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/$case-db$databases-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+        compatible=0
+      fi
+      stop
+    done
+  done; done; done; done
+else
+  compatible=0
+fi
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+[ "$compatible" = 1 ]
+}
+
+job_datafix2_notouch(){
+  row_begin "datafix2 CD4.7 no-touch lookups vs Redis 7.4"
+  datafix2_case notouch notouch && ok "datafix2 CD4.7 no-touch lookups vs Redis 7.4" \
+      || bad "datafix2 CD4.7 no-touch lookups vs Redis 7.4" "see $TMPDIR/notouch-*.log"
+}
+
 compat3_case(){
 local script=$1 case=$2
 # One counted row; every declared leg runs even when an earlier leg fails.
@@ -3581,6 +3648,30 @@ job_blockfix_mkstream(){
   row_begin "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
   compat3_case blockfix mkstream && ok "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4" \
       || bad "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4" "see $TMPDIR/mkstream-*.log"
+}
+
+job_datafix2_encoding(){
+  row_begin "datafix2 CD4.15 string encoding vs Redis 7.4"
+  datafix2_case encoding encoding && ok "datafix2 CD4.15 string encoding vs Redis 7.4" \
+      || bad "datafix2 CD4.15 string encoding vs Redis 7.4" "see $TMPDIR/encoding-*.log"
+}
+
+job_datafix2_subkeys(){
+  row_begin "datafix2 CD4.14 expired_subkeys vs Redis 7.4"
+  datafix2_case subkeys subkeys && ok "datafix2 CD4.14 expired_subkeys vs Redis 7.4" \
+      || bad "datafix2 CD4.14 expired_subkeys vs Redis 7.4" "see $TMPDIR/subkeys-*.log"
+}
+
+job_datafix2_watch(){
+  row_begin "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+  datafix2_case watch watch && ok "datafix2 CD4.9 write WATCH table vs Redis 7.4" \
+      || bad "datafix2 CD4.9 write WATCH table vs Redis 7.4" "see $TMPDIR/watch-*.log"
+}
+
+job_datafix2_idle(){
+  row_begin "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4"
+  datafix2_case idle idle && ok "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4" \
+      || bad "datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4" "see $TMPDIR/idle-*.log"
 }
 
 job_compat3(){
@@ -5362,6 +5453,12 @@ collect_job dispatch_errors
 collect_job dispatch_children
 collect_job acl_subcommands
 collect_job router_uniform
+# datafix2 rows are before the quick exit; EXPECT stays maintainer-owned.
+collect_job datafix2_notouch
+collect_job datafix2_encoding
+collect_job datafix2_subkeys
+collect_job datafix2_watch
+collect_job datafix2_idle
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

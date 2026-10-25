@@ -1,0 +1,16 @@
+reserved gate ports 33800-33802
+post-final-v2-directed-gate 0
+reserved gate ports 33800-33802
+post-related-gate 1
+reserved gate ports 33800-33802
+post-eviction-gate 0
+reserved gate ports 33800-33802
+pre-related-gate 1
+reserved gate ports 33800-33802
+pre-eviction-gate 0
+reserved gate ports 33800-33802
+post-differ-epoll 0
+post-differ-uring 0
+reserved gate ports 33800-33802
+pre-differ-epoll 0
+pre-differ-uring 0

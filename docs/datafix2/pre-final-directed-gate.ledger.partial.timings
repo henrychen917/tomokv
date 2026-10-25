@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	45.580000	datafix2 CD4.7 no-touch lookups vs Redis 7.4
+FAIL	45.970000	datafix2 CD4.15 string encoding vs Redis 7.4
+FAIL	50.490000	datafix2 CD4.14 expired_subkeys vs Redis 7.4
+FAIL	175.230000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+FAIL	312.540000	datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4

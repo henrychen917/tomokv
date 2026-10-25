@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	34.370000	datafix2 CD4.7 no-touch lookups vs Redis 7.4
+ok	33.730000	datafix2 CD4.15 string encoding vs Redis 7.4
+ok	59.110000	datafix2 CD4.14 expired_subkeys vs Redis 7.4
+ok	109.320000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	600.280000	datafix2 SO4.2 OBJECT IDLETIME vs Redis 7.4

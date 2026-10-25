@@ -1,0 +1,27 @@
+{
+  "before": {
+    "build/tomokv-pre": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f",
+    "build/tomokv": "e04e787a192cd2ab0b3f9f0ef22df0e9ba3651843aeaa2802c697ef24ed37909",
+    "build/tomokv-pad-a": "88221d10464fd62014ffba52e2b6e15c23d61ece794ba4ec95d5803046c5eb5c",
+    "build/pre-objects/build/tomokv": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f"
+  },
+  "after": {
+    "build/tomokv-pre": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f",
+    "build/tomokv": "e04e787a192cd2ab0b3f9f0ef22df0e9ba3651843aeaa2802c697ef24ed37909",
+    "build/tomokv-pad-a": "88221d10464fd62014ffba52e2b6e15c23d61ece794ba4ec95d5803046c5eb5c",
+    "build/pre-objects/build/tomokv": "bd013c79ef74882664dc79f49c292c2930d42d2f2631dc18b1673675d8e8489f"
+  },
+  "unchanged": true,
+  "freshness": [
+    {
+      "prefix": "post-handoff-",
+      "checks": 45,
+      "returncode": 0
+    },
+    {
+      "prefix": "pre-handoff-",
+      "checks": 45,
+      "returncode": 0
+    }
+  ]
+}

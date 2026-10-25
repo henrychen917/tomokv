@@ -1871,6 +1871,7 @@ struct StatBaseline {
     uint64_t sampled_ops = 0;
     uint64_t connections = 0;
     uint64_t hits = 0, misses = 0, expired = 0, evicted = 0;
+    uint64_t expired_subkeys = 0;
     uint64_t rejected = 0, auth_failures = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0;
     uint64_t keys = 0;
@@ -1935,6 +1936,7 @@ void collect_stat_totals(StatBaseline& out) {
         out.hits += sh.stats().hits;
         out.misses += sh.stats().misses;
         out.expired += sh.stats().expired;
+        out.expired_subkeys += sh.store().field_expired();
         out.evicted += sh.published_evicted();
         out.keys += sh.published_size();
         out.object_bytes += sh.published_obj_bytes();
@@ -2170,6 +2172,8 @@ void cmd_info(Shard&, Op& op) {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
         baseline = g_stat_baseline;
     }
+    const uint64_t expired_subkeys = want_stats
+        ? minus_baseline(expired_hash_fields, baseline.expired_subkeys) : 0;
     if (want_stats) {
         if (g_server && g_server->read_local_enabled()) {
             hits += read_local.keyspace_hits;
@@ -2567,7 +2571,7 @@ void cmd_info(Shard&, Op& op) {
                       "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
                       "instantaneous_input_kbps:%.2f\r\ninstantaneous_output_kbps:%.2f\r\n"
                       "latest_fork_usec:0\r\n"
-                      "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
+                      "expired_subkeys:%llu\r\nexpired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
                       "sends_submitted:%llu\r\nshort_writes:%llu\r\nbytes_sent:%llu\r\n"
@@ -2659,6 +2663,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(sampled_rates[0]),
                 double(float(sampled_rates[1]) / 1024),
                 double(float(sampled_rates[2]) / 1024),
+                static_cast<unsigned long long>(expired_subkeys),
                 static_cast<unsigned long long>(expired_hash_fields),
                 static_cast<unsigned long long>(hash_field_expires),
                 static_cast<unsigned long long>(keyspace_rehashes),

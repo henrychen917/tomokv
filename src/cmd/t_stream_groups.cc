@@ -447,7 +447,10 @@ void cmd_xgroup(Shard& shard, Op& op) {
         if (object && find_group(object, op.arg(3))) {
             reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
         }
-        if (!object && !stream_create_empty_external(shard, op, kNotify, object)) return;
+        if (!object) {
+            if (!stream_create_empty_external(shard, op, kNotify, object)) return;
+            watch_record_modified(shard, key);
+        }
         if (!stream_force_external(shard, op, object, kNotify)) return;
         StreamHeader header;
         if (!stream_object_header(object, header)) {

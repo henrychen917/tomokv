@@ -50,6 +50,8 @@ bool notify_flat_enabled(void*, uint32_t) { return false; }
 // outside this store test. Reaching any of them is a fixture error, never a silent stub success.
 void notify_execute_handler(Shard&, Op&, void (*)(Shard&, Op&)) { std::abort(); }
 bool notify_record_slow(Shard&, Op&, uint32_t, uint32_t, NotifyEventId, Slice) { std::abort(); }
+bool watch_notification_mutates(NotifyEventId) { std::abort(); }
+void watch_record_notification(Shard&, NotifyEventId, Slice) { std::abort(); }
 void reply_maxmemory_oom(Op&) { std::abort(); }
 void cmd_xshard_only(Shard&, Op&) { std::abort(); }
 void cmd_xshard_only_notify(Shard&, Op&) { std::abort(); }

@@ -1,0 +1,2 @@
+python3 tools/lbosc3_pad.py build/lbplanner-unit build/lbosc3-unit-pad build/lbosc3/unit-pad-proof > build/lbosc3/unit-pad.log
+python3 tools/lbosc3_pad.py build/lbplanner-unit build/lbosc3-unit-pad build/lbosc3/unit-pad-proof > build/lbosc3/unit-pad.log

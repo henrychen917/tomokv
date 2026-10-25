@@ -1,0 +1,3564 @@
+{
+  "notouch": {
+    "PRE": {
+      "log": "docs/datafix2/pre-final-directed-gate.log",
+      "archive": "docs/datafix2/pre-final-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 0,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a0-rl0.log",
+          "sha256": "6eb409824524e555525e1a0941f1fbd75a47b42fcc032c84b14490bddb0d8d34",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a0-rl1.log",
+          "sha256": "a6d6a220fc27df107bcd4f383c98d99717c93d642452a115c1ce319bb1bb268a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a1-rl0.log",
+          "sha256": "928a32e6d19b26e10508027a98ee98cceb74e0d8f5abbf72e07db0d8960f5eb4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a1-rl1.log",
+          "sha256": "dcd351992473ad4419917dc2067d34a3a09361da97e646e61fa57eac890e5e5a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a0-rl0.log",
+          "sha256": "97dad670ac0af2f2bc47b2b9ec67c24fd5a8f9230f2470d53fe26c5e6dc046e5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a0-rl1.log",
+          "sha256": "40ebae673d0e88e3cdb07141f09d7931df9f509468ecdcd9a3dc4f255415d619",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a1-rl0.log",
+          "sha256": "8d98c9e0ede39b48858af568238aadad7458651f6af85c11aa346c82dc501d97",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a1-rl1.log",
+          "sha256": "3211982258465b8c95b974abd1b5091cb659edf6c3545438d8b6b88db97a570c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-epoll-a0-rl0.log",
+          "sha256": "d1134177d9cd24b334f7119d16951c15996572e5d2f21216cd2eafd5d77cd1ee",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-epoll-a1-rl0.log",
+          "sha256": "d8073a5b3502e6b170915db80f1395b5f6c22c308dea25bb16cc5f52495107bd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-uring-a0-rl0.log",
+          "sha256": "d68583e86d1ca80344a5175c1063ebfb2f2247bcfa137852a08736403aef8b7e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-uring-a1-rl0.log",
+          "sha256": "4380ca9dea8bbdfc8a1dfbb58910969541580f8159f96770f4f108620605806e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a0-rl0.log",
+          "sha256": "6eb409824524e555525e1a0941f1fbd75a47b42fcc032c84b14490bddb0d8d34",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a0-rl1.log",
+          "sha256": "a6d6a220fc27df107bcd4f383c98d99717c93d642452a115c1ce319bb1bb268a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a1-rl0.log",
+          "sha256": "928a32e6d19b26e10508027a98ee98cceb74e0d8f5abbf72e07db0d8960f5eb4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a1-rl1.log",
+          "sha256": "dcd351992473ad4419917dc2067d34a3a09361da97e646e61fa57eac890e5e5a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a0-rl0.log",
+          "sha256": "97dad670ac0af2f2bc47b2b9ec67c24fd5a8f9230f2470d53fe26c5e6dc046e5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a0-rl1.log",
+          "sha256": "40ebae673d0e88e3cdb07141f09d7931df9f509468ecdcd9a3dc4f255415d619",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a1-rl0.log",
+          "sha256": "8d98c9e0ede39b48858af568238aadad7458651f6af85c11aa346c82dc501d97",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a1-rl1.log",
+          "sha256": "3211982258465b8c95b974abd1b5091cb659edf6c3545438d8b6b88db97a570c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-epoll-a0-rl0.log",
+          "sha256": "d1134177d9cd24b334f7119d16951c15996572e5d2f21216cd2eafd5d77cd1ee",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-epoll-a1-rl0.log",
+          "sha256": "d8073a5b3502e6b170915db80f1395b5f6c22c308dea25bb16cc5f52495107bd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-uring-a0-rl0.log",
+          "sha256": "d68583e86d1ca80344a5175c1063ebfb2f2247bcfa137852a08736403aef8b7e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-uring-a1-rl0.log",
+          "sha256": "4380ca9dea8bbdfc8a1dfbb58910969541580f8159f96770f4f108620605806e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: no touch ('EXISTS', 'k'): 7 != 5"
+          ]
+        }
+      ]
+    },
+    "POST": {
+      "log": "docs/datafix2/post-final-v2-directed-gate.log",
+      "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 24,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a0-rl0.log",
+          "sha256": "0be3cf2597af015ad8c426a99e697972ff888665b8dd02c4d5dda1a262cc178f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a0-rl1.log",
+          "sha256": "0ca310a403b3be4ed140d6e0e9edcd378f3b2bf97b97f8012b9978383b9b06db",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a1-rl0.log",
+          "sha256": "2b32b9301116c64c04fb26565aba8ab6bdf487475a3634b34c9c4419593082ca",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-epoll-a1-rl1.log",
+          "sha256": "e08397ced195bcc8297cabe67a6ebc5459a51e091cae409ba48d81f2d23b9ef3",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a0-rl0.log",
+          "sha256": "c55c99fc5dc554aa87b0603b10ae0fe8f85c23cb2e86f368230f0082a59baf67",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a0-rl1.log",
+          "sha256": "fb3c24241f1c4c7aea44e8746cec6e11bf938ad769a96656f21e615d377ed0b5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a1-rl0.log",
+          "sha256": "6a0be25f087784af4da3ae3a95748a7c760376749011151cb0e09bea4cb4a6be",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db1-1s-uring-a1-rl1.log",
+          "sha256": "c3429a8a48ff169e33610fcd8b8ed6f491363f36d4e42b918803bf5f6f0f7bce",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-epoll-a0-rl0.log",
+          "sha256": "8b382a2b075977fe1be0cf2cf44294228b78e6de8e7a09edc6556fd4d562e6b7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-epoll-a1-rl0.log",
+          "sha256": "5f072f55511c9e30ef6535c7b89f9d132afe51c990b505234c4fcdd598ebec38",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-uring-a0-rl0.log",
+          "sha256": "771eb0cee10e829c1964597df330dafa68d01ef21b1bb318ede05bc94b61bc77",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db1-2s-uring-a1-rl0.log",
+          "sha256": "739bf1c62cc8eb5796cb6cde1aa40046d7b07ef90acd466768acdc416bf78f01",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a0-rl0.log",
+          "sha256": "0be3cf2597af015ad8c426a99e697972ff888665b8dd02c4d5dda1a262cc178f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a0-rl1.log",
+          "sha256": "0ca310a403b3be4ed140d6e0e9edcd378f3b2bf97b97f8012b9978383b9b06db",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a1-rl0.log",
+          "sha256": "2b32b9301116c64c04fb26565aba8ab6bdf487475a3634b34c9c4419593082ca",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-epoll-a1-rl1.log",
+          "sha256": "e08397ced195bcc8297cabe67a6ebc5459a51e091cae409ba48d81f2d23b9ef3",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a0-rl0.log",
+          "sha256": "c55c99fc5dc554aa87b0603b10ae0fe8f85c23cb2e86f368230f0082a59baf67",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a0-rl1.log",
+          "sha256": "fb3c24241f1c4c7aea44e8746cec6e11bf938ad769a96656f21e615d377ed0b5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a1-rl0.log",
+          "sha256": "6a0be25f087784af4da3ae3a95748a7c760376749011151cb0e09bea4cb4a6be",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_notouch/notouch-db16-1s-uring-a1-rl1.log",
+          "sha256": "c3429a8a48ff169e33610fcd8b8ed6f491363f36d4e42b918803bf5f6f0f7bce",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-epoll-a0-rl0.log",
+          "sha256": "8b382a2b075977fe1be0cf2cf44294228b78e6de8e7a09edc6556fd4d562e6b7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-epoll-a1-rl0.log",
+          "sha256": "5f072f55511c9e30ef6535c7b89f9d132afe51c990b505234c4fcdd598ebec38",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-uring-a0-rl0.log",
+          "sha256": "771eb0cee10e829c1964597df330dafa68d01ef21b1bb318ede05bc94b61bc77",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_notouch/notouch-db16-2s-uring-a1-rl0.log",
+          "sha256": "739bf1c62cc8eb5796cb6cde1aa40046d7b07ef90acd466768acdc416bf78f01",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        }
+      ]
+    }
+  },
+  "encoding": {
+    "PRE": {
+      "log": "docs/datafix2/pre-final-directed-gate.log",
+      "archive": "docs/datafix2/pre-final-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 0,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a0-rl0.log",
+          "sha256": "f35f2b1e6cec6a0b34742e9e200044d998f55446a6d7e5ab4c30b398a5d03853",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a0-rl1.log",
+          "sha256": "f1e61fde2b472270fd9ad9ff4ad44a9a4f0d85451ac7d5ce670b68c4510604aa",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a1-rl0.log",
+          "sha256": "8334698c82efdc6f192fbaf1ba5144a2586c2a20e2bae833cd923b03926c3f5b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a1-rl1.log",
+          "sha256": "1529e1e7201fd1cfe2a6fa3cf43817bb95d8058e4d870b069b7a10378b30586e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a0-rl0.log",
+          "sha256": "5fb199e37273bb912001c39da73fa9ff008563fc273a2a3290855066cf893ea4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a0-rl1.log",
+          "sha256": "95722af1336571c3ac05cbef1a8d7d387f7d08343138d3a02e5766738f17a9f6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a1-rl0.log",
+          "sha256": "5d2b63a4f96172ee93ffc80d698b13ed148e891ae257df7e1711a428a6e0645a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a1-rl1.log",
+          "sha256": "54d496efdfc06ed26a2bb50d79f9be6bac452ccba7d4cbb4cb3fe95c999a24e8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-epoll-a0-rl0.log",
+          "sha256": "399fd3999079a30509b618a1e9c6ea8690a611f156d7b1ba1e65e56465ed0f3f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-epoll-a1-rl0.log",
+          "sha256": "33211632771d868c15b3d9f81573fb8cb84255682f7d047bd923565948c5cd09",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-uring-a0-rl0.log",
+          "sha256": "ef2fd2466a6155bdd698d96d77707de73dda1fc63fb212f07c4495e690713627",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-uring-a1-rl0.log",
+          "sha256": "73f4f22ad818f8c7cee398774061c2127cc58f4668d6fc9d96119e785e3848f8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a0-rl0.log",
+          "sha256": "f35f2b1e6cec6a0b34742e9e200044d998f55446a6d7e5ab4c30b398a5d03853",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a0-rl1.log",
+          "sha256": "f1e61fde2b472270fd9ad9ff4ad44a9a4f0d85451ac7d5ce670b68c4510604aa",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a1-rl0.log",
+          "sha256": "8334698c82efdc6f192fbaf1ba5144a2586c2a20e2bae833cd923b03926c3f5b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a1-rl1.log",
+          "sha256": "1529e1e7201fd1cfe2a6fa3cf43817bb95d8058e4d870b069b7a10378b30586e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a0-rl0.log",
+          "sha256": "5fb199e37273bb912001c39da73fa9ff008563fc273a2a3290855066cf893ea4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a0-rl1.log",
+          "sha256": "95722af1336571c3ac05cbef1a8d7d387f7d08343138d3a02e5766738f17a9f6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a1-rl0.log",
+          "sha256": "5d2b63a4f96172ee93ffc80d698b13ed148e891ae257df7e1711a428a6e0645a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a1-rl1.log",
+          "sha256": "54d496efdfc06ed26a2bb50d79f9be6bac452ccba7d4cbb4cb3fe95c999a24e8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-epoll-a0-rl0.log",
+          "sha256": "399fd3999079a30509b618a1e9c6ea8690a611f156d7b1ba1e65e56465ed0f3f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-epoll-a1-rl0.log",
+          "sha256": "33211632771d868c15b3d9f81573fb8cb84255682f7d047bd923565948c5cd09",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-uring-a0-rl0.log",
+          "sha256": "ef2fd2466a6155bdd698d96d77707de73dda1fc63fb212f07c4495e690713627",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-uring-a1-rl0.log",
+          "sha256": "73f4f22ad818f8c7cee398774061c2127cc58f4668d6fc9d96119e785e3848f8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: EXEC observes encoding mutation: [1, b'embstr'] != [1, b'raw']"
+          ]
+        }
+      ]
+    },
+    "POST": {
+      "log": "docs/datafix2/post-final-v2-directed-gate.log",
+      "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 24,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a0-rl0.log",
+          "sha256": "6bec9ae2ddf0b66ea2611bd277113394b4d0d75820dd3ccaa5ebabb20383804a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a0-rl1.log",
+          "sha256": "1b467ff23e987535e38600588408a6fdea09ee24cf4c0a048b47e54ef512fdac",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a1-rl0.log",
+          "sha256": "7fefda3e29f13db44d170aeab72b308b618f24ce10f797dccfb399eb9bc5cf46",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-epoll-a1-rl1.log",
+          "sha256": "6d9a5e5e2c768093cccb5ab841e62ca0d3d9459da58a847342c7c841f591db96",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a0-rl0.log",
+          "sha256": "8d6237c3a59c1ecae59bfcfddf7e6ef487cbdcb8c5e869dfa0f287db961eb24c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a0-rl1.log",
+          "sha256": "2a9a738fc2bfa915005471137285fc26ee7fb04d6f937c1b6fc90d1aa5f969b6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a1-rl0.log",
+          "sha256": "8b9da6b687abde0a298ebc3ce91f3aaa8b20d855d95be325f9b6b6402a3b8dce",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db1-1s-uring-a1-rl1.log",
+          "sha256": "a00f80b6c2bd65ec151c40a08f9e9f510bda3c7693b952daf0f52f33498d46e8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-epoll-a0-rl0.log",
+          "sha256": "07135cf239b9fb7d4f8100ee990c0a486289cae72401e47696ad34c3b40aed44",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-epoll-a1-rl0.log",
+          "sha256": "1ebba5a07c0f76b75fb830f09b88581cc48ed828a15d69bb0f8fae95ffc5ed85",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-uring-a0-rl0.log",
+          "sha256": "e909f4a7e223868f3e13b7976338c374205bff2c9cbe9976ea6f9dd3992d03cf",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db1-2s-uring-a1-rl0.log",
+          "sha256": "a1822cacc54882d410042c8915fbfb84bd0f4f3c32be0d6a5aff1c458d49d489",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a0-rl0.log",
+          "sha256": "6bec9ae2ddf0b66ea2611bd277113394b4d0d75820dd3ccaa5ebabb20383804a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a0-rl1.log",
+          "sha256": "1b467ff23e987535e38600588408a6fdea09ee24cf4c0a048b47e54ef512fdac",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a1-rl0.log",
+          "sha256": "7fefda3e29f13db44d170aeab72b308b618f24ce10f797dccfb399eb9bc5cf46",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-epoll-a1-rl1.log",
+          "sha256": "6d9a5e5e2c768093cccb5ab841e62ca0d3d9459da58a847342c7c841f591db96",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a0-rl0.log",
+          "sha256": "8d6237c3a59c1ecae59bfcfddf7e6ef487cbdcb8c5e869dfa0f287db961eb24c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a0-rl1.log",
+          "sha256": "2a9a738fc2bfa915005471137285fc26ee7fb04d6f937c1b6fc90d1aa5f969b6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a1-rl0.log",
+          "sha256": "8b9da6b687abde0a298ebc3ce91f3aaa8b20d855d95be325f9b6b6402a3b8dce",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_encoding/encoding-db16-1s-uring-a1-rl1.log",
+          "sha256": "a00f80b6c2bd65ec151c40a08f9e9f510bda3c7693b952daf0f52f33498d46e8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-epoll-a0-rl0.log",
+          "sha256": "07135cf239b9fb7d4f8100ee990c0a486289cae72401e47696ad34c3b40aed44",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-epoll-a1-rl0.log",
+          "sha256": "1ebba5a07c0f76b75fb830f09b88581cc48ed828a15d69bb0f8fae95ffc5ed85",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-uring-a0-rl0.log",
+          "sha256": "e909f4a7e223868f3e13b7976338c374205bff2c9cbe9976ea6f9dd3992d03cf",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_encoding/encoding-db16-2s-uring-a1-rl0.log",
+          "sha256": "a1822cacc54882d410042c8915fbfb84bd0f4f3c32be0d6a5aff1c458d49d489",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        }
+      ]
+    }
+  },
+  "subkeys": {
+    "PRE": {
+      "log": "docs/datafix2/pre-final-directed-gate.log",
+      "archive": "docs/datafix2/pre-final-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 0,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a0-rl0.log",
+          "sha256": "fd9c2ce84a050fad30481d76a358ae359916255d4cbda1f83d23b4a088bc54f8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a0-rl1.log",
+          "sha256": "547822a95d9a637451ee9925155399a9ead37826d99e94e3b061db00b6f7dcf4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a1-rl0.log",
+          "sha256": "fa367f66b34b50cc51c86135f9bdecd3b1501c4896fecab5f33adf9995cb9903",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a1-rl1.log",
+          "sha256": "cfde288fc57427318a31c756083ef1c56f23da9de0e2f1524de37d311bcb4dfb",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a0-rl0.log",
+          "sha256": "1ffacb75df1e2b2c064e9278f5c40e2937266a61b3e1dc6b6f158eb879f55d99",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a0-rl1.log",
+          "sha256": "008b1f38420359b8b5f4507a359277b96a9258905e73492ce4e825b17964a949",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a1-rl0.log",
+          "sha256": "5f408f5558ebad843bbf3493b011c7dbd723786fa5bf33ea6d36f0dc933c95f1",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a1-rl1.log",
+          "sha256": "9e599c0e115d809ebc4b8595631c0ce2e31b077b21e99849a473feb13a4decbd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-epoll-a0-rl0.log",
+          "sha256": "64f6980a6c153d139dcf7c88b0652af851d2b262455351fa126cce17d268c7b4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-epoll-a1-rl0.log",
+          "sha256": "3073dfe8a5a892e37b96a4107c19163773f124eef8f9959d4226c6e5adb0ba4c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-uring-a0-rl0.log",
+          "sha256": "6e3dcffe1b4a361210e4dde10e6713b7706a8410785d74a1eb74fbb481b343d6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-uring-a1-rl0.log",
+          "sha256": "f9650c358eb74acfa3eb72490b2144468f5c3280fb632e04db59cb76d204e79e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a0-rl0.log",
+          "sha256": "fd9c2ce84a050fad30481d76a358ae359916255d4cbda1f83d23b4a088bc54f8",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a0-rl1.log",
+          "sha256": "547822a95d9a637451ee9925155399a9ead37826d99e94e3b061db00b6f7dcf4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a1-rl0.log",
+          "sha256": "fa367f66b34b50cc51c86135f9bdecd3b1501c4896fecab5f33adf9995cb9903",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a1-rl1.log",
+          "sha256": "cfde288fc57427318a31c756083ef1c56f23da9de0e2f1524de37d311bcb4dfb",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a0-rl0.log",
+          "sha256": "1ffacb75df1e2b2c064e9278f5c40e2937266a61b3e1dc6b6f158eb879f55d99",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a0-rl1.log",
+          "sha256": "008b1f38420359b8b5f4507a359277b96a9258905e73492ce4e825b17964a949",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a1-rl0.log",
+          "sha256": "5f408f5558ebad843bbf3493b011c7dbd723786fa5bf33ea6d36f0dc933c95f1",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a1-rl1.log",
+          "sha256": "9e599c0e115d809ebc4b8595631c0ce2e31b077b21e99849a473feb13a4decbd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-epoll-a0-rl0.log",
+          "sha256": "64f6980a6c153d139dcf7c88b0652af851d2b262455351fa126cce17d268c7b4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-epoll-a1-rl0.log",
+          "sha256": "3073dfe8a5a892e37b96a4107c19163773f124eef8f9959d4226c6e5adb0ba4c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-uring-a0-rl0.log",
+          "sha256": "6e3dcffe1b4a361210e4dde10e6713b7706a8410785d74a1eb74fbb481b343d6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-uring-a1-rl0.log",
+          "sha256": "f9650c358eb74acfa3eb72490b2144468f5c3280fb632e04db59cb76d204e79e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: INFO stats lacks expired_subkeys"
+          ]
+        }
+      ]
+    },
+    "POST": {
+      "log": "docs/datafix2/post-final-v2-directed-gate.log",
+      "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 24,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a0-rl0.log",
+          "sha256": "71d982e66f1eebc68fdada3bfc6ada7a67982d65b6a2a03e02b4f27a10da58d0",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a0-rl1.log",
+          "sha256": "cbf85575ec4fca5d2cd2bcaea4e89220a354ec8ecfbd5df6a64231f71789a349",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a1-rl0.log",
+          "sha256": "cc0619e6521966e5bff8c49100d4995c68627e2e2d4996d87818566789630a0a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-epoll-a1-rl1.log",
+          "sha256": "dde4b5193dd11d935c26c393327e5eac546891a4e2640aba092bfd517d1b794f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a0-rl0.log",
+          "sha256": "634be26383d83aaf5e3103a5d14bd18f2cc381dfeb4f62964f4b98be9f62e1fc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a0-rl1.log",
+          "sha256": "27fa86c9ef0649c532f6bee24f8e01744148fc802fe763d402e5df335035897c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a1-rl0.log",
+          "sha256": "9ea647f504870b075c153a01afb3f7424341e8773b5d355373e0941fd2812cf3",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-1s-uring-a1-rl1.log",
+          "sha256": "69c6b5e65f051b701518717d1b797473c7943922cf91315a11a9e5e3a4b8db08",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-epoll-a0-rl0.log",
+          "sha256": "9d5080b2e538ac0f751844ae27903a6d5df3948c000dd4575804581397126e4d",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-epoll-a1-rl0.log",
+          "sha256": "844386ed171000b10d142b91c6621995caaaacff94f751a43453c823412d0153",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-uring-a0-rl0.log",
+          "sha256": "15f2ebf667e730b127ec79a6c1009ce74e53faa58c75c4d4882b68284844c83e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db1-2s-uring-a1-rl0.log",
+          "sha256": "21f32bf648f50fdeff9dcdf476dc6e326990731573c68127efff9061a2689ff6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a0-rl0.log",
+          "sha256": "71d982e66f1eebc68fdada3bfc6ada7a67982d65b6a2a03e02b4f27a10da58d0",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a0-rl1.log",
+          "sha256": "cbf85575ec4fca5d2cd2bcaea4e89220a354ec8ecfbd5df6a64231f71789a349",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a1-rl0.log",
+          "sha256": "cc0619e6521966e5bff8c49100d4995c68627e2e2d4996d87818566789630a0a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-epoll-a1-rl1.log",
+          "sha256": "dde4b5193dd11d935c26c393327e5eac546891a4e2640aba092bfd517d1b794f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a0-rl0.log",
+          "sha256": "634be26383d83aaf5e3103a5d14bd18f2cc381dfeb4f62964f4b98be9f62e1fc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a0-rl1.log",
+          "sha256": "27fa86c9ef0649c532f6bee24f8e01744148fc802fe763d402e5df335035897c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a1-rl0.log",
+          "sha256": "9ea647f504870b075c153a01afb3f7424341e8773b5d355373e0941fd2812cf3",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-1s-uring-a1-rl1.log",
+          "sha256": "69c6b5e65f051b701518717d1b797473c7943922cf91315a11a9e5e3a4b8db08",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-epoll-a0-rl0.log",
+          "sha256": "9d5080b2e538ac0f751844ae27903a6d5df3948c000dd4575804581397126e4d",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-epoll-a1-rl0.log",
+          "sha256": "844386ed171000b10d142b91c6621995caaaacff94f751a43453c823412d0153",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-uring-a0-rl0.log",
+          "sha256": "15f2ebf667e730b127ec79a6c1009ce74e53faa58c75c4d4882b68284844c83e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_subkeys/subkeys-db16-2s-uring-a1-rl0.log",
+          "sha256": "21f32bf648f50fdeff9dcdf476dc6e326990731573c68127efff9061a2689ff6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        }
+      ]
+    }
+  },
+  "watch": {
+    "PRE": {
+      "log": "docs/datafix2/pre-final-v2-gate.log",
+      "archive": "docs/datafix2/pre-final-v2-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 0,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a0-rl0.log",
+          "sha256": "0d6b60e5c359577a90c563a75a7352f7f933b49e95f459937be05a9539048947",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 297,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a0-rl1.log",
+          "sha256": "3b494bc65f60cd64f74db1484fb44440ed8437beb93886e1f21e612d9725b1dc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a1-rl0.log",
+          "sha256": "3dc7be7764cf6a37357e77f7af06c463523a393b5d3d93da035d0f439cac3bf3",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a1-rl1.log",
+          "sha256": "54064a90d14e8ee380633a663aa90658b48f65789079590bce0ec0d0b3b900a0",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a0-rl0.log",
+          "sha256": "70187cec25ce7de4693132b0d5cd05f0b3151f10638244028a2d18171482b941",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a0-rl1.log",
+          "sha256": "8b61d408886560371edb7c78f5bae5254fac05eac2eafd7340a6c5193d6f7817",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: eviction window never opened on three fresh cohorts"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a1-rl0.log",
+          "sha256": "af921d3a65bf6ce9b5074bb3f7e6426792b51d9a7a2f10f5cb9db4095ac8af96",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a1-rl1.log",
+          "sha256": "8247e43c7ba7cb1401bcff8b84902e717ef2134ea7c3c7da57f1e9398e20d9b2",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-epoll-a0-rl0.log",
+          "sha256": "6f61e580ccabfbf88b204a2c5ebbeea874f1c545906f3b35755a12d23a493948",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-epoll-a1-rl0.log",
+          "sha256": "9766f4f89cef41f2d9e7ad4333becfbe0e21138d7a07b58946a3292c03329066",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-uring-a0-rl0.log",
+          "sha256": "7db56c519fadac2a82f73a0b46468632e9bcc3b834767bfa39d2fdaa4cc7eb71",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0003', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0003', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0003', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0003', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-uring-a1-rl0.log",
+          "sha256": "5df5a988ce185140b62a9e28c3d027b6f3122120c76d7785239f1519b17cfcfd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a0-rl0.log",
+          "sha256": "c42fa32e869c3199647068890ee189735d276c66d675cd766e371ae0845d7104",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 297,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a0-rl1.log",
+          "sha256": "7193de643dfe54bbf9291502f7333ce9dcf0098be9bb08a68b1a94d84ac3bfc7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a1-rl0.log",
+          "sha256": "0d190ddd370f0bda32cf117d74caa352593c0eb123aa0dd205d8a0eda924d7b5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a1-rl1.log",
+          "sha256": "8f557484d9f497e31d4f972cbee51e1bef88297aaf65a778122a2ed0680a94f4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a0-rl0.log",
+          "sha256": "2f9a8088b0e46f666bc01a6e0ac39bf05d5913b3693de9c0321b10e7a44c4c5b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 297,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a0-rl1.log",
+          "sha256": "9082b3b4c7b1344fa4bcbc03787756cfa7f38b35ef8dc6ec7aed8aeb9719a316",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a1-rl0.log",
+          "sha256": "ecb0f1b6280a5ec0bd3728b3bd3d0e0c2357650f5f5e0856ff4993406f0ff5db",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0001', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a1-rl1.log",
+          "sha256": "2563730f32d271fcc204114cbca3557e33f9e9b8d1de7a152f1e898a14e833f4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-epoll-a0-rl0.log",
+          "sha256": "36acdce72eb1a17c80a87c1ada5e09f9f773558fcb8a8d9be4beae7767554806",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0004', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0004', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0004', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0004', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-epoll-a1-rl0.log",
+          "sha256": "43a22e50341550e16c25295788e5e70a86e8693f37ebe26aff9151bb47eabe57",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-uring-a0-rl0.log",
+          "sha256": "32a378e07d1b54f1c4bb960ab09f8a7b13168d350fbf39ccc48ce3f7e83cb8af",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0002', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0002', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0002', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0002', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-uring-a1-rl0.log",
+          "sha256": "2db528fbc0d801ae67e37a07bb139fbd495677ded98bef713f9ac017b668964f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: physical eviction invalidates WATCH: [b'PONG'] != None"
+          ],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 296,
+          "mismatch_examples": [
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'NX'), True)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", False, 'source')",
+              "oracle": false,
+              "target": true
+            },
+            {
+              "case": "(\"(('SET', 'datafix2:watch:0000', 'b', 'XX'), False)\", True, 'source')",
+              "oracle": false,
+              "target": true
+            }
+          ]
+        }
+      ]
+    },
+    "POST": {
+      "log": "docs/datafix2/post-final-v2-directed-gate.log",
+      "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 24,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a0-rl0.log",
+          "sha256": "81e937e6604035024ab4ecb5afa67d611fa7951e098dc3c649b1c3466703ad87",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a0-rl1.log",
+          "sha256": "95838b6aa32166e940d7dad584169f221dd5d5dde9a000cc1f3f17233c3ec4eb",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a1-rl0.log",
+          "sha256": "05e37cc723476089be6fdefd47084703c10e3bcd28ae2eafe884a51ecbc5d36c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-epoll-a1-rl1.log",
+          "sha256": "c158b2ea8b3715ef41d61ad6d186a060ab9bb3ae9324fd94743f166e2c9ff2ef",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a0-rl0.log",
+          "sha256": "be1394e7e5443eeef85e6fefaef9bb9e06cd4ab0ad90bd1277db12f672bddfaf",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a0-rl1.log",
+          "sha256": "bcae87440db76433c0af5ce61b42866dcd8ccb2ecc95230a446e83f9576df93a",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a1-rl0.log",
+          "sha256": "6075df55e52c89075ed4474b812fc1a8cc3575e9eec76e35ee4e1cc2948a4ae2",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db1-1s-uring-a1-rl1.log",
+          "sha256": "58f160169f5de24badbccc7875b246511432229fdf79ed2c1f5711a3daaa72ac",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-epoll-a0-rl0.log",
+          "sha256": "3010aafa9924f583c603e583a420edc524d12d9e83e6494d8cebdbdb096ad1c4",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-epoll-a1-rl0.log",
+          "sha256": "9bba058968c7122045cdcb5602cf263e47b2f00689c867af731c550bdc3c47fc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-uring-a0-rl0.log",
+          "sha256": "363ecaf82c45b073b4b48bcafb5b4f567ab081be405cf6e0c138f4e198fb44cc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db1-2s-uring-a1-rl0.log",
+          "sha256": "0e3b3372fa0dbd0b3556b37f52d6d3598529dc0ae3f1c070191fcdb298fdb10f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            106,
+            106
+          ],
+          "table_case_counts": [
+            786,
+            786
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a0-rl0.log",
+          "sha256": "d283565b39ff072ad1e026cb2230b82ac4eb6251459eb47d0687138549e052bc",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a0-rl1.log",
+          "sha256": "7fd00e0f1ee05aef9fee785783759522db76dc5343b5ba8853f22887dbcd120e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a1-rl0.log",
+          "sha256": "1aee10d41d95d266f8ec0c6ed85520efaa0cf3ee5b5a087cfdaaf4649310f8ae",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-epoll-a1-rl1.log",
+          "sha256": "c1a6a13a9a376b9075e30258ab29055f2437c26d1a5617fc778266b81cd87cb7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a0-rl0.log",
+          "sha256": "48ff8d421351cbd02dd92c85c2e450fbf53f8340540bfea4848c5dc04cd8335d",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a0-rl1.log",
+          "sha256": "11fb3bb643c32f1c222e2946d174b575da0eb00151e0784d7702a3048ad31000",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a1-rl0.log",
+          "sha256": "6da89a98d19b1eda3fc0068e2660148275968e17cb761231684ded7abbfc42a9",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_watch/watch-db16-1s-uring-a1-rl1.log",
+          "sha256": "b8aec01269adf1dbcb6096b53ceff6cc481ad2c369f63532abd78558723c83e0",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-epoll-a0-rl0.log",
+          "sha256": "f41f1b3de5b49acd060f09f8fcacb0035a62a968489ca4d8f52aa72e861b8d70",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-epoll-a1-rl0.log",
+          "sha256": "bb689829533892be86b5056c352837457d5ff3d805a6fde2152af8e55fb9955b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-uring-a0-rl0.log",
+          "sha256": "648bf6032ea8c8fb89dda532ed1c681bf05b12a97ea5370ba901ddd49b7d9437",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_watch/watch-db16-2s-uring-a1-rl0.log",
+          "sha256": "5c6332a8357f6c1c79cafe5992d3ad433aae5abf4d16c4619f72cee415a023fb",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": [],
+          "command_counts": [
+            108,
+            108
+          ],
+          "table_case_counts": [
+            794,
+            794
+          ],
+          "table_missing_in_target": [],
+          "table_mismatches": 0,
+          "mismatch_examples": []
+        }
+      ]
+    }
+  },
+  "idle": {
+    "PRE": {
+      "log": "docs/datafix2/pre-final-v2-gate.log",
+      "archive": "docs/datafix2/pre-final-v2-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 0,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a0-rl0.log",
+          "sha256": "e84d491b89742a7c20b86abba711930389d32cc3f5c9aa747bf2c853784b1827",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a0-rl1.log",
+          "sha256": "88b2f2038b54d755213682dcd1b12f41dcf8ec29fb21549a47fee7736fdfad3e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a1-rl0.log",
+          "sha256": "2199b6bf5282811ced7cd4875048d2a45cac37c2868c76ffbab538e0ac60447b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a1-rl1.log",
+          "sha256": "bc67705c3ad10d744682a260cd4ccb7d25acba2a829705bd611c33a0650546ac",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a0-rl0.log",
+          "sha256": "69ad864bcf1dd0d2ec683d580c321c324c3cb742c6e1cc70b6402c111c938ccd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a0-rl1.log",
+          "sha256": "82b7552173516cf115537962ad48f48b3881b0ec537d985e18034732d20bd502",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a1-rl0.log",
+          "sha256": "d3fb560dec7efa3139ae4c1af0243e109434c20d1e07289b19b09e3b6c0e4c88",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a1-rl1.log",
+          "sha256": "0faa708e55263890608c49d29f633966501f21052f7372e659afe882d43823ec",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-epoll-a0-rl0.log",
+          "sha256": "c9ea8debab5fb308b6e0179f173fd1e09180ffd8357fb535bdea79bf2d4c303b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-epoll-a1-rl0.log",
+          "sha256": "b48b5dba6f52839c8a18f01c79127fbfa352e0057d65901504c89abc282fa5c5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-uring-a0-rl0.log",
+          "sha256": "bda9706c7d5e7fba2cfda13b43fb54be9ed62bfe69852776cae62ee5648684d6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-uring-a1-rl0.log",
+          "sha256": "125db583f7e0ac3ff0fb2165fc0f0c5c84ae0888dcf4bf9083e3c9a53446df4c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a0-rl0.log",
+          "sha256": "e84d491b89742a7c20b86abba711930389d32cc3f5c9aa747bf2c853784b1827",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a0-rl1.log",
+          "sha256": "88b2f2038b54d755213682dcd1b12f41dcf8ec29fb21549a47fee7736fdfad3e",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a1-rl0.log",
+          "sha256": "2199b6bf5282811ced7cd4875048d2a45cac37c2868c76ffbab538e0ac60447b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a1-rl1.log",
+          "sha256": "bc67705c3ad10d744682a260cd4ccb7d25acba2a829705bd611c33a0650546ac",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a0-rl0.log",
+          "sha256": "69ad864bcf1dd0d2ec683d580c321c324c3cb742c6e1cc70b6402c111c938ccd",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a0-rl1.log",
+          "sha256": "82b7552173516cf115537962ad48f48b3881b0ec537d985e18034732d20bd502",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a1-rl0.log",
+          "sha256": "d3fb560dec7efa3139ae4c1af0243e109434c20d1e07289b19b09e3b6c0e4c88",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a1-rl1.log",
+          "sha256": "0faa708e55263890608c49d29f633966501f21052f7372e659afe882d43823ec",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-epoll-a0-rl0.log",
+          "sha256": "c9ea8debab5fb308b6e0179f173fd1e09180ffd8357fb535bdea79bf2d4c303b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-epoll-a1-rl0.log",
+          "sha256": "b48b5dba6f52839c8a18f01c79127fbfa352e0057d65901504c89abc282fa5c5",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-uring-a0-rl0.log",
+          "sha256": "bda9706c7d5e7fba2cfda13b43fb54be9ed62bfe69852776cae62ee5648684d6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-uring-a1-rl0.log",
+          "sha256": "125db583f7e0ac3ff0fb2165fc0f0c5c84ae0888dcf4bf9083e3c9a53446df4c",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": false,
+          "errors": [
+            "AssertionError: ('one-second idle window never opened', 'idle:k', None)"
+          ]
+        }
+      ]
+    },
+    "POST": {
+      "log": "docs/datafix2/post-final-v2-directed-gate.log",
+      "archive": "docs/datafix2/post-final-v2-directed-gate-evidence.tar.gz",
+      "expected_legs": 24,
+      "present_legs": 24,
+      "missing": [],
+      "oracle_completed": 24,
+      "target_started": 24,
+      "passes": 24,
+      "legs": [
+        {
+          "geometry": "db1-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a0-rl0.log",
+          "sha256": "1f16aedc2a8c401842d4bc01012eff2d0df0238cb48bf891e03755138bbd794f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a0-rl1.log",
+          "sha256": "3432a196c6de80fb92e6144bab8751a95ee866d30d2fb5dbebb859c921d8d3e7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a1-rl0.log",
+          "sha256": "60046d10b937f94e8b87fd2bdfceb1345895544a52c44787f99bed65f635abd6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-epoll-a1-rl1.log",
+          "sha256": "d2c05099ca3f15b0971cc297f573855c9fd15a518013ccf97208f535a6909060",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a0-rl0.log",
+          "sha256": "486f86a4d59915f907ec786b26fed1793e589450f00446992f9a6d8802581769",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a0-rl1.log",
+          "sha256": "2f4fd6b4037eaa10d6e536d40e3846f392518a4c7e6168f0d947fca581aa5a2f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a1-rl0.log",
+          "sha256": "857dc91088ba66322050bafe9c27af6375b67e2aabc256570531cc9ca741569f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db1-1s-uring-a1-rl1.log",
+          "sha256": "4b6552d24e575ace469099d8d47fe4568264284b0f5bfc8afce9d4a9fa3ae4e9",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-epoll-a0-rl0.log",
+          "sha256": "afce630863971460ae3adb2b67331cdb1559132d78531717e47a758c036bc3df",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-epoll-a1-rl0.log",
+          "sha256": "d6a15532443b0f1cbd9a7b3a332cde1011f544a827cc11e5ca2c47c06951e49b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-uring-a0-rl0.log",
+          "sha256": "637a1748b57d5cbad9dfa0abcb0eeef55e6de75bc99a33fe86dacd2e72f05826",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db1-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db1-2s-uring-a1-rl0.log",
+          "sha256": "7d41949fcd94a9e9076621d0f12b0f0a8d6d11a5e6cbf96bdf3690ecf2070249",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a0-rl0.log",
+          "sha256": "1f16aedc2a8c401842d4bc01012eff2d0df0238cb48bf891e03755138bbd794f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a0-rl1.log",
+          "sha256": "3432a196c6de80fb92e6144bab8751a95ee866d30d2fb5dbebb859c921d8d3e7",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a1-rl0.log",
+          "sha256": "60046d10b937f94e8b87fd2bdfceb1345895544a52c44787f99bed65f635abd6",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-epoll-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-epoll-a1-rl1.log",
+          "sha256": "d2c05099ca3f15b0971cc297f573855c9fd15a518013ccf97208f535a6909060",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a0-rl0.log",
+          "sha256": "486f86a4d59915f907ec786b26fed1793e589450f00446992f9a6d8802581769",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a0-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a0-rl1.log",
+          "sha256": "2f4fd6b4037eaa10d6e536d40e3846f392518a4c7e6168f0d947fca581aa5a2f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a1-rl0.log",
+          "sha256": "857dc91088ba66322050bafe9c27af6375b67e2aabc256570531cc9ca741569f",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-1s-uring-a1-rl1",
+          "file": "jobs/datafix2_idle/idle-db16-1s-uring-a1-rl1.log",
+          "sha256": "4b6552d24e575ace469099d8d47fe4568264284b0f5bfc8afce9d4a9fa3ae4e9",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-epoll-a0-rl0.log",
+          "sha256": "afce630863971460ae3adb2b67331cdb1559132d78531717e47a758c036bc3df",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-epoll-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-epoll-a1-rl0.log",
+          "sha256": "d6a15532443b0f1cbd9a7b3a332cde1011f544a827cc11e5ca2c47c06951e49b",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a0-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-uring-a0-rl0.log",
+          "sha256": "637a1748b57d5cbad9dfa0abcb0eeef55e6de75bc99a33fe86dacd2e72f05826",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        },
+        {
+          "geometry": "db16-2s-uring-a1-rl0",
+          "file": "jobs/datafix2_idle/idle-db16-2s-uring-a1-rl0.log",
+          "sha256": "7d41949fcd94a9e9076621d0f12b0f0a8d6d11a5e6cbf96bdf3690ecf2070249",
+          "oracle_completed": true,
+          "target_started": true,
+          "passed": true,
+          "errors": []
+        }
+      ]
+    }
+  }
+}

@@ -322,6 +322,7 @@ public:
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
     void watch_write_committed(Slice key, Client* writer = nullptr,
                                uint64_t writer_generation = 0);
+    void watch_physical_delete(Slice key, bool expired);
     bool watch_all_write_ready(const void* token = nullptr);
     bool watch_flush(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);

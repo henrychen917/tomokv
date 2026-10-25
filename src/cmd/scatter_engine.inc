@@ -2804,7 +2804,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     // stack residence restores MGET/DEL/UNLINK and scan instruction counts.
     std::conditional_t<TOMO_SINGLE_DATABASE, const volatile uint32_t, const uint32_t>
         execution_owner = owner_thread_id;
-    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
+    const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0 || shard.has_watches();
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
     // ONE EXPIRY CUT FOR THE WHOLE FAN-OUT. Before this, each fragment compared deadlines against
@@ -3259,6 +3259,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     }
                     plain_active = true;
                 }
+                const bool watch_present = shard.has_watches() &&
+                    shard.store().find_no_touch(key.hash, op.arg(key.arg));
                 WorkError result;
                 if (state.kind == Kind::Msetnx) {
                     result = store_xstring_selected(
@@ -3303,6 +3305,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         notify, shard, op.arg(key.arg), key.hash, state.apply[pos], suppress_del);
                 }
                 state.status[pos] = static_cast<uint8_t>(result);
+                if (result == WorkError::None && shard.has_watches() &&
+                    (state.kind == Kind::Msetnx || watch_present || state.apply[pos].present))
+                    watch_record_modified(shard, op.arg(key.arg));
                 if (plain_active) shard.store().atomic_finish_plain();
             }
             return ScatterTaskResult::Complete;
@@ -3455,13 +3460,15 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 return ScatterTaskResult::Complete;
             case Kind::Exists:
-            case Kind::Touch:
+            case Kind::Touch: {
+                LookupNoTouch no_touch(shard.store(), state.kind == Kind::Exists);
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     state.status[pos] = find_value(key.hash, op.arg(key.arg), true) != nullptr;
                 }
                 return ScatterTaskResult::Complete;
+            }
             case Kind::RandomKey:
             case Kind::Keys: {
                 if (!group.aux) group.aux = new GroupAux;

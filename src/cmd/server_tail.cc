@@ -467,14 +467,8 @@ void cmd_object_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), 1);
         return;
     }
-    // Both remaining forms read the five-bit eviction metadata, which is only written while
-    // maxmemory is enabled. With eviction off the bits are meaningless, so report a fresh key.
-    if (!shard.store().maxmemory_enabled()) { reply_int(op.sink(), 0); return; }
     if (freq) { reply_int(op.sink(), object->eviction_meta()); return; }
-    // The fixed five-bit clock quantises age to 256 seconds and wraps after 8192 seconds.
-    const uint8_t age = static_cast<uint8_t>(
-        (shard.store().published_lru_clock() - object->eviction_meta()) & 0x1f);
-    reply_int(op.sink(), static_cast<long long>(age) << kLruClockShift);
+    reply_int(op.sink(), shard.store().object_idle_seconds(object));
 }
 
 void cmd_object(Shard& shard, Op& op) { cmd_object_impl<false>(shard, op); }
