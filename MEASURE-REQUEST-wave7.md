@@ -114,3 +114,13 @@ The maintainer runs the null and landing gate with the gate's own instrument, ge
 | PRE/PAD-A control | NOT RUN | NOT RUN | Whether section origin/size movement explains the result |
 
 Record cycles/op, instructions/op and IPC for every cell. Rate and latency decide; do not average away a regressed SET/MSET cell. No throughput, latency or cycle improvement is claimed here.
+
+### Mainline addendum (2026-10-25 23:23)
+
+Codex stopped on a content filter (a false cybersecurity flag) during its final check, an instruction-level look at the prebuilt pointer fix that [its exact comparison](docs/wave7/prebuilt-fix-identity.json) already covers. At that point the only pending selection was the epoll differential. The maintainer committed the partial evidence as-is (8230d7925) and reran that selection with the lane's own runner on CPUs 64-95:
+
+`python3 docs/wave7/run_jobs.py differ-postfix-epoll-2 differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence --engine epoll`
+
+Result on POST `02e1a1a2` (binary unchanged before and after): **6 ok, 0 FAIL**. The six jobs were release, differ-split-0, differ-split-1, differ-armed-0, differ-armed-1 and differ-equivalence. Together with differ-postfix-uring, the both-engine differential on the final executable is complete.
+
+The interrupted `differ-postfix-epoll` receipt has no exit status because it was killed with the codex stop. It stays as historical evidence, which is why `summary.json` still lists it as pending.
