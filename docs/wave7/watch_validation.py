@@ -11,8 +11,9 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
-# Three complete invocations, each with its own eight-server/two-client core
-# allocation and nonoverlapping ports, exactly as the gate's three slots do.
+# Three complete invocations, each with eight server cores. The gate requires
+# at least 16 physical cores per invocation, so run two disjoint allocations
+# together and the third after both finish.
 # These jobs use a frozen external candidate, so their release prerequisites
 # do not build or mutate shared artifacts.
 def positive(item):
@@ -20,11 +21,11 @@ def positive(item):
     return subprocess.run(['python3', 'docs/wave7/run_jobs.py', f'watch-final-{index}',
         'datafix2_watch', '--server-cores', server, '--load-cores', client,
         '--ports', ports]).returncode
-allocations = [(1, '64-71', '88-89', '26800-26829'),
-               (2, '72-79', '90-91', '26830-26859'),
-               (3, '80-87', '92-93', '26860-26889')]
-with concurrent.futures.ThreadPoolExecutor(3) as pool:
+allocations = [(1, '64-71', '72-79', '26800-26829'),
+               (2, '80-87', '88-95', '26830-26859')]
+with concurrent.futures.ThreadPoolExecutor(2) as pool:
     results = list(pool.map(positive, allocations))
+results.append(positive((3, '64-71', '72-79', '26860-26889')))
 assert results == [0, 0, 0], results
 
 source = ROOT / 'build/wave7/selftest-source-final'
