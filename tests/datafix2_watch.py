@@ -220,14 +220,28 @@ def probe(c, _case):
         c.cmd("CONFIG","SET","maxmemory",0);c.cmd("FLUSHALL")
         keys=["datafix2:evicted:"+str(attempt)+":"+str(i) for i in range(128)]
         seed_replies=[c.cmd("SET",key,"v"*1000) for key in keys]
+        seeded=c.cmd("EXISTS",*keys)
+        if seeded != len(keys):
+            print("EVICTION fresh state retry",json.dumps(dict(attempt=attempt,
+                seeded=seeded, replies=wire(seed_replies))),flush=True)
+            continue
         w=Conn(c.host,c.port,buffering=0)
         try:
             w.cmd("WATCH",*keys)
             c.cmd("CONFIG","SET","maxmemory-policy","allkeys-lru")
             c.cmd("CONFIG","SET","maxmemory",8192)
-            pressure=c.cmd("SET",K,"pressure")
-            remaining=c.cmd("EXISTS",*keys)
-            print("EVICTION",json.dumps(dict(attempt=attempt, remaining=remaining,
+            # FlatStore's sparse-table victim scan is deliberately bounded per
+            # command (16 random probes plus an advancing 16-slot backstop per
+            # sample). One refused SET need not have found a victim. Advance
+            # that scan with bounded writes to an UNWATCHED key; only observed
+            # removal from the fresh watched cohort can arm the EXEC assertion.
+            assert K not in keys
+            for pulse in range(32):
+                pressure=c.cmd("SET",K,"pressure")
+                remaining=c.cmd("EXISTS",*keys)
+                if remaining < len(keys): break
+            print("EVICTION",json.dumps(dict(attempt=attempt, pulses=pulse+1,
+                remaining=remaining, seeded=seeded,
                 seed_errors=[wire(reply) for reply in seed_replies if reply != b"OK"],
                 pressure_reply=wire(pressure), stats=info(c,"stats"),
                 memory=info(c,"memory"))),flush=True)

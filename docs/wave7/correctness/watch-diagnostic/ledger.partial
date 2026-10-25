@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix2_watch serverfix_config; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	110.800000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.960000	serverfix SV4.6 CONFIG validation matrix
