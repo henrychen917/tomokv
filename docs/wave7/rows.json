@@ -1,0 +1,105 @@
+{
+  "headline": [
+    768,
+    785
+  ],
+  "deltas": {
+    "rlfix3": 16,
+    "ctlfix": 0,
+    "blockfix": 3,
+    "persistfix2": 4,
+    "atomfix5": 2,
+    "datafix2": 5
+  },
+  "DQ": 30,
+  "DF": 30,
+  "required": [
+    798,
+    815
+  ],
+  "quick_exit_line": 5609,
+  "collections": [
+    {
+      "line": 5370,
+      "text": "collect_job atomfix5_watch",
+      "before_quick": true
+    },
+    {
+      "line": 5372,
+      "text": "collect_job atomfix5_accounting",
+      "before_quick": true
+    },
+    {
+      "line": 5448,
+      "text": "collect_job blockfix_registry",
+      "before_quick": true
+    },
+    {
+      "line": 5449,
+      "text": "collect_job blockfix_mkstream",
+      "before_quick": true
+    },
+    {
+      "line": 5450,
+      "text": "collect_job blockfix_structure",
+      "before_quick": true
+    },
+    {
+      "line": 5457,
+      "text": "collect_job datafix2_notouch",
+      "before_quick": true
+    },
+    {
+      "line": 5458,
+      "text": "collect_job datafix2_encoding",
+      "before_quick": true
+    },
+    {
+      "line": 5459,
+      "text": "collect_job datafix2_subkeys",
+      "before_quick": true
+    },
+    {
+      "line": 5460,
+      "text": "collect_job datafix2_watch",
+      "before_quick": true
+    },
+    {
+      "line": 5461,
+      "text": "collect_job datafix2_idle",
+      "before_quick": true
+    },
+    {
+      "line": 5489,
+      "text": "collect_job rlfix3_zc",
+      "before_quick": true
+    },
+    {
+      "line": 5490,
+      "text": "collect_job rlfix3_info",
+      "before_quick": true
+    },
+    {
+      "line": 5529,
+      "text": "collect_job persistfix2_lastsave",
+      "before_quick": true
+    },
+    {
+      "line": 5530,
+      "text": "collect_job persistfix2_shutdown",
+      "before_quick": true
+    },
+    {
+      "line": 5531,
+      "text": "collect_job persistfix2_commands",
+      "before_quick": true
+    },
+    {
+      "line": 5532,
+      "text": "collect_job persistfix2_errors",
+      "before_quick": true
+    }
+  ],
+  "fixture": 815,
+  "expect_unchanged": true
+}
