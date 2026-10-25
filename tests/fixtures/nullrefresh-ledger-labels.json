@@ -453,6 +453,7 @@
     "scriptfix functions (2s)",
     "scriptfix replies (2s)",
     "scriptfix dump (2s)",
+    "lualibs CC4.7 vs Redis 7.4",
     "expire-index growth bound",
     "borrow-registry growth bound",
     "cross-shard dispatch scaling",
@@ -1089,5 +1090,5 @@
     ],
     "purpose": "Lost-publication repair: the deterministic serverless publication unit (build/publishfix-unit) in job_atomic_units, collected before the quick-tier exit, DQ=DF=+1. Fails on PRE with safe=1 drawn=2. Source inventory only; EXPECT stays maintainer-owned."
   },
-  "note": "; serverfix adds eight aggregate rows before quick exit (+8/+8); each covers both modes and engines with its oracle; source inventory only, EXPECT remains maintainer-owned"
+  "note": "; serverfix adds eight aggregate rows before quick exit (+8/+8); each covers both modes and engines with its oracle; source inventory only, EXPECT remains maintainer-owned; lualibs adds one CC4.7 aggregate row before the quick exit (+1/+1), EXPECT remains maintainer-owned"
 }

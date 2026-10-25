@@ -1132,7 +1132,7 @@ plan_jobs(){
               iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 compat3 dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus acl_recheck aclfix sort script_bounds scriptfix lualibs
               efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
@@ -3003,6 +3003,14 @@ for XS_MODE in limit window; do
              "see $TMPDIR/gate-xscript-$XS_MODE.txt"
   stop
 done
+}
+
+# CC4.7: one row, all compat3 mode/engine/database/atomic/read-local legs.
+# Collected before the quick-tier exit: DQ=DF=+1; EXPECT is maintainer-owned.
+job_lualibs(){
+  row_begin "lualibs CC4.7 vs Redis 7.4"
+  compat3_case lualibs all && ok "lualibs CC4.7 vs Redis 7.4" \
+      || bad "lualibs CC4.7 vs Redis 7.4" "see $TMPDIR/all-*.log"
 }
 
 job_scriptfix(){
@@ -5243,6 +5251,7 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 
 collect_job script_bounds
 collect_job scriptfix
+collect_job lualibs
 
 collect_job efficiency
 
