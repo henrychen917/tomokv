@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1; NOT A RECEIPT

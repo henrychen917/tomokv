@@ -215,6 +215,15 @@
       "note": ""
     },
     {
+      "file": "tests/r7shadow_noop.py",
+      "jobs": [
+        "job_reorder_engagement",
+        "job_reorder_identity"
+      ],
+      "standalone_audit": false,
+      "note": ""
+    },
+    {
       "file": "tests/rlfix3_info.py",
       "jobs": [
         "job_rlfix3_info"

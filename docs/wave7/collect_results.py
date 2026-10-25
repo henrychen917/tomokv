@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[2]
 os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
 OUT = ROOT / 'docs/wave7/correctness'
 POST = hashlib.sha256((ROOT / 'build/tomokv').read_bytes()).hexdigest()
-TEXT = {'.json', '.jsonl', '.log', '.txt', '.tsv', '.sh', '.diff', '.out', '.trace'}
+TEXT = {'.json', '.jsonl', '.log', '.txt', '.tsv', '.sh', '.diff', '.out', '.trace',
+        '.cmd', '.conf', '.stdout', '.stderr', '.manifest', '.pid'}
 NAMES = {'ledger', 'done', 'timings', 'stdout', 'stderr', 'output'}
 selections, pending, jobs = [], [], defaultdict(list)
 for receipt in sorted(OUT.glob('*/receipt.json')):
@@ -42,7 +43,8 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
     run = Path(value['run_dir']) if value.get('run_dir') else None
     archive = receipt.parent / 'gate-evidence.tar.gz'
     manifest = receipt.parent / 'archive.json'
-    if not run or archive.exists():
+    if not run or (archive.exists() and manifest.exists()
+                   and json.loads(manifest.read_text()).get('format') == 2):
         continue
     included, excluded = [], []
     with archive.open('wb') as raw, gzip.GzipFile(fileobj=raw, mode='wb', mtime=0, filename='') as gz:
@@ -52,7 +54,9 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
                     continue
                 relative = str(path.relative_to(run))
                 item = dict(path=relative, bytes=path.stat().st_size)
-                if path.suffix not in TEXT and path.name not in NAMES:
+                if (path.suffix not in TEXT and path.name not in NAMES
+                        and not path.name.startswith('gate-srv-')
+                        and not path.name.startswith('gate-srv.')):
                     excluded.append(item)
                     continue
                 data = path.read_bytes()
@@ -62,7 +66,7 @@ for receipt in sorted(OUT.glob('*/receipt.json')):
                 info.size = len(data)
                 info.mode = 0o644
                 tar.addfile(info, io.BytesIO(data))
-    manifest.write_text(json.dumps(dict(run_dir=str(run),
+    manifest.write_text(json.dumps(dict(format=2, run_dir=str(run),
         archive_sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),
         included=included, excluded_runtime_data=excluded), indent=2) + '\n')
 

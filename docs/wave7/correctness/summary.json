@@ -1,9 +1,74 @@
 {
   "post_sha256": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
   "pending": [
-    "differ-epoll"
+    "txnorder-round-3"
   ],
   "selections": [
+    {
+      "name": "differ-epoll",
+      "exit": 0,
+      "current_post": true,
+      "unchanged_binary": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "epoll",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/differ-epoll/ledger"
+      },
+      "jobs": {
+        "differ-armed-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t618.760000\tRedis 7.4 differential part (armed fused, atomic 0)"
+          ]
+        },
+        "differ-armed-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t524.030000\tRedis 7.4 differential part (armed fused, atomic 1)"
+          ]
+        },
+        "differ-equivalence": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t21.380000\tmode equivalence part (all execution modes and knobs)"
+          ]
+        },
+        "differ-split-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t595.470000\tRedis 7.4 differential part (split, atomic 0)"
+          ]
+        },
+        "differ-split-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t610.060000\tRedis 7.4 differential part (split, atomic 1)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
     {
       "name": "differ-uring",
       "exit": 0,
@@ -172,10 +237,86 @@
         "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/merged-sweep/ledger"
       },
       "jobs": {}
+    },
+    {
+      "name": "txnorder-round-2",
+      "exit": 0,
+      "current_post": true,
+      "unchanged_binary": true,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/txnorder-round-2/ledger"
+      },
+      "jobs": {
+        "production_units": {
+          "done": "0\t0\t0",
+          "rows": []
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        },
+        "txnorder-fused-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t49.930000\ttxnorder battery (fused, atomic 0)"
+          ]
+        },
+        "txnorder-fused-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t48.970000\ttxnorder battery (fused, atomic 1)"
+          ]
+        },
+        "txnorder-split-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t48.660000\ttxnorder battery (split, atomic 0)"
+          ]
+        },
+        "txnorder-split-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t48.570000\ttxnorder battery (split, atomic 1)"
+          ]
+        }
+      }
     }
   ],
   "jobs": {
     "differ-armed-0": [
+      {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (armed fused, atomic 0)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
       {
         "selection": "differ-uring",
         "current_post": true,
@@ -192,6 +333,19 @@
     ],
     "differ-armed-1": [
       {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (armed fused, atomic 1)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": true,
         "exit": "0",
@@ -206,6 +360,19 @@
       }
     ],
     "differ-equivalence": [
+      {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "mode equivalence part (all execution modes and knobs)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
       {
         "selection": "differ-uring",
         "current_post": true,
@@ -222,6 +389,19 @@
     ],
     "differ-split-0": [
       {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (split, atomic 0)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": true,
         "exit": "0",
@@ -236,6 +416,19 @@
       }
     ],
     "differ-split-1": [
+      {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (split, atomic 1)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
       {
         "selection": "differ-uring",
         "current_post": true,
@@ -252,6 +445,19 @@
     ],
     "release": [
       {
+        "selection": "differ-epoll",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "epoll",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": true,
         "exit": "0",
@@ -267,6 +473,19 @@
       {
         "selection": "initial-interactions",
         "current_post": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
         "exit": "0",
         "rows": {
           "ok": 1
@@ -347,6 +566,15 @@
         "labels": [],
         "engine": "uring",
         "fused": "0"
+      },
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
+        "exit": "0",
+        "rows": {},
+        "labels": [],
+        "engine": "uring",
+        "fused": "0"
       }
     ],
     "rlfix3_info": [
@@ -367,6 +595,66 @@
           "INFO selective collection (2s, epoll, read-local 1)",
           "INFO selective collection (2s, uring, read-local 0)",
           "INFO selective collection (2s, uring, read-local 1)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      }
+    ],
+    "txnorder-fused-0": [
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "txnorder battery (fused, atomic 0)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      }
+    ],
+    "txnorder-fused-1": [
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "txnorder battery (fused, atomic 1)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      }
+    ],
+    "txnorder-split-0": [
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "txnorder battery (split, atomic 0)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      }
+    ],
+    "txnorder-split-1": [
+      {
+        "selection": "txnorder-round-2",
+        "current_post": true,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "txnorder battery (split, atomic 1)"
         ],
         "engine": "uring",
         "fused": "0"

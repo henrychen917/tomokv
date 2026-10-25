@@ -231,5 +231,34 @@
       "uring"
     ],
     "exit": 0
+  },
+  {
+    "name": "differ-epoll",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "differ-epoll",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "--engine",
+      "epoll"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "txnorder-round-2",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "txnorder-round-2",
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "exit": 0
   }
 ]
