@@ -17,9 +17,10 @@ os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64, 96)))
 out = ROOT / 'docs/wave7'
 summary = json.loads((out / 'correctness/summary.json').read_text())
 assert not summary['pending'], summary['pending']
-assert any(r['name'] == 'merged-sweep-final' for r in summary['selections'])
+assert any(r['name'] == 'merged-sweep-postfix' for r in summary['selections'])
 keep = {ROOT / 'build/tomokv', ROOT / 'build/tomokv-wave7-PAD-A',
-        ROOT / 'build/wave7/pre-source/build/tomokv'}
+        ROOT / 'build/wave7/pre-source/build/tomokv',
+        ROOT / 'build/tomokv-wave7-before-prebuiltfix'}
 keep.update((ROOT / 'build/wave7/commands').glob('*/probe'))
 inodes = {(p.stat().st_dev, p.stat().st_ino) for p in keep}
 def hashes():

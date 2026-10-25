@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Rerun the whole harness after the one-slot fixture repair, on a quiet allocation."""
 import difflib
+import argparse
 import hashlib
 import json
 import os
@@ -17,12 +18,16 @@ out = ROOT / 'docs/wave7/correctness'
 env = dict(os.environ, LANG='en_US.UTF-8', GATE_TEST_PORT='26897')
 env.pop('LC_ALL', None)
 env.pop('NETFIX_TLS_ORACLE', None)
+p = argparse.ArgumentParser()
+p.add_argument('--harness-only', action='store_true')
+a = p.parse_args()
 # Diagnose the observed limited-file abort first, while this allocation is
 # quiet. Each call retains the complete target/oracle matrix of the owning job.
-for name, jobs in [('watch-diagnostic', ['datafix2_watch', 'serverfix_config']),
+diagnostics = [('watch-diagnostic', ['datafix2_watch', 'serverfix_config']),
         ('persistence-final', ['config_unit', 'persistfix2_lastsave',
         'persistfix2_shutdown', 'persistfix2_commands', 'persistfix2_errors']),
-        *[(f'persistence-errors-repeat-{index}', ['persistfix2_errors']) for index in range(1, 4)]]:
+        *[(f'persistence-errors-repeat-{index}', ['persistfix2_errors']) for index in range(1, 4)]]
+for name, jobs in ([] if a.harness_only else diagnostics):
     check = subprocess.run(['python3', 'docs/wave7/run_jobs.py', name, *jobs])
     if check.returncode:
         raise SystemExit(check.returncode)
