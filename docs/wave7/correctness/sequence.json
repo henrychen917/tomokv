@@ -273,5 +273,31 @@
       "txnorder-split-1"
     ],
     "exit": 0
+  },
+  {
+    "name": "legacy-fused",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "legacy-fused",
+      "release_batteries",
+      "notify",
+      "sort",
+      "script_bounds",
+      "dump_restore",
+      "auth",
+      "replyoff",
+      "zc",
+      "aof-epoll",
+      "aof-uring",
+      "snapshot-epoll",
+      "snapshot-uring",
+      "aof_frame",
+      "debug-0",
+      "debug-1",
+      "asan_batteries",
+      "--fused"
+    ],
+    "exit": 0
   }
 ]

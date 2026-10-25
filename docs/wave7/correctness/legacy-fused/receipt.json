@@ -45,5 +45,320 @@
     "GATE_TXN_ATOMIC": "1",
     "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/legacy-fused/ledger"
   },
-  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls"
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "exit": 0,
+  "end": 1792900160.274264,
+  "binary_sha256_after": "177c93bea5aaa797a847de9eeffb9f8eb1f995f5eb9194c2b34ab6565af288ee",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.ohl1o1",
+  "jobs": {
+    "aof-epoll": {
+      "done": "0\t54\t0",
+      "rows": [
+        "ok\t0.080000\tconfiguration reduction + actual geometry (epoll, atomic 0)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+        "ok\t0.050000\tAOF writer fired (records=N)",
+        "ok\t0.050000\tAOF process-restart script replay (epoll, atomic 0)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.000000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 1)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+        "ok\t0.050000\tAOF writer fired (records=N)",
+        "ok\t0.040000\tAOF process-restart script replay (epoll, atomic 1)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.050000\tAOF directed group interruption fired",
+        "ok\t0.050000\tAOF atomic-group recovery + writer order",
+        "ok\t0.020000\tAOF group shutdown invariants",
+        "ok\t0.030000\tAOF always sync + reply gate fired",
+        "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+        "ok\t0.890000\tAOF in-window kill recovery (2s, epoll)",
+        "ok\t2.850000\tAOF in-window term recovery (2s, epoll)",
+        "ok\t0.880000\tAOF in-window kill recovery (1s, epoll)",
+        "ok\t2.580000\tAOF in-window term recovery (1s, epoll)",
+        "ok\t1.790000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)",
+        "ok\t1.860000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)",
+        "ok\t1.970000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
+        "ok\t2.050000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+        "ok\t1.290000\tAOF everysec write gate + idle sync fired",
+        "ok\t0.030000\tAOF everysec durability window + tail warning",
+        "ok\t0.030000\tAOF no-sync bypassed sync + reply gate",
+        "ok\t5.340000\tAOF rewrite atomic/stage/corruption matrix",
+        "ok\t5.520000\tAOF rewrite triggers + observability matrix",
+        "ok\t0.010000\tAOF-off negative-control seed landed",
+        "ok\t0.010000\tAOF-off negative control lost data",
+        "ok\t0.420000\taoffix2 snapshot (1s, epoll)",
+        "ok\t1.520000\taoffix2 filename (1s, epoll)",
+        "ok\t0.180000\taoffix2 error (1s, epoll)",
+        "ok\t0.550000\taoffix2 tickets (1s, epoll)",
+        "ok\t0.530000\taoffix2 exec_tickets (1s, epoll)",
+        "ok\t0.540000\taoffix2 resurrection (1s, epoll)",
+        "ok\t0.420000\taoffix2 rewrite_fail2 (1s, epoll)",
+        "ok\t0.310000\taoffix2 manifest_missing (1s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (1s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (1s, epoll)",
+        "ok\t0.420000\taoffix2 snapshot (2s, epoll)",
+        "ok\t1.480000\taoffix2 filename (2s, epoll)",
+        "ok\t0.180000\taoffix2 error (2s, epoll)",
+        "ok\t0.540000\taoffix2 tickets (2s, epoll)",
+        "ok\t0.550000\taoffix2 exec_tickets (2s, epoll)",
+        "ok\t0.540000\taoffix2 resurrection (2s, epoll)",
+        "ok\t0.420000\taoffix2 rewrite_fail2 (2s, epoll)",
+        "ok\t0.300000\taoffix2 manifest_missing (2s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (2s, epoll)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (2s, epoll)",
+        "ok\t0.340000\taoffix2 large (1s, epoll)",
+        "ok\t0.200000\taoffix2 large_placed (1s, epoll)"
+      ]
+    },
+    "aof-uring": {
+      "done": "0\t54\t0",
+      "rows": [
+        "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 0)",
+        "ok\t0.440000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+        "ok\t0.040000\tAOF writer fired (records=N)",
+        "ok\t0.050000\tAOF process-restart script replay (uring, atomic 0)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 1)",
+        "ok\t0.420000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+        "ok\t0.050000\tAOF writer fired (records=N)",
+        "ok\t0.050000\tAOF process-restart script replay (uring, atomic 1)",
+        "ok\t0.040000\tAOF native snapshot streams byte-exact",
+        "ok\t0.010000\tAOF replay fired (records=N skipped=N)",
+        "ok\t0.050000\tAOF directed group interruption fired",
+        "ok\t0.050000\tAOF atomic-group recovery + writer order",
+        "ok\t0.020000\tAOF group shutdown invariants",
+        "ok\t0.030000\tAOF always sync + reply gate fired",
+        "ok\t0.030000\tAOF always recovery after quiescent SIGKILL",
+        "ok\t0.880000\tAOF in-window kill recovery (2s, uring)",
+        "ok\t3.170000\tAOF in-window term recovery (2s, uring)",
+        "ok\t0.990000\tAOF in-window kill recovery (1s, uring)",
+        "ok\t2.830000\tAOF in-window term recovery (1s, uring)",
+        "ok\t1.860000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)",
+        "ok\t1.910000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)",
+        "ok\t1.880000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)",
+        "ok\t2.010000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)",
+        "ok\t1.290000\tAOF everysec write gate + idle sync fired",
+        "ok\t0.040000\tAOF everysec durability window + tail warning",
+        "ok\t0.030000\tAOF no-sync bypassed sync + reply gate",
+        "ok\t5.320000\tAOF rewrite atomic/stage/corruption matrix",
+        "ok\t5.800000\tAOF rewrite triggers + observability matrix",
+        "ok\t0.010000\tAOF-off negative-control seed landed",
+        "ok\t0.000000\tAOF-off negative control lost data",
+        "ok\t0.420000\taoffix2 snapshot (1s, uring)",
+        "ok\t1.520000\taoffix2 filename (1s, uring)",
+        "ok\t0.170000\taoffix2 error (1s, uring)",
+        "ok\t0.540000\taoffix2 tickets (1s, uring)",
+        "ok\t0.550000\taoffix2 exec_tickets (1s, uring)",
+        "ok\t0.530000\taoffix2 resurrection (1s, uring)",
+        "ok\t0.420000\taoffix2 rewrite_fail2 (1s, uring)",
+        "ok\t0.310000\taoffix2 manifest_missing (1s, uring)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (1s, uring)",
+        "ok\t0.270000\taoffix2 off-writer acknowledgement always (1s, uring)",
+        "ok\t0.430000\taoffix2 snapshot (2s, uring)",
+        "ok\t1.460000\taoffix2 filename (2s, uring)",
+        "ok\t0.170000\taoffix2 error (2s, uring)",
+        "ok\t0.540000\taoffix2 tickets (2s, uring)",
+        "ok\t0.540000\taoffix2 exec_tickets (2s, uring)",
+        "ok\t0.540000\taoffix2 resurrection (2s, uring)",
+        "ok\t0.410000\taoffix2 rewrite_fail2 (2s, uring)",
+        "ok\t0.300000\taoffix2 manifest_missing (2s, uring)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement everysec (2s, uring)",
+        "ok\t0.280000\taoffix2 off-writer acknowledgement always (2s, uring)",
+        "ok\t0.340000\taoffix2 large (1s, uring)",
+        "ok\t0.200000\taoffix2 large_placed (1s, uring)"
+      ]
+    },
+    "aof_frame": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t0.330000\tAOF control frame never inside a large record (atomic 0)",
+        "ok\t0.320000\tAOF control frame never inside a large record (atomic 1)"
+      ]
+    },
+    "asan": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t87.840000\tASAN build"
+      ]
+    },
+    "asan_batteries": {
+      "done": "0\t5\t0",
+      "rows": [
+        "ok\t6.940000\ttorture under ASAN",
+        "ok\t1.040000\tRYOW under ASAN",
+        "ok\t25.080000\tatomic torn/window under ASAN",
+        "ok\t4.070000\tatomic RYOW under ASAN",
+        "ok\t0.020000\tASAN clean"
+      ]
+    },
+    "auth": {
+      "done": "0\t7\t0",
+      "rows": [
+        "ok\t0.010000\treject bad protected-mode",
+        "ok\t0.010000\treject bad enable-debug-command",
+        "ok\t0.150000\tAUTH/HELLO/protected state machine",
+        "ok\t5.550000\tACL battery (atomic off)",
+        "ok\t5.560000\tACL battery (atomic on)",
+        "ok\t2.450000\tDEBUG toggle/reload battery",
+        "ok\t0.130000\ttyped snapshot round-trip incl stream"
+      ]
+    },
+    "debug-0": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t10.170000\tplain-write lost updates (atomic 0)",
+        "ok\t0.170000\tlbsignals battery (atomic 0)",
+        "ok\t1.490000\tslowlog battery (atomic 0)",
+        "ok\t0.040000\tatomfix battery (atomic 0)",
+        "ok\t0.040000\tscriptatomic battery (atomic 0)",
+        "ok\t14.460000\texecatomic battery (atomic 0)",
+        "ok\t11.870000\texeciso battery (atomic 0)",
+        "ok\t0.460000\texecfix battery (atomic 0)",
+        "ok\t0.120000\tmultires battery (atomic 0)",
+        "ok\t0.710000\tmultirace battery (atomic 0)",
+        "ok\t30.530000\tsession_monotonic battery (atomic 0)",
+        "ok\t0.360000\txacct battery (atomic 0)",
+        "ok\t0.410000\txmove battery (atomic 0)",
+        "ok\t1.870000\txscript battery (atomic 0)",
+        "ok\t2.280000\ttxn_nx battery (atomic 0)",
+        "ok\t8.300000\ttxniso battery (atomic 0)"
+      ]
+    },
+    "debug-1": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t7.160000\tplain-write lost updates (atomic 1)",
+        "ok\t0.160000\tlbsignals battery (atomic 1)",
+        "ok\t1.490000\tslowlog battery (atomic 1)",
+        "ok\t0.050000\tatomfix battery (atomic 1)",
+        "ok\t0.050000\tscriptatomic battery (atomic 1)",
+        "ok\t14.470000\texecatomic battery (atomic 1)",
+        "ok\t11.870000\texeciso battery (atomic 1)",
+        "ok\t0.450000\texecfix battery (atomic 1)",
+        "ok\t0.120000\tmultires battery (atomic 1)",
+        "ok\t0.710000\tmultirace battery (atomic 1)",
+        "ok\t30.550000\tsession_monotonic battery (atomic 1)",
+        "ok\t0.360000\txacct battery (atomic 1)",
+        "ok\t0.410000\txmove battery (atomic 1)",
+        "ok\t1.870000\txscript battery (atomic 1)",
+        "ok\t2.650000\ttxn_nx battery (atomic 1)",
+        "ok\t8.760000\ttxniso battery (atomic 1)"
+      ]
+    },
+    "dump_restore": {
+      "done": "0\t3\t0",
+      "rows": [
+        "ok\t0.060000\tDUMP/RESTORE prepare + native SAVE",
+        "ok\t0.050000\tDUMP/RESTORE cross-restart round-trip",
+        "ok\t0.020000\tDUMP/RESTORE restart shutdown invariants"
+      ]
+    },
+    "notify": {
+      "done": "0\t6\t0",
+      "rows": [
+        "ok\t2.070000\tMULTI feature battery",
+        "ok\t1.580000\tblocking feature battery",
+        "ok\t0.900000\tpubsub feature battery",
+        "ok\t0.020000\tLua feature battery",
+        "ok\t46.220000\tkeyspace notification battery (atomic 0/1)",
+        "ok\t0.020000\tfeature battery shutdown invariants"
+      ]
+    },
+    "production_units": {
+      "done": "0\t0\t0",
+      "rows": []
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    },
+    "release_batteries": {
+      "done": "0\t8\t0",
+      "rows": [
+        "ok\t6.720000\ttorture battery",
+        "ok\t1.120000\tRYOW battery",
+        "ok\t0.030000\tACL category runtime table",
+        "ok\t0.030000\tACL LOAD/SAVE no-file errors",
+        "ok\t1.030000\tidle loop ceiling (LBSIGNALS, 1s)",
+        "ok\t0.050000\tshutdown invariants (nothing stuck)",
+        "ok\t0.020000\tdirect-reply fired (direct=N)",
+        "ok\t0.020000\tdispatched==executed (N)"
+      ]
+    },
+    "replyoff": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t1.230000\tCLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+        "ok\t1.240000\tCLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+      ]
+    },
+    "script_bounds": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t0.050000\txscript limit control",
+        "ok\t0.540000\txscript window control"
+      ]
+    },
+    "snapshot-epoll": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t0.650000\tsnapshot concurrent cut (epoll)",
+        "ok\t0.220000\tsnapshot cut reload (epoll)",
+        "ok\t2.660000\tsnapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+        "ok\t5.180000\tsnapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+        "ok\t0.050000\ttyped snapshot save (epoll)",
+        "ok\t0.040000\ttyped snapshot reload (epoll)",
+        "ok\t0.160000\ttyped snapshot preimage race (epoll)",
+        "ok\t0.060000\ttyped snapshot race reload (epoll)",
+        "ok\t0.810000\tshutdown keeps acknowledged writes (1s, sigterm, epoll)",
+        "ok\t0.810000\tshutdown keeps acknowledged writes (1s, command, epoll)",
+        "ok\t0.960000\tshutdown cancels BGSAVE capture (1s, atomic 0, epoll)",
+        "ok\t0.950000\tshutdown cancels BGSAVE capture (1s, atomic 1, epoll)",
+        "ok\t0.830000\tshutdown keeps acknowledged writes (2s, sigterm, epoll)",
+        "ok\t0.820000\tshutdown keeps acknowledged writes (2s, command, epoll)",
+        "ok\t1.030000\tshutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
+        "ok\t1.060000\tshutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+      ]
+    },
+    "snapshot-uring": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t0.640000\tsnapshot concurrent cut (uring)",
+        "ok\t0.200000\tsnapshot cut reload (uring)",
+        "ok\t2.690000\tsnapshot never tears a cross-shard MSET group (uring, atomic 1)",
+        "ok\t5.230000\tsnapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+        "ok\t0.050000\ttyped snapshot save (uring)",
+        "ok\t0.050000\ttyped snapshot reload (uring)",
+        "ok\t0.160000\ttyped snapshot preimage race (uring)",
+        "ok\t0.060000\ttyped snapshot race reload (uring)",
+        "ok\t0.810000\tshutdown keeps acknowledged writes (1s, sigterm, uring)",
+        "ok\t0.820000\tshutdown keeps acknowledged writes (1s, command, uring)",
+        "ok\t0.970000\tshutdown cancels BGSAVE capture (1s, atomic 0, uring)",
+        "ok\t0.960000\tshutdown cancels BGSAVE capture (1s, atomic 1, uring)",
+        "ok\t0.820000\tshutdown keeps acknowledged writes (2s, sigterm, uring)",
+        "ok\t0.820000\tshutdown keeps acknowledged writes (2s, command, uring)",
+        "ok\t1.070000\tshutdown cancels BGSAVE capture (2s, atomic 0, uring)",
+        "ok\t1.050000\tshutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+      ]
+    },
+    "sort": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t0.130000\tcross-owner SORT battery (atomic 0)",
+        "ok\t0.130000\tcross-owner SORT battery (atomic 1)"
+      ]
+    },
+    "zc": {
+      "done": "0\t4\t0",
+      "rows": [
+        "ok\t1.370000\tzc borrow battery",
+        "ok\t0.020000\tzc fired (zc_sends=N)",
+        "ok\t1.400000\tzc borrow battery under ASAN",
+        "ok\t0.030000\tzc ASAN clean"
+      ]
+    }
+  }
 }
