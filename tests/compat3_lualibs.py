@@ -99,6 +99,13 @@ def cases():
         add(f"cmsgpack.unpack_one.{offset}", f"return {{cmsgpack.unpack_one(cmsgpack.pack(11,22,33),{offset})}}")
     for limit in (-1, 0, 1, 2, 4):
         add(f"cmsgpack.unpack_limit.{limit}", f"return {{cmsgpack.unpack_limit(cmsgpack.pack(11,22,33),{limit},1)}}")
+    for length in (15, 16):
+        add(f"cmsgpack.array.{length}", f"local t={{}}; for i=1,{length} do t[i]=i end; return cmsgpack.pack(t)")
+        # Map iteration order is unspecified; compare the decoded cardinality
+        # and the format header, while the one-key map above compares all bytes.
+        add(f"cmsgpack.map.{length}", f"local t={{}}; for i=1,{length} do t['k'..i]=i end; local p=cmsgpack.pack(t); local n=0; for k,v in pairs(cmsgpack.unpack(p)) do n=n+1 end; return {{string.byte(p,1),n}}")
+    add("cmsgpack.return_limit", "return select('#',cmsgpack.unpack(string.rep(string.char(192),8001)))")
+    add("cmsgpack.bounded_unpack", "return {cmsgpack.unpack_limit(string.rep(string.char(1),8001),3)}")
 
     for op in ('band', 'bor', 'bxor'):
         add("bit." + op, f"return {{bit.{op}(0xff,0x0f,3),bit.{op}(-1,0x80000000),bit.{op}(42)}}")
@@ -123,6 +130,9 @@ def cases():
     add("struct.short", "return struct.unpack('i4','x')")
     add("struct.unterminated", "return struct.unpack('s','abc')")
     add("struct.missing_value", "return struct.pack('i4')")
+    add("struct.binary", "return struct.pack('c4','a\\000b\\255')")
+    for offset in (-1, 0, 4):
+        add(f"struct.offset.{offset}", f"return struct.unpack('B','abc',{offset})")
 
     for name, value in (("empty", "''"), ("abc", "'abc'"), ("binary", "'a\\000b\\255'"),
                         ("long", "string.rep('a',4096)"), ("number", "123.5"),

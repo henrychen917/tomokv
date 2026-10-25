@@ -597,6 +597,8 @@ build/multidb-unit: build/tests/multidb_unit.o build/tests/mdbstamp_checks.o bui
 MDBQSBR_SRC := $(filter-out src/main.cc,$(SRC))
 MDBQSBR_ASAN_OBJ := $(MDBQSBR_SRC:%.cc=build/mdbqsbr-asan/%.o)
 MDBQSBR_TSAN_OBJ := $(MDBQSBR_SRC:%.cc=build/mdbqsbr-tsan/%.o)
+MDBQSBR_ASAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-asan/%.o)
+MDBQSBR_TSAN_OBJ += $(LUA_HELPER_SRC:%.c=build/mdbqsbr-tsan/%.o)
 MDBQSBR_FLAGS := -std=c++20 -O1 -g -Wall -Wextra -march=native -pthread \
   -fno-omit-frame-pointer -no-pie -DTOMO_MDBQSBR_TEST -DTOMO_CORE_CONCURRENCY_TEST -I.
 MDBQSBR_WRAP := -Wl,--wrap=_ZN4tomo11AofProducer19record_database_mapEPKh
@@ -606,6 +608,12 @@ build/mdbqsbr-asan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makef
 build/mdbqsbr-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread -c $< -o $@
+build/mdbqsbr-asan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=address,undefined -c $< -o $@
+build/mdbqsbr-tsan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=thread -c $< -o $@
 build/mdbqsbr-asan/src/cmd/l4prebuild.o build/mdbqsbr-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 build/mdbqsbr-unit: build/mdbqsbr-asan/tests/mdbqsbr_unit.o $(MDBQSBR_ASAN_OBJ)
 	@mkdir -p $(dir $@)
@@ -664,6 +672,8 @@ build/core-concurrency-unit: build/core-concurrency-mdbqsbr-asan
 # Keep ALL COMDAT copies of the hook-bearing inline publisher identical. Never
 # link these objects into a production server or mix them with release objects.
 PUBLISHFIX_OBJ := $(patsubst %.cc,$(BUILD_ROOT)/publishfix-unit-objects/%.o,$(filter-out src/main.cc,$(SRC)))
+# Helpers contain no TOMO_PUBLISHFIX_TEST code; use the same C objects as release.
+PUBLISHFIX_OBJ += $(LUA_HELPER_SRC:%.c=$(BUILD_ROOT)/%.o)
 $(BUILD_ROOT)/publishfix-unit-objects/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 $(BUILD_ROOT)/publishfix-unit-objects/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
