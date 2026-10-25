@@ -1,0 +1,45 @@
+{
+  "argv": [
+    "tests/gateprod.py",
+    "--self-test"
+  ],
+  "affinity": [
+    88,
+    89
+  ],
+  "seconds": 1.9260871401056647,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_absent_or_wrong_transport_and_missing_cell_cannot_pass",
+      "seconds": 0.0014513926580548286
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_coordinator_interrupt_terminates_the_active_driver_once",
+      "seconds": 0.0025442270562052727
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_dry_run_matches_real_boot_argv_for_every_cell_and_both_arms",
+      "seconds": 1.7032232135534286
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_frozen_bytes_and_full_product",
+      "seconds": 0.01929548103362322
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_instrument_scope_stays_frozen_but_uring_null_cannot_cover_epoll",
+      "seconds": 0.10247849952429533
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_real_coordinator_dispatches_both_passes_and_cannot_hide_epoll_failure",
+      "seconds": 0.008224282413721085
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_selection_and_null_are_transport_specific",
+      "seconds": 0.03432246018201113
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_smoke_termination_cleans_owned_children_and_records_failure",
+      "seconds": 0.008925412781536579
+    }
+  ]
+}

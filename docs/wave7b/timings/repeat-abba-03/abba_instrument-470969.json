@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "tests/abba_instrument.py",
+    "--self-test"
+  ],
+  "affinity": [
+    88,
+    89
+  ],
+  "seconds": 1.2389907157048583,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_imported_helper_bytes_modes_and_python_identity_change_fingerprint",
+      "seconds": 0.11154480651021004
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_missing_symlinked_and_unresolved_dependencies_fail_closed",
+      "seconds": 0.09753035195171833
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_new_dormant_import_and_its_transitive_dependency_are_bound",
+      "seconds": 0.19433045107871294
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_old_hash_only_unknown_version_and_tampered_manifest_are_rejected",
+      "seconds": 0.03254937380552292
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_unrelated_correctness_hooks_and_makefile_leave_null_identity_unchanged",
+      "seconds": 0.14823482371866703
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_warm_syntax_cache_resolves_new_local_modules_on_every_call",
+      "seconds": 0.10910852067172527
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_warm_syntax_cache_uses_bytes_even_with_same_size_and_mtime",
+      "seconds": 0.11811317503452301
+    }
+  ]
+}

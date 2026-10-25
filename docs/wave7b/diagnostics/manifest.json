@@ -1,0 +1,57 @@
+[
+  {
+    "file": "gates-candidate.log",
+    "sha256": "1fac31f3809d674c9b1b220449ea24c673be07bf0cd99b8cc8eb6d13ed164022",
+    "interpretation": "Superseded first-wave start-barrier-only scheduler experiment; failed. Not passing evidence."
+  },
+  {
+    "file": "scheduler-four-cpus.log",
+    "sha256": "3a3eb406cbd02b674901e86726baf17ca74f28d163f3b924bc0da7e2c1dfe1d3",
+    "interpretation": "Superseded start-barrier fixture on four contended CPUs; failed. Not final source."
+  },
+  {
+    "file": "scheduler-owned-cpus.log",
+    "sha256": "99e54b8719f5845c06dbd35923da7940aca39dcb4babc979ed2fdcfbd3493e5b",
+    "interpretation": "Superseded four-CPU start-barrier experiment; passed. Not final source."
+  },
+  {
+    "file": "scheduler-order-watch.log",
+    "sha256": "5c526c390402b5ae037d00a0ded2bfac543d694e55aea659ca493e4866374a1f",
+    "interpretation": "Superseded experiment skipping redundant row watchers; reverted. Watchers remain in final source."
+  },
+  {
+    "file": "scheduler-bounded.log",
+    "sha256": "81908e9183efeabeb6f1751f581eb5202e61b278a61c0baa892e24a7edd53242",
+    "interpretation": "Superseded bounded-worker experiment during build contention; failed. Not final source."
+  },
+  {
+    "file": "gates-after-first.log",
+    "sha256": "8fce942f65eddf62f9a17fa0deab447c20cd99abff39b952df8cda12b818eb19",
+    "interpretation": "Intermediate standalone suite during full owned-CPU compilation; seven failures. Before final history CLI startup fix."
+  },
+  {
+    "file": "gates-after.log",
+    "sha256": "950a853d18d88a0c45ea401bd6f950b897fd2c7d7271d2fa0872b2aa8a2e1cc1",
+    "interpretation": "Standalone 72/72 pass before final history CLI startup change. Final standalone is recorded separately."
+  },
+  {
+    "file": "gate-receipt-after.log",
+    "sha256": "f32690d0d90845d77c5153d227a290bee43f1044096cd34b23718f3a89d737e0",
+    "interpretation": "Direct gate_receipt self-test pass; final whole ABBA repetitions also cover these controls."
+  },
+  {
+    "file": "scheduler-before-timed.log",
+    "sha256": "b37e6b6e1634f0060c25a0b53e6c00618a8b335e097d72724fe8df62472a9b6c",
+    "interpretation": "Frozen f974e5c50 fixture cases on two CPUs under contention; six inner timeout failures."
+  },
+  {
+    "file": "perfio-first.log",
+    "sha256": "4b662d4af4e67f9743b65e7f72c9b38f177c892bb12db4721a9795ee43ea91f9",
+    "interpretation": "Early directed-hook smoke before final epoch-tag fix; retained only as diagnostic history."
+  },
+  {
+    "file": "perfio-stale-negative.log",
+    "sha256": "aaca9359159abac63df6b90cee901c3ea1e4b4b8b76a13f79ad770735ed12ce9",
+    "interpretation": "Final directed test with scoped EPOLL_CTL_DEL fault; expected exit 1 after a witnessed move."
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "expected_exit": 1,
+  "observed_exit": 1,
+  "command": [
+    "taskset",
+    "-c",
+    "94-95",
+    "env",
+    "LD_PRELOAD=/home/user/Projects/cx-wave7/build/wave7b/stale-epoll.so",
+    "WAVE7B_BROKEN_EPOLL_PORT=26850",
+    "python3",
+    "tests/perfio.py",
+    "epoll-lb",
+    "--binary",
+    "build/tomokv",
+    "--port",
+    "26850",
+    "--cores",
+    "80-87",
+    "--output",
+    "build/wave7b/perfio-stale-negative"
+  ],
+  "source": "docs/wave7b/stale_epoll.c",
+  "source_sha256": "2b6d9ff52c0ddd842e5cf801f2fa554ba2e40b567a2c6d97148c028d99750962",
+  "preload_sha256": "80db5699135fede0856d2321f30fbb83da8942390157509c33d6891a22d0ee08",
+  "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+  "witness": {
+    "moves_before": 0,
+    "moves_after": 1,
+    "stale": 1,
+    "duplicates": 1,
+    "registrations": 99,
+    "expected_registrations": 97
+  }
+}

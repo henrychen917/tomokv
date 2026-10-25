@@ -1,0 +1,45 @@
+{
+  "argv": [
+    "tests/gate_quiet.py",
+    "--self-test"
+  ],
+  "affinity": [
+    88,
+    89
+  ],
+  "seconds": 0.05822448246181011,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_closing_without_preflight_cannot_certify_quietness",
+      "seconds": 0.0007196301594376564
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_competing_benchmark_on_selected_core_refused_and_latched",
+      "seconds": 0.0005252119153738022
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_desktop_outside_selected_cpus_does_not_block",
+      "seconds": 0.00031022168695926666
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_idle_listener_blocks_only_intended_port",
+      "seconds": 0.020694207400083542
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_missing_or_backwards_counters_fail",
+      "seconds": 0.0005641123279929161
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_only_selected_counters_are_read",
+      "seconds": 0.00046238116919994354
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_own_workload_recorded_without_becoming_foreign_activity",
+      "seconds": 0.00035268068313598633
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_unreadable_cpu_file_invalidates_observer",
+      "seconds": 0.00040540099143981934
+    }
+  ]
+}

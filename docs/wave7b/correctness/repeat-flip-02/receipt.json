@@ -1,0 +1,87 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-91,94-95",
+    "--server-smt",
+    "",
+    "--load-cores",
+    "92-93",
+    "--load-smt",
+    "",
+    "--ports",
+    "26820-26829",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave7/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave7",
+  "start": 1792965606.1224775,
+  "commit": "ccc805c5e929b63b98bdcb8da64a74c0e6590601",
+  "binary_sha256": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+  "gate_sha256": "4c2e1a84917d71e74bd24daaf5a142884baea7da445f7d92fd45f131fefd89cb",
+  "environment": {
+    "LC_ADDRESS": "en_US.UTF-8",
+    "LC_NAME": "en_US.UTF-8",
+    "LC_MONETARY": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "LC_PAPER": "en_US.UTF-8",
+    "LC_IDENTIFICATION": "en_US.UTF-8",
+    "LC_TELEPHONE": "en_US.UTF-8",
+    "LC_MEASUREMENT": "en_US.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TIME": "en_US.UTF-8",
+    "LC_NUMERIC": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TEST_PORT": "26892",
+    "GATE_ONLY_JOBS": "flip",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TXN_ATOMIC": "1",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7b/correctness/repeat-flip-02/ledger"
+  },
+  "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
+  "diagnostic_preload": null,
+  "source_files": {
+    "tests/gates_test.py": "19ec3053e9f5ad13f073e137a454baa8f85ab4f5a65c2aea569792f7d66ffb6e",
+    "tests/gate_history.py": "537454db8f0071e9a2da57a45c53433cc6107f0997a7131cc08fd85272b9728c",
+    "tests/gate_receipt.py": "70cfb35e4c19748c3e9b917aa416fce9578f08ace471a21deeb744b0673167ed",
+    "tests/perfio.py": "d949a84f7e0bbc1538717e4ed3471f500c817c027ac71db1d2229ea4f3b5510a",
+    "tests/lbplanner_unit.cc": "d171913de4e8a2cc39837a050ec65608f62a47dc90371be048c9354902049e07",
+    "tools/lbplanner_controls.py": "02605f3184b8125aaca148fecc3fe37e31ab360361c3c9cd861bd2f370667b91",
+    "src/core/lbplanner.cc": "f4fcea06afafa42ab909175e6a73e0d42df62aed0a5c8cfc67e1b4cf5529ca5a",
+    "src/core/server.h": "d6710b1b79dbdf35636a6db19e03fffcd0a689ea676c89d10fed75d03d4ddedd",
+    "src/cmd/t_server.cc": "d8bb80f6a2f649403aef670b50e0b822de342a3096d5d14bf272d9b6ebdc554c"
+  },
+  "exit": 0,
+  "end": 1792965624.721406,
+  "binary_sha256_after": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.s1KGbv",
+  "jobs": {
+    "flip": {
+      "done": "0\t9\t0",
+      "rows": [
+        "ok\t0.160000\tFLIP state battery",
+        "ok\t1.070000\tFLIP under verified load",
+        "ok\t1.500000\tFLIP TTL + expiry events",
+        "ok\t4.440000\tpartial-frame conn parks (no io spin)",
+        "ok\t2.270000\tFLIP close during FLIP (uring)",
+        "ok\t2.180000\tFLIP close during FLIP (epoll)",
+        "ok\t1.090000\tFLIP signal stop during FLIP + second SIGINT",
+        "ok\t0.560000\tperfio stale epoll registration (epoll-flip)",
+        "ok\t1.110000\tperfio stale epoll registration (epoll-lb)"
+      ]
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
+}
