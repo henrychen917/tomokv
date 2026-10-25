@@ -351,7 +351,9 @@ void reply_string_bulk(Op& op, const KvObj* o) {
 // borrow protocol to mutation replies would turn a string-only fast path into collection policy.
 template <bool kNotify, bool kAllowBorrow = true>
 void cmd_get(Shard& sh, Op& op) {
-    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
+    // Keep this small accessor at the call site: the larger armed string unit
+    // otherwise outlines Op::key here. This is its exact argc/argv expression.
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.argc() > 1 ? op.arg(1) : Slice{});
     if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;

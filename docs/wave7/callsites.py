@@ -24,7 +24,7 @@ def get(pair):
  stamp.write_text(json.dumps(key,indent=2)+'\n')
  for p in d.glob('*.objdump'):p.unlink()
  return arm,rows
-with ProcessPoolExecutor(max_workers=3) as pool:inv=dict(pool.map(get,[*identity.REFS.items(),('post',str(ROOT/'build/tomokv'))]))
+with ProcessPoolExecutor(max_workers=3) as pool:inv=dict(pool.map(get,[*identity.REFS.items(),('post',str(ROOT/os.getenv('WAVE7_CALLS_BINARY','build/tomokv')))]))
 rows=[]
 for r in summary['hot_residual']:
  name=r['name'];post=inv['post'][name];refs={arm:inv[arm][name] for arm in identity.REFS}
