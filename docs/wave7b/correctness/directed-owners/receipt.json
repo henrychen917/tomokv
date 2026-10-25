@@ -46,5 +46,76 @@
     "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7b/correctness/directed-owners/ledger"
   },
   "netfix_tls_oracle": "unset: gate default /home/user/Projects/redis74-tls",
-  "diagnostic_preload": null
+  "diagnostic_preload": null,
+  "exit": 0,
+  "end": 1792965435.3773072,
+  "binary_sha256_after": "dbf48e6a99b425a738820d3323158735892fbaa7087283f28fc82da221551cdd",
+  "run_dir": "/home/user/Projects/cx-wave7/build/gate-run.M0IEWb",
+  "jobs": {
+    "debug-0": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t9.170000\tplain-write lost updates (atomic 0)",
+        "ok\t0.170000\tlbsignals battery (atomic 0)",
+        "ok\t1.490000\tslowlog battery (atomic 0)",
+        "ok\t0.040000\tatomfix battery (atomic 0)",
+        "ok\t0.040000\tscriptatomic battery (atomic 0)",
+        "ok\t14.460000\texecatomic battery (atomic 0)",
+        "ok\t11.870000\texeciso battery (atomic 0)",
+        "ok\t0.440000\texecfix battery (atomic 0)",
+        "ok\t0.110000\tmultires battery (atomic 0)",
+        "ok\t0.750000\tmultirace battery (atomic 0)",
+        "ok\t30.490000\tsession_monotonic battery (atomic 0)",
+        "ok\t0.350000\txacct battery (atomic 0)",
+        "ok\t0.330000\txmove battery (atomic 0)",
+        "ok\t1.860000\txscript battery (atomic 0)",
+        "ok\t1.990000\ttxn_nx battery (atomic 0)",
+        "ok\t9.120000\ttxniso battery (atomic 0)"
+      ]
+    },
+    "debug-1": {
+      "done": "0\t16\t0",
+      "rows": [
+        "ok\t6.160000\tplain-write lost updates (atomic 1)",
+        "ok\t0.170000\tlbsignals battery (atomic 1)",
+        "ok\t1.490000\tslowlog battery (atomic 1)",
+        "ok\t0.040000\tatomfix battery (atomic 1)",
+        "ok\t0.040000\tscriptatomic battery (atomic 1)",
+        "ok\t14.470000\texecatomic battery (atomic 1)",
+        "ok\t11.870000\texeciso battery (atomic 1)",
+        "ok\t0.440000\texecfix battery (atomic 1)",
+        "ok\t0.110000\tmultires battery (atomic 1)",
+        "ok\t0.740000\tmultirace battery (atomic 1)",
+        "ok\t30.480000\tsession_monotonic battery (atomic 1)",
+        "ok\t0.350000\txacct battery (atomic 1)",
+        "ok\t0.280000\txmove battery (atomic 1)",
+        "ok\t1.870000\txscript battery (atomic 1)",
+        "ok\t1.970000\ttxn_nx battery (atomic 1)",
+        "ok\t8.610000\ttxniso battery (atomic 1)"
+      ]
+    },
+    "flip_unit": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t15.380000\tflip controller model unit"
+      ]
+    },
+    "lbplanner_units": {
+      "done": "0\t2\t0",
+      "rows": [
+        "ok\t0.180000\tLB sampler exceptional cleanup + negative control",
+        "ok\t0.250000\tLB monitor plan handoff + negative controls"
+      ]
+    },
+    "production_units": {
+      "done": "0\t0\t0",
+      "rows": []
+    },
+    "release": {
+      "done": "0\t1\t0",
+      "rows": [
+        "ok\t0.000000\trelease build (+footprint locks)"
+      ]
+    }
+  }
 }

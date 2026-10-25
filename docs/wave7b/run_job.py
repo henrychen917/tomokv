@@ -57,6 +57,10 @@ receipt = dict(command=command, cwd=str(source), start=time.time(),
                diagnostic_preload=(dict(path=env['LD_PRELOAD'],
                    sha256=hashlib.sha256(Path(env['LD_PRELOAD']).read_bytes()).hexdigest())
                    if env.get('LD_PRELOAD') else None))
+receipt['source_files'] = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+    for name in ('tests/gates_test.py', 'tests/gate_history.py', 'tests/gate_receipt.py',
+                 'tests/perfio.py', 'tests/lbplanner_unit.cc', 'tools/lbplanner_controls.py',
+                 'src/core/lbplanner.cc', 'src/core/server.h', 'src/cmd/t_server.cc')}
 (out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 with (out / 'gate.log').open('w') as log:
     result = subprocess.run(command, cwd=source, env=env, stdout=log, stderr=subprocess.STDOUT)

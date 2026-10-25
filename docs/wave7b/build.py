@@ -9,7 +9,7 @@ body=(ROOT/'tests/gate.sh').read_text().split('job_production_units(){',1)[1].sp
 first=body.split('# -q verifies',1)[0]
 targets=list(dict.fromkeys(re.findall(r'\bbuild/[a-z0-9-]+',first)))
 assert len(targets)>=40,targets
-out=ROOT/'docs/wave7b/build';out.mkdir(exist_ok=True)
+out=ROOT/'docs/wave7b/build-proof';out.mkdir(exist_ok=True)
 receipt=dict(start=time.time(),affinity=sorted(os.sched_getaffinity(0)),environment={'LANG':env['LANG'],'LC_ALL':'unset'},targets=targets,
  before_sha256=hashlib.sha256((ROOT/'build/tomokv').read_bytes()).hexdigest(),builds=[],freshness=[])
 for tag,command in [('production',['make','-k','-j32','all',*targets,'mdbqsbr-live-arms']),
