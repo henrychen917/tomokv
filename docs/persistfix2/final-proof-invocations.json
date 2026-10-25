@@ -554,7 +554,9 @@
       "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-post-uring-armed-fused"
     },
     "expected_exit": 0,
-    "started": 1792886724.202279
+    "started": 1792886724.202279,
+    "exit": 0,
+    "finished": 1792887787.375794
   },
   {
     "name": "differ-final-pre-uring-armed-fused",
@@ -577,6 +579,37 @@
       "GATE_DIFFER_OUT": "/home/user/Projects/cx-persistfix2/build/persistfix2/differ-final-pre-uring-armed-fused"
     },
     "expected_exit": 0,
-    "started": 1792886735.193713
+    "started": 1792886735.193713,
+    "exit": 0,
+    "finished": 1792887799.0276961
+  },
+  {
+    "name": "gate-final-pre-new-rows",
+    "command": [
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "36861-36899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-persistfix2/build/tomokv-persistfix2-pre"
+    ],
+    "cwd": "/home/user/Projects/cx-persistfix2/build/persistfix2/pre-proof-source",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+      "GATE_ONLY_JOBS": "persistfix2_lastsave persistfix2_shutdown persistfix2_commands persistfix2_errors"
+    },
+    "expected_exit": 1,
+    "started": 1792887799.720251
   }
 ]
