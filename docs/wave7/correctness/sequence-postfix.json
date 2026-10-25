@@ -209,5 +209,22 @@
     ],
     "exit": 0,
     "candidate_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
+  },
+  {
+    "name": "differ-postfix-uring",
+    "command": [
+      "python3",
+      "docs/wave7/run_jobs.py",
+      "differ-postfix-uring",
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "--engine",
+      "uring"
+    ],
+    "exit": 0,
+    "candidate_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753"
   }
 ]

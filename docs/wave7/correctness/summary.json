@@ -1,7 +1,7 @@
 {
   "post_sha256": "02e1a1a2cd0925d6dfa8deb3510febd0df745badbb03c95d2d8e41683f51c753",
   "pending": [
-    "differ-postfix-uring"
+    "differ-postfix-epoll"
   ],
   "selections": [
     {
@@ -96,6 +96,72 @@
           "done": "0\t1\t0",
           "rows": [
             "ok\t610.060000\tRedis 7.4 differential part (split, atomic 1)"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "differ-postfix-uring",
+      "exit": 0,
+      "current_post": true,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/differ-postfix-uring/ledger"
+      },
+      "jobs": {
+        "differ-armed-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t527.220000\tRedis 7.4 differential part (armed fused, atomic 0)"
+          ]
+        },
+        "differ-armed-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t527.950000\tRedis 7.4 differential part (armed fused, atomic 1)"
+          ]
+        },
+        "differ-equivalence": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t21.400000\tmode equivalence part (all execution modes and knobs)"
+          ]
+        },
+        "differ-split-0": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t530.550000\tRedis 7.4 differential part (split, atomic 0)"
+          ]
+        },
+        "differ-split-1": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t533.900000\tRedis 7.4 differential part (split, atomic 1)"
           ]
         },
         "release": {
@@ -5151,6 +5217,77 @@
       }
     },
     {
+      "name": "prebuilt-watch-negative-final",
+      "exit": 2,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-watch-negative-final/ledger"
+      },
+      "jobs": {}
+    },
+    {
+      "name": "prebuilt-watch-negative-final-2",
+      "exit": 1,
+      "current_post": false,
+      "unchanged_binary": true,
+      "diagnostic": false,
+      "environment": {
+        "LC_ADDRESS": "en_US.UTF-8",
+        "LC_NAME": "en_US.UTF-8",
+        "LC_MONETARY": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8",
+        "LC_PAPER": "en_US.UTF-8",
+        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LC_TELEPHONE": "en_US.UTF-8",
+        "LC_MEASUREMENT": "en_US.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "LC_TIME": "en_US.UTF-8",
+        "LC_NUMERIC": "en_US.UTF-8",
+        "REDIS74_ROOT": "/home/user/Projects/cx-wave7/build/wave7/redis74-oracle",
+        "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_TEST_PORT": "26898",
+        "GATE_ONLY_JOBS": "datafix2_watch",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_LEDGER": "/home/user/Projects/cx-wave7/docs/wave7/correctness/prebuilt-watch-negative-final-2/ledger"
+      },
+      "jobs": {
+        "datafix2_watch": {
+          "done": "0\t0\t1",
+          "rows": [
+            "FAIL\t121.800000\tdatafix2 CD4.9 write WATCH table vs Redis 7.4"
+          ]
+        },
+        "release": {
+          "done": "0\t1\t0",
+          "rows": [
+            "ok\t0.000000\trelease build (+footprint locks)"
+          ]
+        }
+      }
+    },
+    {
       "name": "txnorder-round-2",
       "exit": 0,
       "current_post": false,
@@ -5360,6 +5497,20 @@
         "fused": "0"
       },
       {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (armed fused, atomic 0)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": false,
         "diagnostic": false,
@@ -5387,6 +5538,20 @@
           "Redis 7.4 differential part (armed fused, atomic 1)"
         ],
         "engine": "epoll",
+        "fused": "0"
+      },
+      {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (armed fused, atomic 1)"
+        ],
+        "engine": "uring",
         "fused": "0"
       },
       {
@@ -5420,6 +5585,20 @@
         "fused": "0"
       },
       {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "mode equivalence part (all execution modes and knobs)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": false,
         "diagnostic": false,
@@ -5447,6 +5626,20 @@
           "Redis 7.4 differential part (split, atomic 0)"
         ],
         "engine": "epoll",
+        "fused": "0"
+      },
+      {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (split, atomic 0)"
+        ],
+        "engine": "uring",
         "fused": "0"
       },
       {
@@ -5480,6 +5673,20 @@
         "fused": "0"
       },
       {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "Redis 7.4 differential part (split, atomic 1)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
         "selection": "differ-uring",
         "current_post": false,
         "diagnostic": false,
@@ -5507,6 +5714,20 @@
           "release build (+footprint locks)"
         ],
         "engine": "epoll",
+        "fused": "0"
+      },
+      {
+        "selection": "differ-postfix-uring",
+        "current_post": true,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
         "fused": "0"
       },
       {
@@ -5832,6 +6053,20 @@
         "fused": "0"
       },
       {
+        "selection": "prebuilt-watch-negative-final-2",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "ok": 1
+        },
+        "labels": [
+          "release build (+footprint locks)"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
         "selection": "txnorder-round-2",
         "current_post": false,
         "diagnostic": false,
@@ -5991,6 +6226,20 @@
       },
       {
         "selection": "prebuilt-watch-negative",
+        "current_post": false,
+        "diagnostic": false,
+        "exit": "0",
+        "rows": {
+          "FAIL": 1
+        },
+        "labels": [
+          "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+        ],
+        "engine": "uring",
+        "fused": "0"
+      },
+      {
+        "selection": "prebuilt-watch-negative-final-2",
         "current_post": false,
         "diagnostic": false,
         "exit": "0",
