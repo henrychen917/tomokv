@@ -68,6 +68,7 @@ def watch_effects(admin):
 
 def prebuilt_watch_effects(admin, target):
     """WATCH must select the notifying form of a remote prebuilt SET."""
+    assert admin.must("SELECT", 0) == b"OK"
     if target:
         key, sibling, shard = same_shard_pair(admin, "wave7:prebuilt")
         routes = shards_of(admin, [key, sibling])
@@ -75,16 +76,20 @@ def prebuilt_watch_effects(admin, target):
         owner = routes[0][1]
     else:
         key, sibling, owner, shard = "wave7:prebuilt:key", "wave7:prebuilt:sibling", None, None
-    writer = None
+    writers = []
+    writer_ios = []
     for attempt in range(128):
         # Conn's bulk reader requires a buffered file for multi-packet values.
         candidate = Conn(admin.host, admin.port)
+        assert candidate.must("SELECT", 0) == b"OK"
         io = candidate.must("DEBUG", "IO-THREAD") if target else None
-        if not target or io != owner:
-            writer = candidate
-            break
-        candidate.close()
-    assert writer is not None, "remote prebuilt SET writer never armed"
+        if not target or (io != owner and io not in writer_ios):
+            writers.append(candidate)
+            writer_ios.append(io)
+            if len(writers) == 2: break
+        else:
+            candidate.close()
+    assert len(writers) == 2, "two distinct remote prebuilt SET writers never armed"
     old_mask = admin.must("CONFIG", "GET", "notify-keyspace-events")[1]
     outcomes = {}
     try:
@@ -93,7 +98,14 @@ def prebuilt_watch_effects(admin, target):
                 assert admin.must("CONFIG", "SET", "notify-keyspace-events", mask) == b"OK"
                 for size in (513, 1024, 200000):
                     value = b"p" * size
-                    for case in ("sibling", "replace", "nx", "xx-missing", "get"):
+                    for index, case in enumerate(("sibling", "replace", "nx", "xx-missing", "get")):
+                        # Both producers perform actual modifications on a watched
+                        # key (replace/get). One producer's placement cannot make
+                        # the complete witness accidentally owner-local.
+                        writer = writers[index % 2]
+                        io = writer_ios[index % 2]
+                        if target:
+                            assert writer.must("DEBUG", "IO-THREAD") == io
                         print("PREBUILT", dict(target=target, shard=shard, owner=owner,
                               writer_io=io, mask=mask, size=size, case=case), flush=True)
                         assert admin.must("SET", sibling, "untouched") == b"OK"
@@ -118,11 +130,11 @@ def prebuilt_watch_effects(admin, target):
                             assert writer.must("OBJECT", "ENCODING", key) == b"raw"
                         outcomes[str((mask, size, case))] = dirty
     finally:
-        writer.close()
+        for writer in writers: writer.close()
         admin.must("CONFIG", "SET", "notify-keyspace-events", old_mask)
         admin.must("DEL", key, sibling)
     print("PASS wave7 prebuilt SET WATCH forms", dict(target=target, shard=shard,
-          owner=owner, writer_io=io, cases=len(outcomes)), flush=True)
+          owner=owner, writer_ios=writer_ios, cases=len(outcomes)), flush=True)
     return outcomes
 
 
