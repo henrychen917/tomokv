@@ -542,16 +542,16 @@ redis.register_function('persistfix2_write',
                 read_only = Conn('127.0.0.1', args.port, timeout=15)
                 script_txn = Conn('127.0.0.1', args.port, timeout=15)
                 try:
-                    assert queued.must('WATCH', 'acknowledged-write') == b'OK'
-                    assert queued.must('MULTI') == b'OK'
-                    assert queued.must('SET', 'queued-write', 'value') == b'QUEUED'
-                    assert read_only.must('MULTI') == b'OK'
-                    assert read_only.must('GET', 'acknowledged-write') == b'QUEUED'
-                    assert read_only.must('FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'QUEUED'
-                    assert read_only.must('EVAL', read_script, '1', 'acknowledged-write') == b'QUEUED'
-                    assert read_only.must('EVALSHA', read_sha, '1', 'acknowledged-write') == b'QUEUED'
-                    assert script_txn.must('MULTI') == b'OK'
-                    assert script_txn.must('EVAL', write_script, '1', 'refused-script-write') == b'QUEUED'
+                    assert command(queued, 'WATCH', 'acknowledged-write') == b'OK'
+                    assert command(queued, 'MULTI') == b'OK'
+                    assert command(queued, 'SET', 'queued-write', 'value') == b'QUEUED'
+                    assert command(read_only, 'MULTI') == b'OK'
+                    assert command(read_only, 'GET', 'acknowledged-write') == b'QUEUED'
+                    assert command(read_only, 'FCALL', 'persistfix2_read', '1', 'acknowledged-write') == b'QUEUED'
+                    assert command(read_only, 'EVAL', read_script, '1', 'acknowledged-write') == b'QUEUED'
+                    assert command(read_only, 'EVALSHA', read_sha, '1', 'acknowledged-write') == b'QUEUED'
+                    assert command(script_txn, 'MULTI') == b'OK'
+                    assert command(script_txn, 'EVAL', write_script, '1', 'refused-script-write') == b'QUEUED'
                     conn.send('SET', 'durability-window', b'v' * 200000)
                     emit('durability window', policy=policy, initial_reply=conn.read())
                     wait(lambda: persistence(conn)['aof_last_write_status'] == 'err',
@@ -594,8 +594,8 @@ redis.register_function('persistfix2_write',
                     read_only.close()
                     script_txn.close()
         except Exception as error:
-            emit('assertion', policy=policy, error=str(error))
-            failures.append(f'{policy}: {error}')
+            emit('assertion', policy=policy, reorder=reorder, error=str(error))
+            failures.append(f'{policy} reorder={reorder}: {error}')
     assert not failures, '\n'.join(failures)
 
 
