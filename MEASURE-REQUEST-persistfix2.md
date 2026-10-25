@@ -328,3 +328,5 @@ Final fused persistence proof passes 148/148 rows (`proof/final-post-fused`). Bo
 Final standard epoll/split differential proof passes 475/475 on both PRE and POST, with the full five-seed inventory, both atomic settings, all four MULTI repeats and mode equivalence. Evidence is under `proof/differ-final-{pre,post}-epoll-split`. The remaining engine/geometry pairs continue.
 
 Final standard epoll/armed-fused differential proof passes 466/466 on both PRE and POST. The complete standard suite/seed inventory, four MULTI repeats and both armed-read witnesses are retained. DIFF-TRK-1 is not observed on either arm in these epoll runs; this does not establish that the existing intermittent issue is resolved. Evidence: `proof/differ-final-{pre,post}-epoll-armed-fused`. The io_uring matrices continue.
+
+Final candidate and PRE io_uring/split standard-seed matrices each pass 475/475 (18m03s and 18m05s). Complete evidence is in `docs/persistfix2/proof/differ-final-{post,pre}-uring-split/`. Six of eight final differential matrices are complete; the io_uring armed-fused pair is running.
