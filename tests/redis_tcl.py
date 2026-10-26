@@ -190,7 +190,8 @@ def load_manifest(path, redis_root, inventory):
             raise ValueError(f'upstream changed: {unit}')
         # A known failure is named, never silently dropped: it may not also be a
         # required pass, and every required file has at least one pass.
-        if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & set(spec['passed_tests']):
+        required = {name.split(' in tests/')[0] for name in spec['passed_tests']}
+        if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & required:
             raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
         # Only tag exclusions (file-level setup TomoKV cannot run); never a
         # second selection such as --only/--skipfile that could hide a test.

@@ -164,7 +164,8 @@ def main():
     sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
     files = {}
     for unit in candidates:
-        passed = sorted(inventory[unit]['2s'].elements())
+        # The observer's event name: the exact string validate_passing compares.
+        passed = sorted(f'{n} in tests/{unit}.tcl' for n in inventory[unit]['2s'].elements())
         if not passed:
             continue
         recent = [h['seconds'][unit] for h in history[-options.rounds:]]
