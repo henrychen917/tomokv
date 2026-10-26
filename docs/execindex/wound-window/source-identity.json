@@ -10,5 +10,71 @@
     "identical": true,
     "pre_sha256": "176b1a7ea3c18408b21f21cb25eaf35bb9d8f4c4445c82dc1b4abfb250556be4",
     "post_sha256": "176b1a7ea3c18408b21f21cb25eaf35bb9d8f4c4445c82dc1b4abfb250556be4"
+  },
+  {
+    "path": "src/cmd/xshard_commands.inc",
+    "identical": true,
+    "pre_sha256": "86eb8df15cf549b94e56c0dbae04606bd06cf7329f3ed03b60fa460832664134",
+    "post_sha256": "86eb8df15cf549b94e56c0dbae04606bd06cf7329f3ed03b60fa460832664134"
+  },
+  {
+    "path": "src/cmd/atomics_glue.inc",
+    "identical": true,
+    "pre_sha256": "cbac4ce7b5a0670cb8fe242e95d38646a6bcbd05debb09bde7e8c8807ab53c06",
+    "post_sha256": "cbac4ce7b5a0670cb8fe242e95d38646a6bcbd05debb09bde7e8c8807ab53c06"
+  },
+  {
+    "path": "src/cmd/xshard.cc",
+    "identical": true,
+    "pre_sha256": "083372eaee224798ede3d36a56b08daa2b317a2ff50cde4856131e5f9c7237fe",
+    "post_sha256": "083372eaee224798ede3d36a56b08daa2b317a2ff50cde4856131e5f9c7237fe"
+  },
+  {
+    "path": "src/core/server.h",
+    "identical": true,
+    "pre_sha256": "d6710b1b79dbdf35636a6db19e03fffcd0a689ea676c89d10fed75d03d4ddedd",
+    "post_sha256": "d6710b1b79dbdf35636a6db19e03fffcd0a689ea676c89d10fed75d03d4ddedd"
+  },
+  {
+    "path": "src/cmd/multi.h",
+    "identical": false,
+    "pre_sha256": "0ae622563a433dd64b711546c03db895480698e76d1585349ba474e26239be99",
+    "post_sha256": "46cd015f760c0542c58c405b0f666b0ddb62b96e984d9495c8ea314e67b3dd84"
+  },
+  {
+    "path": "src/core/ex_execute.inc",
+    "identical": false,
+    "pre_sha256": "e854b0bbb4f3bde8c5fac0e99065e074e5047d193f47b9d583baccfe8e0a7c98",
+    "post_sha256": "ab6d25c7ed7662b9a3519ad5b11f00263260a9b036b3e1dcb8f1b0ba231a771c"
+  },
+  {
+    "path": "src/cmd/multi.inc",
+    "identical": false,
+    "pre_sha256": "f5517eeafdb94776455ac15a8b59170f4032e9ea9160580314286d04fe6e61d2",
+    "post_sha256": "ea95b8320e520d8f38de6d5b88be687e0fe1e15215d21c71e781bf2f1da316fe"
+  },
+  {
+    "path": "src/cmd/multi.inc: txn_wound body",
+    "identical": true,
+    "pre_line": 3227,
+    "post_line": 3252,
+    "pre_sha256": "6872f9d60d92306998e707cca06dcded28d3af1b9c5837ad74cf7deaa5883681",
+    "post_sha256": "6872f9d60d92306998e707cca06dcded28d3af1b9c5837ad74cf7deaa5883681"
+  },
+  {
+    "path": "wound predicate: PRE multi.inc watch_place_unit vs POST txn_key_queue.inc",
+    "identical": true,
+    "statement": "if (phase == TxnPhase::Executing || !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_)) ready = false; else wounded = true;"
+  },
+  {
+    "path": "src/core/ex_execute.inc: changed lines",
+    "identical": false,
+    "note": "only the MULTI-unit retry hooks (execute_multi_unit promoter type, queue_multi_retry); the scatter completion and CommitQueued path (lines 177-189) is unchanged",
+    "changed": [
+      "-                [](void* loop, const Task& next) {",
+      "+                [](void* loop, MultiOwnerRetryNode& next) {",
+      "-                multi_retries_.push_back(t);",
+      "+                queue_multi_retry(t);"
+    ]
   }
 ]
