@@ -12,13 +12,6 @@ HOST, PORT = sys.argv[1], int(sys.argv[2])
 MODE = sys.argv[3] if len(sys.argv) > 3 else "all"
 FAIL = 0
 
-# AT4.12: only these exact contention refusals are retryable in liveness races.
-SCRIPT_REFUSALS = {
-    "TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
-    "BUSY Cross-shard script snapshot window is full": "BUSY",
-}
-
-
 class RespError:
     def __init__(self, message):
         self.message = message
@@ -350,7 +343,7 @@ def reservation_release_paths():
 # must refuse it with -BUSY rather than stopping
 # the parse pass. Many connections are used because the IO thread a connection lands on is not
 # selectable from here; the refusal counter is the proof the arm actually fired.
-def cut_window_refusal():
+def cut_window_fifo():
     admin = Resp()
     info = dict(line.split(":", 1) for line in admin.cmd("INFO", "SERVER").decode().splitlines()
                 if ":" in line)
@@ -392,22 +385,18 @@ def cut_window_refusal():
             other = [r for r in replies
                      if not (r in ([b"w", b"w"],) or
                              (isinstance(r, RespError) and r.message.startswith("BUSY ")))]
-            if busy:
+            if after.get("script_crossshard_window_waits", 0) > before.get("script_crossshard_window_waits", 0):
                 break
             if settle(admin) != 0:
                 raise AssertionError("cut-slot re-arm leaked script intents")
             for client in clients:
                 client.close()
             clients = [Resp() for _ in range(4 * io_threads + 1)]
-        note("cut-slot window refusal fires and is counted",
-             len(busy) >= 1 and
-             after.get("script_crossshard_window_refusals", 0) -
-             before.get("script_crossshard_window_refusals", 0) == len(busy),
-             "busy=%d counted=+%d" % (
-                 len(busy), after.get("script_crossshard_window_refusals", 0) -
-                 before.get("script_crossshard_window_refusals", 0)))
-        note("refusal is a reply, not a stalled connection or a wrong answer",
-             not other and len(good) + len(busy) == len(clients),
+        note("cut-slot FIFO queues and never refuses",
+             not busy and after.get("script_crossshard_window_refusals", 0) == 0 and
+             after.get("script_crossshard_window_waits", 0) > before.get("script_crossshard_window_waits", 0))
+        note("every FIFO waiter receives its snapshot reply",
+             not other and len(good) == len(clients),
              "ok=%d busy=%d other=%r" % (len(good), len(busy), other[:2]))
         note("a refused activation reserves nothing and leaks nothing", settle(admin) == 0,
              "armed=%d released=%d" % (after.get("script_keys_armed", 0),
@@ -658,7 +647,7 @@ def contention_and_deadlock():
     admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
     errors = []
     successes = [0, 0]
-    refusals = [dict.fromkeys(SCRIPT_REFUSALS.values(), 0) for _ in successes]
+    refusals = [dict(TRYAGAIN=0, BUSY=0) for _ in successes]
 
     def worker(slot, ordered):
         client = Resp()
@@ -667,9 +656,6 @@ def contention_and_deadlock():
                 reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
                 if reply == 1:
                     successes[slot] += 1
-                elif isinstance(reply, RespError) and reply.message in SCRIPT_REFUSALS:
-                    refusals[slot][SCRIPT_REFUSALS[reply.message]] += 1
-                    continue
                 else:
                     errors.append((slot, reply))
                     return
@@ -696,7 +682,7 @@ def contention_and_deadlock():
     script_writer = Resp()
     mset_writer = Resp()
     race_errors = []
-    race_refusals = dict.fromkeys(SCRIPT_REFUSALS.values(), 0)
+    race_refusals = dict(TRYAGAIN=0, BUSY=0)
     script_source = "for i=1,#KEYS do redis.call('SET',KEYS[i],ARGV[1]) end return 1"
 
     def script_racer():
@@ -705,9 +691,6 @@ def contention_and_deadlock():
                 reply = script_writer.cmd("EVAL", script_source, str(len(keys)), *keys, "S")
                 if reply == 1:
                     break
-                if isinstance(reply, RespError) and reply.message in SCRIPT_REFUSALS:
-                    race_refusals[SCRIPT_REFUSALS[reply.message]] += 1
-                    continue
                 race_errors.append(("script", reply))
                 return
 
@@ -848,7 +831,7 @@ elif MODE == "reserve":
 elif MODE == "limit":
     staging_limit_control()
 elif MODE == "window":
-    cut_window_refusal()
+    cut_window_fifo()
 if FAIL:
     raise SystemExit("%d xscript checks failed" % FAIL)
 print("XSCRIPT %s directed battery passed" % MODE, flush=True)
