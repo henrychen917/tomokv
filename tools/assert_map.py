@@ -25,6 +25,7 @@ class Token:
     text: str
     line: int
     kind: str = 'code'
+    logical_line: int = 0
 
 
 def lex(source):
@@ -40,31 +41,34 @@ def lex(source):
         r'(?P<raw>(?:u8|u|U|L)?R"(?P<delimiter>[^ ()\\\t\n]{0,16})\([\s\S]*?\)(?P=delimiter)")|'
         r'(?P<string>(?:u8|u|U|L)?"(?:\\[\s\S]|[^"\\])*"|(?:u8|u|U|L)?\'(?:\\[\s\S]|[^\'\\])*\')|'
         r'(?P<number>[0-9][a-zA-Z0-9_\'.]*)|(?P<word>[a-zA-Z_$][a-zA-Z0-9_$]*)|'
-        r'(?P<punct>##|::|&&|\|\||<=|>=|==|!=|->|<<|>>|\.\.\.|.)')
+        r'(?P<punct>%:%:|%:|##|::|&&|\|\||<=|>=|==|!=|->|<<|>>|\.\.\.|.)')
     logical_line = 1
     for match in pattern.finditer(text):
         physical_line = logical_line + bisect_right(splices, match.start())
+        token_line = logical_line
         logical_line += match[0].count('\n')
         kind = match.lastgroup
         if kind in ('space', 'comment'):
             continue
         # The raw-string delimiter group is nested; the enclosing group wins.
-        yield Token(match[0], physical_line,
-                    'literal' if kind in ('raw', 'string') else 'code')
+        value = {'%:': '#', '%:%:': '##'}.get(match[0], match[0])
+        yield Token(value, physical_line,
+                    'literal' if kind in ('raw', 'string') else 'code', token_line)
 
 
 def directives(source):
-    """Physical lines occupied by each complete preprocessor directive."""
-    rows = source.splitlines(keepends=True)
-    i = 0
-    while i < len(rows):
-        if re.match(r'^\s*(?:#|%:)', rows[i]):
-            start, body = i + 1, rows[i]
-            while body.rstrip('\r\n').endswith('\\') and i + 1 < len(rows):
-                i += 1
-                body += rows[i]
-            yield start, i + 1, body
-        i += 1
+    """Real directives only: comments and raw-string contents are not syntax."""
+    group, previous = [], 0
+    for token in lex(source):
+        if token.logical_line != previous:
+            if group:
+                yield group[0].line, max(t.line + t.text.count('\n') for t in group), spelling(group)
+            group = [token] if token.text == '#' and token.kind != 'literal' else []
+            previous = token.logical_line
+        elif group:
+            group.append(token)
+    if group:
+        yield group[0].line, max(t.line + t.text.count('\n') for t in group), spelling(group)
 
 
 def fnv(condition, salt=0):

@@ -101,7 +101,14 @@ int main() {
                 self.assertTrue(identity.lint_source(f'auto x = {word};', 'src/test.cc'))
                 self.assertTrue(identity.lint_source(f'#define ALIAS {word}\nauto x=ALIAS;', 'src/test.cc'))
         good = '''// __FILE__ assert(x)
-const char* text = R"tag(__LINE__ assert(x))tag";
+const char* text = R"tag(__LINE__ assert(x)
+#line 99
+#ifdef TOMO_BOGUS_TRACE
+)tag";
+/*
+#line 3
+#endif
+*/
 static_assert(sizeof(int) >= 2);
 #ifdef TOMO_EXAMPLE_TRACE
 #if ENABLE_OTHER
@@ -112,7 +119,7 @@ const char* diagnostic = __FILE__;
         self.assertFalse(identity.lint_source(good, 'src/test.cc'))
         for source in ('#ifdef TOMO_EXAMPLE_TRACE\n#else\nauto x=__LINE__;\n#endif',
                        '#ifndef TOMO_EXAMPLE_TRACE\nauto x=__LINE__;\n#endif',
-                       'auto x = __FI\\\nLE__;', '#line 17',
+                       'auto x = __FI\\\nLE__;', '#line 17', '%:line 17',
                        '#define NAME(x) #x\nconst char* name=NAME(function);'):
             with self.subTest(source=source):
                 self.assertTrue(identity.lint_source(source, 'src/test.cc'))
