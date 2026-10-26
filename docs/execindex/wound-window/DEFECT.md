@@ -47,6 +47,23 @@ All eight cells fail identically (`results.json`; logs `{pre,post}-{multi,db0}-{
 The diagnostic and the live sample share the same reply (`NoSuchKey`), the same data shape (the
 source is present and the destination unchanged by A), and an accepted commit.
 
+### 2b. Live reproduction on both release arms (`docs/execindex/nx-preempt/`)
+
+This setup reproduces the debug-0 geometry live: release `PRE` and `POST` boots (fused, uring,
+`--atomic 1`, 16 shards on CPUs 96-103) running `tests/txn_nx.py --bare`. Eight injectors are
+pinned one per server CPU; each spins 20 µs and sleeps 30 µs (`preempt.c`). They make it likely
+that a wounder is descheduled between its two CASes. No rate is measured. Blocks ran in the order
+PRE, POST, POST, PRE, about 120 s each:
+
+| Arm | Bare iterations | `atomic_group_wounds` | Failures | Failures per wound | `atomic_txn_order_violations` |
+|---|---:|---:|---:|---:|---:|
+| PRE `3700b51d7` | 974,848 | 89,417 | **3** | 3.4e-5 | 0 |
+| POST `30f8cfa44` | 1,089,536 | 93,138 | **3** | 3.2e-5 | 0 |
+
+All six failures have the live shape: one client gets `ERR no such key`, its source is still
+present, and the other client won. Both arms hit the window at the same rate per wound. The
+existing falsifier does not see the defect: order violations stay 0.
+
 ## 3. The interleaving
 
 A is the younger group and B the older one. Both are bare `--atomic 1` RENAMENX groups. At
@@ -107,7 +124,8 @@ IPI or preemption on its CPU. That is why the failure is rare:
 
 The counts come from the debug-job batteries plus the `nx-control` clean boots (MEASURE-REQUEST).
 At this rarity, 1 failure against 0 cannot distinguish the arms. The serverless diagnostic holds
-the window open deterministically, and it fails on both.
+the window open deterministically, and it fails on both. With injected preemption (§2b), both
+arms fail at the same rate per wound.
 
 The blind-crossing restart has the same two-step publication: phase at `txn_group.inc:147`, epoch
 at `txn_group.inc:150`. Another owner of the same group running step 3 inside that gap gets the same
@@ -201,8 +219,10 @@ No wait is added or removed. A larger alternative is a single atomic word carryi
   commit` in both namespaces and both modes on the fixed build. It must still fail on PRE, which is
   the negative control.
 - An EXEC analogue that stops a wound between the same two CASes before the EXEC finalizer runs.
-- `tests/txn_nx.py --bare` at `--atomic 1`, repeated with the server's CPUs oversubscribed so that
-  the wounder is likely to be descheduled inside the gap.
-- `atomic_txn_group_wounds` still counts every successful phase wound.
+- `tests/txn_nx.py --bare` at `--atomic 1` under the §2b injectors (`nx_preempt.py`). PRE fails
+  about 3 times per 10^5 wounds; the fix must fail 0 times over at least 3 × 10^5 wounds.
+- `atomic_group_wounds` still counts every successful phase wound.
+- Consider a falsifier for "decided with a ticket while phase is `Wounded`". Today
+  `atomic_txn_order_violations` stays 0 through this defect.
 
 This lane registers the diagnostic as a documented PRE-and-POST failure. It is **not** a gate row.

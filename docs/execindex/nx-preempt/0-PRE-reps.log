@@ -1,0 +1,171 @@
+===== block 0 PRE rep 0 (0-PRE-rep0.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[14, 6], [14, 6], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 1 (0-PRE-rep1.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 2 (0-PRE-rep2.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 3 (0-PRE-rep3.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 4 (0-PRE-rep4.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 5 (0-PRE-rep5.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 6 (0-PRE-rep6.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 7 (0-PRE-rep7.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 8 (0-PRE-rep8.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 9 (0-PRE-rep9.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 10 (0-PRE-rep10.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[6, 6], [6, 6], [1, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 11 (0-PRE-rep11.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 12 (0-PRE-rep12.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 13 (0-PRE-rep13.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [4, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 14 (0-PRE-rep14.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 15 (0-PRE-rep15.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 16 (0-PRE-rep16.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 17 (0-PRE-rep17.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 18 (0-PRE-rep18.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 19 (0-PRE-rep19.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 20 (0-PRE-rep20.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [11, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 21 (0-PRE-rep21.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 22 (0-PRE-rep22.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 23 (0-PRE-rep23.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 24 (0-PRE-rep24.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 25 (0-PRE-rep25.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 26 (0-PRE-rep26.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 27 (0-PRE-rep27.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 28 (0-PRE-rep28.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [4, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 29 (0-PRE-rep29.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[14, 6], [14, 6], [9, 1]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 30 (0-PRE-rep30.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 31 (0-PRE-rep31.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 32 (0-PRE-rep32.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 33 (0-PRE-rep33.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[0, 0], [0, 0], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 34 (0-PRE-rep34.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 35 (0-PRE-rep35.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 36 (0-PRE-rep36.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [6, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 37 (0-PRE-rep37.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[6, 6], [6, 6], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 38 (0-PRE-rep38.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[8, 0], [8, 0], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 39 (0-PRE-rep39.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 40 (0-PRE-rep40.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [8, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 41 (0-PRE-rep41.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 42 (0-PRE-rep42.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 43 (0-PRE-rep43.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[1, 1], [1, 1], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 44 (0-PRE-rep44.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[7, 7], [7, 7], [14, 6]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 45 (0-PRE-rep45.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[11, 3], [11, 3], [15, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 46 (0-PRE-rep46.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [0, 0]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 47 (0-PRE-rep47.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 48 (0-PRE-rep48.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[10, 2], [10, 2], [7, 7]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 49 (0-PRE-rep49.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[12, 4], [12, 4], [2, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 50 (0-PRE-rep50.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[4, 4], [4, 4], [11, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 51 (0-PRE-rep51.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[9, 1], [9, 1], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 52 (0-PRE-rep52.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[2, 2], [2, 2], [4, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 53 (0-PRE-rep53.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[13, 5], [13, 5], [3, 3]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 54 (0-PRE-rep54.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[5, 5], [5, 5], [12, 4]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 55 (0-PRE-rep55.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[3, 3], [3, 3], [13, 5]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
+===== block 0 PRE rep 56 (0-PRE-rep56.log) exit=0
+atomic=1
+{"transactional": false, "geometry": [[14, 6], [14, 6], [10, 2]], "rounds": 8192, "completed": 8192, "failures": 0, "examples": [], "errors": [], "threads_alive": false}
