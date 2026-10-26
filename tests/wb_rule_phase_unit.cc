@@ -256,10 +256,26 @@ struct CoreConcurrencyTest {
         Fixture<Fused> f;
         require(phase(f, r7) == 0, "empty fixture has no unrelated work");
         Client c(-1); f.client(c, 1); fill(c, 8, 1); f.io.enqueue_serve(&c);
-        // WB4.1 is reopened: bounded and saturated deferrals both preserve PRE work.
-        for (unsigned i = 0; i < 11; ++i)
+        for (unsigned i = 0; i < wb_rule::kCompleteVisits; ++i)
             require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0 && c.serve_pending(),
-                    "deferral alone is positive work");
+                    "advancing deferral requires another visit");
+        for (unsigned i = 0; i < 8; ++i)
+            require(phase(f, r7) == 0 && f.io.wb_.stats().serves == 0 && c.serve_pending(),
+                    "saturated deferral permits parking");
+        // A long completion spanning a park must not lengthen future busy grace.
+        wb_rule::IdleWindow idle;
+        require(!idle.active(100), "untrained IO may park");
+        idle.observe(100, true);
+        idle.observe(110, true);
+        const auto edge = 110 + 11 * wb_rule::kIdleMultiplier;
+        require(idle.active(edge - 1) && !idle.active(edge), "completion-derived grace expires");
+        idle.park();
+        require(!idle.active(110), "park ends busy grace");
+        idle.observe(1000000, false);
+        idle.observe(2000000, true);
+        require(idle.interval == 10, "parked interval excluded from learning");
+        idle.observe(2000005, true);
+        require(idle.interval == 10, "largest busy interval retained");
         for (unsigned i = 1; i < 8; ++i) c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
         phase(f, r7); // Deliberately no new request or completion enqueue.
         require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");
