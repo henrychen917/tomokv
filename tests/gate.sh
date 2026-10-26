@@ -33,6 +33,8 @@
 #   --candidate-binary bypasses only the release build; instrumented source builds still run.
 #   Such external binaries remain valid perf/iteration diagnostics but cannot earn a source receipt.
 #   GATE_ONLY_JOBS='debug-0 debug-1' selects whole jobs plus build prerequisites.
+#   GATE_NET_IO=epoll selects the engine for ordinary boots, including ASAN;
+#   explicitly parameterized engine-matrix legs retain their own selection.
 #   GATE_DIFFER_ORACLE_CORES reserves an explicit oracle CPU mask (default: slot servers).
 #   With one slot, unused selected server cores remain available to prerequisite builds.
 #   Commas are accepted too. Output is a separate PARTIAL ledger, never counted
@@ -796,6 +798,11 @@ settle(){ # after a server is gone: wait for $PORT to stop accepting, then a sho
 }
 launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
   local tag=$1 bin=$2 arg; shift 2
+  local engine_args=()
+  if [ -n "${GATE_NET_IO:-}" ]; then
+    case "$GATE_NET_IO" in epoll|uring) engine_args=(--net-io "$GATE_NET_IO");;
+      *) echo 'GATE_NET_IO must be epoll or uring' >&2; return 2;; esac
+  fi
   # Preserve the DB0 battery; explicit multi-DB rows own their image.
   local database_args=(--databases 1)
   for arg in "$@"; do
@@ -811,7 +818,7 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
   # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "$@" > "$SRVLOG" 2>&1 &
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "${engine_args[@]}" "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
