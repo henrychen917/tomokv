@@ -24,10 +24,12 @@ def main():
     guards = []
     try:
         for port in range(first, last + 1):
-            # Refuse existing sockets before enabling shared binds. Never join
-            # an unrelated listener's reuseport group or touch its process.
+            # Refuse live sockets before enabling shared binds. TIME-WAIT from
+            # a completed gate has no owner; bind itself decides whether its
+            # SO_REUSEADDR state permits reuse. Never join a live listener.
             sockets = subprocess.check_output(['ss', '-H', '-tan', f'sport = :{port}'])
-            assert not sockets.strip(), f'port {port} already has TCP state: {sockets!r}'
+            live = [row for row in sockets.splitlines() if row.split()[0] != b'TIME-WAIT']
+            assert not live, f'port {port} already has live TCP state: {live!r}'
             guard = socket.socket()
             guards.append(guard)
             guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
