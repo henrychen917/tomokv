@@ -1125,7 +1125,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl witness_contracts)
+  JOB_NAMES+=(flipctl witness_contracts reorder_bounds rob_portable layout_placement slotless wb_mixed)
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -4876,6 +4876,68 @@ job_feature_cell(){
 }
 
 # TM4.4 and HX-LB-PROBE: standing falsification suites, one row before quick exit.
+job_reorder_bounds(){
+  row_begin "R7 linear scan and lazy construction bounds (both databases)"
+  if unit_ready gaterows5-units && py tests/reorderscan_gate.py >"$TMPDIR/scan.log" 2>&1; then
+    ok "R7 linear scan and lazy construction bounds (both databases)"
+  else bad "R7 linear scan and lazy construction bounds (both databases)" "see $TMPDIR/scan.log"; fi
+}
+job_rob_portable(){
+  row_begin "ROB portable completion without BMI"
+  if unit_ready gaterows5-units && taskset -c "$CORES" build/rlfence-portable-unit >"$TMPDIR/portable.log" 2>&1; then
+    ok "ROB portable completion without BMI"
+  else bad "ROB portable completion without BMI" "see $TMPDIR/portable.log"; fi
+}
+job_layout_placement(){
+  row_begin "cross-thread heap and vector line placement"
+  if unit_ready gaterows5-units && taskset -c "$CORES" build/layout-placement >"$TMPDIR/placement.log" 2>&1; then
+    ok "cross-thread heap and vector line placement"
+  else bad "cross-thread heap and vector line placement" "see $TMPDIR/placement.log (ST4.13; production changes belong to owner)"; fi
+}
+job_slotless(){
+  local mode engine boot_fn failed rc
+  for mode in 1s 2s; do for engine in epoll uring; do
+    row_begin "slotless remote completions ($mode, $engine)"
+    failed=0
+    if unit_ready gaterows5-units; then
+      taskset -c "$CORES" build/slotless-unit >"$TMPDIR/unit-$mode-$engine.log" 2>&1 || failed=1
+      taskset -c "$CORES" build/slotless-drop-unit >"$TMPDIR/control-$mode-$engine.log" 2>&1
+      rc=$?
+      [ "$rc" = 1 ] && grep -q 'slotless completion must claim the channel' "$TMPDIR/control-$mode-$engine.log" || failed=1
+    else failed=1; fi
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --read-local 0 --enable-debug-command yes \
+        --key-lb 0 --client-lb 0 --flip-auto 0; then
+      py tests/slotless.py 127.0.0.1 "$PORT" >"$TMPDIR/live-$mode-$engine.log" 2>&1 || failed=1
+    else failed=1; fi
+    stop
+    shutdown_clean || failed=1
+    [ "$failed" = 0 ] && ok "slotless remote completions ($mode, $engine)" \
+        || bad "slotless remote completions ($mode, $engine)" "see $TMPDIR/*-$mode-$engine.log"
+  done; done
+}
+job_wb_mixed(){
+  local mode engine policy knobs small visits boot_fn failed
+  for mode in 1s 2s; do for engine in epoll uring; do
+    row_begin "writeback mixed replies and live knob bounds ($mode, $engine)"
+    failed=0
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    for policy in 0 1; do for knobs in 0:0 2:0 2:1 64:255; do
+      IFS=: read -r small visits <<< "$knobs"
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --read-local 0 --enable-debug-command yes \
+          --key-lb 0 --client-lb 0 --flip-auto 0 --zc-min 1024 \
+          --wb-policy "$policy" --wb-small-pipe "$small" --wb-complete-visits "$visits"; then
+        py tests/wb_mixed.py --port "$PORT" --policy "$policy" --small "$small" --visits "$visits" \
+            >"$TMPDIR/$mode-$engine-$policy-$small-$visits.log" 2>&1 || failed=1
+      else failed=1; fi
+      stop
+      shutdown_clean || failed=1
+    done; done
+    [ "$failed" = 0 ] && ok "writeback mixed replies and live knob bounds ($mode, $engine)" \
+        || bad "writeback mixed replies and live knob bounds ($mode, $engine)" "see $TMPDIR/$mode-$engine-*.log"
+  done; done
+}
+
 job_witness_contracts(){
   local failed=0 suite
   row_begin "witness falsification contracts (testmap + placement)"
@@ -5194,12 +5256,12 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
-      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
+      build/gaterows5-units build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in gaterows5-units expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -5286,11 +5348,11 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls|compat2|blockfix_registry) echo 'release production_units';;
+    tls|compat2|blockfix_registry|slotless) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
-    lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+    lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement|reorder_bounds|rob_portable|layout_placement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -5398,6 +5460,11 @@ collect_job wbland_units
 # gaterows: eight independent rows, all ABOVE the quick-tier exit. EXPECT stays
 # maintainer-owned: +8 quick, +8 full. The 32-cell feature product is unchanged.
 collect_job witness_contracts
+collect_job reorder_bounds
+collect_job rob_portable
+collect_job layout_placement
+collect_job slotless
+collect_job wb_mixed
 collect_job reorder_sync
 collect_job reorder_engagement
 collect_job reorder_identity

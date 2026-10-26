@@ -108,12 +108,20 @@ void lazy_passes() {
     for (uint32_t i = 0; i < 32; ++i) append(client, point);
     constructions = visits = 0;
     for (uint32_t pass = 0; pass < 20; ++pass) {
+#ifdef TOMO_REORDERSCAN_EAGER
+        ShadowDispatch dispatch(client, client.rob().dispatch_id());
+#else
         LazyShadowDispatch dispatch(client.rob().dispatch_id());
+#endif
         // Empty, incomplete, full and backpressured passes have no consumer.
     }
     require(constructions == 0 && visits == 0, "non-dispatch passes did shadow work");
     for (uint32_t i = 32; i < 64; ++i) {
+#ifdef TOMO_REORDERSCAN_EAGER
+        ShadowDispatch dispatch(client, client.rob().dispatch_id());
+#else
         LazyShadowDispatch dispatch(client.rob().dispatch_id());
+#endif
         const auto id = append(client, point);
         Task task(&client, id, -1, nullptr);
         dispatch.stamp(task);
