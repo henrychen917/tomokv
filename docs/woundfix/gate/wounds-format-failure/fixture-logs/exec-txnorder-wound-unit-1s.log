@@ -1,0 +1,2 @@
+exec-window epoch=18446744073709551615 doomed=1 terminal=0 retry=1
+PASS: wounded EXEC restarts before an aborted reply

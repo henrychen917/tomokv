@@ -1,0 +1,7 @@
+{
+  "artifacts": "build/gate-run.9SXbM8",
+  "ok": 47,
+  "fail": 4,
+  "reason": "wound fixtures stale after assertion edit; refused by make -q; rerun separately",
+  "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6"
+}

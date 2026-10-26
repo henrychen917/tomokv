@@ -15,6 +15,11 @@
       "path": "build/gate-run.BRGNQ3/jobs/production_units/blockfix-cost-build.log",
       "sha256": "e348d7bc5801035320a7e648b68bd8589176a508fa53efa36a73e1fc425be24b",
       "bytes": 206
+    },
+    {
+      "path": "build/gate-run.BRGNQ3/jobs/release/gate-build.txt",
+      "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+      "bytes": 36
     }
   ],
   "ready": [

@@ -73,7 +73,8 @@ no `atomic_txn_group_wounds` field). EXEC uses `atomic_txn_wounds`.
 ### Gate accounting
 
 Four aggregate rows are added: `txnorder wound group`, `exec`, `oom`, `d2`.
-Their `collect_job txnorder_wound` line precedes the quick-tier exit, so this
+Their `collect_job txnorder_wound` is at line 5589, before the quick-tier exit
+at line 5692 in this diff, so this
 lane is **DQ=+4, DF=+4**. No `EXPECT_QUICK` or `EXPECT_FULL` assignment is edited.
 The inherited execindex rows already require +2/+2 against the literal
 798/815: the resulting declaration totals should be **804 quick / 821 full**.
@@ -114,8 +115,10 @@ instructions/op, IPC, and rate. Do not infer throughput from serverless counts.
   h05, h06, p8g, p8s, d1g_l0, d1s_l0, m8g_l0, v1g_l0, d128g_l0,
   d32g_l1, d8s_l1, d32s_l1, x9_32_l1, x9_32_l0. Preserve their rate/latency
   score types and exact geometry/settings.
-- **2s GET and SET, p1 and p32** (four cells), same payload/client/load settings
-  on both arms.
+- **2s GET and SET, p1 and p32**: h17, h18, h49, h50 from
+  `tests/headline_cells.txt`, copied verbatim to `docs/woundfix/split4.cells.txt`.
+  Keep the gate's standard split geometry and matched payload/client/load
+  settings on both arms; retain p1 latency and p32 rate scores.
 - Repeat those comparisons on **POST-layout vs PAD-A (type A)** to separate
   behaviour from the common image's layout. Interpret this control separately
   from the release binary sizes.

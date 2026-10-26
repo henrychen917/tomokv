@@ -1,0 +1,15 @@
+PASS: D2 group foreign seam=1: read-only discard, retry version retained, count=1
+PASS: D2 EXEC foreign seam=1: no execution, retry version retained, count=1
+PASS: D2 group foreign seam=4: read-only discard, retry version retained, count=1
+PASS: D2 EXEC foreign seam=4: no execution, retry version retained, count=1
+PASS: D2 group blind seam=2: read-only discard, retry version retained, count=1
+PASS: D2 group blind seam=5: read-only discard, retry version retained, count=1
+PASS: D2 EXEC blind seam=3: no execution, retry version retained, count=1
+PASS: D2 EXEC blind seam=6: no execution, retry version retained, count=1
+PASS: D2 rank: 72 kind/phase/lexicographic age cells
+PASS: non-wound MSETNX condition remains terminal
+wound-window namespace=multi mode=2s read_done=1 pre_epoch=0 aborted=1 no_such_key=0 source_present=1 commit_accepted=0 final_epoch=18446744073709551615
+PASS: wounded placement OOM cannot accept a ticket
+exec-window epoch=18446744073709551615 doomed=1 terminal=0 retry=1
+PASS: wounded EXEC restarts before an aborted reply
+PASS: wounded NX condition restarts
