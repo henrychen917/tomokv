@@ -1790,7 +1790,11 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
     // The coordinator ran the original EVAL/FCALL handler, so its RESP (including a runtime error
     // after retained effects) is already complete. Engine refusals replace that buffer before
     // reaching retirement. Generic status bytes are the script read/write set, not WorkError.
-    if (state.kind == Kind::Script) return;
+    if (state.kind == Kind::Script) {
+        script_window_release(state);
+        script_window_refresh(*state.server, state.owner_io);
+        return;
+    }
     if (state.final_reply != FinalReply::None) {
         switch (state.final_reply) {
             case FinalReply::Ok: reply_ok(op.sink()); break;

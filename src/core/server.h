@@ -2812,6 +2812,8 @@ public:
     void note_script_window_refusal() {
         script_crossshard_window_refusals_.fetch_add(1, std::memory_order_relaxed);
     }
+    void note_script_window_wait() { script_crossshard_window_waits_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t script_crossshard_window_waits() const { return script_crossshard_window_waits_.load(); }
     void note_script_abort_oom() {
         script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -3678,6 +3680,7 @@ private:
     std::atomic<uint64_t> script_group_occ_giveups_{0};
     std::atomic<uint64_t> script_staged_bytes_total_{0};
     std::atomic<uint64_t> script_crossshard_window_refusals_{0};
+    std::atomic<uint64_t> script_crossshard_window_waits_{0};
     std::atomic<uint64_t> sort_deref_lookups_{0};
     std::atomic<uint64_t> sort_deref_refusals_{0};
     std::atomic<uint64_t> sort_scatter_general_{0};

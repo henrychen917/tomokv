@@ -498,6 +498,7 @@ struct ScatterState : SnapshotCut {
     std::atomic<bool> script_stage_limit{false};
     bool script_certifier = false;
     bool runtime_loading = false;
+    bool script_slot_live = false;
     // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
     // publishes their common ticket and owns the outer transaction decision.
     bool multi_child = false;
@@ -686,6 +687,10 @@ template <bool IofusedPrivateQueue>
 template <bool IofusedPrivateQueue>
 void txn_group_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
+[[gnu::noinline]] bool script_window_wait(Server&, uint32_t, Client&);
+[[gnu::noinline]] void script_window_admit(ScatterState&, Client*);
+[[gnu::noinline]] void script_window_release(ScatterState&);
+[[gnu::noinline]] void script_window_refresh(Server&, uint32_t);
 
 struct XshardCommitBatch {
     ScatterState* head = nullptr;
@@ -2003,14 +2008,15 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         (!force_atomic && (tracking || read_fanout) &&
          (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
          !(atomic_write && kind == Kind::Mset) && !latest_msetnx);
-    if (kind == Kind::Script &&
-        !pool.can_register_snapshot(server.script_crossshard_cut_slots())) {
-        if (routes != route_stack) delete[] routes;
-        server.note_script_window_refusal();
-        reply_err(op.sink(), "BUSY Cross-shard script snapshot window is full");
-        return ScatterPrepare::Error;
-    }
-    if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
+    if (kind == Kind::Script) {
+        if (!force_atomic && origin_client &&
+            (origin_client->rob().in_flight() != 0 ||
+             (server.multi_retry_lane(owner_io).script_admission >= 4 &&
+              !script_window_wait(server, owner_io, *origin_client)))) {
+            if (routes != route_stack) delete[] routes;
+            return ScatterPrepare::Backpressure;
+        }
+    } else if (needs_snapshot && (atomic_mode & ~Server::kAtomicEnabledBit) &&
         !pool.can_register_snapshot()) {
         if (routes != route_stack) delete[] routes;
         return ScatterPrepare::Backpressure;
@@ -2201,6 +2207,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // TEST HOOK arming for the cross-owner script GATHER wave. A script is a Write row, so it can
     // never reach the read-only arm above; it gets its own deadline, consumed in the Read phase.
     if (__builtin_expect(prepared_kind == Kind::Script, false)) {
+        if (!force_atomic) script_window_admit(*state, origin_client);
         const uint32_t stage_defer = server.debug_script_stage_defer();
         if (__builtin_expect(stage_defer != 0, false))
             state->debug_script_defer_us = stage_defer;
@@ -2238,6 +2245,10 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
 void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,
                                 uint32_t owner_io) {
     if (!state) return;
+    if (state->kind == Kind::Script) {
+        script_window_release(*state);
+        script_window_refresh(*state->server, owner_io);
+    }
     // No task was published, hence no AtomicEntry can name these counts. Clear only the pre-counted
     // phantom pins; ordinary destruction must leave installed-node lifetime accounting untouched.
     clear_unpublished_owner_record_refs(*state);
@@ -3620,6 +3631,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
 }
 
 void script_snapshot_done(Server& server, ScatterState& state) {
+    script_window_release(state);
     if (state.snapshot_registered &&
         !state.snapshot_complete.exchange(true, std::memory_order_acq_rel))
         server.note_atomic_snapshot_complete(state.owner_io);

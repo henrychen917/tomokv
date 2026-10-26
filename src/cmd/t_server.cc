@@ -2639,6 +2639,7 @@ void cmd_info(Shard&, Op& op) {
                       "script_crossshard_activations:%llu\r\nscript_group_commits:%llu\r\n"
                       "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
                       "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
+                      "script_crossshard_window_waits:%llu\r\n"
                       "script_group_aborts_oom:%llu\r\n"
                       "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
                       "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
@@ -2763,6 +2764,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->script_group_occ_giveups() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_waits() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),

@@ -63,5 +63,6 @@
 #include "multi.inc"
 #include "watch_modified.inc"
 #include "txn_group.inc"
+#include "script_escalation.inc"
 #include "auth.inc"
 #include "notify.inc"
