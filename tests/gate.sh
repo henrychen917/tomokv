@@ -4899,7 +4899,8 @@ job_reorder_bounds(){
 }
 job_rob_portable(){
   row_begin "ROB portable completion without BMI"
-  if unit_ready gaterows5-units && taskset -c "$CORES" build/rlfence-portable-unit >"$TMPDIR/portable.log" 2>&1; then
+  if unit_ready gaterows5-units && taskset -c "$CORES" build/rlfence-portable-unit >"$TMPDIR/portable.log" 2>&1 \
+      && py tests/rob_portable_control.py >>"$TMPDIR/portable.log" 2>&1; then
     ok "ROB portable completion without BMI"
   else bad "ROB portable completion without BMI" "see $TMPDIR/portable.log"; fi
 }
