@@ -32,7 +32,7 @@ static_assert(TOMO_WB_IDLE_MULTIPLIER > 0);
 
 // Learn completion intervals only within a busy split-IO tenure. A completion
 // after a park must not teach the duration of the long operation we waited for.
-// Stack-local, with the existing pass clock cut: no allocation or new clock read.
+// Stack-local, with the existing pass clock cut: no allocation or extra clock read.
 struct IdleWindow {
     uint64_t completion = 0, interval = 0, previous_pass = 0;
     bool waited = true;
