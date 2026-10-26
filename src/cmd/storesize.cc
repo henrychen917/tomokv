@@ -157,12 +157,12 @@ void FlatStore::storesize_replace(const KvObj* before, const KvObj* after) {
             const auto db = object->key_namespace();
             auto& row = state.owner[db];
             if (add) ++row.keys;
-            else { assert(row.keys); --row.keys; }
+            else { TOMO_ASSERT(row.keys); --row.keys; }
             const int64_t at = object->expire_at_ms();
             if (at >= 0) {
                 if (add) { ++row.expires; row.deadlines += static_cast<uint64_t>(at); }
                 else {
-                    assert(row.expires && row.deadlines >= static_cast<uint64_t>(at));
+                    TOMO_ASSERT(row.expires && row.deadlines >= static_cast<uint64_t>(at));
                     --row.expires; row.deadlines -= static_cast<uint64_t>(at);
                 }
             }
@@ -180,7 +180,7 @@ void FlatStore::storesize_deadline(const KvObj* object, int64_t deadline) {
         auto& row = state.owner[db];
         const int64_t old = object->expire_at_ms();
         if (old >= 0) {
-            assert(row.expires && row.deadlines >= static_cast<uint64_t>(old));
+            TOMO_ASSERT(row.expires && row.deadlines >= static_cast<uint64_t>(old));
             --row.expires; row.deadlines -= static_cast<uint64_t>(old);
         }
         if (deadline >= 0) {

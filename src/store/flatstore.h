@@ -62,7 +62,7 @@
 #pragma once
 #include <algorithm>
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -2376,7 +2376,7 @@ private:
     static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
     static uint64_t make_word(uint16_t tag, KvObj* o) {
         const uint64_t pointer = reinterpret_cast<uint64_t>(o);
-        assert((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
+        TOMO_ASSERT((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
         return (static_cast<uint64_t>(tag) << 49) | pointer;
     }
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }

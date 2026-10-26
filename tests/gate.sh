@@ -1110,7 +1110,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units acl_metadata cmd_metadata abba_selftest bugs5)
+              production_units source_identity acl_metadata cmd_metadata abba_selftest bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -1367,6 +1367,22 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
     "-luring -pthread -lssl -lcrypto" \
     src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-asan-build.txt \
     && ok "ASAN build" || bad "ASAN build" "see $TMPDIR/gate-asan-build.txt"
+}
+
+# readability-a0: one row collected before quick exit (DQ=+1, DF=+1).
+# EXPECT constants remain maintainer-owned.
+job_source_identity(){
+  local label="production source identity + stable assertion ids"
+  row_begin "$label"
+  if pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" \
+      ASSERT_LINT_JOBS="$BUILD_JOBS" build/tomo-assert-fail source-identity-check \
+      >"$TMPDIR/source-identity-build.log" 2>&1 && \
+      taskset -c "$CORES" python3 tests/tomo_assert_checks.py \
+      >"$TMPDIR/source-identity-checks.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/source-identity-build.log and $TMPDIR/source-identity-checks.log"
+  fi
 }
 
 job_config_unit(){
@@ -5341,6 +5357,7 @@ collect_job release
 
 collect_job asan
 collect_job config_unit
+collect_job source_identity
 # iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
 # wave5b: WB4.1 reopened; removed one row before quick exit (DQ=-1, DF=-1).
 collect_job iofix-hz

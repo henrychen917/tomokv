@@ -58,7 +58,16 @@ DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
-all: $(BIN)
+ASSERT_MAP := $(BUILD_ROOT)/tomokv.asserts.tsv
+ASSERT_SOURCES := $(shell find src -type f \( -name '*.h' -o -name '*.cc' -o -name '*.inc' -o -name '*.c' -o -name '*.def' \))
+
+all: $(BIN) $(ASSERT_MAP)
+
+# The source map is a build artifact: duplicate ids or a Python/C++ hash mismatch
+# fail make all. Its mtime also participates in make -q freshness checks.
+$(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) Makefile
+	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
+
 
 # Wave 7: compile-only per-unit trials in docs/wave7/budgets and
 # docs/wave7/budgets-dispatch preserve headline or lane POST hot bodies where
@@ -477,6 +486,14 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+build/tomo-assert-fail: tests/tomo_assert_fail.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+ASSERT_LINT_JOBS ?= 1
+.PHONY: source-identity-check
+source-identity-check:
+	python3 tools/source_identity.py --cxx "$(CXX)" --flags "$(CXXFLAGS) $(JEFLAGS)" --jobs $(ASSERT_LINT_JOBS) --sources $(SRC) $(SERVER_ONLY_SRC)
+
 build/rlfix3-info-unit: build/tests/rlfix3_info_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=clock_gettime,--wrap=getpid,--wrap=getrandom,--wrap=realpath,--wrap=mallctl,--wrap=time
