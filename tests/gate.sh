@@ -5858,7 +5858,7 @@ if [ "$RECEIPT_REQUIRED" = 1 ]; then
     # override. Re-reading a mutable default could certify or reject against another control.
     python3 tests/gate_receipt.py finish --start "$RECEIPT_START" --gate-result "$RUN_DIR/gate-result.json" \
         --ledger "$LEDGER" --observations "$ROW_HISTORY/row-observations.jsonl" \
-        --abba-result "$ABBA_OUTPUT/results.json" \
+        --abba-result "$ABBA_OUTPUT/results.json" --product-result "$ABBA_OUTPUT/product.json" \
         --null-result "$ABBA_OUTPUT/null-control.json" || RECEIPT_RC=1
   else
     echo "GATE RECEIPT WITHHELD: start/binding evidence was unavailable; full gate work has completed; see $RUN_DIR/receipt-begin.log" >&2

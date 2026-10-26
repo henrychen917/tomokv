@@ -174,6 +174,8 @@ def run_gate(argv):
 
     old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
     statuses = []
+    primary = parse_abba(argv)
+    product = dict(schema=1, complete=False, passes=[])
     try:
         for name, arguments in commands:
             print(f"GATE measurement pass: {name}", flush=True)
@@ -183,7 +185,17 @@ def run_gate(argv):
                                       cwd=ROOT, start_new_session=True)
             rc = active.wait()
             statuses.append(dict(pass_name=name, exit_code=rc))
+            args = parse_abba(arguments)
+            row = dict(statuses[-1])
+            if args.output is not None:
+                from gate_product_evidence import artifact
+                for key, filename in (("report", "results.json"), ("null", "null-control.json")):
+                    path = args.output / filename
+                    if path.is_file():
+                        row[key] = artifact(path)
+            product["passes"].append(row)
             active = None
+        product["complete"] = True
         print("GATE measurement passes: " + json.dumps(statuses), flush=True)
         return 1 if any(row["exit_code"] not in (0, 3) for row in statuses) else (
             3 if any(row["exit_code"] == 3 for row in statuses) else 0)
@@ -197,6 +209,9 @@ def run_gate(argv):
                 active.wait()
         for sig, handler in old.items():
             signal.signal(sig, handler)
+        if primary.output is not None:
+            primary.output.mkdir(parents=True, exist_ok=True)
+            (primary.output / "product.json").write_text(json.dumps(product, indent=2) + "\n")
 
 
 def smoke(args):

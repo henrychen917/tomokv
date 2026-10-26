@@ -1,0 +1,63 @@
+{
+  "argv": [
+    "tests/gate_measurements.py",
+    "--self-test"
+  ],
+  "affinity": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "seconds": 2.640111818909645,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_calibration_import_replays_evidence_and_rejects_mutations",
+      "seconds": 1.0911033554002643
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_fast_calibration_import_is_pin_only_and_replays_every_rung",
+      "seconds": 1.0460271136835217
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_geometry_changes_invalidate",
+      "seconds": 0.027518524788320065
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_historical_unknown_geometry_cannot_pin",
+      "seconds": 0.02731494326144457
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_ratio_has_no_core_count_fallback",
+      "seconds": 0.027384033426642418
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_reference_digest_mutation_fails",
+      "seconds": 0.02792312204837799
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_shape_changes_invalidate_every_axis",
+      "seconds": 0.051475632935762405
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_unknown_fields_and_missing_provenance_fail",
+      "seconds": 0.10343295242637396
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_value_sizes_cannot_share_a_load_floor",
+      "seconds": 0.05167287588119507
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_variance_pin_schema_rejects_hand_edited_count_limits_and_evidence",
+      "seconds": 0.13755887746810913
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_workload_code_change_invalidates_unchanged_cell_flags",
+      "seconds": 0.02766053844243288
+    }
+  ]
+}

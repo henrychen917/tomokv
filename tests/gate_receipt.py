@@ -241,7 +241,16 @@ def inventory(root, path):
             required.add((mode, 1, 0, 1, op, 8, 512, 0, "-"))
         for ro in (0, 1):
             required.add((mode, 0, 0, ro, "REORDER", 8, 512, 1, "8:2"))
-    require(required <= actual, f"full inventory retired {len(required - actual)} required cell geometries")
+    if path.name == "netio_cells.txt":
+        # The companion is the exact 32-cell transport product, not the full
+        # headline cross product. Compare DATA bytes, retaining independent pins.
+        originals = [line for line in (root / "tests/headline_cells.txt").read_text().splitlines()
+                     if line.split(" |", 1)[0] in {f"h{i:02}" for i in range(1, 33)}]
+        expected = [line.replace(" |", "-epoll |", 1) + " | srv=--net-io epoll" for line in originals]
+        lines = [line for line in path.read_text().splitlines() if line.strip() and not line.lstrip().startswith("#")]
+        require(len(expected) == 32 and lines == expected, "epoll inventory is not the exact 32-cell product")
+    else:
+        require(required <= actual, f"full inventory retired {len(required - actual)} required cell geometries")
     for cell in cells:
         require(saturation_exempt(cell) or cell.get("instances", 0) > 0,
                 f"{cell['id']}: unmeasured load floor; re-pin with --escalate before certification")
@@ -279,7 +288,7 @@ def current_campaign(root, campaign):
     require(campaign.get("schema") == 1 and campaign.get("kind") == "frozen-null-campaign",
             "missing frozen null campaign")
     require(campaign["instrument"] == instrument_fingerprint(root), "campaign instrument/runtime changed")
-    require(campaign["inventory"] == inventory(root, root / "tests/headline_cells.txt"),
+    require(campaign["inventory"] == inventory(root, root / campaign["inventory"]["path"]),
             "campaign inventory/imported plans changed")
     require(campaign["measurements_sha256"] == digest((root / "tests/gate_measurements.json").read_bytes()),
             "campaign imported runtime inputs changed")
@@ -325,7 +334,7 @@ def freeze_null(root, args):
     validate_fast_calibration(calibration, fingerprint)
     require(calibration.get("subset") == "full" and not calibration.get("only"),
             "freeze requires a completed full calibration")
-    inv = inventory(root, root / "tests/headline_cells.txt")
+    inv = inventory(root, getattr(args, "cells", None) or root / "tests/headline_cells.txt")
     require(calibration["cell_source"]["sha256"] == inv["sha256"] and
             calibration["cell_source"]["total_cells"] == inv["count"] and
             [row["cell"]["id"] for row in calibration["cells"]] == [cell["id"] for cell in inv["cells"]] and
@@ -536,6 +545,7 @@ def begin(root, args):
              "started_at": time.time(), "source": source, "harness": harness_from_source(source),
              "instrument": instrument,
              "inventory": inventory(root, args.cells.resolve()), "expected_checks": count,
+             "product_inventory": inventory(root, root / "tests/netio_cells.txt"),
              "expected_labels": [r["label"] for r in baseline], "nic": nic,
              "baseline": baseline_identity, "withheld_reason": withheld}
     path = directory / "runs" / args.run_id / "start.json"
@@ -552,6 +562,8 @@ def load_start(root, path):
             "measurement instrument/runtime changed since gate start")
     require(source_fingerprint(root) == state["source"], "source contents/modes changed since gate start")
     require(inventory(root, root / state["inventory"]["path"]) == state["inventory"], "cell inventory changed")
+    require(inventory(root, root / "tests/netio_cells.txt") == state.get("product_inventory"),
+            "epoll product inventory changed or missing")
     require(expected_count(root, state["nic"]) == state["expected_checks"], "gate row count changed")
     require(state.get("withheld_reason") or len(state["expected_labels"]) == state["expected_checks"] and
             state["expected_labels"].count(ABBA_LABEL) == 1, "start has incomplete expected row inventory")
@@ -658,9 +670,12 @@ def finish(root, args):
     require(started + 1 >= candidate["bound_at"], "ABBA predates this candidate binding")
     validate_abba(control, state, now=ended, null=True)
     validate_comparison(report, control, now=ended)
+    from gate_product_evidence import read_product, validate_product
+    product = read_product(args.product_result)
+    validate_product(root, product, state, report, control, candidate, ended)
     require(source_fingerprint(root) == state["source"], "source changed while validating gate evidence")
     evidence = {"start": state, "candidate": candidate, "coordinator": completed,
-                "ledger": actual, "observations": observed, "abba": report, "null": control}
+                "ledger": actual, "observations": observed, "abba": report, "null": control, "product": product}
     # Retain evidence locally so a later run rotating build/ logs cannot turn the hook into either
     # a false acceptance or a false rejection. This is an audit receipt, not a signature against a
     # malicious owner rewriting local files or bypassing Git hooks with --no-verify.
@@ -747,6 +762,9 @@ def validate_receipt(root, path, source):
     begin_at, environment = validate_abba(evidence["abba"], state, now=completed["finished_at"], candidate=binary)
     validate_abba(evidence["null"], state, now=completed["finished_at"], null=True)
     validate_comparison(evidence["abba"], evidence["null"], now=completed["finished_at"])
+    from gate_product_evidence import validate_product
+    validate_product(root, evidence.get("product"), state, evidence["abba"], evidence["null"],
+                     binary, completed["finished_at"])
     require(evidence["null"]["candidate"]["sha256"] == receipt["null_control_sha256"], "receipt null arms differ")
     require(begin_at + 1 >= binary["bound_at"], "receipt ABBA predates the candidate binding")
     require(object_file(root / binary["path"]) == ("100755", binary["sha256"]), "receipt candidate binary changed or is missing")
@@ -827,6 +845,8 @@ def self_test():
 
     class Controls(unittest.TestCase):
         def setUp(self):
+            from _abba_test_fixtures import compact_json_fixture
+            compact_json_fixture(self)
             (ROOT / "build").mkdir(exist_ok=True)
             self.temp = tempfile.TemporaryDirectory(prefix="receipt-self-test-", dir=ROOT / "build")
             self.addCleanup(self.temp.cleanup)
@@ -841,6 +861,8 @@ def self_test():
             (self.root / ".gitignore").write_text("/build/\n/.gate-history/\n__pycache__/\n")
             (self.root / "tests/gate.sh").write_text(f"EXPECT_FULL={expected_count(ROOT, False)}\n")
             (self.root / "tests/headline_cells.txt").write_text(fixture_cells())
+            shutil.copyfile(ROOT / "tests/netio_cells.txt", self.root / "tests/netio_cells.txt")
+            shutil.copyfile(ROOT / "tests/gate_product_evidence.py", self.root / "tests/gate_product_evidence.py")
             shutil.copyfile(__file__, self.root / "tests/gate_receipt.py")
             shutil.copyfile(ROOT / "tests/abba_evidence.py", self.root / "tests/abba_evidence.py")
             for entry in instrument_fingerprint(ROOT)["entries"]:
@@ -851,7 +873,7 @@ def self_test():
             config["load_floors"] = {}
             config["ceiling_loads"] = {}
             fixture_instrument = instrument_fingerprint(self.root)["sha256"]
-            for cell in read_cells(ROOT / "tests/headline_cells.txt"):
+            for cell in read_cells(ROOT / "tests/headline_cells.txt") + read_cells(ROOT / "tests/netio_cells.txt"):
                 if not saturation_exempt(cell):
                     config["load_floors"][cell.id] = dict(instances=1, shape=shape(cell), status="calibrated",
                         geometry=dict(server_physical=[0, 1], server_smt=[], load_physical=[2, 3],
@@ -890,6 +912,10 @@ def self_test():
             self.binding = read_json(self.start.parent / "candidate.json")
             self.report = self.make_report(self.start_time + 100, self.binding["sha256"], "b" * 64)
             self.control = self.make_report(self.start_time - 18000, "a" * 64, "a" * 64, is_null=True)
+            self.epoll_report = self.make_report(self.start_time + 100, self.binding["sha256"], "b" * 64,
+                                                companion=True)
+            self.epoll_control = self.make_report(self.start_time - 18000, "a" * 64, "a" * 64,
+                                                 is_null=True, companion=True)
             ended = self.start_time + 16200
             self.completed = dict(schema=1, run_id="fixture", tier="push", completed=True, verdict="PASS",
                                   exit_code=0, started_at=self.start_time, finished_at=ended, checks=expected_count(ROOT, False),
@@ -902,13 +928,15 @@ def self_test():
                              enumerate(ledger_rows(self.ledger, passing=True))]
             self.finish_args = argparse.Namespace(start=self.start, ledger=self.ledger,
                 observations=self.root / "build/observations.jsonl", gate_result=self.root / "build/gate.json",
-                abba_result=self.root / "build/abba.json", null_result=self.root / "build/null.json")
+                abba_result=self.root / "build/abba.json", null_result=self.root / "build/null.json",
+                product_result=self.root / "build/product.json")
             self.save_results()
 
-        def make_report(self, started, candidate, reference, *, is_null=False):
+        def make_report(self, started, candidate, reference, *, is_null=False, companion=False):
             from _abba_test_fixtures import saturation_record, quiet_record
+            inv = self.state["product_inventory" if companion else "inventory"]
             rows = []
-            for cell in self.state["inventory"]["cells"]:
+            for cell in inv["cells"]:
                 runs = [dict(arm=arm, complete=True, artifacts=f"{cell['id']}/n1-{i}-{arm}", pid=100 + i,
                              rate=100., latency_ms=1., p999_ms=2., long_p999_ms=3., commands=2000,
                              midpoint_monotonic=11,
@@ -922,9 +950,9 @@ def self_test():
                 started_utc=datetime.fromtimestamp(started, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 elapsed_seconds=16000., window_seconds=20, receipt_harness_sha256=self.state["harness"]["sha256"],
                 instrument_fingerprint=copy.deepcopy(self.state["instrument"]),
-                cell_source=dict(sha256=self.state["inventory"]["sha256"], total_cells=len(rows),
-                                 text=(self.root / "tests/headline_cells.txt").read_text()),
-                coverage=dict(ids=[c["id"] for c in self.state["inventory"]["cells"]], count=len(rows), pending_pins=[]),
+                cell_source=dict(sha256=inv["sha256"], total_cells=len(rows),
+                                 text=(self.root / inv["path"]).read_text()),
+                coverage=dict(ids=[c["id"] for c in inv["cells"]], count=len(rows), pending_pins=[]),
                 candidate=dict(sha256=candidate), reference=dict(sha256=reference),
                 environment=dict(port=8700, python_runtime=copy.deepcopy(self.state["instrument"]["python"]),
                                  server_cpus=[0, 1], load_cpus=[2, 3], server_physical=[0, 1],
@@ -948,6 +976,55 @@ def self_test():
             write_json(self.finish_args.abba_result, self.report)
             write_json(self.finish_args.null_result, self.control)
             self.finish_args.observations.write_text("".join(json.dumps(row) + "\n" for row in self.observed))
+            from gate_product_evidence import artifact
+            try:
+                self.epoll_report["standing_null"] = match_null(self.epoll_report, self.epoll_control, now=time.time())
+            except ValueError:
+                pass
+            rows = []
+            for name, report, control in (("headline", self.report, self.control),
+                                          ("epoll", self.epoll_report, self.epoll_control)):
+                paths = [self.root / f"build/product-{name}-{kind}.json" for kind in ("report", "null")]
+                for path, value in zip(paths, (report, control)):
+                    write_json(path, value)
+                rows.append(dict(pass_name=name, exit_code=0, report=artifact(paths[0]), null=artifact(paths[1])))
+            write_json(self.finish_args.product_result, dict(schema=1, complete=True, passes=rows))
+
+        def test_full_product_retains_and_replays_both_passes(self):
+            self.receipt = finish(self.root, self.finish_args)
+            retained = read_json(self.receipt.parent / "evidence.json")
+            self.assertEqual([len(row["report"]["cells"]) for row in retained["product"]["passes"]], [181, 32])
+            from gate_product_evidence import validate_product
+            valid = retained["product"]
+            mutations = {
+                "missing companion": lambda p: p["passes"].pop(),
+                "failed companion": lambda p: p["passes"][1].update(exit_code=1),
+                "wrong null": lambda p: p["passes"][1].update(null=self.control),
+                "missing cell": lambda p: p["passes"][1]["report"]["cells"].pop(),
+                "untrusted": lambda p: p["passes"][1]["report"].update(comparison_trusted=False),
+                "incomplete raw run": lambda p: p["passes"][1]["report"]["cells"][0]["rounds"][0]["runs"][0].update(complete=False),
+                "wrong binary": lambda p: p["passes"][1]["report"]["candidate"].update(sha256="f" * 64),
+            }
+            for name, mutate in mutations.items():
+                broken = copy.deepcopy(valid); mutate(broken)
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    validate_product(self.root, broken, self.state, self.report, self.control,
+                                     self.binding, self.completed["finished_at"])
+            # A recomputed outer digest must not hide missing raw companion proof.
+            retained.pop("product")
+            evidence_path = self.receipt.parent / "evidence.json"
+            write_json(evidence_path, retained)
+            saved = read_json(self.receipt); saved["evidence_sha256"] = digest(evidence_path.read_bytes())
+            write_json(self.receipt, saved)
+            with self.assertRaisesRegex(ValueError, "product evidence"):
+                validate_receipt(self.root, self.receipt, self.state["source"])
+
+        def test_aggregate_zero_without_product_cannot_issue_receipt(self):
+            product = read_json(self.finish_args.product_result)
+            product["passes"].pop()
+            write_json(self.finish_args.product_result, product)
+            with self.assertRaisesRegex(ValueError, "both successful"):
+                finish(self.root, self.finish_args)
 
         def certify_and_commit(self):
             self.receipt = finish(self.root, self.finish_args)
@@ -1208,6 +1285,10 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             self.completed["run_id"] = self.args.run_id
             self.report = self.make_report(self.start_time + 100, self.binding["sha256"], "b" * 64)
             self.control = self.make_report(self.start_time - 18000, "a" * 64, "a" * 64, is_null=True)
+            self.epoll_report = self.make_report(self.start_time + 100, self.binding["sha256"], "b" * 64,
+                                                companion=True)
+            self.epoll_control = self.make_report(self.start_time - 18000, "a" * 64, "a" * 64,
+                                                 is_null=True, companion=True)
             for row in self.observed:
                 row["run_id"] = self.args.run_id
             self.save_results()
@@ -1422,6 +1503,7 @@ def main():
     frozen = sub.add_parser("freeze-null", help="freeze current runtime inputs after full calibration/import")
     frozen.add_argument("--calibration", type=Path, required=True)
     frozen.add_argument("--output", type=Path, required=True)
+    frozen.add_argument("--cells", type=Path, default=ROOT / "tests/headline_cells.txt")
     frozen.add_argument("--reorder-controls", type=Path,
                         help="immutable read-local control receipt collected before calibration")
     promotion = sub.add_parser("promote-null", help="explicit local standing-null promotion, never a gate receipt")
@@ -1463,7 +1545,7 @@ def main():
     binding.add_argument("--start", type=Path, required=True)
     binding.add_argument("--candidate", type=Path, required=True)
     final = sub.add_parser("finish")
-    for name in ("start", "gate-result", "ledger", "observations", "abba-result", "null-result"):
+    for name in ("start", "gate-result", "ledger", "observations", "abba-result", "null-result", "product-result"):
         final.add_argument("--" + name, type=Path, required=True)
     completed = sub.add_parser("coordinator")
     completed.add_argument("--start", type=Path)

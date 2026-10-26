@@ -47,3 +47,14 @@ def workload_record(cell):
         workload_witness=require_workload_witness(cell, before, after, mode, mode),
         whole_run_commandstats_before=before, whole_run_commandstats_after=after, memtier=totals,
         whole_run_accounting=require_workload_accounting(cell, before, after, totals))
+def compact_json_fixture(test):
+    """Keep every serialized field/checksum; omit cosmetic fixture indentation."""
+    import json
+    from unittest import mock
+    original = json.dumps
+    def compact(*args, **kwargs):
+        kwargs.pop("indent", None)
+        return original(*args, **kwargs)
+    patcher = mock.patch.object(json, "dumps", side_effect=compact)
+    patcher.start()
+    test.addCleanup(patcher.stop)

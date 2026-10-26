@@ -283,6 +283,8 @@ class PromotionControls(unittest.TestCase):
         cls.tmp.cleanup()
 
     def setUp(self):
+        from _abba_test_fixtures import compact_json_fixture
+        compact_json_fixture(self)
         receipt.write_json(self.source, self.report)
         self.standing.parent.mkdir(parents=True, exist_ok=True)
         receipt.write_json(self.standing, self.report)
@@ -474,6 +476,37 @@ class PromotionControls(unittest.TestCase):
             receipt.freeze_null(self.root, args)
             self.assertEqual(receipt.read_json(args.output)['reorder_controls'], binding)
             with self.assertRaises((ValueError, FileExistsError)): receipt.freeze_null(self.root, args)
+        finally:
+            config_path.write_bytes(original)
+
+    def test_epoll_companion_calibrates_freezes_and_checks_its_own_inventory(self):
+        path = self.root / 'tests/netio_cells.txt'
+        shutil.copy2(ROOT / 'tests/netio_cells.txt', path)
+        self.addCleanup(path.unlink)
+        cells = abba.read_cells(path)
+        fast = fixture_report(cells, self.fp, self.env, path.read_text(), self.started, self.binary, fast=True)
+        for row in fast['cells']:
+            for block in row['rounds']:
+                for run in block['runs']:
+                    run['server_argv'] = ['fixture-server', '--net-io', 'epoll']
+        calibration = self.root / 'build/epoll-calibration.json'
+        receipt.write_json(calibration, fast)
+        config_path = self.root / 'tests/gate_measurements.json'
+        original = config_path.read_bytes()
+        try:
+            config = fixture_measurements(config_path)
+            measurements.import_calibration(calibration, config, cells)
+            receipt.write_json(config_path, config)
+            args = argparse.Namespace(calibration=calibration, cells=path,
+                                      output=self.root / 'build/epoll-freeze.json')
+            receipt.freeze_null(self.root, args)
+            campaign = receipt.read_json(args.output)
+            self.assertEqual(campaign['inventory']['count'], 32)
+            self.assertEqual(campaign['inventory']['path'], 'tests/netio_cells.txt')
+            receipt.current_campaign(self.root, campaign)
+            path.write_text(path.read_text().replace('--net-io epoll', '--net-io uring', 1))
+            with self.assertRaisesRegex(ValueError, 'epoll inventory'):
+                receipt.current_campaign(self.root, campaign)
         finally:
             config_path.write_bytes(original)
 
