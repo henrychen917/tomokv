@@ -1861,7 +1861,7 @@ void finalize_reservations(MultiExecState& state, Shard& shard,
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
 
-void finish_command(MultiCommand& command, uint32_t stage, uint32_t owner_thread_id) {
+void finish_command(MultiCommand& command, uint32_t stage, uint32_t /*owner_thread_id*/) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {

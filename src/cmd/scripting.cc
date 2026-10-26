@@ -659,7 +659,7 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                 } else {
                     if (logical_write) context->persistence_write_started = true;
                     const uint32_t executor = server ? server->worker_of_shard(context->shard->id()) : 0;
-                    LatencyTrackingScope latency(executor, nested);
+                    LatencyTrackingScriptCall latency(executor, *context->parent, nested);
                     spec->handler(*context->shard, nested);
                 }
                 if (context->notify)
@@ -1274,6 +1274,7 @@ FunctionMemoryScope::~FunctionMemoryScope() {
 }
 
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
+    latency_tracking_script_begin(op);
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};

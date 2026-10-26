@@ -76,6 +76,9 @@ struct alignas(64) ExecutorHistograms {
     std::mutex mutex;
     Histograms values;
     std::map<const Op*, uint64_t> pending;
+    // Nested Ops are stack objects. Keep metadata and duration, never their
+    // addresses, until the outer script's accepted attempt retires.
+    std::map<const Op*, std::vector<std::pair<uint32_t, uint64_t>>> script_children;
 };
 struct Slot { alignas(64) std::atomic<ExecutorHistograms*> value{nullptr}; };
 std::array<Slot, kMaxThreads> stores{};
@@ -103,6 +106,12 @@ Histograms collect() {
         for (const auto& [id, histogram] : value->values) result[id].merge(histogram);
     }
     return result;
+}
+void retire_script_children(ExecutorHistograms& local, const Op& op) {
+    const auto row = local.script_children.find(&op);
+    if (row == local.script_children.end()) return;
+    for (const auto& [id, ns] : row->second) local.values[id].add((ns / 1000) * 1000);
+    local.script_children.erase(row);
 }
 void reply_histogram(Op& op, uint32_t id, const Histogram& histogram) {
     const auto* metadata = command_metadata_at(id);
@@ -226,6 +235,9 @@ void latency_tracking_retire(uint32_t executor, const Op& op) {
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
+        if (auto* server = command_server(); server && server->latency_tracking())
+            retire_script_children(*local, op);
+        else local->script_children.erase(&op);
         const auto row = local->pending.find(&op);
         if (row == local->pending.end()) continue;
         duration += row->second;
@@ -260,6 +272,7 @@ void latency_tracking_forget(const Op& op) {
         if (!local) continue;
         std::lock_guard lock(local->mutex);
         local->pending.erase(&op);
+        local->script_children.erase(&op);
     }
 }
 void latency_tracking_forget_client(Client& client) {
@@ -267,8 +280,10 @@ void latency_tracking_forget_client(Client& client) {
         auto* local = slot.value.load(std::memory_order_acquire);
         if (!local) continue;
         std::lock_guard lock(local->mutex);
-        for (uint32_t i = 0; i < kRobWindow; ++i)
+        for (uint32_t i = 0; i < kRobWindow; ++i) {
             local->pending.erase(&client.rob().at(i));
+            local->script_children.erase(&client.rob().at(i));
+        }
     }
 }
 void latency_tracking_discard_pending() {
@@ -277,7 +292,32 @@ void latency_tracking_discard_pending() {
         if (!local) continue;
         std::lock_guard lock(local->mutex);
         local->pending.clear();
+        local->script_children.clear();
     }
+}
+
+void latency_tracking_script_begin(const Op& parent) {
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    // OCC certification can replay even disjoint scripts. Only the last
+    // activation's nested calls belong to the externally visible execution;
+    // the parent's active slices still include all retry work.
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        local->script_children.erase(&parent);
+    }
+}
+void latency_tracking_script_part(uint32_t executor, const Op& parent,
+                                  const Op& child, uint64_t started) {
+    if (!started) return;
+    const uint64_t duration = now_ns() - started;
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    const auto* metadata = command_metadata_resolve(const_cast<Op&>(child), 0);
+    if (!metadata || !command_metadata_arity_ok(*metadata, child.argc())) return;
+    auto& local = store(executor);
+    std::lock_guard lock(local.mutex);
+    local.script_children[&parent].emplace_back(command_metadata_index(*metadata), duration);
 }
 
 uint64_t latency_tracking_start() {
@@ -299,6 +339,7 @@ void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_
     if (!metadata || !command_metadata_arity_ok(*metadata, op.argc())) return;
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
+    retire_script_children(local, op);
     // Redis's timer produces integral microseconds before conversion to nanoseconds.
     local.values[command_metadata_index(*metadata)].add((duration_ns / 1000) * 1000);
 }

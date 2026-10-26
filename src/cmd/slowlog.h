@@ -143,6 +143,9 @@ void latency_tracking_retry(const Op& previous, const Op& next);
 void latency_tracking_forget(const Op& op);
 void latency_tracking_forget_client(Client& client);
 void latency_tracking_discard_pending();
+void latency_tracking_script_begin(const Op& parent);
+void latency_tracking_script_part(uint32_t executor, const Op& parent,
+                                  const Op& child, uint64_t started);
 struct LatencyTrackingPart {
     uint32_t executor;
     const Op* op;
@@ -162,6 +165,17 @@ struct LatencyTrackingScope {
     LatencyTrackingScope(uint32_t owner, const Op& command)
         : executor(owner), op(command), started(latency_tracking_start()) {}
     ~LatencyTrackingScope() { latency_tracking_finish(executor, op, started); }
+};
+struct LatencyTrackingScriptCall {
+    uint32_t executor;
+    const Op& parent;
+    const Op& child;
+    uint64_t started;
+    LatencyTrackingScriptCall(uint32_t owner, const Op& script, const Op& command)
+        : executor(owner), parent(script), child(command), started(latency_tracking_start()) {}
+    ~LatencyTrackingScriptCall() {
+        latency_tracking_script_part(executor, parent, child, started);
+    }
 };
 
 // How many batches stay in per-op timing after an overrun.
