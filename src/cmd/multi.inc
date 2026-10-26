@@ -277,8 +277,11 @@ uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
             decision.owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
         return epoch;
     }
-    if (!epoch && decision.epoch.compare_exchange_strong(
-            epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
+    if (!epoch) decision.epoch.compare_exchange_strong(
+        epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel);
+    if (!epoch || epoch == kAtomicCancelledEpoch) {
+        // The caller owns the successful blind-restart phase CAS. Count it
+        // even when the last placer completed cancellation in the phase gap.
         auto& state = *decision.owner;
         state.server->note_txn(state.server->worker_of_shard(shard), cause);
         decision.aborted.store(true, std::memory_order_release);
@@ -1814,7 +1817,14 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
                                                              std::memory_order_acq_rel))
                 state.server->note_txn(state.server->worker_of_shard(shard.id()),
                                        state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
-            else state.decision.aborted.store(true, std::memory_order_release);
+            else {
+                // Finish an observed wound before the finalizer can mistake
+                // it for a terminal execution error at undecided epoch zero.
+                uint64_t zero = 0;
+                state.decision.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                             std::memory_order_acq_rel);
+                state.decision.aborted.store(true, std::memory_order_release);
+            }
         }
         state.watch_phase_done.store(true, std::memory_order_release);
     }
@@ -3255,12 +3265,13 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
     if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,
                                              std::memory_order_acq_rel)) return false;
     uint64_t zero = 0;
-    if (holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
-                                             std::memory_order_acq_rel)) {
-        server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
-            ? TxnCounter::Wounds : TxnCounter::GroupWounds);
-        holder.aborted->store(true, std::memory_order_release);
-    }
+    // The successful phase CAS is the wound. A victim can complete the epoch
+    // CAS first; that must neither lose the count nor suppress the abort store.
+    server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
+        ? TxnCounter::Wounds : TxnCounter::GroupWounds);
+    holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                         std::memory_order_acq_rel);
+    holder.aborted->store(true, std::memory_order_release);
     return true;
 }
 }

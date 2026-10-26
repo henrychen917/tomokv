@@ -147,13 +147,14 @@ bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
         if (attempt->phase.compare_exchange_strong(placing, TxnPhase::Wounded,
                                                    std::memory_order_acq_rel)) {
             uint64_t zero = 0;
-            if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
-                                                    std::memory_order_acq_rel)) {
-                state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
-                attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
-                    uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
-                state.aborted.store(true, std::memory_order_release);
-            }
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
+            // The phase CAS owns this restart even if the last placer helped
+            // cancel the epoch while this owner was descheduled.
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::BlindRestarts);
+            attempt->retry_after_ns = now_ns() + std::min(kTxnRetryBackoffMax,
+                uint64_t{1000} << std::min(attempt->attempt, uint32_t{10}));
+            state.aborted.store(true, std::memory_order_release);
         }
         return false;
     }
@@ -182,6 +183,11 @@ bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
         TxnPhase placing = TxnPhase::Placing;
         if (!attempt->phase.compare_exchange_strong(placing, TxnPhase::Executing,
                                                     std::memory_order_acq_rel)) {
+            // A wound publishes phase before epoch. Complete its cancellation
+            // before any completion/commit consumer can see a terminal abort.
+            uint64_t zero = 0;
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
             state.aborted.store(true, std::memory_order_release);
             return false;
         }
