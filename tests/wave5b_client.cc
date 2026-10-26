@@ -45,7 +45,9 @@ int main(int argc, char** argv) try {
     require(argc == 4, "usage: client PORT MGET|MSET REQUESTS_PER_CONNECTION");
     int port = std::stoi(argv[1]), count = std::stoi(argv[3]);
     std::string command = argv[2];
-    require(port >= 26800 && port <= 26899, "port outside lane");
+    // The caller owns its lane's port allocation; this reusable driver only
+    // accepts a valid explicit loopback TCP port.
+    require(port > 0 && port <= 65535, "invalid TCP port");
     require(command == "MGET" || command == "MSET", "unknown command");
     require(count > 0 && count % 8 == 0, "request count must be a positive multiple of depth 8");
     constexpr int connections = 64, depth = 8;

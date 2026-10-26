@@ -119,6 +119,9 @@ def prepare(args):
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir/(args.arm+'-instrumentation.json')).write_text(json.dumps(dict(ref=args.ref, revert=args.revert,
         multiplier=args.multiplier, source=str(source), hook=HOOK, patches=patches), indent=2)+'\n')
+    if args.prepare_only:
+        print(json.dumps(dict(arm=args.arm, source=str(source), patches=len(patches))), flush=True)
+        return
     with (BUILD/(args.arm+'-build.log')).open('w') as log:
         subprocess.run(['taskset','-c',args.build_cores,'make',f'-j{args.jobs}','all'], cwd=source,
                        stdout=log, stderr=subprocess.STDOUT, check=True)
@@ -209,6 +212,7 @@ if __name__ == '__main__':
     b.add_argument('--multiplier', type=int, choices=(2,4,8))
     b.add_argument('--build-cores', default='64-111'); b.add_argument('--jobs', type=int, default=32)
     b.add_argument('--output-dir', type=Path, default=DOC)
+    b.add_argument('--prepare-only', action='store_true', help='validate and write the copied source without building')
     r=sub.add_parser('run'); r.add_argument('--arms',nargs='+',required=True); r.add_argument('--name',required=True)
     r.add_argument('--repeats',type=int,default=3); r.add_argument('--requests',type=int,default=2048)
     r.add_argument('--server-cores', default='64-71'); r.add_argument('--load-cores', default='72-111')
