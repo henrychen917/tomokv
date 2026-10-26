@@ -143,3 +143,17 @@ listeners; the tool-launcher ancestor processes are explicitly excluded.
 The separately assigned AT4-WOUND-1 serverless diagnostic remains a documented
 non-gate failure inherited from execindex. It is not converted to a gate pass,
 suppressed, or repaired here.
+
+Final lane batch: **31 ok, 0 FAIL**, 668.9 s, frozen POST unchanged
+(`docs/wave8/jobs/final-lanes.json`). This includes every new lane row, all
+source/C assertion checks, R7's 326-group inventory and negative controls,
+execfair's complete eight legs and directed retry witnesses, claim-index
+oracle/complexity, WATCH and retry wakeups. Final command provenance verifies
+all 492 actually executed PRE/POST bodies with zero unexplained differences.
+
+Shared instrumented builds run serially. Subsequent independent whole gate jobs
+use three disjoint eight-core server allocations; each retains its own ten-port
+range. The ASAN binary is copied after its build and passed through the gate's
+existing `GATE_ASAN_BINARY` partial-job interface, preventing concurrent cache
+relinking of a running binary. The self-test and direct Python harness test run
+after all live correctness jobs finish.

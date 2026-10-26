@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "source_identity lualibs latencyfix_grammar latencyfix_shape latencyfix_off iofix-deferred iofix-hz iofix-sleep iofix-signal execfair txnorder_index txnorder2 txnorder_wake reorder_identity",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8/docs/wave8/jobs/final-lanes.tsv"
+  },
+  "binary_sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359",
+  "source_commit": "43bdb7850fca3eefae9b4306a8032992cb2dd517",
+  "gate_sha256": "74f8bbc4cc94072ed894c65b1ddc9f4035bfcb4e8c74321bc2596d383f7544a6",
+  "started": 1793038125.6048942,
+  "exit": 0,
+  "seconds": 668.854457616806,
+  "artifacts": "/home/user/Projects/cx-wave8/build/gate-run.eHsQsi",
+  "summary": [
+    "GATE(PARTIAL): 31 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-lanes.tsv.partial"
+  ],
+  "binary_unchanged": true
+}

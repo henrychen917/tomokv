@@ -10,6 +10,7 @@ p.add_argument('--fused', action='store_true'); p.add_argument('--single-slot', 
 p.add_argument('--binary', default='build/tomokv'); p.add_argument('--root', type=Path, default=ROOT)
 p.add_argument('--port', type=int, default=20020)
 p.add_argument('--server-start', type=int, choices=(64,72,80))
+p.add_argument('--asan-binary', type=Path)
 a=p.parse_args()
 assert 20000 <= a.port <= 20080
 if a.server_start is not None:
@@ -27,6 +28,8 @@ env=dict(os.environ,LANG='en_US.UTF-8',REDIS74_ROOT='/home/user/Projects/redis',
     GATE_TXN_FUSED=str(int(a.fused)),GATE_TEST_PORT='20098',
     GATE_LEDGER=str(output/(a.name+'.tsv')))
 env.pop('LC_ALL',None)
+if a.asan_binary is not None:
+    env['GATE_ASAN_BINARY'] = str(a.asan_binary.resolve())
 argv=['bash','tests/gate.sh','full','--server-cores',server_cores,
     '--load-cores',load_cores,'--load-smt','',
     '--ports',f'{a.port}-{a.port+9}','--candidate-binary',str(binary)]
