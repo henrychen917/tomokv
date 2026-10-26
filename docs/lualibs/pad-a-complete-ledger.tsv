@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=lualibs; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	51.690000	lualibs CC4.7 vs Redis 7.4

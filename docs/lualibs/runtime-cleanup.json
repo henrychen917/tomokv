@@ -1,0 +1,30 @@
+{
+  "time": "2026-10-25T07:04:51.616644+00:00",
+  "lease": {
+    "pid": 4126986,
+    "command": "python3 docs/lualibs/port_guard/lease.py",
+    "cwd": "/home/user/Projects/cx-lualibs",
+    "cpus": [
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "signal": "SIGTERM",
+    "exited": true
+  },
+  "remaining_lane_listeners": [],
+  "remaining_lane_servers": []
+}

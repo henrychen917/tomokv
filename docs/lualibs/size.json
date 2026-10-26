@@ -1,0 +1,35 @@
+{
+  "pre": {
+    "file_bytes": 209924960,
+    "sections": {
+      ".text": 8217911,
+      ".rodata": 163585,
+      ".tdata": 224,
+      ".tbss": 480,
+      ".data": 19264,
+      ".bss": 1089656
+    }
+  },
+  "post": {
+    "file_bytes": 210118280,
+    "sections": {
+      ".text": 8247031,
+      ".rodata": 167394,
+      ".tdata": 224,
+      ".tbss": 480,
+      ".data": 19321,
+      ".bss": 1089664
+    }
+  },
+  "pad-a": {
+    "file_bytes": 210118280,
+    "sections": {
+      ".text": 8247031,
+      ".rodata": 167394,
+      ".tdata": 224,
+      ".tbss": 480,
+      ".data": 19321,
+      ".bss": 1089664
+    }
+  }
+}

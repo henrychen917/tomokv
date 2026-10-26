@@ -1,0 +1,99 @@
+{
+  "post": [
+    {
+      "invocation": "post-main",
+      "passed": 194,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.0kJxTu"
+    },
+    {
+      "invocation": "post-fused-debug",
+      "passed": 35,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.egE8Cm"
+    },
+    {
+      "invocation": "post-bounds-a0-f0",
+      "passed": 3,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.DgrcWP"
+    },
+    {
+      "invocation": "post-bounds-a0-f1",
+      "passed": 3,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.6a67yc"
+    },
+    {
+      "invocation": "post-aof-f0",
+      "passed": 109,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.zwOjDM"
+    },
+    {
+      "invocation": "post-aof-f1",
+      "passed": 109,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.YoKaA5"
+    }
+  ],
+  "pre": [
+    {
+      "invocation": "pre-main",
+      "passed": 193,
+      "failed": 1,
+      "failed_labels": [
+        "fused+armed servertail battery (atomic 1)"
+      ],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.lk5sB6"
+    },
+    {
+      "invocation": "pre-fused-debug",
+      "passed": 35,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.xqRKqB"
+    },
+    {
+      "invocation": "pre-bounds-a0-f0",
+      "passed": 3,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.oePaZ1"
+    },
+    {
+      "invocation": "pre-bounds-a0-f1",
+      "passed": 3,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.8b3HH7"
+    },
+    {
+      "invocation": "pre-aof-f0",
+      "passed": 109,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.UgME9k"
+    },
+    {
+      "invocation": "pre-aof-f1",
+      "passed": 109,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.5hLLwx"
+    },
+    {
+      "invocation": "pre-servertail-recheck",
+      "passed": 36,
+      "failed": 0,
+      "failed_labels": [],
+      "run_directory": "/home/user/Projects/cx-lualibs/build/gate-run.BoMy4T"
+    }
+  ]
+}

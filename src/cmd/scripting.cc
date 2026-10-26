@@ -43,6 +43,10 @@ extern "C" {
 #else
 #include "../../third_party/lua/lua_amalgamation.c"
 #endif
+int luaopen_cjson(lua_State*);
+int luaopen_cmsgpack(lua_State*);
+int luaopen_bit(lua_State*);
+int luaopen_struct(lua_State*);
 }
 #pragma GCC diagnostic pop
 
@@ -78,14 +82,14 @@ uint32_t rotl32(uint32_t value, uint32_t bits) {
     return (value << bits) | (value >> (32 - bits));
 }
 
-std::string sha1_hex(Slice input) {
+std::string sha1_hex(const char* input, size_t length) {
     uint32_t h0 = 0x67452301u, h1 = 0xefcdab89u, h2 = 0x98badcfeu,
              h3 = 0x10325476u, h4 = 0xc3d2e1f0u;
-    const uint64_t bit_length = static_cast<uint64_t>(input.n) * 8;
-    const size_t padded = (static_cast<size_t>(input.n) + 9 + 63) & ~size_t{63};
+    const uint64_t bit_length = static_cast<uint64_t>(length) * 8;
+    const size_t padded = (length + 9 + 63) & ~size_t{63};
     std::vector<uint8_t> bytes(padded, 0);
-    if (input.n) std::memcpy(bytes.data(), input.p, input.n);
-    bytes[input.n] = 0x80;
+    if (length) std::memcpy(bytes.data(), input, length);
+    bytes[length] = 0x80;
     for (uint32_t i = 0; i < 8; i++)
         bytes[padded - 1 - i] = static_cast<uint8_t>(bit_length >> (i * 8));
 
@@ -121,6 +125,8 @@ std::string sha1_hex(Slice input) {
     }
     return result;
 }
+
+std::string sha1_hex(Slice input) { return sha1_hex(input.p, input.n); }
 
 class ScriptCache {
 public:
@@ -782,6 +788,63 @@ void open_library(lua_State* state, lua_CFunction open, const char* name) {
     lua_call(state, 1, 0);
 }
 
+int redis_sha1hex(lua_State* state) {
+    if (lua_gettop(state) != 1) {
+        lua_createtable(state, 0, 1);
+        lua_pushliteral(state, "ERR wrong number of arguments");
+        lua_setfield(state, -2, "err");
+        return lua_error(state);
+    }
+    size_t length = 0;
+    const char* input = lua_tolstring(state, 1, &length);
+    // Redis coerces numbers to strings; other types hash the empty string.
+    const std::string digest = sha1_hex(input, length);
+    lua_pushlstring(state, digest.data(), digest.size());
+    return 1;
+}
+
+// One cold registration seam for both EVAL and FUNCTION. The redis table is on
+// top. Its tables and helper tables
+// are frozen by the existing sandbox traversal after registration. Keeping this
+// seam out of line also permits an exact-layout PRE-behaviour PAD-A control.
+__attribute__((noinline, noclone)) void open_helper_libraries(lua_State* state) {
+    open_library(state, luaopen_cjson, "cjson");
+    // Redis has separate EVAL and FUNCTION interpreters. CJSON is the helper
+    // with mutable C-backed configuration; preserve that separation even though
+    // this executor shares a VM. User-created cjson.new() instances stay private.
+    lua_getglobal(state, "cjson");
+    lua_pushvalue(state, -1);
+    lua_setfield(state, LUA_REGISTRYINDEX, "tomo_eval_cjson");
+    lua_getfield(state, -1, "new");
+    lua_call(state, 0, 1);
+    freeze_table(state, -1);
+    lua_setfield(state, LUA_REGISTRYINDEX, "tomo_function_cjson");
+    lua_pop(state, 1);
+    open_library(state, luaopen_struct, "struct");
+    open_library(state, luaopen_cmsgpack, "cmsgpack");
+    open_library(state, luaopen_bit, "bit");
+    lua_pushcfunction(state, redis_sha1hex);
+    lua_setfield(state, -2, "sha1hex");
+}
+
+void select_cjson_environment(lua_State* state, bool function) {
+    lua_getfield(state, LUA_REGISTRYINDEX, function ? "tomo_function_cjson" : "tomo_eval_cjson");
+    if (lua_isnil(state, -1)) lua_pop(state, 1); // PRE-behaviour PAD-A has no helpers.
+    else set_global_raw(state, "cjson");
+}
+
+void reset_cjson_environment(lua_State* state, const char* registry_name) {
+    lua_getfield(state, LUA_REGISTRYINDEX, registry_name);
+    if (lua_isnil(state, -1)) { lua_pop(state, 1); return; }
+    lua_getfield(state, -1, "new");
+    lua_call(state, 0, 1);
+    freeze_table(state, -1);
+    lua_pushvalue(state, -1);
+    lua_setfield(state, LUA_REGISTRYINDEX, registry_name);
+    set_global_raw(state, "cjson");
+    lua_pop(state, 1);
+}
+
 // Built ONCE per thread state: libraries, strips, the redis table (closures over the stable
 // per-state context slot), the hook registry entry, and — last — the globals protection.
 void create_sandbox_static(lua_State* state, ScriptContext** slot) {
@@ -818,6 +881,7 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     lua_pushlightuserdata(state, slot);
     lua_pushcclosure(state, redis_setresp, 1);
     lua_setfield(state, -2, "setresp");
+    open_helper_libraries(state);
     lua_setglobal(state, "redis");
 
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -1100,6 +1164,7 @@ lua_State* script_thread_state() {
         // upvalues do not. Keep the readonly environment and the function registry roots alive.
         lua_newtable(engine.state);
         lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        reset_cjson_environment(engine.state, "tomo_eval_cjson");
         engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
     }
     if (!engine.state) {
@@ -1122,6 +1187,24 @@ lua_State* script_new_sandbox_state() {
     return state;
 }
 
+void script_sync_function_helpers(lua_State* state, uint64_t flush_generation) {
+    lua_getfield(state, LUA_REGISTRYINDEX, "tomo_function_cjson");
+    const bool present = lua_istable(state, -1);
+    lua_pop(state, 1);
+    if (!present) return;
+    lua_getfield(state, LUA_REGISTRYINDEX, "tomo_function_cjson_flush");
+    size_t length = 0;
+    const char* old = lua_tolstring(state, -1, &length);
+    // An unseen engine has its initial defaults already. Compare exact integer
+    // bytes, as the function registry does, without losing precision above 2^53.
+    const bool reset = old && (length != sizeof(flush_generation) ||
+        std::memcmp(old, &flush_generation, sizeof(flush_generation)));
+    lua_pop(state, 1);
+    if (reset) reset_cjson_environment(state, "tomo_function_cjson");
+    lua_pushlstring(state, reinterpret_cast<const char*>(&flush_generation), sizeof(flush_generation));
+    lua_setfield(state, LUA_REGISTRYINDEX, "tomo_function_cjson_flush");
+}
+
 std::string script_clean_error(const char* text, size_t length) {
     return clean_error(text, length);
 }
@@ -1129,6 +1212,18 @@ std::string script_clean_error(const char* text, size_t length) {
 int script_pcall_library(lua_State* state) {
     ScriptContext context;
     ScriptContext* current = &context;
+    // Redis exposes helpers to FUNCTION callbacks, but not to the registration
+    // body executed by FUNCTION LOAD. Keep each table rooted below the callable
+    // and restore it even when registration throws or exceeds its budget.
+    static constexpr const char* helpers[] = {"cjson", "struct", "cmsgpack", "bit"};
+    const int helper_base = lua_gettop(state);
+    for (const char* name : helpers) {
+        lua_pushstring(state, name);
+        lua_rawget(state, LUA_GLOBALSINDEX);
+        lua_insert(state, -2);
+        lua_pushnil(state);
+        set_global_raw(state, name);
+    }
     // Keep the previous context slot rooted below the callable while the library runs. This
     // works for both the temporary LOAD interpreter and an executor's persistent interpreter.
     lua_pushlightuserdata(state, &g_hook_context_key);
@@ -1145,6 +1240,11 @@ int script_pcall_library(lua_State* state) {
     lua_pushvalue(state, saved);
     lua_rawset(state, LUA_REGISTRYINDEX);
     lua_remove(state, saved);
+    for (int i = 3; i >= 0; --i) {
+        lua_pushvalue(state, helper_base + i);
+        set_global_raw(state, helpers[i]);
+        lua_remove(state, helper_base + i);
+    }
     if (context.timed_out) {
         if (status != 0) lua_pop(state, 1);
         lua_pushliteral(state, "ERR function library exceeded the instruction limit");
@@ -1182,6 +1282,7 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
     context.readonly = call.readonly;
     context.function_admitted = call.style == ScriptArgStyle::Params;
     engine.current = &context;
+    select_cjson_environment(state, context.function_admitted);
 
     ScriptEvictionGuard eviction_guard(shard);
     FunctionMemoryScope memory_scope(shard.store(), context.function_admitted);
