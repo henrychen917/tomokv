@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-woundfix/build/woundfix/commands/post-db0-SET-2s-32-1--1.log
+SHA-256: c92b81ed58f0843c1c9090e62061e617cd41706d8db3a4b2f25f275cf5c783dc
+Exit: 0
+0x000055555562d048	2346	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+0x000055555562cf13 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618bb48, batch=batch@entry=0x7ffffffda200, n=n@entry=32) at src/core/ex_loop.h:2349
+2349	    }
+0x000055555562cf18	2349	    }
+0x000055555562cf21	2349	    }
+0x000055555562cf27	2349	    }
+0x000055555562cf2b	2349	    }
+0x000055555562cf2c	2349	    }
+0x000055555562cf2e	2349	    }
+0x000055555562cf30	2349	    }
+0x000055555562cf32	2349	    }
+0x000055555562cf34	2349	    }
+0x000055555562cf35	2349	    }
+0x0000555555d60ce4 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1672287) exited normally]
+COUNT 23059

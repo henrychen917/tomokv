@@ -1,0 +1,5 @@
+   text	   data	    bss	    dec	    hex	filename
+9359958	  89248	1090168	10539374	 a0d16e	build/woundfix/PRE/tomokv
+9360290	  89248	1090168	10539706	 a0d2ba	build/woundfix/POST
+18578806	 174512	2180280	20933598	13f6bde	build/woundfix/POST-layout
+18578806	 174512	2180280	20933598	13f6bde	build/woundfix/PAD-A

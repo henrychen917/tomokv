@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-woundfix/build/woundfix/commands/post-normal-INCR-1s-1-1--1.log
+SHA-256: cb76d5ed6aaaa71a8ca05fcdff2a247cfaff7bae051fc62758ac59d595c1aac0
+Exit: 0
+2349	    }
+0x0000555555c7fbc8	2349	    }
+0x0000555555c7fbd1	2349	    }
+0x0000555555c7fbd7	2349	    }
+0x0000555555c7fbdb	2349	    }
+0x0000555555c7fbdc	2349	    }
+0x0000555555c7fbde	2349	    }
+0x0000555555c7fbe0	2349	    }
+0x0000555555c7fbe2	2349	    }TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+
+0x0000555555c7fbe4	2349	    }
+0x0000555555c7fbe5	2349	    }
+0x0000555555d5d408 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-woundfix/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 1623365) exited normally]
+COUNT 1541

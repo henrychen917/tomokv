@@ -20,7 +20,7 @@ OUT = ROOT / 'docs/woundfix/gate'
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('suite', choices=('wounds', 'runtime', 'differential'))
+    parser.add_argument('suite', choices=('wounds', 'runtime', 'differential', 'sanitizers'))
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     cells = []
@@ -29,13 +29,18 @@ def main():
     elif args.suite == 'runtime':
         for engine in ('uring', 'epoll'):
             for fused in (0, 1):
-                jobs = 'debug-0 debug-1 atomic_batteries release_batteries'
+                jobs = 'debug-0 debug-1 atomic_batteries release_batteries script_bounds'
                 if not fused:
                     jobs += (' fused-0 fused-1 txn_group_split txn_group_fused'
                              ' txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1'
                              ' atomfix5_watch atomfix5_accounting datafix2_watch exbatch_live atomic_floor')
-                    if engine == 'uring': jobs += ' execfair'
+                    if engine == 'uring': jobs += ' execfair exbatch_units'
                 cells.append((f'runtime-{engine}-fused{fused}', engine, fused, 'quick', jobs))
+                cells.append((f'script-bounds-{engine}-fused{fused}-a0', engine, fused, 'quick', 'script_bounds'))
+    elif args.suite == 'sanitizers':
+        for engine in ('uring', 'epoll'):
+            for fused in (0, 1):
+                cells.append((f'asan-{engine}-fused{fused}', engine, fused, 'full', 'asan_batteries'))
     else:
         for engine in ('uring', 'epoll'):
             cells.append((f'differ-{engine}', engine, 0, 'full', 'differ-split differ-armed'))
@@ -44,6 +49,7 @@ def main():
         directory = OUT / label; directory.mkdir(exist_ok=True)
         env = dict(os.environ, GATE_ONLY_JOBS=jobs, GATE_PROOF_NO_RATES='1',
                    GATE_PROOF_NET_IO=engine, GATE_TXN_FUSED=str(fused),
+                   GATE_TXN_ATOMIC='0' if label.endswith('-a0') else '1',
                    GATE_DIFFER_NET_IO=engine, GATE_DIFFER_ORACLE_CORES='40-45',
                    REDIS74_ROOT='/home/user/Projects/redis')
         cmd = ['tests/gate.sh', tier, '--server-cores', '32-45', '--load-cores', '46-47',
@@ -60,7 +66,7 @@ def main():
         result_match = re.search(r'GATE\(PARTIAL\): (\d+) ok, (\d+) FAIL', text)
         counts = list(map(int, result_match.groups())) if result_match else None
         rows.append(dict(label=label, command=cmd, environment={k:env[k] for k in (
-            'GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES', 'GATE_PROOF_NET_IO', 'GATE_TXN_FUSED',
+            'GATE_ONLY_JOBS', 'GATE_PROOF_NO_RATES', 'GATE_PROOF_NET_IO', 'GATE_TXN_FUSED', 'GATE_TXN_ATOMIC',
             'GATE_DIFFER_NET_IO', 'GATE_DIFFER_ORACLE_CORES', 'REDIS74_ROOT')},
             sha256=digest, exit=result.returncode, counts=counts, artifacts=str(run)))
         (OUT / (args.suite + '.json')).write_text(json.dumps(rows, indent=2) + '\n')
