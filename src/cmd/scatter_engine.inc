@@ -3826,10 +3826,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         driving = true;
                         continue;
                     }
-                    server.note_script_giveup();
-                    op.clear_reply();
-                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_speculative(state.notify);
+                    state.script_escalate_after_unpin = true;
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3867,10 +3864,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         driving = true;
                         continue;
                     }
-                    server.note_script_giveup();
-                    op.clear_reply();
-                    reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_speculative(state.notify);
+                    state.script_escalate_after_unpin = true;
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3928,8 +3922,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 }
                 if (failed) {
                     const bool conflict = state.script_conflict.load(std::memory_order_acquire);
-                    if (conflict) server.note_script_giveup();
-                    else server.note_script_abort_oom();
+                    if (!conflict) server.note_script_abort_oom();
                     state.aborted.store(true, std::memory_order_release);
                     aof_abort_scatter_group(state);
                     notify_discard_speculative(state.notify);
@@ -3941,12 +3934,9 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         server.script_finish_certification();
                         state.script_certifier = false;
                     }
-                    if (conflict) {
-                        if (state.debug_direct_defer & (uint32_t{1} << 31))
-                            return script_escalate_handoff(server, self, ring, task, op);
-                        op.clear_reply();
-                        reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    } else script_engine_error_reply(op, state, error);
+                    if (conflict)
+                        return script_escalate_handoff(server, self, ring, task, op);
+                    script_engine_error_reply(op, state, error);
                     script_snapshot_done(server, state);
                     return ScatterFinish::Final;
                 }
