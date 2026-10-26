@@ -22,7 +22,7 @@ def inherited(tool, args, scripts=False):
     original = ROOT / ('tools/execindex_'+tool+'.py')
     source = original.read_text()
     source = source.replace('execindex', 'at412')
-    source = source.replace('96-103', '48-63')
+    source = source.replace('96-103', '48-63').replace('96-111', '48-63')
     if tool == 'scope' and scripts:
         source = source.replace('docs/at412/instructions', 'docs/at412/script-instructions')
         source = source.replace('("GET", "SET", "INCR", "MGET", "MSET")', '("EVAL", "EVAL-ADMIT")')
@@ -33,7 +33,7 @@ def inherited(tool, args, scripts=False):
     (OUT / (saved.stem+'.json')).write_text(json.dumps(dict(
         source=str(original), source_sha256=hashlib.sha256(original.read_bytes()).hexdigest(),
         derived=str(saved), derived_sha256=hashlib.sha256(saved.read_bytes()).hexdigest(),
-        cpu='48-63', substitutions=['execindex -> at412', '96-103 -> 48-63'],
+        cpu='48-63', substitutions=['execindex -> at412', '96-103 -> 48-63', '96-111 -> 48-63'],
         script_scopes=scripts), indent=2)+'\n')
     sys.argv = [str(saved), *args]
     # Keep the instrument's ROOT discovery anchored at the actual tools dir.
@@ -79,7 +79,7 @@ def identity():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=['identity','scope','script-scope','pad'])
+    parser.add_argument('mode', choices=['identity','scope','script-scope','pad','budget'])
     args, rest = parser.parse_known_args()
     OUT.mkdir(parents=True, exist_ok=True); BUILD.mkdir(parents=True, exist_ok=True)
     if args.mode == 'identity':

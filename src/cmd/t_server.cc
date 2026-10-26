@@ -3474,6 +3474,11 @@ void command_client_disconnected(Client* client) {
 
 void* command_client_migration_extract(Client* client) {
     if (!client) return nullptr;
+    // AT4.12: a connection leaving its IO leaves that IO's script FIFO (a no-op for a connection
+    // that never queued). finish_client_transfer calls this on the source IO, before the commit
+    // hands the connection to its destination, so no other thread can close it while queued.
+    // Out of line here, the IO templates keep their PRE bodies.
+    if (g_server) script_window_forget(*g_server, client->ifid_thread(), *client);
     auto* catalog = new (std::nothrow) ClientMigrationCatalog;
     if (!catalog) return nullptr;
     register_client_catalog();

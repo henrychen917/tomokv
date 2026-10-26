@@ -2628,6 +2628,13 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {
+    // AT4.12: leave the per-IO script FIFO here. close_client calls this on EVERY non-dead entry,
+    // before mark_dead; QUIT, CLIENT KILL of self and the parse-error/receive-limit arms mark the
+    // connection closing first and reach close_client later from flush_ready, so a removal under
+    // close_client's !closing() block would free such a member with its pointer still queued.
+    // Living in this out-of-line function keeps close_client, which the IO templates inline into
+    // parse_and_dispatch, byte-identical to PRE. A no-op for a connection that never queued.
+    script_window_forget(*loop.srv_, loop.self_->id(), client);
     if (MultiExecState* cleanup = multi_prepare_close(*loop.srv_, client, loop.self_->id()))
         loop.pending_multi_cleanups_.push_back(cleanup);
 }

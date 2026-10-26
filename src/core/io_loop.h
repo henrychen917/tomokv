@@ -1517,7 +1517,6 @@ private:
             return false;
         }
 
-        script_window_forget(*srv_, self_->id(), *client);
         if (client->in_active()) {
             client->set_in_active(false);
             active_.erase(client);
@@ -4948,12 +4947,6 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
-        // AT4.12: leave the per-IO script FIFO on EVERY entry, not only the first. QUIT, CLIENT
-        // KILL of self and the parse-error/receive-limit arms mark the connection closing first
-        // and reach this arm later from flush_ready; a forget under !closing() would free such a
-        // member and leave its pointer in the FIFO. A no-op for non-members; a dead connection
-        // already passed here before mark_dead below.
-        script_window_forget(*srv_, self_->id(), *c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE
             connreset::note(*c, self_->id(), "close_begin", site);

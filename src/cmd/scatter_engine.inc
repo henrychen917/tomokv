@@ -498,11 +498,13 @@ struct ScatterState : SnapshotCut {
     std::atomic<bool> script_stage_limit{false};
     bool script_certifier = false;
     bool runtime_loading = false;
-    bool script_slot_live = false;
-    bool script_escalate_after_unpin = false;
     // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
     // publishes their common ticket and owns the outer transaction decision.
     bool multi_child = false;
+    // AT4.12: two of the three padding bytes before multi_parent (offsets 61-62). No established
+    // member moves; MGET/MSET bodies keep their field displacements.
+    bool script_slot_live = false;
+    bool script_escalate_after_unpin = false;
     const void* multi_parent = nullptr;    // WATCH readiness uses the enclosing EXEC's token
     bool barrier = false;
     bool pooled = false;
