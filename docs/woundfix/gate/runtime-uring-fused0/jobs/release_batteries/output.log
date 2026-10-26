@@ -1,0 +1,17 @@
+  row budget: 900s; median=-s; no-history-conservative-default; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; direct-reply fired (direct=N)
+  direct-reply fired (direct=11941)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatched==executed (N)
+  dispatched==executed (55587)                         ok

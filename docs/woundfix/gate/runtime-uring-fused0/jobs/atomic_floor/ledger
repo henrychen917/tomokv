@@ -1,0 +1,2 @@
+ok	0.010000	tripwire arm/disarm round-trip
+ok	0.050000	pipelined same-conn program order (400 rolls)

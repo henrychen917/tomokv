@@ -1,0 +1,5 @@
+NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)
+  row budget: 900s; median=-s; no-history-conservative-default; tripwire arm/disarm round-trip
+  tripwire arm/disarm round-trip                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; pipelined same-conn program order (400 rolls)
+  pipelined same-conn program order (400 rolls)        ok

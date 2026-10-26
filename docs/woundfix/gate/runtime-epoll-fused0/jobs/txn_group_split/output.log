@@ -1,0 +1,2 @@
+  row budget: 900s; median=12.95s; correctness-plan-fallback; txngroup battery (atomic 1)
+  txngroup battery (atomic 1)                          ok

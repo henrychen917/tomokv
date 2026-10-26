@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.31s; correctness-plan-fallback; exbatch publication and WATCH lifecycle (1s)
+  exbatch publication and WATCH lifecycle (1s)         ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; exbatch publication and WATCH lifecycle (2s)
+  exbatch publication and WATCH lifecycle (2s)         ok

@@ -1,0 +1,8 @@
+  row budget: 900s; median=28.905s; correctness-plan-fallback; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=4.08s; correctness-plan-fallback; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=4.255s; correctness-plan-fallback; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=0.025s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
