@@ -75,7 +75,7 @@ def off_roles(binary):
     return removed
 
 
-def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, fliplisten=False):
+def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, fliplisten=False, latencyfix=False):
     """Require the extra physical parser bodies per runtime after splitlocal.
 
     Forwarding SplitLocal emits two parsers and four ordinary-parser clones.
@@ -95,7 +95,9 @@ def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, flipliste
             ordinary = audit.canonical(f'{namespace}::IoLoop::DispatchResult {namespace}::IoLoop::'
                                        f'parse_and_dispatch<{no_borrow}, 32u, false, false>({namespace}::Client*)')
             clones = {ordinary + ' [clone .isra.0]' + suffix for suffix in ('', ' [clone .cold]')}
-            assert (len(conflicts) == (2 if overlap_removed else 3) and len(fillers) == 1 and
+            conflict_count = 2 if overlap_removed else 3
+            if latencyfix and namespace == "tomo": conflict_count += 1
+            assert (len(conflicts) == conflict_count and len(fillers) == 1 and
                     family == {direct} | conflicts | fillers and
                     all(len(binary.groups.get(name, ())) == 1 for name in family) and
                     all(len(binary.groups.get(name, ())) ==
@@ -163,12 +165,25 @@ def notifycompat_inventory(binary):
     return expected
 
 
+def latencyfix_inventory(binary):
+    """Require all 312 inherited bodies plus 14 newly outlined bodies by exact name.
+
+    The manifest also pins physical clone counts. No historical body is removed,
+    and compare() still checks every opcode, operand and literal in all 326.
+    """
+    path = Path(__file__).resolve().parents[1] / 'docs/latencyfix/reorder-inventory.json'
+    expected = json.loads(path.read_text())
+    actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
+    assert actual == expected, 'latencyfix named inventory differs'
+    return Counter({'tomo': 164, 'tomo_db0': 162})
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -244,6 +259,8 @@ if __name__ == '__main__':
         # add no entries; datafix2's older-base normal scan is the same +1
         # already included by notifycompat. Never count that overlap twice.
         expected['tomo'] += 1
+    if args.inventory == 'latencyfix':
+        for binary in (pre, post): expected = latencyfix_inventory(binary)
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

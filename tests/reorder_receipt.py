@@ -32,10 +32,20 @@ def controls(binary, output):
     else:
         raise AssertionError('missing-symbol negative control passed')
     post.groups = copy.deepcopy(binary.groups)
-    r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True)
+    r7shadow_noop.latencyfix_inventory(post)
+    # LAT-HIST-1 adds an outlined fused executor, not permission to lose a body.
+    del post.groups['bool tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)']
+    try:
+        r7shadow_noop.latencyfix_inventory(post)
+    except AssertionError as error:
+        assert 'latencyfix named inventory differs' in str(error), str(error)
+    else:
+        raise AssertionError('missing latencyfix outlined-body control passed')
+    post.groups = copy.deepcopy(binary.groups)
+    r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True)
     del post.groups['tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)']
     try:
-        r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True)
+        r7shadow_noop.splitlocal_inventory(post, ('tomo', 'tomo_db0'), overlap_removed=True, fliplisten=True, latencyfix=True)
     except AssertionError as error:
         assert 'missing split-local parser bodies' in str(error), str(error)
     else:
@@ -116,7 +126,7 @@ if __name__ == '__main__':
     (args.output / 'twin.json').write_text(json.dumps(receipt, indent=2) + '\n')
     subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
                     str(pad), str(args.binary), str(args.output / 'identity'),
-                    '--inventory', 'wave6'], check=True)
+                    '--inventory', 'latencyfix'], check=True)
     negative = args.output / 'negative'
     negative.mkdir(exist_ok=True)
     binary = audit.Binary(args.binary, negative, literal_pools=True)
