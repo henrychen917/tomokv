@@ -1110,7 +1110,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units acl_metadata cmd_metadata abba_selftest bugs5)
+              production_units acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -1669,6 +1669,9 @@ job_compat2(){
     failed=0
     local extra=()
     if [ "$case" = autharity ]; then
+      # The private Tcl job is a prerequisite of this existing compatibility
+      # verdict. Missing/failed/unreached subsets cannot disappear from the gate.
+      [ -f "$RUN_DIR/unit-ready/redis-tcl" ] || failed=1
       extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$GATE_DIFFER_ORACLE_CORES")
     elif [ "$case" = expire_notify ]; then
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
@@ -4899,6 +4902,7 @@ py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || con
 py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/redis_tcl_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
@@ -4906,6 +4910,27 @@ py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || contr
 py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 [ "$controls_ok" = 1 ] && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
+}
+
+job_redis_tcl(){
+  local mode passed=1 label
+  for mode in 2s 1s; do
+    label="Redis 7.4.10 Tcl passing subset ($mode)"
+    row_begin "$label"
+    if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
+        --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
+        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json \
+        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
+      say "$label" ok; ledger ok "$label" 0
+    else
+      passed=0; say "$label" FAIL; ledger FAIL "$label" 0
+    fi
+  done
+  # Private rows retain independent timings and raw evidence. compat2 autharity
+  # owns their public verdict; no public row is added (DQ=0, DF=0).
+  if [ "$passed" = 1 ] && [ "$FAIL" = 0 ]; then
+    mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/redis-tcl"
+  fi
 }
 
 job_asan_batteries(){
@@ -5273,7 +5298,8 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls|compat2|blockfix_registry) echo 'release production_units';;
+    compat2) echo 'release production_units redis_tcl';;
+    tls|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;

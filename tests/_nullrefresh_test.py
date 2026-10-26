@@ -504,6 +504,21 @@ class PromotionControls(unittest.TestCase):
             self.assertEqual(campaign['inventory']['count'], 32)
             self.assertEqual(campaign['inventory']['path'], 'tests/netio_cells.txt')
             receipt.current_campaign(self.root, campaign)
+            previous = self.standing.read_bytes()
+            started = int(campaign['frozen_at']) + 2
+            with mock.patch.object(time, 'time', return_value=started + 10000):
+                control = fixture_report([abba.Cell(**c) for c in campaign['inventory']['cells']],
+                    self.fp, campaign['environment'], path.read_text(), started, self.binary)
+                for row in control['cells']:
+                    for block in row['rounds']:
+                        for run in block['runs']:
+                            run['server_argv'] = ['fixture-server', '--net-io', 'epoll']
+                sampled_fixture(control)
+                receipt.write_json(self.source, control)
+                promoted = receipt.promote_null(self.root,
+                    argparse.Namespace(null_result=self.source, campaign=args.output))
+                self.assertEqual(promoted.name, 'epoll-null.json')
+                self.assertEqual(self.standing.read_bytes(), previous)
             path.write_text(path.read_text().replace('--net-io epoll', '--net-io uring', 1))
             with self.assertRaisesRegex(ValueError, 'epoll inventory'):
                 receipt.current_campaign(self.root, campaign)

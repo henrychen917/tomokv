@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "redis_version": "7.4.10",
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "selection": "complete whole files with identical nonempty passing assertion inventory in both 2s and 1s; no assertion body modified",
+  "support": {
+    "tests/support/aofmanifest.tcl": "6cec2a27a80133260260d0bc559a3749cd2d93fc2d59dc457fb66530da8faf19",
+    "tests/support/benchmark.tcl": "e4832f65905257652d242d01a0f1c1427b910e46f3b4b12f22009d98702163a6",
+    "tests/support/cli.tcl": "48d41dcb46e2f27787ecf872db6362e8dfce5345a45ff92498f8966c46c203e8",
+    "tests/support/cluster.tcl": "207045db825f492f3bb2bf293d3d1d2bf7d4d56ea3989474306ab20cacc67c9c",
+    "tests/support/cluster_util.tcl": "d6ae863cd62238e00c5773c47f617416b659fb47b14c200385f22bc7c04616d0",
+    "tests/support/redis.tcl": "4aba1a0afdc9b39854c5557502c20bddfece20eeeda8db95550ae94cea00daa7",
+    "tests/support/response_transformers.tcl": "373f01a88759abe07b5d1e04e4b469d937af47d458daf89d317d0f3bebaea7ee",
+    "tests/support/server.tcl": "e412686245be3a0f74592d8d5fe4f52c14c0790fb647c736a8a5e2cac13b72bb",
+    "tests/support/test.tcl": "770cbcd7cc446fca8bb232fd406982a68cc675b31b8fa0f8ebec7a9bc7298e89",
+    "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
+    "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
+    "runtest": "0eabe18a80d49daf8242571cea768b0cb9e21ea46681cf9e444a98d43423d76d",
+    "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894",
+    "src/version.h": "d37be1fd3ccca0252941a0d7bd4f8ee24d6f30a80c595b6ccfd41dbfd20a7131"
+  },
+  "files": {
+    "integration/replication-buffer": {
+      "sha256": "fc5dcd630f8a5fad8a6b3fe70971121d76183ea7bab013b09a2bbdd6c5b0536b",
+      "passed_tests": [
+        "Partial resynchronization is successful even client-output-buffer-limit is less than repl-backlog-size in tests/integration/replication-buffer.tcl",
+        "Replica client-output-buffer size is limited to backlog_limit/16 when no replication data is pending in tests/integration/replication-buffer.tcl"
+      ]
+    },
+    "unit/bitfield": {
+      "sha256": "df6ea6a1c4d958df994bc57d67ea08bee2c87f23a7201ff048724ce64c6da031",
+      "passed_tests": [
+        "BITFIELD #<idx> form in tests/unit/bitfield.tcl",
+        "BITFIELD basic INCRBY form in tests/unit/bitfield.tcl",
+        "BITFIELD chaining of multiple commands in tests/unit/bitfield.tcl",
+        "BITFIELD overflow detection fuzzing in tests/unit/bitfield.tcl",
+        "BITFIELD overflow wrap fuzzing in tests/unit/bitfield.tcl",
+        "BITFIELD regression for #3221 in tests/unit/bitfield.tcl",
+        "BITFIELD regression for #3564 in tests/unit/bitfield.tcl",
+        "BITFIELD signed SET and GET basics in tests/unit/bitfield.tcl",
+        "BITFIELD signed SET and GET together in tests/unit/bitfield.tcl",
+        "BITFIELD signed overflow sat in tests/unit/bitfield.tcl",
+        "BITFIELD signed overflow wrap in tests/unit/bitfield.tcl",
+        "BITFIELD unsigned SET and GET basics in tests/unit/bitfield.tcl",
+        "BITFIELD unsigned overflow sat in tests/unit/bitfield.tcl",
+        "BITFIELD unsigned overflow wrap in tests/unit/bitfield.tcl",
+        "BITFIELD unsigned with SET, GET and INCRBY arguments in tests/unit/bitfield.tcl",
+        "BITFIELD with only key as argument in tests/unit/bitfield.tcl",
+        "BITFIELD_RO fails when write option is used in tests/unit/bitfield.tcl",
+        "BITFIELD_RO with only key as argument in tests/unit/bitfield.tcl"
+      ]
+    },
+    "unit/geo": {
+      "sha256": "914404066a7aac969349031cd2333dc4d4b4013b5f34686c47cd91eb1215e942",
+      "passed_tests": [
+        "Check geoset values in tests/unit/geo.tcl",
+        "GEO BYLONLAT with empty search in tests/unit/geo.tcl",
+        "GEO BYMEMBER with non existing member in tests/unit/geo.tcl",
+        "GEO with non existing src key in tests/unit/geo.tcl",
+        "GEO with wrong type src key in tests/unit/geo.tcl",
+        "GEOADD create in tests/unit/geo.tcl",
+        "GEOADD invalid coordinates in tests/unit/geo.tcl",
+        "GEOADD multi add in tests/unit/geo.tcl",
+        "GEOADD update in tests/unit/geo.tcl",
+        "GEOADD update with CH NX option in tests/unit/geo.tcl",
+        "GEOADD update with CH XX option in tests/unit/geo.tcl",
+        "GEOADD update with CH option in tests/unit/geo.tcl",
+        "GEOADD update with NX option in tests/unit/geo.tcl",
+        "GEOADD update with XX NX option will return syntax error in tests/unit/geo.tcl",
+        "GEOADD update with XX option in tests/unit/geo.tcl",
+        "GEOADD update with invalid option in tests/unit/geo.tcl",
+        "GEODIST missing elements in tests/unit/geo.tcl",
+        "GEODIST simple & unit in tests/unit/geo.tcl",
+        "GEOHASH is able to return geohash strings in tests/unit/geo.tcl",
+        "GEOHASH with only key as argument in tests/unit/geo.tcl",
+        "GEOPOS missing element in tests/unit/geo.tcl",
+        "GEOPOS simple in tests/unit/geo.tcl",
+        "GEOPOS with only key as argument in tests/unit/geo.tcl",
+        "GEORADIUS HUGE, issue #2767 in tests/unit/geo.tcl",
+        "GEORADIUS STORE option: syntax error in tests/unit/geo.tcl",
+        "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUS with ANY but no COUNT in tests/unit/geo.tcl",
+        "GEORADIUS with ANY not sorted by default in tests/unit/geo.tcl",
+        "GEORADIUS with ANY sorted by ASC in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT DESC in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT but missing integer argument in tests/unit/geo.tcl",
+        "GEORADIUS with COUNT in tests/unit/geo.tcl",
+        "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+        "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER crossing pole search in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER search areas contain satisfied points in oblique direction in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+        "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+        "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+        "GEORANGE STORE option: incompatible options in tests/unit/geo.tcl",
+        "GEORANGE STORE option: plain usage in tests/unit/geo.tcl",
+        "GEORANGE STOREDIST option: COUNT ASC and DESC in tests/unit/geo.tcl",
+        "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+        "GEOSEARCH BYRADIUS and BYBOX cannot exist at the same time in tests/unit/geo.tcl",
+        "GEOSEARCH BYRADIUS and BYBOX one must exist in tests/unit/geo.tcl",
+        "GEOSEARCH FROMLONLAT and FROMMEMBER cannot exist at the same time in tests/unit/geo.tcl",
+        "GEOSEARCH FROMLONLAT and FROMMEMBER one must exist in tests/unit/geo.tcl",
+        "GEOSEARCH FROMMEMBER simple (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCH box edges fuzzy test in tests/unit/geo.tcl",
+        "GEOSEARCH corner point test in tests/unit/geo.tcl",
+        "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+        "GEOSEARCH fuzzy test - byradius in tests/unit/geo.tcl",
+        "GEOSEARCH non square, long and narrow in tests/unit/geo.tcl",
+        "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCH the box spans -180\u00b0 or 180\u00b0 in tests/unit/geo.tcl",
+        "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+        "GEOSEARCH with STOREDIST option in tests/unit/geo.tcl",
+        "GEOSEARCH with small distance in tests/unit/geo.tcl",
+        "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STORE option: plain usage in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STORE option: syntax error in tests/unit/geo.tcl",
+        "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl"
+      ]
+    },
+    "unit/quit": {
+      "sha256": "5e8f85861ac0fab649074e7b964d1d2142ff73c33ada4639b82286401499e43a",
+      "passed_tests": [
+        "Pipelined commands after QUIT must not be executed in tests/unit/quit.tcl",
+        "Pipelined commands after QUIT that exceed read buffer size in tests/unit/quit.tcl",
+        "QUIT returns OK in tests/unit/quit.tcl"
+      ]
+    },
+    "unit/scan": {
+      "sha256": "b9ec63e79d4cf50715df70bef6fdeb56c1d90d5eb0bbc69419c6b3ef45deeb3c",
+      "passed_tests": [
+        "{standalone} HSCAN with NOVALUES in tests/unit/scan.tcl",
+        "{standalone} HSCAN with PATTERN in tests/unit/scan.tcl",
+        "{standalone} HSCAN with encoding hashtable in tests/unit/scan.tcl",
+        "{standalone} HSCAN with encoding listpack in tests/unit/scan.tcl",
+        "{standalone} HSCAN with large value hashtable in tests/unit/scan.tcl",
+        "{standalone} HSCAN with large value listpack in tests/unit/scan.tcl",
+        "{standalone} SCAN COUNT in tests/unit/scan.tcl",
+        "{standalone} SCAN MATCH in tests/unit/scan.tcl",
+        "{standalone} SCAN MATCH pattern implies cluster slot in tests/unit/scan.tcl",
+        "{standalone} SCAN TYPE in tests/unit/scan.tcl",
+        "{standalone} SCAN basic in tests/unit/scan.tcl",
+        "{standalone} SCAN guarantees check under write load in tests/unit/scan.tcl",
+        "{standalone} SCAN regression test for issue #4906 in tests/unit/scan.tcl",
+        "{standalone} SCAN unknown type in tests/unit/scan.tcl",
+        "{standalone} SCAN with expired keys in tests/unit/scan.tcl",
+        "{standalone} SCAN with expired keys with TYPE filter in tests/unit/scan.tcl",
+        "{standalone} SSCAN with PATTERN in tests/unit/scan.tcl",
+        "{standalone} SSCAN with encoding hashtable in tests/unit/scan.tcl",
+        "{standalone} SSCAN with encoding intset in tests/unit/scan.tcl",
+        "{standalone} SSCAN with encoding listpack in tests/unit/scan.tcl",
+        "{standalone} SSCAN with integer encoded object (issue #1345) in tests/unit/scan.tcl",
+        "{standalone} ZSCAN scores: regression test for issue #2175 in tests/unit/scan.tcl",
+        "{standalone} ZSCAN with PATTERN in tests/unit/scan.tcl",
+        "{standalone} ZSCAN with encoding listpack in tests/unit/scan.tcl",
+        "{standalone} ZSCAN with encoding skiplist in tests/unit/scan.tcl"
+      ]
+    },
+    "unit/type/list-2": {
+      "sha256": "eaf1a48a09785b2a876cd3d79941f239ef2ecd1ea661550831fe37ba52746a9e",
+      "passed_tests": [
+        "LTRIM stress testing - listpack in tests/unit/type/list-2.tcl",
+        "LTRIM stress testing - quicklist in tests/unit/type/list-2.tcl"
+      ]
+    },
+    "unit/violations": {
+      "sha256": "9dd152bbc556065d7631d104c0c42c984c21700f1745846e4dcdc5eb24be5a8e",
+      "passed_tests": [
+        "SORT adds integer field to list in tests/unit/violations.tcl"
+      ]
+    }
+  }
+}

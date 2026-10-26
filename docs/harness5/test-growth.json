@@ -1,0 +1,94 @@
+{
+  "before_commit": "34df0c67557600e14006bb631bcc84c552640405",
+  "files": [
+    {
+      "file": "tests/abbagate.py",
+      "before_tests": 100,
+      "after_tests": 107,
+      "added": [
+        "test_fused_only_smoke_needs_no_unmeasured_split_ratio",
+        "test_info_poller_cadence_bad_replies_and_throughput_exclusion",
+        "test_legacy_reorder_maps_explicitly_without_dropping_knobs",
+        "test_missing_required_knob_refuses_both_arms_even_when_off",
+        "test_multidb_cell_inventory_and_exact_connection_assignment",
+        "test_multidb_population_and_select_witness_reject_db0_only_load",
+        "test_optional_cell_fields_are_strict_and_part_of_calibration_shape",
+        "test_retired_overlap_refuses_enabled_recipes_and_boots",
+        "test_server_flags_reach_both_arm_boots"
+      ],
+      "absent_before": false
+    },
+    {
+      "file": "tests/gate_receipt.py",
+      "before_tests": 18,
+      "after_tests": 21,
+      "added": [
+        "test_aggregate_zero_without_product_cannot_issue_receipt",
+        "test_full_product_retains_and_replays_both_passes",
+        "test_harness_filters_paths_before_reading_without_changing_identity"
+      ],
+      "absent_before": false
+    },
+    {
+      "file": "tests/gates_test.py",
+      "before_tests": 57,
+      "after_tests": 72,
+      "added": [
+        "test_driver_identity_and_recovery_diagnostics",
+        "test_driver_reuses_stopped_port_but_refuses_live_listener",
+        "test_every_netfix_job_passes_explicit_tls_oracle",
+        "test_fused_shutdown_work_requires_complete_matching_counters",
+        "test_gate_and_standalone_differ_pin_child_collation",
+        "test_generic_boots_disable_save_but_keep_explicit_overrides",
+        "test_large_gate_script_avoids_single_argument_limit",
+        "test_live_rows_receive_reaped_slot_and_private_artifacts",
+        "test_missing_tls_oracle_names_path_without_tcp_fallback",
+        "test_partial_jobs_use_the_real_scheduler_and_finalizers",
+        "test_ratio_follows_thread_mode_value_and_preserves_other_arguments",
+        "test_recovery_requires_owned_pid_reply_and_records_the_peer",
+        "test_reorder_off_has_no_schedule_storage",
+        "test_retired_overlap_fields_are_rejected",
+        "test_shutdown_live_geometry_and_explicit_save_overrides",
+        "test_slowlog_negative_requires_failure_and_exact_witness",
+        "test_unit_row_requires_build_and_success_in_its_own_job"
+      ],
+      "absent_before": false
+    },
+    {
+      "file": "tests/gate_history.py",
+      "before_tests": 55,
+      "after_tests": 55,
+      "added": [],
+      "absent_before": false
+    },
+    {
+      "file": "tests/_nullrefresh_test.py",
+      "before_tests": 25,
+      "after_tests": 28,
+      "added": [
+        "test_campaign6_compact_replay_preserves_exact_map_and_classification_control",
+        "test_epoll_companion_calibrates_freezes_and_checks_its_own_inventory",
+        "test_replay_reads_once_and_hashes_exactly_the_parsed_bytes"
+      ],
+      "absent_before": false
+    },
+    {
+      "file": "tests/nullpublish4_test.py",
+      "before_tests": 0,
+      "after_tests": 10,
+      "added": [
+        "test_all_planned_repeats_finish_even_after_an_outside_floor_block",
+        "test_archive_matches_without_access_to_campaign_worktree",
+        "test_campaign7_real_replay_names_all_outside_floors",
+        "test_every_cell_inside_floors_makes_overall_pass_without_reclassifying_null",
+        "test_plan_is_copied_not_refitted_and_cap_is_visible",
+        "test_published_spread_makes_real_t02_pass_and_removing_it_fails_assertion",
+        "test_stale_fingerprint_inventory_and_age_are_explicit_refusals",
+        "test_tracked_default_and_retained_receipt_ignore_stale_local_null",
+        "test_two_sided_drift_and_spread_use_same_immutable_floor",
+        "test_zero_floor_gets_a_metric_quantum_from_published_samples_only"
+      ],
+      "absent_before": true
+    }
+  ]
+}

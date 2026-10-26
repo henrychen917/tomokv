@@ -408,8 +408,8 @@ def promote_null(root, args):
         source_path=str(args.null_result.resolve()), source_sha256=digest(source_bytes),
         campaign_sha256=digest(canonical(campaign)), instrument_sha256=campaign["instrument"]["sha256"],
         independent_resolution="PENDING HOLDOUT", cycles_op_resolution="UNPROVEN")
-    # The source and plan remain immutable audit artifacts. Only full-null.json
-    # is a mutable default. An interrupted replacement leaves its previous bytes intact.
+    # The source and plan remain immutable audit artifacts. Each transport has a
+    # separate mutable default; promotion cannot replace the other transport.
     archive.mkdir(parents=True, exist_ok=True)
     for name, data in (("source.json", source_bytes), ("campaign.json", canonical(campaign) + b"\n")):
         path = archive / name
@@ -422,7 +422,8 @@ def promote_null(root, args):
     if not provenance_path.exists():
         write_json(provenance_path, provenance, exclusive=True)
     current_campaign(root, campaign)
-    path = directory / "baselines/full-null.json"
+    name = "epoll-null.json" if campaign["inventory"]["path"] == "tests/netio_cells.txt" else "full-null.json"
+    path = directory / "baselines" / name
     write_json(path, promoted)
     print("Standing null: " + resolution_text(resolution_summary(promoted)))
     return path

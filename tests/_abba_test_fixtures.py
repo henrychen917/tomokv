@@ -55,6 +55,6 @@ def compact_json_fixture(test):
     def compact(*args, **kwargs):
         kwargs.pop("indent", None)
         return original(*args, **kwargs)
-    patcher = mock.patch.object(json, "dumps", side_effect=compact)
+    patcher = mock.patch.object(json, "dumps", new=compact)
     patcher.start()
     test.addCleanup(patcher.stop)

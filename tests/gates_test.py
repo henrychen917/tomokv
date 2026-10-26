@@ -303,6 +303,7 @@ class LedgerWiring(unittest.TestCase):
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
+                          'tests/redis_tcl_test.py',
                           'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py',
                           'tests/gateprod.py', 'tests/tailgen_stall.py')
 
@@ -850,7 +851,7 @@ probe
 
 
 class SchedulerWiring(unittest.TestCase):
-    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'))
+    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'))
 
     # Enumerate the real collector loops, not a hand-maintained approximation of their inventory.
     # This invokes only collect_job stubs: no compiler, server, battery or benchmark is started.
@@ -1032,7 +1033,7 @@ __SCHEDULER_AFFINITY_PROBE__
     : > "$RUN_DIR/atomic-boot-reached"
   fi
   case "$current" in
-    production_units|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build)
+    production_units|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|redis_tcl)
       : > "$RUN_DIR/completed/$current"
       return 0;;
   esac
