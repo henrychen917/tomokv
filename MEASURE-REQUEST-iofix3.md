@@ -52,5 +52,77 @@ set **799 / 816**. The fixture and declared source inventory both contain 816
 rows; [the inventory](docs/iofix3/row-inventory.json) records the collector and
 quick-exit source lines.
 
-Final arm hashes, fixed-count park counts, idle CPU, correctness outcomes and
-any NOT RUN items are recorded below when validation completes.
+### Frozen release arms
+
+All paths are relative to this worktree; binaries remain in `build/` for the
+maintainer. SHA-256 covers the entire ELF, including debug information.
+
+| Arm | Binary | .text bytes | SHA-256 |
+|---|---|---:|---|
+| pre | `build/tomokv-iofix3-pre` | 8,279,287 | `661117595196c46fc72d9c613b10d60b96336b6fe1cc65c56b7d32477cb42193` |
+| post2 | `build/tomokv-iofix3-post2` | 8,286,743 | `dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4` |
+| post4 | `build/tomokv-iofix3-post4` | 8,286,743 | `09a015c68f19291db9ba70eb4023232676373fee5e085ae752336a7e6583b890` |
+| post8 | `build/tomokv-iofix3-post8` | 8,286,743 | `8227cb0cfaf1da6291fb773511fb461d5f2e0e99be5bda4d40b37c0ff9681702` |
+| pad-a | `build/tomokv-iofix3-pad-a` | 8,286,743 | `3895bc786a8029bae7eaebc7cbad437cc00108f6e3d894477578964c4dd40ab4` |
+
+PRE was built from a `git archive 3700b51d7` copy of `src`, `third_party` and
+`Makefile` under `build/iofix3`. POST2 uses ordinary `make -j16 all`; POST4 and
+POST8 use separate `BUILD_ROOT=build/iofix3/postN` trees and the ordinary flags
+`-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread`, adding only
+`-DTOMO_WB_IDLE_MULTIPLIER=N`. All builds run under `taskset -c 64-79`.
+`tools/iofix3_artifacts.py pad` constructs the guarded PAD-A from frozen POST2.
+The [artifact manifest](docs/iofix3/artifacts.json) and
+[PAD receipt](docs/iofix3/pad-a-final.json) retain the details.
+
+Each POST adds 7,456 text bytes to PRE. All three POSTs and PAD-A have identical
+allocated-section layouts and symbol addresses/sizes; POST4 and POST8 each
+change 280 text bytes relative to POST2. PAD-A changes only its 312 documented
+bytes. Thus the one PAD-A also matches the other POST arms' allocated layout.
+See [the layout comparison](docs/iofix3/arm-layouts.json).
+
+### Main-command identity
+
+The unchanged `tests/reorder_noop.py Binary(literal_pools=True)` normalizer
+compares opcode encodings, operands and referenced literal pools; the existing
+`tools/iofix_identity.py` hot selector covers GET, SET, MGET and MSET.
+All **142 selected linked groups are identical to PRE in each arm**:
+[POST2](docs/iofix3/identity-post2-final/summary.json),
+[POST4](docs/iofix3/identity-post4/summary.json),
+[POST8](docs/iofix3/identity-post8/summary.json). All-group inventories and
+normalized changed-body diffs are retained alongside those summaries.
+
+This is not whole-server identity. Of 9,427 groups, 131 change: 104 writeback
+flush bodies, 17 run loops, one fused sweep, and nine compiler/link propagation
+groups outside the selected hot commands. The
+[classified diffs](docs/iofix3/identity-post2/changed-bodies-explained.json.gz)
+retain these exceptions. The gate's separate R7 FIFO-control audit also passes
+312/312 bodies and its missing-body/opcode negative controls. The eight layout
+locks remain 336/1984/1408/1440/944/192/144/624 bytes.
+
+### Idle-battery CPU
+
+WB4.1 passes all four mode/engine legs on every POST. Each leg exercises policy
+0, policy 1 at S16/D3, S0/D3 and S16/D0; every leg witnesses a real remote LPOS
+and compares exact replies against Redis 7.4.10. PRE fails the restored row in
+all four legs because policy 1 busy-spins. Missing LPOS/deferral windows fail;
+no tolerance or skip was added.
+
+The table is **IO-thread CPU milliseconds**, default policy 1/S16/D3, over 16
+LPOS waits. Wall intervals are 426.4–430.5 ms. This is idle CPU evidence, not
+throughput. All 64 policy/mode/engine observations, including owner identities,
+wall time and the independent second-busy-thread check, are in
+[idle-cpu.json](docs/iofix3/idle-cpu.json).
+
+| Mode / engine | PRE | POST2 | POST4 | POST8 |
+|---|---:|---:|---:|---:|
+| 1s / epoll | 426.717 | 0.514 | 0.589 | 0.495 |
+| 1s / uring | 426.457 | 0.686 | 0.527 | 0.527 |
+| 2s / epoll | 426.617 | 0.433 | 0.477 | 0.467 |
+| 2s / uring | 426.511 | 0.766 | 0.459 | 0.473 |
+
+### Fixed-count probe and remaining correctness
+
+The instrumented fixed-count arms and the remaining engine/mode correctness
+matrix are still running. Their completed results, exact job ledger and any
+NOT RUN items will replace this paragraph before delivery. The first gate
+attempt's failures and resolving reruns are preserved, not counted as passes.

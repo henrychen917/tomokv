@@ -1,0 +1,32 @@
+[
+  {
+    "arm": "pre",
+    "path": "build/tomokv-iofix3-pre",
+    "sha256": "661117595196c46fc72d9c613b10d60b96336b6fe1cc65c56b7d32477cb42193",
+    "text_bytes": 8279287
+  },
+  {
+    "arm": "post2",
+    "path": "build/tomokv-iofix3-post2",
+    "sha256": "dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4",
+    "text_bytes": 8286743
+  },
+  {
+    "arm": "post4",
+    "path": "build/tomokv-iofix3-post4",
+    "sha256": "09a015c68f19291db9ba70eb4023232676373fee5e085ae752336a7e6583b890",
+    "text_bytes": 8286743
+  },
+  {
+    "arm": "post8",
+    "path": "build/tomokv-iofix3-post8",
+    "sha256": "8227cb0cfaf1da6291fb773511fb461d5f2e0e99be5bda4d40b37c0ff9681702",
+    "text_bytes": 8286743
+  },
+  {
+    "arm": "pad-a",
+    "path": "build/tomokv-iofix3-pad-a",
+    "sha256": "3895bc786a8029bae7eaebc7cbad437cc00108f6e3d894477578964c4dd40ab4",
+    "text_bytes": 8286743
+  }
+]
