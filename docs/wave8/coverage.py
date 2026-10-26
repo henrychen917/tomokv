@@ -32,6 +32,16 @@ for mode in ('1s', '2s'):
         expected.append(dict(job=job, mode=mode))
 expected.append(dict(job='abba_selftest'))
 
+def job_passed(data, job):
+    done = Path(data['artifacts']) / 'jobs' / job / 'done'
+    if done.exists():
+        rc, passed, failed = map(int, done.read_text().split())
+        return rc == 0 and failed == 0
+    # Public differential aliases fold several private jobs. Their complete
+    # batch verdict is required; never infer a fold from one private child.
+    assert job in ('differ-split', 'differ-armed'), (job, done)
+    return data['exit'] == 0
+
 for row in expected:
     matches = []
     for name, data in receipts.items():
@@ -44,18 +54,18 @@ for row in expected:
             continue
         matches.append(name)
     row['receipts'] = matches
-    row['status'] = ('PASS' if any(receipts[n]['exit'] == 0 for n in matches)
-                     else 'FAILED BATCH' if matches else 'NOT RUN')
+    row['passing_receipts'] = [n for n in matches if job_passed(receipts[n], row['job'])]
+    row['status'] = ('PASS' if row['passing_receipts'] else 'FAILED JOB' if matches else 'NOT RUN')
 
 result = dict(post_sha256=sha, bindings=expected,
               complete=all(row['receipts'] for row in expected),
-              all_batches_green=all(row['status'] == 'PASS' for row in expected),
-              note='A failed batch is retained as failed evidence; its per-job ledger identifies the failed row. This is selected-job coverage, not a full gate receipt.',
+              all_bindings_have_passing_receipt=all(row['status'] == 'PASS' for row in expected),
+              note='Every failed attempt remains in the batch history; a job passes only with its own completed zero-failure receipt. This is selected-job coverage, not a full gate receipt.',
               batches={name: dict(exit=d['exit'], seconds=d['seconds'], summary=d['summary']) for name, d in receipts.items()})
 (ROOT / 'docs/wave8/coverage.json').write_text(json.dumps(result, indent=2) + '\n')
 print('Bindings:', len(expected), 'PASS:', sum(r['status'] == 'PASS' for r in expected),
-      'FAILED BATCH:', sum(r['status'] == 'FAILED BATCH' for r in expected),
+      'FAILED JOB:', sum(r['status'] == 'FAILED JOB' for r in expected),
       'NOT RUN:', sum(r['status'] == 'NOT RUN' for r in expected))
 if not a.allow_incomplete:
     assert result['complete'], 'required job bindings are missing'
-    assert result['all_batches_green'], 'inspect failed whole-job receipts'
+    assert result['all_bindings_have_passing_receipt'], 'inspect failed whole-job receipts'

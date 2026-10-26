@@ -177,3 +177,9 @@ reserves, removes the watcher, then requires the sole reservation and gate befor
 finalizing. Production behavior and POST digest are unchanged. The original red
 receipt is retained; the entire EX-batch job is rerun on CPUs 88–95 with the same
 gate interface and both namespaces.
+
+The repaired whole EX-batch job passes **4 ok / 0 FAIL**. Its WATCH row executes
+20 positive/negative checks across both namespaces, including exact rejection
+at the explicit-finalization witness. `exbatch-watch-final.json` preserves the
+checks. All 49 production freshness queries pass again after rebuilding these
+two test binaries; POST remains `f94fbd1d`.
