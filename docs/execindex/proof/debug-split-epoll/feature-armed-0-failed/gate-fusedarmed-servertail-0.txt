@@ -1,0 +1,13 @@
+scope A: parity surface
+scope B: CONFIG + COMMAND
+scope C: OBJECT + MEMORY
+scope A: SHUTDOWN (throwaway server)
+  boot diagnostic: server boot timed out {'returncode': 1, 'wait_seconds': 6.0} (artifacts=/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-armed-0/servertail-boot-52hy29vf)
+  FAIL throwaway server booted                        got=False
+scope B: CONFIG REWRITE round trip
+  boot diagnostic: server boot timed out {'returncode': 1, 'wait_seconds': 6.0} (artifacts=/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-armed-0/servertail-boot-t_atk4bg)
+  FAIL server booted from conf                        got=False
+
+servertail: 87 checks, 2 failures -> FAIL
+  throwaway server booted: got False want True
+  server booted from conf: got False want True

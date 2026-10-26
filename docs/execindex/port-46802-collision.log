@@ -1,0 +1,7 @@
+Observed during gate-run.zVmicf after the two atomic-0 servertail failures:
+command: taskset -c 96-111 ss -H -tanpe 'sport = :46802'
+TIME-WAIT 0      0      127.0.0.1:46802 127.0.0.1:47800 timer:(timewait,7.155ms,0) ino:0 sk:119500
+TIME-WAIT 0      0      127.0.0.1:46802 127.0.0.1:47801 timer:(timewait,7.275ms,0) ino:0 sk:119501
+The later file capture was empty after these sockets expired. The server boot
+diagnostics independently record bind: Address already in use. No listener was
+joined, no foreign process was stopped, and no system port settings were changed.

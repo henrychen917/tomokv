@@ -4,7 +4,7 @@ import hashlib,json,re,shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'docs/execindex/proof';OUT.mkdir(parents=True,exist_ok=True)
 records=[]
-for group in ['proof','proof-extra']:
+for group in ['proof','proof-extra','proof-recheck']:
     source=ROOT/'build/execindex'/group
     if not (source/'runs.json').exists():continue
     for row in json.loads((source/'runs.json').read_text()):
@@ -24,9 +24,13 @@ for group in ['proof','proof-extra']:
                 shutil.copy2(job/'ledger',dest/(job.name+'.ledger'))
             if failed or job.name.startswith(('txnorder','execfair')):
                 d=dest/(job.name+('-failed' if failed else '-evidence'));d.mkdir(exist_ok=True)
-                for file in job.iterdir():
-                    if file.is_file() and file.suffix in ['.txt','.log','.json']:
-                        shutil.copy2(file,d/file.name)
+                candidates=job.rglob('*') if failed else job.iterdir()
+                for file in candidates:
+                    if file.is_file() and (file.suffix in ['.txt','.log','.json'] or
+                                           (failed and file.name.startswith('gate-srv-'))):
+                        target=d/file.relative_to(job)
+                        target.parent.mkdir(parents=True,exist_ok=True)
+                        shutil.copy2(file,target)
             if job.name.startswith('differ-'):
                 # Retain the actual seed/leg inventory and every exact mode
                 # comparison, without committing the generated Redis datasets.

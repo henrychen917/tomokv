@@ -1,0 +1,2 @@
+  no-touch: read_local=0 consulted=20/20 lane-served=0/20
+climon2: ok (54 checks, monitor_feed_lines=8, client_pause_holds=79, client_no_touch_ops=20)

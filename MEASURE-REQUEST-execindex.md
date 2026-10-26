@@ -153,6 +153,23 @@ were correct and order violations stayed zero. The failed ledger is retained
 (`build/gate-run.aiaiHU`). Further launches were paused until compilation
 and tracing finished; unchanged-bound idle-CPU repetitions are required.
 
+The fused/uring `debug-0` job subsequently recorded one bare RENAMENX error
+(`ERR no such key`, iteration 2877) while MGET showed the losing source still
+present. Its preceding transactional race passed. The earlier batteries had
+left `atomic=1`, which the RENAMENX driver recorded explicitly. This is an
+unresolved correctness failure, not classified as noise or attributed to PRE.
+Clean-server controls on both release arms each passed 16 repetitions of the
+unmodified test: 131,072 transactional and 131,072 bare race iterations per
+arm, with zero order violations. Full debug-sequence PRE/POST controls are in
+progress; `docs/execindex/nx-control/` retains the clean controls.
+
+Three epoll feature cells failed only their servertail throwaway boots with
+`bind: Address already in use` on port 46802. The socket inspection observed
+TIME_WAIT client connections from 46802 to another lane's ports 47800/47801
+(`docs/execindex/port-46802-collision.log`). No foreign process or system
+network setting was changed. These failed attempts remain in the archive;
+the affected complete jobs will be rerun within the allocated port range.
+
 The atomic RYOW battery's existing speed comparison is excluded only in
 selected diagnostic jobs through `GATE_PROOF_NO_RATES=1`, which passes its
 existing `--no-rate-assertions` flag. Every correctness check still runs and

@@ -533,5 +533,301 @@
       }
     ],
     "proof_no_rates": false
+  },
+  {
+    "name": "debug-fused-uring",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "engine": "uring",
+    "fused": 1,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 1,
+    "elapsed_s": 181.2892096042633,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.G2pyOc",
+    "jobs_evidence": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 15,
+        "failed": 1,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.G2pyOc/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.G2pyOc/jobs/debug-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.G2pyOc/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.G2pyOc/jobs/release"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "debug-split-epoll",
+    "jobs": [
+      "debug-0",
+      "debug-1",
+      "txn_group_split",
+      "txn_group_fused",
+      "fused-0",
+      "fused-1",
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 1,
+    "elapsed_s": 908.429881811142,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf",
+    "jobs_evidence": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/debug-1"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 1,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 33,
+        "failed": 1,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 33,
+        "failed": 1,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/feature-split-1"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/fused-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/release"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zVmicf/jobs/txn_group_split"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "debug-prefix-pre-1",
+    "arm": "PRE",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "engine": "uring",
+    "fused": 1,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46860-46879",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE"
+    ],
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.yJ8ZhT",
+    "jobs_evidence": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.yJ8ZhT/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.yJ8ZhT/jobs/debug-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.yJ8ZhT/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.yJ8ZhT/jobs/release"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "debug-prefix-pre-2",
+    "arm": "PRE",
+    "jobs": [
+      "debug-0",
+      "debug-1"
+    ],
+    "engine": "uring",
+    "fused": 1,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46860-46879",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE"
+    ],
+    "exit_code": 0,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.zCDUH1",
+    "jobs_evidence": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zCDUH1/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zCDUH1/jobs/debug-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zCDUH1/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.zCDUH1/jobs/release"
+      }
+    ],
+    "proof_no_rates": false
   }
 ]
