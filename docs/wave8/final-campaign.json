@@ -75,5 +75,33 @@
     "summary": [
       "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-epoll-1s.tsv.partial"
     ]
+  },
+  {
+    "name": "final-differ-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-differ-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-uring-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-uring-2s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-uring-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-uring-1s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-persistence-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 141 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-persistence-2s.tsv.partial"
+    ]
   }
 ]

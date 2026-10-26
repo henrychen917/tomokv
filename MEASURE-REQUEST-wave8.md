@@ -214,8 +214,8 @@ including both atomic debug batteries, script bounds, notifications and ASAN
 batteries. Whole-job receipts are under `jobs/final-engine-*` and
 `jobs/final-debug-*`.
 
-The first persistence invocation passes **141 ok / 0 FAIL**, retaining every
-AOF and snapshot leg on both engines (`jobs/final-persistence-1s.*`). These
+Both persistence invocations pass **141 ok / 0 FAIL** each, retaining every
+AOF and snapshot leg on both engines (`jobs/final-persistence-{1s,2s}.*`). These
 jobs also declare their own internal mode and atomic loops; all are retained.
 
 The integration-only whitespace check (`969b21fd3..HEAD`) is clean. The complete
