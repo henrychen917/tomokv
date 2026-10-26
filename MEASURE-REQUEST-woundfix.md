@@ -74,8 +74,7 @@ no `atomic_txn_group_wounds` field). EXEC uses `atomic_txn_wounds`.
 
 Four aggregate rows are added: `txnorder wound group`, `exec`, `oom`, `d2`.
 Their `collect_job txnorder_wound` is at line 5589, before the quick-tier exit
-at line 5692 in this diff, so this
-lane is **DQ=+4, DF=+4**. No `EXPECT_QUICK` or `EXPECT_FULL` assignment is edited.
+at line 5692 in this diff, so this lane is **DQ=+4, DF=+4**. No `EXPECT_QUICK` or `EXPECT_FULL` assignment is edited.
 The inherited execindex rows already require +2/+2 against the literal
 798/815: the resulting declaration totals should be **804 quick / 821 full**.
 The maintainer owns that update.
@@ -98,11 +97,12 @@ PAD-A is **type A, behaviour twin**: PRE behaviour in the exact common image
 of POST-layout. Both link POST first and a symbol-isolated PRE second; PAD-A
 changes only five bytes at the entry to run PRE. Sections, function addresses,
 and data match. It is the exact twin of **POST-layout**, not the smaller release
-POST. The release `.text` shrinks by 224 bytes (GNU size text total: −196 bytes); the common-image pair is
-an additional layout control, not a substitute for the release comparison.
+POST. The release `.text` shrinks by 224 bytes (GNU size text total: −196
+bytes). The common-image pair is an additional layout control, not a substitute
+for the release comparison.
 `docs/woundfix/pad-a.json` records all objects, link commands, patch and identity
-checks. Both common-image arms pass all 16 bounded boots (both modes, engines
-and namespaces): exact EXEC data, WATCH abort, and zero order violations.
+checks. The common-image pair passed 16 bounded boots in total (both arms,
+modes, engines and namespaces): exact EXEC data, WATCH abort, and zero order violations.
 
 ### Maintainer measurement request — NOT RUN in this lane
 
@@ -127,10 +127,14 @@ instructions/op, IPC, and rate. Do not infer throughput from serverless counts.
 
 Correctness is mandatory: zero wrong replies and zero order violations. For
 merit/nulls, the cell's rate or latency score at matched offered load is the
-verdict; cycles/op and its instructions/IPC factors explain it. A tiny rate change is not a claim without
-the gate's same-session spread and null. The fix is on cancellation/exception
-paths; the uncontended-command instruction comparison is a separate required
-proof below.
+verdict; cycles/op and its instructions/IPC factors explain it. A tiny rate
+change is not a claim without the gate's same-session spread and null.
+The last-placer and publication changes are on cancellation paths. The
+additional terminal-abort guard reads `aborted` at group decision and performs
+its phase CAS only for aborted units. The five requested command scopes below
+are instruction-identical; that finding does not establish unchanged cost for
+unmeasured group operations such as RENAMENX/MSETNX. Their group-decision guard
+remains a performance attribution limit until measured.
 
 ### Completed live and command-scope proof
 
@@ -145,11 +149,11 @@ violations occurred.
 An additional fused/uring, databases-1 boot ran 572 bare-only repetitions:
 4,685,824 rounds and **301,615 group wounds**, exceeding DEFECT §6's 300,000
 exposure requirement in the original symptom's posture. Its order violations
-and wrong replies are zero. In all nine completed cells, group and EXEC wound counts equal their
-respective completed retry counts, with zero blind restarts.
+and wrong replies are zero. In all nine completed cells, group and EXEC wound
+counts equal their respective completed retry counts, with zero blind restarts.
 `live/counter-conservation.json` records this cross-check. The serverless
-phase-gap fixture separately proves exact one-per-successful-CAS accounting. Commands, all repetition logs, counter deltas and binary identity
-are in `docs/woundfix/live/`.
+phase-gap fixture separately proves exact one-per-successful-CAS accounting.
+Commands, all repetition logs, counter deltas and binary identity are in `docs/woundfix/live/`.
 
 | Cell | Full repetitions | Extra bare repetitions | Group wounds | EXEC wounds |
 | --- | ---: | ---: | ---: | ---: |
@@ -172,7 +176,7 @@ are zero added instructions in the measured uncontended paths; this is not a
 cycles or throughput claim. Full PRE/POST table, receipts and trace digests:
 `docs/woundfix/instructions/comparison.md` and adjacent JSON/logs.
 
-### Gate validation in progress
+### Completed gate validation
 
 The serverless/unit group completed with 47 passed rows, including execindex's
 16 × 10-million-operation oracle cases, complexity controls, owner episodes,
@@ -230,7 +234,30 @@ Permanent seeds are 7/19/20/23; this run's rotating seed is 21. The 47-suite
 inventory is unchanged. `docs/woundfix/gate/differ-uring/` retains the frozen
 plan, completed part receipts, leg lists and log manifests.
 
-The epoll standard differential is in progress. No full iteration gate or performance benchmark
-has been run. The partial-only `GATE_PROOF_NO_RATES=1` explicitly leaves the
-atomic floor and RYOW rate assertions NOT RUN, while retaining their correctness
-checks; default/full-gate semantics are unchanged.
+Epoll completed the same standard matrix: **6/6 gate rows**, the same
+235/239/230/234 leg counts and 16 mode-equivalence configurations. Its rotating
+seed is 22; the four permanent seeds remain unchanged. Across both engines,
+all **1,876 Redis suite/seed legs and 32 mode-equivalence configurations** pass.
+The Redis oracle is 7.4.10, with binary identity in `docs/woundfix/oracle.json`.
+Both complete plans and every part receipt are recorded under
+`docs/woundfix/gate/`; `differential-summary.json` gives the counts and seeds.
+These are selected `GATE_ONLY_JOBS` runs, not a full gate receipt.
+
+The final integrity check verified all four delivered SHA-256s, the unchanged
+release source and binary, and no listeners remaining on ports 20300–20399.
+See `docs/woundfix/final-integrity.json`. Source/fixture checks, gate outcomes
+and explicit exclusions are summarized in `docs/woundfix/validation.json`.
+
+### NOT RUN
+
+- Performance benchmarks, the EXEC merit campaign, the 14 generic cells and
+  four split GET/SET cells: assigned to the maintainer on the quiet box. Their
+  exact requested arms and cells are specified above; no throughput claim.
+- Full `tests/gate.sh iteration`: reserved to the maintainer. Every correctness
+  job listed above used the gate's own partial-job interface.
+- Atomic throughput-floor and RYOW rate assertions: deliberately excluded by
+  partial-only `GATE_PROOF_NO_RATES=1`; their correctness checks ran. The default
+  and full-gate behavior and row counts are unchanged.
+- Armed-fused SORT: the standard differential driver excludes it because the
+  suite requires split 6:2. SORT passed in both split atomic settings and both
+  engines. This exclusion is recorded as a skip, never as a pass.

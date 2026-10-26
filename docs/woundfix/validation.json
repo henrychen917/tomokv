@@ -1,0 +1,155 @@
+{
+  "production_commit": "f90cfa1f3",
+  "pre_base": "7ae703778e854a7b76945af5792a5ec5e88061a6",
+  "pre_expected_failures": 16,
+  "wound_gate": [
+    {
+      "label": "wounds",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "32-45",
+        "--load-cores",
+        "46-47",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20301-20359"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "txnorder_wound",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_DIFFER_ORACLE_CORES": "40-45",
+        "REDIS74_ROOT": "/home/user/Projects/redis"
+      },
+      "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+      "exit": 0,
+      "counts": [
+        5,
+        0
+      ],
+      "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.BRGNQ3"
+    }
+  ],
+  "existing_unit_gate_passes": 47,
+  "runtime_passes": 265,
+  "runtime_historical_failure": "WATCH negative control bypassed targeted finalizer; direct finalizer witness fixed, dedicated rerun 4/4",
+  "watch_rerun": [
+    {
+      "label": "watch-units",
+      "command": [
+        "tests/gate.sh",
+        "quick",
+        "--server-cores",
+        "32-45",
+        "--load-cores",
+        "46-47",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "20301-20359"
+      ],
+      "environment": {
+        "GATE_ONLY_JOBS": "exbatch_units",
+        "GATE_PROOF_NO_RATES": "1",
+        "GATE_PROOF_NET_IO": "uring",
+        "GATE_TXN_FUSED": "0",
+        "GATE_TXN_ATOMIC": "1",
+        "GATE_DIFFER_NET_IO": "uring",
+        "GATE_DIFFER_ORACLE_CORES": "40-45",
+        "REDIS74_ROOT": "/home/user/Projects/redis"
+      },
+      "sha256": "e50e343c32bca46cfd5d2856225c97b9d313968209262f00f97b847d840d8ec6",
+      "exit": 0,
+      "counts": [
+        4,
+        0
+      ],
+      "artifacts": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ"
+    }
+  ],
+  "asan_passes": 24,
+  "differential": [
+    {
+      "engine": "uring",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "equivalence_seeds": [
+        21
+      ],
+      "gate_rows": [
+        6,
+        0
+      ],
+      "parts": {
+        "equivalence": 16,
+        "armed-0": 230,
+        "split-0": 235,
+        "split-1": 239,
+        "armed-1": 234
+      }
+    },
+    {
+      "engine": "epoll",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "equivalence_seeds": [
+        22
+      ],
+      "gate_rows": [
+        6,
+        0
+      ],
+      "parts": {
+        "equivalence": 16,
+        "armed-0": 230,
+        "split-0": 235,
+        "split-1": 239,
+        "armed-1": 234
+      }
+    }
+  ],
+  "redis_comparison_legs": 1876,
+  "mode_equivalence_configurations": 32,
+  "gates_test": {
+    "tests": 72,
+    "failures": 0,
+    "persistence_subsuite": 14
+  },
+  "freshness_checks": 51,
+  "live_full_repetitions": 160,
+  "live_bare_exposure_repetitions": 572,
+  "live_bare_exposure_rounds": 4685824,
+  "live_bare_exposure_group_wounds": 301615,
+  "wrong_live_replies": 0,
+  "live_order_violations": 0,
+  "instruction_pairs": 48,
+  "instruction_delta": 0,
+  "dq": 4,
+  "df": 4,
+  "expected_constants_edited": false,
+  "not_run": [
+    "Performance/merit campaigns: maintainer owns the quiet box",
+    "Full gate iteration: maintainer-owned",
+    "Atomic throughput-floor and RYOW rate assertions: partial correctness-only request",
+    "Armed-fused SORT: standard differential suite requires split 6:2"
+  ]
+}
