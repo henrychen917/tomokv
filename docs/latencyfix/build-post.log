@@ -76,8 +76,8 @@ g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-g
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/net/tls.cc -o build/db0/src/net/tls.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/commands.cc -o build/db0/src/cmd/commands.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/glob.cc -o build/db0/src/cmd/glob.o
-g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35697 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/acl.cc -o build/db0/src/cmd/acl.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=145970 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/xshard.cc -o build/db0/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35697 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/acl.cc -o build/db0/src/cmd/acl.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/hll.cc -o build/db0/src/cmd/hll.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33448 --param max-inline-insns-auto=16 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_server.cc -o build/db0/src/cmd/t_server.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_string.cc -o build/db0/src/cmd/t_string.o

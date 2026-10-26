@@ -435,6 +435,7 @@ bool multi_records_done(const MultiExecState& state) {
 
 void destroy_multi_children(MultiExecState& state) {
     for (const auto& command : state.commands) {
+        if (command->op) latency_tracking_forget(*command->op);
         if (!command->scatter) continue;
         xshard_destroy(command->scatter, state.scatter_pool, state.owner_io);
         command->scatter = nullptr;
@@ -2308,6 +2309,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     if (was_queueing && op_id != queue_session->next_queue_op_id)
         queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
+    const uint64_t latency_started = latency_tracking_start();
     const MultiIoAction action =
         multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
     if (action == MultiIoAction::NotHandled) return false;
@@ -2317,6 +2319,8 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     }
     if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
     if (action == MultiIoAction::LocalDone) {
+        if (op.spec->flags & CmdFlags::Transaction)
+            latency_tracking_finish(loop.self_->id(), op, latency_started);
         client.advance_parse(consumed);
         loop.self_->note_command(op.spec->id);
         loop.flip_fingerprint_note(*op.spec, op);
@@ -2756,6 +2760,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     // fragment with no client raises no notifications, so it takes the pointer form.
     Op* carrier = task.client && task.op_id != UINT64_MAX
         ? &task.client->rob().at(task.op_id) : nullptr;
+    LatencyTrackingPart latency_parent(owner_thread_id, carrier);
     const bool notify = carrier && (carrier->spec->flags & CmdFlags::NotifySelected);
     NotifyExecutionScope notify_scope(shard, carrier, notify);
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
@@ -2893,6 +2898,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             }
             ScatterTaskResult executed = ScatterTaskResult::Complete;
             if (execute_child) {
+                LatencyTrackingPart latency_child(owner_thread_id, command.op.get());
                 if (command.scatter->kind == Kind::DatabaseInfo)
                     multi_collect_database_stats(state, command, shard);
                 else executed = shard.has_watches()
@@ -2913,6 +2919,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     *command.scatter, command.xshard_stage_groups[next_stage]);
                 command.stage.store(next_stage, std::memory_order_release);
             } else if (finished == MultiChildFinish::Final) {
+                latency_tracking_retire(owner_thread_id, *command.op);
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
                 if (!kSingleDatabase && command.scatter->kind == Kind::DatabaseInfo && command.watch_map) {
@@ -3038,6 +3045,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     if (!state.finalized.load(std::memory_order_acquire)) return retry();
     finalize_reservations(state, shard, promoter);
     complete_multi_owner_record_refs(state, owner_thread_id);
+    latency_parent.finish();
     if (state.tasks_pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return MultiTaskResult::Complete;
 

@@ -173,6 +173,48 @@ def shape(run, mode, label, extra):
             run.check(label + ' EXEC child commands', rows, {'get': 1, 'incr': 1, 'exec': 1})
 
 
+def execution_paths(run, mode, label, extra):
+    armed = extra + ['--latency-tracking', 'yes', '--enable-debug-command', 'yes']
+    if not run.oracle:
+        armed += ['--read-local', '1']
+    with Server(run, label + '-paths', mode, extra=armed) as server, server.client() as c:
+        keys = ['latencyfix:cross:' + str(i) for i in range(24)]
+        if not run.oracle:
+            from _lib import shard_of, topology
+            topo = topology(c)
+            by_owner = {}
+            for key in keys:
+                by_owner.setdefault(topo.shard_owner[shard_of(c, key)], key)
+            assert len(by_owner) >= 2, 'cross-owner window never opened'
+            keys = list(by_owner.values())[:2]
+        else:
+            keys = keys[:2]
+        c.cmd('SET', keys[0], '1')
+        c.cmd('SET', keys[1], '2')
+        cases = [
+            ('cross', [('MSET', keys[0], '1', keys[1], '2'), ('MGET', *keys),
+                       ('EXISTS', *keys), ('DBSIZE',), ('KEYS', '*')],
+             ['mset', 'mget', 'exists', 'dbsize', 'keys']),
+            ('blocking-timeout', [('BLPOP', 'latencyfix:empty', '.01')], ['blpop']),
+            ('wait-timeout', [('WAIT', 1, 1)], ['wait']),
+            ('exec-cross', [('MULTI',), ('MGET', *keys), ('MSET', keys[0], '3', keys[1], '4'),
+                            ('EXEC',)], ['multi', 'exec', 'mget', 'mset']),
+            ('local-read', [('GET', keys[0]), ('GET', keys[0]), ('MGET', keys[0])],
+             ['get', 'mget']),
+        ]
+        for name, commands, selectors in cases:
+            assert c.cmd('CONFIG', 'RESETSTAT') == b'OK'
+            for command in commands:
+                reply = c.cmd(*command)
+                assert not is_error(reply, ''), (command, reply)
+            actual = sorted(histogram(c, *selectors))
+            oracle_equal(run, 'path:' + name, actual)
+        c.cmd('CONFIG', 'RESETSTAT')
+        c.cmd('LPUSH', 'latencyfix:pop', 'v')
+        c.cmd('BLPOP', 'latencyfix:pop', '0')
+        oracle_equal(run, 'path:blocking-ready', sorted(histogram(c, 'blpop', 'lpush')))
+
+
 @contextlib.contextmanager
 def allocations(run, label):
     if run.oracle:
@@ -272,7 +314,10 @@ def main():
             for engine in (['redis'] if oracle else ['uring', 'epoll']):
                 label = mode + '-' + engine
                 try:
-                    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+                    extra = [] if oracle else ['--net-io', engine]
+                    probe(run, mode, label, extra)
+                    if args.case == 'shape':
+                        execution_paths(run, mode, label, extra)
                 except Exception:
                     traceback.print_exc()
                     run.check(label + ' complete battery', False, True)

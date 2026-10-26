@@ -116,7 +116,7 @@ public:
             if (op.has_scatter_state()) {
                 loop->climon_flush_completed(op);
                 notifications = notify_take_batch(op);
-                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
+                latency_xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
                     loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
@@ -125,10 +125,10 @@ public:
                     });
             } else if (op.has_blocking_state()) {
                 notifications = notify_take_batch(op);
-                blocking_retire(*loop->srv_, client, op, *loop->self_);
+                latency_blocking_retire(*loop->srv_, client, op, *loop->self_);
             } else if (op.has_multi_state()) {
                 notifications = notify_take_batch(op);
-                multi_retire_entry(*loop, client, op);
+                latency_multi_retire(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
             }
@@ -3705,11 +3705,13 @@ subscriber_checks_done:
                 // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
                 if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                     uint64_t timeout_ms = 0;
+                    const uint64_t latency_started = latency_tracking_start();
                     const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                     if (wait == WaitCommandResult::Unsatisfied) {
                         if (!deferred_timer_start(c, rob.dispatch_id(),
-                                                  DeferredTimerKind::WaitZero, timeout_ms, 0,
-                                                  SlowlogArm{})) {
+                                                  DeferredTimerKind::WaitZero, timeout_ms,
+                                                  latency_started ? now_ns() - latency_started : 0,
+                                                  slowlog_arm_)) {
                             reply_err(op->sink(), "ERR out of memory");
                         } else {
                             conn.advance_parse(consumed);
@@ -3731,6 +3733,7 @@ subscriber_checks_done:
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
+                    latency_tracking_finish(self_id, *op, latency_started);
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
@@ -4723,7 +4726,10 @@ ordinary_shard_ready:
             Client* client = timer.client;
             Op& op = client->rob().at(timer.op_id);
             if (timer.kind == DeferredTimerKind::WaitZero) {
+                const uint64_t started = timer.slowlog_arm.latency_tracking ? now_ns() : 0;
                 server_tail_reply_wait(op);
+                if (started)
+                    latency_tracking_finish(self_->id(), op, started - timer.slow_started_ns);
             } else {
                 reply_ok(op.sink());
                 if (timer.slowlog_arm.armed()) {
@@ -5078,6 +5084,7 @@ ordinary_shard_ready:
             }
             wb_.teardown(*c);
             release_tls(c);
+            latency_tracking_forget_client(*c);
             delete c;
         }
         dead_ready_.resize(keep);

@@ -441,6 +441,7 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
 }
 
 void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
+    latency_tracking_pause(state.client->rob().at(state.op_id));
     if (state.active_tasks.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
@@ -642,6 +643,7 @@ void blocking_request_move(BlockingState& state, ThreadCtx& self, Ring& ring) {
 }
 
 void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ring) {
+    latency_tracking_pause(state.client->rob().at(state.op_id));
     state.phase.store(BlockingPhase::Completed, std::memory_order_release);
     // Probe/registration barriers count Tasks separately from their pending phase. The owner that
     // drops pending to zero may run before another participant has executed task_done(), so reply
@@ -685,6 +687,7 @@ void blocking_fail_registration_oom(BlockingState& state, Op& op,
 }
 
 bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ring& ring) {
+    LatencyTrackingPart latency_direct(self.id(), &state.client->rob().at(state.op_id));
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
@@ -1177,6 +1180,7 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify);
     BlockingState& state = *op.blocking_state();
+    LatencyTrackingPart latency_part(self.id(), &op);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
         state.phase.store(BlockingPhase::Cancelled, std::memory_order_release);
         blocking_task_done(state, self, ring);

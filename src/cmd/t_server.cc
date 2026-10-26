@@ -327,6 +327,10 @@ struct ConfigValue {
 
 std::mutex g_config_mu;
 std::vector<ConfigValue> g_config;
+// An implicit default needs no vector allocation. Preserve unrounded doubles
+// separately from CONFIG GET/REWRITE's six-decimal serialization.
+std::vector<double> g_latency_percentiles;
+bool g_latency_percentiles_explicit = false;
 ClientOutputBufferLimits g_client_obuf_limits;
 std::atomic<uint64_t> g_proto_max_bulk_len{512ull * 1024 * 1024};
 
@@ -457,6 +461,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
                         std::to_string(cfg.slowlog_log_slower_than)});
     add_config("slowlog-max-len", ConfigKind::Unsigned, cfg.slowlog_max_len);
+    g_latency_percentiles = cfg.latency_tracking_info_percentiles;
+    g_latency_percentiles_explicit = cfg.latency_percentiles_explicit;
     g_config.push_back({"latency-tracking", ConfigKind::Bool, cfg.latency_tracking ? "yes" : "no"});
     g_config.push_back({"latency-tracking-info-percentiles", ConfigKind::LatencyPercentiles,
         cfg.latency_percentiles_explicit
@@ -1784,8 +1790,19 @@ void cmd_config(Shard& sh, Op& op) {
                         *g_server, Slice(update.second.data(), update.second.size()));
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "latency-tracking-info-percentiles")) {
+                    for (uint32_t i = 2; i < op.argc(); i += 2)
+                        if (op.arg(i).eq_icase("latency-tracking-info-percentiles")) {
+                            const char* error = nullptr;
+                            cfg_latency_percentiles(op.arg(i + 1), g_latency_percentiles, error);
+                            g_latency_percentiles_explicit = true;
+                            break;
+                        }
+                    continue;
+                }
                 if (!std::strcmp(update.first->name, "latency-tracking")) {
                     g_server->set_latency_tracking(update.second == "yes");
+                    if (update.second != "yes") latency_tracking_discard_pending();
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "protected-mode")) {
@@ -3011,10 +3028,8 @@ void cmd_info(Shard&, Op& op) {
         std::vector<double> percentiles;
         {
             std::lock_guard lock(g_config_mu);
-            const auto* value = find_config(Slice("latency-tracking-info-percentiles"));
-            const char* error = nullptr;
-            if (value) cfg_latency_percentiles(Slice(value->value.data(), value->value.size()),
-                                              percentiles, error);
+            percentiles = g_latency_percentiles_explicit
+                ? g_latency_percentiles : std::vector<double>{50, 99, 99.9};
         }
         latency_tracking_info(body, percentiles, g_server && g_server->latency_tracking());
     }

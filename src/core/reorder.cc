@@ -2464,11 +2464,13 @@ subscriber_checks_done:
             // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
             if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                 uint64_t timeout_ms = 0;
-                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                const uint64_t latency_started = latency_tracking_start();
+                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
                     if (!deferred_timer_start(c, rob.dispatch_id(),
-                                              DeferredTimerKind::WaitZero, timeout_ms, 0,
-                                              SlowlogArm{})) {
+                                              DeferredTimerKind::WaitZero, timeout_ms,
+                                                  latency_started ? now_ns() - latency_started : 0,
+                                              slowlog_arm_)) {
                         reply_err(op->sink(), "ERR out of memory");
                     } else {
                         conn.advance_parse(consumed);
@@ -2491,6 +2493,7 @@ subscriber_checks_done:
                 }
                 // Error already carries its exact validation reply. Immediate already carries
                 // :0. Both retire through the ordinary local completion path below.
+                latency_tracking_finish(self_id, *op, latency_started);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 flip_fingerprint_note(*spec, *op);

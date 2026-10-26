@@ -2109,8 +2109,8 @@ private:
         if (forward_stale_task<IofusedPrivateQueue>(task)) return true;
         // MULTI's tagged task owns its command images outside the public ROB and performs the
         // snapshot pre-image gate per installed transaction key.  Never decode it as a normal op.
-        if (multi_task_tagged(task)) return execute<IofusedPrivateQueue>(task);
-        if (!task.client) return execute<IofusedPrivateQueue>(task);
+        if (multi_task_tagged(task)) return execute_resumed<IofusedPrivateQueue>(task);
+        if (!task.client) return execute_resumed<IofusedPrivateQueue>(task);
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
@@ -2125,7 +2125,7 @@ private:
                     return false;
                 }
             }
-            return execute<IofusedPrivateQueue>(task);
+            return execute_resumed<IofusedPrivateQueue>(task);
         }
         if (capture_writes &&
             (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -2140,7 +2140,7 @@ private:
                 return false;
             }
         }
-        if (!execute<IofusedPrivateQueue>(task)) return false;
+        if (!execute_resumed<IofusedPrivateQueue>(task)) return false;
         shard.publish_size();
         return true;
     }
@@ -2380,12 +2380,24 @@ private:
     }
 
     template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline)) bool execute_resumed(const Task& task) {
+        if (!slowlog_arm_.latency_tracking) return execute<IofusedPrivateQueue>(task);
+        Client* client = task.client;
+        SlowlogTiming timing(client ? &client->rob().at(task.op_id) : nullptr,
+                             client ? client->id() : 0, self_->id(), now_ns(),
+                             cached_now_ms_, slowlog_arm_);
+        const bool result = execute_timed<IofusedPrivateQueue>(task);
+        flush_xshard_commits_timed();
+        return result;
+    }
+
+    template <bool IofusedPrivateQueue = false>
     __attribute__((noinline)) uint32_t service_xshard_retries() {
         if (xshard_retries_.empty()) return 0;
         const Task task = xshard_retries_.front();
         xshard_retries_.pop_front();
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute<IofusedPrivateQueue>(task)
+            ? execute_resumed<IofusedPrivateQueue>(task)
             : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
@@ -2459,10 +2471,10 @@ private:
             multi_retries_.pop_front();
             --multi_fast_count_;
             srv_->note_txn(self_->id(), TxnCounter::FastPolls);
-            execute<IofusedPrivateQueue>(task);
+            execute_resumed<IofusedPrivateQueue>(task);
         }
         // Always advance the rotation too: a fast waiter may depend on it.
-        if (rotate) execute<IofusedPrivateQueue>(rotation);
+        if (rotate) execute_resumed<IofusedPrivateQueue>(rotation);
         return fast + rotate;
     }
 
@@ -2483,7 +2495,7 @@ private:
             return 1;
         }
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute<IofusedPrivateQueue>(task)
+            ? execute_resumed<IofusedPrivateQueue>(task)
             : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;
@@ -2528,7 +2540,7 @@ private:
             const Task task = ordered_deferred_.front();
             ordered_deferred_.pop_front();
             if (snapshot_owner_state_ == SnapshotOwnerState::None) {
-                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
+                if (!execute_resumed<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
             } else {
                 schedule_snapshot_task<IofusedPrivateQueue>(task);
             }
@@ -2604,7 +2616,7 @@ private:
                     }
                 }
                 stale_tasks_.pop_front();
-                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
+                if (!execute_resumed<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
                 work++;
                 continue;
             }

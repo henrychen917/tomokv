@@ -7,6 +7,9 @@
 #include "cmdmeta.h"
 #include "command.h"
 #include "slowlog.h"
+#include "blocking.h"
+#include "multi.h"
+#include "xshard.h"
 #include "../core/server.h"
 #include "../exec/op.h"
 #include "../core/thread.h"
@@ -71,6 +74,7 @@ using Histograms = std::map<uint32_t, Histogram>;
 struct alignas(64) ExecutorHistograms {
     std::mutex mutex;
     Histograms values;
+    std::map<const Op*, uint64_t> pending;
 };
 struct Slot { alignas(64) std::atomic<ExecutorHistograms*> value{nullptr}; };
 std::array<Slot, kMaxThreads> stores{};
@@ -119,17 +123,119 @@ namespace {
 void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t ns,
                     int64_t ms, const SlowlogArm& arm, bool exact) {
     // Disabling CONFIG SET must not insert itself after disabling the feature.
-    if (auto* server = command_server(); server && server->latency_tracking())
-        latency_tracking_record(executor, op, ns);
+    if (!op.has_scatter_state() && !op.has_multi_state() && !op.has_blocking_state())
+        if (auto* server = command_server(); server && server->latency_tracking())
+            latency_tracking_record(executor, op, ns);
     slowlog_record(executor, client, op, ns, ms, arm, exact);
 }
 }
+namespace {
+void retire_scatter(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
+                    ScatterArenaPool& pool, uint32_t owner_io, void* context,
+                    void (*release)(void*, int32_t, const char*), void (*suppressed)(void*)) {
+    latency_tracking_retire(self.id(), op);
+    xshard_retire(server, self, ring, client, op, pool, owner_io, context, release, suppressed);
+}
+void retire_blocking(Server& server, Client& client, Op& op, ThreadCtx& self) {
+    latency_tracking_retire(self.id(), op);
+    blocking_retire(server, client, op, self);
+}
+void retire_multi(IoLoop& loop, Client& client, Op& op) {
+    latency_tracking_retire(client.ifid_thread(), op);
+    multi_retire_entry(loop, client, op);
+}
+}
+thread_local constinit LatencyScatterRetirer latency_xshard_retire = xshard_retire;
+thread_local constinit LatencyBlockingRetirer latency_blocking_retire = blocking_retire;
+thread_local constinit LatencyMultiRetirer latency_multi_retire = multi_retire_entry;
 thread_local constinit SlowlogRecorder slowlog_recorder = slowlog_record;
 void latency_tracking_bind(bool enabled, uint32_t* escalation) {
     slowlog_recorder = enabled ? record_tracked : slowlog_record;
+    latency_xshard_retire = enabled ? retire_scatter : xshard_retire;
+    latency_blocking_retire = enabled ? retire_blocking : blocking_retire;
+    latency_multi_retire = enabled ? retire_multi : multi_retire_entry;
     if (escalation) {
         if (enabled) *escalation = UINT32_MAX;
         else if (*escalation > kSlowlogEscalateBatches) *escalation = 0;
+    }
+}
+
+namespace {
+thread_local LatencyTrackingPart* active_part = nullptr;
+}
+LatencyTrackingPart::LatencyTrackingPart(uint32_t owner, const Op* command)
+    : executor(owner), op(command), started(0), previous(active_part) {
+    if (command && previous && previous->op == command) previous->finish();
+    if (command) started = latency_tracking_start();
+    active_part = this;
+}
+LatencyTrackingPart::~LatencyTrackingPart() {
+    finish();
+    active_part = previous;
+}
+void LatencyTrackingPart::finish() {
+    if (started) {
+        const uint64_t begin = started;
+        started = 0;
+        latency_tracking_part(executor, *op, begin);
+    }
+}
+void latency_tracking_pause(const Op& op) {
+    // A direct wake may nest inside the initial probe of the SAME operation.
+    // Stop every matching slice before its completion can release the Op.
+    for (auto* part = active_part; part; part = part->previous)
+        if (part->op == &op) part->finish();
+}
+void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started) {
+    if (!started) return;
+    const uint64_t duration = now_ns() - started;
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    auto& local = store(executor);
+    std::lock_guard lock(local.mutex);
+    local.pending[&op] += duration;
+}
+void latency_tracking_retire(uint32_t executor, const Op& op) {
+    uint64_t duration = 0;
+    bool found = false;
+    // All participants have published completion before ROB retirement. Histogram
+    // writes remain owner-private; only a resumable command's private slices join here.
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        const auto row = local->pending.find(&op);
+        if (row == local->pending.end()) continue;
+        duration += row->second;
+        found = true;
+        local->pending.erase(row);
+    }
+    if (found)
+        if (auto* server = command_server(); server && server->latency_tracking())
+            latency_tracking_record(executor, op, duration);
+}
+void latency_tracking_forget(const Op& op) {
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        local->pending.erase(&op);
+    }
+}
+void latency_tracking_forget_client(Client& client) {
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        for (uint32_t i = 0; i < kRobWindow; ++i)
+            local->pending.erase(&client.rob().at(i));
+    }
+}
+void latency_tracking_discard_pending() {
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        local->pending.clear();
     }
 }
 

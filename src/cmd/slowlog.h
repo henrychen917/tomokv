@@ -17,6 +17,12 @@ namespace tomo {
 class Op;
 class Shard;
 struct Config;
+class Server;
+class ThreadCtx;
+class Ring;
+class Client;
+class IoLoop;
+class ScatterArenaPool;
 
 // Latched once per executor pass from the live-config seqlock; passed by value into the hook so
 // the armed test is a register compare, not a memory load, inside the batch loop.
@@ -106,9 +112,38 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
 // rather than adding an off-state predicate to a command's execution path.
 // constinit suppresses an implicit TLS initialization guard at every call site.
 using SlowlogRecorder = decltype(&slowlog_record);
-extern thread_local constinit SlowlogRecorder slowlog_recorder;
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    SlowlogRecorder slowlog_recorder;
 void latency_tracking_bind(bool enabled, uint32_t* escalation = nullptr);
+using LatencyScatterRetirer = void (*)(Server&, ThreadCtx&, Ring&, Client&, Op&,
+    ScatterArenaPool&, uint32_t, void*, void (*)(void*, int32_t, const char*), void (*)(void*));
+using LatencyBlockingRetirer = void (*)(Server&, Client&, Op&, ThreadCtx&);
+using LatencyMultiRetirer = void (*)(IoLoop&, Client&, Op&);
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    LatencyScatterRetirer latency_xshard_retire;
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    LatencyBlockingRetirer latency_blocking_retire;
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    LatencyMultiRetirer latency_multi_retire;
 
+
+// Resumable commands accumulate execution slices, never their parked interval.
+// These helpers are reached only by the cold scatter/transaction/blocking paths.
+void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started);
+void latency_tracking_retire(uint32_t executor, const Op& op);
+void latency_tracking_forget(const Op& op);
+void latency_tracking_forget_client(Client& client);
+void latency_tracking_discard_pending();
+struct LatencyTrackingPart {
+    uint32_t executor;
+    const Op* op;
+    uint64_t started;
+    LatencyTrackingPart* previous;
+    LatencyTrackingPart(uint32_t owner, const Op* command);
+    ~LatencyTrackingPart();
+    void finish();
+};
+void latency_tracking_pause(const Op& op);
 uint64_t latency_tracking_start();
 void latency_tracking_finish(uint32_t executor, const Op& op, uint64_t started);
 struct LatencyTrackingScope {

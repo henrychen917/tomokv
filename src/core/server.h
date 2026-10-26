@@ -3730,9 +3730,9 @@ private:
     std::atomic<uint64_t> client_scatter_io_responses_{0};
     // Slow-log arming, published through the same mailboxes as the eviction/notify knobs and read
     // once per executor pass. Appended at the true tail so no pre-existing offset moves.
-    std::atomic<bool> live_latency_tracking_{false};
     std::atomic<int64_t>  live_slowlog_us_{10000};
     std::atomic<uint32_t> live_latency_ms_{0};
+    std::atomic<bool> live_latency_tracking_{false}; // existing alignment before save_mu_
     // Periodic snapshot policy is cold: one designated IO owner locks it once per second. Mutation
     // accounting remains per shard, so armed writes never contend on a process-global cache line.
     mutable std::mutex save_mu_;
