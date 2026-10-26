@@ -3899,8 +3899,17 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     if (state.kind == Kind::Script) {
         if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
             !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
-        return xshard_complete_script<IofusedPrivateQueue>(
+        const auto result = xshard_complete_script<IofusedPrivateQueue>(
             server, self, ring, task, op, state);
+        if (result == ScatterFinish::Final) {
+            // S1/H2: SAVE may be draining on this script's IO. Its last owner
+            // must close the apply window before publishing the completion.
+            // No owner wave (including error UNPIN) can remain at Final.
+            if (state.script_ticket_live || state.script_certifier || state.script_pins_live)
+                std::abort();
+            server.atomic_apply_close(state.owner_io, state.apply_open);
+        }
+        return result;
     }
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
