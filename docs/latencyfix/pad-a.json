@@ -1,0 +1,13 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "unmodified PRE 3700b51d7fb3074f32330dd81f138efbf1ddd980",
+  "matched": "POST .text start address and total byte size",
+  "limitation": "Function placement and data sections retain PRE behavior/layout; this is not an exact symbol-layout twin.",
+  "padding_bytes": 115322,
+  "text": {
+    "address": 129200,
+    "size": 8394609
+  },
+  "source_commit": "3700b51d7fb3074f32330dd81f138efbf1ddd980",
+  "sha256": "68cc2a8996d2924b692b490bbdb0bf2ecd10259816b04f6f6bcc440b668c764a"
+}

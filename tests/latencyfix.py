@@ -194,10 +194,9 @@ def shape(run, mode, label, extra):
                 assert c.cmd('CONFIG', 'RESETSTAT') == b'OK'
                 assert histogram(c, protocol=protocol) == []
                 c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes')
-                # A cold configuration publication may take one executor pass.
                 for _ in range(4):
                     c.cmd('GET', 'latencyfix:key')
-                assert dict(histogram(c, 'get', protocol=protocol)).get('get', 0) > 0
+                assert dict(histogram(c, 'get', protocol=protocol)).get('get', 0) == 4
             c.cmd('CONFIG', 'RESETSTAT')
             c.cmd('EVAL', "return redis.call('GET', KEYS[1])", 1, 'latencyfix:key')
             rows = dict(histogram(c, 'eval', 'get', protocol=3))
@@ -253,6 +252,21 @@ def execution_paths(run, mode, label, extra):
         c.cmd('CONFIG', 'RESETSTAT')
         c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes')
         oracle_equal(run, 'path:enable-command', sorted(histogram(c, 'config|set')))
+        c.cmd('CONFIG', 'SET', 'latency-tracking', 'no')
+        c.cmd('CONFIG', 'RESETSTAT')
+        c.sock.sendall(encode('CONFIG', 'SET', 'latency-tracking', 'yes') +
+                       encode('GET', keys[0]) * 32)
+        for _ in range(33):
+            assert not is_error(c.read(), ''), 'enable pipeline rejected'
+        run.check(label + ' enable pipeline counts every command',
+                  histogram(c, 'get'), [('get', 32)])
+        c.sock.sendall(encode('CONFIG', 'SET', 'latency-tracking', 'no') +
+                       encode('GET', keys[0]) * 32)
+        for _ in range(33):
+            assert not is_error(c.read(), ''), 'disable pipeline rejected'
+        run.check(label + ' disable pipeline adds no samples',
+                  histogram(c, 'get'), [('get', 32)])
+        c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes')
         c.cmd('CONFIG', 'RESETSTAT')
         c.cmd('LPUSH', 'latencyfix:pop', 'v')
         c.cmd('BLPOP', 'latencyfix:pop', '0')
