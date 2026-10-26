@@ -5,7 +5,6 @@ from contextlib import closing
 import select
 import time
 import _lib
-from _client_wait import wait_client_state
 from wb_policy import check_replies
 
 
@@ -40,25 +39,29 @@ def run(args):
                 commands = [("GET", key), ("CLIENT", "REPLY", "SKIP"), target, ("ECHO", "skip-end")]
                 conn.raw(b"".join(_lib.encode(*command) for command in commands))
                 check_replies([conn.read(), conn.read()], [new, b"skip-end"], f"SKIP {target[0]}")
-        # A blocked second ROB slot establishes the incomplete pipeline. D=0/S>=2
-        # must retain its tiny head; S=0 or a bounded D must eventually send it.
+        # Hold an actual second ROB operation at atomic publication. Blocking
+        # commands are parser barriers and cannot establish a two-slot WB window.
         admin.must("SET", key, "tiny")
-        admin.must("DEL", blocked)
+        admin.must("CONFIG", "SET", "atomic", "1")
+        left, right, _, _ = _lib.cross_owner_pair(admin, "wb-mixed:hold")
         with closing(_lib.Conn("127.0.0.1", args.port, timeout=5)) as conn:
-            ident = conn.must("CLIENT", "ID")
-            conn.raw(_lib.encode("GET", key) + _lib.encode("BLPOP", blocked, "0"))
+            assert admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
+            held = args.policy == 1 and args.small >= 2 and args.visits == 0
             try:
-                wait_client_state(admin, ident, "blocked")
-                held = args.policy == 1 and args.small >= 2 and args.visits == 0
+                conn.raw(_lib.encode("GET", key) + _lib.encode("MSET", left, "a", right, "b"))
+                deadline = time.monotonic() + 5
+                while int(_lib.info(admin, "stats")["atomic_inflight"]) == 0:
+                    assert time.monotonic() < deadline, "held group never admitted"
+                    time.sleep(.001)
                 if held:
                     assert not select.select([conn.sock], [], [], .03)[0], "small complete pipe did not hold"
                 else:
                     check_replies(conn.read(), b"tiny", "bounded/half head must progress")
             finally:
-                assert admin.must("LPUSH", blocked, "release") == 1
+                assert admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
             if held:
                 check_replies(conn.read(), b"tiny", "unbounded head resumes")
-            check_replies(conn.read(), [blocked.encode(), b"release"], "blocked tail resumes")
+            check_replies(conn.read(), b"OK", "held atomic tail resumes")
         print(f"PASS WB mixed policy={args.policy} S={args.small} D={args.visits}; borrowed sends, SKIP and hold/resume")
 
 

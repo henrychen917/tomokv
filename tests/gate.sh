@@ -1125,7 +1125,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl witness_contracts reorder_bounds rob_portable layout_placement slotless wb_mixed)
+  JOB_NAMES+=(flipctl witness_contracts reorder_bounds rob_portable layout_placement slotless wb_mixed inline_quoted)
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -2553,7 +2553,7 @@ local AT=${1##*-}
   fi
   for t in s6 multi_exec edgeproto atomfix; do
     row_begin "fused $t battery (atomic $AT)"
-    python3 "tests/$t.py" 127.0.0.1 "$PORT" >"$TMPDIR/gate-fused-$t-$AT.txt" 2>&1 \
+    py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" python3 "tests/$t.py" 127.0.0.1 "$PORT" >"$TMPDIR/gate-fused-$t-$AT.txt" 2>&1 \
         && ok "fused $t battery (atomic $AT)" \
         || bad "fused $t battery (atomic $AT)" "see $TMPDIR/gate-fused-$t-$AT.txt"
   done
@@ -4876,6 +4876,21 @@ job_feature_cell(){
 }
 
 # TM4.4 and HX-LB-PROBE: standing falsification suites, one row before quick exit.
+job_inline_quoted(){
+  local mode engine boot_fn failed
+  for mode in 1s 2s; do for engine in epoll uring; do
+    row_begin "inline quoted argument decoding ($mode, $engine)"
+    failed=0
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine"; then
+      py tests/inline_quoted.py 127.0.0.1 "$PORT" >"$TMPDIR/$mode-$engine.log" 2>&1 || failed=1
+    else failed=1; fi
+    stop
+    [ "$failed" = 0 ] && ok "inline quoted argument decoding ($mode, $engine)" \
+        || bad "inline quoted argument decoding ($mode, $engine)" "see $TMPDIR/$mode-$engine.log"
+  done; done
+}
+
 job_reorder_bounds(){
   row_begin "R7 linear scan and lazy construction bounds (both databases)"
   if unit_ready gaterows5-units && py tests/reorderscan_gate.py >"$TMPDIR/scan.log" 2>&1; then
@@ -5463,6 +5478,7 @@ collect_job witness_contracts
 collect_job reorder_bounds
 collect_job rob_portable
 collect_job layout_placement
+collect_job inline_quoted
 collect_job slotless
 collect_job wb_mixed
 collect_job reorder_sync

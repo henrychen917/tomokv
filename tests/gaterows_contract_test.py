@@ -108,6 +108,16 @@ class Contracts(unittest.TestCase):
             self.assertEqual(len({id(conn) for conn, _ in prefixes}), len(prefixes))
         print("CONTROL FAIL HX-LB-PROBE: perpetual migration exhausts four fresh attempts")
 
+    def test_real_probe_distinguishes_moved_placement_from_bad_evidence(self):
+        topo = SimpleNamespace(shard_owner={3: 6})
+        with patch.object(_lib, "shards_of", return_value=[(3, 7)]):
+            with self.assertRaises(_lib.PlacementChanged):
+                next(_lib.probe_keys(None, "fresh", topo, limit=1))
+        with patch.object(_lib, "shards_of", return_value=[(99, 7)]):
+            with self.assertRaises(AssertionError) as failure:
+                next(_lib.probe_keys(None, "fresh", topo, limit=1))
+            self.assertNotIsInstance(failure.exception, _lib.PlacementChanged)
+
     def test_nonplacement_probe_error_is_never_retried(self):
         class Connection:
             def __init__(self, *args, **kwargs): pass

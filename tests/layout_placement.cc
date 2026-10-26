@@ -36,9 +36,21 @@ int main() {
     unsigned straddles = 0;
     for (unsigned i = 0; i < 64; ++i) {
         Op* op = rob.acquire();
-        for (auto& arg : op->argv) {
-            auto a = reinterpret_cast<uintptr_t>(&arg);
-            straddles += a / 64 != (a + sizeof(arg) - 1) / 64;
+        // Find the stored public push_arg values in the real Op representation;
+        // no private-offset assumption or duplicated layout struct.
+        static const char payload[] = "layout-placement-slices";
+        for (unsigned j = 0; j < kInlineArgv; ++j) {
+            Slice marker(payload + j, 1);
+            if (!op->push_arg(marker)) return 2;
+            const auto* bytes = reinterpret_cast<const unsigned char*>(op);
+            unsigned matches = 0;
+            for (size_t off = 0; off + sizeof(Slice) <= sizeof(Op); ++off) {
+                if (std::memcmp(bytes + off, &marker, sizeof(marker)) != 0) continue;
+                auto a = reinterpret_cast<uintptr_t>(bytes + off);
+                straddles += a / 64 != (a + sizeof(marker) - 1) / 64;
+                ++matches;
+            }
+            if (matches != 1) return 2;
         }
         rob.publish();
     }
