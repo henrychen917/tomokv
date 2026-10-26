@@ -135,7 +135,8 @@ production build/freshness checks pass again against this POST.
 `docs/wave8/run_final_matrix.py` selects complete gate jobs only. The two standard
 differential folds also run concurrently in separate server allocations: uring
 CPUs 72–79 / ports 20040–20049, epoll CPUs 80–87 / ports 20060–20069. The default allocation is CPUs 64–71 / ports 20020–20029. The serverless EX-batch
-rerun and the independent uring engine matrix use CPUs 88–95 / ports 20080–20089. Each invocation retains the gate's eight-server
+rerun, the independent uring engine matrix, and then the epoll 1s debug matrix
+use CPUs 88–95 / ports 20080–20089. Each invocation retains the gate's eight-server
 6:2 geometry and builds with all 32 authorized CPUs. No perf tier is selected.
 `runtime-affinity-snapshot.json` checks all active worker threads and owned TCP
 listeners; the tool-launcher ancestor processes are explicitly excluded.
@@ -152,7 +153,7 @@ oracle/complexity, WATCH and retry wakeups. Final command provenance verifies
 all 492 actually executed PRE/POST bodies with zero unexplained differences.
 
 Shared instrumented builds run serially. Subsequent independent whole gate jobs
-use three disjoint eight-core server allocations; each retains its own ten-port
+use disjoint eight-core server allocations; each retains its own ten-port
 range. The ASAN binary is copied after its build and passed through the gate's
 existing `GATE_ASAN_BINARY` partial-job interface, preventing concurrent cache
 relinking of a running binary. The self-test and direct Python harness test run
@@ -204,3 +205,10 @@ mode equivalence, 47 split suites (46 applicable armed suites), permanent seeds
 multi/atomic=1/seed=19 repetitions in each geometry. No focused-proof filters
 were set. `differ-final.json` retains every completed part, exact leg list, seed
 manifest and digest; the whole gate receipts are `jobs/final-differ-{uring,epoll}.*`.
+
+Both complete engine matrices pass **190 ok / 0 FAIL** each. They retain all
+split/armed feature legs, MDB mode/read-local/atomic combinations, writeback
+policy, fused batteries, transaction groups and every transaction-ordering leg.
+The final uring 2s debug matrix passes **47 ok / 0 FAIL**, including both atomic
+debug batteries, script bounds, notifications and ASAN batteries. Whole-job
+receipts are under `jobs/final-engine-*` and `jobs/final-debug-uring-2s.*`.
