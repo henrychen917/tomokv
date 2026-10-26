@@ -1,0 +1,29 @@
+test_absent_or_wrong_transport_and_missing_cell_cannot_pass (__main__.self_test.<locals>.Controls.test_absent_or_wrong_transport_and_missing_cell_cannot_pass) ... ok
+test_coordinator_interrupt_terminates_the_active_driver_once (__main__.self_test.<locals>.Controls.test_coordinator_interrupt_terminates_the_active_driver_once) ... ok
+test_dry_run_matches_real_boot_argv_for_every_cell_and_both_arms (__main__.self_test.<locals>.Controls.test_dry_run_matches_real_boot_argv_for_every_cell_and_both_arms) ... ok
+test_frozen_bytes_and_full_product (__main__.self_test.<locals>.Controls.test_frozen_bytes_and_full_product) ... ok
+test_instrument_scope_stays_frozen_but_uring_null_cannot_cover_epoll (__main__.self_test.<locals>.Controls.test_instrument_scope_stays_frozen_but_uring_null_cannot_cover_epoll) ... ok
+test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence (__main__.self_test.<locals>.Controls.test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence) ... ERROR
+test_real_coordinator_dispatches_both_passes_and_cannot_hide_epoll_failure (__main__.self_test.<locals>.Controls.test_real_coordinator_dispatches_both_passes_and_cannot_hide_epoll_failure) ... ok
+test_selection_and_null_are_transport_specific (__main__.self_test.<locals>.Controls.test_selection_and_null_are_transport_specific) ... ok
+test_smoke_termination_cleans_owned_children_and_records_failure (__main__.self_test.<locals>.Controls.test_smoke_termination_cleans_owned_children_and_records_failure) ... ok
+
+======================================================================
+ERROR: test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence (__main__.self_test.<locals>.Controls.test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wt-red/tests/gateprod.py", line 423, in test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence
+    product = json.loads((out / "product.json").read_text())
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1029, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/wt-red/build/tmpbl614omp/result/product.json'
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.030s
+
+FAILED (errors=1)

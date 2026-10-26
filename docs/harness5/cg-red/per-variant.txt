@@ -1,0 +1,5 @@
+cg46a gate_rc=1 FAIL	329.060000 failures=23
+cg46b gate_rc=1 FAIL	378.820000 failures=1
+cg47 gate_rc=1 FAIL	357.340000 failures=1
+cg48 gate_rc=1 FAIL	352.970000 failures=2
+DONE
