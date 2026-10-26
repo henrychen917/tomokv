@@ -3271,7 +3271,7 @@ uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) con
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return 0;
     for (const auto& r : found->second.marks)
-        if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
+        if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation;
     return 0;
 }
 
@@ -3279,7 +3279,7 @@ bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
         for (const auto& r : found->second.marks)
-            if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
+            if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
     mark.entry_kind = 2;
@@ -3297,6 +3297,7 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     if (found == watch_reservations_.end()) return;
     auto& list = found->second.marks;
     const auto removed = std::erase_if(list, [&](const auto& r) {
+        TOMO_TXN_REGISTRY_VISIT();
         return r.entry_kind == 2 && r.token == token;
     });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -3312,6 +3313,7 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
 void Shard::watch_writer_forget(const void* token) {
     for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
         const auto removed = std::erase_if(it->second.marks, [&](const auto& r) {
+            TOMO_TXN_REGISTRY_VISIT();
             return r.entry_kind == 2 && r.token == token;
         });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -3330,7 +3332,7 @@ void Shard::watch_writer_forget(const void* token) {
 void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
     const auto check = [&](const auto& entries) {
         for (const auto& r : entries) {
-        TOMO_TXN_REGISTRY_VISIT();
+            TOMO_TXN_REGISTRY_VISIT();
             if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
             const auto unit = txn_unit_view(r);
             if (unit.age_ns <= stamp ||
@@ -3496,7 +3498,7 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!reserve) return true;
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (auto& r : existing->second.held) if (r.token == token) {
+        for (auto& r : existing->second.held) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == token)) {
             r.entry_kind = 0; // WATCH blocks from validation, before the started bit
             r.blocking = true;
             if (r.mutates) watch_note_database(r, server_, key.ns);
@@ -3563,7 +3565,7 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
         for (WatchReservation& reservation : existing->second.held)
-            if (reservation.token == token) {
+            if ((TOMO_TXN_REGISTRY_VISIT(), reservation.token == token)) {
                 reservation.mutates = true;
                 watch_note_database(reservation, server_, key.ns);
                 return;

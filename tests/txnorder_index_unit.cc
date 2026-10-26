@@ -8,6 +8,9 @@
 namespace tomo {
 struct TxnIndexTest {
     static size_t size(const Shard& s) { return s.watch_reservations_.size(); }
+    static const TxnKeyQueue& queue(const Shard& s, const std::string& key) {
+        return s.watch_reservations_.at(key);
+    }
 };
 }
 namespace {
@@ -45,6 +48,76 @@ struct Pair { std::unique_ptr<Unit> a, b; };
 const std::array<std::string, 4> names{"index-a", "index-b", "index-c", "index-d"};
 Slice key(unsigned i) { return slice(names[i % names.size()]); }
 std::string owned(unsigned i) { return i == 4 ? std::string{} : database_owned_key(key(i)); }
+
+void directed_lifetimes(Server& server) {
+    Shard& shard = server.shard(0);
+    Client client{-1};
+    for (bool grouped : {false, true}) {
+        Unit holder(server, client, grouped, 1);
+        txn_add_claim(holder.keys(), key(0), TxnClaimMode::Write);
+        require(shard.watch_place_unit(holder.keys(), holder.entry()), "directed holder places");
+        holder.started();
+        std::vector<std::unique_ptr<Unit>> waiting;
+        for (uint64_t age : {80, 20, 60, 40}) {
+            waiting.emplace_back(std::make_unique<Unit>(server, client, grouped, age));
+            auto& u = *waiting.back();
+            txn_add_claim(u.keys(), key(0), TxnClaimMode::Write);
+            require(!shard.watch_place_unit(u.keys(), u.entry()), "out-of-order arrival waits");
+        }
+        auto* node = TxnIndexTest::queue(shard, owned(0)).head;
+        for (uint64_t age : {20, 40, 60, 80}) {
+            require(node && txn_unit_view(node->entry).age_ns == age, "waiter order follows version, not arrival");
+            node = node->next;
+        }
+        require(!node, "exact waiter chain length");
+        // A dead middle node is removed by its successor's predecessor probe,
+        // even though no finish event has visited that dead unit yet.
+        waiting[3]->aborted().store(true);
+        waiting[2]->unpin();
+        require(!shard.watch_place_unit(waiting[2]->keys(), waiting[2]->entry()), "live predecessor still blocks");
+        require(!waiting[3]->keys()[0].waiter.queue, "dead predecessor unlinked immediately");
+        for (auto& u : waiting) u->unpin();
+        const uint32_t base = grouped ? ScatterState::kGroupAttemptRef : 0;
+        require(waiting[3]->refs().load() == base, "dead node releases its only registry lifetime pin");
+        for (auto& u : waiting) {
+            u->aborted().store(true);
+            shard.watch_finish_unit(u->keys(), u->token());
+            require(!u->keys()[0].waiter.queue && u->refs().load() == base, "abort drains node before destruction");
+        }
+        holder.aborted().store(true);
+        shard.watch_finish_unit(holder.keys(), holder.token());
+        require(TxnIndexTest::size(shard) == 0 && holder.refs().load() == base, "directed queue teardown empty");
+    }
+    // A published EXEC survives connection close while the owner still names
+    // its embedded waiter. Shutdown then cancels and unlinks it before delete.
+    Unit holder(server, client, false, 1);
+    txn_add_claim(holder.keys(), key(0), TxnClaimMode::Write);
+    require(shard.watch_place_unit(holder.keys(), holder.entry()), "close holder places");
+    holder.started();
+    Client closing{-1}; closing.set_id(9200);
+    Unit pending(server, closing, false, 2);
+    txn_add_claim(pending.keys(), key(0), TxnClaimMode::Write);
+    require(!shard.watch_place_unit(pending.keys(), pending.entry()), "close has a live waiting node");
+    auto* state = pending.exec.get();
+    state->shards.push_back(0); state->published = true; state->exec_op_id = 0;
+    auto* op = closing.rob().acquire(); require(op, "close carrier allocated");
+    op->attach_multi_state(state); closing.rob().publish(); closing.atomic_group_started();
+    auto* session = ensure_multi_session(closing); require(session, "close session allocated");
+    session->active = true;
+    require(!multi_prepare_close(server, closing, 0), "unwatched close needs no cleanup fragment");
+    require(!session->active && op->multi_state() == state &&
+            state->claims[0][0].waiter.waiting && state->watch_refs.load() == 1,
+            "close preserves published EXEC and registry lifetime pin");
+    pending.unpin(); pending.exec.release();
+    ScatterArenaPool pool; std::vector<MultiExecState*> deferred;
+    multi_shutdown_attempt(state, pool, deferred);
+    require(deferred.empty() && !op->multi_state() && op->state.load() == OpState::Done,
+            "shutdown unlinks waiter and clears carrier before destruction");
+    require(TxnIndexTest::queue(shard, owned(0)).waiters == 0, "shutdown leaves no dangling waiter");
+    holder.aborted().store(true); shard.watch_finish_unit(holder.keys(), holder.token());
+    require(TxnIndexTest::size(shard) == 0, "close/shutdown registry empty");
+    std::puts("directed out-of-order/dead-middle/abort/close/shutdown/lifetime PASS");
+}
 
 void oracle(Server& server, uint64_t operations, uint64_t seed) {
     Shard& actual = server.shard(0);
@@ -219,7 +292,13 @@ int main(int argc, char** argv) {
     cfg.key_lb=cfg.client_lb=cfg.flip_auto=0; cfg.save.clear();
     cfg.atomic=argc>3 ? std::atoi(argv[3]) : 1;
     cfg.thread_mode=argc>2 && std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
+    if (argc > 6) {
+        const std::string engine = argv[6];
+        require(engine == "uring" || engine == "epoll", "known engine");
+        cfg.net_io = engine == "epoll" ? NetIoEngine::Epoll : NetIoEngine::Uring;
+    }
     Server server; require(server.prepare_boot(cfg)&&server.init(cfg), "serverless owner init"); command_bind_server(&server);
+    directed_lifetimes(server);
     const std::string mode=argv[1];
     if (mode=="oracle") oracle(server, argc>4 ? std::strtoull(argv[4],nullptr,10) : 10000000,
                               argc>5 ? std::strtoull(argv[5],nullptr,10) : 0x3700b51d7ULL);

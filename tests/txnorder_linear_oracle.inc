@@ -182,7 +182,7 @@ uint64_t TxnLinearOracle::watch_writer_stamp(Slice key, const void* token, bool 
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return 0;
     for (const auto& r : found->second)
-        if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
+        if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation;
     return 0;
 }
 
@@ -190,7 +190,7 @@ bool TxnLinearOracle::watch_writer_mark(Slice key, const void* token, bool whole
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
         for (const auto& r : found->second)
-            if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
+            if ((TOMO_TXN_REGISTRY_VISIT(), r.entry_kind == 2) && r.token == token) return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
     mark.entry_kind = 2;
@@ -208,6 +208,7 @@ void TxnLinearOracle::watch_writer_unmark(Slice key, const void* token, bool who
     if (found == watch_reservations_.end()) return;
     auto& list = found->second;
     const auto removed = std::erase_if(list, [&](const auto& r) {
+        TOMO_TXN_REGISTRY_VISIT();
         return r.entry_kind == 2 && r.token == token;
     });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -223,7 +224,8 @@ void TxnLinearOracle::watch_writer_unmark(Slice key, const void* token, bool who
 void TxnLinearOracle::watch_writer_forget(const void* token) {
     for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
         const auto removed = std::erase_if(it->second, [&](const auto& r) {
-            return r.entry_kind == 2 && r.token == token;
+            TOMO_TXN_REGISTRY_VISIT();
+        return r.entry_kind == 2 && r.token == token;
         });
 #ifdef TOMO_TXNORDER_DEBUG
         if (removed) txn_debug_writer_mark(token, -static_cast<int>(removed));
@@ -404,7 +406,7 @@ bool TxnLinearOracle::watch_validate_and_reserve(Slice key, Client* client, uint
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!reserve) return true;
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (auto& r : existing->second) if (r.token == token) {
+        for (auto& r : existing->second) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == token)) {
             r.entry_kind = 0; // WATCH blocks from validation, before the started bit
             r.blocking = true;
             if (r.mutates) watch_note_database(r, server_, key.ns);
@@ -469,7 +471,7 @@ void TxnLinearOracle::watch_reserve_write(Slice key, Client* writer, uint64_t wr
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
         for (WatchReservation& reservation : existing->second)
-            if (reservation.token == token) {
+            if ((TOMO_TXN_REGISTRY_VISIT(), reservation.token == token)) {
                 reservation.mutates = true;
                 watch_note_database(reservation, server_, key.ns);
                 return;
