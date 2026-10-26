@@ -161,3 +161,11 @@ after all live correctness jobs finish.
 Final Tcl positive: **6 ok, 0 FAIL**, including both 35-file / 1,643-assertion
 modes and compat2 autharity. `tcl-validation.json` proves exactly the 19 named
 promotions and all 32 promoted assertion occurrences per mode, with no new skip.
+
+The planted merged GEO arm (`ed2fa704`) changes only the km conversion constant
+from 1000 to 1609.34 in throwaway objects. Both Tcl modes report exactly **16
+named GEO failures** (1,627 passing assertions); every promoted Lua/latency
+assertion still passes. Both Tcl rows and compat2 autharity fail, yielding the
+expected **3 ok / 3 FAIL** job result. The normal POST remains unchanged.
+Receipts: `jobs/final-tcl-planted.*`, `geo-regression.json`, and
+`tcl-validation.json`. This negative control is intentionally red.

@@ -295,6 +295,388 @@
           "source_summary": "/home/user/Projects/cx-wave8/build/gate-run.pXvqnS/jobs/redis_tcl/redis-tcl-1s/summary.json"
         }
       ]
+    },
+    "final-tcl-planted": {
+      "exit": 1,
+      "binary_sha256": "ed2fa7040380523cb8c37c18e1b6412634ae8daa3ebc460733e698b6595b13be",
+      "modes": [
+        {
+          "mode": "2s",
+          "files": 35,
+          "passed": 1627,
+          "named_failures": [
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square} {lic market}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697} {{lic market} 3.1991}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+              "data": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.4816 1791875761332224 {-73.97334784269332886 40.76480639569881959}} {4545 1.4696 1791875796750882 {-73.95641237497329712 40.74809751381645384}}' to match '{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}' (context: type eval line 4 cmd {assert_match {{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}} [r georadius nyc -73.9798091 40.7598464 10 km WITHDIST WITHHASH WITHCOORD COUNT 2]} proc ::test) "
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+              "data": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl\nExpected 'Catania Palermo eage2 edge1' to be equal to 'Catania Palermo' (context: type eval line 6 cmd {assert_equal $ret1 {Catania Palermo}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+              "data": "GEOSEARCH corner point test in tests/unit/geo.tcl\nExpected 'corner1 corner2 corner3 corner4 edge1 edge2 edge3 edge4 edge5 edge6 edge7 edge8' to be equal to 'edge1 edge2 edge5 edge7' (context: type eval line 5 cmd {assert_equal $ret {edge1 edge2 edge5 edge7}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl\nExpected '{{wtc one} 0.0000} {{union square} 3.2544} {{central park n/q/r} 6.7000} {4545 6.1975} {{lic market} 6.8969}' to equal or match '{{wtc one} 0.0000} {{union square} 2.0222} {{central park n/q/r} 4.1632} {4545 3.8510} {{lic market} 4.2855} {q4 4.7214}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+              "data": "GEODIST simple & unit in tests/unit/geo.tcl\nExpected 103.3182 > 166.2 && 103.3182 < 166.3 (context: type eval line 8 cmd {assert {$km > 166.2 && $km < 166.3}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Catania 0 Palermo 103.31822459492733 3] > 166 (context: type eval line 13 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 8 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 5 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+              "data": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl\nExpected 'OK' to equal or match 'FAIL'"
+            }
+          ],
+          "file_errors": {
+            "unit/geo": "passing subset failed, incomplete, or assertion inventory changed"
+          },
+          "promoted": [
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM all commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM command",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM sub commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with a subset of commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with empty histogram",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON numeric decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON smoke test",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON string decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - Verify minimal bitop functionality",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack and unpack circular references?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack double?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack negative int64?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Functions in the Redis namespace are able to report errors",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on bit table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on cmsgpack table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on json table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "lua bit.tohex bug",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "redis.sha1hex() implementation",
+              "passing_occurrences": 2
+            }
+          ],
+          "source_summary": "/home/user/Projects/cx-wave8/build/gate-run.ngAkmq/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "mode": "1s",
+          "files": 35,
+          "passed": 1627,
+          "named_failures": [
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH simple (sorted) in tests/unit/geo.tcl\nExpected '{central park n/q/r} 4545 {union square} {lic market}' to equal or match '{central park n/q/r} 4545 {union square} {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUS withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEOSEARCH withdist (sorted) in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.7750} {4545 2.3651} {{union square} 2.7697} {{lic market} 3.1991}' to equal or match '{{central park n/q/r} 0.4816} {4545 1.4696} {{union square} 1.7210} {{lic market} 1.9879} {q4 2.3158}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl",
+              "data": "GEORADIUS with multiple WITH* tokens in tests/unit/geo.tcl\nExpected '{{central park n/q/r} 0.4816 1791875761332224 {-73.97334784269332886 40.76480639569881959}} {4545 1.4696 1791875796750882 {-73.95641237497329712 40.74809751381645384}}' to match '{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}' (context: type eval line 4 cmd {assert_match {{{central park n/q/r} 0.7750 1791875761332224 {-73.97334* 40.76480*}} {4545 2.3651 1791875796750882 {-73.95641* 40.74809*}}} [r georadius nyc -73.9798091 40.7598464 10 km WITHDIST WITHHASH WITHCOORD COUNT 2]} proc ::test) "
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER_RO simple (sorted) in tests/unit/geo.tcl\nExpected '{wtc one} {union square} {central park n/q/r} 4545 {lic market}' to equal or match '{wtc one} {union square} {central park n/q/r} 4545 {lic market} q4'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl",
+              "data": "GEOSEARCH vs GEORADIUS in tests/unit/geo.tcl\nExpected 'Catania Palermo eage2 edge1' to be equal to 'Catania Palermo' (context: type eval line 6 cmd {assert_equal $ret1 {Catania Palermo}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH corner point test in tests/unit/geo.tcl",
+              "data": "GEOSEARCH corner point test in tests/unit/geo.tcl\nExpected 'corner1 corner2 corner3 corner4 edge1 edge2 edge3 edge4 edge5 edge6 edge7 edge8' to be equal to 'edge1 edge2 edge5 edge7' (context: type eval line 5 cmd {assert_equal $ret {edge1 edge2 edge5 edge7}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER withdist (sorted) in tests/unit/geo.tcl\nExpected '{{wtc one} 0.0000} {{union square} 3.2544} {{central park n/q/r} 6.7000} {4545 6.1975} {{lic market} 6.8969}' to equal or match '{{wtc one} 0.0000} {{union square} 2.0222} {{central park n/q/r} 4.1632} {4545 3.8510} {{lic market} 4.2855} {q4 4.7214}'"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEODIST simple & unit in tests/unit/geo.tcl",
+              "data": "GEODIST simple & unit in tests/unit/geo.tcl\nExpected 103.3182 > 166.2 && 103.3182 < 166.3 (context: type eval line 8 cmd {assert {$km > 166.2 && $km < 166.3}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORADIUSBYMEMBER STORE/STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Catania 0 Palermo 103.31822459492733 3] > 166 (context: type eval line 13 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEORANGE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 8 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl",
+              "data": "GEOSEARCHSTORE STOREDIST option: plain usage in tests/unit/geo.tcl\nExpected [lindex Palermo 3.29677845489517e-5 Catania 103.3182305011078 3] > 166 (context: type eval line 5 cmd {assert {[lindex $res 3] > 166}} proc ::test)"
+            },
+            {
+              "file": "unit/geo",
+              "test": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl",
+              "data": "GEOSEARCH fuzzy test - bybox in tests/unit/geo.tcl\nExpected 'OK' to equal or match 'FAIL'"
+            }
+          ],
+          "file_errors": {
+            "unit/geo": "passing subset failed, incomplete, or assertion inventory changed"
+          },
+          "promoted": [
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM all commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM command",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM sub commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with a subset of commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with empty histogram",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON numeric decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON smoke test",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON string decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - Verify minimal bitop functionality",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack and unpack circular references?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack double?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack negative int64?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Functions in the Redis namespace are able to report errors",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on bit table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on cmsgpack table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on json table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "lua bit.tohex bug",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "redis.sha1hex() implementation",
+              "passing_occurrences": 2
+            }
+          ],
+          "source_summary": "/home/user/Projects/cx-wave8/build/gate-run.ngAkmq/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ]
     }
   }
 }

@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "20020-20029",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave8/build/wave8/planted/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave8",
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_ONLY_JOBS": "compat2",
+    "GATE_NET_IO": "uring",
+    "GATE_PROOF_NET_IO": "uring",
+    "GATE_ZC_NET_IO": "uring",
+    "GATE_SHUTDOWN_NET_IO": "uring",
+    "GATE_DIFFER_NET_IO": "uring",
+    "GATE_TXN_FUSED": "0",
+    "GATE_TEST_PORT": "20098",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave8/docs/wave8/jobs/final-tcl-planted.tsv"
+  },
+  "binary_sha256": "ed2fa7040380523cb8c37c18e1b6412634ae8daa3ebc460733e698b6595b13be",
+  "source_commit": "a0fa17dcc8c4d1725e7f35ebf6e4afd4082c5122",
+  "gate_sha256": "74f8bbc4cc94072ed894c65b1ddc9f4035bfcb4e8c74321bc2596d383f7544a6",
+  "started": 1793039277.23498,
+  "exit": 1,
+  "seconds": 462.3301601409912,
+  "artifacts": "/home/user/Projects/cx-wave8/build/gate-run.ngAkmq",
+  "summary": [
+    "GATE(PARTIAL): 3 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-tcl-planted.tsv.partial"
+  ],
+  "binary_unchanged": true
+}
