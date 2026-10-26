@@ -1383,7 +1383,7 @@ fi
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cache/obj-asan" \
     "-std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I." \
     "-luring -pthread -lssl -lcrypto" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-asan-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-asan-build.txt \
     && ok "ASAN build" || bad "ASAN build" "see $TMPDIR/gate-asan-build.txt"
 }
 
@@ -5154,7 +5154,7 @@ row_begin "read-local ownership-invariant build"
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $RLDBG "$PWD/build/gate-cache/obj-rlcachedbg" \
     "-std=c++20 -O2 -g -march=native -pthread -DTOMO_JEMALLOC -DTOMO_RL_CACHE_DEBUG -I." \
     "-ljemalloc -luring -pthread -lssl -lcrypto -lm" \
-    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-rlcachedbg-build.txt \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c 2>$TMPDIR/gate-rlcachedbg-build.txt \
     && ok "read-local ownership-invariant build" \
     || bad "read-local ownership-invariant build" "see $TMPDIR/gate-rlcachedbg-build.txt"
 }
@@ -5225,7 +5225,7 @@ job_core_tsan_build(){
   # Match the core unit's Makefile dependencies: reorder's fused boot selector
   # references run_fused_server in genthread.cc even in this serverless binary.
   local source sources=()
-  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc third_party/lua/helpers/*.c; do
     # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
     [ "$source" = src/core/version.cc ] || sources+=("$source")
   done

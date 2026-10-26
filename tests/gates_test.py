@@ -1765,7 +1765,9 @@ timeout(){
         for line in makefile.splitlines():
             if line.startswith('SRC '):
                 production.update(line.split('=', 1)[1].split())
-        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'}
+        helpers = {str(p.relative_to(root)) for p in (root / 'third_party/lua/helpers').glob('*.c')}
+        self.assertEqual(len(helpers), 6, 'all Lua helper C units are instrumented')
+        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'} | helpers
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
             stub = r'''set -u
@@ -1788,6 +1790,29 @@ pausable(){ printf '%s\0' "$@" > "$RUN_DIR/argv"; return "$BUILD_RC"; }
                 self.assertNotIn('-fsanitize=address', flags)
                 self.assertEqual(set(args[index + 5:]), expected)
                 self.assertFalse(any(arg.endswith('.o') for arg in args))
+
+    def test_parallel_build_c_linkage_and_lua_header_cache_invalidation(self):
+        root = Path(__file__).resolve().parent.parent
+        with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
+            directory = Path(temporary)
+            for folder in ('src', 'tests', 'third_party/lua/helpers'):
+                (directory / folder).mkdir(parents=True, exist_ok=True)
+            header = directory / 'third_party/lua/helpers/value.h'
+            header.write_text('#define VALUE 17\n')
+            (directory / 'third_party/lua/helpers/value.c').write_text(
+                '#include "value.h"\nint helper(void) { return VALUE; }\n')
+            (directory / 'src/probe.cc').write_text(
+                '#include <cstdio>\nextern "C" int helper(void);\n'
+                'int main() { std::printf("%d\\n", helper()); }\n')
+            argv = ['bash', str(root / 'tests/parbuild.sh'), str(directory / 'probe'),
+                    str(directory / 'objects'), '-std=c++20 -O0', '',
+                    'src/probe.cc', 'third_party/lua/helpers/value.c']
+            for value in (17, 23):
+                header.write_text(f'#define VALUE {value}\n')
+                built = subprocess.run(argv, cwd=directory, capture_output=True, text=True, timeout=15)
+                self.assertEqual(built.returncode, 0, built.stderr)
+                result = subprocess.check_output([str(directory / 'probe')], text=True)
+                self.assertEqual(result, f'{value}\n')
 
 
 class CompleteTierDispatch(unittest.TestCase):

@@ -19,14 +19,21 @@ mkdir -p "$OBJDIR" || exit 1
 JOBS=${PARBUILD_JOBS:-$(nproc)}
 
 # One hash over all headers + flags; combined per-file with the source's own hash.
-HDRS=$( { find src tests -name '*.h' -o -name '*.inc' 2>/dev/null | sort | xargs cat 2>/dev/null; \
-          printf '%s' "$CFLAGS"; } | sha256sum | cut -c1-16)
+HDRS=$( { find src tests third_party/lua -name '*.h' -o -name '*.inc' -o -name '*.c' 2>/dev/null | sort | xargs cat 2>/dev/null; \
+          cat "$0"; printf '%s' "$CFLAGS"; } | sha256sum | cut -c1-16)
 
 compile_one() {
     local src=$1 obj=$2 stamp=$3
+    local compiler=g++ flags=$CFLAGS
+    # Lua helpers have C linkage. Keep the selected sanitizer and optimization
+    # flags, but compile their own C translation units exactly as the Makefile does.
+    if [[ "$src" == *.c ]]; then
+        compiler=gcc
+        flags="${CFLAGS//-std=c++20/} -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua"
+    fi
     local key; key=$( { sha256sum "$src" | cut -d' ' -f1; printf '%s' "$HDRS"; } | sha256sum | cut -c1-32)
     if [ -f "$obj" ] && [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$key" ]; then return 0; fi
-    g++ $CFLAGS -c "$src" -o "$obj" 2>"$obj.err" || { cat "$obj.err" >&2; return 1; }
+    $compiler $flags -c "$src" -o "$obj" 2>"$obj.err" || { cat "$obj.err" >&2; return 1; }
     printf '%s' "$key" > "$stamp"
 }
 
