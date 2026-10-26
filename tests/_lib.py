@@ -457,6 +457,10 @@ def shards_of(conn, keys):
     return rows
 
 
+class PlacementChanged(AssertionError):
+    """A truthful key probe disagrees with the earlier owner snapshot."""
+
+
 def probe_keys(conn, prefix, topo, limit=8000, width=4, batch_size=256):
     """Yield (key, shard, owner) for candidates, resolving each batch in one DEBUG reply."""
     if batch_size <= 0:
@@ -471,7 +475,7 @@ def probe_keys(conn, prefix, topo, limit=8000, width=4, batch_size=256):
                     "DEBUG SHARDS returned shard %d that LBSIGNALS did not report" % shard)
             expected_owner = topo.shard_owner[shard]
             if owner != expected_owner:
-                raise AssertionError(
+                raise PlacementChanged(
                     "DEBUG SHARDS owner %d for shard %d disagrees with LBSIGNALS owner %d; "
                     "placement may have changed during the probes"
                     % (owner, shard, expected_owner))

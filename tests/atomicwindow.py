@@ -58,7 +58,15 @@ def held_burst(host, port, *, whole_window, reconfigure=False):
             # Every group must span owners; a same-owner fast path is not an admission witness.
             burst_groups = connections * depth
             groups = burst_groups + int(reconfigure)
-            buckets = _lib.owner_buckets(admin, prefix, per_owner=groups, limit=groups * 64)
+            try:
+                buckets = _lib.owner_buckets(admin, prefix, per_owner=groups, limit=groups * 64)
+            except _lib.PlacementChanged as exc:
+                # No keys, senders or DEBUG holds exist yet. Spend one of the SAME
+                # bounded attempts, then reopen the observer and rediscover fresh keys.
+                detail = f"{label} attempt={attempt}/{ARM_ATTEMPTS} placement-moved: {exc}"
+                history.append(detail)
+                print("  note atomic-window " + detail, flush=True)
+                continue
             enough = [keys for keys in buckets.values() if len(keys) >= groups]
             # Build before the timed arm and release all senders together. Python encoding and
             # thread startup must not spend the publication window one connection at a time.

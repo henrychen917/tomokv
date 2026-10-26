@@ -878,7 +878,8 @@ feature_split_job(){
     FEATURE_ARGS=()
     [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
-    py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
+    py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
+        python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see $TMPDIR/gate-$t-$AT.txt"
   done
   stop
@@ -930,7 +931,8 @@ feature_armed_job(){
     FEATURE_ARGS=()
     [ "$t" = stream ] && FEATURE_ARGS+=(--release-build)
     row_begin "fused+armed $t battery (atomic $AT)"
-    py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-fusedarmed-$t-$AT.txt 2>&1 \
+    py tests/feature_atomic.py 127.0.0.1 "$PORT" "$AT" \
+        python3 tests/$t.py 127.0.0.1 "$PORT" "${FEATURE_ARGS[@]}" >$TMPDIR/gate-fusedarmed-$t-$AT.txt 2>&1 \
         && ok "fused+armed $t battery (atomic $AT)" \
         || bad "fused+armed $t battery (atomic $AT)" "see $TMPDIR/gate-fusedarmed-$t-$AT.txt"
     # RESETSTAT in a later battery must not erase an observed execution of this lane.
@@ -1123,7 +1125,7 @@ plan_jobs(){
   for section in lruclock lfu; do
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
-  JOB_NAMES+=(flipctl)
+  JOB_NAMES+=(flipctl witness_contracts)
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -2883,7 +2885,7 @@ local AT=${1##*-} mode=2s
           >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
       && ok "plain-write lost updates (atomic $AT)" \
       || bad "plain-write lost updates (atomic $AT)" "see $TMPDIR/gate-atomic-plain-$AT.txt"
-  # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARD proves the group
+  # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARDS proves the group
   # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
   # `atomic` itself as well, so it covers both modes from either boot.
   # execatomic needs the armed boot too: DEBUG SHARD proves its reads really fan out over more
@@ -4873,6 +4875,17 @@ job_feature_cell(){
         || bad "feature $FEATURE_CELL" "see $FEATURE_OUTPUT/$FEATURE_CELL.log"
 }
 
+# TM4.4 and HX-LB-PROBE: standing falsification suites, one row before quick exit.
+job_witness_contracts(){
+  local failed=0 suite
+  row_begin "witness falsification contracts (testmap + placement)"
+  for suite in flakeaudit_test flipctl_test cd13b_window_test gaterows_contract_test; do
+    py "tests/$suite.py" >"$TMPDIR/$suite.log" 2>&1 || failed=1
+  done
+  [ "$failed" = 0 ] && ok "witness falsification contracts (testmap + placement)" \
+      || bad "witness falsification contracts (testmap + placement)" "see $TMPDIR/*_test.log"
+}
+
 job_abba_selftest(){
 # The ABBA tier's own decision logic, saturation rules and rejection paths, exercised serverless so
 # a broken comparator is caught on any machine and before any measurement is trusted.
@@ -5268,7 +5281,7 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync|witness_contracts) ;;
     flip_unit) echo production_units;; # ctlfix-unit links the shared release objects
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
@@ -5384,6 +5397,7 @@ collect_job wbland_units
 
 # gaterows: eight independent rows, all ABOVE the quick-tier exit. EXPECT stays
 # maintainer-owned: +8 quick, +8 full. The 32-cell feature product is unchanged.
+collect_job witness_contracts
 collect_job reorder_sync
 collect_job reorder_engagement
 collect_job reorder_identity
