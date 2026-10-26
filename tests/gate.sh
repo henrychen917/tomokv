@@ -3125,6 +3125,10 @@ job_txnorder2(){
   done
 }
 
+# at412 (AT4.12, D4'): eighteen rows -- directed T1-T16 (T11 as T11a/T11b) against the Redis 7.4
+# oracle, each over EVAL/EVALSHA/FCALL x 1s/2s x atomic 0/1 x uring/epoll unless the case states
+# a single geometry, plus the serverless owner-turn fixture in the same eight legs. All are
+# collected before the quick-tier exit: DQ=+18, DF=+18 (on top of execindex's +2/+2).
 job_at412(){
   local case=$1 label="at412 $1"
   row_begin "$label"
