@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix3/tools/iofix3_ports.py", line 46, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-iofix3/tools/iofix3_ports.py", line 37, in main
+    guard.bind(('127.0.0.1', port))
+OSError: [Errno 98] Address already in use

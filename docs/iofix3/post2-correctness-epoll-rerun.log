@@ -1,0 +1,166 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-iofix3/build/gate-run.4RJ2X9
+PARTIAL jobs (including prerequisites): release asan production_units flipctl debug-0 debug-1 wb_policy climonfix release_batteries auth flip flip_saturated asan_batteries replyoff zc
+PARTIAL jobs (including prerequisites): release asan production_units flipctl debug-0 debug-1 wb_policy climonfix release_batteries auth flip flip_saturated asan_batteries replyoff zc
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=75.04s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=128.9s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=9.18s; correctness-plan-fallback; plain-write lost updates (atomic 0)
+  plain-write lost updates (atomic 0)                  ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 900s; median=14.47s; correctness-plan-fallback; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 900s; median=11.88s; correctness-plan-fallback; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 900s; median=0.44s; correctness-plan-fallback; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 900s; median=0.73s; correctness-plan-fallback; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 900s; median=30.48s; correctness-plan-fallback; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 900s; median=0.36s; correctness-plan-fallback; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 900s; median=1.87s; correctness-plan-fallback; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 900s; median=1.97s; correctness-plan-fallback; txn_nx battery (atomic 0)
+  txn_nx battery (atomic 0)                            ok
+  row budget: 900s; median=9.6s; correctness-plan-fallback; txniso battery (atomic 0)
+  txniso battery (atomic 0)                            ok
+  row budget: 900s; median=6.16s; correctness-plan-fallback; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=14.47s; correctness-plan-fallback; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=11.87s; correctness-plan-fallback; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=0.45s; correctness-plan-fallback; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=0.74s; correctness-plan-fallback; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=30.5s; correctness-plan-fallback; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=0.36s; correctness-plan-fallback; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=0.32s; correctness-plan-fallback; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=1.87s; correctness-plan-fallback; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=1.99s; correctness-plan-fallback; txn_nx battery (atomic 1)
+  txn_nx battery (atomic 1)                            ok
+  row budget: 900s; median=8.88s; correctness-plan-fallback; txniso battery (atomic 1)
+  txniso battery (atomic 1)                            ok
+  row budget: 900s; median=5.98s; correctness-plan-fallback; writeback policies 0/1: 22 standard fixtures
+  writeback policies 0/1: 22 standard fixtures         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=6.66s; correctness-plan-fallback; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=1.03s; correctness-plan-fallback; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; direct-reply fired (direct=N)
+  direct-reply fired (direct=11271)                    ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; dispatched==executed (N)
+  dispatched==executed (54946)                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=5.55s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=5.55s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=2.53s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=2.17s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=2.18s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=1.16s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=0.55s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+  row budget: 900s; median=6.07s; correctness-plan-fallback; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok
+  row budget: 900s; median=7s; correctness-plan-fallback; torture under ASAN
+  torture under ASAN                                   ok
+  row budget: 900s; median=0.99s; correctness-plan-fallback; RYOW under ASAN
+  RYOW under ASAN                                      ok
+  row budget: 900s; median=27.61s; correctness-plan-fallback; atomic torn/window under ASAN
+  atomic torn/window under ASAN                        ok
+  row budget: 900s; median=4.09s; correctness-plan-fallback; atomic RYOW under ASAN
+  atomic RYOW under ASAN                               ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; ASAN clean
+  ASAN clean                                           ok
+  row budget: 900s; median=1.23s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0) ok
+  row budget: 900s; median=1.24s; correctness-plan-fallback; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1) ok
+  row budget: 900s; median=1.38s; correctness-plan-fallback; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+  row budget: 900s; median=1.42s; correctness-plan-fallback; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; zc ASAN clean
+  zc ASAN clean                                        ok
+GATE(PARTIAL): 80 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-iofix3/build/gate-run.4RJ2X9/ledger.partial

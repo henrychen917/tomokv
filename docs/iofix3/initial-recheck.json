@@ -1,0 +1,11 @@
+{
+  "initial_run": "build/gate-run.LjCcCy",
+  "initial_pass": 258,
+  "initial_fail": 30,
+  "recheck_run": "build/gate-run.XLzQa8",
+  "recheck_pass": 72,
+  "recheck_fail": 0,
+  "recheck_sha256": "dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4",
+  "unresolved_aggregate": "ABBA harness row: maintainer-owned EXPECT 815 versus 816 source/fixture rows",
+  "pad_initial_attempt": "NOT RUN: port guard refused TIME-WAIT; superseded by gate-run.CWa6hj, four expected busy-spin failures with all witnesses."
+}

@@ -1,0 +1,168 @@
+{
+  "plan": {
+    "schema": 1,
+    "manifest": {
+      "run": "full:gate-run.D0mAJO",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 22,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "history": "/home/user/Projects/cx-iofix3/.gate-history/differ"
+    },
+    "suites": [
+      "string",
+      "list",
+      "set",
+      "zset",
+      "hash",
+      "hexpire",
+      "edgetime",
+      "xshard",
+      "xmove",
+      "bitmap",
+      "hll",
+      "bitfield",
+      "cgaps",
+      "stream",
+      "script",
+      "streamgrp",
+      "zsetops",
+      "geo",
+      "doubles",
+      "scan",
+      "multi",
+      "encodingfix",
+      "edgeenc",
+      "edgeproto",
+      "cmdgap",
+      "cmdgap2",
+      "sort",
+      "servertail",
+      "arity",
+      "storeorder",
+      "infofix",
+      "multidb",
+      "blocking",
+      "pubsub",
+      "fanout",
+      "spubsub",
+      "notify",
+      "wiredump",
+      "climon",
+      "compatintro",
+      "aclsel",
+      "aclkeys",
+      "cmdmeta",
+      "s6fix",
+      "ccfix",
+      "psfix",
+      "monitor"
+    ],
+    "repeats": 4,
+    "equivalence_seeds": [
+      22
+    ]
+  },
+  "parts": {
+    "armed-0": {
+      "executed": 230,
+      "exact_standard_inventory": true,
+      "failed": [],
+      "completion": {
+        "schema": 1,
+        "part": "armed-0",
+        "run": "full:gate-run.D0mAJO",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 230,
+        "complete": true
+      }
+    },
+    "armed-1": {
+      "executed": 234,
+      "exact_standard_inventory": true,
+      "failed": [],
+      "completion": {
+        "schema": 1,
+        "part": "armed-1",
+        "run": "full:gate-run.D0mAJO",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 234,
+        "complete": true
+      }
+    },
+    "equivalence": {
+      "completion": {
+        "schema": 1,
+        "part": "equivalence",
+        "run": "full:gate-run.D0mAJO",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 16,
+        "complete": true
+      },
+      "failed": []
+    },
+    "split-0": {
+      "executed": 235,
+      "exact_standard_inventory": true,
+      "failed": [],
+      "completion": {
+        "schema": 1,
+        "part": "split-0",
+        "run": "full:gate-run.D0mAJO",
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          22
+        ],
+        "comparisons": 235,
+        "complete": true
+      }
+    },
+    "split-1": {
+      "executed": 239,
+      "exact_standard_inventory": true,
+      "failed": [
+        {
+          "suite": "psfix",
+          "atomic": 1,
+          "seed": 20,
+          "repeat": 0,
+          "exit": 1,
+          "log": "psfix-a1-s20.txt"
+        }
+      ],
+      "completion": null
+    }
+  }
+}

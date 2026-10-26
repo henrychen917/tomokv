@@ -43,10 +43,17 @@ BACKSTOP = 'if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);'
 IDLE = '''const bool done = c->rob().quiesced() && !more_input && !stuck &&
                         !c->serve_pending() && c->nothing_to_write() && !tls_output;'''
 BUFFER = 'SmallBuf<kWbufInline>& fb = c->fill_buf();'
+IDLE_GRACE = '''if constexpr (!Fused) {
+    wb_idle.observe(pass_ns, wb_completions != 0);
+    if (!did && !pending_serve_.empty() && wb_idle.active(pass_ns)) did = 1;
+}'''
 # Every other occurrence of a watched name is existing non-policy plumbing.
 # Scope each small fragment to its owning method and require its exact count;
 # never exempt an entire method from the remaining-reference scan.
 PLUMBING = (
+    ('run_loop', 'wb_rule::IdleWindow wb_idle;', 1),
+    ('run_loop', IDLE_GRACE, 1),
+    ('run_loop', 'wb_idle.park();', 1),
     ('', 'friend struct wb_rule::Phase2;', 1),
     ('', 'wb_rule::Settings wb_config_;', 1),
     ('init', 'cache_writeback_config();', 1),
@@ -73,6 +80,9 @@ PLUMBING = (
         dead_ready_[keep++] = c; continue; }''', 1),
 )
 R7_PLUMBING = (
+    ('r7_run_loop', 'wb_rule::IdleWindow wb_idle;', 1),
+    ('r7_run_loop', IDLE_GRACE, 1),
+    ('r7_run_loop', 'wb_idle.park();', 1),
     ('r7_parse_and_dispatch', BUFFER, 2),
     ('r7_flush_ready', BACKSTOP, 1), ('r7_flush_ready', IDLE, 1),
 )
@@ -198,6 +208,13 @@ def source():
 # A positive unrelated edit must still run R7 parity. No source tree under test
 # (in particular --root pointing at another lane) is modified.
 SOURCE_CONTROLS = {
+    'io-grace-unbounded': (IO, 'wb_idle.active(pass_ns)', 'true',
+                           f'{IO}: run_loop anchored writeback site'),
+    'io-grace-false-completion': (IO, 'wb_idle.observe(pass_ns, wb_completions != 0);',
+                                 'wb_idle.observe(pass_ns, true);',
+                                 f'{IO}: run_loop anchored writeback site'),
+    'io-grace-park': (IO, 'wb_idle.park();', '/* park boundary removed */',
+                      f'{IO}: run_loop anchored writeback site'),
     'io-cache-value': (IO, 'static_cast<uint8_t>(srv_->cfg().wb_small_pipe)', 'uint8_t{16}',
                        f'{IO}: cache_writeback_config anchored writeback site'),
     'io-cache-reload': (IO, 'uint32_t flush_ready() {', 'uint32_t flush_ready() { cache_writeback_config();',

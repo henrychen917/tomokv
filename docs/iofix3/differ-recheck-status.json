@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "python3",
+    "tools/iofix3_ports.py",
+    "--ports",
+    "48840-48842",
+    "--",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "48840-48842",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix3/build/tomokv-iofix3-post2"
+  ],
+  "extra_env": {
+    "GATE_ONLY_JOBS": "differ-split-1",
+    "GATE_NET_IO": "epoll",
+    "GATE_DIFFER_NET_IO": "epoll",
+    "GATE_TEST_PORT": "48898"
+  },
+  "reason": "Retain and recheck psfix atomic-1 seed 20 SAVE-after-idle failure; entire standard partition, no filters.",
+  "started": 1792984316.9024878,
+  "ended": 1792984851.446336,
+  "exit": 0
+}

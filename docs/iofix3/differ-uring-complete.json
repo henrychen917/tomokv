@@ -1,0 +1,149 @@
+{
+  "plan": {
+    "schema": 1,
+    "manifest": {
+      "run": "full:gate-run.Ufq2JG",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-iofix3/.gate-history/differ"
+    },
+    "suites": [
+      "string",
+      "list",
+      "set",
+      "zset",
+      "hash",
+      "hexpire",
+      "edgetime",
+      "xshard",
+      "xmove",
+      "bitmap",
+      "hll",
+      "bitfield",
+      "cgaps",
+      "stream",
+      "script",
+      "streamgrp",
+      "zsetops",
+      "geo",
+      "doubles",
+      "scan",
+      "multi",
+      "encodingfix",
+      "edgeenc",
+      "edgeproto",
+      "cmdgap",
+      "cmdgap2",
+      "sort",
+      "servertail",
+      "arity",
+      "storeorder",
+      "infofix",
+      "multidb",
+      "blocking",
+      "pubsub",
+      "fanout",
+      "spubsub",
+      "notify",
+      "wiredump",
+      "climon",
+      "compatintro",
+      "aclsel",
+      "aclkeys",
+      "cmdmeta",
+      "s6fix",
+      "ccfix",
+      "psfix",
+      "monitor"
+    ],
+    "repeats": 4,
+    "equivalence_seeds": [
+      21
+    ]
+  },
+  "parts": {
+    "differ-equivalence": {
+      "schema": 1,
+      "part": "equivalence",
+      "run": "full:gate-run.Ufq2JG",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "comparisons": 16,
+      "complete": true
+    },
+    "differ-armed-0": {
+      "schema": 1,
+      "part": "armed-0",
+      "run": "full:gate-run.Ufq2JG",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "comparisons": 230,
+      "complete": true
+    },
+    "differ-split-0": {
+      "schema": 1,
+      "part": "split-0",
+      "run": "full:gate-run.Ufq2JG",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "comparisons": 235,
+      "complete": true
+    },
+    "differ-split-1": {
+      "schema": 1,
+      "part": "split-1",
+      "run": "full:gate-run.Ufq2JG",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "comparisons": 239,
+      "complete": true
+    },
+    "differ-armed-1": {
+      "schema": 1,
+      "part": "armed-1",
+      "run": "full:gate-run.Ufq2JG",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "comparisons": 234,
+      "complete": true
+    }
+  }
+}

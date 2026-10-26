@@ -1,0 +1,39 @@
+[
+  {
+    "cwd": "/home/user/Projects/cx-iofix3/build/iofix3",
+    "argv": [
+      "make",
+      "-q",
+      "all"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "cwd": "/home/user/Projects/cx-iofix3",
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/iofix3/post4",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_WB_IDLE_MULTIPLIER=4",
+      "all"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "cwd": "/home/user/Projects/cx-iofix3",
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/iofix3/post8",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_WB_IDLE_MULTIPLIER=8",
+      "all"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

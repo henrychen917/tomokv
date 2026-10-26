@@ -22,6 +22,35 @@ struct Settings {
     uint8_t small_pipe = kSmallPipe;
     uint8_t complete_visits = kCompleteVisits;
 };
+// Measurement arms only; the maintainer keeps the smallest multiplier that
+// passes merit and removes this override. No runtime knob or machine time bound.
+#ifndef TOMO_WB_IDLE_MULTIPLIER
+#define TOMO_WB_IDLE_MULTIPLIER 2
+#endif
+inline constexpr uint64_t kIdleMultiplier = TOMO_WB_IDLE_MULTIPLIER;
+static_assert(TOMO_WB_IDLE_MULTIPLIER > 0);
+
+// Learn completion intervals only within a busy split-IO tenure. A completion
+// after a park must not teach the duration of the long operation we waited for.
+// Stack-local, with the existing pass clock cut: no allocation or extra clock read.
+struct IdleWindow {
+    uint64_t completion = 0, interval = 0, previous_pass = 0;
+    bool waited = true;
+    void observe(uint64_t now, bool advanced) {
+        if (advanced) {
+            if (!waited && completion) interval = std::max(interval, now - completion);
+            if (!waited && previous_pass) interval = std::max(interval, now - previous_pass);
+            completion = now;
+            waited = false;
+        }
+        previous_pass = now;
+    }
+    bool active(uint64_t now) const {
+        // Division preserves wave5b's boundary and avoids multiplication overflow.
+        return !waited && completion && (now - completion) / kIdleMultiplier <= interval;
+    }
+    void park() { waited = true; }
+};
 // Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
 // section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
@@ -140,7 +169,11 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
+            const uint8_t previous_deferrals = c->wb_deferrals();
             if (!c->dead() && defer(*c, loop.wb_config_)) {
+                // Only advancing the bounded completion counter requires an
+                // immediate next visit. Split IO supplies its learned grace.
+                work += c->wb_deferrals() != previous_deferrals;
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;
@@ -181,7 +214,6 @@ struct Phase2 {
             if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
         }
         work += served;
-        if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase
         return work;
     }
 };

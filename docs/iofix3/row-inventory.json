@@ -1,0 +1,14 @@
+{
+  "source_rows": 816,
+  "fixture_rows": 816,
+  "missing": [],
+  "extra": [],
+  "collect_line": 5359,
+  "quick_exit_line": 5626,
+  "delta_quick": 1,
+  "delta_full": 1,
+  "unchanged_expect_quick": 798,
+  "unchanged_expect_full": 815,
+  "required_expect_quick": 799,
+  "required_expect_full": 816
+}

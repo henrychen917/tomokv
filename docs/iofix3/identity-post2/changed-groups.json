@@ -1,0 +1,5 @@
+{
+  "Compiler/link propagation from the included loop change; source untouched. Retained normalized diff is the evidence; no whole-server identity claim.": 10,
+  "WB4.1: deferral counter advancement replaces unconditional pending-FIFO work.": 104,
+  "WB4.1: stack-local completion-derived grace and park boundary.": 17
+}
