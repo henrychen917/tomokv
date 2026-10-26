@@ -22,8 +22,8 @@ def inherited(tool, args, scripts=False):
     original = ROOT / ('tools/execindex_'+tool+'.py')
     source = original.read_text()
     source = source.replace('execindex', 'at412')
-    # Instruction traces run on 60-63 so that correctness gate jobs can use 48-59 meanwhile.
-    cpus = '60-63' if tool == 'scope' else '48-63'
+    # Instruction traces run at nice 19 on 56-63, away from the gate's server cores 48-55.
+    cpus = '56-63' if tool == 'scope' else '48-63'  # the probe needs 8 CPUs in its affinity
     source = source.replace('96-103', cpus).replace('96-111', cpus)
     if tool == 'control_smoke':
         source = source.replace('PORT=46890', 'PORT=20290')  # this lane's port range

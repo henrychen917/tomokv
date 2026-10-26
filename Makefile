@@ -249,13 +249,14 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # execindex: per-unit IPA deltas preserve PRE inline headroom after replacing the
 # claim vector and retry deque. Reproducible compile-only controls and instruction
 # traces are in docs/execindex/budgets and docs/execindex/instructions.
-# at412: script_escalation.inc and the script arms grow the IPA unit by +2332 (db0 +2345); the
-# budgets restore PRE headroom so FlatStore::find_in/insert_into/erase* and every hot body outside
-# the intended xshard_prepare/xshard_execute script arms stay PRE-identical (docs/at412/budgets2).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150661
+# at412: script_escalation.inc and the script arms grow the IPA unit (initial 118577 -> 120808,
+# db0 117548 -> 119794). Compile-only sweeps (docs/at412/budgets3) pick the budgets that leave the
+# most PRE bodies identical; xshard_task_should_defer, assemble_final, execute_atomic_apply and
+# FlatStore::find_in/insert_into/erase* stay PRE-identical. Instruction counts: docs/at412/instructions.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=150700
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=149680
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=149450
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

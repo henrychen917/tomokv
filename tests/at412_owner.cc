@@ -135,8 +135,8 @@ void wound_window(Server& server) {
     require(script_group_prepare(state, server, 0), "script sidecar exists before owner wave");
     state.group_attempt()->phase.store(TxnPhase::Wounded);
     require(!state.epoch.load() && !state.aborted.load(), "pause wound before cancellation publication");
-    Request op({"EVAL", "return 1", "0"}); Client client{-1};
-    require(script_group_read(Task{&client,0,0,&state}, server.shard(0), op.op) == ScatterTaskResult::Complete,
+    Request op({"EVAL", "return 1", "0"});
+    require(script_group_read(state, server.shard(0), op.op) == ScatterTaskResult::Complete,
             "wounded script stops materialization");
     require(state.aborted.load() && state.epoch.load() == kAtomicCancelledEpoch,
             "script guard publishes cancellation before completion");
@@ -170,7 +170,7 @@ void lane_close(Server& server) {
     std::array<ScatterState,4> slots;
     for (auto& state : slots) {
         state.server = &server; state.owner_io = 0;
-        script_window_admit(state, nullptr);
+        script_window_admit(state);
     }
     Client first{-1}, second{-1}, third{-1};
     first.set_id(801); second.set_id(802); third.set_id(803);

@@ -163,8 +163,7 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
     ShardGroup& group = *group_for(state, shard.id());
     FlatStore& store = shard.store();
 
-    if (state.kind == Kind::Script && !state.group_attempt() &&
-        !state.aborted.load(std::memory_order_acquire)) {
+    if (state.kind == Kind::Script && !state.aborted.load(std::memory_order_acquire)) {
         // Validation and UNPIN are separate waves. Keep the write intents until this owner
         // turn and validate again before any exchange; plain RMWs remain free to run between
         // waves, but cannot make a saved script image overwrite their completed write.
@@ -691,15 +690,11 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER): same shape for the cross-owner script GATHER wave.
         // The coordinator's own shard reads immediately; every other declared key's owner is parked
         // until the deadline, which is the interval a competing plain write has to land in.
-        if (__builtin_expect(state.debug_script_defer_deadline != 0, false)) {
-            if (state.script_phase == ScriptPhase::Read &&
-                shard.id() == state.script_coordinator_shard)
-                server.note_debug_script_stage_watch(state.origin_conn_id);
-            if ((state.script_phase == ScriptPhase::Read || state.script_phase == ScriptPhase::Apply) &&
-                shard.id() != state.script_coordinator_shard &&
-                now_ns() < state.debug_script_defer_deadline)
-                return true;
-        }
+        if (__builtin_expect(state.debug_script_defer_deadline != 0, false) &&
+            state.script_phase == ScriptPhase::Read &&
+            shard.id() != state.script_coordinator_shard &&
+            now_ns() < state.debug_script_defer_deadline)
+            return true;
         if (state.atomic_direct) {
             if (!txn_group_arrive(state, shard, op)) return true;
             if (state.direct_ready.load(std::memory_order_acquire) == 0 ||

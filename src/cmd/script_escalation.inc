@@ -11,6 +11,8 @@ struct ScriptWindow {
     struct Member { Client* client; uint64_t frame; };
     std::list<Member> fifo;
     std::unordered_map<Client*, std::list<Member>::iterator> members;
+    // The head granted a slot by script_window_wait; popped where the slot is counted.
+    Client* granted = nullptr;
 };
 namespace {
 void script_window_refresh(Server& server, uint32_t io) {
@@ -26,6 +28,7 @@ bool script_window_stale(const ScriptWindow::Member& member) {
 
 void script_window_erase(MultiRetryLane& lane, ScriptWindow& window,
                          std::list<ScriptWindow::Member>::iterator member) {
+    if (window.granted == member->client) window.granted = nullptr;
     window.members.erase(member->client);
     window.fifo.erase(member);
     if (window.fifo.empty()) lane.script_admission &= 127u;
@@ -69,20 +72,37 @@ bool script_window_wait(Server& server, uint32_t io, Client& client) {
             lane.script_admission |= 128u;
             server.note_script_window_wait();
         }
-        return (lane.script_admission & 127u) < 4 &&
-               script_window_head(server, lane, window) == &client;
+        if ((lane.script_admission & 127u) >= 4 || script_window_head(server, lane, window) != &client)
+            return false;
+        window.granted = &client;
+        return true;
     } catch (const std::bad_alloc&) {
         // No slot, ROB entry or credit was taken. Retry the unconsumed frame.
         return false;
     }
 }
 
-void script_window_admit(ScatterState& state, Client* client) {
+bool script_window_admissible(Server& server, uint32_t io, Client* client, bool force_atomic) {
+    // Escalated attempts take no slot (C8); a carrier without a client (internal) is not queued.
+    if (force_atomic || !client) return true;
+    // Not dispatchable while an older op of this connection is in flight: no slot, no FIFO entry.
+    if (client->rob().in_flight() != 0) return false;
+    if (server.multi_retry_lane(io).script_admission >= 4)
+        return script_window_wait(server, io, *client);
+    return true;
+}
+
+bool script_window_admit(ScatterState& state) {
     auto& lane = state.server->multi_retry_lane(state.owner_io);
     if ((lane.script_admission & 127u) >= 4) std::abort();
-    if (client) script_window_forget(*state.server, state.owner_io, *client);
+    // A granted FIFO head is popped where its slot is counted, so a credit refusal between the
+    // grant and here keeps its place (design §3.2 step 3).
+    if (lane.script_window && lane.script_window->granted &&
+        lane.script_window->granted->id() == state.origin_conn_id)
+        script_window_forget(*state.server, state.owner_io, *lane.script_window->granted);
     ++lane.script_admission;
     state.script_slot_live = true;
+    return true;
 }
 
 void script_window_release(ScatterState& state) {
@@ -90,6 +110,11 @@ void script_window_release(ScatterState& state) {
     state.script_slot_live = false;
     auto& lane = state.server->multi_retry_lane(state.owner_io);
     if (lane.script_releases.fetch_add(1, std::memory_order_release) >= 4) std::abort();
+}
+
+void script_window_retire(ScatterState& state) {
+    script_window_release(state);
+    script_window_refresh(*state.server, state.owner_io);
 }
 
 bool script_group_prepare(ScatterState& state, Server& server, uint32_t io) {
@@ -143,8 +168,7 @@ ScatterFinish script_escalate_handoff(Server& server, ThreadCtx& self, Ring& rin
     return ScatterFinish::Waiting;
 }
 
-ScatterTaskResult script_group_read(const Task& task, Shard& shard, Op& op) {
-    auto& state = *task.scatter;
+ScatterTaskResult script_group_read(ScatterState& state, Shard& shard, Op& op) {
     auto& attempt = *state.group_attempt();
     auto wounded = [&] {
         if (attempt.phase.load(std::memory_order_acquire) != TxnPhase::Wounded) return false;
@@ -157,7 +181,7 @@ ScatterTaskResult script_group_read(const Task& task, Shard& shard, Op& op) {
     const auto prepared = txn_group_read_prepare(state, shard, op);
     if (wounded() || prepared == TxnGroupRead::Done) return ScatterTaskResult::Complete;
     if (prepared == TxnGroupRead::Wait) {
-        if (state.debug_direct_defer & (1u << 31))
+        if (state.server->debug_script_escalate_force())
             for (const auto& claim : attempt.claims[shard.id()])
                 if (claim.waiter.queue)
                     state.server->note_script_waiters(claim.waiter.queue->waiters);
@@ -240,7 +264,12 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
         return;
     }
     auto* next = dispatch.state;
-    if (next->snapshot_registered || next->group_attempt() || !next->atomic_group) std::abort();
+    if (next->group_attempt() || !next->atomic_group) std::abort();
+    // Ordinary prepare's read-cut computation is unchanged (as for TO-B groups): an escalated
+    // attempt reads at UINT64_MAX under its claims, so it releases that temporary cut before
+    // dispatch and never holds one (C8).
+    if (next->snapshot_registered) pool.unregister_snapshot(server, next, self.id());
+    next->snapshot = UINT64_MAX;
     uint32_t needed[kMaxThreads] = {};
     for (uint32_t i = 0; i < next->nsub; ++i)
         ++needed[server.worker_of_shard(next->groups[i].shard)];
@@ -263,6 +292,7 @@ void script_escalate_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     attempt.age_io = old.age_ns ? old.age_io : self.id();
     attempt.age_seq = old.age_ns ? old.age_seq : ++server.multi_retry_lane(self.id()).age_seq;
     next->script_cut = UINT64_MAX;
+    next->script_phase = ScriptPhase::Place;
     next->admitted = previous.admitted;
     next->admission_generation = previous.admission_generation;
     previous.admitted = false;
