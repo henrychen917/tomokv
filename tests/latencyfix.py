@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import time
 import traceback
 
 from authfix import Run, Server as AuthServer, is_error
@@ -238,6 +239,9 @@ def execution_paths(run, mode, label, extra):
                             ('EXEC',)], ['multi', 'exec', 'mget', 'mset']),
             ('exec-controls', [('MULTI',), ('PING',), ('ECHO', 'v'), ('CLIENT', 'ID'), ('EXEC',)],
              ['multi', 'exec', 'ping', 'echo', 'client|id']),
+            ('transaction-controls', [('WATCH', keys[0]), ('UNWATCH',),
+                                      ('MULTI',), ('DISCARD',)],
+             ['watch', 'unwatch', 'multi', 'discard']),
             ('local-read', [('GET', keys[0]), ('GET', keys[0]), ('MGET', keys[0])],
              ['get', 'mget']),
         ]
@@ -271,6 +275,19 @@ def execution_paths(run, mode, label, extra):
         c.cmd('LPUSH', 'latencyfix:pop', 'v')
         c.cmd('BLPOP', 'latencyfix:pop', '0')
         oracle_equal(run, 'path:blocking-ready', sorted(histogram(c, 'blpop', 'lpush')))
+        c.cmd('CONFIG', 'RESETSTAT')
+        with server.client() as blocked:
+            blocked.sock.sendall(encode('BLPOP', 'latencyfix:actual-wake', '0'))
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                if b'blocked_clients:1' in c.cmd('INFO', 'clients'):
+                    break
+                time.sleep(.002)
+            else:
+                raise AssertionError('blocking wake window never opened')
+            assert c.cmd('LPUSH', 'latencyfix:actual-wake', 'v') == 1
+            assert blocked.read() == [b'latencyfix:actual-wake', b'v']
+        oracle_equal(run, 'path:blocking-wake', sorted(histogram(c, 'blpop', 'lpush')))
 
 
 @contextlib.contextmanager
