@@ -34,7 +34,7 @@ Nineteen named assertions are promoted: thirteen `LUA-HELPER-LIBS` and six `LATE
 
 Other roots were reviewed: execindex changes claim lookup and scheduling, not MULTI OOM admission, command policy, blocked-key wake order or WATCH's spurious invalidation root. IO parking changes idle work detection, not blocking command semantics. Readability and harness repairs change no command replies. Latencyfix adds histogram child samples but does not implement the pre-existing `SLOWLOG-EXEC-BODY-NOT-LOGGED` mechanism; that named failure remains. The final `compat2` job passes all six rows, including the public autharity row backed by both Tcl modes (`docs/wave8/jobs/final-tcl.json`).
 
-The first Tcl run verified all promoted names but caught a manifest multiplicity error: each of the thirteen Lua names runs twice. The exact multiset therefore grows by 32 assertions, not 19. The first run also retained two cross-client-order failures: MONITOR saw the polling client's INFO before the blocked client's BLPOP, and an unblocking LPUSH overtook another client's EXEC, causing its WATCH to abort. Neither is hidden or newly skipped; final isolated runs will retain their own outcomes.
+The first Tcl run verified all promoted names but caught a manifest multiplicity error: each of the thirteen Lua names runs twice. The exact multiset therefore grows by 32 assertions, not 19. The first run also retained two cross-client-order failures: MONITOR saw the polling client's INFO before the blocked client's BLPOP, and an unblocking LPUSH overtook another client's EXEC, causing its WATCH to abort. Neither is hidden or newly skipped; both pass in the final isolated Tcl job, with the earlier failures retained.
 
 ### EXEC timing interaction
 
@@ -42,7 +42,7 @@ The added `tests/wave8.py` runs inside every existing `execfair` leg (both modes
 
 The pre-fix merged POST failed all eight legs: 128 EXECs and 64 successful scripts produced 394–410 INCR samples instead of 384; one leg also counted 129 MGETs instead of 128. Children were published at attempt completion before the parent could be internally wounded. Samples now retire with logical EXEC; active slices transfer to replacement child Ops using existing map nodes, excluding parked intervals and adding no allocations to the off state. The exact-count check and its red receipts are retained in `docs/wave8/jobs/execfair-private-helpers.*`. The final directed `execfair` job passes all eight legs inside `final-lanes`, POST `f94fbd1d`; `timing-witnesses-final.json` retains all exact histograms and forced retry counters.
 
-The first direct `gates_test.py` run overlapped compile-only work and serverless traces and hit scheduler-fixture deadlines (12 failures, all timeout-led). This is failed evidence, retained at `build/wave8/gates-test.log`. The earlier quiet rerun passes all 72 tests in 91.4 seconds, without changing tolerances (`docs/wave8/gates-test-final.{json,log}`). The gate's `abba_selftest` also passes in 346.4 seconds against a throwaway source copy with totals 806/823; its 660-second row budget is unchanged. The actual `tests/gate.sh` totals remain 798/815.
+The first direct `gates_test.py` run overlapped compile-only work and serverless traces and hit scheduler-fixture deadlines (12 failures, all timeout-led). This is failed evidence, retained at `build/wave8/gates-test.log`. The earlier quiet rerun passed all 72 tests in 91.4 seconds, without changing tolerances (`docs/wave8/gates-test-final.{json,log}`). The gate's earlier `abba_selftest` passed in 346.4 seconds against a throwaway source copy with totals 806/823. These receipts predate the final helper-assertion and WATCH-fixture changes; final-source quiet checks are recorded separately below. The self-test's 660-second row budget and the actual `tests/gate.sh` totals 798/815 remain unchanged.
 
 ### Timing, parking and ownership review
 
@@ -134,8 +134,8 @@ production build/freshness checks pass again against this POST.
 
 `docs/wave8/run_final_matrix.py` selects complete gate jobs only. The two standard
 differential folds also run concurrently in separate server allocations: uring
-CPUs 72–79 / ports 20040–20049, epoll CPUs 80–87 / ports 20060–20069. Other jobs
-use CPUs 64–71 / ports 20020–20029. Each invocation retains the gate's eight-server
+CPUs 72–79 / ports 20040–20049, epoll CPUs 80–87 / ports 20060–20069. The default allocation is CPUs 64–71 / ports 20020–20029. The serverless EX-batch
+rerun and the independent uring engine matrix use CPUs 88–95 / ports 20080–20089. Each invocation retains the gate's eight-server
 6:2 geometry and builds with all 32 authorized CPUs. No perf tier is selected.
 `runtime-affinity-snapshot.json` checks all active worker threads and owned TCP
 listeners; the tool-launcher ancestor processes are explicitly excluded.
@@ -190,6 +190,12 @@ The corrected selector uses all its consuming jobs, which run that prerequisite
 automatically, and retains the standalone 49-target freshness proof. No row was
 removed. The rejected attempt remains `jobs/final-supplemental.*`; the actual
 complete run is `final-supplemental-jobs`.
+
+The complete supplemental run passes **43 ok / 0 FAIL** in 831.1 seconds. It
+covers the repaired ASAN/read-local-debug/TSAN links, INFO accounting, input
+limits, notifications and AOF notification replay, live EX-batch accounting,
+ACL rechecks, authentication, blocking/script regressions and read-local cache
+checks. The frozen ASAN arm and its digest are recorded in `frozen-asan.json`.
 
 Both standard differential jobs pass: **954 complete comparisons per engine**,
 1,908 total, with zero differing legs. Each includes split/armed atomic 0/1,

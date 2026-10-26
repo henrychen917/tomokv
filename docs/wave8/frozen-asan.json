@@ -1,0 +1,5 @@
+{
+  "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-ASAN",
+  "sha256": "dc04082b1b6bafe4896a11994a73fb8e7a65cb89eec4b0993a7f6f87b26e0e43",
+  "reason": "Instrumented final source; avoids shared cache relinking during independent gate jobs."
+}

@@ -19,5 +19,19 @@
     "summary": [
       "GATE(PARTIAL): 3 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-tcl-planted.tsv.partial"
     ]
+  },
+  {
+    "name": "final-units",
+    "exit": 1,
+    "summary": [
+      "GATE(PARTIAL): 105 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-units.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-supplemental-jobs",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 43 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-supplemental-jobs.tsv.partial"
+    ]
   }
 ]
