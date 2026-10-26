@@ -2491,12 +2491,23 @@ job_moverfix(){
 job_atomic_batteries(){
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
 # predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
+local ryow_args=()
+case "${GATE_PROOF_NO_RATES:-0}" in
+  0) ;;
+  1)
+    # A lane may be authorized for correctness but not performance measurement.
+    # Only partial diagnostic jobs can omit the battery's existing rate check;
+    # full gate/receipt semantics remain unchanged, and the driver prints SKIP.
+    [ "${GATE_PARTIAL:-0}" = 1 ] || { echo 'GATE_PROOF_NO_RATES requires selected partial jobs' >&2; return 1; }
+    ryow_args=(--no-rate-assertions);;
+  *) echo 'GATE_PROOF_NO_RATES must be 0 or 1' >&2; return 1;;
+esac
 txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
 row_begin "atomic torn/window battery"
 py tests/atomic_torn.py 127.0.0.1 $PORT --release-build >$TMPDIR/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see $TMPDIR/gate-atomic-torn.txt"
 row_begin "atomic RYOW/mixed-write battery"
-py tests/atomic_ryow.py 127.0.0.1 $PORT >$TMPDIR/gate-atomic-ryow.txt 2>&1 \
+py tests/atomic_ryow.py 127.0.0.1 $PORT "${ryow_args[@]}" >$TMPDIR/gate-atomic-ryow.txt 2>&1 \
     && ok "atomic RYOW/mixed-write battery" || bad "atomic RYOW/mixed-write battery" "see $TMPDIR/gate-atomic-ryow.txt"
 row_begin "atomic owner-local hazard battery"
 py tests/atomic_hazards.py 127.0.0.1 $PORT >$TMPDIR/gate-atomic-hazards.txt 2>&1 \
