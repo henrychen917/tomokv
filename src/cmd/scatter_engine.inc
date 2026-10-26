@@ -499,6 +499,7 @@ struct ScatterState : SnapshotCut {
     bool script_certifier = false;
     bool runtime_loading = false;
     bool script_slot_live = false;
+    bool script_escalate_after_unpin = false;
     // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
     // publishes their common ticket and owns the outer transaction decision.
     bool multi_child = false;
@@ -691,6 +692,11 @@ void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
 [[gnu::noinline]] void script_window_admit(ScatterState&, Client*);
 [[gnu::noinline]] void script_window_release(ScatterState&);
 [[gnu::noinline]] void script_window_refresh(Server&, uint32_t);
+[[gnu::noinline]] ScatterTaskResult script_group_read(const Task&, Shard&, Op&);
+[[gnu::noinline]] ScatterFinish script_escalate_handoff(Server&, ThreadCtx&, Ring&, const Task&, Op&);
+[[gnu::noinline]] ScatterFinish script_group_final(Server&, ThreadCtx&, Ring&, const Task&, Op&, WorkError);
+template <bool IofusedPrivateQueue>
+void script_escalate_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 
 struct XshardCommitBatch {
     ScatterState* head = nullptr;
@@ -2004,7 +2010,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // Keeping UINT64_MAX also gives phase two's plain-version preparation the latest base.
     // Doomable groups protect newest-committed reads with owner-local intents.
     const bool latest_msetnx = kind == Kind::Msetnx && !atomic_write;
-    const bool needs_snapshot = kind == Kind::Script || sort_deref_snapshot ||
+    const bool needs_snapshot = (kind == Kind::Script && !force_atomic) || sort_deref_snapshot ||
         (!force_atomic && (tracking || read_fanout) &&
          (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
          !(atomic_write && kind == Kind::Mset) && !latest_msetnx);
@@ -2208,6 +2214,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // never reach the read-only arm above; it gets its own deadline, consumed in the Read phase.
     if (__builtin_expect(prepared_kind == Kind::Script, false)) {
         if (!force_atomic) script_window_admit(*state, origin_client);
+        state->debug_direct_defer = server.debug_script_apply_defer() |
+            (server.debug_script_escalate_force() ? uint32_t{1} << 31 : 0);
         const uint32_t stage_defer = server.debug_script_stage_defer();
         if (__builtin_expect(stage_defer != 0, false))
             state->debug_script_defer_us = stage_defer;
@@ -2482,6 +2490,10 @@ void script_clear_attempt(ScatterState& state, Op& op) {
     state.script_staged_bytes.store(0, std::memory_order_relaxed);
     state.script_conflict.store(false, std::memory_order_relaxed);
     notify_discard_speculative(state.notify);
+    // Re-arm on fresh staged state. A nine-conflict witness must open nine
+    // different READ windows, rather than race an already expired deadline.
+    if (state.debug_script_defer_us)
+        state.debug_script_defer_deadline = now_ns() + uint64_t{state.debug_script_defer_us} * 1000;
 }
 
 uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
@@ -2501,6 +2513,9 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
                                    ScriptPhase phase) {
     state.script_phase = phase;
     state.phase = phase == ScriptPhase::Apply ? 2 : 1;
+    if (phase == ScriptPhase::Apply)
+        state.debug_script_defer_deadline = uint32_t(state.debug_direct_defer << 1) >> 1
+            ? now_ns() + uint64_t(state.debug_direct_defer & 0x7fffffffu) * 1000 : 0;
 
     int32_t one_shard = -1;
     if (phase == ScriptPhase::Run) {
@@ -2633,6 +2648,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
 
     switch (state.script_phase) {
         case ScriptPhase::Pin: {
+            if (state.group_attempt()) return script_group_read(task, shard, op);
             for (uint32_t i = 0; i < group->count; i++) {
                 const uint32_t pos = state.key_order[group->begin + i];
                 const KeyRef& key = state.keys[pos];
@@ -3692,6 +3708,21 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
         switch (state.script_phase) {
             case ScriptPhase::Pin: {
+                if (auto* attempt = state.group_attempt()) {
+                    // AT4-WOUND-1 is fixed elsewhere. A script never consumes
+                    // a failed placement as an engine result or commits it.
+                    if (attempt->phase.load(std::memory_order_acquire) == TxnPhase::Wounded)
+                        return script_escalate_handoff(server, self, ring, task, op);
+                    WorkError error = WorkError::None;
+                    if (script_group_error(state, error) || state.aborted.load(std::memory_order_acquire))
+                        return script_group_final(server, self, ring, task, op,
+                                                  error == WorkError::None ? WorkError::Oom : error);
+                    if (attempt->phase.load(std::memory_order_acquire) != TxnPhase::Executing)
+                        std::abort();
+                    if (!launch(ScriptPhase::Run)) return outcome;
+                    driving = true;
+                    continue;
+                }
                 WorkError error = WorkError::None;
                 if (script_group_error(state, error) ||
                     state.aborted.load(std::memory_order_acquire)) {
@@ -3737,6 +3768,18 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 continue;
             }
             case ScriptPhase::Run:
+                if (state.group_attempt()) {
+                    if (state.aborted.load(std::memory_order_acquire))
+                        return script_group_final(server, self, ring, task, op, state.final_error);
+                    state.script_has_writes = false;
+                    for (uint32_t i = 0; i < state.key_count; ++i)
+                        state.script_has_writes |= (state.status[i] & 2u) != 0;
+                    if (!state.script_has_writes)
+                        return script_group_final(server, self, ring, task, op, WorkError::None);
+                    if (!launch(ScriptPhase::Apply)) return outcome;
+                    driving = true;
+                    continue;
+                }
                 if (state.aborted.load(std::memory_order_acquire)) {
                     server.note_script_abort_oom();
                     script_engine_error_reply(op, state, state.final_error);
@@ -3768,6 +3811,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 // plain writers remain fully concurrent and are caught by the ordinary
                 // read-set validation below.
                 if (!server.script_try_certification()) {
+                    if (state.debug_direct_defer & (uint32_t{1} << 31)) {
+                        state.script_escalate_after_unpin = true;
+                        state.script_apply_after_unpin = false;
+                        if (!launch(ScriptPhase::Unpin)) return outcome;
+                        driving = true;
+                        continue;
+                    }
                     if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
                         server.note_script_retry();
                         script_clear_attempt(state, op);
@@ -3802,6 +3852,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     if (!state.script_certifier) std::abort();
                     server.script_finish_certification();
                     state.script_certifier = false;
+                    if (state.debug_direct_defer & (uint32_t{1} << 31)) {
+                        state.script_escalate_after_unpin = true;
+                        state.script_apply_after_unpin = false;
+                        if (!launch(ScriptPhase::Unpin)) return outcome;
+                        driving = true;
+                        continue;
+                    }
                     if (state.script_retries++ < server.script_crossshard_conflict_retries()) {
                         server.note_script_retry();
                         script_clear_attempt(state, op);
@@ -3831,6 +3888,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
             case ScriptPhase::Unpin:
                 state.script_pins_live = false;
+                if (state.script_escalate_after_unpin)
+                    return script_escalate_handoff(server, self, ring, task, op);
                 if (state.script_apply_after_unpin) {
                     state.script_apply_after_unpin = false;
                     if (!launch(ScriptPhase::Apply)) return outcome;
@@ -3851,6 +3910,12 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 WorkError error = state.final_error;
                 bool failed = script_group_error(state, error) ||
                               state.aborted.load(std::memory_order_acquire);
+                if (state.group_attempt()) {
+                    if (state.script_conflict.load(std::memory_order_acquire))
+                        return script_escalate_handoff(server, self, ring, task, op);
+                    return script_group_final(server, self, ring, task, op,
+                        failed && error == WorkError::None ? WorkError::Oom : error);
+                }
                 if (!failed) {
                     uint64_t undecided = 0;
                     if (!state.epoch.compare_exchange_strong(undecided, state.script_ticket,
@@ -3877,6 +3942,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         state.script_certifier = false;
                     }
                     if (conflict) {
+                        if (state.debug_direct_defer & (uint32_t{1} << 31))
+                            return script_escalate_handoff(server, self, ring, task, op);
                         op.clear_reply();
                         reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
                     } else script_engine_error_reply(op, state, error);
@@ -3919,7 +3986,7 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             // No owner wave (including error UNPIN) can remain at Final.
             if (state.script_ticket_live || state.script_certifier || state.script_pins_live)
                 std::abort();
-            server.atomic_apply_close(state.owner_io, state.apply_open);
+            server.atomic_apply_close(self.id(), state.apply_open);
         }
         return result;
     }

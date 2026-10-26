@@ -2814,6 +2814,14 @@ public:
     }
     void note_script_window_wait() { script_crossshard_window_waits_.fetch_add(1, std::memory_order_relaxed); }
     uint64_t script_crossshard_window_waits() const { return script_crossshard_window_waits_.load(); }
+    void note_script_escalation() { script_escalations_.fetch_add(1, std::memory_order_relaxed); }
+    void note_script_escalated_commit() { script_escalated_commits_.fetch_add(1, std::memory_order_relaxed); }
+    uint64_t script_escalations() const { return script_escalations_.load(); }
+    uint64_t script_escalated_commits() const { return script_escalated_commits_.load(); }
+    void set_debug_script_apply_defer(uint32_t us) { debug_script_apply_defer_.store(us); }
+    uint32_t debug_script_apply_defer() const { return debug_script_apply_defer_.load(); }
+    void set_debug_script_escalate_force(bool force) { debug_script_escalate_force_.store(force); }
+    bool debug_script_escalate_force() const { return debug_script_escalate_force_.load(); }
     void note_script_abort_oom() {
         script_group_aborts_oom_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -3681,6 +3689,10 @@ private:
     std::atomic<uint64_t> script_staged_bytes_total_{0};
     std::atomic<uint64_t> script_crossshard_window_refusals_{0};
     std::atomic<uint64_t> script_crossshard_window_waits_{0};
+    std::atomic<uint64_t> script_escalations_{0};
+    std::atomic<uint64_t> script_escalated_commits_{0};
+    std::atomic<uint32_t> debug_script_apply_defer_{0};
+    std::atomic<bool> debug_script_escalate_force_{false};
     std::atomic<uint64_t> sort_deref_lookups_{0};
     std::atomic<uint64_t> sort_deref_refusals_{0};
     std::atomic<uint64_t> sort_scatter_general_{0};

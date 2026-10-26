@@ -2471,8 +2471,12 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             if (node->kind == MultiRetryNode::Kind::Group) {
                 auto& previous = *static_cast<ScatterState*>(node->unit);
                 Client* client = previous.commit_client;
-                txn_group_redispatch<IofusedPrivateQueue>(
-                    *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                if (previous.kind == Kind::Script)
+                    script_escalate_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                else
+                    txn_group_redispatch<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
                 loop.mark_active(client);
                 ++work;
                 continue;
@@ -3793,9 +3797,11 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;
         }
-        // F2: APPLY owns a reserved ticket, so waiting here would freeze rule P
+        if (state.group_attempt())
+            state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::OrderViolations);
+        // F2: optimistic APPLY owns a reserved ticket, so waiting here would freeze rule P
         // behind the unit that owns this claim. Cancel and finish the APPLY wave;
-        // the existing script finalizer closes the bracket and restages (limit 8).
+        // the script finalizer closes the bracket and hands off to claims.
         uint64_t zero = 0;
         state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
         state.script_conflict.store(true, std::memory_order_release);

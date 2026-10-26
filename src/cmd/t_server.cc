@@ -1397,6 +1397,19 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    if ((eq_icase(subcommand, "script-apply-defer") || eq_icase(subcommand, "script-escalate-force")) && op.argc() == 3) {
+        uint64_t value = 0;
+        const bool force = eq_icase(subcommand, "script-escalate-force");
+        if (!parse_u64(op.arg(2), value) || value > (force ? 1u : 10000000u)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (force) g_server->set_debug_script_escalate_force(value);
+        else g_server->set_debug_script_apply_defer(value);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "set-active-expire") && op.argc() == 3) {
         if (!(op.arg(2) == Slice("0", 1) || op.arg(2) == Slice("1", 1))) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -2640,6 +2653,7 @@ void cmd_info(Shard&, Op& op) {
                       "script_group_occ_retries:%llu\r\nscript_group_occ_giveups:%llu\r\n"
                       "script_staged_bytes_total:%llu\r\nscript_crossshard_window_refusals:%llu\r\n"
                       "script_crossshard_window_waits:%llu\r\n"
+                      "script_escalations:%llu\r\nscript_escalated_commits:%llu\r\n"
                       "script_group_aborts_oom:%llu\r\n"
                       "script_keys_armed:%llu\r\nscript_keys_released:%llu\r\n"
                       "script_intents_live:%llu\r\nscript_write_tickets_forced:%llu\r\n"
@@ -2765,6 +2779,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->script_staged_bytes_total() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_refusals() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_crossshard_window_waits() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_escalations() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->script_escalated_commits() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_group_aborts_oom() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_armed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->script_keys_released() : 0),
