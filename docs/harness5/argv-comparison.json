@@ -1,7 +1,7 @@
 {
   "equal": true,
   "baseline_commit": "3700b51d7",
-  "post_commit": "46c53da09 (final harness code; later commits change only docs/)",
+  "post_commit": "46c53da09 (final harness code; no later commit changes tests/ or src/)",
   "uncompressed_sha256": "de21c0e524af5c189d3009a04b9cb5f4c70329b2478abe81190dd7075b2c42bb",
   "bytes": 53596159,
   "files": 66,
