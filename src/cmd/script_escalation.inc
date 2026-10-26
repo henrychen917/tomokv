@@ -2,8 +2,15 @@
 #include <list>
 namespace tomo {
 struct ScriptWindow {
-    std::list<Client*> fifo;
-    std::unordered_map<Client*, std::list<Client*>::iterator> members;
+    // A waiter's EVAL/FCALL frame stays unconsumed, so nothing is published on its ROB while it
+    // waits: `frame` (the ROB dispatch id at enqueue) identifies the frame the entry stands for.
+    // If that frame is later consumed without admission (EVALSHA answered NOSCRIPT after a SCRIPT
+    // FLUSH, an ACL or OOM refusal at re-parse, an arena allocation failure after the grant), the
+    // dispatch id has moved and the entry is stale. A stale head would otherwise block every
+    // later waiter on this IO until its connection happened to send another script or close.
+    struct Member { Client* client; uint64_t frame; };
+    std::list<Member> fifo;
+    std::unordered_map<Client*, std::list<Member>::iterator> members;
 };
 namespace {
 void script_window_refresh(Server& server, uint32_t io) {
@@ -13,16 +20,33 @@ void script_window_refresh(Server& server, uint32_t io) {
     lane.script_admission -= released;
 }
 
-Client* script_window_head(Server& server, ScriptWindow& window) {
-    // Only a per-client drain can make an enqueued head undispatchable.
+bool script_window_stale(const ScriptWindow::Member& member) {
+    return member.client->rob().dispatch_id() != member.frame;
+}
+
+void script_window_erase(MultiRetryLane& lane, ScriptWindow& window,
+                         std::list<ScriptWindow::Member>::iterator member) {
+    window.members.erase(member->client);
+    window.fifo.erase(member);
+    if (window.fifo.empty()) lane.script_admission &= 127u;
+}
+
+Client* script_window_head(Server& server, MultiRetryLane& lane, ScriptWindow& window) {
+    // Only a per-client drain can make an enqueued head undispatchable. Closing members stay
+    // until close_client forgets them; stale members are dropped here (see ScriptWindow).
     uint64_t paused = 0;
     if (server.lb_stage() == LbStage::ClientDrain) {
         auto record = server.lb_client_read();
         if (record) paused = server.lb_client_move().id;
     }
-    for (Client* client : window.fifo)
-        if (!client->closing() && !client->dead() && client->id() != paused)
-            return client;
+    for (auto member = window.fifo.begin(); member != window.fifo.end();) {
+        Client* client = member->client;
+        if (client->closing() || client->dead() || client->id() == paused) { ++member; continue; }
+        if (!script_window_stale(*member)) return client;
+        auto next = std::next(member);
+        script_window_erase(lane, window, member);
+        member = next;
+    }
     return nullptr;
 }
 
@@ -33,15 +57,20 @@ bool script_window_wait(Server& server, uint32_t io, Client& client) {
     try {
         if (!lane.script_window) lane.script_window = std::make_shared<ScriptWindow>();
         auto& window = *lane.script_window;
+        const auto found = window.members.find(&client);
+        // A member arriving with a different frame lost its earlier one without admission:
+        // it queues again at the tail, like any newcomer.
+        if (found != window.members.end() && script_window_stale(*found->second))
+            script_window_erase(lane, window, found->second);
         if (!window.members.contains(&client)) {
-            window.fifo.push_back(&client);
+            window.fifo.push_back({&client, client.rob().dispatch_id()});
             try { window.members.emplace(&client, std::prev(window.fifo.end())); }
             catch (...) { window.fifo.pop_back(); throw; }
             lane.script_admission |= 128u;
             server.note_script_window_wait();
         }
         return (lane.script_admission & 127u) < 4 &&
-               script_window_head(server, window) == &client;
+               script_window_head(server, lane, window) == &client;
     } catch (const std::bad_alloc&) {
         // No slot, ROB entry or credit was taken. Retry the unconsumed frame.
         return false;
@@ -262,21 +291,27 @@ void script_window_forget(Server& server, uint32_t io, Client& client) {
     auto& window = *lane.script_window;
     const auto found = window.members.find(&client);
     if (found == window.members.end()) return;
-    window.fifo.erase(found->second);
-    window.members.erase(found);
-    if (window.fifo.empty()) lane.script_admission &= 127u;
+    script_window_erase(lane, window, found->second);
 }
 
 void script_window_resume(Server& server, ScatterArenaPool& pool, uint32_t io, Client& client) {
     auto& lane = server.multi_retry_lane(io);
     script_window_refresh(server, io);
     if (!server.atomic_can_admit(io)) return;
-    if (lane.script_window && lane.script_window->members.contains(&client)) {
-        if ((lane.script_admission & 127u) < 4 &&
-            script_window_head(server, *lane.script_window) == &client)
-            client.set_atomic_backpressure(false);
-    } else if (pool.can_register_snapshot()) {
-        client.set_atomic_backpressure(false);
+    if (lane.script_window) {
+        auto& window = *lane.script_window;
+        const auto found = window.members.find(&client);
+        if (found != window.members.end()) {
+            if (!script_window_stale(*found->second)) {
+                if ((lane.script_admission & 127u) < 4 &&
+                    script_window_head(server, lane, window) == &client)
+                    client.set_atomic_backpressure(false);
+                return;
+            }
+            // Flagged again for another frame: the old membership is void.
+            script_window_erase(lane, window, found->second);
+        }
     }
+    if (pool.can_register_snapshot()) client.set_atomic_backpressure(false);
 }
 } // namespace tomo

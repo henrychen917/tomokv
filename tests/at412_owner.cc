@@ -172,7 +172,8 @@ void lane_close(Server& server) {
         state.server = &server; state.owner_io = 0;
         script_window_admit(state, nullptr);
     }
-    Client first{-1}, second{-1}; first.set_id(801); second.set_id(802);
+    Client first{-1}, second{-1}, third{-1};
+    first.set_id(801); second.set_id(802); third.set_id(803);
     require(!script_window_wait(server,0,first) && !script_window_wait(server,0,second),
             "full window queues in arrival order");
     script_window_release(slots[0]); script_window_refresh(server,0);
@@ -180,7 +181,19 @@ void lane_close(Server& server) {
             "later waiter cannot overtake a free slot");
     first.mark_closing(); script_window_forget(server,0,first);
     require(script_window_wait(server,0,second), "closing head releases its FIFO membership");
-    script_window_forget(server,0,second); // same operation at migration
+    // Control: an unconsumed frame keeps its place, so the next waiter is not granted.
+    require(!script_window_wait(server,0,third), "third waits behind the granted head");
+    // The head's frame is consumed without admission (EVALSHA answered NOSCRIPT after SCRIPT
+    // FLUSH, for example): its ROB publishes. The entry is stale and must not block the FIFO.
+    auto* consumed = second.rob().acquire(); require(consumed, "consumed-frame carrier");
+    second.rob().publish();
+    require(script_window_wait(server,0,third) &&
+            !lane.script_window->members.contains(&second),
+            "a head whose frame was consumed without admission is pruned, not waited for");
+    require(!script_window_wait(server,0,second) && script_window_wait(server,0,third),
+            "a new frame from the pruned connection queues at the tail");
+    std::puts("FIFO stale-head pruning PASS (control keeps an unconsumed head)");
+    script_window_forget(server,0,second); script_window_forget(server,0,third); // migration
     for (auto& state : slots) script_window_release(state);
     script_window_refresh(server,0);
     require(!lane.script_admission && !lane.script_releases.load() && lane.script_window->fifo.empty(),

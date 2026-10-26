@@ -1,0 +1,8 @@
+FAIL: a head whose frame was consumed without admission is pruned, not waited for
+H1 realtime_age=1 E->V->W->E=1
+H3 early_bracket=1 E->U->E=1
+S1 omitted_owner_close=1 SAVE_would_wait=1
+H1 realtime_age=0 E->V->W->E=0
+H3 early_bracket=0 E->U->E=0
+S1 omitted_owner_close=0 SAVE_would_wait=0
+AT4-WOUND-1 script guard PASS; generic wound path unchanged
