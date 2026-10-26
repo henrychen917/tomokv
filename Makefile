@@ -78,7 +78,7 @@ $(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 
 # Opt-in lottery observation arm. Production sources and default objects remain
 # untouched; the copied tree adds only DEBUG-armed counters, never pause points.
-build/lottery/tomokv: tools/lottery_build.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/lottery/tomokv: tools/lottery_build.py tools/assert_map.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	python3 tools/lottery_build.py build/lottery/source
 	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/objects) all
 	cp build/lottery/objects/tomokv $@
@@ -100,7 +100,7 @@ build/aoforder-scheduled: tools/aoforder_schedule.py $(BIN)
 
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
-build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+build/racefix-climon: tools/racefix_build.py tools/assert_map.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	python3 tools/racefix_build.py build/racefix-climon-source
 	$(MAKE) -C build/racefix-climon-source BUILD_ROOT=$(abspath build/racefix-climon-objects) all
 	cp build/racefix-climon-objects/tomokv $@
