@@ -3059,6 +3059,7 @@ job_txnorder_wound(){
         taskset -c "$CORES" "./build/$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
         grep -q '^PASS:' "$log" || passed=0
         if [ "$case_name" = d2 ]; then
+          taskset -c "$CORES" "./build/$unit" abort-gap "$mode" >>"$log" 2>&1 || passed=0
           if taskset -c "$CORES" "./build/$unit" no-arm "$mode" >"$log.no-arm" 2>&1; then
             passed=0
           elif ! grep -q 'FAIL: exactly one successful phase wound counted' "$log.no-arm"; then

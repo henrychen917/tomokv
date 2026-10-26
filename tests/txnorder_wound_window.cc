@@ -7,7 +7,7 @@ void woundfix_pause(int site, const void* unit);
 #undef main
 
 namespace {
-void group_window(Server& server, const Config& cfg, bool oom) {
+void group_window(Server& server, const Config& cfg, bool oom, bool wounded_oom = false) {
     const auto a = key_on(server, 0, "wound-window-a");
     const auto b = key_on(server, 1, "wound-window-b");
     require(local(server, {"SET", a, "present"}) == "+OK\r\n", "source really exists");
@@ -33,6 +33,11 @@ void group_window(Server& server, const Config& cfg, bool oom) {
     require(state.pending.fetch_sub(1, std::memory_order_acq_rel) == 2,
             "destination completion leaves the source outstanding");
 
+    if (wounded_oom) {
+        TxnPhase placing = TxnPhase::Placing;
+        require(state.group_attempt()->phase.compare_exchange_strong(placing, TxnPhase::Wounded),
+                "wound phase precedes independent placement OOM");
+    }
     if (oom) {
         // Fail inside watch_place_unit itself, after claim construction. This
         // cannot accidentally exercise txn_group_arrive's separate OOM path.
@@ -77,12 +82,15 @@ void group_window(Server& server, const Config& cfg, bool oom) {
         kSingleDatabase ? "db0" : "multi", cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s",
         read == TxnGroupRead::Done, (unsigned long long)before, aborted, no_source, source_present, accepted,
         (unsigned long long)state.epoch.load());
-    if (oom) {
+    if (oom && !wounded_oom) {
         Client receiver{-1};
         assemble_final(receiver, request.op, state, nullptr, nullptr, nullptr);
         require(request.reply() == "-ERR out of memory\r\n", "OOM wire reply, never an unmaterialized image");
     }
-    const bool valid = oom
+    const bool valid = wounded_oom
+        ? read == TxnGroupRead::Done && aborted && source_present && !accepted &&
+          state.epoch.load() == kAtomicCancelledEpoch
+        : oom
         ? read == TxnGroupRead::Done && terminal && source_present &&
           state.final_reply == FinalReply::Work && state.final_error == WorkError::Oom &&
           before == 0 && accepted
@@ -99,11 +107,12 @@ void group_window(Server& server, const Config& cfg, bool oom) {
         std::fputs("FAIL: wounded group completed before cancellation publication; commit accepted\n", stderr);
         std::exit(1);
     }
-    std::puts(oom ? "PASS: placement allocation failure reports OOM"
+    std::puts(wounded_oom ? "PASS: wounded placement OOM cannot accept a ticket"
+              : oom ? "PASS: placement allocation failure reports OOM"
                   : "PASS: wounded group cannot escape through a terminal commit");
 }
 
-void exec_window(Server& server) {
+void exec_window(Server& server, bool oom = false) {
     Client client{-1}; client.set_id(811);
     const auto a = key_on(server, 0, "exec-window-a"), b = key_on(server, 1, "exec-window-b");
     require(local(server, {"SET", a, "before"}) == "+OK\r\n", "EXEC source seeded");
@@ -125,6 +134,14 @@ void exec_window(Server& server) {
             "foreign wound wins phase before epoch");
     require(state->decision.epoch.load() == 0 && !state->decision.aborted.load(),
             "EXEC cancellation gap is open");
+    if (oom) {
+        Shard::WatchReservation claim{state, &state->decision.epoch, &state->decision.aborted,
+            &state->watch_refs, &client, 0, false, true}; claim.unit_kind = 1;
+        allocation_failed = false; fail_new_after = 0;
+        require(server.shard(0).watch_place_unit(state->claims[0], claim), "EXEC OOM completes placement");
+        fail_new_after = -1;
+        require(allocation_failed && state->decision.aborted.load(), "EXEC allocation failure inside wound gap");
+    }
     require(execute_watch_phase(*state, server.shard(0)), "last placement observes wound");
     bool done[16]{}; bool final = false;
     for (unsigned turn = 0; turn < 64 && state->tasks_pending.load(); ++turn)
@@ -408,7 +425,7 @@ void d2_rank(Server& server) {
             }
     std::printf("PASS D2 rank: %u kind/phase/lexicographic age cells\n", cells);
 }
-void d2_condition(Server& server) {
+void d2_condition(Server& server, bool wounded = false) {
     const auto a = key_on(server, 0, "d2-nx-a"), b = key_on(server, 1, "d2-nx-b");
     require(local(server, {"SET", a, "before"}) == "+OK\r\n", "MSETNX veto seeded");
     ScatterRun run(server, {"MSETNX", a, "after", b, "after"}, false);
@@ -426,7 +443,16 @@ void d2_condition(Server& server) {
     require(queued && run.state->aborted.load() && run.state->epoch.load() == 0 &&
         run.state->final_reply == FinalReply::Integer && run.state->final_integer == 0 &&
         !server.multi_retry_lane(0).head.load(), "ordinary failed NX remains a terminal zero reply");
-    require(txn_group_decide(*run.state, server.atomic_commit()), "non-wound abort retains its decision ticket");
+    if (wounded) {
+        // A wounder can have passed the liveness check before the NX owner
+        // published aborted. Its delayed phase CAS must still be completed.
+        TxnPhase placing = TxnPhase::Placing;
+        require(run.state->group_attempt()->phase.compare_exchange_strong(placing, TxnPhase::Wounded),
+                "NX terminal abort still has a pending wound phase");
+    }
+    require(txn_group_decide(*run.state, server.atomic_commit()) != wounded,
+            "non-wound abort keeps ticket; wounded NX restarts");
+    if (wounded) require(run.state->epoch.load() == kAtomicCancelledEpoch, "NX wound epoch cancelled");
     require(local(server, {"GET", a}) == "$6\r\nbefore\r\n" && local(server, {"GET", b}) == "$-1\r\n",
             "failed NX writes nothing");
     std::puts("PASS non-wound MSETNX condition remains terminal");
@@ -464,6 +490,11 @@ int main(int argc, char** argv) {
     if (name == "group" || name == "oom") group_window(server, cfg, name == "oom");
     else if (name == "exec") exec_window(server);
     else if (name == "d2") d2_windows(server);
+    else if (name == "abort-gap") {
+        group_window(server, cfg, true, true);
+        exec_window(server, true);
+        d2_condition(server, true);
+    }
     else if (name == "no-arm") d2_group(server, false, 0);
     else require(false, "known wound-window case");
 }
