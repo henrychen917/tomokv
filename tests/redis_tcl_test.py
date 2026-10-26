@@ -6,7 +6,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from redis_tcl import counts, validate_passing, ROOT
+import json
+from redis_tcl import counts, load_manifest, sha, validate_passing, ROOT
 
 
 class Controls(unittest.TestCase):
@@ -32,6 +33,35 @@ class Controls(unittest.TestCase):
         self.assertEqual((after['failed'], after['teardown_exceptions'], complete), (0, 1, True))
         other, _ = counts([done, dict(status='exception', data='other failure')], 'unit/fixture')
         self.assertEqual(other['failed'], 1)
+
+    def test_manifest_binds_upstream_bytes_and_names_every_known_failure(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            root = Path(directory)
+            (root / 'tests/unit').mkdir(parents=True)
+            (root / 'tests/unit/fixture.tcl').write_text('test {a} {}\n')
+            (root / 'runtest').write_text('#!/bin/sh\n')
+            inventory = {'unit/fixture': sha(root / 'tests/unit/fixture.tcl')}
+            good = dict(support={'runtest': sha(root / 'runtest')}, files={'unit/fixture': dict(
+                sha256=inventory['unit/fixture'], passed_tests=['a'], skip_tests={'b': 'known failure'},
+                extra_args=['--tags', '-needs:debug'])})
+            path = root / 'manifest.json'
+            path.write_text(json.dumps(good))
+            self.assertEqual(load_manifest(path, root, inventory)['files']['unit/fixture']['passed_tests'], ['a'])
+            spec = lambda m: m['files']['unit/fixture']
+            mutations = {
+                'no files': lambda m: m.update(files={}),
+                'upstream bytes': lambda m: spec(m).update(sha256='0' * 64),
+                'support bytes': lambda m: m['support'].update(runtest='0' * 64),
+                'skip hides a required pass': lambda m: spec(m)['skip_tests'].update(a='hidden'),
+                'no required pass': lambda m: spec(m).update(passed_tests=[]),
+                'selection argument': lambda m: spec(m).update(extra_args=['--only', 'a']),
+                'odd argument list': lambda m: spec(m).update(extra_args=['--tags']),
+            }
+            for name, mutate in mutations.items():
+                bad = copy.deepcopy(good); mutate(bad)
+                path.write_text(json.dumps(bad))
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    load_manifest(path, root, inventory)
 
     def test_failed_or_missing_private_job_turns_existing_compatibility_row_red(self):
         gate = (ROOT / 'tests/gate.sh').read_text()

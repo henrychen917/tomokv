@@ -90,7 +90,7 @@ def counts(observed, unit):
         elif status in ('skip', 'ignore'): result['skipped'] += 1
     return result, complete
 
-def run_file(args, tree, unit, only=None):
+def run_file(args, tree, unit, only=None, extra=()):
     folder=args.output/unit
     folder.mkdir(parents=True,exist_ok=True)
     event_path=folder/'events.tsv'
@@ -109,6 +109,7 @@ def run_file(args, tree, unit, only=None):
             '--dont-clean','--dont-pre-clean']
     if only:
         for name in only: client+=['--only',name]
+    client+=list(extra)
     start=time.monotonic();server=None;test=None;failure=None;rc=None
     with (folder/'server.log').open('w') as sl, (folder/'suite.log').open('w') as tl:
         try:
@@ -148,6 +149,27 @@ def validate_passing(row, expected):
             row['error'] or not row['complete'] or row['exit_code']):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
+def load_manifest(path, redis_root, inventory):
+    """The frozen subset: upstream bytes, required passes and NAMED known failures."""
+    manifest=json.loads(Path(path).read_text())
+    if not manifest.get('files'): raise ValueError('empty passing subset')
+    for name, expected in manifest['support'].items():
+        if sha(Path(redis_root) / name) != expected:
+            raise ValueError('upstream support changed: ' + name)
+    for unit, spec in manifest['files'].items():
+        if inventory.get(unit)!=spec['sha256']:
+            raise ValueError(f'upstream changed: {unit}')
+        # A known failure is named, never silently dropped: it may not also be a
+        # required pass, and every required file has at least one pass.
+        if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & set(spec['passed_tests']):
+            raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
+        # Only tag exclusions (file-level setup TomoKV cannot run); never a
+        # second selection such as --only/--skipfile that could hide a test.
+        extra = spec.get('extra_args', [])
+        if len(extra) % 2 or any(flag != '--tags' for flag in extra[::2]):
+            raise ValueError(f'invalid extra runtest arguments: {unit}')
+    return manifest
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--redis-root',type=Path,default=Path('/home/user/Projects/redis'))
     p.add_argument('--binary',type=Path,required=True);p.add_argument('--mode',choices=['1s','2s','redis'],required=True)
@@ -164,21 +186,21 @@ def main():
     units=list(inventory)
     if args.only_files: units=args.only_files.split(',')
     if args.manifest:
-        manifest=json.loads(args.manifest.read_text()); units=list(manifest['files'])
-        if not units: raise ValueError('empty passing subset')
-        for name, expected in manifest['support'].items():
-            if sha(args.redis_root / name) != expected:
-                raise ValueError('upstream support changed: ' + name)
-        for unit in units:
-            if inventory[unit]!=manifest['files'][unit]['sha256']:
-                raise ValueError(f'upstream changed: {unit}')
+        manifest=load_manifest(args.manifest, args.redis_root, inventory); units=list(manifest['files'])
     report=dict(mode=args.mode,binary_sha256=sha(args.binary),redis_version=(args.redis_root/'src/version.h').read_text(),
                 inventory=inventory,rows=[])
     for unit in units:
         path=args.output/unit/'result.json'
-        if args.resume and path.exists(): row=json.loads(path.read_text())
-        else: row=run_file(args,tree,unit)
+        extra=[]
         if args.manifest:
+            spec=manifest['files'][unit]
+            skipfile=args.output/unit/'skip.txt'; skipfile.parent.mkdir(parents=True,exist_ok=True)
+            skipfile.write_text(''.join(name+'\n' for name in sorted(spec.get('skip_tests', ()))), encoding='utf-8')
+            extra=['--skipfile',str(skipfile),*spec.get('extra_args',[])]
+        if args.resume and path.exists(): row=json.loads(path.read_text())
+        else: row=run_file(args,tree,unit,extra=extra)
+        if args.manifest:
+            row['skip_tests']=sorted(spec.get('skip_tests', ()))
             try: validate_passing(row, manifest['files'][unit]['passed_tests'])
             except ValueError as error: row['error'] = str(error)
         report['rows'].append(row)
