@@ -3045,11 +3045,11 @@ job_txnorder_index(){
   done
 }
 
-# AT4-WOUND-1: three aggregate rows before the quick-tier exit, DQ=DF=+3.
+# AT4-WOUND-1: four aggregate rows before the quick-tier exit, DQ=DF=+4.
 # EXPECT_QUICK/FULL remain maintainer-owned.
 job_txnorder_wound(){
   local case_name unit mode passed label log
-  for case_name in group exec oom; do
+  for case_name in group exec oom d2; do
     label="txnorder wound $case_name"; passed=1
     row_begin "$label"
     for unit in txnorder-wound-unit txnorder-wound-db0-unit; do
@@ -3058,6 +3058,13 @@ job_txnorder_wound(){
         log="$TMPDIR/$case_name-$unit-$mode.log"
         taskset -c "$CORES" "./build/$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
         grep -q '^PASS:' "$log" || passed=0
+        if [ "$case_name" = d2 ]; then
+          if taskset -c "$CORES" "./build/$unit" no-arm "$mode" >"$log.no-arm" 2>&1; then
+            passed=0
+          elif ! grep -q 'FAIL: exactly one successful phase wound counted' "$log.no-arm"; then
+            passed=0
+          fi
+        fi
       done
     done
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*"

@@ -695,10 +695,13 @@ build/txnorder-watch-db0-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS
 	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Wound publication and allocation-failure owner turns, both namespaces.
-build/txnorder-wound-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
-	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
-build/txnorder-wound-db0-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
-	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+# Pause seams exist only in the copied fixture source, never in release objects.
+build/woundfix-windows/stamp: tools/woundfix_windows.py $(wildcard src/*/*.cc) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/woundfix_windows.py build/woundfix-windows
+build/txnorder-wound-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) build/woundfix-windows/stamp $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -Ibuild/woundfix-windows -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-wound-db0-unit: tests/txnorder_wound_window.cc $(TXNORDER_UNIT_DEPS) build/woundfix-windows/stamp $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Ibuild/woundfix-windows -I. $< $(filter-out build/db0/src/main.o build/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out build/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/txnorder-retry-unit: tests/txnorder_retry_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS) $(LDLIBS)
