@@ -527,9 +527,14 @@ row_begin(){
     # exhaustive 64-cell/two-arm argv test takes only 1.68s. Allow the measured
     # landing runtime +40%, rounded up to a minute, for all suites. The wave-6
     # landing measured 1128.59s and the wave-7 landing exhausted the old 1200s,
-    # so the basis is now the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
-    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md.
-    ROW_TIMEOUT=1620; ROW_BASIS=abba-selftest-wave6-landing-1128.59s-plus-40pct-rounded
+    # so the basis became the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
+    # wave7b then removed the contention pathologies (fingerprint path filtering,
+    # bounded scheduler fixtures) and the wave-7 landing measured 442.80s
+    # (cx-final build/gate-ledger-iteration.txt, 2026-10-26). Same rule, newest
+    # landing: 442.80s x 1.4 = 619.92s, rounded up to a minute = 660s.
+    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md and
+    # MEASURE-REQUEST-harness5.md (harness5 before/after, landing-like geometry).
+    ROW_TIMEOUT=660; ROW_BASIS=abba-selftest-wave7-landing-442.80s-plus-40pct-rounded
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"

@@ -284,7 +284,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                                                ('no-history-conservative-default', 900, 900)):
                     with self.subTest(label=label, context=context, basis=basis):
                         if label == 'ABBA comparison + saturation negative controls':
-                            expected = 1620
+                            expected = 660
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -294,7 +294,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         self.assertIn(f'WATCH\t{expected}\t', result.stdout)
                         if label == 'ABBA comparison + saturation negative controls':
-                            self.assertIn('WATCH\t1620\tabba-selftest-wave6-landing-1128.59s-plus-40pct-rounded',
+                            self.assertIn('WATCH\t660\tabba-selftest-wave7-landing-442.80s-plus-40pct-rounded',
                                           result.stdout)
 
 
