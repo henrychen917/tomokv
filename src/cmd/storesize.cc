@@ -40,7 +40,7 @@ legacy:
 
 // State is defined beside the two cold FlatStore clear paths so their resets
 // need no new call edge in command or AOF translation units. Keep the state
-// layout and the diagnostic line constants below unchanged.
+// layout unchanged.
 static_assert(sizeof(StoreSizeState) == 24);
 
 

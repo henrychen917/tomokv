@@ -6,6 +6,7 @@ separators. Macro definitions are not sites. Salt/pin arguments must be integer
 literals, so the map and compiler cannot silently disagree about their value.
 """
 import argparse
+from bisect import bisect_right
 import csv
 from dataclasses import dataclass
 import io
@@ -27,33 +28,28 @@ class Token:
 
 
 def lex(source):
-    # Translation phase 2 precedes comments and tokenization. Preserve physical
-    # locations in a side table, including continuations inside an identifier.
-    chars, lines = [], []
-    line, i = 1, 0
-    while i < len(source):
-        splice = re.match(r'\\\r?\n', source[i:i + 3])
-        if splice:
-            line += 1
-            i += len(splice[0])
-            continue
-        chars.append(source[i])
-        lines.append(line)
-        line += source[i] == '\n'
-        i += 1
-    text = ''.join(chars)
+    # Translation phase 2 precedes comments and tokenization. Track removed
+    # newlines separately so diagnostics still use physical source positions.
+    splices, removed = [], 0
+    for match in re.finditer(r'\\\r?\n', source):
+        splices.append(match.start() - removed)
+        removed += len(match[0])
+    text = re.sub(r'\\\r?\n', '', source)
     pattern = re.compile(
         r'(?P<space>\s+)|(?P<comment>//[^\n]*|/\*[\s\S]*?\*/)|'
         r'(?P<raw>(?:u8|u|U|L)?R"(?P<delimiter>[^ ()\\\t\n]{0,16})\([\s\S]*?\)(?P=delimiter)")|'
         r'(?P<string>(?:u8|u|U|L)?"(?:\\[\s\S]|[^"\\])*"|(?:u8|u|U|L)?\'(?:\\[\s\S]|[^\'\\])*\')|'
         r'(?P<number>[0-9][a-zA-Z0-9_\'.]*)|(?P<word>[a-zA-Z_$][a-zA-Z0-9_$]*)|'
         r'(?P<punct>##|::|&&|\|\||<=|>=|==|!=|->|<<|>>|\.\.\.|.)')
+    logical_line = 1
     for match in pattern.finditer(text):
+        physical_line = logical_line + bisect_right(splices, match.start())
+        logical_line += match[0].count('\n')
         kind = match.lastgroup
         if kind in ('space', 'comment'):
             continue
         # The raw-string delimiter group is nested; the enclosing group wins.
-        yield Token(match[0], lines[match.start()],
+        yield Token(match[0], physical_line,
                     'literal' if kind in ('raw', 'string') else 'code')
 
 
@@ -154,6 +150,10 @@ class Site:
 
 def scan_file(path, root):
     source = path.read_text()
+    if path.relative_to(root).as_posix() != 'src/base/tomo_assert.h':
+        for start, _, directive in directives(source):
+            if any(t.kind != 'literal' and t.text in MACROS for t in lex(directive)):
+                raise ValueError(f'{path.relative_to(root)}:{start}: assertion wrappers hide source sites; call TOMO_ASSERT directly')
     excluded = {line for start, end, _ in directives(source) for line in range(start, end + 1)}
     tokens = [t for t in lex(source) if t.line not in excluded]
     sites = []

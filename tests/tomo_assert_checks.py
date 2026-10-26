@@ -41,7 +41,7 @@ class AssertionChecks(unittest.TestCase):
     def test_lexer_and_physical_lines(self):
         code = '''// TOMO_ASSERT(nope)
 const char* unused = R"tag(TOMO_ASSERT(nope))tag";
-#define TOMO_ASSERT_ALIAS(x) TOMO_ASSERT(x)
+#define UNUSED(x) (x)
 #line 999 "pretend.cc"
 namespace renamed { class Changed { void moved() {
     TOMO_ASSERT( a /* ignored */ &&
@@ -64,6 +64,8 @@ namespace renamed { class Changed { void moved() {
         self.assertEqual(pinned.id, old)
         with self.assertRaisesRegex(ValueError, 'duplicate id'):
             self.site('void f(){TOMO_ASSERT_ID(a,0x80000001u); TOMO_ASSERT_ID(b,0x80000001u);}')
+        with self.assertRaisesRegex(ValueError, 'wrappers hide source sites'):
+            self.site('#define ALIAS(x) TOMO_ASSERT(x)\nvoid f(){ALIAS(ok);}')
         for bad in ('0', '1', '4294967296', 'some_variable'):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 self.site(f'void f(){{TOMO_ASSERT_ID(ok,{bad});}}')

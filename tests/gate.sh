@@ -1375,8 +1375,10 @@ job_source_identity(){
   local label="production source identity + stable assertion ids"
   row_begin "$label"
   if pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" \
-      ASSERT_LINT_JOBS="$BUILD_JOBS" build/tomo-assert-fail source-identity-check \
+      ASSERT_LINT_JOBS="$BUILD_JOBS" source-identity-check \
       >"$TMPDIR/source-identity-build.log" 2>&1 && \
+      pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tomo-assert-fail \
+      >>"$TMPDIR/source-identity-build.log" 2>&1 && \
       taskset -c "$CORES" python3 tests/tomo_assert_checks.py \
       >"$TMPDIR/source-identity-checks.log" 2>&1; then
     ok "$label"

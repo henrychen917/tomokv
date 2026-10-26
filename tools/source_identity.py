@@ -115,6 +115,7 @@ def expanded_check(root, source, cxx, flags, db0):
     # Tokens may wrap lines. Gather contiguous in-tree output so source_location
     # and split constructs receive the same lexer treatment as source code.
     errors, current, number, block, block_start = [], '', 1, [], 1
+    local = False
 
     def flush():
         if not block:
@@ -129,8 +130,8 @@ def expanded_check(root, source, cxx, flags, db0):
         if marker:
             flush()
             number, current = int(marker[1]), marker[2]
+            local = (root / current).resolve().is_relative_to(root / 'src') if not current.startswith('<') else False
             continue
-        local = (root / current).resolve().is_relative_to(root / 'src') if not current.startswith('<') else False
         if local:
             if not block:
                 block_start = number

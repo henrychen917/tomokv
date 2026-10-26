@@ -61,11 +61,13 @@ DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 ASSERT_MAP := $(BUILD_ROOT)/tomokv.asserts.tsv
 ASSERT_SOURCES := $(shell find src -type f \( -name '*.h' -o -name '*.cc' -o -name '*.inc' -o -name '*.c' -o -name '*.def' \))
 
+ASSERT_DIRS := $(shell find src -type d)
+
 all: $(BIN) $(ASSERT_MAP)
 
 # The source map is a build artifact: duplicate ids or a Python/C++ hash mismatch
 # fail make all. Its mtime also participates in make -q freshness checks.
-$(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) Makefile
+$(ASSERT_MAP): tools/assert_map.py $(ASSERT_SOURCES) $(ASSERT_DIRS) Makefile
 	python3 tools/assert_map.py --output $@ --cxx "$(CXX)"
 
 
