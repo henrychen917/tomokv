@@ -1,165 +1,23 @@
-tomo::script_thread_state()
---- headline
+tomo::parse_long_double_strict(tomo::Slice, long double&)
+--- execindex
 
 +++ post
 
-@@ -2,27 +2,27 @@
+@@ -104,14 +104,14 @@
 
- CLONE 0 0004 [ 1] push %rbp
- CLONE 0 0005 [ 1] push %rbx
- CLONE 0 0006 [ 4] sub $0x8,%rsp
--CLONE 0 000a [ 9] cmpb $0x0,%fs:0xffffffffffffffb0
--CLONE 0 0013 [ 6] je <+0x1a0>
--CLONE 0 0019 [10] cmpq $0x0,%fs:0xffffffffffffffd8
--CLONE 0 0023 [ 6] je <+0xd0>
--CLONE 0 0029 [ 9] mov %fs:0xffffffffffffffe8,%rdx
-+CLONE 0 000a [ 9] cmpb $0x0,%fs:0xffffffffffffffa0
-+CLONE 0 0013 [ 6] je <+0x190>
-+CLONE 0 0019 [10] cmpq $0x0,%fs:0xffffffffffffffc8
-+CLONE 0 0023 [ 6] je <+0xe0>
-+CLONE 0 0029 [ 9] mov %fs:0xffffffffffffffd8,%rdx
- CLONE 0 0032 [ 7] mov <rip>(%rip),%rax # <tomo::(anonymous namespace)::g_script_flushes>
- CLONE 0 0039 [ 3] cmp %rax,%rdx
- CLONE 0 003c [ 2] jne <+0x60>
--CLONE 0 003e [ 9] mov %fs:0xffffffffffffffd8,%rax
-+CLONE 0 003e [ 9] mov %fs:0xffffffffffffffc8,%rax
- CLONE 0 0047 [ 3] test %rax,%rax
--CLONE 0 004a [ 6] je <+0xd0>
-+CLONE 0 004a [ 6] je <+0xe0>
- CLONE 0 0050 [ 4] add $0x8,%rsp
- CLONE 0 0054 [ 1] pop %rbx
- CLONE 0 0055 [ 1] pop %rbp
- CLONE 0 0056 [ 1] ret
- CLONE 0 0057 [ 9] nopw 0x0(%rax,%rax,1)
--CLONE 0 0060 [ 9] mov %fs:0xffffffffffffffd8,%rbx
-+CLONE 0 0060 [ 9] mov %fs:0xffffffffffffffc8,%rbx
- CLONE 0 0069 [ 4] mov 0x20(%rbx),%rax
- CLONE 0 006d [ 4] mov 0x70(%rax),%rcx
- CLONE 0 0071 [ 4] cmp %rcx,0x78(%rax)
--CLONE 0 0075 [ 6] jae <+0x1e0>
-+CLONE 0 0075 [ 6] jae <+0x1d0>
- CLONE 0 007b [ 4] mov 0x10(%rbx),%rbp
- CLONE 0 007f [ 2] xor %edx,%edx
- CLONE 0 0081 [ 2] xor %esi,%esi
-@@ -33,68 +33,58 @@
-
- CLONE 0 0097 [ 4] mov %rax,0x0(%rbp)
- CLONE 0 009b [ 7] movl $0x5,0x8(%rbp)
- CLONE 0 00a2 [ 5] addq $0x10,0x10(%rbx)
--CLONE 0 00a7 [ 9] mov %fs:0xffffffffffffffd8,%rdi
-+CLONE 0 00a7 [ 9] mov %fs:0xffffffffffffffc8,%rdi
- CLONE 0 00b0 [ 5] call <lua_setfield>
--CLONE 0 00b5 [ 7] mov <rip>(%rip),%rax # <tomo::(anonymous namespace)::g_script_flushes>
--CLONE 0 00bc [ 9] mov %rax,%fs:0xffffffffffffffe8
--CLONE 0 00c5 [ 5] jmp <+0x3e>
--CLONE 0 00ca [ 6] nopw 0x0(%rax,%rax,1)
--CLONE 0 00d0 [ 2] xor %esi,%esi
--CLONE 0 00d2 [ 7] lea <rip>(%rip),%rdi # <l_alloc>
--CLONE 0 00d9 [ 5] call <lua_newstate>
--CLONE 0 00de [ 3] test %rax,%rax
--CLONE 0 00e1 [ 6] je <+0x1f0>
--CLONE 0 00e7 [ 4] mov 0x20(%rax),%rdx
--CLONE 0 00eb [ 7] lea <rip>(%rip),%rcx # <panic>
--CLONE 0 00f2 [ 7] mov %rcx,0x98(%rdx)
--CLONE 0 00f9 [ 9] mov %rax,%fs:0xffffffffffffffd8
--CLONE 0 0102 [ 7] mov <rip>(%rip),%rax # <tomo::(anonymous namespace)::g_script_flushes>
--CLONE 0 0109 [ 9] mov %rax,%fs:0xffffffffffffffe8
--CLONE 0 0112 [ 9] mov %fs:0x0,%rax
--CLONE 0 011b [ 9] mov %fs:0xffffffffffffffd8,%rdi
--CLONE 0 0124 [ 7] lea -0x20(%rax),%rsi
--CLONE 0 012b [ 5] call <tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)>
--CLONE 0 0130 [ 9] mov %fs:0xffffffffffffffd8,%rbx
--CLONE 0 0139 [ 4] mov 0x20(%rbx),%rax
--CLONE 0 013d [ 4] mov 0x70(%rax),%rcx
--CLONE 0 0141 [ 4] cmp %rcx,0x78(%rax)
--CLONE 0 0145 [ 6] jae <+0x210>
--CLONE 0 014b [ 4] mov 0x10(%rbx),%rbp
--CLONE 0 014f [ 2] xor %edx,%edx
--CLONE 0 0151 [ 2] xor %esi,%esi
--CLONE 0 0153 [ 3] mov %rbx,%rdi
--CLONE 0 0156 [ 5] call <luaH_new>
-+CLONE 0 00b5 [ 9] mov %fs:0xffffffffffffffc8,%rdi
-+CLONE 0 00be [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f5f6576616c5f636a736f6e00>
-+CLONE 0 00c5 [ 5] call <tomo::(anonymous namespace)::reset_cjson_environment(lua_State*, char const*)>
-+CLONE 0 00ca [ 7] mov <rip>(%rip),%rax # <tomo::(anonymous namespace)::g_script_flushes>
-+CLONE 0 00d1 [ 9] mov %rax,%fs:0xffffffffffffffd8
-+CLONE 0 00da [ 5] jmp <+0x3e>
-+CLONE 0 00df [ 1] nop
-+CLONE 0 00e0 [ 2] xor %esi,%esi
-+CLONE 0 00e2 [ 7] lea <rip>(%rip),%rdi # <l_alloc>
-+CLONE 0 00e9 [ 5] call <lua_newstate>
-+CLONE 0 00ee [ 3] test %rax,%rax
-+CLONE 0 00f1 [ 6] je <+0x1e0>
-+CLONE 0 00f7 [ 4] mov 0x20(%rax),%rdx
-+CLONE 0 00fb [ 7] lea <rip>(%rip),%rcx # <panic>
-+CLONE 0 0102 [ 7] mov %rcx,0x98(%rdx)
-+CLONE 0 0109 [ 9] mov %rax,%fs:0xffffffffffffffc8
-+CLONE 0 0112 [ 7] mov <rip>(%rip),%rax # <tomo::(anonymous namespace)::g_script_flushes>
-+CLONE 0 0119 [ 9] mov %rax,%fs:0xffffffffffffffd8
-+CLONE 0 0122 [ 9] mov %fs:0x0,%rax
-+CLONE 0 012b [ 9] mov %fs:0xffffffffffffffc8,%rdi
-+CLONE 0 0134 [ 7] lea -0x30(%rax),%rsi
-+CLONE 0 013b [ 5] call <tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)>
-+CLONE 0 0140 [ 9] mov %fs:0xffffffffffffffc8,%rdi
-+CLONE 0 0149 [ 2] xor %edx,%edx
-+CLONE 0 014b [ 2] xor %esi,%esi
-+CLONE 0 014d [ 5] call <lua_createtable>
-+CLONE 0 0152 [ 9] mov %fs:0xffffffffffffffc8,%rdi
- CLONE 0 015b [ 7] lea <rip>(%rip),%rdx # <literal-string-746f6d6f5f6368756e6b7300>
- CLONE 0 0162 [ 5] mov $0xffffd8f0,%esi
--CLONE 0 0167 [ 4] mov %rax,0x0(%rbp)
--CLONE 0 016b [ 7] movl $0x5,0x8(%rbp)
--CLONE 0 0172 [ 5] addq $0x10,0x10(%rbx)
--CLONE 0 0177 [ 9] mov %fs:0xffffffffffffffd8,%rdi
--CLONE 0 0180 [ 5] call <lua_setfield>
--CLONE 0 0185 [ 8] lock incq <rip>(%rip) # <tomo::(anonymous namespace)::g_state_rebuilds>
--CLONE 0 018d [ 9] mov %fs:0xffffffffffffffd8,%rax
--CLONE 0 0196 [ 4] add $0x8,%rsp
--CLONE 0 019a [ 1] pop %rbx
--CLONE 0 019b [ 1] pop %rbp
--CLONE 0 019c [ 1] ret
--CLONE 0 019d [ 3] nopl (%rax)
--CLONE 0 01a0 [ 9] mov %fs:0x0,%rax
--CLONE 0 01a9 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
--CLONE 0 01b0 [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::LuaEngine::~LuaEngine()>
--CLONE 0 01b7 [ 9] movb $0x1,%fs:0xffffffffffffffb0
--CLONE 0 01c0 [ 7] lea -0x28(%rax),%rsi
--CLONE 0 01c7 [ 5] call <__cxa_thread_atexit@plt>
--CLONE 0 01cc [ 5] jmp <+0x19>
--CLONE 0 01d1 [11] data16 cs nopw 0x0(%rax,%rax,1)
--CLONE 0 01dc [ 4] nopl 0x0(%rax)
--CLONE 0 01e0 [ 3] mov %rbx,%rdi
--CLONE 0 01e3 [ 5] call <luaC_step>
--CLONE 0 01e8 [ 5] jmp <+0x7b>
--CLONE 0 01ed [ 3] nopl (%rax)
--CLONE 0 01f0 [13] movq $0x0,%fs:0xffffffffffffffd8
--CLONE 0 01fd [ 5] jmp <+0x50>
--CLONE 0 0202 [11] data16 cs nopw 0x0(%rax,%rax,1)
--CLONE 0 020d [ 3] nopl (%rax)
--CLONE 0 0210 [ 3] mov %rbx,%rdi
--CLONE 0 0213 [ 5] call <luaC_step>
--CLONE 0 0218 [ 5] jmp <+0x14b>
-+CLONE 0 0167 [ 5] call <lua_setfield>
-+CLONE 0 016c [ 8] lock incq <rip>(%rip) # <tomo::(anonymous namespace)::g_state_rebuilds>
-+CLONE 0 0174 [ 9] mov %fs:0xffffffffffffffc8,%rax
-+CLONE 0 017d [ 4] add $0x8,%rsp
-+CLONE 0 0181 [ 1] pop %rbx
-+CLONE 0 0182 [ 1] pop %rbp
-+CLONE 0 0183 [ 1] ret
-+CLONE 0 0184 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 0 018f [ 1] nop
-+CLONE 0 0190 [ 9] mov %fs:0x0,%rax
-+CLONE 0 0199 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
-+CLONE 0 01a0 [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::LuaEngine::~LuaEngine()>
-+CLONE 0 01a7 [ 9] movb $0x1,%fs:0xffffffffffffffa0
-+CLONE 0 01b0 [ 7] lea -0x38(%rax),%rsi
-+CLONE 0 01b7 [ 5] call <__cxa_thread_atexit@plt>
-+CLONE 0 01bc [ 5] jmp <+0x19>
-+CLONE 0 01c1 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 0 01cc [ 4] nopl 0x0(%rax)
-+CLONE 0 01d0 [ 3] mov %rbx,%rdi
-+CLONE 0 01d3 [ 5] call <luaC_step>
-+CLONE 0 01d8 [ 5] jmp <+0x7b>
-+CLONE 0 01dd [ 3] nopl (%rax)
-+CLONE 0 01e0 [13] movq $0x0,%fs:0xffffffffffffffc8
-+CLONE 0 01ed [ 5] jmp <+0x50>
+ CLONE 0 01ac [ 4] nopl 0x0(%rax)
+ CLONE 0 01b0 [ 2] fld %st(0)
+ CLONE 0 01b2 [ 2] fabs
+-CLONE 0 01b4 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 01b4 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 01ba [ 2] fxch %st(1)
+ CLONE 0 01bc [ 2] fucomi %st(1),%st
+ CLONE 0 01be [ 2] fstp %st(1)
+ CLONE 0 01c0 [ 6] ja <+0x110>
+ CLONE 0 01c6 [ 2] fucomi %st(0),%st
+ CLONE 0 01c8 [ 6] jp <+0x116>
+-CLONE 0 01ce [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
++CLONE 0 01ce [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
+ CLONE 0 01d4 [ 2] fxch %st(1)
+ CLONE 0 01d6 [ 2] fcomip %st(1),%st
+ CLONE 0 01d8 [ 2] ffreep %st(0)

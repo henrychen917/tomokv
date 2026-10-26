@@ -1,23 +1,15 @@
-tomo::(anonymous namespace)::append_lua_result(lua_State*, int, tomo::SmallBuf<96ul>&, unsigned int, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool, unsigned char) [clone .constprop.0]
+str_sub
 --- headline
 
 +++ post
 
-@@ -195,14 +195,14 @@
+@@ -52,7 +52,7 @@
 
- CLONE 0 0320 [ 2] mov %ebx,%esi
- CLONE 0 0322 [ 3] mov %r15,%rdi
- CLONE 0 0325 [ 5] call <lua_tonumber>
--CLONE 0 032a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
-+CLONE 0 032a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
- CLONE 0 0332 [ 8] vmovsd <rip>(%rip),%xmm2 # <literal-load-ffffffffffffef7f>
- CLONE 0 033a [ 4] vucomisd %xmm1,%xmm2
- CLONE 0 033e [ 2] jb <+0x370>
- CLONE 0 0340 [ 8] vmovsd <rip>(%rip),%xmm1 # <literal-load-000000000000e0c3>
- CLONE 0 0348 [ 4] vcomisd %xmm0,%xmm1
- CLONE 0 034c [ 2] ja <+0x370>
--CLONE 0 034e [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6f0>
-+CLONE 0 034e [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x128>
- CLONE 0 0356 [ 2] ja <+0x370>
- CLONE 0 0358 [ 3] mov %rbp,%rdi
- CLONE 0 035b [ 5] vcvttsd2si %xmm0,%rsi
+ CLONE 0 00b8 [ 6] jae <+0x1b0>
+ CLONE 0 00be [ 4] mov 0x10(%rbx),%rbp
+ CLONE 0 00c2 [ 2] xor %edx,%edx
+-CLONE 0 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 00cb [ 3] mov %rbx,%rdi
+ CLONE 0 00ce [ 5] call <luaS_newlstr>
+ CLONE 0 00d3 [ 4] mov %rax,0x0(%rbp)

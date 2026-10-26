@@ -1,15 +1,9 @@
-tomo_db0::FlipController::pair_rate(double, double&)
+tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]
 --- headline
 
 +++ post
 
-@@ -4,7 +4,7 @@
+@@ -1 +1,2 @@
 
- CLONE 0 0012 [ 2] test %cl,%cl
- CLONE 0 0014 [ 6] je <+0xb0>
- CLONE 0 001a [ 8] vmovsd 0x618(%rdi),%xmm1
--CLONE 0 0022 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
-+CLONE 0 0022 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
- CLONE 0 002a [ 4] vandpd %xmm2,%xmm1,%xmm4
- CLONE 0 002e [ 4] vandpd %xmm2,%xmm0,%xmm3
- CLONE 0 0032 [ 4] vmovsd %xmm1,(%rsi)
+ CLONE 0 0000 [ 5] call <abort@plt>
++CLONE 1 0000 [ 5] call <abort@plt>

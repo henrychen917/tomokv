@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/post-db0-SET-1s-1-1--1.log
-SHA-256: dc9a4b25e63e68d5165300f122facebb6a643a62b912e61f7784978b082c32f7
+SHA-256: 64da1616528af81470b1019eba1b359ecd3988c33740ff9ee8a84a2866e5014b
 Exit: 0
 2356	    }
 0x00005555558aa058	2356	    }
@@ -19,5 +19,5 @@ Breakpoint 2, scTomoKV 1.0-cpp (Redis 7.4.10 compatible)
 PASS bounded production command scope
 ope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4150323) exited normally]
+[Inferior 1 (process 2247941) exited normally]
 COUNT 955

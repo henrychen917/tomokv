@@ -1,15 +1,21 @@
-void tomo::(anonymous namespace)::cmd_incrbyfloat<false>(tomo::Shard&, tomo::Op&)
+void std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> >::_M_realloc_insert<tomo::TxnClaim>(__gnu_cxx::__normal_iterator<tomo::TxnClaim*, std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > >, tomo::TxnClaim&&)
 --- execindex
 
 +++ post
 
-@@ -82,7 +82,7 @@
+@@ -373,10 +373,10 @@
 
- CLONE 0 014a [ 6] jp <+0x2a0>
- CLONE 0 0150 [ 2] fld %st(0)
- CLONE 0 0152 [ 2] fabs
--CLONE 0 0154 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
-+CLONE 0 0154 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 015a [ 2] fxch %st(1)
- CLONE 0 015c [ 2] fucomip %st(1),%st
- CLONE 0 015e [ 2] ffreep %st(0)
+ CLONE 0 06a9 [ 5] mov -0x4(%rax,%rsi,1),%r12d
+ CLONE 0 06ae [ 5] mov %r12d,-0x4(%rdi,%rsi,1)
+ CLONE 0 06b3 [ 5] jmp <+0xa6>
+-CLONE 0 06b8 [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f3a3a54786e5761697465723a3a54786e57616974657228746f6d6f3a3a54786e57616974657226262900>
+-CLONE 0 06bf [ 5] mov $0x37,%edx
+-CLONE 0 06c4 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 06cb [ 7] lea <rip>(%rip),%rdi # <literal-string-216f746865722e717565756500>
++CLONE 0 06b8 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 06bf [ 5] mov $0xfb1fd85f,%edx
++CLONE 0 06c4 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 06cb [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 06d2 [ 3] vzeroupper
+ CLONE 0 06d5 [ 5] call <__assert_fail@plt>
+ CLONE 0 06da [10] movabs $0xb21642c8590b21,%rax

@@ -1,12 +1,15 @@
-tomo::latency_tracking_retire(unsigned int, tomo::Op const&) [clone .cold]
+tomo::hll::(anonymous namespace)::estimate(int const (&) [64])
 --- headline
 
 +++ post
 
-@@ -0,0 +1,5 @@
+@@ -37,7 +37,7 @@
 
-+CLONE 0 0000 [ 3] mov %rbp,%rdi
-+CLONE 0 0003 [ 3] vzeroupper
-+CLONE 0 0006 [ 5] call <pthread_mutex_unlock@plt>
-+CLONE 0 000b [ 3] mov %rbx,%rdi
-+CLONE 0 000e [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 00a6 [ 4] vucomisd %xmm0,%xmm6
+ CLONE 0 00aa [ 2] jp <+0x80>
+ CLONE 0 00ac [ 2] jne <+0x80>
+-CLONE 0 00ae [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6d8>
++CLONE 0 00ae [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x110>
+ CLONE 0 00b6 [ 5] vmulsd %xmm8,%xmm0,%xmm0
+ CLONE 0 00bb [ 7] lea 0xc8(%rdi),%rax
+ CLONE 0 00c2 [11] data16 cs nopw 0x0(%rax,%rax,1)

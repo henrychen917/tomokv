@@ -1,64 +1,25 @@
-unsigned int tomo::IoLoop::epoll_accept<true, true>(tomo::UrKind)
+tomo_db0::stream_parse_xreadgroup(tomo_db0::Op&, tomo_db0::StreamXreadGroupArgs&)
 --- headline
 
 +++ post
 
-@@ -0,0 +1,57 @@
+@@ -59,7 +59,7 @@
 
-+CLONE 0 0000 [ 4] endbr64
-+CLONE 0 0004 [ 2] push %r13
-+CLONE 0 0006 [ 2] push %r12
-+CLONE 0 0008 [ 1] push %rbp
-+CLONE 0 0009 [ 2] xor %ebp,%ebp
-+CLONE 0 000b [ 1] push %rbx
-+CLONE 0 000c [ 4] sub $0x8,%rsp
-+CLONE 0 0010 [ 7] mov 0x188(%rdi),%rax
-+CLONE 0 0017 [ 7] movzbl 0x115e0(%rax),%eax
-+CLONE 0 001e [ 2] cmp $0x3,%al
-+CLONE 0 0020 [ 2] ja <+0x7a>
-+CLONE 0 0022 [ 3] mov %rdi,%rbx
-+CLONE 0 0025 [ 3] mov %esi,%r12d
-+CLONE 0 0028 [ 4] cmp $0x6,%sil
-+CLONE 0 002c [ 2] je <+0x90>
-+CLONE 0 002e [ 4] cmp $0x9,%sil
-+CLONE 0 0032 [ 6] je <+0xc0>
-+CLONE 0 0038 [ 7] mov 0xaa0(%rdi),%r13d
-+CLONE 0 003f [ 2] xor %ebp,%ebp
-+CLONE 0 0041 [ 3] test %r13d,%r13d
-+CLONE 0 0044 [ 2] js <+0x7a>
-+CLONE 0 0046 [ 2] xor %edx,%edx
-+CLONE 0 0048 [ 2] xor %esi,%esi
-+CLONE 0 004a [ 5] mov $0x80800,%ecx
-+CLONE 0 004f [ 3] mov %r13d,%edi
-+CLONE 0 0052 [ 5] call <accept4@plt>
-+CLONE 0 0057 [ 2] test %eax,%eax
-+CLONE 0 0059 [ 2] jns <+0xa0>
-+CLONE 0 005b [ 5] call <__errno_location@plt>
-+CLONE 0 0060 [ 2] mov (%rax),%eax
-+CLONE 0 0062 [ 3] cmp $0x4,%eax
-+CLONE 0 0065 [ 2] je <+0x46>
-+CLONE 0 0067 [ 3] cmp $0xb,%eax
-+CLONE 0 006a [ 2] je <+0x7a>
-+CLONE 0 006c [ 7] mov 0x190(%rbx),%rax
-+CLONE 0 0073 [ 7] incq 0x458(%rax)
-+CLONE 0 007a [ 4] add $0x8,%rsp
-+CLONE 0 007e [ 2] mov %ebp,%eax
-+CLONE 0 0080 [ 1] pop %rbx
-+CLONE 0 0081 [ 1] pop %rbp
-+CLONE 0 0082 [ 2] pop %r12
-+CLONE 0 0084 [ 2] pop %r13
-+CLONE 0 0086 [ 1] ret
-+CLONE 0 0087 [ 9] nopw 0x0(%rax,%rax,1)
-+CLONE 0 0090 [ 7] mov 0xaa8(%rdi),%r13d
-+CLONE 0 0097 [ 2] jmp <+0x3f>
-+CLONE 0 0099 [ 7] nopl 0x0(%rax)
-+CLONE 0 00a0 [ 3] mov %r12d,%edx
-+CLONE 0 00a3 [ 2] mov %eax,%esi
-+CLONE 0 00a5 [ 3] mov %rbx,%rdi
-+CLONE 0 00a8 [ 2] inc %ebp
-+CLONE 0 00aa [ 5] call <void tomo::IoLoop::admit_fd<true, true>(int, tomo::UrKind)>
-+CLONE 0 00af [ 2] jmp <+0x46>
-+CLONE 0 00b1 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 0 00bc [ 4] nopl 0x0(%rax)
-+CLONE 0 00c0 [ 7] mov 0xaa4(%rdi),%r13d
-+CLONE 0 00c7 [ 5] jmp <+0x3f>
+ CLONE 0 00e4 [ 2] pop %r15
+ CLONE 0 00e6 [ 1] pop %rbp
+ CLONE 0 00e7 [ 1] ret
+-CLONE 0 00e8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x758>
++CLONE 0 00e8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1a8>
+ CLONE 0 00ef [ 3] mov %rax,(%rbx)
+ CLONE 0 00f2 [ 8] mov 0xcc(%r12),%r13d
+ CLONE 0 00fa [ 4] cmp $0x4,%r13d
+@@ -238,7 +238,7 @@
+
+ CLONE 0 03c9 [ 3] sub %r11d,%r13d
+ CLONE 0 03cc [ 4] cmp $0x3,%r13d
+ CLONE 0 03d0 [ 6] jne <+0x267>
+-CLONE 0 03d6 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 03d6 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 03de [ 5] vmovd %r11d,%xmm1
+ CLONE 0 03e3 [ 5] vpshufd $0xe0,%xmm1,%xmm0
+ CLONE 0 03e8 [ 4] vpaddd %xmm2,%xmm0,%xmm0

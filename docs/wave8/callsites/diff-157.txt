@@ -1,22 +1,161 @@
-tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]
+tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]
 --- headline
 
 +++ post
 
-@@ -553,12 +553,12 @@
+@@ -6,79 +6,84 @@
 
- CLONE 0 098f [ 7] lea <rip>(%rip),%rsi # <literal-string-455252206174206c65617374203120696e707574206b6579206973206e656564656420666f7220277a696e746572636172642720636f6d6d616e6400>
- CLONE 0 0996 [ 5] call <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
- CLONE 0 099b [ 5] jmp <+0x254>
--CLONE 0 09a0 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
--CLONE 0 09a8 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x678>
-+CLONE 0 09a0 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
-+CLONE 0 09a8 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
- CLONE 0 09b0 [ 6] ja <+0x6a6>
- CLONE 0 09b6 [ 4] vucomisd %xmm1,%xmm1
- CLONE 0 09ba [ 6] jp <+0x6a6>
--CLONE 0 09c0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x698>
-+CLONE 0 09c0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xd0>
- CLONE 0 09c8 [ 6] jae <+0x748>
- CLONE 0 09ce [ 4] vxorpd %xmm1,%xmm1,%xmm1
- CLONE 0 09d2 [ 4] vucomisd %xmm1,%xmm0
+ CLONE 0 0009 [ 4] sub $0x8,%rsp
+ CLONE 0 000d [ 7] movzbl <rip>(%rip),%eax # <tomo::atomic_tripwire_detail::armed>
+ CLONE 0 0014 [ 2] test %al,%al
+-CLONE 0 0016 [ 2] je <+0x80>
++CLONE 0 0016 [ 2] je <+0x70>
+ CLONE 0 0018 [ 7] mov <rip>(%rip),%rbx # <tomo::atomic_tripwire_detail::state>
+ CLONE 0 001f [ 3] test %rbx,%rbx
+-CLONE 0 0022 [ 2] je <+0x80>
++CLONE 0 0022 [ 2] je <+0x70>
+ CLONE 0 0024 [ 3] mov %rbx,%rdi
+ CLONE 0 0027 [ 5] call <pthread_mutex_lock@plt>
+ CLONE 0 002c [ 2] test %eax,%eax
+-CLONE 0 002e [ 6] jne <+0x140>
++CLONE 0 002e [ 6] jne <+0x160>
+ CLONE 0 0034 [ 7] mov 0x8a0(%rbx),%rsi
+-CLONE 0 003b [ 3] test %rsi,%rsi
+-CLONE 0 003e [ 2] je <+0x6b>
+-CLONE 0 0040 [ 7] lea 0x890(%rbx),%r12
+-CLONE 0 0047 [ 2] jmp <+0x58>
+-CLONE 0 0049 [ 7] nopl 0x0(%rax)
+-CLONE 0 0050 [ 3] mov (%rsi),%rsi
+-CLONE 0 0053 [ 3] test %rsi,%rsi
+-CLONE 0 0056 [ 2] je <+0x6b>
+-CLONE 0 0058 [ 4] cmp 0x8(%rsi),%rbp
+-CLONE 0 005c [ 2] jne <+0x50>
+-CLONE 0 005e [ 3] mov %r12,%rdi
+-CLONE 0 0061 [ 5] call <std::_Hashtable<tomo::atomic_tripwire_detail::ProbeKey, std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe>, std::allocator<std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe> >, std::__detail::_Select1st, std::equal_to<tomo::atomic_tripwire_detail::ProbeKey>, tomo::atomic_tripwire_detail::ProbeKeyHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe>, false, true>)>
+-CLONE 0 0066 [ 3] mov %rax,%rsi
+-CLONE 0 0069 [ 2] jmp <+0x53>
+-CLONE 0 006b [ 3] mov %rbx,%rdi
+-CLONE 0 006e [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 0073 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 007e [ 2] xchg %ax,%ax
+-CLONE 0 0080 [ 3] mov %rbp,%rdi
+-CLONE 0 0083 [ 5] call <tomo::(anonymous namespace)::multi_records_done(tomo::MultiExecState const&)>
+-CLONE 0 0088 [ 2] test %al,%al
+-CLONE 0 008a [ 6] je <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0] [clone .cold]>
+-CLONE 0 0090 [ 4] cmpb $0x0,0xc(%rbp)
+-CLONE 0 0094 [ 6] jne <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0] [clone .cold]>
+-CLONE 0 009a [ 2] xor %ebx,%ebx
+-CLONE 0 009c [ 7] xchg %rbx,0x618(%rbp)
+-CLONE 0 00a3 [ 3] test %rbx,%rbx
+-CLONE 0 00a6 [ 2] je <+0xbd>
+-CLONE 0 00a8 [ 3] mov %rbx,%rdi
+-CLONE 0 00ab [ 5] call <tomo::NotifyBatch::~NotifyBatch()>
+-CLONE 0 00b0 [ 5] mov $0x1b8,%esi
+-CLONE 0 00b5 [ 3] mov %rbx,%rdi
+-CLONE 0 00b8 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 00bd [ 7] mov 0x80(%rbp),%rbx
+-CLONE 0 00c4 [ 7] mov 0x88(%rbp),%r12
+-CLONE 0 00cb [ 7] lea 0x338(%rbp),%r13
+-CLONE 0 00d2 [ 3] cmp %r12,%rbx
+-CLONE 0 00d5 [ 2] je <+0x111>
+-CLONE 0 00d7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 00e0 [ 3] mov (%rbx),%rax
+-CLONE 0 00e3 [ 7] mov 0xe0(%rax),%rdi
+-CLONE 0 00ea [ 3] test %rdi,%rdi
+-CLONE 0 00ed [ 2] je <+0x108>
+-CLONE 0 00ef [ 3] mov 0x20(%rbp),%edx
+-CLONE 0 00f2 [ 3] mov %r13,%rsi
+-CLONE 0 00f5 [ 5] call <tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)>
+-CLONE 0 00fa [ 3] mov (%rbx),%rax
+-CLONE 0 00fd [11] movq $0x0,0xe0(%rax)
+-CLONE 0 0108 [ 4] add $0x8,%rbx
+-CLONE 0 010c [ 3] cmp %rbx,%r12
+-CLONE 0 010f [ 2] jne <+0xe0>
+-CLONE 0 0111 [ 3] mov %r13,%rdi
+-CLONE 0 0114 [ 5] call <tomo::ScatterArenaPool::reap_deferred()>
+-CLONE 0 0119 [ 3] mov %rbp,%rdi
+-CLONE 0 011c [ 5] call <tomo::(anonymous namespace)::release_admission(tomo::MultiExecState&)>
+-CLONE 0 0121 [ 3] mov %rbp,%rdi
+-CLONE 0 0124 [ 5] call <tomo::MultiExecState::~MultiExecState()>
+-CLONE 0 0129 [ 4] add $0x8,%rsp
+-CLONE 0 012d [ 3] mov %rbp,%rdi
+-CLONE 0 0130 [ 5] mov $0x638,%esi
+-CLONE 0 0135 [ 1] pop %rbx
+-CLONE 0 0136 [ 1] pop %rbp
+-CLONE 0 0137 [ 2] pop %r12
+-CLONE 0 0139 [ 2] pop %r13
+-CLONE 0 013b [ 5] jmp <_ZdlPvm@plt>
+-CLONE 0 0140 [ 2] mov %eax,%edi
+-CLONE 0 0142 [ 5] call <_ZSt20__throw_system_errori@plt>
++CLONE 0 003b [ 7] lea 0x890(%rbx),%r12
++CLONE 0 0042 [ 3] test %rsi,%rsi
++CLONE 0 0045 [ 2] je <+0x59>
++CLONE 0 0047 [ 4] cmp 0x8(%rsi),%rbp
++CLONE 0 004b [ 6] je <+0x150>
++CLONE 0 0051 [ 3] mov (%rsi),%rsi
++CLONE 0 0054 [ 3] test %rsi,%rsi
++CLONE 0 0057 [ 2] jne <+0x47>
++CLONE 0 0059 [ 3] mov %rbx,%rdi
++CLONE 0 005c [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 0061 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 006c [ 4] nopl 0x0(%rax)
++CLONE 0 0070 [ 3] mov %rbp,%rdi
++CLONE 0 0073 [ 5] call <tomo::(anonymous namespace)::multi_records_done(tomo::MultiExecState const&)>
++CLONE 0 0078 [ 2] test %al,%al
++CLONE 0 007a [ 6] je <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0] [clone .cold]>
++CLONE 0 0080 [ 4] cmpb $0x0,0xc(%rbp)
++CLONE 0 0084 [ 6] jne <tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0] [clone .cold]>
++CLONE 0 008a [ 2] xor %ebx,%ebx
++CLONE 0 008c [ 7] xchg %rbx,0x618(%rbp)
++CLONE 0 0093 [ 3] test %rbx,%rbx
++CLONE 0 0096 [ 2] je <+0xad>
++CLONE 0 0098 [ 3] mov %rbx,%rdi
++CLONE 0 009b [ 5] call <tomo::NotifyBatch::~NotifyBatch()>
++CLONE 0 00a0 [ 5] mov $0x1b8,%esi
++CLONE 0 00a5 [ 3] mov %rbx,%rdi
++CLONE 0 00a8 [ 5] call <_ZdlPvm@plt>
++CLONE 0 00ad [ 7] mov 0x88(%rbp),%r12
++CLONE 0 00b4 [ 7] mov 0x80(%rbp),%rbx
++CLONE 0 00bb [ 7] lea 0x338(%rbp),%r13
++CLONE 0 00c2 [ 3] cmp %r12,%rbx
++CLONE 0 00c5 [ 2] je <+0x112>
++CLONE 0 00c7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 00d0 [ 3] mov (%rbx),%rax
++CLONE 0 00d3 [ 4] mov 0x20(%rax),%rdi
++CLONE 0 00d7 [ 3] test %rdi,%rdi
++CLONE 0 00da [ 2] je <+0xe4>
++CLONE 0 00dc [ 5] call <tomo::latency_tracking_forget(tomo::Op const&)>
++CLONE 0 00e1 [ 3] mov (%rbx),%rax
++CLONE 0 00e4 [ 7] mov 0xe0(%rax),%rdi
++CLONE 0 00eb [ 3] test %rdi,%rdi
++CLONE 0 00ee [ 2] je <+0x109>
++CLONE 0 00f0 [ 3] mov 0x20(%rbp),%edx
++CLONE 0 00f3 [ 3] mov %r13,%rsi
++CLONE 0 00f6 [ 5] call <tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)>
++CLONE 0 00fb [ 3] mov (%rbx),%rax
++CLONE 0 00fe [11] movq $0x0,0xe0(%rax)
++CLONE 0 0109 [ 4] add $0x8,%rbx
++CLONE 0 010d [ 3] cmp %rbx,%r12
++CLONE 0 0110 [ 2] jne <+0xd0>
++CLONE 0 0112 [ 3] mov %r13,%rdi
++CLONE 0 0115 [ 5] call <tomo::ScatterArenaPool::reap_deferred()>
++CLONE 0 011a [ 3] mov %rbp,%rdi
++CLONE 0 011d [ 5] call <tomo::(anonymous namespace)::release_admission(tomo::MultiExecState&)>
++CLONE 0 0122 [ 3] mov %rbp,%rdi
++CLONE 0 0125 [ 5] call <tomo::MultiExecState::~MultiExecState()>
++CLONE 0 012a [ 4] add $0x8,%rsp
++CLONE 0 012e [ 3] mov %rbp,%rdi
++CLONE 0 0131 [ 5] mov $0x640,%esi
++CLONE 0 0136 [ 1] pop %rbx
++CLONE 0 0137 [ 1] pop %rbp
++CLONE 0 0138 [ 2] pop %r12
++CLONE 0 013a [ 2] pop %r13
++CLONE 0 013c [ 5] jmp <_ZdlPvm@plt>
++CLONE 0 0141 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 014c [ 4] nopl 0x0(%rax)
++CLONE 0 0150 [ 3] mov %r12,%rdi
++CLONE 0 0153 [ 5] call <std::_Hashtable<tomo::atomic_tripwire_detail::ProbeKey, std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe>, std::allocator<std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe> >, std::__detail::_Select1st, std::equal_to<tomo::atomic_tripwire_detail::ProbeKey>, tomo::atomic_tripwire_detail::ProbeKeyHash, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<tomo::atomic_tripwire_detail::ProbeKey const, tomo::atomic_tripwire_detail::Probe>, false, true>)>
++CLONE 0 0158 [ 3] mov %rax,%rsi
++CLONE 0 015b [ 5] jmp <+0x42>
++CLONE 0 0160 [ 2] mov %eax,%edi
++CLONE 0 0162 [ 5] call <_ZSt20__throw_system_errori@plt>

@@ -1,30 +1,19 @@
-std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase_aux(std::_Rb_tree_const_iterator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >)
---- headline
+mp_decode_to_lua_array
+--- lualibs
 
 +++ post
 
-@@ -0,0 +1,23 @@
+@@ -55,8 +55,8 @@
 
-+CLONE 0 0000 [ 4] endbr64
-+CLONE 0 0004 [ 1] push %rbp
-+CLONE 0 0005 [ 1] push %rbx
-+CLONE 0 0006 [ 3] mov %rdi,%rbx
-+CLONE 0 0009 [ 3] mov %rsi,%rdi
-+CLONE 0 000c [ 4] sub $0x8,%rsp
-+CLONE 0 0010 [ 4] lea 0x8(%rbx),%rsi
-+CLONE 0 0014 [ 5] call <_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_@plt>
-+CLONE 0 0019 [ 4] mov 0x28(%rax),%rdi
-+CLONE 0 001d [ 3] mov %rax,%rbp
-+CLONE 0 0020 [ 3] test %rdi,%rdi
-+CLONE 0 0023 [ 2] je <+0x31>
-+CLONE 0 0025 [ 4] mov 0x38(%rax),%rsi
-+CLONE 0 0029 [ 3] sub %rdi,%rsi
-+CLONE 0 002c [ 5] call <_ZdlPvm@plt>
-+CLONE 0 0031 [ 3] mov %rbp,%rdi
-+CLONE 0 0034 [ 5] mov $0x40,%esi
-+CLONE 0 0039 [ 5] call <_ZdlPvm@plt>
-+CLONE 0 003e [ 4] decq 0x28(%rbx)
-+CLONE 0 0042 [ 4] add $0x8,%rsp
-+CLONE 0 0046 [ 1] pop %rbx
-+CLONE 0 0047 [ 1] pop %rbp
-+CLONE 0 0048 [ 1] ret
+ CLONE 0 00aa [ 2] pop %r12
+ CLONE 0 00ac [ 2] pop %r13
+ CLONE 0 00ae [ 1] ret
+-CLONE 0 00af [ 7] lea <rip>(%rip),%rcx # <__PRETTY_FUNCTION__.1>
+-CLONE 0 00b6 [ 5] mov $0x22b,%edx
+-CLONE 0 00bb [ 7] lea <rip>(%rip),%rsi # <literal-string-74686972645f70617274792f6c75612f68656c706572732f6c75615f636d73677061636b2e6300>
+-CLONE 0 00c2 [ 7] lea <rip>(%rip),%rdi # <literal-string-6c656e203c3d2055494e545f4d415800>
++CLONE 0 00af [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 00b6 [ 5] mov $0xe3abdf66,%edx
++CLONE 0 00bb [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 00c2 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 00c9 [ 5] call <__assert_fail@plt>

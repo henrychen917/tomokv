@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/post-normal-MSET-2s-32-0--1.log
-SHA-256: 0d395f98970cbce693de995bf1b080163fbc206948f57c8e983c33306bd2e5c6
+SHA-256: 55b86ae39ff72cfcb1d41662b4dc0d9c3e5b77905e455ed79cbbd80151e68e0b
 Exit: 0
 0x0000555555a742ad	2284	}
 0x0000555555a742ae	2284	}
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4149653) exited normally]
+[Inferior 1 (process 2240274) exited normally]
 COUNT 341925

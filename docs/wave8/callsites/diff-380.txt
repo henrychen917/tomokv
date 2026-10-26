@@ -1,25 +1,15 @@
-tomo_db0::FlipShiftDetector::observe(tomo_db0::FlipFingerprintWindow const&)
+tomo_db0::FlipController::sample_anchored_rate(tomo_db0::Server&, unsigned long, double&)
 --- headline
 
 +++ post
 
-@@ -92,7 +92,7 @@
+@@ -29,7 +29,7 @@
 
- CLONE 0 01f5 [ 5] vaddpd (%rsp),%ymm5,%ymm0
- CLONE 0 01fa [ 2] xor %eax,%eax
- CLONE 0 01fc [ 8] vmovsd <rip>(%rip),%xmm1 # <literal-load-000000000000e03f>
--CLONE 0 0204 [10] vmulpd <rip>(%rip){1to4},%ymm0,%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
-+CLONE 0 0204 [10] vmulpd <rip>(%rip){1to4},%ymm0,%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
- CLONE 0 020e [ 5] vmovupd %ymm0,0x8(%rbx)
- CLONE 0 0213 [11] data16 cs nopw 0x0(%rax,%rax,1)
- CLONE 0 021e [ 2] xchg %ax,%ax
-@@ -108,7 +108,7 @@
-
- CLONE 0 024b [ 5] mov 0x68(%rsp),%rax
- CLONE 0 0250 [ 4] movb $0x1,0x78(%rbx)
- CLONE 0 0254 [ 4] mov %rax,0x70(%rbx)
--CLONE 0 0258 [10] vmulpd <rip>(%rip){1to2},%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
-+CLONE 0 0258 [10] vmulpd <rip>(%rip){1to2},%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
- CLONE 0 0262 [ 5] vmovupd %xmm0,0x60(%rbx)
- CLONE 0 0267 [ 5] jmp <+0x80>
- CLONE 0 026c [ 4] nopl 0x0(%rax)
+ CLONE 0 0069 [ 2] je <+0x29>
+ CLONE 0 006b [ 4] vmovsd (%rbx),%xmm0
+ CLONE 0 006f [ 5] vaddsd (%rsp),%xmm0,%xmm0
+-CLONE 0 0074 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 0074 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 007c [ 4] vmovsd %xmm0,(%rbx)
+ CLONE 0 0080 [ 2] jmp <+0x2b>
+ CLONE 0 0082 [ 5] call <__stack_chk_fail@plt>

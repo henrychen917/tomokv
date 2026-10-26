@@ -1,15 +1,20 @@
-tomo::HashFieldMap::set(tomo::Slice, tomo::Slice)
+tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)
 --- headline
 
 +++ post
 
-@@ -157,7 +157,7 @@
+@@ -175,11 +175,11 @@
 
- CLONE 0 028d [ 4] lea (%rsi,%rax,8),%r12
- CLONE 0 0291 [ 8] mov 0x90(%rsp),%rcx
- CLONE 0 0299 [ 8] mov 0x98(%rsp),%r15d
--CLONE 0 02a1 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
-+CLONE 0 02a1 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
- CLONE 0 02a8 [ 8] lea 0xe0(%rsp),%r13
- CLONE 0 02b0 [ 8] mov %r13,0xd0(%rsp)
- CLONE 0 02b8 [12] movq $0x0,0xd8(%rsp)
+ CLONE 0 0308 [ 4] vcomisd %xmm4,%xmm0
+ CLONE 0 030c [ 6] jbe <+0x467>
+ CLONE 0 0312 [ 4] vdivsd %xmm0,%xmm2,%xmm0
+-CLONE 0 0316 [ 8] vsubsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x690>
++CLONE 0 0316 [ 8] vsubsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xc8>
+ CLONE 0 031e [ 8] vmovsd %xmm0,0x550(%rbp)
+ CLONE 0 0326 [ 4] vcomisd %xmm1,%xmm0
+ CLONE 0 032a [ 6] ja <+0x3bb>
+-CLONE 0 0330 [ 8] vxorpd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x268>
++CLONE 0 0330 [ 8] vxorpd <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
+ CLONE 0 0338 [ 4] vcomisd %xmm0,%xmm1
+ CLONE 0 033c [ 6] jbe <+0x46f>
+ CLONE 0 0342 [ 6] mov 0x408(%rbp),%ecx

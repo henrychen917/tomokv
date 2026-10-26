@@ -1,25 +1,15 @@
-void tomo_db0::IoLoop::admit_fd<true, false>(int, tomo_db0::UrKind)
---- headline
+void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)
+--- execindex
 
 +++ post
 
-@@ -90,7 +90,7 @@
+@@ -109,7 +109,7 @@
 
- CLONE 0 0231 [ 5] mov $0x4000,%edi
- CLONE 0 0236 [ 7] movb $0x0,0x780(%rbx)
- CLONE 0 023d [ 7] mov %rax,0x630(%rbx)
--CLONE 0 0244 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
-+CLONE 0 0244 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
- CLONE 0 024b [11] movq $0x0,0x790(%rbx)
- CLONE 0 0256 [11] movq $0x0,0x798(%rbx)
- CLONE 0 0261 [10] movl $0x0,0x7a0(%rbx)
-@@ -101,7 +101,7 @@
-
- CLONE 0 0290 [ 8] vmovdqu %xmm0,0x638(%rbx)
- CLONE 0 0298 [ 4] vpxor %xmm0,%xmm0,%xmm0
- CLONE 0 029c [ 7] mov %rax,0x784(%rbx)
--CLONE 0 02a3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x650>
-+CLONE 0 02a3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x90>
- CLONE 0 02aa [10] vmovdqu8 %zmm0,0x648(%rbx)
- CLONE 0 02b4 [10] vmovdqu8 %zmm0,0x688(%rbx)
- CLONE 0 02be [10] vmovdqu8 %zmm0,0x6c8(%rbx)
+ CLONE 0 01bb [ 6] jp <+0x300>
+ CLONE 0 01c1 [ 2] fld %st(0)
+ CLONE 0 01c3 [ 2] fabs
+-CLONE 0 01c5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 01c5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 01cb [ 2] fxch %st(1)
+ CLONE 0 01cd [ 2] fucomip %st(1),%st
+ CLONE 0 01cf [ 2] ffreep %st(0)

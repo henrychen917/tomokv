@@ -1,15 +1,21 @@
-tomo_db0::AofProducer::record_post_image(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::AofOwnerContext&, unsigned long)
---- headline
+tomo_db0::(anonymous namespace)::txn_group_arrive(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&)
+--- execindex
 
 +++ post
 
-@@ -35,7 +35,7 @@
+@@ -571,10 +571,10 @@
 
- CLONE 0 0062 [ 4] cmp $0x11,%r12d
- CLONE 0 0066 [ 2] jbe <+0x31>
- CLONE 0 0068 [ 6] vmovdqu 0x0(%r13),%xmm0
--CLONE 0 006e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x3c8>
-+CLONE 0 006e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x748>
- CLONE 0 0076 [ 5] vptest %xmm0,%xmm0
- CLONE 0 007b [ 2] jne <+0x31>
- CLONE 0 007d [ 7] cmpw $0x3a77,0x10(%r13)
+ CLONE 0 0a05 [ 5] jmp <+0x1a4>
+ CLONE 0 0a0a [ 5] call <_ZSt28__throw_bad_array_new_lengthv@plt>
+ CLONE 0 0a0f [ 5] call <tomo_db0::TxnWaiter::operator=(tomo_db0::TxnWaiter const&) [clone .part.0]>
+-CLONE 0 0a14 [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f5f6462303a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 0a1b [ 5] mov $0x39,%edx
+-CLONE 0 0a20 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 0a27 [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 0a14 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0a1b [ 5] mov $0xa76723f6,%edx
++CLONE 0 0a20 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0a27 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0a2e [ 5] call <__assert_fail@plt>
+ CLONE 0 0a33 [ 7] lea <rip>(%rip),%rdi # <literal-string-62617369635f737472696e673a3a5f4d5f63726561746500>
+ CLONE 0 0a3a [ 5] call <_ZSt20__throw_length_errorPKc@plt>

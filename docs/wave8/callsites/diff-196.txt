@@ -1,25 +1,75 @@
-tomo::FlipController::anchor(tomo::Server&, double)
+tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)
 --- headline
 
 +++ post
 
-@@ -108,7 +108,7 @@
+@@ -0,0 +1,68 @@
 
- CLONE 0 0216 [ 8] vmovsd %xmm1,0x300(%rbx)
- CLONE 0 021e [ 3] cmp $0x1,%eax
- CLONE 0 0221 [ 6] je <+0xa5>
--CLONE 0 0227 [ 8] vmovq <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
-+CLONE 0 0227 [ 8] vmovq <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
- CLONE 0 022f [ 8] vmovsd 0x668(%rbx),%xmm6
- CLONE 0 0237 [ 8] vmovsd 0x660(%rbx),%xmm2
- CLONE 0 023f [ 4] vandpd %xmm3,%xmm6,%xmm5
-@@ -200,7 +200,7 @@
-
- CLONE 0 03c4 [ 5] jmp <+0x2df>
- CLONE 0 03c9 [ 8] vmovsd <rip>(%rip),%xmm1 # <literal-load-000000000000f03f>
- CLONE 0 03d1 [ 8] vmovq 0x4d0(%rbx),%xmm3
--CLONE 0 03d9 [ 8] vmovq <rip>(%rip),%xmm4 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>
-+CLONE 0 03d9 [ 8] vmovq <rip>(%rip),%xmm4 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
- CLONE 0 03e1 [ 7] incq 0x3c0(%rbx)
- CLONE 0 03e8 [ 8] vmovsd 0x538(%rbx),%xmm0
- CLONE 0 03f0 [ 4] vpaddd %xmm4,%xmm3,%xmm3
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 3] mov %rsi,%rax
++CLONE 0 0007 [ 7] lea 0x280(%rdi),%rsi
++CLONE 0 000e [ 4] mov 0x10(%rax),%rdx
++CLONE 0 0012 [ 3] cmp %rdx,%rsi
++CLONE 0 0015 [ 2] je <+0x20>
++CLONE 0 0017 [ 1] ret
++CLONE 0 0018 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0020 [ 4] cmpb $0x0,0x38(%rax)
++CLONE 0 0024 [ 2] jne <+0x17>
++CLONE 0 0026 [ 4] sub $0x8,%rsp
++CLONE 0 002a [ 4] mov 0x10(%rax),%rdx
++CLONE 0 002e [ 3] cmp %rdx,%rsi
++CLONE 0 0031 [ 6] jne <+0x12e>
++CLONE 0 0037 [ 3] mov (%rax),%rdx
++CLONE 0 003a [ 3] mov %rdi,%rcx
++CLONE 0 003d [ 4] mov 0x8(%rax),%rdi
++CLONE 0 0041 [ 3] test %rdx,%rdx
++CLONE 0 0044 [ 6] je <+0x100>
++CLONE 0 004a [ 4] mov %rdi,0x8(%rdx)
++CLONE 0 004e [ 4] mov 0x8(%rax),%rdi
++CLONE 0 0052 [ 3] test %rdi,%rdi
++CLONE 0 0055 [ 6] je <+0x110>
++CLONE 0 005b [ 3] mov %rdx,(%rdi)
++CLONE 0 005e [ 8] vmovq 0x2a0(%rcx),%xmm0
++CLONE 0 0066 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
++CLONE 0 006e [ 4] vpaddd %xmm0,%xmm2,%xmm1
++CLONE 0 0072 [ 4] vpsubd %xmm2,%xmm0,%xmm0
++CLONE 0 0076 [ 6] vpblendw $0xc,%xmm0,%xmm1,%xmm0
++CLONE 0 007c [ 8] vmovq %xmm0,0x2a0(%rcx)
++CLONE 0 0084 [ 8] movq $0x0,0x8(%rax)
++CLONE 0 008c [ 7] movq $0x0,(%rax)
++CLONE 0 0093 [ 8] movq $0x0,0x10(%rax)
++CLONE 0 009b [ 4] mov 0x10(%rax),%rdx
++CLONE 0 009f [ 3] test %rdx,%rdx
++CLONE 0 00a2 [ 6] jne <+0x129>
++CLONE 0 00a8 [ 7] mov 0x288(%rcx),%rdx
++CLONE 0 00af [ 8] movq $0x0,0x8(%rax)
++CLONE 0 00b7 [ 4] movb $0x1,0x38(%rax)
++CLONE 0 00bb [ 3] mov %rdx,(%rax)
++CLONE 0 00be [ 7] mov 0x288(%rcx),%rdx
++CLONE 0 00c5 [ 3] test %rdx,%rdx
++CLONE 0 00c8 [ 2] je <+0x120>
++CLONE 0 00ca [ 4] mov %rax,0x8(%rdx)
++CLONE 0 00ce [ 8] vmovq 0x2a0(%rcx),%xmm0
++CLONE 0 00d6 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
++CLONE 0 00de [ 7] mov %rax,0x288(%rcx)
++CLONE 0 00e5 [ 4] vpaddd %xmm1,%xmm0,%xmm0
++CLONE 0 00e9 [ 8] vmovq %xmm0,0x2a0(%rcx)
++CLONE 0 00f1 [ 4] mov %rsi,0x10(%rax)
++CLONE 0 00f5 [ 4] add $0x8,%rsp
++CLONE 0 00f9 [ 1] ret
++CLONE 0 00fa [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0100 [ 7] mov %rdi,0x290(%rcx)
++CLONE 0 0107 [ 3] mov (%rax),%rdx
++CLONE 0 010a [ 5] jmp <+0x4e>
++CLONE 0 010f [ 1] nop
++CLONE 0 0110 [ 7] mov %rdx,0x298(%rcx)
++CLONE 0 0117 [ 5] jmp <+0x5e>
++CLONE 0 011c [ 4] nopl 0x0(%rax)
++CLONE 0 0120 [ 7] mov %rax,0x280(%rcx)
++CLONE 0 0127 [ 2] jmp <+0xce>
++CLONE 0 0129 [ 5] call <tomo::TxnRetryQueues::link(tomo::MultiOwnerRetryNode&, bool) [clone .part.0]>
++CLONE 0 012e [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0135 [ 5] mov $0x919d052f,%edx
++CLONE 0 013a [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0141 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
++CLONE 0 0148 [ 5] call <__assert_fail@plt>

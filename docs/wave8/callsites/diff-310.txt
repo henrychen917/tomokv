@@ -1,15 +1,15 @@
-tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&)
+tomo_db0::(anonymous namespace)::ZsetMemberMap::rehash_step()
 --- headline
 
 +++ post
 
-@@ -972,7 +972,7 @@
+@@ -10,7 +10,7 @@
 
- CLONE 0 11f8 [ 2] pop %r13
- CLONE 0 11fa [ 5] jmp <_ZdlPvm@plt>
- CLONE 0 11ff [ 7] lea <rip>(%rip),%rax # <literal-string-756e6b6e6f776e3a3000>
--CLONE 0 1206 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x126c8>
-+CLONE 0 1206 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x788>
- CLONE 0 120d [10] movl $0x0,-0x130(%rbp)
- CLONE 0 1217 [10] movl $0x9,-0x118(%rbp)
- CLONE 0 1221 [ 7] mov %rax,-0x140(%rbp)
+ CLONE 0 0015 [ 3] test %rdi,%rdi
+ CLONE 0 0018 [ 6] je <+0x18a>
+ CLONE 0 001e [ 3] mov 0x30(%rbx),%eax
+-CLONE 0 0021 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 0021 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 0029 [ 4] mov 0x20(%rbx),%r9d
+ CLONE 0 002d [10] movabs $0x100000001b3,%r11
+ CLONE 0 0037 [ 5] vmovq %rdi,%xmm3

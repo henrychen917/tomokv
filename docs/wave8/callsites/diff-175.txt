@@ -1,20 +1,72 @@
-tomo::(anonymous namespace)::txn_unlink_waiter(tomo::TxnWaiter&, bool)
---- execindex
+tomo::(anonymous namespace)::store(unsigned int)
+--- latencyfix
 
 +++ post
 
-@@ -50,9 +50,9 @@
+@@ -4,37 +4,39 @@
 
- CLONE 0 00c9 [ 4] mov %rdx,0x30(%rax)
- CLONE 0 00cd [ 5] jmp <+0x33>
- CLONE 0 00d2 [ 1] push %rbp
--CLONE 0 00d3 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a7b616e6f6e796d6f75737d3a3a74786e5f756e6c696e6b5f77616974657228746f6d6f3a3a54786e576169746572262c20626f6f6c2900>
--CLONE 0 00da [ 5] mov $0x5,%edx
--CLONE 0 00df [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f74786e5f6b65795f71756575652e696e6300>
-+CLONE 0 00d3 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
-+CLONE 0 00da [ 5] mov $0xb91ad684,%edx
-+CLONE 0 00df [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
- CLONE 0 00e6 [ 3] mov %rsp,%rbp
--CLONE 0 00e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e77616974696e6700>
-+CLONE 0 00e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 0 00f0 [ 5] call <__assert_fail@plt>
+ CLONE 0 0005 [ 2] mov %edi,%ebx
+ CLONE 0 0007 [ 4] sub $0x8,%rsp
+ CLONE 0 000b [ 3] cmp $0x7f,%edi
+-CLONE 0 000e [ 2] ja <+0x7b>
+-CLONE 0 0010 [ 4] shl $0x6,%rbx
+-CLONE 0 0014 [ 7] lea <rip>(%rip),%rax # <tomo::(anonymous namespace)::stores>
+-CLONE 0 001b [ 3] add %rax,%rbx
+-CLONE 0 001e [ 3] mov (%rbx),%rax
+-CLONE 0 0021 [ 3] test %rax,%rax
+-CLONE 0 0024 [ 2] je <+0x30>
+-CLONE 0 0026 [ 4] mov -0x8(%rbp),%rbx
+-CLONE 0 002a [ 1] leave
+-CLONE 0 002b [ 1] ret
+-CLONE 0 002c [ 4] nopl 0x0(%rax)
++CLONE 0 000e [ 6] ja <+0x90>
++CLONE 0 0014 [ 4] shl $0x6,%rbx
++CLONE 0 0018 [ 7] lea <rip>(%rip),%rax # <tomo::(anonymous namespace)::stores>
++CLONE 0 001f [ 3] add %rax,%rbx
++CLONE 0 0022 [ 3] mov (%rbx),%rax
++CLONE 0 0025 [ 3] test %rax,%rax
++CLONE 0 0028 [ 2] je <+0x30>
++CLONE 0 002a [ 4] mov -0x8(%rbp),%rbx
++CLONE 0 002e [ 1] leave
++CLONE 0 002f [ 1] ret
+ CLONE 0 0030 [ 5] mov $0x40,%esi
+ CLONE 0 0035 [ 5] mov $0xc0,%edi
+ CLONE 0 003a [ 5] call <_ZnwmSt11align_val_t@plt>
+ CLONE 0 003f [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 0043 [ 7] vmovdqa64 %zmm0,0x40(%rax)
+ CLONE 0 004a [ 4] lea 0x30(%rax),%rdx
+-CLONE 0 004e [ 6] vmovdqa64 %zmm0,(%rax)
+-CLONE 0 0054 [ 4] mov %rdx,0x40(%rax)
+-CLONE 0 0058 [ 4] mov %rdx,0x48(%rax)
+-CLONE 0 005c [ 4] lea 0x60(%rax),%rdx
+-CLONE 0 0060 [ 7] vmovdqa64 %zmm0,0x80(%rax)
++CLONE 0 004e [ 7] vmovdqa64 %zmm0,0x80(%rax)
++CLONE 0 0055 [ 4] mov %rdx,0x40(%rax)
++CLONE 0 0059 [ 4] mov %rdx,0x48(%rax)
++CLONE 0 005d [ 4] lea 0x60(%rax),%rdx
++CLONE 0 0061 [ 6] vmovdqa64 %zmm0,(%rax)
+ CLONE 0 0067 [ 4] mov %rdx,0x70(%rax)
+ CLONE 0 006b [ 4] mov %rdx,0x78(%rax)
+-CLONE 0 006f [ 3] mov %rax,(%rbx)
+-CLONE 0 0072 [ 3] vzeroupper
+-CLONE 0 0075 [ 4] mov -0x8(%rbp),%rbx
+-CLONE 0 0079 [ 1] leave
+-CLONE 0 007a [ 1] ret
+-CLONE 0 007b [ 5] mov $0x80,%edx
+-CLONE 0 0080 [ 3] mov %rbx,%rsi
+-CLONE 0 0083 [ 7] lea <rip>(%rip),%rdi # <literal-string-61727261793a3a61743a205f5f6e2028776869636820697320257a7529203e3d205f4e6d2028776869636820697320257a752900>
+-CLONE 0 008a [ 2] xor %eax,%eax
+-CLONE 0 008c [ 5] call <_ZSt24__throw_out_of_range_fmtPKcz@plt>
++CLONE 0 006f [ 7] lea 0x90(%rax),%rdx
++CLONE 0 0076 [ 7] mov %rdx,0xa0(%rax)
++CLONE 0 007d [ 7] mov %rdx,0xa8(%rax)
++CLONE 0 0084 [ 3] mov %rax,(%rbx)
++CLONE 0 0087 [ 3] vzeroupper
++CLONE 0 008a [ 4] mov -0x8(%rbp),%rbx
++CLONE 0 008e [ 1] leave
++CLONE 0 008f [ 1] ret
++CLONE 0 0090 [ 5] mov $0x80,%edx
++CLONE 0 0095 [ 3] mov %rbx,%rsi
++CLONE 0 0098 [ 7] lea <rip>(%rip),%rdi # <literal-string-61727261793a3a61743a205f5f6e2028776869636820697320257a7529203e3d205f4e6d2028776869636820697320257a752900>
++CLONE 0 009f [ 2] xor %eax,%eax
++CLONE 0 00a1 [ 5] call <_ZSt24__throw_out_of_range_fmtPKcz@plt>

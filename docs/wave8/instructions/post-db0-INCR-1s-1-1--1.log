@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/post-db0-INCR-1s-1-1--1.log
-SHA-256: ef2e2cd9fd587b6c768194d81eb2e7c198e117157662381bf0b55ed7c9a6252f
+SHA-256: 76f6ad73304214d9247c4f6aefc621fa620f516517414921c7a9f567b380b1a3
 Exit: 0
 PASS bounded production command scope
 c_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
@@ -19,5 +19,5 @@ c_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimi
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4157025) exited normally]
+[Inferior 1 (process 2248078) exited normally]
 COUNT 1314

@@ -1,15 +1,55 @@
-void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)
---- execindex
+void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)
+--- headline
 
 +++ post
 
-@@ -101,7 +101,7 @@
+@@ -298,7 +298,7 @@
 
- CLONE 0 019b [ 6] jp <+0x310>
- CLONE 0 01a1 [ 2] fld %st(0)
- CLONE 0 01a3 [ 2] fabs
--CLONE 0 01a5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
-+CLONE 0 01a5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 01ab [ 2] fxch %st(1)
- CLONE 0 01ad [ 2] fucomip %st(1),%st
- CLONE 0 01af [ 2] ffreep %st(0)
+ CLONE 0 05a6 [ 2] cmp $0x3,%al
+ CLONE 0 05a8 [ 6] ja <+0x500>
+ CLONE 0 05ae [ 3] movzbl %al,%eax
+-CLONE 0 05b1 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7642>
++CLONE 0 05b1 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.7718>
+ CLONE 0 05b8 [ 4] movzbl (%rcx,%rax,1),%eax
+ CLONE 0 05bc [ 2] test %al,%al
+ CLONE 0 05be [ 6] je <+0xf48>
+@@ -1132,7 +1132,7 @@
+
+ CLONE 0 172b [ 5] call <tomo::(anonymous namespace)::ObjectImage::operator=(tomo::(anonymous namespace)::ObjectImage&&) [clone .constprop.0] [clone .isra.0]>
+ CLONE 0 1730 [ 7] lea -0x538(%rbp),%rdi
+ CLONE 0 1737 [ 5] call <std::vector<unsigned char, std::allocator<unsigned char> >::~vector()>
+-CLONE 0 173c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6a8>
++CLONE 0 173c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe0>
+ CLONE 0 1743 [ 7] lea -0x3f0(%rbp),%rsi
+ CLONE 0 174a [ 7] lea -0x580(%rbp),%rcx
+ CLONE 0 1751 [ 5] mov $0x2,%edx
+@@ -1296,7 +1296,7 @@
+
+ CLONE 0 1a63 [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)>
+ CLONE 0 1a68 [ 2] test %al,%al
+ CLONE 0 1a6a [ 6] je <+0x377a>
+-CLONE 0 1a70 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 1a70 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 1a77 [ 7] lea -0x3f0(%rbp),%rsi
+ CLONE 0 1a7e [ 7] lea -0x620(%rbp),%rcx
+ CLONE 0 1a85 [ 5] mov $0x2,%edx
+@@ -2437,7 +2437,7 @@
+
+ CLONE 0 3185 [ 7] mov %r8,0x98(%r15)
+ CLONE 0 318c [ 5] jmp <+0x1071>
+ CLONE 0 3191 [ 3] movzbl %al,%eax
+-CLONE 0 3194 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7642>
++CLONE 0 3194 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.7718>
+ CLONE 0 319b [ 4] movzbl (%rdx,%rax,1),%esi
+ CLONE 0 319f [ 7] mov %sil,-0x62d(%rbp)
+ CLONE 0 31a6 [ 3] test %sil,%sil
+@@ -2845,7 +2845,7 @@
+
+ CLONE 0 39ca [ 5] call <tomo::(anonymous namespace)::encode_elements(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, tomo::(anonymous namespace)::ObjectImage&, tomo::Type, long, bool)>
+ CLONE 0 39cf [ 2] test %al,%al
+ CLONE 0 39d1 [ 6] je <+0x390a>
+-CLONE 0 39d7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b0>
++CLONE 0 39d7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xe8>
+ CLONE 0 39de [ 7] lea -0x4b0(%rbp),%rsi
+ CLONE 0 39e5 [ 7] lea -0x620(%rbp),%rcx
+ CLONE 0 39ec [ 5] mov $0x2,%edx

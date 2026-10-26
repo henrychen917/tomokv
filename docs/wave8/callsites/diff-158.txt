@@ -1,33 +1,25 @@
-tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)
---- execindex
+tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]
+--- headline
 
 +++ post
 
-@@ -1519,7 +1519,7 @@
+@@ -366,7 +366,7 @@
 
- CLONE 0 1cc1 [ 6] fldcw -0x3f4(%rbp)
- CLONE 0 1cc7 [ 2] frndint
- CLONE 0 1cc9 [ 6] fldcw -0x3f2(%rbp)
--CLONE 0 1ccf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x608>
-+CLONE 0 1ccf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x648>
- CLONE 0 1cd5 [ 2] fxch %st(1)
- CLONE 0 1cd7 [ 2] fcomi %st(1),%st
- CLONE 0 1cd9 [ 2] fstp %st(1)
-@@ -2044,14 +2044,14 @@
+ CLONE 0 06b1 [ 5] jmp <+0x542>
+ CLONE 0 06b6 [10] cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 06c0 [ 3] movzbl %al,%ecx
+-CLONE 0 06c3 [ 7] lea <rip>(%rip),%rdi # <CSWTCH.6743>
++CLONE 0 06c3 [ 7] lea <rip>(%rip),%rdi # <CSWTCH.6818>
+ CLONE 0 06ca [ 4] movzbl (%rdi,%rcx,1),%ecx
+ CLONE 0 06ce [ 2] mov %cl,(%rdx)
+ CLONE 0 06d0 [ 2] test %al,%al
+@@ -491,7 +491,7 @@
 
- CLONE 0 2609 [ 5] jmp <+0x1009>
- CLONE 0 260e [ 2] fld %st(0)
- CLONE 0 2610 [ 2] fabs
--CLONE 0 2612 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
-+CLONE 0 2612 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 2618 [ 2] fxch %st(1)
- CLONE 0 261a [ 2] fucomi %st(1),%st
- CLONE 0 261c [ 2] fstp %st(1)
- CLONE 0 261e [ 6] ja <+0x18e8>
- CLONE 0 2624 [ 2] fucomi %st(0),%st
- CLONE 0 2626 [ 6] jp <+0x18ee>
--CLONE 0 262c [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
-+CLONE 0 262c [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
- CLONE 0 2632 [ 2] fxch %st(1)
- CLONE 0 2634 [ 2] fcomip %st(1),%st
- CLONE 0 2636 [ 2] ffreep %st(0)
+ CLONE 0 08f8 [ 5] jmp <+0x390>
+ CLONE 0 08fd [ 3] nopl (%rax)
+ CLONE 0 0900 [ 3] movzbl %al,%eax
+-CLONE 0 0903 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.6743>
++CLONE 0 0903 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.6818>
+ CLONE 0 090a [ 4] movzbl (%rdx,%rax,1),%edx
+ CLONE 0 090e [ 2] mov %dl,(%rcx)
+ CLONE 0 0910 [ 3] test %r15b,%r15b

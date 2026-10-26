@@ -1,57 +1,19 @@
-std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_get_insert_unique_pos(tomo::Op const* const&) [clone .isra.0]
---- headline
+mp_decode_to_lua_hash
+--- lualibs
 
 +++ post
 
-@@ -0,0 +1,50 @@
+@@ -52,8 +52,8 @@
 
-+CLONE 0 0000 [ 1] push %rbp
-+CLONE 0 0001 [ 1] push %rbx
-+CLONE 0 0002 [ 3] mov %rsi,%rbp
-+CLONE 0 0005 [ 4] sub $0x8,%rsp
-+CLONE 0 0009 [ 4] mov 0x10(%rdi),%rbx
-+CLONE 0 000d [ 3] test %rbx,%rbx
-+CLONE 0 0010 [ 2] jne <+0x23>
-+CLONE 0 0012 [ 2] jmp <+0x60>
-+CLONE 0 0014 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 0 001f [ 1] nop
-+CLONE 0 0020 [ 3] mov %rax,%rbx
-+CLONE 0 0023 [ 4] mov 0x20(%rbx),%rdx
-+CLONE 0 0027 [ 4] mov 0x18(%rbx),%rax
-+CLONE 0 002b [ 3] cmp %rdx,%rbp
-+CLONE 0 002e [ 5] cmovb 0x10(%rbx),%rax
-+CLONE 0 0033 [ 3] setb %cl
-+CLONE 0 0036 [ 3] test %rax,%rax
-+CLONE 0 0039 [ 2] jne <+0x20>
-+CLONE 0 003b [ 3] mov %rbx,%rsi
-+CLONE 0 003e [ 2] test %cl,%cl
-+CLONE 0 0040 [ 2] jne <+0x64>
-+CLONE 0 0042 [ 2] xor %eax,%eax
-+CLONE 0 0044 [ 3] cmp %rbp,%rdx
-+CLONE 0 0047 [ 4] cmovae %rax,%rsi
-+CLONE 0 004b [ 4] cmovb %rax,%rbx
-+CLONE 0 004f [ 4] add $0x8,%rsp
-+CLONE 0 0053 [ 3] mov %rbx,%rax
-+CLONE 0 0056 [ 3] mov %rsi,%rdx
-+CLONE 0 0059 [ 1] pop %rbx
-+CLONE 0 005a [ 1] pop %rbp
-+CLONE 0 005b [ 1] ret
-+CLONE 0 005c [ 4] nopl 0x0(%rax)
-+CLONE 0 0060 [ 4] lea 0x8(%rdi),%rbx
-+CLONE 0 0064 [ 4] cmp %rbx,0x18(%rdi)
-+CLONE 0 0068 [ 2] je <+0x80>
-+CLONE 0 006a [ 3] mov %rbx,%rdi
-+CLONE 0 006d [ 5] call <_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base@plt>
-+CLONE 0 0072 [ 3] mov %rbx,%rsi
-+CLONE 0 0075 [ 4] mov 0x20(%rax),%rdx
-+CLONE 0 0079 [ 3] mov %rax,%rbx
-+CLONE 0 007c [ 2] jmp <+0x42>
-+CLONE 0 007e [ 2] xchg %ax,%ax
-+CLONE 0 0080 [ 3] mov %rbx,%rsi
-+CLONE 0 0083 [ 4] add $0x8,%rsp
-+CLONE 0 0087 [ 2] xor %ebx,%ebx
-+CLONE 0 0089 [ 3] mov %rbx,%rax
-+CLONE 0 008c [ 3] mov %rsi,%rdx
-+CLONE 0 008f [ 1] pop %rbx
-+CLONE 0 0090 [ 1] pop %rbp
-+CLONE 0 0091 [ 1] ret
+ CLONE 0 00a4 [ 2] pop %r12
+ CLONE 0 00a6 [ 2] pop %r13
+ CLONE 0 00a8 [ 1] ret
+-CLONE 0 00a9 [ 7] lea <rip>(%rip),%rcx # <__PRETTY_FUNCTION__.0>
+-CLONE 0 00b0 [ 5] mov $0x239,%edx
+-CLONE 0 00b5 [ 7] lea <rip>(%rip),%rsi # <literal-string-74686972645f70617274792f6c75612f68656c706572732f6c75615f636d73677061636b2e6300>
+-CLONE 0 00bc [ 7] lea <rip>(%rip),%rdi # <literal-string-6c656e203c3d2055494e545f4d415800>
++CLONE 0 00a9 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 00b0 [ 5] mov $0x93bbfc19,%edx
++CLONE 0 00b5 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 00bc [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 00c3 [ 5] call <__assert_fail@plt>

@@ -1,120 +1,22 @@
-tomo_db0::script_thread_state()
+tomo_db0::parse_double_strict(tomo_db0::Slice, double&)
 --- headline
 
 +++ post
 
-@@ -1,59 +1,62 @@
+@@ -82,12 +82,12 @@
 
- CLONE 0 0000 [ 4] endbr64
- CLONE 0 0004 [ 4] sub $0x8,%rsp
--CLONE 0 0008 [ 9] cmpb $0x0,%fs:0xfffffffffffffeb0
--CLONE 0 0011 [ 6] je <+0x120>
--CLONE 0 0017 [10] cmpq $0x0,%fs:0xfffffffffffffed8
--CLONE 0 0021 [ 2] je <+0x90>
--CLONE 0 0023 [ 9] mov %fs:0xfffffffffffffee8,%rdx
--CLONE 0 002c [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
--CLONE 0 0033 [ 3] cmp %rax,%rdx
--CLONE 0 0036 [ 2] jne <+0x50>
--CLONE 0 0038 [ 9] mov %fs:0xfffffffffffffed8,%rax
--CLONE 0 0041 [ 3] test %rax,%rax
--CLONE 0 0044 [ 2] je <+0x90>
--CLONE 0 0046 [ 4] add $0x8,%rsp
--CLONE 0 004a [ 1] ret
--CLONE 0 004b [ 5] nopl 0x0(%rax,%rax,1)
--CLONE 0 0050 [ 9] mov %fs:0xfffffffffffffed8,%rdi
-+CLONE 0 0008 [ 9] cmpb $0x0,%fs:0xfffffffffffffea0
-+CLONE 0 0011 [ 6] je <+0x140>
-+CLONE 0 0017 [10] cmpq $0x0,%fs:0xfffffffffffffec8
-+CLONE 0 0021 [ 6] je <+0xb0>
-+CLONE 0 0027 [ 9] mov %fs:0xfffffffffffffed8,%rdx
-+CLONE 0 0030 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
-+CLONE 0 0037 [ 3] cmp %rax,%rdx
-+CLONE 0 003a [ 2] jne <+0x50>
-+CLONE 0 003c [ 9] mov %fs:0xfffffffffffffec8,%rax
-+CLONE 0 0045 [ 3] test %rax,%rax
-+CLONE 0 0048 [ 2] je <+0xb0>
-+CLONE 0 004a [ 4] add $0x8,%rsp
-+CLONE 0 004e [ 1] ret
-+CLONE 0 004f [ 1] nop
-+CLONE 0 0050 [ 9] mov %fs:0xfffffffffffffec8,%rdi
- CLONE 0 0059 [ 2] xor %edx,%edx
- CLONE 0 005b [ 2] xor %esi,%esi
- CLONE 0 005d [ 5] call <lua_createtable>
--CLONE 0 0062 [ 9] mov %fs:0xfffffffffffffed8,%rdi
-+CLONE 0 0062 [ 9] mov %fs:0xfffffffffffffec8,%rdi
- CLONE 0 006b [ 7] lea <rip>(%rip),%rdx # <literal-string-746f6d6f5f6368756e6b7300>
- CLONE 0 0072 [ 5] mov $0xffffd8f0,%esi
- CLONE 0 0077 [ 5] call <lua_setfield>
--CLONE 0 007c [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
--CLONE 0 0083 [ 9] mov %rax,%fs:0xfffffffffffffee8
--CLONE 0 008c [ 2] jmp <+0x38>
--CLONE 0 008e [ 2] xchg %ax,%ax
--CLONE 0 0090 [ 5] call <luaL_newstate>
--CLONE 0 0095 [ 9] mov %rax,%fs:0xfffffffffffffed8
--CLONE 0 009e [ 3] test %rax,%rax
--CLONE 0 00a1 [ 2] je <+0x46>
--CLONE 0 00a3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
--CLONE 0 00aa [ 9] mov %rax,%fs:0xfffffffffffffee8
--CLONE 0 00b3 [ 9] mov %fs:0x0,%rax
--CLONE 0 00bc [ 9] mov %fs:0xfffffffffffffed8,%rdi
--CLONE 0 00c5 [ 7] lea -0x120(%rax),%rsi
--CLONE 0 00cc [ 5] call <tomo_db0::(anonymous namespace)::create_sandbox_static(lua_State*, tomo_db0::(anonymous namespace)::ScriptContext**)>
--CLONE 0 00d1 [ 9] mov %fs:0xfffffffffffffed8,%rdi
--CLONE 0 00da [ 2] xor %edx,%edx
--CLONE 0 00dc [ 2] xor %esi,%esi
--CLONE 0 00de [ 5] call <lua_createtable>
--CLONE 0 00e3 [ 9] mov %fs:0xfffffffffffffed8,%rdi
--CLONE 0 00ec [ 7] lea <rip>(%rip),%rdx # <literal-string-746f6d6f5f6368756e6b7300>
--CLONE 0 00f3 [ 5] mov $0xffffd8f0,%esi
--CLONE 0 00f8 [ 5] call <lua_setfield>
--CLONE 0 00fd [ 8] lock incq <rip>(%rip) # <tomo_db0::(anonymous namespace)::g_state_rebuilds>
--CLONE 0 0105 [ 9] mov %fs:0xfffffffffffffed8,%rax
--CLONE 0 010e [ 4] add $0x8,%rsp
--CLONE 0 0112 [ 1] ret
--CLONE 0 0113 [11] data16 cs nopw 0x0(%rax,%rax,1)
--CLONE 0 011e [ 2] xchg %ax,%ax
--CLONE 0 0120 [ 9] mov %fs:0x0,%rax
--CLONE 0 0129 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
--CLONE 0 0130 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::LuaEngine::~LuaEngine()>
--CLONE 0 0137 [ 9] movb $0x1,%fs:0xfffffffffffffeb0
--CLONE 0 0140 [ 7] lea -0x128(%rax),%rsi
--CLONE 0 0147 [ 5] call <__cxa_thread_atexit@plt>
--CLONE 0 014c [ 5] jmp <+0x17>
-+CLONE 0 007c [ 9] mov %fs:0xfffffffffffffec8,%rdi
-+CLONE 0 0085 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f5f6576616c5f636a736f6e00>
-+CLONE 0 008c [ 5] call <tomo_db0::(anonymous namespace)::reset_cjson_environment(lua_State*, char const*)>
-+CLONE 0 0091 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
-+CLONE 0 0098 [ 9] mov %rax,%fs:0xfffffffffffffed8
-+CLONE 0 00a1 [ 2] jmp <+0x3c>
-+CLONE 0 00a3 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 0 00ae [ 2] xchg %ax,%ax
-+CLONE 0 00b0 [ 5] call <luaL_newstate>
-+CLONE 0 00b5 [ 9] mov %rax,%fs:0xfffffffffffffec8
-+CLONE 0 00be [ 3] test %rax,%rax
-+CLONE 0 00c1 [ 6] je <+0x4a>
-+CLONE 0 00c7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::(anonymous namespace)::g_script_flushes>
-+CLONE 0 00ce [ 9] mov %rax,%fs:0xfffffffffffffed8
-+CLONE 0 00d7 [ 9] mov %fs:0x0,%rax
-+CLONE 0 00e0 [ 9] mov %fs:0xfffffffffffffec8,%rdi
-+CLONE 0 00e9 [ 7] lea -0x130(%rax),%rsi
-+CLONE 0 00f0 [ 5] call <tomo_db0::(anonymous namespace)::create_sandbox_static(lua_State*, tomo_db0::(anonymous namespace)::ScriptContext**)>
-+CLONE 0 00f5 [ 9] mov %fs:0xfffffffffffffec8,%rdi
-+CLONE 0 00fe [ 2] xor %edx,%edx
-+CLONE 0 0100 [ 2] xor %esi,%esi
-+CLONE 0 0102 [ 5] call <lua_createtable>
-+CLONE 0 0107 [ 9] mov %fs:0xfffffffffffffec8,%rdi
-+CLONE 0 0110 [ 7] lea <rip>(%rip),%rdx # <literal-string-746f6d6f5f6368756e6b7300>
-+CLONE 0 0117 [ 5] mov $0xffffd8f0,%esi
-+CLONE 0 011c [ 5] call <lua_setfield>
-+CLONE 0 0121 [ 8] lock incq <rip>(%rip) # <tomo_db0::(anonymous namespace)::g_state_rebuilds>
-+CLONE 0 0129 [ 9] mov %fs:0xfffffffffffffec8,%rax
-+CLONE 0 0132 [ 4] add $0x8,%rsp
-+CLONE 0 0136 [ 1] ret
-+CLONE 0 0137 [ 9] nopw 0x0(%rax,%rax,1)
-+CLONE 0 0140 [ 9] mov %fs:0x0,%rax
-+CLONE 0 0149 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
-+CLONE 0 0150 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::LuaEngine::~LuaEngine()>
-+CLONE 0 0157 [ 9] movb $0x1,%fs:0xfffffffffffffea0
-+CLONE 0 0160 [ 7] lea -0x138(%rax),%rsi
-+CLONE 0 0167 [ 5] call <__cxa_thread_atexit@plt>
-+CLONE 0 016c [ 5] jmp <+0x17>
+ CLONE 0 016f [ 8] mov 0x110(%rsp),%rbx
+ CLONE 0 0177 [ 5] jmp <+0xaf>
+ CLONE 0 017c [ 4] nopl 0x0(%rax)
+-CLONE 0 0180 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0180 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0188 [ 4] vucomisd %xmm1,%xmm1
+ CLONE 0 018c [ 6] jp <+0xf1>
+-CLONE 0 0192 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x678>
++CLONE 0 0192 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 019a [ 6] ja <+0xf1>
+-CLONE 0 01a0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x698>
++CLONE 0 01a0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xd0>
+ CLONE 0 01a8 [ 2] jae <+0x12c>
+ CLONE 0 01aa [ 4] vxorpd %xmm1,%xmm1,%xmm1
+ CLONE 0 01ae [ 4] vucomisd %xmm1,%xmm0

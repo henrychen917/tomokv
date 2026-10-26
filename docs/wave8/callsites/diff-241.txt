@@ -1,15 +1,17 @@
-tomo::SetMemberTable::erase_at(unsigned int, unsigned int&)
---- headline
+tomo::Op::Sink::advance(unsigned long) [clone .isra.0]
+--- latencyfix
 
 +++ post
 
-@@ -56,7 +56,7 @@
+@@ -124,3 +124,10 @@
 
- CLONE 0 00e5 [ 4] mov 0x20(%rbx),%rdx
- CLONE 0 00e9 [ 4] mov 0x18(%rbx),%rdi
- CLONE 0 00ed [ 4] mov 0x28(%rbp),%r8d
--CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
-+CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
- CLONE 0 00f9 [ 3] mov -0x4(%rdx),%eax
- CLONE 0 00fc [ 4] sub $0x4,%rdx
- CLONE 0 0100 [ 4] mov %eax,(%rdi,%r8,4)
+ CLONE 17 000c [ 4] nopl 0x0(%rax)
+ CLONE 17 0010 [ 4] add %rdx,0x28(%rdi)
+ CLONE 17 0014 [ 1] ret
++CLONE 18 0000 [ 3] test %sil,%sil
++CLONE 18 0003 [ 2] je <+0x10>
++CLONE 18 0005 [ 6] add %edx,0xa4(%rdi)
++CLONE 18 000b [ 1] ret
++CLONE 18 000c [ 4] nopl 0x0(%rax)
++CLONE 18 0010 [ 4] add %rdx,0x28(%rdi)
++CLONE 18 0014 [ 1] ret

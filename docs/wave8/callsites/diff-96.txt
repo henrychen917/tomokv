@@ -1,15 +1,15 @@
-lua_getupvalue
---- headline
+luaV_execute
+--- execindex
 
 +++ post
 
-@@ -24,7 +24,7 @@
+@@ -183,7 +183,7 @@
 
- CLONE 0 004b [ 2] cltq
- CLONE 0 004d [ 4] shl $0x4,%rax
- CLONE 0 0051 [ 5] lea 0x28(%rdx,%rax,1),%rsi
--CLONE 0 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x126c8>
-+CLONE 0 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
- CLONE 0 005d [ 4] mov 0x10(%rcx),%rax
- CLONE 0 0061 [ 3] mov (%rsi),%rdi
- CLONE 0 0064 [ 3] mov 0x8(%rsi),%esi
+ CLONE 0 02de [ 4] lea (%r8,%r12,1),%rdx
+ CLONE 0 02e2 [ 6] jne <+0x13f0>
+ CLONE 0 02e8 [ 4] vmovsd (%rdx),%xmm0
+-CLONE 0 02ec [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5b8>
++CLONE 0 02ec [ 8] vxorpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
+ CLONE 0 02f4 [ 8] movl $0x3,0x8(%r10)
+ CLONE 0 02fc [ 5] vmovsd %xmm0,(%r10)
+ CLONE 0 0301 [11] data16 cs nopw 0x0(%rax,%rax,1)

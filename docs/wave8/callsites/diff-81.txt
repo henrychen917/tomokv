@@ -1,35 +1,19 @@
-funcargs
---- headline
+fpconv_g_fmt
+--- lualibs
 
 +++ post
 
-@@ -36,7 +36,7 @@
+@@ -75,8 +75,8 @@
 
- CLONE 0 0090 [ 5] mov $0x29,%esi
- CLONE 0 0095 [ 5] call <check_match>
- CLONE 0 009a [ 3] mov (%rsp),%eax
--CLONE 0 009d [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
-+CLONE 0 009d [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
- CLONE 0 00a4 [ 3] mov 0x8(%rbp),%ebx
- CLONE 0 00a7 [ 3] lea -0xd(%rax),%edx
- CLONE 0 00aa [ 3] cmp $0x1,%edx
-@@ -54,7 +54,7 @@
-
- CLONE 0 00d5 [ 3] mov %r14,%rsi
- CLONE 0 00d8 [ 4] mov %rax,(%rsp)
- CLONE 0 00dc [ 5] call <addk>
--CLONE 0 00e1 [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
-+CLONE 0 00e1 [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
- CLONE 0 00e8 [ 7] cmpl $0x11f,0x20(%rbx)
- CLONE 0 00ef [ 4] mov %eax,0x8(%rsp)
- CLONE 0 00f3 [ 3] mov 0x4(%rbx),%eax
-@@ -103,7 +103,7 @@
-
- CLONE 0 0198 [ 8] nopl 0x0(%rax,%rax,1)
- CLONE 0 01a0 [ 3] mov %rsp,%rsi
- CLONE 0 01a3 [ 5] call <constructor>
--CLONE 0 01a8 [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
-+CLONE 0 01a8 [ 7] mov <rip>(%rip),%r13 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
- CLONE 0 01af [ 3] mov (%rsp),%eax
- CLONE 0 01b2 [ 3] mov 0x8(%rbp),%ebx
- CLONE 0 01b5 [ 3] lea -0xd(%rax),%edx
+ CLONE 0 012e [ 5] call <__snprintf_chk@plt>
+ CLONE 0 0133 [ 2] jmp <+0xd9>
+ CLONE 0 0135 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 013a [ 7] lea <rip>(%rip),%rcx # <__PRETTY_FUNCTION__.1>
+-CLONE 0 0141 [ 5] mov $0x9e,%edx
+-CLONE 0 0146 [ 7] lea <rip>(%rip),%rsi # <literal-string-74686972645f70617274792f6c75612f68656c706572732f6670636f6e762e6300>
+-CLONE 0 014d [ 7] lea <rip>(%rip),%rdi # <literal-string-31203c3d20707265636973696f6e20262620707265636973696f6e203c3d20313400>
++CLONE 0 013a [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0141 [ 5] mov $0x9c7472e5,%edx
++CLONE 0 0146 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 014d [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0154 [ 5] call <__assert_fail@plt>

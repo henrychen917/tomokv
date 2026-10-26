@@ -3902,7 +3902,7 @@
   {
     "name": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -4399,7 +4399,7 @@
   {
     "name": "bool tomo::ExLoopT<false>::execute_timed<false, false>(tomo::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -4550,7 +4550,7 @@
   {
     "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -7182,7 +7182,7 @@
   {
     "name": "bool tomo::ExLoopT<true>::execute_timed<false, false>(tomo::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -8310,7 +8310,7 @@
   {
     "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -8807,7 +8807,7 @@
   {
     "name": "bool tomo_db0::ExLoopT<false>::execute_timed<false, false>(tomo_db0::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -8958,7 +8958,7 @@
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -11590,7 +11590,7 @@
   {
     "name": "bool tomo_db0::ExLoopT<true>::execute_timed<false, false>(tomo_db0::Task const&)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -13017,6 +13017,98 @@
     "diff": "docs/wave8/callsites/diff-80.txt"
   },
   {
+    "name": "fpconv_g_fmt",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      345
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <__snprintf_chk@plt>": 2,
+          "call <__stack_chk_fail@plt>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-81.txt"
+  },
+  {
     "name": "funcargs",
     "hot": false,
     "counted_command_scope": false,
@@ -13086,7 +13178,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-81.txt"
+    "diff": "docs/wave8/callsites/diff-82.txt"
   },
   {
     "name": "json_append_data",
@@ -13268,7 +13360,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-82.txt"
+    "diff": "docs/wave8/callsites/diff-83.txt"
   },
   {
     "name": "json_append_number",
@@ -13384,7 +13476,465 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-83.txt"
+    "diff": "docs/wave8/callsites/diff-84.txt"
+  },
+  {
+    "name": "json_cfg_encode_invalid_numbers",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      47
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <json_arg_init>": 1,
+          "call <json_enum_option.constprop.0.isra.0>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-85.txt"
+  },
+  {
+    "name": "json_enum_option.constprop.0.isra.0",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      166
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <lua_type>": 2,
+          "call <luaL_checkoption>": 1,
+          "jmp <lua_pushstring>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <lua_toboolean>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-86.txt"
+  },
+  {
+    "name": "json_next_token",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      1424
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <strncmp@plt>": 3,
+          "call <json_is_invalid_number.isra.0>": 2,
+          "call <fpconv_strtod>": 2,
+          "call <decode_hex4>": 2,
+          "call <__assert_fail@plt>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-87.txt"
+  },
+  {
+    "name": "json_process_value",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      1039
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "jmp <lua_pushlightuserdata>": 1,
+          "call <strbuf_free>": 5,
+          "jmp <luaL_error>": 1,
+          "call <json_decode_descend>": 2,
+          "call <lua_createtable>": 2,
+          "call <json_next_token>": 8,
+          "call <luaL_error>": 4,
+          "call <lua_pushlstring>": 1,
+          "call <lua_rawset>": 1,
+          "call <lua_rawseti>": 1,
+          "jmp <lua_pushlstring>": 1,
+          "jmp <lua_pushnumber>": 1,
+          "jmp <lua_pushboolean>": 1,
+          "call <__stack_chk_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-88.txt"
   },
   {
     "name": "luaB_collectgarbage",
@@ -13456,7 +14006,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-84.txt"
+    "diff": "docs/wave8/callsites/diff-89.txt"
   },
   {
     "name": "luaL_pushresult",
@@ -13529,7 +14079,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-85.txt"
+    "diff": "docs/wave8/callsites/diff-90.txt"
   },
   {
     "name": "luaL_where",
@@ -13602,7 +14152,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-86.txt"
+    "diff": "docs/wave8/callsites/diff-91.txt"
   },
   {
     "name": "luaO_pushvfstring",
@@ -13675,7 +14225,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-87.txt"
+    "diff": "docs/wave8/callsites/diff-92.txt"
   },
   {
     "name": "luaU_dump",
@@ -13747,7 +14297,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-88.txt"
+    "diff": "docs/wave8/callsites/diff-93.txt"
   },
   {
     "name": "luaU_header",
@@ -13819,7 +14369,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-89.txt"
+    "diff": "docs/wave8/callsites/diff-94.txt"
   },
   {
     "name": "luaU_undump",
@@ -13891,7 +14441,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-90.txt"
+    "diff": "docs/wave8/callsites/diff-95.txt"
   },
   {
     "name": "luaV_execute",
@@ -13961,7 +14511,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-91.txt"
+    "diff": "docs/wave8/callsites/diff-96.txt"
   },
   {
     "name": "lua_cjson_new",
@@ -14113,7 +14663,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-92.txt"
+    "diff": "docs/wave8/callsites/diff-97.txt"
   },
   {
     "name": "lua_concat",
@@ -14186,7 +14736,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-93.txt"
+    "diff": "docs/wave8/callsites/diff-98.txt"
   },
   {
     "name": "lua_dump",
@@ -14258,7 +14808,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-94.txt"
+    "diff": "docs/wave8/callsites/diff-99.txt"
   },
   {
     "name": "lua_getinfo",
@@ -14331,7 +14881,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-95.txt"
+    "diff": "docs/wave8/callsites/diff-100.txt"
   },
   {
     "name": "lua_getupvalue",
@@ -14404,7 +14954,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-96.txt"
+    "diff": "docs/wave8/callsites/diff-101.txt"
   },
   {
     "name": "lua_newstate",
@@ -14476,7 +15026,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-97.txt"
+    "diff": "docs/wave8/callsites/diff-102.txt"
   },
   {
     "name": "lua_setupvalue",
@@ -14549,7 +15099,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-98.txt"
+    "diff": "docs/wave8/callsites/diff-103.txt"
   },
   {
     "name": "luaopen_bit",
@@ -14659,7 +15209,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-99.txt"
+    "diff": "docs/wave8/callsites/diff-104.txt"
   },
   {
     "name": "luaopen_math",
@@ -14731,7 +15281,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-100.txt"
+    "diff": "docs/wave8/callsites/diff-105.txt"
   },
   {
     "name": "luaopen_string",
@@ -14804,7 +15354,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-101.txt"
+    "diff": "docs/wave8/callsites/diff-106.txt"
   },
   {
     "name": "main",
@@ -15032,7 +15582,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-102.txt"
+    "diff": "docs/wave8/callsites/diff-107.txt"
   },
   {
     "name": "main.cold",
@@ -15219,7 +15769,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-103.txt"
+    "diff": "docs/wave8/callsites/diff-108.txt"
   },
   {
     "name": "math_abs",
@@ -15290,7 +15840,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-104.txt"
+    "diff": "docs/wave8/callsites/diff-109.txt"
   },
   {
     "name": "math_deg",
@@ -15362,7 +15912,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-105.txt"
+    "diff": "docs/wave8/callsites/diff-110.txt"
   },
   {
     "name": "math_rad",
@@ -15434,7 +15984,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-106.txt"
+    "diff": "docs/wave8/callsites/diff-111.txt"
   },
   {
     "name": "math_random",
@@ -15506,7 +16056,215 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-107.txt"
+    "diff": "docs/wave8/callsites/diff-112.txt"
+  },
+  {
+    "name": "mp_decode_to_lua_array",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      206
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <luaL_checkstack>": 1,
+          "call <lua_pushnumber>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 1,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-113.txt"
+  },
+  {
+    "name": "mp_decode_to_lua_hash",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      200
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <lua_createtable>": 1,
+          "call <mp_decode_to_lua_type.part.0>": 2,
+          "call <lua_settable>": 1,
+          "call <__assert_fail@plt>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-114.txt"
   },
   {
     "name": "mp_decode_to_lua_type.part.0",
@@ -15628,7 +16386,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-108.txt"
+    "diff": "docs/wave8/callsites/diff-115.txt"
   },
   {
     "name": "mp_encode_lua_number",
@@ -15726,7 +16484,93 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-109.txt"
+    "diff": "docs/wave8/callsites/diff-116.txt"
+  },
+  {
+    "name": "optsize",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      247
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs"
+    ],
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST.",
+    "callsites": {
+      "headline": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "readability-a0": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "lualibs": {
+        "added": {},
+        "removed": {},
+        "same": true,
+        "clones_before": 1,
+        "clones_after": 1
+      },
+      "latencyfix": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "iofix3": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "execindex": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      },
+      "baseline_lualibs": {
+        "added": {
+          "call <getnum>": 2,
+          "call <luaL_error>": 1
+        },
+        "removed": {},
+        "same": false,
+        "clones_before": 0,
+        "clones_after": 1
+      }
+    },
+    "diff": "docs/wave8/callsites/diff-117.txt"
   },
   {
     "name": "singlevaraux",
@@ -15799,7 +16643,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-110.txt"
+    "diff": "docs/wave8/callsites/diff-118.txt"
   },
   {
     "name": "sort",
@@ -15872,7 +16716,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-111.txt"
+    "diff": "docs/wave8/callsites/diff-119.txt"
   },
   {
     "name": "std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >*) [clone .isra.0]",
@@ -15952,7 +16796,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-112.txt"
+    "diff": "docs/wave8/callsites/diff-120.txt"
   },
   {
     "name": "std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase_aux(std::_Rb_tree_const_iterator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >)",
@@ -16039,7 +16883,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-113.txt"
+    "diff": "docs/wave8/callsites/diff-121.txt"
   },
   {
     "name": "std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_get_insert_unique_pos(tomo::Op const* const&) [clone .isra.0]",
@@ -16119,7 +16963,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-114.txt"
+    "diff": "docs/wave8/callsites/diff-122.txt"
   },
   {
     "name": "std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::erase(tomo::Op const* const&) [clone .isra.0]",
@@ -16213,7 +17057,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-115.txt"
+    "diff": "docs/wave8/callsites/diff-123.txt"
   },
   {
     "name": "std::_Rb_tree<tomo_db0::Op const*, std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo_db0::Op const*>, std::allocator<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >*) [clone .isra.0]",
@@ -16293,7 +17137,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-116.txt"
+    "diff": "docs/wave8/callsites/diff-124.txt"
   },
   {
     "name": "std::_Rb_tree<tomo_db0::Op const*, std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo_db0::Op const*>, std::allocator<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase_aux(std::_Rb_tree_const_iterator<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >)",
@@ -16380,7 +17224,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-117.txt"
+    "diff": "docs/wave8/callsites/diff-125.txt"
   },
   {
     "name": "std::_Rb_tree<tomo_db0::Op const*, std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo_db0::Op const*>, std::allocator<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_get_insert_unique_pos(tomo_db0::Op const* const&) [clone .isra.0]",
@@ -16460,7 +17304,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-118.txt"
+    "diff": "docs/wave8/callsites/diff-126.txt"
   },
   {
     "name": "std::_Rb_tree<tomo_db0::Op const*, std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo_db0::Op const*>, std::allocator<std::pair<tomo_db0::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::erase(tomo_db0::Op const* const&) [clone .isra.0]",
@@ -16554,7 +17398,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-119.txt"
+    "diff": "docs/wave8/callsites/diff-127.txt"
   },
   {
     "name": "std::_Rb_tree_iterator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> > std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<unsigned int const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >, std::piecewise_construct_t const&, std::tuple<unsigned int const&>&&, std::tuple<>&&) [clone .constprop.0] [clone .isra.0]",
@@ -16662,7 +17506,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-120.txt"
+    "diff": "docs/wave8/callsites/diff-128.txt"
   },
   {
     "name": "std::_Rb_tree_iterator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<unsigned int const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::piecewise_construct_t const&, std::tuple<unsigned int const&>&&, std::tuple<>&&) [clone .constprop.0] [clone .isra.0]",
@@ -16770,7 +17614,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-121.txt"
+    "diff": "docs/wave8/callsites/diff-129.txt"
   },
   {
     "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
@@ -16980,7 +17824,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-122.txt"
+    "diff": "docs/wave8/callsites/diff-130.txt"
   },
   {
     "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
@@ -17078,7 +17922,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-123.txt"
+    "diff": "docs/wave8/callsites/diff-131.txt"
   },
   {
     "name": "std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >::push_back(tomo::MultiExecState* const&)",
@@ -17179,7 +18023,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-124.txt"
+    "diff": "docs/wave8/callsites/diff-132.txt"
   },
   {
     "name": "std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >::push_back(tomo_db0::MultiExecState* const&)",
@@ -17280,7 +18124,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-125.txt"
+    "diff": "docs/wave8/callsites/diff-133.txt"
   },
   {
     "name": "str_dump",
@@ -17352,7 +18196,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-126.txt"
+    "diff": "docs/wave8/callsites/diff-134.txt"
   },
   {
     "name": "str_format",
@@ -17425,7 +18269,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-127.txt"
+    "diff": "docs/wave8/callsites/diff-135.txt"
   },
   {
     "name": "str_sub",
@@ -17498,7 +18342,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-128.txt"
+    "diff": "docs/wave8/callsites/diff-136.txt"
   },
   {
     "name": "table_is_an_array",
@@ -17614,7 +18458,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-129.txt"
+    "diff": "docs/wave8/callsites/diff-137.txt"
   },
   {
     "name": "tconcat",
@@ -17687,7 +18531,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-130.txt"
+    "diff": "docs/wave8/callsites/diff-138.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::Cleanup::~Cleanup()",
@@ -17793,7 +18637,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-131.txt"
+    "diff": "docs/wave8/callsites/diff-139.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::ZsetMemberMap::erase(tomo::Slice) [clone .constprop.0] [clone .isra.0]",
@@ -17865,7 +18709,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-132.txt"
+    "diff": "docs/wave8/callsites/diff-140.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::ZsetMemberMap::rehash_step()",
@@ -17937,7 +18781,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-133.txt"
+    "diff": "docs/wave8/callsites/diff-141.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::acl_reply_log(tomo::Op&)",
@@ -18009,7 +18853,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-134.txt"
+    "diff": "docs/wave8/callsites/diff-142.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::allocate_state(tomo::Server&, tomo::Client&, unsigned int, tomo::MultiStateKind, unsigned long)",
@@ -18121,7 +18965,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-135.txt"
+    "diff": "docs/wave8/callsites/diff-143.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::append_lua_result(lua_State*, int, tomo::SmallBuf<96ul>&, unsigned int, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool, unsigned char) [clone .constprop.0]",
@@ -18193,12 +19037,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-136.txt"
+    "diff": "docs/wave8/callsites/diff-144.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -18279,7 +19123,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-137.txt"
+    "diff": "docs/wave8/callsites/diff-145.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)",
@@ -18351,7 +19195,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-138.txt"
+    "diff": "docs/wave8/callsites/diff-146.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
@@ -18441,7 +19285,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-139.txt"
+    "diff": "docs/wave8/callsites/diff-147.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)",
@@ -18724,7 +19568,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-140.txt"
+    "diff": "docs/wave8/callsites/diff-148.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]",
@@ -18836,7 +19680,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-141.txt"
+    "diff": "docs/wave8/callsites/diff-149.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
@@ -19131,7 +19975,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-142.txt"
+    "diff": "docs/wave8/callsites/diff-150.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_memory(tomo::Shard&, tomo::Op&)",
@@ -19204,7 +20048,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-143.txt"
+    "diff": "docs/wave8/callsites/diff-151.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_slowlog(tomo::Shard&, tomo::Op&)",
@@ -19277,7 +20121,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-144.txt"
+    "diff": "docs/wave8/callsites/diff-152.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::collect()",
@@ -19408,7 +20252,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-145.txt"
+    "diff": "docs/wave8/callsites/diff-153.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::collect() [clone .cold]",
@@ -19508,7 +20352,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-146.txt"
+    "diff": "docs/wave8/callsites/diff-154.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::compact_pairs(tomo::CollectionRef const&, std::vector<tomo::(anonymous namespace)::PairView, std::allocator<tomo::(anonymous namespace)::PairView> >&) [clone .cold]",
@@ -19606,7 +20450,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-147.txt"
+    "diff": "docs/wave8/callsites/diff-155.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)",
@@ -19707,7 +20551,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-148.txt"
+    "diff": "docs/wave8/callsites/diff-156.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]",
@@ -19790,7 +20634,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-149.txt"
+    "diff": "docs/wave8/callsites/diff-157.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
@@ -19873,7 +20717,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-150.txt"
+    "diff": "docs/wave8/callsites/diff-158.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::geo_distance(double, double, double, double)",
@@ -19945,7 +20789,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-151.txt"
+    "diff": "docs/wave8/callsites/diff-159.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::geo_encode(double, double)",
@@ -20017,7 +20861,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-152.txt"
+    "diff": "docs/wave8/callsites/diff-160.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::init_config(tomo::Config const&)",
@@ -20474,7 +21318,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-153.txt"
+    "diff": "docs/wave8/callsites/diff-161.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
@@ -20547,7 +21391,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-154.txt"
+    "diff": "docs/wave8/callsites/diff-162.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -20619,7 +21463,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-155.txt"
+    "diff": "docs/wave8/callsites/diff-163.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&)::{lambda(unsigned int)#2}::operator()(unsigned int) const",
@@ -20691,7 +21535,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-156.txt"
+    "diff": "docs/wave8/callsites/diff-164.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
@@ -20763,7 +21607,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-157.txt"
+    "diff": "docs/wave8/callsites/diff-165.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
@@ -20917,7 +21761,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-158.txt"
+    "diff": "docs/wave8/callsites/diff-166.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::queue_aof_sync(tomo::Ring&, tomo::(anonymous namespace)::AofIoRequest&, bool) [clone .constprop.0]",
@@ -20989,7 +21833,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-159.txt"
+    "diff": "docs/wave8/callsites/diff-167.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
@@ -21177,7 +22021,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-160.txt"
+    "diff": "docs/wave8/callsites/diff-168.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]",
@@ -21283,7 +22127,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-161.txt"
+    "diff": "docs/wave8/callsites/diff-169.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::retire_script_children(tomo::(anonymous namespace)::ExecutorHistograms&, tomo::Op const&)",
@@ -21377,7 +22221,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-162.txt"
+    "diff": "docs/wave8/callsites/diff-170.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .isra.0]",
@@ -21487,7 +22331,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-163.txt"
+    "diff": "docs/wave8/callsites/diff-171.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::run_library_body(lua_State*, tomo::Slice, tomo::(anonymous namespace)::RegisterSink&, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
@@ -21601,7 +22445,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-164.txt"
+    "diff": "docs/wave8/callsites/diff-172.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::run_search(tomo::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::(anonymous namespace)::GeoResult, std::allocator<tomo::(anonymous namespace)::GeoResult> >&)",
@@ -21673,7 +22517,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-165.txt"
+    "diff": "docs/wave8/callsites/diff-173.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::sha256_password(tomo::Slice) [clone .isra.0]",
@@ -21745,7 +22589,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-166.txt"
+    "diff": "docs/wave8/callsites/diff-174.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::store(unsigned int)",
@@ -21831,12 +22675,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-167.txt"
+    "diff": "docs/wave8/callsites/diff-175.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -21902,7 +22746,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-168.txt"
+    "diff": "docs/wave8/callsites/diff-176.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::stream_snapshot_load(tomo::Slice, unsigned char, long, tomo::Slice, tomo::TypeLimits const&, tomo::KvObj*&)",
@@ -21974,7 +22818,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-169.txt"
+    "diff": "docs/wave8/callsites/diff-177.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_add_claim(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> >&, tomo::Slice, tomo::TxnClaimMode, bool)",
@@ -22086,7 +22930,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-170.txt"
+    "diff": "docs/wave8/callsites/diff-178.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_cap_claims(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> >&)",
@@ -22186,7 +23030,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-171.txt"
+    "diff": "docs/wave8/callsites/diff-179.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_group_arrive(tomo::ScatterState&, tomo::Shard&, tomo::Op&)",
@@ -22304,7 +23148,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-172.txt"
+    "diff": "docs/wave8/callsites/diff-180.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_group_prepare(tomo::ScatterState&, tomo::Server&, unsigned int, tomo::ScatterArenaPool*)",
@@ -22386,7 +23230,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-173.txt"
+    "diff": "docs/wave8/callsites/diff-181.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_link_waiter(tomo::TxnKeyQueue&, tomo::TxnWaiter&, tomo::TxnReservation const&, bool)",
@@ -22478,7 +23322,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-174.txt"
+    "diff": "docs/wave8/callsites/diff-182.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::txn_unlink_waiter(tomo::TxnWaiter&, bool)",
@@ -22558,7 +23402,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-175.txt"
+    "diff": "docs/wave8/callsites/diff-183.txt"
   },
   {
     "name": "tomo::(anonymous namespace)::watch_note_database(tomo::TxnReservation&, tomo::Server*, unsigned char)",
@@ -22638,7 +23482,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-176.txt"
+    "diff": "docs/wave8/callsites/diff-184.txt"
   },
   {
     "name": "tomo::AofManager::debug_arm_ack_window(unsigned int, tomo::Slice)",
@@ -22709,7 +23553,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-177.txt"
+    "diff": "docs/wave8/callsites/diff-185.txt"
   },
   {
     "name": "tomo::AofManager::prepare_group_commit(tomo::AofStreamOwner::OpenToken const&, tomo::AofChunk&, unsigned char*)",
@@ -22781,7 +23625,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-178.txt"
+    "diff": "docs/wave8/callsites/diff-186.txt"
   },
   {
     "name": "tomo::AofManager::reply_write_error(tomo::Op&, bool) const",
@@ -22871,7 +23715,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-179.txt"
+    "diff": "docs/wave8/callsites/diff-187.txt"
   },
   {
     "name": "tomo::AofProducer::record_post_image(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::AofOwnerContext&, unsigned long)",
@@ -22942,7 +23786,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-180.txt"
+    "diff": "docs/wave8/callsites/diff-188.txt"
   },
   {
     "name": "tomo::Config::Config()",
@@ -23015,7 +23859,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-181.txt"
+    "diff": "docs/wave8/callsites/diff-189.txt"
   },
   {
     "name": "tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*)",
@@ -23087,7 +23931,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-182.txt"
+    "diff": "docs/wave8/callsites/diff-190.txt"
   },
   {
     "name": "tomo::ExLoopT<false>::execute_latency<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23174,7 +24018,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-183.txt"
+    "diff": "docs/wave8/callsites/diff-191.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -23307,7 +24151,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-184.txt"
+    "diff": "docs/wave8/callsites/diff-192.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -23440,7 +24284,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-185.txt"
+    "diff": "docs/wave8/callsites/diff-193.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23527,7 +24371,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-186.txt"
+    "diff": "docs/wave8/callsites/diff-194.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23614,7 +24458,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-187.txt"
+    "diff": "docs/wave8/callsites/diff-195.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_latency<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23701,7 +24545,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-188.txt"
+    "diff": "docs/wave8/callsites/diff-196.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_latency<false, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23788,7 +24632,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-189.txt"
+    "diff": "docs/wave8/callsites/diff-197.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_latency<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23875,7 +24719,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-190.txt"
+    "diff": "docs/wave8/callsites/diff-198.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_latency<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -23962,7 +24806,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-191.txt"
+    "diff": "docs/wave8/callsites/diff-199.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_timed<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -24049,7 +24893,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-192.txt"
+    "diff": "docs/wave8/callsites/diff-200.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::execute_timed<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
@@ -24136,7 +24980,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-193.txt"
+    "diff": "docs/wave8/callsites/diff-201.txt"
   },
   {
     "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
@@ -24208,7 +25052,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-194.txt"
+    "diff": "docs/wave8/callsites/diff-202.txt"
   },
   {
     "name": "tomo::FlatStore::make_word(unsigned short, tomo::KvObj*) [clone .part.0]",
@@ -24326,7 +25170,7 @@
         "clones_after": 19
       }
     },
-    "diff": "docs/wave8/callsites/diff-195.txt"
+    "diff": "docs/wave8/callsites/diff-203.txt"
   },
   {
     "name": "tomo::FlipController::anchor(tomo::Server&, double)",
@@ -24398,7 +25242,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-196.txt"
+    "diff": "docs/wave8/callsites/diff-204.txt"
   },
   {
     "name": "tomo::FlipController::baseline_band() const",
@@ -24470,7 +25314,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-197.txt"
+    "diff": "docs/wave8/callsites/diff-205.txt"
   },
   {
     "name": "tomo::FlipController::boot_load_stable(tomo::Server&, unsigned long)",
@@ -24542,7 +25386,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-198.txt"
+    "diff": "docs/wave8/callsites/diff-206.txt"
   },
   {
     "name": "tomo::FlipController::debug_dump[abi:cxx11]() const",
@@ -24614,7 +25458,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-199.txt"
+    "diff": "docs/wave8/callsites/diff-207.txt"
   },
   {
     "name": "tomo::FlipController::decide_placement(tomo::Server&, unsigned int, unsigned long, double)",
@@ -24700,7 +25544,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-200.txt"
+    "diff": "docs/wave8/callsites/diff-208.txt"
   },
   {
     "name": "tomo::FlipController::learn_anchored_rate(double)",
@@ -24772,7 +25616,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-201.txt"
+    "diff": "docs/wave8/callsites/diff-209.txt"
   },
   {
     "name": "tomo::FlipController::observe_rate(unsigned long, unsigned long)",
@@ -24844,7 +25688,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-202.txt"
+    "diff": "docs/wave8/callsites/diff-210.txt"
   },
   {
     "name": "tomo::FlipController::pair_rate(double, double&)",
@@ -24915,7 +25759,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-203.txt"
+    "diff": "docs/wave8/callsites/diff-211.txt"
   },
   {
     "name": "tomo::FlipController::report() const",
@@ -25033,7 +25877,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-204.txt"
+    "diff": "docs/wave8/callsites/diff-212.txt"
   },
   {
     "name": "tomo::FlipController::sample_anchored_rate(tomo::Server&, unsigned long, double&)",
@@ -25105,7 +25949,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-205.txt"
+    "diff": "docs/wave8/callsites/diff-213.txt"
   },
   {
     "name": "tomo::FlipController::sample_rate(tomo::Server&, unsigned long, double&)",
@@ -25177,7 +26021,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-206.txt"
+    "diff": "docs/wave8/callsites/diff-214.txt"
   },
   {
     "name": "tomo::FlipController::sample_role_demand(tomo::Server&, unsigned long, double&, double&, double&)",
@@ -25249,7 +26093,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-207.txt"
+    "diff": "docs/wave8/callsites/diff-215.txt"
   },
   {
     "name": "tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)",
@@ -25321,7 +26165,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-208.txt"
+    "diff": "docs/wave8/callsites/diff-216.txt"
   },
   {
     "name": "tomo::FlipController::stabilize_rate(double&)",
@@ -25393,7 +26237,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-209.txt"
+    "diff": "docs/wave8/callsites/diff-217.txt"
   },
   {
     "name": "tomo::FlipController::start_maneuver(tomo::Server&, tomo::FlipctlTriggerReason, unsigned long)",
@@ -25465,7 +26309,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-210.txt"
+    "diff": "docs/wave8/callsites/diff-218.txt"
   },
   {
     "name": "tomo::FlipController::verification_band(double) const",
@@ -25537,7 +26381,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-211.txt"
+    "diff": "docs/wave8/callsites/diff-219.txt"
   },
   {
     "name": "tomo::FlipListenerState::admit(tomo::IoLoop&, int, tomo::UrKind) [clone .isra.0]",
@@ -25609,7 +26453,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-212.txt"
+    "diff": "docs/wave8/callsites/diff-220.txt"
   },
   {
     "name": "tomo::FlipShiftDetector::observe(tomo::FlipFingerprintWindow const&)",
@@ -25681,7 +26525,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-213.txt"
+    "diff": "docs/wave8/callsites/diff-221.txt"
   },
   {
     "name": "tomo::FlipShiftDetector::update_band()",
@@ -25753,7 +26597,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-214.txt"
+    "diff": "docs/wave8/callsites/diff-222.txt"
   },
   {
     "name": "tomo::HashFieldMap::Node::Node(unsigned long, tomo::Slice, tomo::Slice)",
@@ -25826,7 +26670,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-215.txt"
+    "diff": "docs/wave8/callsites/diff-223.txt"
   },
   {
     "name": "tomo::HashFieldMap::set(tomo::Slice, tomo::Slice)",
@@ -25899,7 +26743,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-216.txt"
+    "diff": "docs/wave8/callsites/diff-224.txt"
   },
   {
     "name": "tomo::HashFieldTtl::erase(tomo::Slice)",
@@ -25971,7 +26815,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-217.txt"
+    "diff": "docs/wave8/callsites/diff-225.txt"
   },
   {
     "name": "tomo::HashFieldTtl::set(tomo::Slice, long)",
@@ -26044,7 +26888,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-218.txt"
+    "diff": "docs/wave8/callsites/diff-226.txt"
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
@@ -26177,7 +27021,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-219.txt"
+    "diff": "docs/wave8/callsites/diff-227.txt"
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
@@ -26367,7 +27211,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-220.txt"
+    "diff": "docs/wave8/callsites/diff-228.txt"
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
@@ -26624,7 +27468,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-221.txt"
+    "diff": "docs/wave8/callsites/diff-229.txt"
   },
   {
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
@@ -26765,7 +27609,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-222.txt"
+    "diff": "docs/wave8/callsites/diff-230.txt"
   },
   {
     "name": "tomo::IoLoop::IoLoop()",
@@ -26837,7 +27681,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-223.txt"
+    "diff": "docs/wave8/callsites/diff-231.txt"
   },
   {
     "name": "tomo::IoLoop::climon_serve_suppressed(tomo::Client*)",
@@ -26909,7 +27753,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-224.txt"
+    "diff": "docs/wave8/callsites/diff-232.txt"
   },
   {
     "name": "tomo::IoLoop::fliplisten_commit()",
@@ -26981,7 +27825,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-225.txt"
+    "diff": "docs/wave8/callsites/diff-233.txt"
   },
   {
     "name": "tomo::IoLoop::lb_client_signal_pass()",
@@ -27053,7 +27897,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-226.txt"
+    "diff": "docs/wave8/callsites/diff-234.txt"
   },
   {
     "name": "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra.0]",
@@ -27143,7 +27987,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-227.txt"
+    "diff": "docs/wave8/callsites/diff-235.txt"
   },
   {
     "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
@@ -27260,7 +28104,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-228.txt"
+    "diff": "docs/wave8/callsites/diff-236.txt"
   },
   {
     "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
@@ -27364,7 +28208,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-229.txt"
+    "diff": "docs/wave8/callsites/diff-237.txt"
   },
   {
     "name": "tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
@@ -27436,7 +28280,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-230.txt"
+    "diff": "docs/wave8/callsites/diff-238.txt"
   },
   {
     "name": "tomo::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
@@ -27508,7 +28352,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-231.txt"
+    "diff": "docs/wave8/callsites/diff-239.txt"
   },
   {
     "name": "tomo::MultiExecState::~MultiExecState()",
@@ -27596,12 +28440,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-232.txt"
+    "diff": "docs/wave8/callsites/diff-240.txt"
   },
   {
     "name": "tomo::Op::Sink::advance(unsigned long) [clone .isra.0]",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -27699,7 +28543,7 @@
         "clones_after": 19
       }
     },
-    "diff": "docs/wave8/callsites/diff-233.txt"
+    "diff": "docs/wave8/callsites/diff-241.txt"
   },
   {
     "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned long)",
@@ -27829,7 +28673,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-234.txt"
+    "diff": "docs/wave8/callsites/diff-242.txt"
   },
   {
     "name": "tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*)",
@@ -27926,7 +28770,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-235.txt"
+    "diff": "docs/wave8/callsites/diff-243.txt"
   },
   {
     "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)",
@@ -27998,7 +28842,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-236.txt"
+    "diff": "docs/wave8/callsites/diff-244.txt"
   },
   {
     "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&)#1}::operator()(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&) const [clone .isra.0]",
@@ -28070,7 +28914,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-237.txt"
+    "diff": "docs/wave8/callsites/diff-245.txt"
   },
   {
     "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
@@ -28142,7 +28986,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-238.txt"
+    "diff": "docs/wave8/callsites/diff-246.txt"
   },
   {
     "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)",
@@ -28214,7 +29058,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-239.txt"
+    "diff": "docs/wave8/callsites/diff-247.txt"
   },
   {
     "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
@@ -28286,7 +29130,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-240.txt"
+    "diff": "docs/wave8/callsites/diff-248.txt"
   },
   {
     "name": "tomo::SetMemberTable::erase_at(unsigned int, unsigned int&)",
@@ -28358,7 +29202,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-241.txt"
+    "diff": "docs/wave8/callsites/diff-249.txt"
   },
   {
     "name": "tomo::Shard::watch_append_reservation(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::TxnReservation const&, tomo::TxnWaiter*)",
@@ -28486,7 +29330,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-242.txt"
+    "diff": "docs/wave8/callsites/diff-250.txt"
   },
   {
     "name": "tomo::Shard::watch_flush(int) [clone .cold]",
@@ -28588,12 +29432,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-243.txt"
+    "diff": "docs/wave8/callsites/diff-251.txt"
   },
   {
     "name": "tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -28687,7 +29531,7 @@
         "clones_after": 16
       }
     },
-    "diff": "docs/wave8/callsites/diff-244.txt"
+    "diff": "docs/wave8/callsites/diff-252.txt"
   },
   {
     "name": "tomo::TxnGroupAttempt::~TxnGroupAttempt()",
@@ -28769,7 +29613,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-245.txt"
+    "diff": "docs/wave8/callsites/diff-253.txt"
   },
   {
     "name": "tomo::TxnRetryQueues::link(tomo::MultiOwnerRetryNode&, bool) [clone .part.0]",
@@ -28855,7 +29699,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-246.txt"
+    "diff": "docs/wave8/callsites/diff-254.txt"
   },
   {
     "name": "tomo::TxnRetryQueues::unlink(tomo::MultiOwnerRetryNode&) [clone .part.0]",
@@ -28938,7 +29782,7 @@
         "clones_after": 4
       }
     },
-    "diff": "docs/wave8/callsites/diff-247.txt"
+    "diff": "docs/wave8/callsites/diff-255.txt"
   },
   {
     "name": "tomo::TxnWaiter::operator=(tomo::TxnWaiter const&) [clone .part.0]",
@@ -29018,7 +29862,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-248.txt"
+    "diff": "docs/wave8/callsites/diff-256.txt"
   },
   {
     "name": "tomo::TxnWaiter::~TxnWaiter()",
@@ -29098,7 +29942,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-249.txt"
+    "diff": "docs/wave8/callsites/diff-257.txt"
   },
   {
     "name": "tomo::acl_command_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&)",
@@ -29168,7 +30012,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-250.txt"
+    "diff": "docs/wave8/callsites/diff-258.txt"
   },
   {
     "name": "tomo::acl_initialize(tomo::Server&, tomo::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -29349,7 +30193,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-251.txt"
+    "diff": "docs/wave8/callsites/diff-259.txt"
   },
   {
     "name": "tomo::aof_record_local_op(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
@@ -29420,7 +30264,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-252.txt"
+    "diff": "docs/wave8/callsites/diff-260.txt"
   },
   {
     "name": "tomo::atomic_epoch(tomo::AtomicEntry const&)",
@@ -29492,7 +30336,7 @@
         "clones_after": 3
       }
     },
-    "diff": "docs/wave8/callsites/diff-253.txt"
+    "diff": "docs/wave8/callsites/diff-261.txt"
   },
   {
     "name": "tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)",
@@ -29564,7 +30408,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-254.txt"
+    "diff": "docs/wave8/callsites/diff-262.txt"
   },
   {
     "name": "tomo::cfg_latency_percentiles(tomo::Slice, std::vector<double, std::allocator<double> >&, char const*&)",
@@ -29710,7 +30554,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-255.txt"
+    "diff": "docs/wave8/callsites/diff-263.txt"
   },
   {
     "name": "tomo::command_client_reset_meta(tomo::Client*)",
@@ -29783,7 +30627,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-256.txt"
+    "diff": "docs/wave8/callsites/diff-264.txt"
   },
   {
     "name": "tomo::command_metadata_init(tomo::CommandSpec const*, unsigned long)",
@@ -29856,7 +30700,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-257.txt"
+    "diff": "docs/wave8/callsites/diff-265.txt"
   },
   {
     "name": "tomo::debug_sleep_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long&)",
@@ -29952,7 +30796,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-258.txt"
+    "diff": "docs/wave8/callsites/diff-266.txt"
   },
   {
     "name": "tomo::dtoa::grisu2_digits(double, char*, int&)",
@@ -30024,7 +30868,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-259.txt"
+    "diff": "docs/wave8/callsites/diff-267.txt"
   },
   {
     "name": "tomo::flip_signature_distance(tomo::FlipSignature const&, tomo::FlipSignature const&)",
@@ -30096,7 +30940,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-260.txt"
+    "diff": "docs/wave8/callsites/diff-268.txt"
   },
   {
     "name": "tomo::flip_signature_pass_distance(tomo::FlipSignature const&, tomo::FlipSignature const&)",
@@ -30168,7 +31012,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-261.txt"
+    "diff": "docs/wave8/callsites/diff-269.txt"
   },
   {
     "name": "tomo::fliplisten_reserve(tomo::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -30240,7 +31084,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-262.txt"
+    "diff": "docs/wave8/callsites/diff-270.txt"
   },
   {
     "name": "tomo::hll::(anonymous namespace)::estimate(int const (&) [64])",
@@ -30312,7 +31156,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-263.txt"
+    "diff": "docs/wave8/callsites/diff-271.txt"
   },
   {
     "name": "tomo::hll::selftest[abi:cxx11]()",
@@ -30384,7 +31228,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-264.txt"
+    "diff": "docs/wave8/callsites/diff-272.txt"
   },
   {
     "name": "tomo::latency_tracking_discard_pending()",
@@ -30496,7 +31340,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-265.txt"
+    "diff": "docs/wave8/callsites/diff-273.txt"
   },
   {
     "name": "tomo::latency_tracking_forget(tomo::Op const&)",
@@ -30626,7 +31470,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-266.txt"
+    "diff": "docs/wave8/callsites/diff-274.txt"
   },
   {
     "name": "tomo::latency_tracking_forget_client(tomo::Client&)",
@@ -30756,7 +31600,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-267.txt"
+    "diff": "docs/wave8/callsites/diff-275.txt"
   },
   {
     "name": "tomo::latency_tracking_info(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::vector<double, std::allocator<double> > const&, bool)",
@@ -30920,7 +31764,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-268.txt"
+    "diff": "docs/wave8/callsites/diff-276.txt"
   },
   {
     "name": "tomo::latency_tracking_record(unsigned int, tomo::Op const&, unsigned long)",
@@ -31080,7 +31924,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-269.txt"
+    "diff": "docs/wave8/callsites/diff-277.txt"
   },
   {
     "name": "tomo::latency_tracking_retire(unsigned int, tomo::Op const&)",
@@ -31219,7 +32063,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-270.txt"
+    "diff": "docs/wave8/callsites/diff-278.txt"
   },
   {
     "name": "tomo::latency_tracking_retire(unsigned int, tomo::Op const&) [clone .cold]",
@@ -31306,7 +32150,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-271.txt"
+    "diff": "docs/wave8/callsites/diff-279.txt"
   },
   {
     "name": "tomo::latency_tracking_retry(tomo::Op const&, tomo::Op const&)",
@@ -31435,7 +32279,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-272.txt"
+    "diff": "docs/wave8/callsites/diff-280.txt"
   },
   {
     "name": "tomo::latency_tracking_script_begin(tomo::Op const&)",
@@ -31543,7 +32387,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-273.txt"
+    "diff": "docs/wave8/callsites/diff-281.txt"
   },
   {
     "name": "tomo::latency_tracking_script_part(unsigned int, tomo::Op const&, tomo::Op const&, unsigned long)",
@@ -31742,7 +32586,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-274.txt"
+    "diff": "docs/wave8/callsites/diff-282.txt"
   },
   {
     "name": "tomo::latency_tracking_script_part(unsigned int, tomo::Op const&, tomo::Op const&, unsigned long) [clone .cold]",
@@ -31836,7 +32680,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-275.txt"
+    "diff": "docs/wave8/callsites/diff-283.txt"
   },
   {
     "name": "tomo::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
@@ -31908,7 +32752,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-276.txt"
+    "diff": "docs/wave8/callsites/diff-284.txt"
   },
   {
     "name": "tomo::lbsignals_capture(tomo::Server&)",
@@ -31980,7 +32824,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-277.txt"
+    "diff": "docs/wave8/callsites/diff-285.txt"
   },
   {
     "name": "tomo::lbsignals_info_section(tomo::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -32052,7 +32896,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-278.txt"
+    "diff": "docs/wave8/callsites/diff-286.txt"
   },
   {
     "name": "tomo::load_conf_file(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned long, std::allocator<unsigned long> >*)",
@@ -32159,7 +33003,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-279.txt"
+    "diff": "docs/wave8/callsites/diff-287.txt"
   },
   {
     "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)",
@@ -32443,7 +33287,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-280.txt"
+    "diff": "docs/wave8/callsites/diff-288.txt"
   },
   {
     "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*) [clone .cold]",
@@ -32548,7 +33392,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-281.txt"
+    "diff": "docs/wave8/callsites/diff-289.txt"
   },
   {
     "name": "tomo::multi_retire(tomo::Client&, tomo::Op&, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&)",
@@ -32652,7 +33496,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-282.txt"
+    "diff": "docs/wave8/callsites/diff-290.txt"
   },
   {
     "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
@@ -32723,7 +33567,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-283.txt"
+    "diff": "docs/wave8/callsites/diff-291.txt"
   },
   {
     "name": "tomo::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo::Config&, tomo::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
@@ -32928,7 +33772,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-284.txt"
+    "diff": "docs/wave8/callsites/diff-292.txt"
   },
   {
     "name": "tomo::parse_double_strict(tomo::Slice, double&)",
@@ -33000,7 +33844,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-285.txt"
+    "diff": "docs/wave8/callsites/diff-293.txt"
   },
   {
     "name": "tomo::parse_long_double_strict(tomo::Slice, long double&)",
@@ -33070,7 +33914,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-286.txt"
+    "diff": "docs/wave8/callsites/diff-294.txt"
   },
   {
     "name": "tomo::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
@@ -33150,7 +33994,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-287.txt"
+    "diff": "docs/wave8/callsites/diff-295.txt"
   },
   {
     "name": "tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
@@ -33268,7 +34112,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-288.txt"
+    "diff": "docs/wave8/callsites/diff-296.txt"
   },
   {
     "name": "tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
@@ -33386,7 +34230,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-289.txt"
+    "diff": "docs/wave8/callsites/diff-297.txt"
   },
   {
     "name": "tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
@@ -33504,7 +34348,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-290.txt"
+    "diff": "docs/wave8/callsites/diff-298.txt"
   },
   {
     "name": "tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)",
@@ -33644,7 +34488,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-291.txt"
+    "diff": "docs/wave8/callsites/diff-299.txt"
   },
   {
     "name": "tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&) [clone .cold]",
@@ -33756,7 +34600,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-292.txt"
+    "diff": "docs/wave8/callsites/diff-300.txt"
   },
   {
     "name": "tomo::script_pcall_library(lua_State*)",
@@ -33870,7 +34714,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-293.txt"
+    "diff": "docs/wave8/callsites/diff-301.txt"
   },
   {
     "name": "tomo::script_thread_state()",
@@ -33977,7 +34821,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-294.txt"
+    "diff": "docs/wave8/callsites/diff-302.txt"
   },
   {
     "name": "tomo::server_tail_config_subcommand(tomo::Op&)",
@@ -34312,7 +35156,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-295.txt"
+    "diff": "docs/wave8/callsites/diff-303.txt"
   },
   {
     "name": "tomo::sort_run(tomo::SortSpec const&, tomo::SortResolved const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned char, std::allocator<unsigned char> >&)",
@@ -34385,7 +35229,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-296.txt"
+    "diff": "docs/wave8/callsites/diff-304.txt"
   },
   {
     "name": "tomo::stream_parse_xreadgroup(tomo::Op&, tomo::StreamXreadGroupArgs&)",
@@ -34457,7 +35301,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-297.txt"
+    "diff": "docs/wave8/callsites/diff-305.txt"
   },
   {
     "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)",
@@ -34553,12 +35397,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-298.txt"
+    "diff": "docs/wave8/callsites/diff-306.txt"
   },
   {
     "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": true,
     "equal": false,
     "headline_sizes": [
@@ -34742,7 +35586,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-299.txt"
+    "diff": "docs/wave8/callsites/diff-307.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::Cleanup::~Cleanup()",
@@ -34848,7 +35692,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-300.txt"
+    "diff": "docs/wave8/callsites/diff-308.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::ZsetMemberMap::erase(tomo_db0::Slice) [clone .isra.0]",
@@ -34920,7 +35764,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-301.txt"
+    "diff": "docs/wave8/callsites/diff-309.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::ZsetMemberMap::rehash_step()",
@@ -34992,7 +35836,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-302.txt"
+    "diff": "docs/wave8/callsites/diff-310.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)",
@@ -35064,7 +35908,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-303.txt"
+    "diff": "docs/wave8/callsites/diff-311.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long)",
@@ -35176,7 +36020,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-304.txt"
+    "diff": "docs/wave8/callsites/diff-312.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::append_lua_result(lua_State*, int, tomo_db0::SmallBuf<96ul>&, unsigned int, unsigned int&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool, unsigned char) [clone .constprop.0]",
@@ -35248,12 +36092,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-305.txt"
+    "diff": "docs/wave8/callsites/diff-313.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -35329,7 +36173,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-306.txt"
+    "diff": "docs/wave8/callsites/diff-314.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -35483,7 +36327,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-307.txt"
+    "diff": "docs/wave8/callsites/diff-315.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -35778,7 +36622,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-308.txt"
+    "diff": "docs/wave8/callsites/diff-316.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -35851,7 +36695,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-309.txt"
+    "diff": "docs/wave8/callsites/diff-317.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -35924,7 +36768,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-310.txt"
+    "diff": "docs/wave8/callsites/diff-318.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::collect()",
@@ -36055,7 +36899,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-311.txt"
+    "diff": "docs/wave8/callsites/diff-319.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::collect() [clone .cold]",
@@ -36155,7 +36999,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-312.txt"
+    "diff": "docs/wave8/callsites/diff-320.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::create_sandbox_static(lua_State*, tomo_db0::(anonymous namespace)::ScriptContext**)",
@@ -36240,7 +37084,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-313.txt"
+    "diff": "docs/wave8/callsites/diff-321.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::destroy_multi_state(tomo_db0::MultiExecState*) [clone .part.0]",
@@ -36323,7 +37167,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-314.txt"
+    "diff": "docs/wave8/callsites/diff-322.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
@@ -36414,7 +37258,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-315.txt"
+    "diff": "docs/wave8/callsites/diff-323.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::geo_distance(double, double, double, double)",
@@ -36486,7 +37330,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-316.txt"
+    "diff": "docs/wave8/callsites/diff-324.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::geo_encode(double, double)",
@@ -36558,7 +37402,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-317.txt"
+    "diff": "docs/wave8/callsites/diff-325.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)",
@@ -37023,7 +37867,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-318.txt"
+    "diff": "docs/wave8/callsites/diff-326.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
@@ -37096,7 +37940,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-319.txt"
+    "diff": "docs/wave8/callsites/diff-327.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -37168,7 +38012,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-320.txt"
+    "diff": "docs/wave8/callsites/diff-328.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&)::{lambda(unsigned int)#2}::operator()(unsigned int) const",
@@ -37240,7 +38084,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-321.txt"
+    "diff": "docs/wave8/callsites/diff-329.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::parse_zset_operation(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo_db0::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
@@ -37312,7 +38156,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-322.txt"
+    "diff": "docs/wave8/callsites/diff-330.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
@@ -37568,7 +38412,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-323.txt"
+    "diff": "docs/wave8/callsites/diff-331.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
@@ -37745,7 +38589,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-324.txt"
+    "diff": "docs/wave8/callsites/diff-332.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]",
@@ -37833,7 +38677,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-325.txt"
+    "diff": "docs/wave8/callsites/diff-333.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::retire_script_children(tomo_db0::(anonymous namespace)::ExecutorHistograms&, tomo_db0::Op const&)",
@@ -37927,7 +38771,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-326.txt"
+    "diff": "docs/wave8/callsites/diff-334.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::run_library_body(lua_State*, tomo_db0::Slice, tomo_db0::(anonymous namespace)::RegisterSink&, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
@@ -38053,7 +38897,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-327.txt"
+    "diff": "docs/wave8/callsites/diff-335.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::run_library_body(lua_State*, tomo_db0::Slice, tomo_db0::(anonymous namespace)::RegisterSink&, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
@@ -38133,7 +38977,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-328.txt"
+    "diff": "docs/wave8/callsites/diff-336.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::run_search(tomo_db0::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, std::vector<tomo_db0::(anonymous namespace)::GeoResult, std::allocator<tomo_db0::(anonymous namespace)::GeoResult> >&)",
@@ -38205,7 +39049,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-329.txt"
+    "diff": "docs/wave8/callsites/diff-337.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::sha256_password(tomo_db0::Slice) [clone .isra.0]",
@@ -38277,7 +39121,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-330.txt"
+    "diff": "docs/wave8/callsites/diff-338.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::store(unsigned int)",
@@ -38363,12 +39207,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-331.txt"
+    "diff": "docs/wave8/callsites/diff-339.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -38434,7 +39278,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-332.txt"
+    "diff": "docs/wave8/callsites/diff-340.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::stream_snapshot_load(tomo_db0::Slice, unsigned char, long, tomo_db0::Slice, tomo_db0::TypeLimits const&, tomo_db0::KvObj*&)",
@@ -38506,7 +39350,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-333.txt"
+    "diff": "docs/wave8/callsites/diff-341.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_add_claim(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> >&, tomo_db0::Slice, tomo_db0::TxnClaimMode, bool) [clone .isra.0]",
@@ -38618,7 +39462,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-334.txt"
+    "diff": "docs/wave8/callsites/diff-342.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_cap_claims(std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> >&)",
@@ -38718,7 +39562,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-335.txt"
+    "diff": "docs/wave8/callsites/diff-343.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_group_arrive(tomo_db0::ScatterState&, tomo_db0::Shard&, tomo_db0::Op&)",
@@ -38836,7 +39680,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-336.txt"
+    "diff": "docs/wave8/callsites/diff-344.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_group_prepare(tomo_db0::ScatterState&, tomo_db0::Server&, unsigned int, tomo_db0::ScatterArenaPool*)",
@@ -38918,7 +39762,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-337.txt"
+    "diff": "docs/wave8/callsites/diff-345.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_link_waiter(tomo_db0::TxnKeyQueue&, tomo_db0::TxnWaiter&, tomo_db0::TxnReservation const&, bool)",
@@ -39010,7 +39854,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-338.txt"
+    "diff": "docs/wave8/callsites/diff-346.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::txn_unlink_waiter(tomo_db0::TxnWaiter&, bool)",
@@ -39090,7 +39934,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-339.txt"
+    "diff": "docs/wave8/callsites/diff-347.txt"
   },
   {
     "name": "tomo_db0::(anonymous namespace)::watch_note_database(tomo_db0::TxnReservation&, tomo_db0::Server*, unsigned char)",
@@ -39170,7 +40014,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-340.txt"
+    "diff": "docs/wave8/callsites/diff-348.txt"
   },
   {
     "name": "tomo_db0::AofManager::debug_arm_ack_window(unsigned int, tomo_db0::Slice)",
@@ -39241,7 +40085,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-341.txt"
+    "diff": "docs/wave8/callsites/diff-349.txt"
   },
   {
     "name": "tomo_db0::AofManager::prepare_group_commit(tomo_db0::AofStreamOwner::OpenToken const&, tomo_db0::AofChunk&, unsigned char*)",
@@ -39313,7 +40157,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-342.txt"
+    "diff": "docs/wave8/callsites/diff-350.txt"
   },
   {
     "name": "tomo_db0::AofManager::reply_write_error(tomo_db0::Op&, bool) const",
@@ -39403,7 +40247,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-343.txt"
+    "diff": "docs/wave8/callsites/diff-351.txt"
   },
   {
     "name": "tomo_db0::AofProducer::record_post_image(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::AofOwnerContext&, unsigned long)",
@@ -39474,7 +40318,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-344.txt"
+    "diff": "docs/wave8/callsites/diff-352.txt"
   },
   {
     "name": "tomo_db0::Config::Config()",
@@ -39547,7 +40391,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-345.txt"
+    "diff": "docs/wave8/callsites/diff-353.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<false>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -39634,7 +40478,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-346.txt"
+    "diff": "docs/wave8/callsites/diff-354.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -39767,7 +40611,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-347.txt"
+    "diff": "docs/wave8/callsites/diff-355.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -39900,7 +40744,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-348.txt"
+    "diff": "docs/wave8/callsites/diff-356.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -39987,7 +40831,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-349.txt"
+    "diff": "docs/wave8/callsites/diff-357.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40074,7 +40918,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-350.txt"
+    "diff": "docs/wave8/callsites/diff-358.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_latency<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40161,7 +41005,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-351.txt"
+    "diff": "docs/wave8/callsites/diff-359.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_latency<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40248,7 +41092,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-352.txt"
+    "diff": "docs/wave8/callsites/diff-360.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40335,7 +41179,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-353.txt"
+    "diff": "docs/wave8/callsites/diff-361.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_latency<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40422,7 +41266,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-354.txt"
+    "diff": "docs/wave8/callsites/diff-362.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_timed<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40509,7 +41353,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-355.txt"
+    "diff": "docs/wave8/callsites/diff-363.txt"
   },
   {
     "name": "tomo_db0::ExLoopT<true>::execute_timed<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
@@ -40596,7 +41440,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-356.txt"
+    "diff": "docs/wave8/callsites/diff-364.txt"
   },
   {
     "name": "tomo_db0::FlatStore::atomic_collapse_impl<true>(unsigned long, unsigned long)::{lambda(tomo_db0::AtomicCollapseKey&, tomo_db0::AtomicEntry&, tomo_db0::KvObj*)#1}::operator()(tomo_db0::AtomicCollapseKey&, tomo_db0::AtomicEntry&, tomo_db0::KvObj*) const",
@@ -40662,7 +41506,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-357.txt"
+    "diff": "docs/wave8/callsites/diff-365.txt"
   },
   {
     "name": "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)",
@@ -40735,7 +41579,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-358.txt"
+    "diff": "docs/wave8/callsites/diff-366.txt"
   },
   {
     "name": "tomo_db0::FlatStore::choose_victim_read_local(tomo_db0::Slice)",
@@ -40808,7 +41652,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-359.txt"
+    "diff": "docs/wave8/callsites/diff-367.txt"
   },
   {
     "name": "tomo_db0::FlatStore::make_word(unsigned short, tomo_db0::KvObj*) [clone .part.0]",
@@ -40926,7 +41770,7 @@
         "clones_after": 19
       }
     },
-    "diff": "docs/wave8/callsites/diff-360.txt"
+    "diff": "docs/wave8/callsites/diff-368.txt"
   },
   {
     "name": "tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0]",
@@ -41058,7 +41902,7 @@
         "clones_after": 2
       }
     },
-    "diff": "docs/wave8/callsites/diff-361.txt"
+    "diff": "docs/wave8/callsites/diff-369.txt"
   },
   {
     "name": "tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]",
@@ -41141,7 +41985,7 @@
         "clones_after": 2
       }
     },
-    "diff": "docs/wave8/callsites/diff-362.txt"
+    "diff": "docs/wave8/callsites/diff-370.txt"
   },
   {
     "name": "tomo_db0::FlipController::anchor(tomo_db0::Server&, double)",
@@ -41213,7 +42057,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-363.txt"
+    "diff": "docs/wave8/callsites/diff-371.txt"
   },
   {
     "name": "tomo_db0::FlipController::baseline_band() const",
@@ -41285,7 +42129,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-364.txt"
+    "diff": "docs/wave8/callsites/diff-372.txt"
   },
   {
     "name": "tomo_db0::FlipController::boot_load_stable(tomo_db0::Server&, unsigned long)",
@@ -41357,7 +42201,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-365.txt"
+    "diff": "docs/wave8/callsites/diff-373.txt"
   },
   {
     "name": "tomo_db0::FlipController::debug_dump[abi:cxx11]() const",
@@ -41429,7 +42273,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-366.txt"
+    "diff": "docs/wave8/callsites/diff-374.txt"
   },
   {
     "name": "tomo_db0::FlipController::decide_placement(tomo_db0::Server&, unsigned int, unsigned long, double)",
@@ -41515,7 +42359,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-367.txt"
+    "diff": "docs/wave8/callsites/diff-375.txt"
   },
   {
     "name": "tomo_db0::FlipController::learn_anchored_rate(double)",
@@ -41587,7 +42431,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-368.txt"
+    "diff": "docs/wave8/callsites/diff-376.txt"
   },
   {
     "name": "tomo_db0::FlipController::observe_rate(unsigned long, unsigned long)",
@@ -41659,7 +42503,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-369.txt"
+    "diff": "docs/wave8/callsites/diff-377.txt"
   },
   {
     "name": "tomo_db0::FlipController::pair_rate(double, double&)",
@@ -41730,7 +42574,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-370.txt"
+    "diff": "docs/wave8/callsites/diff-378.txt"
   },
   {
     "name": "tomo_db0::FlipController::report() const",
@@ -41854,7 +42698,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-371.txt"
+    "diff": "docs/wave8/callsites/diff-379.txt"
   },
   {
     "name": "tomo_db0::FlipController::sample_anchored_rate(tomo_db0::Server&, unsigned long, double&)",
@@ -41926,7 +42770,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-372.txt"
+    "diff": "docs/wave8/callsites/diff-380.txt"
   },
   {
     "name": "tomo_db0::FlipController::sample_rate(tomo_db0::Server&, unsigned long, double&)",
@@ -41998,7 +42842,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-373.txt"
+    "diff": "docs/wave8/callsites/diff-381.txt"
   },
   {
     "name": "tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, double&)",
@@ -42070,7 +42914,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-374.txt"
+    "diff": "docs/wave8/callsites/diff-382.txt"
   },
   {
     "name": "tomo_db0::FlipController::seek_after_reading(tomo_db0::Server&, unsigned int, unsigned long, double)",
@@ -42142,7 +42986,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-375.txt"
+    "diff": "docs/wave8/callsites/diff-383.txt"
   },
   {
     "name": "tomo_db0::FlipController::stabilize_rate(double&)",
@@ -42214,7 +43058,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-376.txt"
+    "diff": "docs/wave8/callsites/diff-384.txt"
   },
   {
     "name": "tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned long)",
@@ -42286,7 +43130,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-377.txt"
+    "diff": "docs/wave8/callsites/diff-385.txt"
   },
   {
     "name": "tomo_db0::FlipController::verification_band(double) const",
@@ -42358,7 +43202,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-378.txt"
+    "diff": "docs/wave8/callsites/diff-386.txt"
   },
   {
     "name": "tomo_db0::FlipListenerState::admit(tomo_db0::IoLoop&, int, tomo_db0::UrKind) [clone .isra.0]",
@@ -42430,7 +43274,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-379.txt"
+    "diff": "docs/wave8/callsites/diff-387.txt"
   },
   {
     "name": "tomo_db0::FlipShiftDetector::observe(tomo_db0::FlipFingerprintWindow const&)",
@@ -42502,7 +43346,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-380.txt"
+    "diff": "docs/wave8/callsites/diff-388.txt"
   },
   {
     "name": "tomo_db0::FlipShiftDetector::update_band()",
@@ -42574,7 +43418,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-381.txt"
+    "diff": "docs/wave8/callsites/diff-389.txt"
   },
   {
     "name": "tomo_db0::HashFieldMap::Node::Node(unsigned long, tomo_db0::Slice, tomo_db0::Slice)",
@@ -42647,7 +43491,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-382.txt"
+    "diff": "docs/wave8/callsites/diff-390.txt"
   },
   {
     "name": "tomo_db0::HashFieldMap::set(tomo_db0::Slice, tomo_db0::Slice)",
@@ -42720,7 +43564,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-383.txt"
+    "diff": "docs/wave8/callsites/diff-391.txt"
   },
   {
     "name": "tomo_db0::HashFieldTtl::erase(tomo_db0::Slice)",
@@ -42792,7 +43636,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-384.txt"
+    "diff": "docs/wave8/callsites/diff-392.txt"
   },
   {
     "name": "tomo_db0::HashFieldTtl::set(tomo_db0::Slice, long)",
@@ -42865,7 +43709,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-385.txt"
+    "diff": "docs/wave8/callsites/diff-393.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -43075,7 +43919,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-386.txt"
+    "diff": "docs/wave8/callsites/diff-394.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -43200,7 +44044,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-387.txt"
+    "diff": "docs/wave8/callsites/diff-395.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
@@ -43366,7 +44210,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-388.txt"
+    "diff": "docs/wave8/callsites/diff-396.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -43617,7 +44461,7 @@
         "clones_after": 4
       }
     },
-    "diff": "docs/wave8/callsites/diff-389.txt"
+    "diff": "docs/wave8/callsites/diff-397.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -43773,7 +44617,7 @@
         "clones_after": 4
       }
     },
-    "diff": "docs/wave8/callsites/diff-390.txt"
+    "diff": "docs/wave8/callsites/diff-398.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -44049,7 +44893,7 @@
         "clones_after": 2
       }
     },
-    "diff": "docs/wave8/callsites/diff-391.txt"
+    "diff": "docs/wave8/callsites/diff-399.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -44212,7 +45056,7 @@
         "clones_after": 2
       }
     },
-    "diff": "docs/wave8/callsites/diff-392.txt"
+    "diff": "docs/wave8/callsites/diff-400.txt"
   },
   {
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
@@ -44383,7 +45227,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-393.txt"
+    "diff": "docs/wave8/callsites/diff-401.txt"
   },
   {
     "name": "tomo_db0::IoLoop::IoLoop()",
@@ -44455,7 +45299,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-394.txt"
+    "diff": "docs/wave8/callsites/diff-402.txt"
   },
   {
     "name": "tomo_db0::IoLoop::climon_serve_suppressed(tomo_db0::Client*)",
@@ -44527,7 +45371,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-395.txt"
+    "diff": "docs/wave8/callsites/diff-403.txt"
   },
   {
     "name": "tomo_db0::IoLoop::fliplisten_commit()",
@@ -44599,7 +45443,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-396.txt"
+    "diff": "docs/wave8/callsites/diff-404.txt"
   },
   {
     "name": "tomo_db0::IoLoop::lb_client_signal_pass()",
@@ -44671,7 +45515,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-397.txt"
+    "diff": "docs/wave8/callsites/diff-405.txt"
   },
   {
     "name": "tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)",
@@ -44744,7 +45588,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-398.txt"
+    "diff": "docs/wave8/callsites/diff-406.txt"
   },
   {
     "name": "tomo_db0::IoLoop::pubsub_handle_result(tomo_db0::PubSubEvent&)",
@@ -44817,7 +45661,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-399.txt"
+    "diff": "docs/wave8/callsites/diff-407.txt"
   },
   {
     "name": "tomo_db0::IoLoop::pubsub_reply_ping(tomo_db0::Op&) [clone .isra.0]",
@@ -44898,7 +45742,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-400.txt"
+    "diff": "docs/wave8/callsites/diff-408.txt"
   },
   {
     "name": "tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
@@ -44970,7 +45814,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-401.txt"
+    "diff": "docs/wave8/callsites/diff-409.txt"
   },
   {
     "name": "tomo_db0::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
@@ -45042,7 +45886,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-402.txt"
+    "diff": "docs/wave8/callsites/diff-410.txt"
   },
   {
     "name": "tomo_db0::MultiExecState::~MultiExecState()",
@@ -45130,7 +45974,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-403.txt"
+    "diff": "docs/wave8/callsites/diff-411.txt"
   },
   {
     "name": "tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned long)",
@@ -45251,7 +46095,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-404.txt"
+    "diff": "docs/wave8/callsites/diff-412.txt"
   },
   {
     "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
@@ -45348,7 +46192,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-405.txt"
+    "diff": "docs/wave8/callsites/diff-413.txt"
   },
   {
     "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)",
@@ -45420,7 +46264,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-406.txt"
+    "diff": "docs/wave8/callsites/diff-414.txt"
   },
   {
     "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&)#1}::operator()(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&) const [clone .isra.0]",
@@ -45492,7 +46336,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-407.txt"
+    "diff": "docs/wave8/callsites/diff-415.txt"
   },
   {
     "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
@@ -45564,7 +46408,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-408.txt"
+    "diff": "docs/wave8/callsites/diff-416.txt"
   },
   {
     "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)",
@@ -45636,7 +46480,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-409.txt"
+    "diff": "docs/wave8/callsites/diff-417.txt"
   },
   {
     "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
@@ -45708,7 +46552,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-410.txt"
+    "diff": "docs/wave8/callsites/diff-418.txt"
   },
   {
     "name": "tomo_db0::SetMemberTable::erase_at(unsigned int, unsigned int&)",
@@ -45780,7 +46624,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-411.txt"
+    "diff": "docs/wave8/callsites/diff-419.txt"
   },
   {
     "name": "tomo_db0::Shard::watch_append_reservation(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::TxnReservation const&, tomo_db0::TxnWaiter*)",
@@ -45908,7 +46752,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-412.txt"
+    "diff": "docs/wave8/callsites/diff-420.txt"
   },
   {
     "name": "tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long)",
@@ -46032,7 +46876,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-413.txt"
+    "diff": "docs/wave8/callsites/diff-421.txt"
   },
   {
     "name": "tomo_db0::Topology::dump(_IO_FILE*) const",
@@ -46105,7 +46949,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-414.txt"
+    "diff": "docs/wave8/callsites/diff-422.txt"
   },
   {
     "name": "tomo_db0::TxnGroupAttempt::~TxnGroupAttempt()",
@@ -46187,7 +47031,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-415.txt"
+    "diff": "docs/wave8/callsites/diff-423.txt"
   },
   {
     "name": "tomo_db0::TxnRetryQueues::link(tomo_db0::MultiOwnerRetryNode&, bool) [clone .part.0]",
@@ -46273,7 +47117,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-416.txt"
+    "diff": "docs/wave8/callsites/diff-424.txt"
   },
   {
     "name": "tomo_db0::TxnRetryQueues::unlink(tomo_db0::MultiOwnerRetryNode&) [clone .part.0]",
@@ -46356,7 +47200,7 @@
         "clones_after": 4
       }
     },
-    "diff": "docs/wave8/callsites/diff-417.txt"
+    "diff": "docs/wave8/callsites/diff-425.txt"
   },
   {
     "name": "tomo_db0::TxnWaiter::operator=(tomo_db0::TxnWaiter const&) [clone .part.0]",
@@ -46436,7 +47280,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-418.txt"
+    "diff": "docs/wave8/callsites/diff-426.txt"
   },
   {
     "name": "tomo_db0::TxnWaiter::~TxnWaiter()",
@@ -46516,7 +47360,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-419.txt"
+    "diff": "docs/wave8/callsites/diff-427.txt"
   },
   {
     "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&)",
@@ -46586,7 +47430,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-420.txt"
+    "diff": "docs/wave8/callsites/diff-428.txt"
   },
   {
     "name": "tomo_db0::acl_initialize(tomo_db0::Server&, tomo_db0::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -46659,7 +47503,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-421.txt"
+    "diff": "docs/wave8/callsites/diff-429.txt"
   },
   {
     "name": "tomo_db0::aof_record_local_op(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
@@ -46730,7 +47574,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-422.txt"
+    "diff": "docs/wave8/callsites/diff-430.txt"
   },
   {
     "name": "tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)",
@@ -46802,7 +47646,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-423.txt"
+    "diff": "docs/wave8/callsites/diff-431.txt"
   },
   {
     "name": "tomo_db0::cfg_latency_percentiles(tomo_db0::Slice, std::vector<double, std::allocator<double> >&, char const*&)",
@@ -46948,7 +47792,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-424.txt"
+    "diff": "docs/wave8/callsites/diff-432.txt"
   },
   {
     "name": "tomo_db0::command_client_reset_meta(tomo_db0::Client*)",
@@ -47021,7 +47865,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-425.txt"
+    "diff": "docs/wave8/callsites/diff-433.txt"
   },
   {
     "name": "tomo_db0::command_metadata_init(tomo_db0::CommandSpec const*, unsigned long)",
@@ -47094,7 +47938,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-426.txt"
+    "diff": "docs/wave8/callsites/diff-434.txt"
   },
   {
     "name": "tomo_db0::debug_sleep_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long&)",
@@ -47166,7 +48010,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-427.txt"
+    "diff": "docs/wave8/callsites/diff-435.txt"
   },
   {
     "name": "tomo_db0::dtoa::grisu2_digits(double, char*, int&)",
@@ -47238,7 +48082,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-428.txt"
+    "diff": "docs/wave8/callsites/diff-436.txt"
   },
   {
     "name": "tomo_db0::flip_signature_distance(tomo_db0::FlipSignature const&, tomo_db0::FlipSignature const&)",
@@ -47310,7 +48154,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-429.txt"
+    "diff": "docs/wave8/callsites/diff-437.txt"
   },
   {
     "name": "tomo_db0::flip_signature_pass_distance(tomo_db0::FlipSignature const&, tomo_db0::FlipSignature const&)",
@@ -47382,7 +48226,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-430.txt"
+    "diff": "docs/wave8/callsites/diff-438.txt"
   },
   {
     "name": "tomo_db0::fliplisten_reserve(tomo_db0::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -47454,7 +48298,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-431.txt"
+    "diff": "docs/wave8/callsites/diff-439.txt"
   },
   {
     "name": "tomo_db0::hll::(anonymous namespace)::estimate(int const (&) [64])",
@@ -47526,7 +48370,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-432.txt"
+    "diff": "docs/wave8/callsites/diff-440.txt"
   },
   {
     "name": "tomo_db0::hll::selftest[abi:cxx11]()",
@@ -47598,12 +48442,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-433.txt"
+    "diff": "docs/wave8/callsites/diff-441.txt"
   },
   {
     "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -47671,12 +48515,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-434.txt"
+    "diff": "docs/wave8/callsites/diff-442.txt"
   },
   {
     "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
-    "hot": false,
-    "counted_command_scope": false,
+    "hot": true,
+    "counted_command_scope": true,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
@@ -47744,7 +48588,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-435.txt"
+    "diff": "docs/wave8/callsites/diff-443.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_discard_pending()",
@@ -47856,7 +48700,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-436.txt"
+    "diff": "docs/wave8/callsites/diff-444.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_forget(tomo_db0::Op const&)",
@@ -47986,7 +48830,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-437.txt"
+    "diff": "docs/wave8/callsites/diff-445.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_forget_client(tomo_db0::Client&)",
@@ -48116,7 +48960,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-438.txt"
+    "diff": "docs/wave8/callsites/diff-446.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_info(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::vector<double, std::allocator<double> > const&, bool)",
@@ -48280,7 +49124,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-439.txt"
+    "diff": "docs/wave8/callsites/diff-447.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_record(unsigned int, tomo_db0::Op const&, unsigned long)",
@@ -48440,7 +49284,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-440.txt"
+    "diff": "docs/wave8/callsites/diff-448.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&)",
@@ -48579,7 +49423,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-441.txt"
+    "diff": "docs/wave8/callsites/diff-449.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_retire(unsigned int, tomo_db0::Op const&) [clone .cold]",
@@ -48666,7 +49510,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-442.txt"
+    "diff": "docs/wave8/callsites/diff-450.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_retry(tomo_db0::Op const&, tomo_db0::Op const&)",
@@ -48795,7 +49639,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-443.txt"
+    "diff": "docs/wave8/callsites/diff-451.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_script_begin(tomo_db0::Op const&)",
@@ -48903,7 +49747,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-444.txt"
+    "diff": "docs/wave8/callsites/diff-452.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long)",
@@ -49102,7 +49946,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-445.txt"
+    "diff": "docs/wave8/callsites/diff-453.txt"
   },
   {
     "name": "tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long) [clone .cold]",
@@ -49196,7 +50040,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-446.txt"
+    "diff": "docs/wave8/callsites/diff-454.txt"
   },
   {
     "name": "tomo_db0::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
@@ -49268,7 +50112,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-447.txt"
+    "diff": "docs/wave8/callsites/diff-455.txt"
   },
   {
     "name": "tomo_db0::lbsignals_capture(tomo_db0::Server&)",
@@ -49340,7 +50184,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-448.txt"
+    "diff": "docs/wave8/callsites/diff-456.txt"
   },
   {
     "name": "tomo_db0::lbsignals_info_section(tomo_db0::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
@@ -49412,7 +50256,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-449.txt"
+    "diff": "docs/wave8/callsites/diff-457.txt"
   },
   {
     "name": "tomo_db0::load_conf_file(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned long, std::allocator<unsigned long> >*)",
@@ -49519,7 +50363,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-450.txt"
+    "diff": "docs/wave8/callsites/diff-458.txt"
   },
   {
     "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*)",
@@ -49820,7 +50664,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-451.txt"
+    "diff": "docs/wave8/callsites/diff-459.txt"
   },
   {
     "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*, tomo_db0::MultiRetryPromoter const*) [clone .cold]",
@@ -49925,7 +50769,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-452.txt"
+    "diff": "docs/wave8/callsites/diff-460.txt"
   },
   {
     "name": "tomo_db0::multi_retire(tomo_db0::Client&, tomo_db0::Op&, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&)",
@@ -50029,7 +50873,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-453.txt"
+    "diff": "docs/wave8/callsites/diff-461.txt"
   },
   {
     "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
@@ -50100,7 +50944,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-454.txt"
+    "diff": "docs/wave8/callsites/diff-462.txt"
   },
   {
     "name": "tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
@@ -50297,7 +51141,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-455.txt"
+    "diff": "docs/wave8/callsites/diff-463.txt"
   },
   {
     "name": "tomo_db0::parse_double_strict(tomo_db0::Slice, double&)",
@@ -50369,7 +51213,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-456.txt"
+    "diff": "docs/wave8/callsites/diff-464.txt"
   },
   {
     "name": "tomo_db0::parse_long_double_strict(tomo_db0::Slice, long double&)",
@@ -50439,7 +51283,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-457.txt"
+    "diff": "docs/wave8/callsites/diff-465.txt"
   },
   {
     "name": "tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
@@ -50519,7 +51363,7 @@
         "clones_after": 5
       }
     },
-    "diff": "docs/wave8/callsites/diff-458.txt"
+    "diff": "docs/wave8/callsites/diff-466.txt"
   },
   {
     "name": "tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
@@ -50637,7 +51481,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-459.txt"
+    "diff": "docs/wave8/callsites/diff-467.txt"
   },
   {
     "name": "tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
@@ -50755,7 +51599,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-460.txt"
+    "diff": "docs/wave8/callsites/diff-468.txt"
   },
   {
     "name": "tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
@@ -50873,7 +51717,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-461.txt"
+    "diff": "docs/wave8/callsites/diff-469.txt"
   },
   {
     "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",
@@ -51105,7 +51949,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-462.txt"
+    "diff": "docs/wave8/callsites/diff-470.txt"
   },
   {
     "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&) [clone .cold]",
@@ -51218,7 +52062,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-463.txt"
+    "diff": "docs/wave8/callsites/diff-471.txt"
   },
   {
     "name": "tomo_db0::script_thread_state()",
@@ -51301,7 +52145,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-464.txt"
+    "diff": "docs/wave8/callsites/diff-472.txt"
   },
   {
     "name": "tomo_db0::server_tail_config_subcommand(tomo_db0::Op&)",
@@ -51624,7 +52468,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-465.txt"
+    "diff": "docs/wave8/callsites/diff-473.txt"
   },
   {
     "name": "tomo_db0::sort_run(tomo_db0::SortSpec const&, tomo_db0::SortResolved const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned char, std::allocator<unsigned char> >&)",
@@ -51697,7 +52541,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-466.txt"
+    "diff": "docs/wave8/callsites/diff-474.txt"
   },
   {
     "name": "tomo_db0::stream_parse_xreadgroup(tomo_db0::Op&, tomo_db0::StreamXreadGroupArgs&)",
@@ -51769,7 +52613,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-467.txt"
+    "diff": "docs/wave8/callsites/diff-475.txt"
   },
   {
     "name": "tomo_db0::weighted_lb_partition(std::vector<tomo_db0::WeightedLbItem, std::allocator<tomo_db0::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo_db0::WeightedLbAssignment, std::allocator<tomo_db0::WeightedLbAssignment> >&)",
@@ -51865,12 +52709,12 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-468.txt"
+    "diff": "docs/wave8/callsites/diff-476.txt"
   },
   {
     "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
     "hot": true,
-    "counted_command_scope": false,
+    "counted_command_scope": true,
     "command_hot": true,
     "equal": false,
     "headline_sizes": [
@@ -52017,7 +52861,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-469.txt"
+    "diff": "docs/wave8/callsites/diff-477.txt"
   },
   {
     "name": "tomokv_multidb_main(int, char**)",
@@ -52337,7 +53181,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-470.txt"
+    "diff": "docs/wave8/callsites/diff-478.txt"
   },
   {
     "name": "tomokv_multidb_main(int, char**) [clone .cold]",
@@ -52606,7 +53450,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-471.txt"
+    "diff": "docs/wave8/callsites/diff-479.txt"
   },
   {
     "name": "unsigned int tomo::ExLoopT<false>::service_multi_retries<false>()",
@@ -52727,7 +53571,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-472.txt"
+    "diff": "docs/wave8/callsites/diff-480.txt"
   },
   {
     "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
@@ -52887,7 +53731,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-473.txt"
+    "diff": "docs/wave8/callsites/diff-481.txt"
   },
   {
     "name": "unsigned int tomo::ExLoopT<true>::service_multi_retries<false>()",
@@ -53014,7 +53858,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-474.txt"
+    "diff": "docs/wave8/callsites/diff-482.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::epoll_accept<true, true>(tomo::UrKind)",
@@ -53108,7 +53952,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-475.txt"
+    "diff": "docs/wave8/callsites/diff-483.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, true>(int)",
@@ -53176,7 +54020,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-476.txt"
+    "diff": "docs/wave8/callsites/diff-484.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)",
@@ -53244,7 +54088,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-477.txt"
+    "diff": "docs/wave8/callsites/diff-485.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
@@ -53354,7 +54198,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-478.txt"
+    "diff": "docs/wave8/callsites/diff-486.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
@@ -53449,7 +54293,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-479.txt"
+    "diff": "docs/wave8/callsites/diff-487.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
@@ -53544,7 +54388,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-480.txt"
+    "diff": "docs/wave8/callsites/diff-488.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
@@ -53639,7 +54483,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-481.txt"
+    "diff": "docs/wave8/callsites/diff-489.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
@@ -53734,7 +54578,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-482.txt"
+    "diff": "docs/wave8/callsites/diff-490.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
@@ -53845,7 +54689,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-483.txt"
+    "diff": "docs/wave8/callsites/diff-491.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
@@ -53956,7 +54800,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-484.txt"
+    "diff": "docs/wave8/callsites/diff-492.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
@@ -54067,7 +54911,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-485.txt"
+    "diff": "docs/wave8/callsites/diff-493.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
@@ -54157,7 +55001,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-486.txt"
+    "diff": "docs/wave8/callsites/diff-494.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
@@ -54258,7 +55102,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-487.txt"
+    "diff": "docs/wave8/callsites/diff-495.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
@@ -54359,7 +55203,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-488.txt"
+    "diff": "docs/wave8/callsites/diff-496.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
@@ -54460,7 +55304,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-489.txt"
+    "diff": "docs/wave8/callsites/diff-497.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
@@ -54561,7 +55405,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-490.txt"
+    "diff": "docs/wave8/callsites/diff-498.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
@@ -54679,7 +55523,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-491.txt"
+    "diff": "docs/wave8/callsites/diff-499.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
@@ -54797,7 +55641,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-492.txt"
+    "diff": "docs/wave8/callsites/diff-500.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
@@ -54915,7 +55759,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-493.txt"
+    "diff": "docs/wave8/callsites/diff-501.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
@@ -55037,7 +55881,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-494.txt"
+    "diff": "docs/wave8/callsites/diff-502.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
@@ -55132,7 +55976,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-495.txt"
+    "diff": "docs/wave8/callsites/diff-503.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
@@ -55227,7 +56071,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-496.txt"
+    "diff": "docs/wave8/callsites/diff-504.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
@@ -55322,7 +56166,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-497.txt"
+    "diff": "docs/wave8/callsites/diff-505.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
@@ -55417,7 +56261,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-498.txt"
+    "diff": "docs/wave8/callsites/diff-506.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
@@ -55507,7 +56351,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-499.txt"
+    "diff": "docs/wave8/callsites/diff-507.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
@@ -55597,7 +56441,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-500.txt"
+    "diff": "docs/wave8/callsites/diff-508.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
@@ -55687,7 +56531,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-501.txt"
+    "diff": "docs/wave8/callsites/diff-509.txt"
   },
   {
     "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
@@ -55777,7 +56621,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-502.txt"
+    "diff": "docs/wave8/callsites/diff-510.txt"
   },
   {
     "name": "unsigned int tomo::multi_owner_pass_entry_impl<false>(tomo::IoLoop&)",
@@ -55905,7 +56749,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-503.txt"
+    "diff": "docs/wave8/callsites/diff-511.txt"
   },
   {
     "name": "unsigned int tomo_db0::ExLoopT<false>::service_multi_retries<false>()",
@@ -56026,7 +56870,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-504.txt"
+    "diff": "docs/wave8/callsites/diff-512.txt"
   },
   {
     "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
@@ -56126,7 +56970,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-505.txt"
+    "diff": "docs/wave8/callsites/diff-513.txt"
   },
   {
     "name": "unsigned int tomo_db0::ExLoopT<true>::service_multi_retries<false>()",
@@ -56248,7 +57092,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-506.txt"
+    "diff": "docs/wave8/callsites/diff-514.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
@@ -56321,7 +57165,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-507.txt"
+    "diff": "docs/wave8/callsites/diff-515.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
@@ -56394,7 +57238,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-508.txt"
+    "diff": "docs/wave8/callsites/diff-516.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
@@ -56467,7 +57311,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-509.txt"
+    "diff": "docs/wave8/callsites/diff-517.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
@@ -56562,7 +57406,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-510.txt"
+    "diff": "docs/wave8/callsites/diff-518.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
@@ -56657,7 +57501,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-511.txt"
+    "diff": "docs/wave8/callsites/diff-519.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
@@ -56752,7 +57596,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-512.txt"
+    "diff": "docs/wave8/callsites/diff-520.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
@@ -56847,7 +57691,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-513.txt"
+    "diff": "docs/wave8/callsites/diff-521.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
@@ -56948,7 +57792,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-514.txt"
+    "diff": "docs/wave8/callsites/diff-522.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
@@ -57049,7 +57893,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-515.txt"
+    "diff": "docs/wave8/callsites/diff-523.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
@@ -57150,7 +57994,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-516.txt"
+    "diff": "docs/wave8/callsites/diff-524.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
@@ -57251,7 +58095,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-517.txt"
+    "diff": "docs/wave8/callsites/diff-525.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
@@ -57357,7 +58201,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-518.txt"
+    "diff": "docs/wave8/callsites/diff-526.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
@@ -57463,7 +58307,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-519.txt"
+    "diff": "docs/wave8/callsites/diff-527.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
@@ -57569,7 +58413,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-520.txt"
+    "diff": "docs/wave8/callsites/diff-528.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
@@ -57675,7 +58519,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-521.txt"
+    "diff": "docs/wave8/callsites/diff-529.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
@@ -57776,7 +58620,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-522.txt"
+    "diff": "docs/wave8/callsites/diff-530.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
@@ -57877,7 +58721,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-523.txt"
+    "diff": "docs/wave8/callsites/diff-531.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
@@ -57978,7 +58822,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-524.txt"
+    "diff": "docs/wave8/callsites/diff-532.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
@@ -58079,7 +58923,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-525.txt"
+    "diff": "docs/wave8/callsites/diff-533.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
@@ -58187,7 +59031,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-526.txt"
+    "diff": "docs/wave8/callsites/diff-534.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
@@ -58295,7 +59139,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-527.txt"
+    "diff": "docs/wave8/callsites/diff-535.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
@@ -58403,7 +59247,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-528.txt"
+    "diff": "docs/wave8/callsites/diff-536.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
@@ -58511,7 +59355,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-529.txt"
+    "diff": "docs/wave8/callsites/diff-537.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
@@ -58606,7 +59450,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-530.txt"
+    "diff": "docs/wave8/callsites/diff-538.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
@@ -58701,7 +59545,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-531.txt"
+    "diff": "docs/wave8/callsites/diff-539.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
@@ -58796,7 +59640,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-532.txt"
+    "diff": "docs/wave8/callsites/diff-540.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
@@ -58891,7 +59735,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-533.txt"
+    "diff": "docs/wave8/callsites/diff-541.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
@@ -58993,7 +59837,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-534.txt"
+    "diff": "docs/wave8/callsites/diff-542.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
@@ -59095,7 +59939,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-535.txt"
+    "diff": "docs/wave8/callsites/diff-543.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
@@ -59197,7 +60041,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-536.txt"
+    "diff": "docs/wave8/callsites/diff-544.txt"
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
@@ -59299,7 +60143,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-537.txt"
+    "diff": "docs/wave8/callsites/diff-545.txt"
   },
   {
     "name": "unsigned int tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)",
@@ -59427,7 +60271,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-538.txt"
+    "diff": "docs/wave8/callsites/diff-546.txt"
   },
   {
     "name": "void std::_Destroy_aux<false>::__destroy<tomo::TxnClaim*>(tomo::TxnClaim*, tomo::TxnClaim*)",
@@ -59513,7 +60357,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-539.txt"
+    "diff": "docs/wave8/callsites/diff-547.txt"
   },
   {
     "name": "void std::_Destroy_aux<false>::__destroy<tomo_db0::TxnClaim*>(tomo_db0::TxnClaim*, tomo_db0::TxnClaim*)",
@@ -59599,7 +60443,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-540.txt"
+    "diff": "docs/wave8/callsites/diff-548.txt"
   },
   {
     "name": "void std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> >::_M_realloc_insert<tomo::TxnClaim>(__gnu_cxx::__normal_iterator<tomo::TxnClaim*, std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> > >, tomo::TxnClaim&&)",
@@ -59697,7 +60541,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-541.txt"
+    "diff": "docs/wave8/callsites/diff-549.txt"
   },
   {
     "name": "void std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> >::_M_realloc_insert<tomo_db0::TxnClaim>(__gnu_cxx::__normal_iterator<tomo_db0::TxnClaim*, std::vector<tomo_db0::TxnClaim, std::allocator<tomo_db0::TxnClaim> > >, tomo_db0::TxnClaim&&)",
@@ -59795,7 +60639,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-542.txt"
+    "diff": "docs/wave8/callsites/diff-550.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::bitfield_generic<false>(tomo::Shard&, tomo::Op&, bool)",
@@ -59876,7 +60720,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-543.txt"
+    "diff": "docs/wave8/callsites/diff-551.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
@@ -59965,7 +60809,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-544.txt"
+    "diff": "docs/wave8/callsites/diff-552.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)",
@@ -60037,7 +60881,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-545.txt"
+    "diff": "docs/wave8/callsites/diff-553.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)",
@@ -60129,7 +60973,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-546.txt"
+    "diff": "docs/wave8/callsites/diff-554.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo::Shard&, tomo::Op&)",
@@ -60199,7 +61043,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-547.txt"
+    "diff": "docs/wave8/callsites/diff-555.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo::Shard&, tomo::Op&)",
@@ -60277,7 +61121,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-548.txt"
+    "diff": "docs/wave8/callsites/diff-556.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_incrbyfloat<false>(tomo::Shard&, tomo::Op&)",
@@ -60347,7 +61191,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-549.txt"
+    "diff": "docs/wave8/callsites/diff-557.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_incrbyfloat<true>(tomo::Shard&, tomo::Op&)",
@@ -60425,7 +61269,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-550.txt"
+    "diff": "docs/wave8/callsites/diff-558.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_setrange<false>(tomo::Shard&, tomo::Op&)",
@@ -60506,7 +61350,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-551.txt"
+    "diff": "docs/wave8/callsites/diff-559.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_setrange<true>(tomo::Shard&, tomo::Op&)",
@@ -60591,7 +61435,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-552.txt"
+    "diff": "docs/wave8/callsites/diff-560.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
@@ -60663,7 +61507,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-553.txt"
+    "diff": "docs/wave8/callsites/diff-561.txt"
   },
   {
     "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
@@ -60753,7 +61597,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-554.txt"
+    "diff": "docs/wave8/callsites/diff-562.txt"
   },
   {
     "name": "void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind)",
@@ -60825,7 +61669,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-555.txt"
+    "diff": "docs/wave8/callsites/diff-563.txt"
   },
   {
     "name": "void tomo::IoLoop::admit_fd<false, true>(int, tomo::UrKind)",
@@ -60897,7 +61741,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-556.txt"
+    "diff": "docs/wave8/callsites/diff-564.txt"
   },
   {
     "name": "void tomo::IoLoop::admit_fd<true, false>(int, tomo::UrKind)",
@@ -60969,7 +61813,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-557.txt"
+    "diff": "docs/wave8/callsites/diff-565.txt"
   },
   {
     "name": "void tomo::IoLoop::admit_fd<true, true>(int, tomo::UrKind)",
@@ -61041,7 +61885,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-558.txt"
+    "diff": "docs/wave8/callsites/diff-566.txt"
   },
   {
     "name": "void tomo::IoLoop::arm_tls_socket_poll<false>(tomo::Client*, tomo::TlsOp)",
@@ -61113,7 +61957,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-559.txt"
+    "diff": "docs/wave8/callsites/diff-567.txt"
   },
   {
     "name": "void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)",
@@ -61185,7 +62029,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-560.txt"
+    "diff": "docs/wave8/callsites/diff-568.txt"
   },
   {
     "name": "void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)",
@@ -61257,7 +62101,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-561.txt"
+    "diff": "docs/wave8/callsites/diff-569.txt"
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
@@ -61391,7 +62235,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-562.txt"
+    "diff": "docs/wave8/callsites/diff-570.txt"
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
@@ -61525,7 +62369,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-563.txt"
+    "diff": "docs/wave8/callsites/diff-571.txt"
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
@@ -61659,7 +62503,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-564.txt"
+    "diff": "docs/wave8/callsites/diff-572.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
@@ -61730,7 +62574,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-565.txt"
+    "diff": "docs/wave8/callsites/diff-573.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
@@ -61801,7 +62645,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-566.txt"
+    "diff": "docs/wave8/callsites/diff-574.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
@@ -61872,7 +62716,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-567.txt"
+    "diff": "docs/wave8/callsites/diff-575.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
@@ -61943,7 +62787,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-568.txt"
+    "diff": "docs/wave8/callsites/diff-576.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
@@ -62014,7 +62858,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-569.txt"
+    "diff": "docs/wave8/callsites/diff-577.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
@@ -62085,7 +62929,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-570.txt"
+    "diff": "docs/wave8/callsites/diff-578.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
@@ -62156,7 +63000,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-571.txt"
+    "diff": "docs/wave8/callsites/diff-579.txt"
   },
   {
     "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
@@ -62227,7 +63071,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-572.txt"
+    "diff": "docs/wave8/callsites/diff-580.txt"
   },
   {
     "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
@@ -62299,7 +63143,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-573.txt"
+    "diff": "docs/wave8/callsites/diff-581.txt"
   },
   {
     "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
@@ -62379,7 +63223,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-574.txt"
+    "diff": "docs/wave8/callsites/diff-582.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::bitfield_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
@@ -62460,7 +63304,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-575.txt"
+    "diff": "docs/wave8/callsites/diff-583.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::bitfield_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
@@ -62545,7 +63389,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-576.txt"
+    "diff": "docs/wave8/callsites/diff-584.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62617,7 +63461,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-577.txt"
+    "diff": "docs/wave8/callsites/diff-585.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62695,7 +63539,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-578.txt"
+    "diff": "docs/wave8/callsites/diff-586.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62765,7 +63609,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-579.txt"
+    "diff": "docs/wave8/callsites/diff-587.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62843,7 +63687,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-580.txt"
+    "diff": "docs/wave8/callsites/diff-588.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62913,7 +63757,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-581.txt"
+    "diff": "docs/wave8/callsites/diff-589.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -62993,7 +63837,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-582.txt"
+    "diff": "docs/wave8/callsites/diff-590.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -63074,7 +63918,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-583.txt"
+    "diff": "docs/wave8/callsites/diff-591.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -63159,7 +64003,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-584.txt"
+    "diff": "docs/wave8/callsites/diff-592.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
@@ -63231,7 +64075,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-585.txt"
+    "diff": "docs/wave8/callsites/diff-593.txt"
   },
   {
     "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
@@ -63321,7 +64165,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-586.txt"
+    "diff": "docs/wave8/callsites/diff-594.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)",
@@ -63393,7 +64237,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-587.txt"
+    "diff": "docs/wave8/callsites/diff-595.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::admit_fd<false, true>(int, tomo_db0::UrKind)",
@@ -63465,7 +64309,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-588.txt"
+    "diff": "docs/wave8/callsites/diff-596.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::admit_fd<true, false>(int, tomo_db0::UrKind)",
@@ -63537,7 +64381,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-589.txt"
+    "diff": "docs/wave8/callsites/diff-597.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::admit_fd<true, true>(int, tomo_db0::UrKind)",
@@ -63609,7 +64453,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-590.txt"
+    "diff": "docs/wave8/callsites/diff-598.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::arm_tls_socket_poll<false>(tomo_db0::Client*, tomo_db0::TlsOp)",
@@ -63681,7 +64525,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-591.txt"
+    "diff": "docs/wave8/callsites/diff-599.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_admit_fd<false, true>(int, tomo_db0::UrKind)",
@@ -63777,7 +64621,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-592.txt"
+    "diff": "docs/wave8/callsites/diff-600.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_admit_fd<true, true>(int, tomo_db0::UrKind)",
@@ -63873,7 +64717,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-593.txt"
+    "diff": "docs/wave8/callsites/diff-601.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
@@ -63957,7 +64801,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-594.txt"
+    "diff": "docs/wave8/callsites/diff-602.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
@@ -64041,7 +64885,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-595.txt"
+    "diff": "docs/wave8/callsites/diff-603.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
@@ -64125,7 +64969,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-596.txt"
+    "diff": "docs/wave8/callsites/diff-604.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
@@ -64209,7 +65053,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-597.txt"
+    "diff": "docs/wave8/callsites/diff-605.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
@@ -64293,7 +65137,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-598.txt"
+    "diff": "docs/wave8/callsites/diff-606.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
@@ -64364,7 +65208,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-599.txt"
+    "diff": "docs/wave8/callsites/diff-607.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
@@ -64435,7 +65279,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-600.txt"
+    "diff": "docs/wave8/callsites/diff-608.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
@@ -64506,7 +65350,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-601.txt"
+    "diff": "docs/wave8/callsites/diff-609.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
@@ -64577,7 +65421,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-602.txt"
+    "diff": "docs/wave8/callsites/diff-610.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
@@ -64648,7 +65492,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-603.txt"
+    "diff": "docs/wave8/callsites/diff-611.txt"
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
@@ -64719,7 +65563,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-604.txt"
+    "diff": "docs/wave8/callsites/diff-612.txt"
   },
   {
     "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -64791,7 +65635,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-605.txt"
+    "diff": "docs/wave8/callsites/diff-613.txt"
   },
   {
     "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -64871,7 +65715,7 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-606.txt"
+    "diff": "docs/wave8/callsites/diff-614.txt"
   },
   {
     "name": "void tomo_db0::reply_line_text<tomo_db0::SmallBuf<96ul>&>(tomo_db0::SmallBuf<96ul>&, char const*, unsigned long)",
@@ -64988,6 +65832,6 @@
         "clones_after": 1
       }
     },
-    "diff": "docs/wave8/callsites/diff-607.txt"
+    "diff": "docs/wave8/callsites/diff-615.txt"
   }
 ]

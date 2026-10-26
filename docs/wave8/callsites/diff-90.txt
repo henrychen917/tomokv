@@ -1,15 +1,15 @@
-luaU_undump
+luaL_pushresult
 --- headline
 
 +++ post
 
-@@ -17,7 +17,7 @@
+@@ -28,7 +28,7 @@
 
- CLONE 0 0037 [ 2] jmp <+0x43>
- CLONE 0 0039 [ 7] nopl 0x0(%rax)
- CLONE 0 0040 [ 3] inc %rcx
--CLONE 0 0043 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>
-+CLONE 0 0043 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x348>
- CLONE 0 004a [ 5] mov %rdx,0x10(%rsp)
- CLONE 0 004f [ 5] lea 0x2c(%rsp),%rsi
- CLONE 0 0054 [ 5] mov $0xc,%edx
+ CLONE 0 0044 [ 4] mov 0x10(%rbp),%r12
+ CLONE 0 0048 [ 3] mov %rbp,%rdi
+ CLONE 0 004b [ 2] xor %edx,%edx
+-CLONE 0 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 0054 [ 5] call <luaS_newlstr>
+ CLONE 0 0059 [ 4] mov %rax,(%r12)
+ CLONE 0 005d [ 9] movl $0x4,0x8(%r12)

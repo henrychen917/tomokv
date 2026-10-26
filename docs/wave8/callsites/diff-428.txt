@@ -1,15 +1,15 @@
-tomo_db0::dtoa::grisu2_digits(double, char*, int&)
---- headline
+tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&)
+--- execindex
 
 +++ post
 
-@@ -30,7 +30,7 @@
+@@ -1145,7 +1145,7 @@
 
- CLONE 0 007d [ 4] vxorps %xmm0,%xmm0,%xmm0
- CLONE 0 0081 [ 2] sub %esi,%edx
- CLONE 0 0083 [ 4] vcvtsi2sd %edx,%xmm0,%xmm0
--CLONE 0 0087 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x670>
-+CLONE 0 0087 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xb0>
- CLONE 0 008f [ 4] vcvttsd2si %xmm0,%edx
- CLONE 0 0093 [ 6] cmp $0xfffffe9d,%edx
- CLONE 0 0099 [ 6] jl <+0x140>
+ CLONE 0 16a4 [ 4] cmp $0x14,%rdx
+ CLONE 0 16a8 [ 6] jbe <+0x1a2b>
+ CLONE 0 16ae [ 4] vmovdqu (%rsi),%xmm0
+-CLONE 0 16b2 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
++CLONE 0 16b2 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x668>
+ CLONE 0 16ba [ 5] vptest %xmm0,%xmm0
+ CLONE 0 16bf [ 6] je <+0x17e7>
+ CLONE 0 16c5 [ 5] mov $0x1,%eax

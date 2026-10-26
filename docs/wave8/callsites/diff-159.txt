@@ -1,15 +1,41 @@
-tomo::(anonymous namespace)::queue_aof_sync(tomo::Ring&, tomo::(anonymous namespace)::AofIoRequest&, bool) [clone .constprop.0]
+tomo::(anonymous namespace)::geo_distance(double, double, double, double)
 --- headline
 
 +++ post
 
-@@ -32,7 +32,7 @@
+@@ -8,12 +8,12 @@
 
- CLONE 0 007c [ 8] movq $0x0,0x30(%rax)
- CLONE 0 0084 [ 8] movq $0x0,0x38(%rax)
- CLONE 0 008c [ 3] mov %edx,0x4(%rax)
--CLONE 0 008f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x920>
-+CLONE 0 008f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x368>
- CLONE 0 0096 [ 4] mov %rdx,0x18(%rax)
- CLONE 0 009a [10] movabs $0xffffffffffff,%rdx
- CLONE 0 00a4 [ 3] and %rdx,%rbp
+ CLONE 0 0022 [ 5] vmovsd %xmm6,(%rsp)
+ CLONE 0 0027 [ 4] vmulsd %xmm0,%xmm2,%xmm2
+ CLONE 0 002b [ 4] vsubsd %xmm4,%xmm2,%xmm2
+-CLONE 0 002f [ 8] vmulsd <rip>(%rip),%xmm2,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 002f [ 8] vmulsd <rip>(%rip),%xmm2,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 0037 [ 5] call <sin@plt>
+ CLONE 0 003c [ 6] vmovsd %xmm0,0x18(%rsp)
+ CLONE 0 0042 [ 5] vmovsd (%rsp),%xmm6
+ CLONE 0 0047 [ 6] vsubsd 0x8(%rsp),%xmm6,%xmm0
+-CLONE 0 004d [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 004d [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 0055 [ 5] call <sin@plt>
+ CLONE 0 005a [ 6] vmovsd %xmm0,0x10(%rsp)
+ CLONE 0 0060 [ 6] vmovsd 0x8(%rsp),%xmm0
+@@ -28,15 +28,15 @@
+
+ CLONE 0 0091 [ 4] vmulsd %xmm1,%xmm1,%xmm1
+ CLONE 0 0095 [ 4] vmulsd %xmm2,%xmm0,%xmm0
+ CLONE 0 0099 [ 4] vaddsd %xmm1,%xmm0,%xmm0
+-CLONE 0 009d [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x690>
++CLONE 0 009d [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xc8>
+ CLONE 0 00a5 [ 2] ja <+0xe0>
+ CLONE 0 00a7 [ 4] vxorpd %xmm1,%xmm1,%xmm1
+ CLONE 0 00ab [ 4] vucomisd %xmm0,%xmm1
+ CLONE 0 00af [ 2] ja <+0xed>
+ CLONE 0 00b1 [ 4] vsqrtsd %xmm0,%xmm0,%xmm0
+ CLONE 0 00b5 [ 5] call <asin@plt>
+-CLONE 0 00ba [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7c8>
+-CLONE 0 00c2 [ 9] vcmpnltsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x648>
++CLONE 0 00ba [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x218>
++CLONE 0 00c2 [ 9] vcmpnltsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x88>
+ CLONE 0 00cb [ 4] vxorpd %xmm1,%xmm1,%xmm1
+ CLONE 0 00cf [ 4] add $0x28,%rsp
+ CLONE 0 00d3 [ 6] vblendvpd %xmm2,%xmm0,%xmm1,%xmm0

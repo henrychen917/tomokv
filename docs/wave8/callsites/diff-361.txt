@@ -1,192 +1,75 @@
-tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0]
+tomo_db0::ExLoopT<true>::execute_latency<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)
 --- headline
 
 +++ post
 
-@@ -186,3 +186,185 @@
+@@ -0,0 +1,68 @@
 
- CLONE 0 0388 [ 7] lea 0xd8(%rbx),%rax
- CLONE 0 038f [ 5] jmp <+0xc7>
- CLONE 0 0394 [ 5] jmp <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0000 [ 8] cmpq $0x0,0xd8(%rdi)
-+CLONE 1 0008 [ 2] je <+0x10>
-+CLONE 1 000a [ 1] ret
-+CLONE 1 000b [ 5] nopl 0x0(%rax,%rax,1)
-+CLONE 1 0010 [ 2] push %r14
-+CLONE 1 0012 [ 2] push %r13
-+CLONE 1 0014 [ 2] push %r12
-+CLONE 1 0016 [ 1] push %rbp
-+CLONE 1 0017 [ 1] push %rbx
-+CLONE 1 0018 [ 6] mov <rip>(%rip),%eax # <tomo_db0::g_flatstore_table_alloc_failures>
-+CLONE 1 001e [ 3] mov %rdi,%rbx
-+CLONE 1 0021 [ 2] test %eax,%eax
-+CLONE 1 0023 [ 2] je <+0x40>
-+CLONE 1 0025 [ 3] lea -0x1(%rax),%edx
-+CLONE 1 0028 [ 8] lock cmpxchg %edx,<rip>(%rip) # <tomo_db0::g_flatstore_table_alloc_failures>
-+CLONE 1 0030 [ 2] jne <+0x21>
-+CLONE 1 0032 [ 1] pop %rbx
-+CLONE 1 0033 [ 1] pop %rbp
-+CLONE 1 0034 [ 2] pop %r12
-+CLONE 1 0036 [ 2] pop %r13
-+CLONE 1 0038 [ 2] pop %r14
-+CLONE 1 003a [ 1] ret
-+CLONE 1 003b [ 5] nopl 0x0(%rax,%rax,1)
-+CLONE 1 0040 [ 5] mov $0x40,%eax
-+CLONE 1 0045 [ 2] cmp %eax,%esi
-+CLONE 1 0047 [ 3] cmovae %esi,%eax
-+CLONE 1 004a [ 5] mov $0x8,%esi
-+CLONE 1 004f [ 2] mov %eax,%edi
-+CLONE 1 0051 [ 3] mov %rdi,%rbp
-+CLONE 1 0054 [ 5] call <calloc@plt>
-+CLONE 1 0059 [ 3] mov %rax,%r13
-+CLONE 1 005c [ 3] test %rax,%rax
-+CLONE 1 005f [ 2] je <+0x32>
-+CLONE 1 0061 [ 7] mov 0xc8(%rbx),%r12
-+CLONE 1 0068 [ 3] test %r12,%r12
-+CLONE 1 006b [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0071 [ 9] cmpb $0x0,0x524(%r12)
-+CLONE 1 007a [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0080 [ 9] cmpq $0x0,0x578(%r12)
-+CLONE 1 0089 [ 6] je <+0x210>
-+CLONE 1 008f [ 7] cmpb $0x0,0xf0(%rbx)
-+CLONE 1 0096 [ 6] jne <+0x2c0>
-+CLONE 1 009c [ 7] mov 0x118(%rbx),%rax
-+CLONE 1 00a3 [ 3] test %rax,%rax
-+CLONE 1 00a6 [ 6] je <+0x364>
-+CLONE 1 00ac [ 2] xor %ecx,%ecx
-+CLONE 1 00ae [ 3] incq (%rax)
-+CLONE 1 00b1 [ 7] mov 0xd0(%rbx),%rdx
-+CLONE 1 00b8 [ 7] lea 0xd8(%rbx),%rax
-+CLONE 1 00bf [ 2] test %cl,%cl
-+CLONE 1 00c1 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 00c7 [ 3] test %r12,%r12
-+CLONE 1 00ca [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 00d0 [ 9] cmpb $0x0,0x524(%r12)
-+CLONE 1 00d9 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 00df [ 8] mov 0x580(%r12),%esi
-+CLONE 1 00e7 [ 2] test %esi,%esi
-+CLONE 1 00e9 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 00ef [ 3] mov %rdx,(%rax)
-+CLONE 1 00f2 [ 7] cmpb $0x0,0xf0(%rbx)
-+CLONE 1 00f9 [ 6] mov 0xe0(%rbx),%edx
-+CLONE 1 00ff [ 7] mov 0xc8(%rbx),%rax
-+CLONE 1 0106 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 010c [ 3] test %rax,%rax
-+CLONE 1 010f [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0115 [ 7] cmpb $0x0,0x524(%rax)
-+CLONE 1 011c [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0122 [ 6] mov 0x580(%rax),%ecx
-+CLONE 1 0128 [ 2] test %ecx,%ecx
-+CLONE 1 012a [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0130 [ 6] mov %edx,0xe4(%rbx)
-+CLONE 1 0136 [ 7] cmpb $0x0,0xf0(%rbx)
-+CLONE 1 013d [ 6] mov 0xe8(%rbx),%edx
-+CLONE 1 0143 [ 7] mov 0xc8(%rbx),%rax
-+CLONE 1 014a [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0150 [ 3] test %rax,%rax
-+CLONE 1 0153 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0159 [ 7] cmpb $0x0,0x524(%rax)
-+CLONE 1 0160 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0166 [ 6] mov 0x580(%rax),%eax
-+CLONE 1 016c [ 2] test %eax,%eax
-+CLONE 1 016e [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0174 [ 6] mov %edx,0xec(%rbx)
-+CLONE 1 017a [ 6] mov 0x150(%rbx),%eax
-+CLONE 1 0180 [ 2] xor %esi,%esi
-+CLONE 1 0182 [ 2] mov %ebp,%ecx
-+CLONE 1 0184 [ 3] mov %r13,%rdx
-+CLONE 1 0187 [ 3] mov %rbx,%rdi
-+CLONE 1 018a [ 6] mov %eax,0x154(%rbx)
-+CLONE 1 0190 [ 6] mov 0x158(%rbx),%eax
-+CLONE 1 0196 [ 6] mov %eax,0x15c(%rbx)
-+CLONE 1 019c [ 5] call <tomo_db0::FlatStore::install_empty_table_read_local(int, unsigned long*, unsigned int)>
-+CLONE 1 01a1 [ 7] cmpb $0x0,0xf0(%rbx)
-+CLONE 1 01a8 [ 7] mov 0xc8(%rbx),%rax
-+CLONE 1 01af [10] movl $0x0,0x160(%rbx)
-+CLONE 1 01b9 [ 6] je <+0x32>
-+CLONE 1 01bf [ 3] test %rax,%rax
-+CLONE 1 01c2 [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 01c8 [ 7] cmpb $0x0,0x524(%rax)
-+CLONE 1 01cf [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 01d5 [ 6] mov 0x580(%rax),%edx
-+CLONE 1 01db [ 2] test %edx,%edx
-+CLONE 1 01dd [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 01e3 [ 2] dec %edx
-+CLONE 1 01e5 [ 6] mov %edx,0x580(%rax)
-+CLONE 1 01eb [ 6] jne <+0x32>
-+CLONE 1 01f1 [ 1] pop %rbx
-+CLONE 1 01f2 [ 1] pop %rbp
-+CLONE 1 01f3 [ 2] pop %r12
-+CLONE 1 01f5 [ 7] lea 0x548(%rax),%rdi
-+CLONE 1 01fc [ 2] pop %r13
-+CLONE 1 01fe [ 2] pop %r14
-+CLONE 1 0200 [ 5] mov $0x1,%esi
-+CLONE 1 0205 [ 5] jmp <tomo_db0::FlatStore::read_local_advance_generation(std::atomic<unsigned long>&, bool)>
-+CLONE 1 020a [ 6] nopw 0x0(%rax,%rax,1)
-+CLONE 1 0210 [ 7] lea <rip>(%rip),%rsi # <_ZSt7nothrow@GLIBCXX_3.4>
-+CLONE 1 0217 [ 5] mov $0x18,%edi
-+CLONE 1 021c [ 5] call <_ZnwmRKSt9nothrow_t@plt>
-+CLONE 1 0221 [ 3] test %rax,%rax
-+CLONE 1 0224 [ 6] je <+0x335>
-+CLONE 1 022a [ 8] movq $0x0,0x10(%rax)
-+CLONE 1 0232 [ 8] mov 0x578(%r12),%r14
-+CLONE 1 023a [ 7] movq $0x0,(%rax)
-+CLONE 1 0241 [ 8] movq $0x0,0x8(%rax)
-+CLONE 1 0249 [ 8] mov %rax,0x578(%r12)
-+CLONE 1 0251 [ 3] test %r14,%r14
-+CLONE 1 0254 [ 2] je <+0x286>
-+CLONE 1 0256 [ 3] mov (%r14),%rdi
-+CLONE 1 0259 [ 5] call <free@plt>
-+CLONE 1 025e [ 5] mov $0x18,%esi
-+CLONE 1 0263 [ 3] mov %r14,%rdi
-+CLONE 1 0266 [ 5] call <_ZdlPvm@plt>
-+CLONE 1 026b [ 9] cmpq $0x0,0x578(%r12)
-+CLONE 1 0274 [ 2] jne <+0x286>
-+CLONE 1 0276 [ 1] pop %rbx
-+CLONE 1 0277 [ 3] mov %r13,%rdi
-+CLONE 1 027a [ 1] pop %rbp
-+CLONE 1 027b [ 2] pop %r12
-+CLONE 1 027d [ 2] pop %r13
-+CLONE 1 027f [ 2] pop %r14
-+CLONE 1 0281 [ 5] jmp <free@plt>
-+CLONE 1 0286 [ 7] cmpb $0x0,0xf0(%rbx)
-+CLONE 1 028d [ 7] mov 0xc8(%rbx),%r12
-+CLONE 1 0294 [ 6] je <+0x9c>
-+CLONE 1 029a [ 3] test %r12,%r12
-+CLONE 1 029d [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 02a3 [ 9] cmpb $0x0,0x524(%r12)
-+CLONE 1 02ac [ 6] je <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 02b2 [11] data16 cs nopw 0x0(%rax,%rax,1)
-+CLONE 1 02bd [ 3] nopl (%rax)
-+CLONE 1 02c0 [ 8] mov 0x580(%r12),%eax
-+CLONE 1 02c8 [ 3] lea 0x1(%rax),%edx
-+CLONE 1 02cb [ 8] mov %edx,0x580(%r12)
-+CLONE 1 02d3 [ 2] test %eax,%eax
-+CLONE 1 02d5 [ 2] je <+0x2f6>
-+CLONE 1 02d7 [ 7] mov 0x118(%rbx),%rax
-+CLONE 1 02de [ 7] mov 0xd0(%rbx),%rdx
-+CLONE 1 02e5 [ 3] test %rax,%rax
-+CLONE 1 02e8 [ 2] jne <+0x355>
-+CLONE 1 02ea [ 7] lea 0xd8(%rbx),%rax
-+CLONE 1 02f1 [ 5] jmp <+0xdf>
-+CLONE 1 02f6 [ 8] mov 0x548(%r12),%rax
-+CLONE 1 02fe [ 2] test $0x1,%al
-+CLONE 1 0300 [ 6] jne <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
-+CLONE 1 0306 [ 4] or $0x1,%rax
-+CLONE 1 030a [ 8] mov %rax,0x548(%r12)
-+CLONE 1 0312 [ 7] mov 0x118(%rbx),%rax
-+CLONE 1 0319 [ 7] movzbl 0xf0(%rbx),%ecx
-+CLONE 1 0320 [ 7] mov 0xc8(%rbx),%r12
-+CLONE 1 0327 [ 3] test %rax,%rax
-+CLONE 1 032a [ 6] je <+0xb1>
-+CLONE 1 0330 [ 5] jmp <+0xae>
-+CLONE 1 0335 [ 8] mov 0x578(%r12),%r14
-+CLONE 1 033d [ 2] xor %edi,%edi
-+CLONE 1 033f [ 8] mov %rdi,0x578(%r12)
-+CLONE 1 0347 [ 3] test %r14,%r14
-+CLONE 1 034a [ 6] jne <+0x256>
-+CLONE 1 0350 [ 5] jmp <+0x276>
-+CLONE 1 0355 [ 3] incq (%rax)
-+CLONE 1 0358 [ 7] lea 0xd8(%rbx),%rax
-+CLONE 1 035f [ 5] jmp <+0xc7>
-+CLONE 1 0364 [ 5] jmp <tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]>
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 3] mov %rsi,%rax
++CLONE 0 0007 [ 7] lea 0x280(%rdi),%rsi
++CLONE 0 000e [ 4] mov 0x10(%rax),%rdx
++CLONE 0 0012 [ 3] cmp %rdx,%rsi
++CLONE 0 0015 [ 2] je <+0x20>
++CLONE 0 0017 [ 1] ret
++CLONE 0 0018 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0020 [ 4] cmpb $0x0,0x38(%rax)
++CLONE 0 0024 [ 2] jne <+0x17>
++CLONE 0 0026 [ 4] sub $0x8,%rsp
++CLONE 0 002a [ 4] mov 0x10(%rax),%rdx
++CLONE 0 002e [ 3] cmp %rdx,%rsi
++CLONE 0 0031 [ 6] jne <+0x12e>
++CLONE 0 0037 [ 3] mov (%rax),%rdx
++CLONE 0 003a [ 3] mov %rdi,%rcx
++CLONE 0 003d [ 4] mov 0x8(%rax),%rdi
++CLONE 0 0041 [ 3] test %rdx,%rdx
++CLONE 0 0044 [ 6] je <+0x100>
++CLONE 0 004a [ 4] mov %rdi,0x8(%rdx)
++CLONE 0 004e [ 4] mov 0x8(%rax),%rdi
++CLONE 0 0052 [ 3] test %rdi,%rdi
++CLONE 0 0055 [ 6] je <+0x110>
++CLONE 0 005b [ 3] mov %rdx,(%rdi)
++CLONE 0 005e [ 8] vmovq 0x2a0(%rcx),%xmm0
++CLONE 0 0066 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
++CLONE 0 006e [ 4] vpaddd %xmm0,%xmm2,%xmm1
++CLONE 0 0072 [ 4] vpsubd %xmm2,%xmm0,%xmm0
++CLONE 0 0076 [ 6] vpblendw $0xc,%xmm0,%xmm1,%xmm0
++CLONE 0 007c [ 8] vmovq %xmm0,0x2a0(%rcx)
++CLONE 0 0084 [ 8] movq $0x0,0x8(%rax)
++CLONE 0 008c [ 7] movq $0x0,(%rax)
++CLONE 0 0093 [ 8] movq $0x0,0x10(%rax)
++CLONE 0 009b [ 4] mov 0x10(%rax),%rdx
++CLONE 0 009f [ 3] test %rdx,%rdx
++CLONE 0 00a2 [ 6] jne <+0x129>
++CLONE 0 00a8 [ 7] mov 0x288(%rcx),%rdx
++CLONE 0 00af [ 8] movq $0x0,0x8(%rax)
++CLONE 0 00b7 [ 4] movb $0x1,0x38(%rax)
++CLONE 0 00bb [ 3] mov %rdx,(%rax)
++CLONE 0 00be [ 7] mov 0x288(%rcx),%rdx
++CLONE 0 00c5 [ 3] test %rdx,%rdx
++CLONE 0 00c8 [ 2] je <+0x120>
++CLONE 0 00ca [ 4] mov %rax,0x8(%rdx)
++CLONE 0 00ce [ 8] vmovq 0x2a0(%rcx),%xmm0
++CLONE 0 00d6 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
++CLONE 0 00de [ 7] mov %rax,0x288(%rcx)
++CLONE 0 00e5 [ 4] vpaddd %xmm1,%xmm0,%xmm0
++CLONE 0 00e9 [ 8] vmovq %xmm0,0x2a0(%rcx)
++CLONE 0 00f1 [ 4] mov %rsi,0x10(%rax)
++CLONE 0 00f5 [ 4] add $0x8,%rsp
++CLONE 0 00f9 [ 1] ret
++CLONE 0 00fa [ 6] nopw 0x0(%rax,%rax,1)
++CLONE 0 0100 [ 7] mov %rdi,0x290(%rcx)
++CLONE 0 0107 [ 3] mov (%rax),%rdx
++CLONE 0 010a [ 5] jmp <+0x4e>
++CLONE 0 010f [ 1] nop
++CLONE 0 0110 [ 7] mov %rdx,0x298(%rcx)
++CLONE 0 0117 [ 5] jmp <+0x5e>
++CLONE 0 011c [ 4] nopl 0x0(%rax)
++CLONE 0 0120 [ 7] mov %rax,0x280(%rcx)
++CLONE 0 0127 [ 2] jmp <+0xce>
++CLONE 0 0129 [ 5] call <tomo_db0::TxnRetryQueues::link(tomo_db0::MultiOwnerRetryNode&, bool) [clone .part.0]>
++CLONE 0 012e [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0135 [ 5] mov $0x919d052f,%edx
++CLONE 0 013a [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0141 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
++CLONE 0 0148 [ 5] call <__assert_fail@plt>

@@ -1,15 +1,15 @@
-luaL_pushresult
---- headline
+json_cfg_encode_invalid_numbers
+--- lualibs
 
 +++ post
 
-@@ -28,7 +28,7 @@
+@@ -4,7 +4,7 @@
 
- CLONE 0 0044 [ 4] mov 0x10(%rbp),%r12
- CLONE 0 0048 [ 3] mov %rbp,%rdi
- CLONE 0 004b [ 2] xor %edx,%edx
--CLONE 0 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
-+CLONE 0 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
- CLONE 0 0054 [ 5] call <luaS_newlstr>
- CLONE 0 0059 [ 4] mov %rax,(%r12)
- CLONE 0 005d [ 9] movl $0x4,0x8(%r12)
+ CLONE 0 000a [ 3] mov %rdi,%rbx
+ CLONE 0 000d [ 5] call <json_arg_init>
+ CLONE 0 0012 [ 3] mov %rbx,%rdi
+-CLONE 0 0015 [ 7] lea <rip>(%rip),%rdx # <options.1>
++CLONE 0 0015 [ 7] lea <rip>(%rip),%rdx # <options.0>
+ CLONE 0 001c [ 7] lea 0x538(%rax),%rsi
+ CLONE 0 0023 [ 5] call <json_enum_option.constprop.0.isra.0>
+ CLONE 0 0028 [ 5] mov $0x1,%eax

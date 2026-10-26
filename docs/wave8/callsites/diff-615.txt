@@ -1,0 +1,66 @@
+void tomo_db0::reply_line_text<tomo_db0::SmallBuf<96ul>&>(tomo_db0::SmallBuf<96ul>&, char const*, unsigned long)
+--- headline
+
++++ post
+
+@@ -122,15 +122,47 @@
+
+ CLONE 0 01ae [ 4] mov %rbx,0x10(%r15)
+ CLONE 0 01b2 [ 5] jmp <+0xa2>
+ CLONE 0 01b7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 01c0 [ 4] add $0x28,%rsp
+-CLONE 0 01c4 [ 3] mov %r12,%rdx
+-CLONE 0 01c7 [ 5] lea 0x0(%rbp,%rax,1),%rsi
+-CLONE 0 01cc [ 3] mov %r15,%rdi
+-CLONE 0 01cf [ 1] pop %rbx
+-CLONE 0 01d0 [ 1] pop %rbp
+-CLONE 0 01d1 [ 2] pop %r12
+-CLONE 0 01d3 [ 3] sub %rax,%rdx
+-CLONE 0 01d6 [ 2] pop %r13
+-CLONE 0 01d8 [ 2] pop %r14
+-CLONE 0 01da [ 2] pop %r15
+-CLONE 0 01dc [ 5] jmp <tomo_db0::SmallBuf<96ul>::append(char const*, unsigned long)>
++CLONE 0 01c0 [ 4] mov 0x8(%r15),%r14
++CLONE 0 01c4 [ 5] lea 0x0(%rbp,%rax,1),%rbx
++CLONE 0 01c9 [ 4] mov 0x10(%r15),%rbp
++CLONE 0 01cd [ 3] sub %rax,%r12
++CLONE 0 01d0 [ 4] lea (%r12,%r14,1),%rax
++CLONE 0 01d4 [ 3] cmp %rax,%rbp
++CLONE 0 01d7 [ 2] jb <+0x200>
++CLONE 0 01d9 [ 3] mov (%r15),%r13
++CLONE 0 01dc [ 5] lea 0x0(%r13,%r14,1),%rdi
++CLONE 0 01e1 [ 3] mov %r12,%rdx
++CLONE 0 01e4 [ 3] mov %rbx,%rsi
++CLONE 0 01e7 [ 5] call <memcpy@plt>
++CLONE 0 01ec [ 4] add %r12,0x8(%r15)
++CLONE 0 01f0 [ 4] add $0x28,%rsp
++CLONE 0 01f4 [ 1] pop %rbx
++CLONE 0 01f5 [ 1] pop %rbp
++CLONE 0 01f6 [ 2] pop %r12
++CLONE 0 01f8 [ 2] pop %r13
++CLONE 0 01fa [ 2] pop %r14
++CLONE 0 01fc [ 2] pop %r15
++CLONE 0 01fe [ 1] ret
++CLONE 0 01ff [ 1] nop
++CLONE 0 0200 [ 3] add %rbp,%rbp
++CLONE 0 0203 [ 3] cmp %rax,%rbp
++CLONE 0 0206 [ 2] jb <+0x200>
++CLONE 0 0208 [ 3] mov %rbp,%rdi
++CLONE 0 020b [ 5] call <malloc@plt>
++CLONE 0 0210 [ 3] mov (%r15),%rsi
++CLONE 0 0213 [ 3] mov %rbp,%rcx
++CLONE 0 0216 [ 3] mov %r14,%rdx
++CLONE 0 0219 [ 3] mov %rax,%rdi
++CLONE 0 021c [ 3] mov %rax,%r13
++CLONE 0 021f [ 4] mov %rsi,(%rsp)
++CLONE 0 0223 [ 5] call <__memcpy_chk@plt>
++CLONE 0 0228 [ 4] mov (%rsp),%rsi
++CLONE 0 022c [ 4] lea 0x18(%r15),%rax
++CLONE 0 0230 [ 3] cmp %rax,%rsi
++CLONE 0 0233 [ 2] je <+0x241>
++CLONE 0 0235 [ 3] mov %rsi,%rdi
++CLONE 0 0238 [ 5] call <free@plt>
++CLONE 0 023d [ 4] mov 0x8(%r15),%r14
++CLONE 0 0241 [ 3] mov %r13,(%r15)
++CLONE 0 0244 [ 4] mov %rbp,0x10(%r15)
++CLONE 0 0248 [ 2] jmp <+0x1dc>

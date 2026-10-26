@@ -1,104 +1,47 @@
-tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*) [clone .cold]
+tomo::latency_tracking_script_begin(tomo::Op const&)
 --- headline
 
 +++ post
 
-@@ -1,46 +1,51 @@
+@@ -0,0 +1,40 @@
 
--CLONE 0 0000 [ 7] mov -0x40b0(%rbp),%rdi
--CLONE 0 0007 [ 3] test %rdi,%rdi
--CLONE 0 000a [ 6] jne <+0xb5>
--CLONE 0 0010 [ 3] vzeroupper
--CLONE 0 0013 [ 3] mov %rbx,%rax
--CLONE 0 0016 [ 8] cmpq $0x0,-0x41a8(%rbp)
--CLONE 0 001e [ 2] je <+0x30>
--CLONE 0 0020 [ 7] mov -0x41b8(%rbp),%rcx
--CLONE 0 0027 [ 9] mov %rcx,%fs:0xffffffffffffff18
--CLONE 0 0030 [ 3] mov %rax,%rbx
--CLONE 0 0033 [ 8] cmpq $0x0,-0x41a0(%rbp)
--CLONE 0 003b [ 2] je <+0x4f>
--CLONE 0 003d [ 7] mov -0x41b0(%rbp),%rax
--CLONE 0 0044 [ 4] mov %rax,0x10(%r13)
--CLONE 0 0048 [ 7] mov %rax,0x1c0(%r13)
--CLONE 0 004f [ 7] lea -0x4110(%rbp),%rdi
--CLONE 0 0056 [ 5] call <tomo::NotifyExecutionScope::~NotifyExecutionScope()>
--CLONE 0 005b [ 3] mov %rbx,%rdi
--CLONE 0 005e [ 9] movb $0x0,%fs:0xffffffffffffff20
--CLONE 0 0067 [ 4] mov -0x38(%rbp),%rax
--CLONE 0 006b [ 9] sub %fs:0x28,%rax
--CLONE 0 0074 [ 2] jne <+0xe1>
--CLONE 0 0076 [ 5] call <_Unwind_Resume@plt>
--CLONE 0 007b [ 7] movzbl -0x41e0(%rbp),%esi
--CLONE 0 0082 [ 7] mov %sil,0x1c9(%r13)
--CLONE 0 0089 [ 8] cmpq $0x0,-0x40b0(%rbp)
--CLONE 0 0091 [ 2] jne <+0xc7>
--CLONE 0 0093 [ 8] cmpq $0x0,-0x4138(%rbp)
--CLONE 0 009b [ 2] je <+0xd9>
--CLONE 0 009d [ 7] mov -0x4130(%rbp),%rdi
--CLONE 0 00a4 [ 9] mov %rdi,%fs:0xffffffffffffff18
--CLONE 0 00ad [ 3] vzeroupper
--CLONE 0 00b0 [ 5] jmp <+0x16>
--CLONE 0 00b5 [ 5] mov $0x104,%esi
--CLONE 0 00ba [ 3] vzeroupper
--CLONE 0 00bd [ 5] call <_ZdlPvm@plt>
--CLONE 0 00c2 [ 5] jmp <+0x13>
--CLONE 0 00c7 [ 7] mov -0x40a8(%rbp),%rdx
--CLONE 0 00ce [ 9] mov %rdx,%fs:0xffffffffffffff10
--CLONE 0 00d7 [ 2] jmp <+0x93>
--CLONE 0 00d9 [ 3] vzeroupper
--CLONE 0 00dc [ 5] jmp <+0x16>
--CLONE 0 00e1 [ 5] call <__stack_chk_fail@plt>
--CLONE 0 00e6 [ 5] call <abort@plt>
--CLONE 0 00eb [ 5] call <tomo::Server::debug_stall_us(unsigned int)>
--CLONE 0 00f0 [ 5] jmp <tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)+0x2a7c>
-+CLONE 0 0000 [ 5] call <tomo::Server::debug_stall_us(unsigned int)>
-+CLONE 0 0005 [ 5] jmp <tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*, tomo::MultiRetryPromoter const*)+0x2b79>
-+CLONE 0 000a [ 7] movzbl -0x4238(%rbp),%eax
-+CLONE 0 0011 [ 7] mov %al,0x1c9(%r13)
-+CLONE 0 0018 [ 8] cmpq $0x0,-0x40b0(%rbp)
-+CLONE 0 0020 [ 6] jne <+0xab>
-+CLONE 0 0026 [ 7] mov -0x41a0(%rbp),%rdi
-+CLONE 0 002d [ 3] vzeroupper
-+CLONE 0 0030 [ 5] call <tomo::LatencyTrackingPart::~LatencyTrackingPart()>
-+CLONE 0 0035 [ 8] cmpq $0x0,-0x4178(%rbp)
-+CLONE 0 003d [ 2] je <+0x4f>
-+CLONE 0 003f [ 7] mov -0x4170(%rbp),%rax
-+CLONE 0 0046 [ 9] mov %rax,%fs:0xffffffffffffff10
-+CLONE 0 004f [ 8] cmpq $0x0,-0x41f8(%rbp)
-+CLONE 0 0057 [ 2] je <+0x69>
-+CLONE 0 0059 [ 7] mov -0x4208(%rbp),%rax
-+CLONE 0 0060 [ 9] mov %rax,%fs:0xffffffffffffff10
-+CLONE 0 0069 [ 8] cmpq $0x0,-0x41f0(%rbp)
-+CLONE 0 0071 [ 2] jne <+0xc0>
-+CLONE 0 0073 [ 7] lea -0x4130(%rbp),%rdi
-+CLONE 0 007a [ 5] call <tomo::NotifyExecutionScope::~NotifyExecutionScope()>
-+CLONE 0 007f [ 7] mov -0x41e8(%rbp),%rdi
-+CLONE 0 0086 [ 5] call <tomo::LatencyTrackingPart::~LatencyTrackingPart()>
-+CLONE 0 008b [ 9] movb $0x0,%fs:0xffffffffffffff18
-+CLONE 0 0094 [ 4] mov -0x38(%rbp),%rax
-+CLONE 0 0098 [ 9] sub %fs:0x28,%rax
-+CLONE 0 00a1 [ 2] jne <+0xd4>
-+CLONE 0 00a3 [ 3] mov %rbx,%rdi
-+CLONE 0 00a6 [ 5] call <_Unwind_Resume@plt>
-+CLONE 0 00ab [ 7] mov -0x40a8(%rbp),%rax
-+CLONE 0 00b2 [ 9] mov %rax,%fs:0xffffffffffffff08
-+CLONE 0 00bb [ 5] jmp <+0x26>
-+CLONE 0 00c0 [ 7] mov -0x4200(%rbp),%rax
-+CLONE 0 00c7 [ 4] mov %rax,0x10(%r13)
-+CLONE 0 00cb [ 7] mov %rax,0x1c0(%r13)
-+CLONE 0 00d2 [ 2] jmp <+0x73>
-+CLONE 0 00d4 [ 5] call <__stack_chk_fail@plt>
-+CLONE 0 00d9 [ 3] mov %r14,%rdi
-+CLONE 0 00dc [ 3] vzeroupper
-+CLONE 0 00df [ 5] call <tomo::LatencyTrackingPart::~LatencyTrackingPart()>
-+CLONE 0 00e4 [ 5] jmp <+0x35>
-+CLONE 0 00e9 [ 7] mov -0x40b0(%rbp),%rdi
-+CLONE 0 00f0 [ 3] test %rdi,%rdi
-+CLONE 0 00f3 [ 2] je <+0x10c>
-+CLONE 0 00f5 [ 5] mov $0x104,%esi
-+CLONE 0 00fa [ 3] vzeroupper
-+CLONE 0 00fd [ 5] call <_ZdlPvm@plt>
-+CLONE 0 0102 [ 5] jmp <+0x4f>
-+CLONE 0 0107 [ 5] call <abort@plt>
-+CLONE 0 010c [ 3] vzeroupper
-+CLONE 0 010f [ 5] jmp <+0x4f>
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 2] push %r13
++CLONE 0 0006 [ 2] push %r12
++CLONE 0 0008 [ 1] push %rbp
++CLONE 0 0009 [ 3] mov %rdi,%r13
++CLONE 0 000c [ 1] push %rbx
++CLONE 0 000d [ 4] sub $0x8,%rsp
++CLONE 0 0011 [ 5] call <tomo::command_server()>
++CLONE 0 0016 [ 3] test %rax,%rax
++CLONE 0 0019 [ 2] je <+0x75>
++CLONE 0 001b [ 7] movzbl 0x176fc(%rax),%eax
++CLONE 0 0022 [ 2] test %al,%al
++CLONE 0 0024 [ 2] je <+0x75>
++CLONE 0 0026 [ 7] lea <rip>(%rip),%rbp # <tomo::(anonymous namespace)::stores>
++CLONE 0 002d [ 7] lea 0x2000(%rbp),%r12
++CLONE 0 0034 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 003f [ 1] nop
++CLONE 0 0040 [ 4] mov 0x0(%rbp),%rbx
++CLONE 0 0044 [ 3] test %rbx,%rbx
++CLONE 0 0047 [ 2] je <+0x6c>
++CLONE 0 0049 [ 3] mov %rbx,%rdi
++CLONE 0 004c [ 5] call <pthread_mutex_lock@plt>
++CLONE 0 0051 [ 2] test %eax,%eax
++CLONE 0 0053 [ 2] jne <+0x80>
++CLONE 0 0055 [ 7] lea 0x88(%rbx),%rdi
++CLONE 0 005c [ 3] mov %r13,%rsi
++CLONE 0 005f [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::erase(tomo::Op const* const&) [clone .isra.0]>
++CLONE 0 0064 [ 3] mov %rbx,%rdi
++CLONE 0 0067 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 006c [ 4] add $0x40,%rbp
++CLONE 0 0070 [ 3] cmp %rbp,%r12
++CLONE 0 0073 [ 2] jne <+0x40>
++CLONE 0 0075 [ 4] add $0x8,%rsp
++CLONE 0 0079 [ 1] pop %rbx
++CLONE 0 007a [ 1] pop %rbp
++CLONE 0 007b [ 2] pop %r12
++CLONE 0 007d [ 2] pop %r13
++CLONE 0 007f [ 1] ret
++CLONE 0 0080 [ 2] mov %eax,%edi
++CLONE 0 0082 [ 5] call <_ZSt20__throw_system_errori@plt>

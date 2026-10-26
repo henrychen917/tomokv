@@ -1,5 +1,5 @@
 Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/post-db0-GET-1s-32-1--1.log
-SHA-256: 7b77713ba926eefc7f6dc98cd1a680bfa02d7c3f867f61a9549ff977b32db3f1
+SHA-256: 1a5a22a31200b8994872d5ccef9282b3060cbb4ea59223eeffed2fba94f08b60
 Exit: 0
 0x00005555558aa188	2353	        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
 0x00005555558aa053 in tomo_db0::ExLoopT<true>::exec_batch_prefetched<false> (this=0x7ffff6183088, batch=<optimized out>, n=<optimized out>) at src/core/ex_loop.h:2356
@@ -19,5 +19,5 @@ Exit: 0
 
 Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
 20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
-[Inferior 1 (process 4150046) exited normally]
+[Inferior 1 (process 2243132) exited normally]
 COUNT 18705

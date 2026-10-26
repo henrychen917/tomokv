@@ -1,20 +1,15 @@
-tomo::TxnWaiter::~TxnWaiter()
---- execindex
+tomo::SetMemberTable::erase_at(unsigned int, unsigned int&)
+--- headline
 
 +++ post
 
-@@ -2,9 +2,9 @@
+@@ -56,7 +56,7 @@
 
- CLONE 0 0004 [ 5] cmpq $0x0,0x78(%rdi)
- CLONE 0 0009 [ 2] jne <+0xc>
- CLONE 0 000b [ 1] ret
--CLONE 0 000c [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f3a3a54786e5761697465723a3a7e54786e576169746572282900>
-+CLONE 0 000c [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
- CLONE 0 0013 [ 1] push %rax
--CLONE 0 0014 [ 5] mov $0x39,%edx
--CLONE 0 0019 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
--CLONE 0 0020 [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
-+CLONE 0 0014 [ 5] mov $0xa76723f6,%edx
-+CLONE 0 0019 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 0 0020 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 0 0027 [ 5] call <__assert_fail@plt>
+ CLONE 0 00e5 [ 4] mov 0x20(%rbx),%rdx
+ CLONE 0 00e9 [ 4] mov 0x18(%rbx),%rdi
+ CLONE 0 00ed [ 4] mov 0x28(%rbp),%r8d
+-CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 00f1 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 00f9 [ 3] mov -0x4(%rdx),%eax
+ CLONE 0 00fc [ 4] sub $0x4,%rdx
+ CLONE 0 0100 [ 4] mov %eax,(%rdi,%r8,4)

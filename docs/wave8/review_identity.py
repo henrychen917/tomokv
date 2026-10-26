@@ -50,7 +50,7 @@ for row in rows:
                                 'FlatStore::make_word(', 'atomic_epoch(')):
         category = 'stable assertion diagnostics'
         reason = ('Readability site IDs replace source file/line/function assertion arguments, including assertions '
-                  'inlined from execindex queue nodes. The generated 15-site map and deliberate abort controls '
+                  'inlined from execindex queue nodes. The generated 22-site map and deliberate abort controls '
                   'verify diagnostic identity. Assertion failure paths remain failures.')
     elif 'latency_tracking' in origin or 'ExecutorHistograms' in name or 'retire_script_children' in name:
         category = 'logical timing retirement'
@@ -84,9 +84,10 @@ for row in rows:
         reason = ('Lua helper registration/sandbox composition plus staged nested-command timing and fresh-activation cleanup; '
                   'script OCC retries publish only the final activation children.')
     elif any(x in origin for x in ('lua/helpers', 'lua_bit', 'lua_cjson', 'lua_cmsgpack', 'lua_struct')):
-        category = 'Lua helper compiler propagation'
-        reason = ('Imported lualibs helper code retained; merged translation-unit/link context changes the emitted body. '
-                  'All lane references, call sites and instruction differences remain recorded; helper oracle/Tcl checks cover semantics.')
+        category = 'Lua helper stable assertion diagnostics'
+        reason = ('Seven helper C assertion sites now use stable explicit IDs instead of source file/line/function arguments. '
+                  'The C wrapper leaves successful conditions unchanged; generated map, C abort controls and helper/Tcl jobs cover semantics. '
+                  'The unmodified C++ objects retain the selected inlining budgets; full instruction and call-site differences are recorded.')
     elif name.startswith('_GLOBAL__sub_I_'):
         category = 'initialization and static data layout'
         reason = ('Combined command/static registrations and histogram-store initialization relocate referenced objects '
@@ -118,7 +119,7 @@ for row in rows:
 
 (DOC / 'reviewed-bodies.json').write_text(json.dumps(rows, indent=2) + '\n')
 lines = ['# Complete merged body review', '',
-         'All 1,717 strict differences are listed. Exact lane matches retain their lane body; the 607 residual groups include source/call-site evidence. No opcode, branch, register, member offset or clone was masked in the strict inventory.', '',
+         f"All {len(rows):,} strict differences are listed. Exact lane matches retain their lane body; the {sum(not r['matches'] for r in rows):,} residual groups include source/call-site evidence. No opcode, branch, register, member offset or clone was masked in the strict inventory.", '',
          '| Function | Headline → POST bytes | Reason and evidence |', '|---|---|---|']
 for row in rows:
     reason = row['reason']

@@ -1,15 +1,65 @@
-tomo::(anonymous namespace)::stream_snapshot_load(tomo::Slice, unsigned char, long, tomo::Slice, tomo::TypeLimits const&, tomo::KvObj*&)
---- headline
+tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]
+--- latencyfix
 
 +++ post
 
-@@ -556,7 +556,7 @@
+@@ -12,7 +12,7 @@
 
- CLONE 0 0a82 [ 5] jmp <+0x893>
- CLONE 0 0a87 [10] movabs $0x7ffffffffffffff8,%r15
- CLONE 0 0a91 [ 2] jmp <+0xa68>
--CLONE 0 0a93 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x618>
-+CLONE 0 0a93 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x60>
- CLONE 0 0a9a [ 7] lea -0xf8(%rbp),%rcx
- CLONE 0 0aa1 [ 7] lea -0xd0(%rbp),%rsi
- CLONE 0 0aa8 [ 3] mov %r13,%rdx
+ CLONE 0 0036 [ 5] call <free@plt>
+ CLONE 0 003b [ 4] mov -0x38(%rbp),%rax
+ CLONE 0 003f [ 9] sub %fs:0x28,%rax
+-CLONE 0 0048 [ 6] jne <+0x112>
++CLONE 0 0048 [ 6] jne <+0x119>
+ CLONE 0 004e [ 3] mov %rbx,%rdi
+ CLONE 0 0051 [ 5] call <_Unwind_Resume@plt>
+ CLONE 0 0056 [ 7] lea -0x9e0(%rbp),%rdi
+@@ -20,7 +20,7 @@
+
+ CLONE 0 0060 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+ CLONE 0 0065 [ 3] mov %r13,%rdi
+ CLONE 0 0068 [ 3] dec %r14
+-CLONE 0 006b [ 6] jne <+0x10a>
++CLONE 0 006b [ 6] jne <+0x111>
+ CLONE 0 0071 [ 5] call <__cxa_begin_catch@plt>
+ CLONE 0 0076 [ 4] mov (%r12),%rdi
+ CLONE 0 007a [ 7] mov -0x918(%rbp),%rsi
+@@ -38,21 +38,22 @@
+
+ CLONE 0 00c4 [ 5] call <free@plt>
+ CLONE 0 00c9 [ 7] mov -0x9a0(%rbp),%rdi
+ CLONE 0 00d0 [ 7] mov -0xa68(%rbp),%rax
+-CLONE 0 00d7 [ 8] movzbl -0xa5c(%rbp),%r13d
++CLONE 0 00d7 [ 8] movzbl -0xa78(%rbp),%r13d
+ CLONE 0 00df [ 3] cmp %rax,%rdi
+-CLONE 0 00e2 [ 6] jne <tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)+0xc47>
++CLONE 0 00e2 [ 6] jne <tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)+0xc57>
+ CLONE 0 00e8 [ 5] jmp <tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)+0x1d4>
+-CLONE 0 00ed [ 7] mov -0xa58(%rbp),%rsi
+-CLONE 0 00f4 [ 6] mov -0xa50(%rbp),%edi
+-CLONE 0 00fa [ 3] mov %r15,%rdx
+-CLONE 0 00fd [ 3] vzeroupper
+-CLONE 0 0100 [ 5] call <tomo::latency_tracking_finish(unsigned int, tomo::Op const&, unsigned long)>
+-CLONE 0 0105 [ 5] jmp <+0xb>
+-CLONE 0 010a [ 3] mov %rdi,%rbx
+-CLONE 0 010d [ 5] jmp <+0xb>
+-CLONE 0 0112 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0117 [ 4] endbr64
+-CLONE 0 011b [ 3] mov %rax,%rbx
+-CLONE 0 011e [ 3] vzeroupper
+-CLONE 0 0121 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 0126 [ 5] jmp <+0xb>
++CLONE 0 00ed [ 7] mov -0xa58(%rbp),%rdx
++CLONE 0 00f4 [ 7] mov -0xa60(%rbp),%rsi
++CLONE 0 00fb [ 6] mov -0xa50(%rbp),%edi
++CLONE 0 0101 [ 3] mov %r14,%rcx
++CLONE 0 0104 [ 3] vzeroupper
++CLONE 0 0107 [ 5] call <tomo::latency_tracking_script_part(unsigned int, tomo::Op const&, tomo::Op const&, unsigned long)>
++CLONE 0 010c [ 5] jmp <+0xb>
++CLONE 0 0111 [ 3] mov %rdi,%rbx
++CLONE 0 0114 [ 5] jmp <+0xb>
++CLONE 0 0119 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 011e [ 4] endbr64
++CLONE 0 0122 [ 3] mov %rax,%rbx
++CLONE 0 0125 [ 3] vzeroupper
++CLONE 0 0128 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 012d [ 5] jmp <+0xb>

@@ -1,15 +1,16 @@
-tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)
+tomo_db0::latency_tracking_script_part(unsigned int, tomo_db0::Op const&, tomo_db0::Op const&, unsigned long) [clone .cold]
 --- headline
 
 +++ post
 
-@@ -194,7 +194,7 @@
+@@ -0,0 +1,9 @@
 
- CLONE 0 038a [ 5] jmp <+0x291>
- CLONE 0 038f [ 1] nop
- CLONE 0 0390 [ 3] movzbl %dl,%edx
--CLONE 0 0393 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.6843>
-+CLONE 0 0393 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.6918>
- CLONE 0 039a [ 4] movzbl (%rcx,%rdx,1),%ecx
- CLONE 0 039e [ 5] jmp <+0x1e4>
- CLONE 0 03a3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0000 [ 3] mov %r13,%rdi
++CLONE 0 0003 [ 3] vzeroupper
++CLONE 0 0006 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 000b [ 5] mov 0x48(%rsp),%rax
++CLONE 0 0010 [ 9] sub %fs:0x28,%rax
++CLONE 0 0019 [ 2] jne <+0x23>
++CLONE 0 001b [ 3] mov %rbx,%rdi
++CLONE 0 001e [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0023 [ 5] call <__stack_chk_fail@plt>

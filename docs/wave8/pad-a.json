@@ -2,7 +2,7 @@
   "kind": "A: behaviour twin",
   "behavior": "unmodified headline 3700b51d7",
   "matched": "POST .text start address and total byte size; layout locks unchanged",
-  "limitation": "Function ordering/relative spacing and TLS/data contents come from PRE; section addresses relocate. Aggregate text-size/start control, not an exact per-symbol/data-layout twin.",
+  "limitation": "Individual function offsets and data sections retain PRE layout; this is not an exact per-symbol/data-layout twin.",
   "pre_text": {
     "address": 129200,
     "size": 8279287
@@ -602,7 +602,7 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-wave8/build/tomokv",
-      "sha256": "488ad56dd86bbb7f52c8cbf5b34070b81e3e782ef2b26adcbe788061cbc03509"
+      "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-PAD-A",

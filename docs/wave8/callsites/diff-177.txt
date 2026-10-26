@@ -1,15 +1,15 @@
-tomo::AofManager::debug_arm_ack_window(unsigned int, tomo::Slice)
+tomo::(anonymous namespace)::stream_snapshot_load(tomo::Slice, unsigned char, long, tomo::Slice, tomo::TypeLimits const&, tomo::KvObj*&)
 --- headline
 
 +++ post
 
-@@ -10,7 +10,7 @@
+@@ -556,7 +556,7 @@
 
- CLONE 0 0025 [ 3] cmp $0x11,%ecx
- CLONE 0 0028 [ 2] jbe <+0x3d>
- CLONE 0 002a [ 4] vmovdqu (%rdx),%xmm0
--CLONE 0 002e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x3c8>
-+CLONE 0 002e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x748>
- CLONE 0 0036 [ 5] vptest %xmm0,%xmm0
- CLONE 0 003b [ 2] je <+0x40>
- CLONE 0 003d [ 1] ret
+ CLONE 0 0a82 [ 5] jmp <+0x893>
+ CLONE 0 0a87 [10] movabs $0x7ffffffffffffff8,%r15
+ CLONE 0 0a91 [ 2] jmp <+0xa68>
+-CLONE 0 0a93 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x618>
++CLONE 0 0a93 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x60>
+ CLONE 0 0a9a [ 7] lea -0xf8(%rbp),%rcx
+ CLONE 0 0aa1 [ 7] lea -0xd0(%rbp),%rsi
+ CLONE 0 0aa8 [ 3] mov %r13,%rdx

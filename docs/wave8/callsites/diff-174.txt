@@ -1,19 +1,25 @@
-tomo::(anonymous namespace)::txn_link_waiter(tomo::TxnKeyQueue&, tomo::TxnWaiter&, tomo::TxnReservation const&, bool)
---- execindex
+tomo::(anonymous namespace)::sha256_password(tomo::Slice) [clone .isra.0]
+--- headline
 
 +++ post
 
-@@ -175,8 +175,8 @@
+@@ -60,7 +60,7 @@
 
- CLONE 0 02cc [ 2] jmp <+0x2b9>
- CLONE 0 02ce [ 3] vzeroupper
- CLONE 0 02d1 [ 5] call <__stack_chk_fail@plt>
--CLONE 0 02d6 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a7b616e6f6e796d6f75737d3a3a74786e5f6c696e6b5f77616974657228746f6d6f3a3a54786e4b65795175657565262c20746f6d6f3a3a54786e576169746572262c20636f6e737420746f6d6f3a3a53686172643a3a57617463685265736572766174696f6e262c20626f6f6c2900>
--CLONE 0 02dd [ 5] mov $0x21,%edx
--CLONE 0 02e2 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f74786e5f6b65795f71756575652e696e6300>
--CLONE 0 02e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-216e6f64652e77616974696e6700>
-+CLONE 0 02d6 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
-+CLONE 0 02dd [ 5] mov $0x9f7faaf1,%edx
-+CLONE 0 02e2 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 0 02e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 0 02f0 [ 5] call <__assert_fail@plt>
+ CLONE 0 00ef [ 5] call <tomo::(anonymous namespace)::sha256_transform(unsigned int*, unsigned char const*)>
+ CLONE 0 00f4 [ 7] cmp $0x80,%r12d
+ CLONE 0 00fb [ 6] je <+0x4c0>
+-CLONE 0 0101 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x660>
++CLONE 0 0101 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xa0>
+ CLONE 0 0109 [ 6] vmovq 0x20(%rsp),%xmm0
+ CLONE 0 010f [ 6] vmovq 0x28(%rsp),%xmm8
+ CLONE 0 0115 [ 6] vmovq 0x38(%rsp),%xmm7
+@@ -76,7 +76,7 @@
+
+ CLONE 0 0147 [ 4] vpand %xmm2,%xmm1,%xmm2
+ CLONE 0 014b [ 6] vpsrld $0x10,%xmm8,%xmm6
+ CLONE 0 0151 [ 5] vpackusdw %xmm5,%xmm2,%xmm2
+-CLONE 0 0156 [ 8] vmovq <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x668>
++CLONE 0 0156 [ 8] vmovq <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xa8>
+ CLONE 0 015e [ 5] vpshufd $0x8,%xmm3,%xmm3
+ CLONE 0 0163 [ 4] vpand %xmm6,%xmm1,%xmm6
+ CLONE 0 0167 [ 5] vpshufd $0x8,%xmm2,%xmm2

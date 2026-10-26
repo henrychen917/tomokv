@@ -1,25 +1,19 @@
-void tomo::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo::Shard&, tomo::Op&)
+void std::_Destroy_aux<false>::__destroy<tomo::TxnClaim*>(tomo::TxnClaim*, tomo::TxnClaim*)
 --- execindex
 
 +++ post
 
-@@ -29,7 +29,7 @@
+@@ -25,8 +25,8 @@
 
- CLONE 0 0072 [ 4] fldt 0x20(%rsp)
- CLONE 0 0076 [ 2] fld %st(0)
- CLONE 0 0078 [ 2] fabs
--CLONE 0 007a [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
-+CLONE 0 007a [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 0080 [ 2] fxch %st(1)
- CLONE 0 0082 [ 2] fucomip %st(1),%st
- CLONE 0 0084 [ 2] ffreep %st(0)
-@@ -204,7 +204,7 @@
-
- CLONE 0 0369 [ 2] jp <+0x394>
- CLONE 0 036b [ 2] fld %st(0)
- CLONE 0 036d [ 2] fabs
--CLONE 0 036f [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
-+CLONE 0 036f [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 0375 [ 2] fxch %st(1)
- CLONE 0 0377 [ 2] fucomip %st(1),%st
- CLONE 0 0379 [ 2] ffreep %st(0)
+ CLONE 0 0055 [ 1] ret
+ CLONE 0 0056 [10] cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 0060 [ 1] ret
+-CLONE 0 0061 [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f3a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 0068 [ 5] mov $0x39,%edx
+-CLONE 0 006d [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 0074 [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 0061 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0068 [ 5] mov $0xa76723f6,%edx
++CLONE 0 006d [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0074 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 007b [ 5] call <__assert_fail@plt>

@@ -1,17 +1,15 @@
-mp_encode_lua_number
---- lualibs
+math_abs
+--- headline
 
 +++ post
 
-@@ -6,8 +6,8 @@
+@@ -3,7 +3,7 @@
 
- CLONE 0 000e [ 4] sub $0x8,%rsp
- CLONE 0 0012 [ 3] mov %rdi,%rbx
- CLONE 0 0015 [ 5] call <lua_tonumber>
--CLONE 0 001a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::kNoThread+0x25c>
--CLONE 0 0022 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::kNoThread+0x684>
-+CLONE 0 001a [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
-+CLONE 0 0022 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
- CLONE 0 002a [ 2] ja <+0x42>
- CLONE 0 002c [ 5] vcvttsd2si %xmm0,%rax
- CLONE 0 0031 [ 4] vxorps %xmm1,%xmm1,%xmm1
+ CLONE 0 0005 [ 5] mov $0x1,%esi
+ CLONE 0 000a [ 3] mov %rdi,%rbx
+ CLONE 0 000d [ 5] call <luaL_checknumber>
+-CLONE 0 0012 [ 8] vandpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0012 [ 8] vandpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 001a [ 4] mov 0x10(%rbx),%rax
+ CLONE 0 001e [ 7] movl $0x3,0x8(%rax)
+ CLONE 0 0025 [ 4] add $0x10,%rax

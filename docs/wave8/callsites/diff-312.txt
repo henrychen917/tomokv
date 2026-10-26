@@ -1,18 +1,31 @@
-tomo_db0::(anonymous namespace)::collect() [clone .cold]
---- latencyfix
+tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind, unsigned long)
+--- execindex
 
 +++ post
 
-@@ -3,5 +3,9 @@
+@@ -660,16 +660,16 @@
 
- CLONE 0 0008 [ 5] call <pthread_mutex_unlock@plt>
- CLONE 0 000d [ 5] mov 0x10(%r12),%rdi
- CLONE 0 0012 [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >*) [clone .isra.0]>
--CLONE 0 0017 [ 3] mov %rbx,%rdi
--CLONE 0 001a [ 5] call <_Unwind_Resume@plt>
-+CLONE 0 0017 [ 5] mov 0x38(%rsp),%rax
-+CLONE 0 001c [ 9] sub %fs:0x28,%rax
-+CLONE 0 0025 [ 2] jne <+0x2f>
-+CLONE 0 0027 [ 3] mov %rbx,%rdi
-+CLONE 0 002a [ 5] call <_Unwind_Resume@plt>
-+CLONE 0 002f [ 5] call <__stack_chk_fail@plt>
+ CLONE 0 0cfe [ 5] jmp <+0x59a>
+ CLONE 0 0d03 [ 2] xor %esi,%esi
+ CLONE 0 0d05 [ 5] jmp <+0x8f1>
+-CLONE 0 0d0a [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f5f6462303a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 0d11 [ 5] mov $0x39,%edx
+-CLONE 0 0d16 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 0d1d [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 0d0a [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0d11 [ 5] mov $0xa76723f6,%edx
++CLONE 0 0d16 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0d1d [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0d24 [ 5] call <__assert_fail@plt>
+ CLONE 0 0d29 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 0d2e [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f5f6462303a3a4d756c74694f776e657252657472794e6f64653a3a7e4d756c74694f776e657252657472794e6f6465282900>
+-CLONE 0 0d35 [ 5] mov $0xe,%edx
+-CLONE 0 0d3a [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f72657472795f71756575652e6800>
+-CLONE 0 0d41 [ 7] lea <rip>(%rip),%rdi # <literal-string-216c616e652e6c6f6164287374643a3a6d656d6f72795f6f726465725f72656c617865642900>
++CLONE 0 0d2e [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0d35 [ 5] mov $0xedcd9184,%edx
++CLONE 0 0d3a [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0d41 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0d48 [ 5] call <__assert_fail@plt>
+ CLONE 0 0d4d [ 4] endbr64
+ CLONE 0 0d51 [ 3] mov %rax,%rdi

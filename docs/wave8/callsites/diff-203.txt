@@ -1,15 +1,231 @@
-tomo::FlipController::pair_rate(double, double&)
+tomo::FlatStore::make_word(unsigned short, tomo::KvObj*) [clone .part.0]
 --- headline
 
 +++ post
 
-@@ -4,7 +4,7 @@
+@@ -1,144 +1,152 @@
 
- CLONE 0 0012 [ 2] test %cl,%cl
- CLONE 0 0014 [ 6] je <+0xb0>
- CLONE 0 001a [ 8] vmovsd 0x618(%rdi),%xmm1
--CLONE 0 0022 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
-+CLONE 0 0022 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
- CLONE 0 002a [ 4] vandpd %xmm2,%xmm1,%xmm4
- CLONE 0 002e [ 4] vandpd %xmm2,%xmm0,%xmm3
- CLONE 0 0032 [ 4] vmovsd %xmm1,(%rsi)
+ CLONE 0 0000 [ 1] push %rax
+ CLONE 0 0001 [ 1] pop %rax
+-CLONE 0 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 0 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 0 0009 [ 4] sub $0x8,%rsp
+-CLONE 0 000d [ 5] mov $0x8e8,%edx
+-CLONE 0 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 0 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 0 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 0 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0020 [ 5] call <__assert_fail@plt>
+ CLONE 1 0000 [ 1] push %rax
+ CLONE 1 0001 [ 1] pop %rax
+-CLONE 1 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 1 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 1 0009 [ 4] sub $0x8,%rsp
+-CLONE 1 000d [ 5] mov $0x8e8,%edx
+-CLONE 1 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 1 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 1 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 1 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 1 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 1 0020 [ 5] call <__assert_fail@plt>
+ CLONE 2 0000 [ 1] push %rax
+ CLONE 2 0001 [ 1] pop %rax
+-CLONE 2 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 2 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 2 0009 [ 4] sub $0x8,%rsp
+-CLONE 2 000d [ 5] mov $0x8e8,%edx
+-CLONE 2 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 2 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 2 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 2 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 2 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 2 0020 [ 5] call <__assert_fail@plt>
+ CLONE 3 0000 [ 1] push %rax
+ CLONE 3 0001 [ 1] pop %rax
+-CLONE 3 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 3 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 3 0009 [ 4] sub $0x8,%rsp
+-CLONE 3 000d [ 5] mov $0x8e8,%edx
+-CLONE 3 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 3 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 3 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 3 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 3 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 3 0020 [ 5] call <__assert_fail@plt>
+ CLONE 4 0000 [ 1] push %rax
+ CLONE 4 0001 [ 1] pop %rax
+-CLONE 4 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 4 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 4 0009 [ 4] sub $0x8,%rsp
+-CLONE 4 000d [ 5] mov $0x8e8,%edx
+-CLONE 4 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 4 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 4 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 4 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 4 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 4 0020 [ 5] call <__assert_fail@plt>
+ CLONE 5 0000 [ 1] push %rax
+ CLONE 5 0001 [ 1] pop %rax
+-CLONE 5 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 5 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 5 0009 [ 4] sub $0x8,%rsp
+-CLONE 5 000d [ 5] mov $0x8e8,%edx
+-CLONE 5 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 5 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 5 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 5 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 5 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 5 0020 [ 5] call <__assert_fail@plt>
+ CLONE 6 0000 [ 1] push %rax
+ CLONE 6 0001 [ 1] pop %rax
+-CLONE 6 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 6 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 6 0009 [ 4] sub $0x8,%rsp
+-CLONE 6 000d [ 5] mov $0x8e8,%edx
+-CLONE 6 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 6 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 6 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 6 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 6 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 6 0020 [ 5] call <__assert_fail@plt>
+ CLONE 7 0000 [ 1] push %rax
+ CLONE 7 0001 [ 1] pop %rax
+-CLONE 7 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 7 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 7 0009 [ 4] sub $0x8,%rsp
+-CLONE 7 000d [ 5] mov $0x8e8,%edx
+-CLONE 7 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 7 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 7 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 7 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 7 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 7 0020 [ 5] call <__assert_fail@plt>
+ CLONE 8 0000 [ 1] push %rax
+ CLONE 8 0001 [ 1] pop %rax
+-CLONE 8 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 8 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 8 0009 [ 4] sub $0x8,%rsp
+-CLONE 8 000d [ 5] mov $0x8e8,%edx
+-CLONE 8 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 8 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 8 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 8 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 8 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 8 0020 [ 5] call <__assert_fail@plt>
+ CLONE 9 0000 [ 1] push %rax
+ CLONE 9 0001 [ 1] pop %rax
+-CLONE 9 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 9 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 9 0009 [ 4] sub $0x8,%rsp
+-CLONE 9 000d [ 5] mov $0x8e8,%edx
+-CLONE 9 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 9 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 9 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 9 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 9 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 9 0020 [ 5] call <__assert_fail@plt>
+ CLONE 10 0000 [ 1] push %rax
+ CLONE 10 0001 [ 1] pop %rax
+-CLONE 10 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 10 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 10 0009 [ 4] sub $0x8,%rsp
+-CLONE 10 000d [ 5] mov $0x8e8,%edx
+-CLONE 10 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 10 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 10 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 10 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 10 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 10 0020 [ 5] call <__assert_fail@plt>
+ CLONE 11 0000 [ 1] push %rax
+ CLONE 11 0001 [ 1] pop %rax
+-CLONE 11 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 11 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 11 0009 [ 4] sub $0x8,%rsp
+-CLONE 11 000d [ 5] mov $0x8e8,%edx
+-CLONE 11 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 11 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 11 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 11 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 11 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 11 0020 [ 5] call <__assert_fail@plt>
+ CLONE 12 0000 [ 1] push %rax
+ CLONE 12 0001 [ 1] pop %rax
+-CLONE 12 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 12 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 12 0009 [ 4] sub $0x8,%rsp
+-CLONE 12 000d [ 5] mov $0x8e8,%edx
+-CLONE 12 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f736e617073686f742f2e2e2f706572736973742f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 12 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 12 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 12 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 12 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 12 0020 [ 5] call <__assert_fail@plt>
+ CLONE 13 0000 [ 1] push %rax
+ CLONE 13 0001 [ 1] pop %rax
+-CLONE 13 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 13 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 13 0009 [ 4] sub $0x8,%rsp
+-CLONE 13 000d [ 5] mov $0x8e8,%edx
+-CLONE 13 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f706572736973742f2e2e2f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 13 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 13 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 13 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 13 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 13 0020 [ 5] call <__assert_fail@plt>
+ CLONE 14 0000 [ 1] push %rax
+ CLONE 14 0001 [ 1] pop %rax
+-CLONE 14 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 14 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 14 0009 [ 4] sub $0x8,%rsp
+-CLONE 14 000d [ 5] mov $0x8e8,%edx
+-CLONE 14 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 14 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 14 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 14 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 14 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 14 0020 [ 5] call <__assert_fail@plt>
+ CLONE 15 0000 [ 1] push %rax
+ CLONE 15 0001 [ 1] pop %rax
+-CLONE 15 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 15 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 15 0009 [ 4] sub $0x8,%rsp
+-CLONE 15 000d [ 5] mov $0x8e8,%edx
+-CLONE 15 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 15 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 15 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 15 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 15 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 15 0020 [ 5] call <__assert_fail@plt>
+ CLONE 16 0000 [ 1] push %rax
+ CLONE 16 0001 [ 1] pop %rax
+-CLONE 16 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 16 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 16 0009 [ 4] sub $0x8,%rsp
+-CLONE 16 000d [ 5] mov $0x8e8,%edx
+-CLONE 16 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 16 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 16 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 16 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 16 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 16 0020 [ 5] call <__assert_fail@plt>
+ CLONE 17 0000 [ 1] push %rax
+ CLONE 17 0001 [ 1] pop %rax
+-CLONE 17 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7374617469632075696e7436345f7420746f6d6f3a3a466c617453746f72653a3a6d616b655f776f72642875696e7431365f742c20746f6d6f3a3a4b764f626a2a2900>
++CLONE 17 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
+ CLONE 17 0009 [ 4] sub $0x8,%rsp
+-CLONE 17 000d [ 5] mov $0x8e8,%edx
+-CLONE 17 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f73746f72652f666c617473746f72652e6800>
+-CLONE 17 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-28706f696e7465722026207e6b5074724d61736b29203d3d203020262620224b764f626a20706f696e746572206578636565647320466c617453746f726527732034382d62697420656e636f64696e672200>
++CLONE 17 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 17 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 17 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 17 0020 [ 5] call <__assert_fail@plt>
++CLONE 18 0000 [ 1] push %rax
++CLONE 18 0001 [ 1] pop %rax
++CLONE 18 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 18 0009 [ 4] sub $0x8,%rsp
++CLONE 18 000d [ 5] mov $0x8b36eb41,%edx
++CLONE 18 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 18 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
++CLONE 18 0020 [ 5] call <__assert_fail@plt>

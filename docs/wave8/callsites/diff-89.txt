@@ -1,13 +1,15 @@
-luaU_header
+luaB_collectgarbage
 --- headline
 
 +++ post
 
-@@ -1,5 +1,5 @@
+@@ -69,7 +69,7 @@
 
- CLONE 0 0000 [ 4] endbr64
--CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x900>
-+CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x348>
- CLONE 0 000b [ 6] movl $0x61754c1b,(%rdi)
- CLONE 0 0011 [ 4] mov %rax,0x4(%rdi)
- CLONE 0 0015 [ 1] ret
+ CLONE 0 00f8 [ 7] movl $0x3,-0x8(%rax)
+ CLONE 0 00ff [ 6] and $0x3ff,%edx
+ CLONE 0 0105 [ 4] vcvtsi2sd %edx,%xmm2,%xmm0
+-CLONE 0 0109 [ 9] vfmadd132sd <rip>(%rip),%xmm1,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x878>
++CLONE 0 0109 [ 9] vfmadd132sd <rip>(%rip),%xmm1,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2c8>
+ CLONE 0 0112 [ 5] vmovsd %xmm0,-0x10(%rax)
+ CLONE 0 0117 [ 4] mov %rax,0x10(%rbx)
+ CLONE 0 011b [ 4] add $0x8,%rsp

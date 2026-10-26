@@ -1,25 +1,105 @@
-tomo_db0::acl_initialize(tomo_db0::Server&, tomo_db0::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
---- headline
+tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long)
+--- execindex
 
 +++ post
 
-@@ -23,7 +23,7 @@
+@@ -58,7 +58,7 @@
 
- CLONE 0 0059 [ 2] test %al,%al
- CLONE 0 005b [ 6] jne <+0x4c3>
- CLONE 0 0061 [ 7] mov 0xb0(%rbx),%rsi
--CLONE 0 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
-+CLONE 0 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
- CLONE 0 006f [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::g_acl_filename>
- CLONE 0 0076 [ 7] mov %r12,<rip>(%rip) # <tomo_db0::(anonymous namespace)::g_acl_server>
- CLONE 0 007d [ 3] test %rsi,%rsi
-@@ -228,7 +228,7 @@
+ CLONE 0 00cf [ 6] jne <+0x50>
+ CLONE 0 00d5 [ 5] mov 0x68(%rsp),%rax
+ CLONE 0 00da [ 9] sub %fs:0x28,%rax
+-CLONE 0 00e3 [ 6] jne <+0x233>
++CLONE 0 00e3 [ 6] jne <+0x297>
+ CLONE 0 00e9 [ 4] add $0x78,%rsp
+ CLONE 0 00ed [ 1] pop %rbx
+ CLONE 0 00ee [ 1] pop %rbp
+@@ -98,11 +98,11 @@
 
- CLONE 0 04fa [ 6] nopw 0x0(%rax,%rax,1)
- CLONE 0 0500 [ 2] test %eax,%eax
- CLONE 0 0502 [ 6] je <+0x133>
--CLONE 0 0508 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x126c8>
-+CLONE 0 0508 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x788>
- CLONE 0 050f [ 8] andl $0xfffffffb,0x230(%rsp)
- CLONE 0 0517 [ 2] mov %eax,%edx
- CLONE 0 0519 [ 3] mov %r13,%rsi
+ CLONE 0 017e [ 2] jmp <+0x128>
+ CLONE 0 0180 [ 5] lea 0x40(%rsp),%r14
+ CLONE 0 0185 [ 7] lea 0x4f8(%rdi),%rbx
+-CLONE 0 018c [ 3] mov %rsi,%rbp
++CLONE 0 018c [ 3] mov %rsi,%r12
+ CLONE 0 018f [ 5] lea 0x50(%rsp),%r13
+ CLONE 0 0194 [ 3] mov %rbx,%rdi
+ CLONE 0 0197 [ 3] mov %r14,%rsi
+-CLONE 0 019a [ 3] mov %rdx,%r12
++CLONE 0 019a [ 3] mov %rdx,%rbp
+ CLONE 0 019d [ 5] mov %r13,0x40(%rsp)
+ CLONE 0 01a2 [ 9] movq $0x0,0x48(%rsp)
+ CLONE 0 01ab [ 5] movb $0x0,0x50(%rsp)
+@@ -119,24 +119,52 @@
+
+ CLONE 0 01d5 [ 4] lea 0x28(%r15),%rsi
+ CLONE 0 01d9 [ 5] lea 0x10(%rsp),%rdi
+ CLONE 0 01de [ 5] call <auto tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long)::{lambda(auto:1 const&)#1}::operator()<std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > >(std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > const&) const>
+-CLONE 0 01e3 [ 3] mov %r12d,%edx
+-CLONE 0 01e6 [ 3] mov %rbp,%rsi
+-CLONE 0 01e9 [ 3] mov %r14,%rdi
+-CLONE 0 01ec [ 5] call <tomo_db0::database_owned_key[abi:cxx11](tomo_db0::Slice) [clone .isra.0]>
+-CLONE 0 01f1 [ 3] mov %rbx,%rdi
+-CLONE 0 01f4 [ 3] mov %r14,%rsi
+-CLONE 0 01f7 [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo_db0::TxnKeyQueue>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo_db0::TxnKeyQueue> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::find(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)>
+-CLONE 0 01fc [ 5] mov 0x40(%rsp),%rdi
+-CLONE 0 0201 [ 3] mov %rax,%rbx
+-CLONE 0 0204 [ 3] cmp %r13,%rdi
+-CLONE 0 0207 [ 2] je <+0x217>
+-CLONE 0 0209 [ 5] mov 0x50(%rsp),%rax
+-CLONE 0 020e [ 4] lea 0x1(%rax),%rsi
+-CLONE 0 0212 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0217 [ 3] test %rbx,%rbx
+-CLONE 0 021a [ 6] je <+0xd5>
+-CLONE 0 0220 [ 4] lea 0x28(%rbx),%rsi
+-CLONE 0 0224 [ 5] lea 0x10(%rsp),%rdi
+-CLONE 0 0229 [ 5] call <auto tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long)::{lambda(auto:1 const&)#1}::operator()<std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > >(std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > const&) const>
+-CLONE 0 022e [ 5] jmp <+0xd5>
+-CLONE 0 0233 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 01e3 [ 3] mov %ebp,%r8d
++CLONE 0 01e6 [ 5] mov %r13,0x40(%rsp)
++CLONE 0 01eb [ 9] movq $0x1,0x48(%rsp)
++CLONE 0 01f4 [ 7] movw $0x0,0x50(%rsp)
++CLONE 0 01fb [ 4] lea 0x1(%r8),%rbp
++CLONE 0 01ff [ 4] cmp $0xf,%rbp
++CLONE 0 0203 [ 2] ja <+0x270>
++CLONE 0 0205 [ 3] test %r8,%r8
++CLONE 0 0208 [ 2] jne <+0x258>
++CLONE 0 020a [ 3] mov %r13,%rax
++CLONE 0 020d [ 3] mov %rbx,%rdi
++CLONE 0 0210 [ 3] mov %r14,%rsi
++CLONE 0 0213 [ 5] mov %rbp,0x48(%rsp)
++CLONE 0 0218 [ 4] movb $0x0,(%rax,%rbp,1)
++CLONE 0 021c [ 5] call <std::_Hashtable<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo_db0::TxnKeyQueue>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo_db0::TxnKeyQueue> >, std::__detail::_Select1st, std::equal_to<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::hash<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::find(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)>
++CLONE 0 0221 [ 5] mov 0x40(%rsp),%rdi
++CLONE 0 0226 [ 3] mov %rax,%rbx
++CLONE 0 0229 [ 3] cmp %r13,%rdi
++CLONE 0 022c [ 2] je <+0x23c>
++CLONE 0 022e [ 5] mov 0x50(%rsp),%rax
++CLONE 0 0233 [ 4] lea 0x1(%rax),%rsi
++CLONE 0 0237 [ 5] call <_ZdlPvm@plt>
++CLONE 0 023c [ 3] test %rbx,%rbx
++CLONE 0 023f [ 6] je <+0xd5>
++CLONE 0 0245 [ 4] lea 0x28(%rbx),%rsi
++CLONE 0 0249 [ 5] lea 0x10(%rsp),%rdi
++CLONE 0 024e [ 5] call <auto tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long)::{lambda(auto:1 const&)#1}::operator()<std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > >(std::vector<tomo_db0::TxnHeld, std::allocator<tomo_db0::TxnHeld> > const&) const>
++CLONE 0 0253 [ 5] jmp <+0xd5>
++CLONE 0 0258 [ 4] cmp $0x1,%r8
++CLONE 0 025c [ 2] je <+0x289>
++CLONE 0 025e [ 5] lea 0x51(%rsp),%rdi
++CLONE 0 0263 [ 3] mov %r8,%rdx
++CLONE 0 0266 [ 3] mov %r12,%rsi
++CLONE 0 0269 [ 5] call <memcpy@plt>
++CLONE 0 026e [ 2] jmp <+0x20a>
++CLONE 0 0270 [ 3] mov %r12,%rcx
++CLONE 0 0273 [ 2] xor %edx,%edx
++CLONE 0 0275 [ 5] mov $0x1,%esi
++CLONE 0 027a [ 3] mov %r14,%rdi
++CLONE 0 027d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)>
++CLONE 0 0282 [ 5] mov 0x40(%rsp),%rax
++CLONE 0 0287 [ 2] jmp <+0x20d>
++CLONE 0 0289 [ 5] movzbl (%r12),%eax
++CLONE 0 028e [ 4] mov %al,0x51(%rsp)
++CLONE 0 0292 [ 5] jmp <+0x20a>
++CLONE 0 0297 [ 5] call <__stack_chk_fail@plt>
++CLONE 0 029c [ 4] endbr64
++CLONE 0 02a0 [ 3] mov %rax,%rbx
++CLONE 0 02a3 [ 5] jmp <tomo_db0::Shard::watch_writer_check(tomo_db0::Slice, bool, unsigned long) [clone .cold]+0x14>

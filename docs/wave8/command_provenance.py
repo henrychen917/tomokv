@@ -49,6 +49,8 @@ for arm in ('pre', 'post'):
         result[arm + '-' + ns] = rows
 result['links'] = {k: {f: v[f] for f in ('path', 'sha256')} for k, v in inventories.items()}
 (DOC / 'provenance.json').write_text(json.dumps(result, indent=2) + '\n')
+if os.getenv('WAVE8_PROVENANCE_INVENTORY_ONLY') == '1':
+    raise SystemExit(0)
 switch_names = {
     row['name'] for arm in ('pre', 'post') for ns in ('normal', 'db0')
     for row in result[arm + '-' + ns] if not row['production_equal']

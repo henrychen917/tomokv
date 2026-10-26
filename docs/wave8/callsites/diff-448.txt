@@ -1,25 +1,220 @@
-tomo_db0::lbsignals_capture(tomo_db0::Server&)
---- headline
+tomo_db0::latency_tracking_record(unsigned int, tomo_db0::Op const&, unsigned long)
+--- latencyfix
 
 +++ post
 
-@@ -103,7 +103,7 @@
+@@ -42,106 +42,110 @@
 
- CLONE 0 0229 [ 7] mov 0x408(%rdx),%rax
- CLONE 0 0230 [ 8] vmovsd <rip>(%rip),%xmm6 # <literal-load-00000000389c8c41>
- CLONE 0 0238 [ 6] vcvtusi2sd %rax,%xmm5,%xmm0
--CLONE 0 023e [ 8] vmulsd <rip>(%rip),%xmm0,%xmm7 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x870>
-+CLONE 0 023e [ 8] vmulsd <rip>(%rip),%xmm0,%xmm7 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2c0>
- CLONE 0 0246 [ 4] vminsd %xmm7,%xmm6,%xmm2
- CLONE 0 024a [ 9] vmovsd %xmm2,0xc0(%rsp)
- CLONE 0 0253 [ 8] vmovq 0x410(%rdx),%xmm0
-@@ -114,7 +114,7 @@
-
- CLONE 0 0276 [ 8] mov %rax,0xb0(%rsp)
- CLONE 0 027e [ 7] mov 0x420(%rdx),%rax
- CLONE 0 0285 [ 6] vcvtusi2sd %rax,%xmm5,%xmm0
--CLONE 0 028b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x870>
-+CLONE 0 028b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2c0>
- CLONE 0 0293 [ 4] vminsd %xmm1,%xmm6,%xmm5
- CLONE 0 0297 [ 9] vmovsd %xmm5,0xb8(%rsp)
- CLONE 0 02a0 [ 8] vmovq 0x428(%rdx),%xmm1
+ CLONE 0 007b [ 3] mov %rax,%r12
+ CLONE 0 007e [ 5] call <pthread_mutex_lock@plt>
+ CLONE 0 0083 [ 2] test %eax,%eax
+-CLONE 0 0085 [ 6] jne <+0x1f3>
+-CLONE 0 008b [ 3] mov %r13,%rdi
+-CLONE 0 008e [ 5] call <tomo_db0::command_metadata_index(tomo_db0::CommandMetadata const&)>
+-CLONE 0 0093 [ 5] mov 0x38(%r12),%rcx
+-CLONE 0 0098 [ 5] lea 0x30(%r12),%r13
+-CLONE 0 009d [ 2] mov %eax,%ebp
+-CLONE 0 009f [ 3] mov %r13,%r15
+-CLONE 0 00a2 [ 3] test %rcx,%rcx
+-CLONE 0 00a5 [ 2] jne <+0xb8>
+-CLONE 0 00a7 [ 2] jmp <+0xdb>
+-CLONE 0 00a9 [ 7] nopl 0x0(%rax)
+-CLONE 0 00b0 [ 3] mov %rdx,%rcx
+-CLONE 0 00b3 [ 3] test %rcx,%rcx
+-CLONE 0 00b6 [ 2] je <+0xd0>
+-CLONE 0 00b8 [ 4] mov 0x10(%rcx),%rax
+-CLONE 0 00bc [ 4] mov 0x18(%rcx),%rdx
+-CLONE 0 00c0 [ 3] cmp %ebp,0x20(%rcx)
+-CLONE 0 00c3 [ 2] jb <+0xb0>
+-CLONE 0 00c5 [ 3] mov %rcx,%r15
+-CLONE 0 00c8 [ 3] mov %rax,%rcx
+-CLONE 0 00cb [ 3] test %rcx,%rcx
+-CLONE 0 00ce [ 2] jne <+0xb8>
+-CLONE 0 00d0 [ 3] cmp %r15,%r13
+-CLONE 0 00d3 [ 2] je <+0xdb>
+-CLONE 0 00d5 [ 4] cmp 0x20(%r15),%ebp
+-CLONE 0 00d9 [ 2] jae <+0x13f>
+-CLONE 0 00db [ 5] mov $0x6030,%edi
+-CLONE 0 00e0 [ 5] lea 0x28(%r12),%r14
+-CLONE 0 00e5 [ 5] mov %r15,0x8(%rsp)
+-CLONE 0 00ea [ 5] call <_Znwm@plt>
+-CLONE 0 00ef [ 4] lea 0x28(%rax),%rdi
+-CLONE 0 00f3 [ 5] mov $0x6008,%edx
+-CLONE 0 00f8 [ 2] xor %esi,%esi
+-CLONE 0 00fa [ 3] mov %rax,%r15
+-CLONE 0 00fd [ 3] mov %ebp,0x20(%rax)
+-CLONE 0 0100 [ 5] call <memset@plt>
+-CLONE 0 0105 [ 5] mov 0x8(%rsp),%rsi
+-CLONE 0 010a [ 3] mov %r14,%rdi
+-CLONE 0 010d [ 2] mov %ebp,%edx
+-CLONE 0 010f [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, unsigned int const&) [clone .isra.0]>
+-CLONE 0 0114 [ 3] mov %rax,%r14
+-CLONE 0 0117 [ 3] test %rdx,%rdx
+-CLONE 0 011a [ 2] je <+0x190>
+-CLONE 0 011c [ 3] cmp %rdx,%r13
+-CLONE 0 011f [ 2] je <+0x12a>
+-CLONE 0 0121 [ 3] test %rax,%rax
+-CLONE 0 0124 [ 6] je <+0x1e5>
+-CLONE 0 012a [ 5] mov $0x1,%edi
+-CLONE 0 012f [ 3] mov %r13,%rcx
+-CLONE 0 0132 [ 3] mov %r15,%rsi
+-CLONE 0 0135 [ 5] call <_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_@plt>
+-CLONE 0 013a [ 5] incq 0x50(%r12)
+-CLONE 0 013f [10] movabs $0x20c49ba5e353f7cf,%rax
+-CLONE 0 0149 [ 4] shr $0x3,%rbx
+-CLONE 0 014d [ 3] mul %rbx
+-CLONE 0 0150 [ 4] shr $0x4,%rdx
+-CLONE 0 0154 [ 7] imul $0x3e8,%rdx,%rdx
+-CLONE 0 015b [ 3] test %rdx,%rdx
+-CLONE 0 015e [ 2] je <+0x1b0>
+-CLONE 0 0160 [ 7] cmp $0x3b9aca00,%rdx
+-CLONE 0 0167 [ 2] jbe <+0x1c0>
+-CLONE 0 0169 [ 5] mov $0xbee,%edx
+-CLONE 0 016e [ 5] incq 0x28(%r15,%rdx,8)
+-CLONE 0 0173 [ 7] incq 0x6028(%r15)
+-CLONE 0 017a [ 4] add $0x18,%rsp
+-CLONE 0 017e [ 3] mov %r12,%rdi
+-CLONE 0 0181 [ 1] pop %rbx
+-CLONE 0 0182 [ 1] pop %rbp
+-CLONE 0 0183 [ 2] pop %r12
+-CLONE 0 0185 [ 2] pop %r13
+-CLONE 0 0187 [ 2] pop %r14
+-CLONE 0 0189 [ 2] pop %r15
+-CLONE 0 018b [ 5] jmp <pthread_mutex_unlock@plt>
+-CLONE 0 0190 [ 3] mov %r15,%rdi
+-CLONE 0 0193 [ 5] mov $0x6030,%esi
+-CLONE 0 0198 [ 3] mov %r14,%r15
+-CLONE 0 019b [ 5] call <_ZdlPvm@plt>
+-CLONE 0 01a0 [ 2] jmp <+0x13f>
+-CLONE 0 01a2 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 01ad [ 3] nopl (%rax)
+-CLONE 0 01b0 [ 5] mov $0x1,%edx
+-CLONE 0 01b5 [ 2] jmp <+0x16e>
+-CLONE 0 01b7 [ 9] nopw 0x0(%rax,%rax,1)
+-CLONE 0 01c0 [ 5] mov $0x40,%eax
+-CLONE 0 01c5 [ 5] lzcnt %rdx,%rcx
+-CLONE 0 01ca [ 2] sub %ecx,%eax
+-CLONE 0 01cc [ 3] cmp $0x8,%eax
+-CLONE 0 01cf [ 2] jle <+0x16e>
+-CLONE 0 01d1 [ 5] mov $0x38,%eax
+-CLONE 0 01d6 [ 2] sub %ecx,%eax
+-CLONE 0 01d8 [ 5] shrx %rax,%rdx,%rdx
+-CLONE 0 01dd [ 3] shl $0x7,%eax
+-CLONE 0 01e0 [ 3] add %rax,%rdx
+-CLONE 0 01e3 [ 2] jmp <+0x16e>
+-CLONE 0 01e5 [ 2] xor %edi,%edi
+-CLONE 0 01e7 [ 3] cmp 0x20(%rdx),%ebp
+-CLONE 0 01ea [ 4] setb %dil
+-CLONE 0 01ee [ 5] jmp <+0x12f>
+-CLONE 0 01f3 [ 2] mov %eax,%edi
+-CLONE 0 01f5 [ 5] call <_ZSt20__throw_system_errori@plt>
+-CLONE 0 01fa [ 4] endbr64
+-CLONE 0 01fe [ 3] mov %rax,%rbx
+-CLONE 0 0201 [ 5] jmp <tomo_db0::latency_tracking_record(unsigned int, tomo_db0::Op const&, unsigned long) [clone .cold]>
++CLONE 0 0085 [ 6] jne <+0x203>
++CLONE 0 008b [ 3] mov %rbp,%rsi
++CLONE 0 008e [ 3] mov %r12,%rdi
++CLONE 0 0091 [ 5] call <tomo_db0::(anonymous namespace)::retire_script_children(tomo_db0::(anonymous namespace)::ExecutorHistograms&, tomo_db0::Op const&)>
++CLONE 0 0096 [ 3] mov %r13,%rdi
++CLONE 0 0099 [ 5] call <tomo_db0::command_metadata_index(tomo_db0::CommandMetadata const&)>
++CLONE 0 009e [ 5] mov 0x38(%r12),%rcx
++CLONE 0 00a3 [ 5] lea 0x30(%r12),%r13
++CLONE 0 00a8 [ 2] mov %eax,%ebp
++CLONE 0 00aa [ 3] mov %r13,%r15
++CLONE 0 00ad [ 3] test %rcx,%rcx
++CLONE 0 00b0 [ 2] jne <+0xc8>
++CLONE 0 00b2 [ 2] jmp <+0xeb>
++CLONE 0 00b4 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 00bf [ 1] nop
++CLONE 0 00c0 [ 3] mov %rdx,%rcx
++CLONE 0 00c3 [ 3] test %rcx,%rcx
++CLONE 0 00c6 [ 2] je <+0xe0>
++CLONE 0 00c8 [ 4] mov 0x10(%rcx),%rax
++CLONE 0 00cc [ 4] mov 0x18(%rcx),%rdx
++CLONE 0 00d0 [ 3] cmp %ebp,0x20(%rcx)
++CLONE 0 00d3 [ 2] jb <+0xc0>
++CLONE 0 00d5 [ 3] mov %rcx,%r15
++CLONE 0 00d8 [ 3] mov %rax,%rcx
++CLONE 0 00db [ 3] test %rcx,%rcx
++CLONE 0 00de [ 2] jne <+0xc8>
++CLONE 0 00e0 [ 3] cmp %r15,%r13
++CLONE 0 00e3 [ 2] je <+0xeb>
++CLONE 0 00e5 [ 4] cmp 0x20(%r15),%ebp
++CLONE 0 00e9 [ 2] jae <+0x14f>
++CLONE 0 00eb [ 5] mov $0x6030,%edi
++CLONE 0 00f0 [ 5] lea 0x28(%r12),%r14
++CLONE 0 00f5 [ 5] mov %r15,0x8(%rsp)
++CLONE 0 00fa [ 5] call <_Znwm@plt>
++CLONE 0 00ff [ 4] lea 0x28(%rax),%rdi
++CLONE 0 0103 [ 5] mov $0x6008,%edx
++CLONE 0 0108 [ 2] xor %esi,%esi
++CLONE 0 010a [ 3] mov %rax,%r15
++CLONE 0 010d [ 3] mov %ebp,0x20(%rax)
++CLONE 0 0110 [ 5] call <memset@plt>
++CLONE 0 0115 [ 5] mov 0x8(%rsp),%rsi
++CLONE 0 011a [ 3] mov %r14,%rdi
++CLONE 0 011d [ 2] mov %ebp,%edx
++CLONE 0 011f [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, tomo_db0::(anonymous namespace)::Histogram> >, unsigned int const&) [clone .isra.0]>
++CLONE 0 0124 [ 3] mov %rax,%r14
++CLONE 0 0127 [ 3] test %rdx,%rdx
++CLONE 0 012a [ 2] je <+0x1a0>
++CLONE 0 012c [ 3] cmp %rdx,%r13
++CLONE 0 012f [ 2] je <+0x13a>
++CLONE 0 0131 [ 3] test %rax,%rax
++CLONE 0 0134 [ 6] je <+0x1f5>
++CLONE 0 013a [ 5] mov $0x1,%edi
++CLONE 0 013f [ 3] mov %r13,%rcx
++CLONE 0 0142 [ 3] mov %r15,%rsi
++CLONE 0 0145 [ 5] call <_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_@plt>
++CLONE 0 014a [ 5] incq 0x50(%r12)
++CLONE 0 014f [10] movabs $0x20c49ba5e353f7cf,%rax
++CLONE 0 0159 [ 4] shr $0x3,%rbx
++CLONE 0 015d [ 3] mul %rbx
++CLONE 0 0160 [ 4] shr $0x4,%rdx
++CLONE 0 0164 [ 7] imul $0x3e8,%rdx,%rdx
++CLONE 0 016b [ 3] test %rdx,%rdx
++CLONE 0 016e [ 2] je <+0x1c0>
++CLONE 0 0170 [ 7] cmp $0x3b9aca00,%rdx
++CLONE 0 0177 [ 2] jbe <+0x1d0>
++CLONE 0 0179 [ 5] mov $0xbee,%edx
++CLONE 0 017e [ 5] incq 0x28(%r15,%rdx,8)
++CLONE 0 0183 [ 7] incq 0x6028(%r15)
++CLONE 0 018a [ 4] add $0x18,%rsp
++CLONE 0 018e [ 3] mov %r12,%rdi
++CLONE 0 0191 [ 1] pop %rbx
++CLONE 0 0192 [ 1] pop %rbp
++CLONE 0 0193 [ 2] pop %r12
++CLONE 0 0195 [ 2] pop %r13
++CLONE 0 0197 [ 2] pop %r14
++CLONE 0 0199 [ 2] pop %r15
++CLONE 0 019b [ 5] jmp <pthread_mutex_unlock@plt>
++CLONE 0 01a0 [ 3] mov %r15,%rdi
++CLONE 0 01a3 [ 5] mov $0x6030,%esi
++CLONE 0 01a8 [ 3] mov %r14,%r15
++CLONE 0 01ab [ 5] call <_ZdlPvm@plt>
++CLONE 0 01b0 [ 2] jmp <+0x14f>
++CLONE 0 01b2 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01bd [ 3] nopl (%rax)
++CLONE 0 01c0 [ 5] mov $0x1,%edx
++CLONE 0 01c5 [ 2] jmp <+0x17e>
++CLONE 0 01c7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 01d0 [ 5] mov $0x40,%eax
++CLONE 0 01d5 [ 5] lzcnt %rdx,%rcx
++CLONE 0 01da [ 2] sub %ecx,%eax
++CLONE 0 01dc [ 3] cmp $0x8,%eax
++CLONE 0 01df [ 2] jle <+0x17e>
++CLONE 0 01e1 [ 5] mov $0x38,%eax
++CLONE 0 01e6 [ 2] sub %ecx,%eax
++CLONE 0 01e8 [ 5] shrx %rax,%rdx,%rdx
++CLONE 0 01ed [ 3] shl $0x7,%eax
++CLONE 0 01f0 [ 3] add %rax,%rdx
++CLONE 0 01f3 [ 2] jmp <+0x17e>
++CLONE 0 01f5 [ 2] xor %edi,%edi
++CLONE 0 01f7 [ 3] cmp 0x20(%rdx),%ebp
++CLONE 0 01fa [ 4] setb %dil
++CLONE 0 01fe [ 5] jmp <+0x13f>
++CLONE 0 0203 [ 2] mov %eax,%edi
++CLONE 0 0205 [ 5] call <_ZSt20__throw_system_errori@plt>
++CLONE 0 020a [ 4] endbr64
++CLONE 0 020e [ 3] mov %rax,%rbx
++CLONE 0 0211 [ 5] jmp <tomo_db0::latency_tracking_record(unsigned int, tomo_db0::Op const&, unsigned long) [clone .cold]>

@@ -1,55 +1,65 @@
-tomo::TxnRetryQueues::unlink(tomo::MultiOwnerRetryNode&) [clone .part.0]
---- execindex
+tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)
+--- headline
 
 +++ post
 
-@@ -1,32 +1,32 @@
+@@ -213,7 +213,7 @@
 
- CLONE 0 0000 [ 1] push %rax
- CLONE 0 0001 [ 1] pop %rax
--CLONE 0 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a54786e52657472795175657565733a3a756e6c696e6b28746f6d6f3a3a4d756c74694f776e657252657472794e6f6465262900>
-+CLONE 0 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
- CLONE 0 0009 [ 4] sub $0x8,%rsp
--CLONE 0 000d [ 5] mov $0x21,%edx
--CLONE 0 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f636d642f74786e5f72657472795f71756575652e6800>
--CLONE 0 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e6c616e652e6c6f6164287374643a3a6d656d6f72795f6f726465725f72656c6178656429203d3d207468697300>
-+CLONE 0 000d [ 5] mov $0x919d052f,%edx
-+CLONE 0 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 0 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 0 0020 [ 5] call <__assert_fail@plt>
- CLONE 1 0000 [ 1] push %rax
- CLONE 1 0001 [ 1] pop %rax
--CLONE 1 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a54786e52657472795175657565733a3a756e6c696e6b28746f6d6f3a3a4d756c74694f776e657252657472794e6f6465262900>
-+CLONE 1 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
- CLONE 1 0009 [ 4] sub $0x8,%rsp
--CLONE 1 000d [ 5] mov $0x21,%edx
--CLONE 1 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f636d642f74786e5f72657472795f71756575652e6800>
--CLONE 1 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e6c616e652e6c6f6164287374643a3a6d656d6f72795f6f726465725f72656c6178656429203d3d207468697300>
-+CLONE 1 000d [ 5] mov $0x919d052f,%edx
-+CLONE 1 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 1 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 1 0020 [ 5] call <__assert_fail@plt>
- CLONE 2 0000 [ 1] push %rax
- CLONE 2 0001 [ 1] pop %rax
--CLONE 2 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a54786e52657472795175657565733a3a756e6c696e6b28746f6d6f3a3a4d756c74694f776e657252657472794e6f6465262900>
-+CLONE 2 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
- CLONE 2 0009 [ 4] sub $0x8,%rsp
--CLONE 2 000d [ 5] mov $0x21,%edx
--CLONE 2 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f636d642f74786e5f72657472795f71756575652e6800>
--CLONE 2 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e6c616e652e6c6f6164287374643a3a6d656d6f72795f6f726465725f72656c6178656429203d3d207468697300>
-+CLONE 2 000d [ 5] mov $0x919d052f,%edx
-+CLONE 2 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 2 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 2 0020 [ 5] call <__assert_fail@plt>
- CLONE 3 0000 [ 1] push %rax
- CLONE 3 0001 [ 1] pop %rax
--CLONE 3 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a54786e52657472795175657565733a3a756e6c696e6b28746f6d6f3a3a4d756c74694f776e657252657472794e6f6465262900>
-+CLONE 3 0002 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
- CLONE 3 0009 [ 4] sub $0x8,%rsp
--CLONE 3 000d [ 5] mov $0x21,%edx
--CLONE 3 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636f72652f2e2e2f636d642f74786e5f72657472795f71756575652e6800>
--CLONE 3 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e6c616e652e6c6f6164287374643a3a6d656d6f72795f6f726465725f72656c6178656429203d3d207468697300>
-+CLONE 3 000d [ 5] mov $0x919d052f,%edx
-+CLONE 3 0012 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
-+CLONE 3 0019 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
- CLONE 3 0020 [ 5] call <__assert_fail@plt>
+ CLONE 0 0410 [ 8] vmovsd %xmm4,-0x940(%rbp)
+ CLONE 0 0418 [ 8] vmovsd -0x940(%rbp),%xmm0
+ CLONE 0 0420 [ 8] vmovsd <rip>(%rip),%xmm5 # <literal-load-000000000000e03f>
+-CLONE 0 0428 [ 9] vfmadd132sd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
++CLONE 0 0428 [ 9] vfmadd132sd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x80>
+ CLONE 0 0431 [ 6] vcvttsd2usi %xmm0,%rax
+ CLONE 0 0437 [ 7] mov %rax,0x14630(%rbx)
+ CLONE 0 043e [ 7] mov -0x8f0(%rbp),%rsi
+@@ -567,7 +567,7 @@
+
+ CLONE 0 0b82 [ 4] vxorpd %xmm2,%xmm2,%xmm2
+ CLONE 0 0b86 [ 8] vmovsd <rip>(%rip),%xmm0 # <literal-load-000000000000e03f>
+ CLONE 0 0b8e [ 8] vmovsd -0x948(%rbp),%xmm3
+-CLONE 0 0b96 [ 9] vfmadd132sd <rip>(%rip),%xmm0,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
++CLONE 0 0b96 [ 9] vfmadd132sd <rip>(%rip),%xmm0,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x80>
+ CLONE 0 0b9f [ 6] vcvttsd2usi %xmm3,%rax
+ CLONE 0 0ba5 [ 7] mov %rax,0x14618(%rbx)
+ CLONE 0 0bac [ 8] vaddsd -0x950(%rbp),%xmm0,%xmm0
+@@ -694,7 +694,7 @@
+
+ CLONE 0 0e4c [ 2] jne <+0xe56>
+ CLONE 0 0e4e [ 2] test %al,%al
+ CLONE 0 0e50 [ 6] je <+0xfdd>
+-CLONE 0 0e56 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8d0>
++CLONE 0 0e56 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x318>
+ CLONE 0 0e5d [ 7] mov -0x980(%rbp),%rsi
+ CLONE 0 0e64 [ 7] mov -0x988(%rbp),%rdi
+ CLONE 0 0e6b [ 4] vxorpd %xmm0,%xmm0,%xmm0
+@@ -819,7 +819,7 @@
+
+ CLONE 0 1152 [ 7] mov -0x940(%rbp),%rcx
+ CLONE 0 1159 [ 5] jmp <+0x944>
+ CLONE 0 115e [ 8] vmovsd -0x940(%rbp),%xmm5
+-CLONE 0 1166 [ 8] vmulsd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x890>
++CLONE 0 1166 [ 8] vmulsd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 116e [ 4] vxorpd %xmm5,%xmm5,%xmm5
+ CLONE 0 1172 [ 6] vcvtusi2sd %rax,%xmm5,%xmm2
+ CLONE 0 1178 [ 4] vmulsd %xmm2,%xmm0,%xmm0
+@@ -991,7 +991,7 @@
+
+ CLONE 0 14ea [ 3] sub %rdi,%rax
+ CLONE 0 14ed [ 4] vxorpd %xmm5,%xmm5,%xmm5
+ CLONE 0 14f1 [ 8] vmovsd -0x950(%rbp),%xmm4
+-CLONE 0 14f9 [ 8] vmulsd <rip>(%rip),%xmm4,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x890>
++CLONE 0 14f9 [ 8] vmulsd <rip>(%rip),%xmm4,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 1501 [ 4] sar $0x2,%rax
+ CLONE 0 1505 [ 6] vcvtusi2sd %rax,%xmm5,%xmm2
+ CLONE 0 150b [ 4] vmulsd %xmm3,%xmm2,%xmm2
+@@ -1003,7 +1003,7 @@
+
+ CLONE 0 1522 [ 4] sar $0x2,%rcx
+ CLONE 0 1526 [ 6] vcvtusi2sd %rcx,%xmm5,%xmm0
+ CLONE 0 152c [ 8] vmovsd -0x948(%rbp),%xmm5
+-CLONE 0 1534 [ 8] vmulsd <rip>(%rip),%xmm5,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x890>
++CLONE 0 1534 [ 8] vmulsd <rip>(%rip),%xmm5,%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 153c [ 4] vmulsd %xmm3,%xmm0,%xmm0
+ CLONE 0 1540 [ 4] vdivsd %xmm1,%xmm0,%xmm1
+ CLONE 0 1544 [ 4] vxorpd %xmm0,%xmm0,%xmm0

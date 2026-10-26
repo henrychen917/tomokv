@@ -1,14 +1,15 @@
-tomo::FlipController::observe_rate(unsigned long, unsigned long)
+tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)
 --- headline
 
 +++ post
 
-@@ -3,6 +3,6 @@
+@@ -250,7 +250,7 @@
 
- CLONE 0 0008 [ 7] mov %rsi,0x5e0(%rdi)
- CLONE 0 000f [ 6] vcvtusi2sd %rsi,%xmm1,%xmm0
- CLONE 0 0015 [ 6] vcvtusi2sd %rdx,%xmm1,%xmm1
--CLONE 0 001b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>
-+CLONE 0 001b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf0>
- CLONE 0 0023 [ 4] vdivsd %xmm1,%xmm0,%xmm0
- CLONE 0 0027 [ 1] ret
+ CLONE 0 0568 [ 4] movb $0x6,0x1d(%rbx)
+ CLONE 0 056c [10] movl $0x0,0xbc(%rbx)
+ CLONE 0 0576 [11] movq $0x0,0x98(%rbx)
+-CLONE 0 0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x920>
++CLONE 0 0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x368>
+ CLONE 0 0588 [ 8] movb $0x0,0x90(%rsp)
+ CLONE 0 0590 [ 8] mov %rax,0x94(%rsp)
+ CLONE 0 0598 [ 5] jmp <+0x120>

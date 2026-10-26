@@ -1,43 +1,19 @@
-tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)
---- headline
+tomo_db0::TxnGroupAttempt::~TxnGroupAttempt()
+--- execindex
 
 +++ post
 
-@@ -33,7 +33,7 @@
+@@ -128,8 +128,8 @@
 
- CLONE 0 0096 [ 6] vmovdqa 0x50(%rsp),%xmm0
- CLONE 0 009c [ 7] lea <rip>(%rip),%rsi # <literal-string-424c504f5000>
- CLONE 0 00a3 [ 4] vmovdqu %xmm1,(%rax)
--CLONE 0 00a7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
-+CLONE 0 00a7 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
- CLONE 0 00ae [ 4] vpxor %xmm1,%xmm1,%xmm1
- CLONE 0 00b2 [ 5] movb $0x0,0x68(%r15)
- CLONE 0 00b7 [ 9] vmovdqu %ymm1,0xa0(%r15)
-@@ -945,7 +945,7 @@
-
- CLONE 0 11d3 [ 4] fldcw 0x6c(%rsp)
- CLONE 0 11d7 [ 2] frndint
- CLONE 0 11d9 [ 4] fldcw 0x6e(%rsp)
--CLONE 0 11dd [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2b8>
-+CLONE 0 11dd [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x648>
- CLONE 0 11e3 [ 2] fxch %st(1)
- CLONE 0 11e5 [ 2] fcomi %st(1),%st
- CLONE 0 11e7 [ 2] fstp %st(1)
-@@ -1303,14 +1303,14 @@
-
- CLONE 0 18f5 [ 5] jmp <+0x905>
- CLONE 0 18fa [ 2] fld %st(0)
- CLONE 0 18fc [ 2] fabs
--CLONE 0 18fe [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x298>
-+CLONE 0 18fe [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
- CLONE 0 1904 [ 2] fxch %st(1)
- CLONE 0 1906 [ 2] fucomi %st(1),%st
- CLONE 0 1908 [ 2] fstp %st(1)
- CLONE 0 190a [ 6] ja <+0x1097>
- CLONE 0 1910 [ 2] fucomi %st(0),%st
- CLONE 0 1912 [ 6] jp <+0x109d>
--CLONE 0 1918 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2a8>
-+CLONE 0 1918 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
- CLONE 0 191e [ 2] fxch %st(1)
- CLONE 0 1920 [ 2] fcomip %st(1),%st
- CLONE 0 1922 [ 2] ffreep %st(0)
+ CLONE 0 01d5 [ 1] ret
+ CLONE 0 01d6 [ 2] xor %esi,%esi
+ CLONE 0 01d8 [ 5] jmp <+0x51>
+-CLONE 0 01dd [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f5f6462303a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 01e4 [ 5] mov $0x39,%edx
+-CLONE 0 01e9 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 01f0 [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 01dd [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 01e4 [ 5] mov $0xa76723f6,%edx
++CLONE 0 01e9 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 01f0 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 01f7 [ 5] call <__assert_fail@plt>

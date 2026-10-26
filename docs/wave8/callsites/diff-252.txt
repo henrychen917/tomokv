@@ -1,15 +1,36 @@
-tomo::aof_record_local_op(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)
---- headline
+tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]
+--- latencyfix
 
 +++ post
 
-@@ -122,7 +122,7 @@
+@@ -414,29 +414,3 @@
 
- CLONE 0 01e2 [ 3] cmp $0x11,%edx
- CLONE 0 01e5 [ 6] jbe <+0x119>
- CLONE 0 01eb [ 6] vmovdqu (%r12),%xmm0
--CLONE 0 01f1 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x3c8>
-+CLONE 0 01f1 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x748>
- CLONE 0 01f9 [ 5] vptest %xmm0,%xmm0
- CLONE 0 01fe [ 6] jne <+0x119>
- CLONE 0 0204 [ 8] cmpw $0x3a77,0x10(%r12)
+ CLONE 15 004d [ 3] nopl (%rax)
+ CLONE 15 0050 [ 5] mov $0x1,%eax
+ CLONE 15 0055 [ 1] ret
+-CLONE 16 0000 [ 3] mov %esi,%r9d
+-CLONE 16 0003 [ 2] xor %eax,%eax
+-CLONE 16 0005 [ 3] cmp %rdx,%r9
+-CLONE 16 0008 [ 2] jne <+0x41>
+-CLONE 16 000a [ 2] test %esi,%esi
+-CLONE 16 000c [ 2] je <+0x50>
+-CLONE 16 000e [ 2] xor %edx,%edx
+-CLONE 16 0010 [ 2] jmp <+0x28>
+-CLONE 16 0012 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 16 001d [ 3] nopl (%rax)
+-CLONE 16 0020 [ 3] inc %rdx
+-CLONE 16 0023 [ 3] cmp %rdx,%r9
+-CLONE 16 0026 [ 2] je <+0x50>
+-CLONE 16 0028 [ 4] movzbl (%rdi,%rdx,1),%eax
+-CLONE 16 002c [ 4] lea -0x41(%rax),%r8d
+-CLONE 16 0030 [ 3] lea 0x20(%rax),%esi
+-CLONE 16 0033 [ 4] cmp $0x1a,%r8b
+-CLONE 16 0037 [ 3] cmovb %esi,%eax
+-CLONE 16 003a [ 3] cmp %al,(%rcx,%rdx,1)
+-CLONE 16 003d [ 2] je <+0x20>
+-CLONE 16 003f [ 2] xor %eax,%eax
+-CLONE 16 0041 [ 1] ret
+-CLONE 16 0042 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 16 004d [ 3] nopl (%rax)
+-CLONE 16 0050 [ 5] mov $0x1,%eax
+-CLONE 16 0055 [ 1] ret

@@ -1,15 +1,15 @@
-math_rad
+luaopen_string
 --- headline
 
 +++ post
 
-@@ -4,7 +4,7 @@
+@@ -35,7 +35,7 @@
 
- CLONE 0 000a [ 3] mov %rdi,%rbx
- CLONE 0 000d [ 5] call <luaL_checknumber>
- CLONE 0 0012 [ 4] mov 0x10(%rbx),%rax
--CLONE 0 0016 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7c0>
-+CLONE 0 0016 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x210>
- CLONE 0 001e [ 7] movl $0x3,0x8(%rax)
- CLONE 0 0025 [ 4] vmovsd %xmm0,(%rax)
- CLONE 0 0029 [ 4] add $0x10,%rax
+ CLONE 0 0092 [ 6] jae <+0x130>
+ CLONE 0 0098 [ 3] mov %rbx,%rdi
+ CLONE 0 009b [ 2] xor %edx,%edx
+-CLONE 0 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 00a4 [ 5] call <luaS_newlstr>
+ CLONE 0 00a9 [ 7] movl $0x4,0x8(%rbp)
+ CLONE 0 00b0 [ 3] mov %rbx,%rdi

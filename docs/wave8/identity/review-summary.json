@@ -1,10 +1,11 @@
 {
-  "symbolic reference annotation": 287,
+  "symbolic reference annotation": 291,
   "Lua libraries and timing composition": 18,
   "initialization and static data layout": 2,
-  "lane body retained": 1110,
+  "lane body retained": 1102,
   "executor dispatch composition": 31,
   "logical timing retirement": 34,
+  "Lua helper stable assertion diagnostics": 4,
   "boot and loop instantiation": 10,
   "container template instantiation": 28,
   "EXEC index and timing composition": 45,

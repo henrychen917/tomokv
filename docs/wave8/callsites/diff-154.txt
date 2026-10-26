@@ -1,13 +1,18 @@
-tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
---- headline
+tomo::(anonymous namespace)::collect() [clone .cold]
+--- latencyfix
 
 +++ post
 
-@@ -200,5 +200,5 @@
+@@ -3,5 +3,9 @@
 
- CLONE 0 0418 [ 8] nopl 0x0(%rax,%rax,1)
- CLONE 0 0420 [ 7] lea <rip>(%rip),%rax # <literal-string-64656c00>
- CLONE 0 0427 [ 1] ret
--CLONE 0 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
-+CLONE 0 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
- CLONE 0 042f [ 1] ret
+ CLONE 0 0008 [ 5] call <pthread_mutex_unlock@plt>
+ CLONE 0 000d [ 5] mov 0x10(%r12),%rdi
+ CLONE 0 0012 [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >*) [clone .isra.0]>
+-CLONE 0 0017 [ 3] mov %rbx,%rdi
+-CLONE 0 001a [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0017 [ 5] mov 0x38(%rsp),%rax
++CLONE 0 001c [ 9] sub %fs:0x28,%rax
++CLONE 0 0025 [ 2] jne <+0x2f>
++CLONE 0 0027 [ 3] mov %rbx,%rdi
++CLONE 0 002a [ 5] call <_Unwind_Resume@plt>
++CLONE 0 002f [ 5] call <__stack_chk_fail@plt>

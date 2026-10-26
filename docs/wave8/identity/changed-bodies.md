@@ -139,7 +139,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `controloptions` | [] | [171] | Exact linked body from lualibs; lane change retained. |
 | `decode_hex4` | [] | [156] | Exact linked body from lualibs; lane change retained. |
 | `die` | [] | [209] | Exact linked body from lualibs; lane change retained. |
-| `fpconv_g_fmt` | [] | [345] | Exact linked body from lualibs; lane change retained. |
+| `fpconv_g_fmt` | [] | [345] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `fpconv_init` | [] | [23] | Exact linked body from lualibs; lane change retained. |
 | `fpconv_strtod` | [] | [455] | Exact linked body from lualibs; lane change retained. |
 | `fpconv_update_locale` | [] | [155] | Exact linked body from lualibs; lane change retained. |
@@ -152,7 +152,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `json_arg_init` | [] | [155] | Exact linked body from lualibs; lane change retained. |
 | `json_cfg_decode_invalid_numbers` | [] | [42] | Exact linked body from lualibs; lane change retained. |
 | `json_cfg_decode_max_depth` | [] | [50] | Exact linked body from lualibs; lane change retained. |
-| `json_cfg_encode_invalid_numbers` | [] | [47] | Exact linked body from lualibs; lane change retained. |
+| `json_cfg_encode_invalid_numbers` | [] | [47] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `json_cfg_encode_keep_buffer` | [] | [111] | Exact linked body from lualibs; lane change retained. |
 | `json_cfg_encode_max_depth` | [] | [50] | Exact linked body from lualibs; lane change retained. |
 | `json_cfg_encode_number_precision` | [] | [50] | Exact linked body from lualibs; lane change retained. |
@@ -161,11 +161,11 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `json_decode_descend` | [] | [103] | Exact linked body from lualibs; lane change retained. |
 | `json_destroy_config` | [] | [42] | Exact linked body from lualibs; lane change retained. |
 | `json_encode` | [] | [251] | Exact linked body from lualibs; lane change retained. |
-| `json_enum_option.constprop.0.isra.0` | [] | [166] | Exact linked body from lualibs; lane change retained. |
+| `json_enum_option.constprop.0.isra.0` | [] | [166] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `json_integer_option` | [] | [233] | Exact linked body from lualibs; lane change retained. |
 | `json_is_invalid_number.isra.0` | [] | [163] | Exact linked body from lualibs; lane change retained. |
-| `json_next_token` | [] | [1424] | Exact linked body from lualibs; lane change retained. |
-| `json_process_value` | [] | [1039] | Exact linked body from lualibs; lane change retained. |
+| `json_next_token` | [] | [1424] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
+| `json_process_value` | [] | [1039] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `json_protect_conversion` | [] | [175] | Exact linked body from lualibs; lane change retained. |
 | `luaB_collectgarbage` | [295] | [295] | Composition of lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `luaB_setfenv` | [458] | [440] | Exact linked body from lualibs; lane change retained. |
@@ -207,8 +207,8 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `mp_buf_free` | [] | [135] | Exact linked body from lualibs; lane change retained. |
 | `mp_buf_new` | [] | [96] | Exact linked body from lualibs; lane change retained. |
 | `mp_cur_init` | [] | [19] | Exact linked body from lualibs; lane change retained. |
-| `mp_decode_to_lua_array` | [] | [206] | Exact linked body from lualibs; lane change retained. |
-| `mp_decode_to_lua_hash` | [] | [200] | Exact linked body from lualibs; lane change retained. |
+| `mp_decode_to_lua_array` | [] | [206] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
+| `mp_decode_to_lua_hash` | [] | [200] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `mp_decode_to_lua_type` | [] | [37] | Exact linked body from lualibs; lane change retained. |
 | `mp_decode_to_lua_type.part.0` | [] | [1446] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `mp_encode_array` | [] | [135] | Exact linked body from lualibs; lane change retained. |
@@ -233,7 +233,7 @@ Strict gate instruction/address normalization; local clone multiplicity retained
 | `mp_unpack_full.cold` | [] | [5] | Exact linked body from lualibs; lane change retained. |
 | `mp_unpack_limit` | [] | [80] | Exact linked body from lualibs; lane change retained. |
 | `mp_unpack_one` | [] | [70] | Exact linked body from lualibs; lane change retained. |
-| `optsize` | [] | [247] | Exact linked body from lualibs; lane change retained. |
+| `optsize` | [] | [247] | lualibs changes this body; merged compiler propagation differs from isolated POST. |
 | `singlevaraux` | [614] | [614] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `sort` | [341] | [341] | Composition of readability-a0, lualibs, latencyfix, execindex; residual instructions/layout require merit review. |
 | `std::_Deque_iterator<tomo::Task, tomo::Task&, tomo::Task*> std::deque<tomo::Task, std::allocator<tomo::Task> >::_M_insert_aux<tomo::Task const&>(std::_Deque_iterator<tomo::Task, tomo::Task&, tomo::Task*>, tomo::Task const&)` | [1481] | [] | Exact linked body from execindex; lane change retained. |

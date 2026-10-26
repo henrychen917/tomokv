@@ -1,25 +1,15 @@
-tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)
+tconcat
 --- headline
 
 +++ post
 
-@@ -33,7 +33,7 @@
+@@ -10,7 +10,7 @@
 
- CLONE 0 0080 [ 5] call <tomo::acl_authenticate(tomo::Slice, tomo::Slice, unsigned int&)>
- CLONE 0 0085 [ 2] test %al,%al
- CLONE 0 0087 [ 6] je <+0x190>
--CLONE 0 008d [ 9] mov %fs:0xffffffffffffff98,%rax
-+CLONE 0 008d [ 9] mov %fs:0xffffffffffffff90,%rax
- CLONE 0 0096 [ 3] test %rax,%rax
- CLONE 0 0099 [ 2] je <+0xab>
- CLONE 0 009b [ 3] mov (%rsp),%edx
-@@ -86,7 +86,7 @@
-
- CLONE 0 0160 [ 2] jne <+0x1e0>
- CLONE 0 0162 [ 7] cmpl $0x2,0xcc(%rbx)
- CLONE 0 0169 [ 6] jne <+0x202>
--CLONE 0 016f [ 7] mov <rip>(%rip),%r12 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8f0>
-+CLONE 0 016f [ 7] mov <rip>(%rip),%r12 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x338>
- CLONE 0 0176 [ 7] lea <rip>(%rip),%r13 # <literal-string-64656661756c7400>
- CLONE 0 017d [ 5] jmp <+0x67>
- CLONE 0 0182 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 001a [ 7] sub $0x1000,%rsp
+ CLONE 0 0021 [ 5] orq $0x0,(%rsp)
+ CLONE 0 0026 [ 4] sub $0x58,%rsp
+-CLONE 0 002a [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x126c8>
++CLONE 0 002a [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
+ CLONE 0 0031 [ 5] lea 0x28(%rsp),%rcx
+ CLONE 0 0036 [ 5] mov $0x2,%esi
+ CLONE 0 003b [ 3] mov %rdi,%r13

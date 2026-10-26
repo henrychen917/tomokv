@@ -49,14 +49,7 @@
       "build/reorder-engagement-unit",
       "build/reorder-engagement-unit-db0",
       "build/racefix-climon",
-      "build/aoforder-scheduled"
-    ],
-    "exit": 0
-  },
-  {
-    "argv": [
-      "make",
-      "-j32",
+      "build/aoforder-scheduled",
       "mdbqsbr-live-arms"
     ],
     "exit": 0
@@ -69,7 +62,8 @@
       "-f",
       "tools/blockfix_cost.mk",
       "-j32",
-      "build/blockfix-cost"
+      "build/blockfix-cost",
+      "build/tomokv.blockfix-cost.sha256"
     ],
     "exit": 0
   }

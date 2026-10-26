@@ -1,121 +1,15 @@
-tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
---- latencyfix
+tomo_db0::HashFieldTtl::erase(tomo_db0::Slice)
+--- headline
 
 +++ post
 
-@@ -7,60 +7,60 @@
+@@ -146,7 +146,7 @@
 
- CLONE 0 0021 [ 3] vzeroupper
- CLONE 0 0024 [ 5] call <tomo_db0::Client::resume_multibulk(unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)>
- CLONE 0 0029 [ 7] or -0x7e9(%rbp),%r15b
--CLONE 0 0030 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x3b0>
--CLONE 0 0035 [ 3] mov %r13,%rdi
--CLONE 0 0038 [ 3] vzeroupper
--CLONE 0 003b [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
--CLONE 0 0040 [ 7] lea -0x6d0(%rbp),%rdi
--CLONE 0 0047 [ 5] call <tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()>
--CLONE 0 004c [ 7] lea -0x6c0(%rbp),%rdi
--CLONE 0 0053 [ 5] call <std::unique_ptr<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage, std::default_delete<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage> >::~unique_ptr()>
--CLONE 0 0058 [ 4] mov -0x38(%rbp),%rax
--CLONE 0 005c [ 9] sub %fs:0x28,%rax
--CLONE 0 0065 [ 2] jne <+0x6f>
--CLONE 0 0067 [ 3] mov %rbx,%rdi
--CLONE 0 006a [ 5] call <_Unwind_Resume@plt>
--CLONE 0 006f [ 5] call <__stack_chk_fail@plt>
--CLONE 0 0074 [ 7] mov -0x798(%rbp),%r8
--CLONE 0 007b [ 3] mov 0x8(%rbx),%edx
--CLONE 0 007e [ 7] mov -0x7e8(%rbp),%rcx
--CLONE 0 0085 [ 7] mov %r10,-0x7c0(%rbp)
--CLONE 0 008c [ 6] mov -0x7b8(%rbp),%esi
--CLONE 0 0092 [ 7] mov -0x7e0(%rbp),%rdi
--CLONE 0 0099 [ 5] call <tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)>
--CLONE 0 009e [ 7] mov -0x7c0(%rbp),%r10
--CLONE 0 00a5 [ 7] mov %rax,-0x798(%rbp)
--CLONE 0 00ac [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x1deb>
--CLONE 0 00b1 [ 5] call <abort@plt>
--CLONE 0 00b6 [ 6] mov $0x1,%r15d
--CLONE 0 00bc [ 6] mov $0x4000,%r9d
--CLONE 0 00c2 [ 6] mov $0xa,%r8d
--CLONE 0 00c8 [ 5] jmp <+0x10>
--CLONE 0 00cd [ 3] mov %rbx,%rsi
--CLONE 0 00d0 [ 3] mov %r12,%rdi
--CLONE 0 00d3 [ 5] call <tomo_db0::IoLoop::note_query_limit_disconnect_once(tomo_db0::Client const&) const>
--CLONE 0 00d8 [ 2] test %al,%al
--CLONE 0 00da [ 2] jne <+0xea>
--CLONE 0 00dc [ 3] mov 0x4(%rbx),%eax
--CLONE 0 00df [ 6] mov %eax,-0x7b8(%rbp)
--CLONE 0 00e5 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x9a>
--CLONE 0 00ea [ 4] mov -0x38(%rbp),%rax
--CLONE 0 00ee [ 9] sub %fs:0x28,%rax
--CLONE 0 00f7 [ 2] jne <+0x11a>
--CLONE 0 00f9 [ 4] lea -0x28(%rbp),%rsp
--CLONE 0 00fd [ 3] mov %rbx,%rsi
--CLONE 0 0100 [ 3] mov %r12,%rdi
--CLONE 0 0103 [ 2] xor %edx,%edx
--CLONE 0 0105 [ 1] pop %rbx
--CLONE 0 0106 [ 2] pop %r12
--CLONE 0 0108 [ 2] pop %r13
--CLONE 0 010a [ 2] pop %r14
--CLONE 0 010c [ 2] pop %r15
--CLONE 0 010e [ 1] pop %rbp
--CLONE 0 010f [ 4] lea -0x10(%r13),%rsp
--CLONE 0 0113 [ 2] pop %r13
--CLONE 0 0115 [ 5] jmp <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)>
--CLONE 0 011a [ 5] call <__stack_chk_fail@plt>
-+CLONE 0 0030 [ 7] mov %r15b,-0x7c8(%rbp)
-+CLONE 0 0037 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x3b3>
-+CLONE 0 003c [ 6] mov $0x1,%r15d
-+CLONE 0 0042 [ 6] mov $0x4000,%r9d
-+CLONE 0 0048 [ 6] mov $0xa,%r8d
-+CLONE 0 004e [ 2] jmp <+0x10>
-+CLONE 0 0050 [ 3] mov %r14,%rdi
-+CLONE 0 0053 [ 3] vzeroupper
-+CLONE 0 0056 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
-+CLONE 0 005b [ 7] lea -0x6d0(%rbp),%rdi
-+CLONE 0 0062 [ 5] call <tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()>
-+CLONE 0 0067 [ 7] lea -0x6c0(%rbp),%rdi
-+CLONE 0 006e [ 5] call <std::unique_ptr<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage, std::default_delete<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage> >::~unique_ptr()>
-+CLONE 0 0073 [ 4] mov -0x38(%rbp),%rax
-+CLONE 0 0077 [ 9] sub %fs:0x28,%rax
-+CLONE 0 0080 [ 2] jne <+0xe4>
-+CLONE 0 0082 [ 3] mov %rbx,%rdi
-+CLONE 0 0085 [ 5] call <_Unwind_Resume@plt>
-+CLONE 0 008a [ 7] mov -0x798(%rbp),%r8
-+CLONE 0 0091 [ 3] mov 0x8(%rbx),%edx
-+CLONE 0 0094 [ 7] mov -0x7e8(%rbp),%rcx
-+CLONE 0 009b [ 7] mov %r10,-0x7c0(%rbp)
-+CLONE 0 00a2 [ 6] mov -0x7b8(%rbp),%esi
-+CLONE 0 00a8 [ 7] mov -0x7e0(%rbp),%rdi
-+CLONE 0 00af [ 5] call <tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)>
-+CLONE 0 00b4 [ 7] mov -0x7c0(%rbp),%r10
-+CLONE 0 00bb [ 7] mov %rax,-0x798(%rbp)
-+CLONE 0 00c2 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x1daa>
-+CLONE 0 00c7 [ 3] mov %rbx,%rsi
-+CLONE 0 00ca [ 3] mov %r12,%rdi
-+CLONE 0 00cd [ 5] call <tomo_db0::IoLoop::note_query_limit_disconnect_once(tomo_db0::Client const&) const>
-+CLONE 0 00d2 [ 2] test %al,%al
-+CLONE 0 00d4 [ 2] jne <+0xe9>
-+CLONE 0 00d6 [ 3] mov 0x4(%rbx),%eax
-+CLONE 0 00d9 [ 6] mov %eax,-0x7b8(%rbp)
-+CLONE 0 00df [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x9a>
-+CLONE 0 00e4 [ 5] call <__stack_chk_fail@plt>
-+CLONE 0 00e9 [ 4] mov -0x38(%rbp),%rax
-+CLONE 0 00ed [ 9] sub %fs:0x28,%rax
-+CLONE 0 00f6 [ 2] jne <+0x119>
-+CLONE 0 00f8 [ 4] lea -0x28(%rbp),%rsp
-+CLONE 0 00fc [ 3] mov %rbx,%rsi
-+CLONE 0 00ff [ 3] mov %r12,%rdi
-+CLONE 0 0102 [ 2] xor %edx,%edx
-+CLONE 0 0104 [ 1] pop %rbx
-+CLONE 0 0105 [ 2] pop %r12
-+CLONE 0 0107 [ 2] pop %r13
-+CLONE 0 0109 [ 2] pop %r14
-+CLONE 0 010b [ 2] pop %r15
-+CLONE 0 010d [ 1] pop %rbp
-+CLONE 0 010e [ 4] lea -0x10(%r13),%rsp
-+CLONE 0 0112 [ 2] pop %r13
-+CLONE 0 0114 [ 5] jmp <tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)>
-+CLONE 0 0119 [ 5] call <__stack_chk_fail@plt>
- CLONE 1 0000 [ 7] mov -0x760(%rbp),%r8
- CLONE 1 0007 [ 3] mov 0x8(%rbx),%edx
- CLONE 1 000a [ 7] mov -0x7a8(%rbp),%rcx
+ CLONE 0 024e [ 4] lea 0x1(%rax),%rsi
+ CLONE 0 0252 [ 5] call <_ZdlPvm@plt>
+ CLONE 0 0257 [ 4] movb $0x2,0x30(%rbx)
+-CLONE 0 025b [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 025b [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 0263 [ 6] vmovq 0x18(%r13),%xmm0
+ CLONE 0 0269 [ 8] movq $0x0,0x20(%rbx)
+ CLONE 0 0271 [ 4] vpaddd %xmm1,%xmm0,%xmm0

@@ -1213,9 +1213,7 @@
           "digest": "9d5ca47a1dcc45fd69bc2d812db696fcfdb1dd1b7ec90ad9dc560e11a70d688d"
         }
       ],
-      "headline_equal": false,
-      "verified_constant_equal": true,
-      "verified_constant_headline_equal": true
+      "headline_equal": false
     },
     {
       "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
@@ -1820,9 +1818,7 @@
           "digest": "187058970710fa04d44d9b3510030252e2eb3e517a5216b10bc618d578547aa7"
         }
       ],
-      "headline_equal": false,
-      "verified_constant_equal": true,
-      "verified_constant_headline_equal": true
+      "headline_equal": false
     },
     {
       "name": "tomo::Slice::key_eq(tomo::Slice const&) const",
@@ -4289,9 +4285,7 @@
           "digest": "7a24da6a4bc62faaf499bc2d25b717e1d0ae96cdbb68a0eab1be31065d0f1423"
         }
       ],
-      "headline_equal": false,
-      "verified_constant_equal": true,
-      "verified_constant_headline_equal": true
+      "headline_equal": false
     },
     {
       "name": "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const",
@@ -5696,9 +5690,7 @@
           "digest": "b4086eec1a8f6faa073d5e987643b695431f7a712b6b272e8d5aa4868e085bc9"
         }
       ],
-      "headline_equal": false,
-      "verified_switch_equal": true,
-      "verified_switch_headline_equal": true
+      "headline_equal": false
     },
     {
       "name": "tomo_db0::kvobj_size(tomo_db0::KvObj const*)",
@@ -5738,9 +5730,7 @@
           "digest": "be8e095e09f18dd8b71b1123f1df37c23df306d357c442b1be287ee895336d16"
         }
       ],
-      "headline_equal": false,
-      "verified_switch_equal": true,
-      "verified_switch_headline_equal": true
+      "headline_equal": false
     },
     {
       "name": "tomo_db0::now_ns()",
@@ -9694,8 +9684,7 @@
           "address": "0x12b260",
           "digest": "db7d84070a2a59fc3ab0dc22e20d37cce32e1feb3c00288b39c9fbf4bfbb1508"
         }
-      ],
-      "verified_constant_equal": true
+      ]
     },
     {
       "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
@@ -11517,17 +11506,16 @@
         {
           "size": 1606,
           "address": "0x7ef10",
-          "digest": "0b496fd5ad66ddddf01b9c0d6a503791a85bf1f29bf1956c227f0cf05272214c"
+          "digest": "bab6f92ece9dc05c22c95c00bf2630f8ff08012182b6577ebabfffb89083a2fe"
         }
       ],
       "production": [
         {
           "size": 1606,
           "address": "0x7e9c0",
-          "digest": "eb4017baf45d8052885f9eda5eca0b600bce62c19fd03b2dd6d57d3f997a4f39"
+          "digest": "6fb94402f96855772d0d81f47e123c7e1760d61475d2abd5cc3d93c406ea9dcc"
         }
-      ],
-      "verified_switch_equal": true
+      ]
     },
     {
       "name": "tomo_db0::kvobj_size(tomo_db0::KvObj const*)",
@@ -11556,17 +11544,16 @@
         {
           "size": 772,
           "address": "0x7f700",
-          "digest": "28a1ec9f06e7ff34334793babeb371dc48ab103bd8a87c5b10a71b895aacffb8"
+          "digest": "d50c1edd846559aa5c250bfdfcfed9f559e650dea86a7d14704db7aedd5d733f"
         }
       ],
       "production": [
         {
           "size": 772,
           "address": "0x7f1b0",
-          "digest": "eddee68db9d9291cdfc837624719f9c2adf8b314b89b4f49387d98452a596f03"
+          "digest": "850c70f18941915d77f85aea66394e14469cb01e9cd205973b822d88850315c3"
         }
-      ],
-      "verified_switch_equal": true
+      ]
     },
     {
       "name": "tomo_db0::now_ns()",
@@ -11898,8 +11885,8 @@
       "sha256": "9af252ab89c4cad77787556b48bce9c41a3033cac8d79d721c02c5cadd6f6a99"
     },
     "post-production": {
-      "path": "build/tomokv",
-      "sha256": "488ad56dd86bbb7f52c8cbf5b34070b81e3e782ef2b26adcbe788061cbc03509"
+      "path": "/home/user/Projects/cx-wave8/build/tomokv",
+      "sha256": "f94fbd1d57873ff32bdf279b796139e0dd94e8cd7f613d9a7f17832ef86af359"
     },
     "headline": {
       "path": "/home/user/Projects/bench-bins/tomokv-headline-3700b51d7",
@@ -11915,11 +11902,11 @@
     },
     "post-normal": {
       "path": "/home/user/Projects/cx-wave8/build/wave8/commands/post-normal/probe",
-      "sha256": "a0b9854518d7820c8ec908a983c1738f04b424fdc67e1b0d9c5db2fa7535ec4f"
+      "sha256": "a6358e6f9fb74235729f6a4b96456d5c8f60c83cd21d39d2841a67fc32d2fcfa"
     },
     "post-db0": {
       "path": "/home/user/Projects/cx-wave8/build/wave8/commands/post-db0/probe",
-      "sha256": "b97bfba4cc967d3f193dc2700027301094fea605896859759d86afb11a235e9f"
+      "sha256": "a31478f6043095f1712ff123698ea72e103b32398ac530824218cb01d5b272b2"
     }
   }
 }

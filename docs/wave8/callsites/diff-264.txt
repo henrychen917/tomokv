@@ -1,15 +1,25 @@
-tomo::hll::selftest[abi:cxx11]()
+tomo::command_client_reset_meta(tomo::Client*)
 --- headline
 
 +++ post
 
-@@ -221,7 +221,7 @@
+@@ -8,7 +8,7 @@
 
- CLONE 0 03bd [ 2] je <+0x3dd>
- CLONE 0 03bf [ 4] vxorpd %xmm4,%xmm4,%xmm4
- CLONE 0 03c3 [ 5] vcvtsi2sd %r14,%xmm4,%xmm0
--CLONE 0 03c8 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6e8>
-+CLONE 0 03c8 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x120>
- CLONE 0 03d0 [ 7] vrndscalesd $0xa,%xmm0,%xmm0,%xmm0
- CLONE 0 03d7 [ 6] vcvttsd2usi %xmm0,%rdx
- CLONE 0 03dd [ 3] cmp %rax,%rdx
+ CLONE 0 0014 [ 5] call <__tls_init>
+ CLONE 0 0019 [ 9] mov %fs:0x0,%rax
+ CLONE 0 0022 [ 7] mov 0x7a8(%rbp),%rsi
+-CLONE 0 0029 [ 7] lea -0xb0(%rax),%rdi
++CLONE 0 0029 [ 7] lea -0xb8(%rax),%rdi
+ CLONE 0 0030 [ 5] call <std::_Hashtable<unsigned long, std::pair<unsigned long const, tomo::(anonymous namespace)::ClientMeta>, std::allocator<std::pair<unsigned long const, tomo::(anonymous namespace)::ClientMeta> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]>
+ CLONE 0 0035 [ 3] mov %rax,%rbx
+ CLONE 0 0038 [ 3] vzeroupper
+@@ -23,7 +23,7 @@
+
+ CLONE 0 0060 [ 4] mov 0x50(%rbx),%rax
+ CLONE 0 0064 [ 8] movq $0x0,0x58(%rbx)
+ CLONE 0 006c [ 2] xor %edx,%edx
+-CLONE 0 006e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 006e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 0075 [ 3] movb $0x0,(%rax)
+ CLONE 0 0078 [ 4] mov 0x70(%rbx),%rax
+ CLONE 0 007c [ 8] movq $0x0,0x78(%rbx)

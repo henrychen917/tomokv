@@ -1,15 +1,15 @@
-void tomo_db0::(anonymous namespace)::cmd_setrange<false>(tomo_db0::Shard&, tomo_db0::Op&)
+void tomo_db0::(anonymous namespace)::bitfield_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)
 --- headline
 
 +++ post
 
-@@ -189,7 +189,7 @@
+@@ -503,7 +503,7 @@
 
- CLONE 0 030f [ 5] call <tomo_db0::command_proto_max_bulk_len()>
- CLONE 0 0314 [ 3] cmp %r12,%rax
- CLONE 0 0317 [ 6] jb <+0x3b0>
--CLONE 0 031d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
-+CLONE 0 031d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
- CLONE 0 0324 [ 8] movl $0x0,0x14(%rsp)
- CLONE 0 032c [ 9] movq $0x0,0x8(%rsp)
- CLONE 0 0335 [ 5] jmp <+0x1cf>
+ CLONE 0 08fb [ 7] mov -0x240(%rbp),%rax
+ CLONE 0 0902 [ 3] xor %r10d,%r10d
+ CLONE 0 0905 [ 7] incq 0x3f8(%rax)
+-CLONE 0 090c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
++CLONE 0 090c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
+ CLONE 0 0913 [ 7] mov %rax,-0x220(%rbp)
+ CLONE 0 091a [ 3] mov -0x58(%rbp),%esi
+ CLONE 0 091d [ 7] lea -0x200(%rbp),%rax

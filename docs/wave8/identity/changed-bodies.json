@@ -2537,13 +2537,11 @@
     "post_sizes": [
       345
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "fpconv_init",
@@ -2769,13 +2767,11 @@
     "post_sizes": [
       47
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "json_cfg_encode_keep_buffer",
@@ -2931,13 +2927,11 @@
     "post_sizes": [
       166
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "json_integer_option",
@@ -2985,13 +2979,11 @@
     "post_sizes": [
       1424
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "json_process_value",
@@ -3003,13 +2995,11 @@
     "post_sizes": [
       1039
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "json_protect_conversion",
@@ -3813,13 +3803,11 @@
     "post_sizes": [
       206
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "mp_decode_to_lua_hash",
@@ -3831,13 +3819,11 @@
     "post_sizes": [
       200
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "mp_decode_to_lua_type",
@@ -4277,13 +4263,11 @@
     "post_sizes": [
       247
     ],
-    "matches": [
-      "lualibs"
-    ],
+    "matches": [],
     "changed_lanes": [
       "lualibs"
     ],
-    "reason": "Exact linked body from lualibs; lane change retained."
+    "reason": "lualibs changes this body; merged compiler propagation differs from isolated POST."
   },
   {
     "name": "singlevaraux",

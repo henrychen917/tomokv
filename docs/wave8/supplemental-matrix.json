@@ -10,7 +10,15 @@
     "racefix_counters",
     "notify_aof",
     "notify_order",
-    "notifycompat"
+    "notifycompat",
+    "production_units",
+    "exbatch_live",
+    "atomfix5_accounting",
+    "acl_recheck",
+    "aclfix",
+    "authfix",
+    "bugs5",
+    "rlcache"
   ],
   "each_mode": [
     "aof-epoll",
@@ -19,10 +27,21 @@
     "snapshot-uring"
   ],
   "each_mode_engine": [
-    "notify"
+    "notify",
+    "asan_batteries"
   ],
   "quiet_after": [
     "gates_test.py",
     "abba_selftest"
+  ],
+  "each_engine": [
+    "multidb-1s-0-0",
+    "multidb-1s-0-1",
+    "multidb-1s-1-0",
+    "multidb-1s-1-1",
+    "multidb-2s-0-0",
+    "multidb-2s-0-1",
+    "multidb-2s-1-0",
+    "multidb-2s-1-1"
   ]
 }
