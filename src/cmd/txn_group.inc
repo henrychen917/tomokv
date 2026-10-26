@@ -256,6 +256,20 @@ TxnGroupRead txn_group_read_prepare(ScatterState& state, Shard& shard, Op& op) {
 }
 
 bool txn_group_decide(ScatterState& state, uint64_t ticket) {
+    if (state.aborted.load(std::memory_order_acquire)) {
+        // OOM or an NX veto can skip the last-placement CAS. Close placement
+        // before deciding this terminal abort, so a delayed wound cannot turn
+        // it into a cancelled unit after it has already answered. If the wound
+        // won, finish its cancellation instead. Ordinary errors keep tickets.
+        TxnPhase placing = TxnPhase::Placing;
+        if (!state.group_attempt()->phase.compare_exchange_strong(
+                placing, TxnPhase::Executing, std::memory_order_acq_rel) &&
+            placing == TxnPhase::Wounded) {
+            uint64_t zero = 0;
+            state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                                std::memory_order_acq_rel);
+        }
+    }
     uint64_t undecided = 0;
     if (state.epoch.compare_exchange_strong(undecided, ticket,
                                            std::memory_order_acq_rel)) {

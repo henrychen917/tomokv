@@ -1810,14 +1810,16 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
     state.watch_shard_done[static_cast<uint32_t>(shard.id())] = 1;
     if (state.watch_pending.fetch_sub(1, std::memory_order_acq_rel) == 1) {
         if (state.kind == MultiStateKind::Execute &&
-            state.final_reply != MultiFinalReply::ExecAbort &&
-            !state.decision.aborted.load(std::memory_order_acquire)) {
+            state.final_reply != MultiFinalReply::ExecAbort) {
+            // Even a placement error must close the phase: a concurrent wound
+            // takes precedence over its terminal abort and requires a retry.
             TxnPhase placing = TxnPhase::Placing;
             if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Executing,
-                                                             std::memory_order_acq_rel))
-                state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                                       state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
-            else {
+                                                             std::memory_order_acq_rel)) {
+                if (!state.decision.aborted.load(std::memory_order_acquire))
+                    state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                                           state.read_only ? TxnCounter::Readonly : TxnCounter::Executed);
+            } else {
                 // Finish an observed wound before the finalizer can mistake
                 // it for a terminal execution error at undecided epoch zero.
                 uint64_t zero = 0;
