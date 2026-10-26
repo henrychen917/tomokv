@@ -63,12 +63,12 @@ def controls(binary, output):
     else:
         raise AssertionError('missing fliplisten clone control passed')
     post.groups = copy.deepcopy(binary.groups)
-    r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'))
+    r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'), latencyfix=True)
     callback = next(name for name in post.groups if name.startswith('tomo::ExLoopT<')
                     and '::execute<' in name and '::{lambda(void*, tomo::Task const&)#1}::_FUN(' in name)
     del post.groups[callback]
     try:
-        r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'))
+        r7shadow_noop.execfair_inventory(post, ('tomo', 'tomo_db0'), latencyfix=True)
     except AssertionError as error:
         assert 'missing execfair promotion callback' in str(error), str(error)
     else:

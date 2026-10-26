@@ -126,8 +126,8 @@ def fliplisten_inventory(binary, namespaces):
                 f'missing fliplisten parser body: {namespace}: {name}'
 
 
-def execfair_inventory(binary, namespaces):
-    """Exactly three owner-local promotion callback bodies per runtime.
+def execfair_inventory(binary, namespaces, *, latencyfix=False):
+    """Exactly three owner-local promotion callbacks, plus two with LAT-HIST-1.
 
     They are ordinary execute callbacks, not armed R7-only bodies. Keep each
     physical body in the strict byte comparison and reject a missing clone.
@@ -139,6 +139,13 @@ def execfair_inventory(binary, namespaces):
             f'::_FUN(void*, {namespace}::Task const&)'
             for fused, no_evict in (('false', 'false'), ('true', 'false'), ('true', 'true'))
         }
+        if latencyfix:
+            expected |= {
+                f'{namespace}::ExLoopT<true>::execute<true, {no_evict}>'
+                f'({namespace}::Task const&)::{{lambda(void*, {namespace}::Task const&)#1}}'
+                f'::_FUN(void*, {namespace}::Task const&)'
+                for no_evict in ('false', 'true')
+            }
         found = {name for name in binary.groups
                  if name.startswith(namespace + '::ExLoopT<') and '::execute<' in name
                  and '::{lambda(void*, ' + namespace + '::Task const&)#1}::_FUN(' in name}
