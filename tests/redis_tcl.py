@@ -143,10 +143,39 @@ def run_file(args, tree, unit, only=None, extra=()):
     (folder/'result.json').write_text(json.dumps(row,indent=2)+'\n')
     return row
 
-def validate_passing(row, expected):
+def setup_signature(data):
+    """(command, reply) of an err raised by start_server-block code outside any test.
+
+    --durable reports it as an unnamed err and abandons that block. It cannot be
+    skipped by name, so the manifest names it exactly: the failing Tcl command
+    and the server's reply line."""
+    lines = [line.strip() for line in data.split('\n')]
+    commands = []
+    for index, line in enumerate(lines[:-1]):
+        if line in ('while executing', 'invoked from within'):
+            command = lines[index + 1]
+            if len(command) > 1 and command[0] == command[-1] == '"':
+                command = command[1:-1]
+            if not command.startswith(('[srv', 'error ', 'uplevel')):
+                commands.append(command)
+    reply = next((line for line in lines[1:] if line.startswith(('ERR ', 'WRONGTYPE', 'NOSCRIPT', 'BUSY', 'OOM'))),
+                 lines[0])
+    return (commands[0] if commands else '', reply)
+
+def setup_errors(row):
+    return Counter(setup_signature(e['data']) for e in row['events']
+                   if e['status'] == 'err' and not e['test'].split(' in tests/')[0])
+
+def validate_passing(row, expected, known_setup_errors=()):
     actual = [e['test'] for e in row['events'] if e['status'] == 'ok']
-    if (not expected or not actual or Counter(actual) != Counter(expected) or row['failed'] or
-            row['error'] or not row['complete'] or row['exit_code']):
+    known = Counter({(k['command'], k['reply']): k['count'] for k in known_setup_errors})
+    observed = setup_errors(row)
+    # Exactly the named block-setup errors, no other failure of any kind. runtest
+    # exits 1 whenever it recorded any failure, including a named setup error.
+    expected_rc = 1 if observed else 0
+    if (not expected or not actual or Counter(actual) != Counter(expected) or observed != known or
+            row['failed'] != sum(observed.values()) or row['error'] or not row['complete'] or
+            row['exit_code'] != expected_rc):
         raise ValueError('passing subset failed, incomplete, or assertion inventory changed')
 
 def load_manifest(path, redis_root, inventory):
@@ -168,6 +197,10 @@ def load_manifest(path, redis_root, inventory):
         extra = spec.get('extra_args', [])
         if len(extra) % 2 or any(flag != '--tags' for flag in extra[::2]):
             raise ValueError(f'invalid extra runtest arguments: {unit}')
+        for known in spec.get('known_setup_errors', ()):
+            if (set(known) != {'command', 'reply', 'count'} or not known['command'] or not known['reply'] or
+                    type(known['count']) is not int or known['count'] < 1):
+                raise ValueError(f'invalid known setup error: {unit}')
     return manifest
 
 def main():
@@ -201,11 +234,18 @@ def main():
         else: row=run_file(args,tree,unit,extra=extra)
         if args.manifest:
             row['skip_tests']=sorted(spec.get('skip_tests', ()))
-            try: validate_passing(row, manifest['files'][unit]['passed_tests'])
-            except ValueError as error: row['error'] = str(error)
+            row['setup_errors']=[dict(command=c, reply=r, count=n) for (c, r), n in sorted(setup_errors(row).items())]
+            try: validate_passing(row, spec['passed_tests'], spec.get('known_setup_errors', ()))
+            except ValueError as error: row['error'] = '; '.join(filter(None, (row['error'], str(error))))
         report['rows'].append(row)
         (args.output/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
         print(f"{args.mode} {unit}: {row['passed']} pass {row['failed']} fail {row['skipped']} skip rc={row['exit_code']} complete={row['complete']}",flush=True)
     if sha(args.binary) != report['binary_sha256']: raise ValueError('candidate changed during suite')
-    return int(any(r['failed'] or r['error'] or not r['complete'] or r['exit_code'] for r in report['rows']))
+    # With a manifest, validate_passing has already accounted for each named
+    # setup error and recorded any other failure as row['error'].
+    def failed(r):
+        if args.manifest:
+            return bool(r['error'])
+        return r['failed'] or r['error'] or not r['complete'] or r['exit_code']
+    return int(any(failed(r) for r in report['rows']))
 if __name__=='__main__':sys.exit(main())

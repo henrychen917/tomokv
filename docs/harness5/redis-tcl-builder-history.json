@@ -1,0 +1,745 @@
+[
+ {
+  "round": 0,
+  "problems": [],
+  "modes_agree": true,
+  "seconds": {
+   "integration/redis-cli": {
+    "2s": 5.578394976444542,
+    "1s": 5.628170519135892
+   },
+   "integration/replication-buffer": {
+    "2s": 0.16841641440987587,
+    "1s": 0.16849231347441673
+   },
+   "unit/bitfield": {
+    "2s": 0.318799601867795,
+    "1s": 0.36907186452299356
+   },
+   "unit/bitops": {
+    "2s": 1.070038452744484,
+    "1s": 1.1200285768136382
+   },
+   "unit/dump": {
+    "2s": 0.16855207365006208,
+    "1s": 0.16853509470820427
+   },
+   "unit/expire": {
+    "2s": 7.578651810996234,
+    "1s": 7.478694007731974
+   },
+   "unit/functions": {
+    "2s": 0.21920751128345728,
+    "1s": 0.21931109111756086
+   },
+   "unit/geo": {
+    "2s": 31.46014665812254,
+    "1s": 32.211585582233965
+   },
+   "unit/hyperloglog": {
+    "2s": 48.28188322670758,
+    "1s": 48.88707740791142
+   },
+   "unit/introspection": {
+    "2s": 2.27170651871711,
+    "1s": 2.2712961863726377
+   },
+   "unit/introspection-2": {
+    "2s": 3.122850811108947,
+    "1s": 3.1729320334270597
+   },
+   "unit/keyspace": {
+    "2s": 1.3205788116902113,
+    "1s": 1.2701811827719212
+   },
+   "unit/latency-monitor": {
+    "2s": 3.5234114080667496,
+    "1s": 3.523059048689902
+   },
+   "unit/multi": {
+    "2s": 1.3704044492915273,
+    "1s": 1.3703282726928592
+   },
+   "unit/other": {
+    "2s": 1.219920201227069,
+    "1s": 1.2701983377337456
+   },
+   "unit/pause": {
+    "2s": 0.16868961229920387,
+    "1s": 0.16838750336319208
+   },
+   "unit/protocol": {
+    "2s": 0.4188968501985073,
+    "1s": 0.4188943337649107
+   },
+   "unit/pubsub": {
+    "2s": 0.8195343436673284,
+    "1s": 0.8197019146755338
+   },
+   "unit/quit": {
+    "2s": 0.3687960784882307,
+    "1s": 0.268774070776999
+   },
+   "unit/scan": {
+    "2s": 4.023587047122419,
+    "1s": 4.02388072758913
+   },
+   "unit/scripting": {
+    "2s": 20.958391460590065,
+    "1s": 20.509588677436113
+   },
+   "unit/slowlog": {
+    "2s": 0.7193196136504412,
+    "1s": 0.7192369624972343
+   },
+   "unit/sort": {
+    "2s": 2.3718540519475937,
+    "1s": 2.6722667766734958
+   },
+   "unit/tracking": {
+    "2s": 0.16859064158052206,
+    "1s": 0.16854748222976923
+   },
+   "unit/type/hash": {
+    "2s": 1.7708939295262098,
+    "1s": 1.9210837855935097
+   },
+   "unit/type/incr": {
+    "2s": 0.16840487159788609,
+    "1s": 0.16869607288390398
+   },
+   "unit/type/list": {
+    "2s": 8.380953280255198,
+    "1s": 8.681926367804408
+   },
+   "unit/type/list-2": {
+    "2s": 5.375434760935605,
+    "1s": 5.776491183787584
+   },
+   "unit/type/list-3": {
+    "2s": 0.26879536267369986,
+    "1s": 0.26880037505179644
+   },
+   "unit/type/set": {
+    "2s": 2.322219713591039,
+    "1s": 2.622827903367579
+   },
+   "unit/type/stream": {
+    "2s": 51.641135291196406,
+    "1s": 52.042708383873105
+   },
+   "unit/type/stream-cgroups": {
+    "2s": 1.4204277247190475,
+    "1s": 1.4705927651375532
+   },
+   "unit/type/string": {
+    "2s": 6.477239290252328,
+    "1s": 7.229608925059438
+   },
+   "unit/type/zset": {
+    "2s": 12.23672166466713,
+    "1s": 12.788800746202469
+   },
+   "unit/violations": {
+    "2s": 0.16853184718638659,
+    "1s": 0.16851388942450285
+   }
+  },
+  "passing": {
+   "integration/redis-cli": 45,
+   "integration/replication-buffer": 2,
+   "unit/bitfield": 18,
+   "unit/bitops": 48,
+   "unit/dump": 8,
+   "unit/expire": 60,
+   "unit/functions": 67,
+   "unit/geo": 64,
+   "unit/hyperloglog": 24,
+   "unit/introspection": 21,
+   "unit/introspection-2": 41,
+   "unit/keyspace": 37,
+   "unit/latency-monitor": 8,
+   "unit/multi": 27,
+   "unit/other": 18,
+   "unit/pause": 2,
+   "unit/protocol": 17,
+   "unit/pubsub": 26,
+   "unit/quit": 3,
+   "unit/scan": 25,
+   "unit/scripting": 44,
+   "unit/slowlog": 6,
+   "unit/sort": 52,
+   "unit/tracking": 14,
+   "unit/type/hash": 74,
+   "unit/type/incr": 31,
+   "unit/type/list": 226,
+   "unit/type/list-2": 2,
+   "unit/type/list-3": 2,
+   "unit/type/set": 110,
+   "unit/type/stream": 59,
+   "unit/type/stream-cgroups": 35,
+   "unit/type/string": 80,
+   "unit/type/zset": 315,
+   "unit/violations": 1
+  }
+ },
+ {
+  "round": 1,
+  "problems": [
+   [
+    "unit/type/set",
+    "1s",
+    "SMOVE only notify dstset when the addition is successful",
+    "SMOVE only notify dstset when the addition is successful in tests/unit/type/set.tcl\nExpected '1' to be equal to '2' (context: type eval line 19 cmd {assert_equal $res 2} proc ::test)"
+   ]
+  ],
+  "modes_agree": false,
+  "seconds": {
+   "integration/redis-cli": {
+    "2s": 5.62645566649735,
+    "1s": 5.627584996633232
+   },
+   "integration/replication-buffer": {
+    "2s": 0.1697299787774682,
+    "1s": 0.1688420008867979
+   },
+   "unit/bitfield": {
+    "2s": 0.3194934567436576,
+    "1s": 0.31930480618029833
+   },
+   "unit/bitops": {
+    "2s": 1.0804678229615092,
+    "1s": 1.121000881306827
+   },
+   "unit/dump": {
+    "2s": 0.16851196065545082,
+    "1s": 0.16869338043034077
+   },
+   "unit/expire": {
+    "2s": 7.57885754853487,
+    "1s": 7.479016628116369
+   },
+   "unit/functions": {
+    "2s": 0.219078928232193,
+    "1s": 0.21921780798584223
+   },
+   "unit/geo": {
+    "2s": 31.46076205186546,
+    "1s": 32.11159534659237
+   },
+   "unit/hyperloglog": {
+    "2s": 48.58416948188096,
+    "1s": 48.73418499622494
+   },
+   "unit/introspection": {
+    "2s": 2.271660890430212,
+    "1s": 2.2718023024499416
+   },
+   "unit/introspection-2": {
+    "2s": 3.1728414418175817,
+    "1s": 3.123080711811781
+   },
+   "unit/keyspace": {
+    "2s": 1.3202735874801874,
+    "1s": 1.2704060971736908
+   },
+   "unit/latency-monitor": {
+    "2s": 3.5229928735643625,
+    "1s": 3.523212837986648
+   },
+   "unit/multi": {
+    "2s": 1.3703656690195203,
+    "1s": 1.3706331886351109
+   },
+   "unit/other": {
+    "2s": 1.2702536350116134,
+    "1s": 1.2704276777803898
+   },
+   "unit/pause": {
+    "2s": 0.16861504409462214,
+    "1s": 0.1685228543356061
+   },
+   "unit/protocol": {
+    "2s": 0.4189582969993353,
+    "1s": 0.41904502734541893
+   },
+   "unit/pubsub": {
+    "2s": 0.869897878728807,
+    "1s": 0.8196846973150969
+   },
+   "unit/quit": {
+    "2s": 0.2687111394479871,
+    "1s": 0.26875277049839497
+   },
+   "unit/scan": {
+    "2s": 4.174049595370889,
+    "1s": 4.674792687408626
+   },
+   "unit/scripting": {
+    "2s": 20.450341309420764,
+    "1s": 21.159109452739358
+   },
+   "unit/slowlog": {
+    "2s": 0.7194608841091394,
+    "1s": 0.7196418261155486
+   },
+   "unit/sort": {
+    "2s": 2.3216366171836853,
+    "1s": 2.672825561836362
+   },
+   "unit/tracking": {
+    "2s": 0.168891211040318,
+    "1s": 0.16872598137706518
+   },
+   "unit/type/hash": {
+    "2s": 1.7714164173230529,
+    "1s": 1.9214426344260573
+   },
+   "unit/type/incr": {
+    "2s": 0.16880224086344242,
+    "1s": 0.16879119165241718
+   },
+   "unit/type/list": {
+    "2s": 8.33132681529969,
+    "1s": 8.63261226657778
+   },
+   "unit/type/list-2": {
+    "2s": 5.426101123914123,
+    "1s": 5.776130226440728
+   },
+   "unit/type/list-3": {
+    "2s": 0.26874570455402136,
+    "1s": 0.2687430754303932
+   },
+   "unit/type/set": {
+    "2s": 2.3724631620571017,
+    "1s": 2.6229147082194686
+   },
+   "unit/type/stream": {
+    "2s": 51.14165641181171,
+    "1s": 52.34245785884559
+   },
+   "unit/type/stream-cgroups": {
+    "2s": 1.420650726184249,
+    "1s": 1.4707006411626935
+   },
+   "unit/type/string": {
+    "2s": 6.677735424600542,
+    "1s": 7.178527663461864
+   },
+   "unit/type/zset": {
+    "2s": 12.237437806092203,
+    "1s": 12.737549349665642
+   },
+   "unit/violations": {
+    "2s": 0.1685779169201851,
+    "1s": 0.16859315801411867
+   }
+  },
+  "passing": {
+   "integration/redis-cli": 45,
+   "integration/replication-buffer": 2,
+   "unit/bitfield": 18,
+   "unit/bitops": 48,
+   "unit/dump": 8,
+   "unit/expire": 60,
+   "unit/functions": 67,
+   "unit/geo": 64,
+   "unit/hyperloglog": 24,
+   "unit/introspection": 21,
+   "unit/introspection-2": 41,
+   "unit/keyspace": 37,
+   "unit/latency-monitor": 8,
+   "unit/multi": 27,
+   "unit/other": 18,
+   "unit/pause": 2,
+   "unit/protocol": 17,
+   "unit/pubsub": 26,
+   "unit/quit": 3,
+   "unit/scan": 25,
+   "unit/scripting": 44,
+   "unit/slowlog": 6,
+   "unit/sort": 52,
+   "unit/tracking": 14,
+   "unit/type/hash": 74,
+   "unit/type/incr": 31,
+   "unit/type/list": 226,
+   "unit/type/list-2": 2,
+   "unit/type/list-3": 2,
+   "unit/type/set": 110,
+   "unit/type/stream": 59,
+   "unit/type/stream-cgroups": 35,
+   "unit/type/string": 80,
+   "unit/type/zset": 315,
+   "unit/violations": 1
+  }
+ },
+ {
+  "round": 2,
+  "problems": [],
+  "modes_agree": true,
+  "seconds": {
+   "integration/redis-cli": {
+    "2s": 5.628057457506657,
+    "1s": 5.626981335692108
+   },
+   "integration/replication-buffer": {
+    "2s": 0.22908562794327736,
+    "1s": 0.16919006872922182
+   },
+   "unit/bitfield": {
+    "2s": 0.3189238281920552,
+    "1s": 0.36918418761342764
+   },
+   "unit/bitops": {
+    "2s": 1.0199170336127281,
+    "1s": 1.120186222717166
+   },
+   "unit/dump": {
+    "2s": 0.16869115829467773,
+    "1s": 0.168579769320786
+   },
+   "unit/expire": {
+    "2s": 7.478926559910178,
+    "1s": 7.478818949311972
+   },
+   "unit/functions": {
+    "2s": 0.2191867558285594,
+    "1s": 0.21909360121935606
+   },
+   "unit/geo": {
+    "2s": 31.612027819268405,
+    "1s": 31.963106081821024
+   },
+   "unit/hyperloglog": {
+    "2s": 48.93588866107166,
+    "1s": 48.28430240601301
+   },
+   "unit/introspection": {
+    "2s": 2.271800361573696,
+    "1s": 2.2716686204075813
+   },
+   "unit/introspection-2": {
+    "2s": 3.1230193097144365,
+    "1s": 3.1730326702818274
+   },
+   "unit/keyspace": {
+    "2s": 1.320522372610867,
+    "1s": 1.270314327441156
+   },
+   "unit/latency-monitor": {
+    "2s": 3.523651270195842,
+    "1s": 3.523649816401303
+   },
+   "unit/multi": {
+    "2s": 1.3704124363139272,
+    "1s": 1.370464681647718
+   },
+   "unit/other": {
+    "2s": 1.2702151676639915,
+    "1s": 1.270322141237557
+   },
+   "unit/pause": {
+    "2s": 0.1685689091682434,
+    "1s": 0.16864118166267872
+   },
+   "unit/protocol": {
+    "2s": 0.41904033068567514,
+    "1s": 0.41887465585023165
+   },
+   "unit/pubsub": {
+    "2s": 0.8197325458750129,
+    "1s": 0.7196447988972068
+   },
+   "unit/quit": {
+    "2s": 0.36877608206123114,
+    "1s": 0.268717928789556
+   },
+   "unit/scan": {
+    "2s": 4.624972311779857,
+    "1s": 4.324905130080879
+   },
+   "unit/scripting": {
+    "2s": 21.202010717242956,
+    "1s": 20.759252594783902
+   },
+   "unit/slowlog": {
+    "2s": 0.7193940868601203,
+    "1s": 0.7194450525566936
+   },
+   "unit/sort": {
+    "2s": 2.3724400904029608,
+    "1s": 2.6725165685638785
+   },
+   "unit/tracking": {
+    "2s": 0.16874223295599222,
+    "1s": 0.16876065265387297
+   },
+   "unit/type/hash": {
+    "2s": 1.7211197754368186,
+    "1s": 1.9214980630204082
+   },
+   "unit/type/incr": {
+    "2s": 0.16896396782249212,
+    "1s": 0.16877666488289833
+   },
+   "unit/type/list": {
+    "2s": 8.381744460202754,
+    "1s": 8.682489852420986
+   },
+   "unit/type/list-2": {
+    "2s": 5.425718222744763,
+    "1s": 5.877550953067839
+   },
+   "unit/type/list-3": {
+    "2s": 0.2687892057001591,
+    "1s": 0.26876156870275736
+   },
+   "unit/type/set": {
+    "2s": 2.3226437577977777,
+    "1s": 2.7730122478678823
+   },
+   "unit/type/stream": {
+    "2s": 51.64318161550909,
+    "1s": 52.3938174219802
+   },
+   "unit/type/stream-cgroups": {
+    "2s": 1.4205496599897742,
+    "1s": 1.4708834094926715
+   },
+   "unit/type/string": {
+    "2s": 6.428320005536079,
+    "1s": 7.178501424379647
+   },
+   "unit/type/zset": {
+    "2s": 12.288299789652228,
+    "1s": 12.889194543473423
+   },
+   "unit/violations": {
+    "2s": 0.16853363625705242,
+    "1s": 0.1685165949165821
+   }
+  },
+  "passing": {
+   "integration/redis-cli": 45,
+   "integration/replication-buffer": 2,
+   "unit/bitfield": 18,
+   "unit/bitops": 48,
+   "unit/dump": 8,
+   "unit/expire": 60,
+   "unit/functions": 67,
+   "unit/geo": 64,
+   "unit/hyperloglog": 24,
+   "unit/introspection": 21,
+   "unit/introspection-2": 41,
+   "unit/keyspace": 37,
+   "unit/latency-monitor": 8,
+   "unit/multi": 27,
+   "unit/other": 18,
+   "unit/pause": 2,
+   "unit/protocol": 17,
+   "unit/pubsub": 26,
+   "unit/quit": 3,
+   "unit/scan": 25,
+   "unit/scripting": 44,
+   "unit/slowlog": 6,
+   "unit/sort": 52,
+   "unit/tracking": 14,
+   "unit/type/hash": 74,
+   "unit/type/incr": 31,
+   "unit/type/list": 226,
+   "unit/type/list-2": 2,
+   "unit/type/list-3": 2,
+   "unit/type/set": 109,
+   "unit/type/stream": 59,
+   "unit/type/stream-cgroups": 35,
+   "unit/type/string": 80,
+   "unit/type/zset": 315,
+   "unit/violations": 1
+  }
+ },
+ {
+  "round": 3,
+  "problems": [],
+  "modes_agree": true,
+  "seconds": {
+   "integration/redis-cli": {
+    "2s": 5.5784353436902165,
+    "1s": 5.577206028625369
+   },
+   "integration/replication-buffer": {
+    "2s": 0.16925060842186213,
+    "1s": 0.16931628994643688
+   },
+   "unit/bitfield": {
+    "2s": 0.31985789723694324,
+    "1s": 0.3192284796386957
+   },
+   "unit/bitops": {
+    "2s": 1.020442908629775,
+    "1s": 1.1706778528168797
+   },
+   "unit/dump": {
+    "2s": 0.16881213337183,
+    "1s": 0.16864956822246313
+   },
+   "unit/expire": {
+    "2s": 7.57907095272094,
+    "1s": 7.478868040256202
+   },
+   "unit/functions": {
+    "2s": 0.21898613218218088,
+    "1s": 0.2189402487128973
+   },
+   "unit/geo": {
+    "2s": 31.510956252925098,
+    "1s": 31.962111885659397
+   },
+   "unit/hyperloglog": {
+    "2s": 47.68174604140222,
+    "1s": 49.08924844674766
+   },
+   "unit/introspection": {
+    "2s": 2.271644853055477,
+    "1s": 2.271645869128406
+   },
+   "unit/introspection-2": {
+    "2s": 3.1226527132093906,
+    "1s": 3.1730322539806366
+   },
+   "unit/keyspace": {
+    "2s": 1.3204255905002356,
+    "1s": 1.2704081684350967
+   },
+   "unit/latency-monitor": {
+    "2s": 3.523261507973075,
+    "1s": 3.5232433462515473
+   },
+   "unit/multi": {
+    "2s": 1.3703556908294559,
+    "1s": 1.3705325657501817
+   },
+   "unit/other": {
+    "2s": 1.220155413262546,
+    "1s": 1.2704493766650558
+   },
+   "unit/pause": {
+    "2s": 0.16875788569450378,
+    "1s": 0.1684319768100977
+   },
+   "unit/protocol": {
+    "2s": 0.4190958524122834,
+    "1s": 0.3185873432084918
+   },
+   "unit/pubsub": {
+    "2s": 0.8197601269930601,
+    "1s": 0.7195148961618543
+   },
+   "unit/quit": {
+    "2s": 0.2687653824687004,
+    "1s": 0.26869213208556175
+   },
+   "unit/scan": {
+    "2s": 4.273862345144153,
+    "1s": 4.925600911490619
+   },
+   "unit/scripting": {
+    "2s": 20.709136554971337,
+    "1s": 20.558875175192952
+   },
+   "unit/slowlog": {
+    "2s": 0.7194731952622533,
+    "1s": 0.7193253021687269
+   },
+   "unit/sort": {
+    "2s": 2.321857583709061,
+    "1s": 2.67260411195457
+   },
+   "unit/tracking": {
+    "2s": 0.16875192988663912,
+    "1s": 0.16873488668352365
+   },
+   "unit/type/hash": {
+    "2s": 1.771241581067443,
+    "1s": 1.871399499475956
+   },
+   "unit/type/incr": {
+    "2s": 0.16877656243741512,
+    "1s": 0.16888011898845434
+   },
+   "unit/type/list": {
+    "2s": 8.381978648714721,
+    "1s": 9.68454758822918
+   },
+   "unit/type/list-2": {
+    "2s": 5.325454973615706,
+    "1s": 5.275919248349965
+   },
+   "unit/type/list-3": {
+    "2s": 0.2685540709644556,
+    "1s": 0.26882066391408443
+   },
+   "unit/type/set": {
+    "2s": 2.5725236758589745,
+    "1s": 2.873251585289836
+   },
+   "unit/type/stream": {
+    "2s": 51.992744146846235,
+    "1s": 51.99300059955567
+   },
+   "unit/type/stream-cgroups": {
+    "2s": 1.4204287407919765,
+    "1s": 1.4705917360261083
+   },
+   "unit/type/string": {
+    "2s": 6.628057148307562,
+    "1s": 7.479821562767029
+   },
+   "unit/type/zset": {
+    "2s": 12.186968264169991,
+    "1s": 13.13858484942466
+   },
+   "unit/violations": {
+    "2s": 0.16862736828625202,
+    "1s": 0.16864848788827658
+   }
+  },
+  "passing": {
+   "integration/redis-cli": 45,
+   "integration/replication-buffer": 2,
+   "unit/bitfield": 18,
+   "unit/bitops": 48,
+   "unit/dump": 8,
+   "unit/expire": 60,
+   "unit/functions": 67,
+   "unit/geo": 64,
+   "unit/hyperloglog": 24,
+   "unit/introspection": 21,
+   "unit/introspection-2": 41,
+   "unit/keyspace": 37,
+   "unit/latency-monitor": 8,
+   "unit/multi": 27,
+   "unit/other": 18,
+   "unit/pause": 2,
+   "unit/protocol": 17,
+   "unit/pubsub": 26,
+   "unit/quit": 3,
+   "unit/scan": 25,
+   "unit/scripting": 44,
+   "unit/slowlog": 6,
+   "unit/sort": 52,
+   "unit/tracking": 14,
+   "unit/type/hash": 74,
+   "unit/type/incr": 31,
+   "unit/type/list": 226,
+   "unit/type/list-2": 2,
+   "unit/type/list-3": 2,
+   "unit/type/set": 109,
+   "unit/type/stream": 59,
+   "unit/type/stream-cgroups": 35,
+   "unit/type/string": 80,
+   "unit/type/zset": 315,
+   "unit/violations": 1
+  }
+ }
+]

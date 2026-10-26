@@ -34,6 +34,30 @@ class Controls(unittest.TestCase):
         other, _ = counts([done, dict(status='exception', data='other failure')], 'unit/fixture')
         self.assertEqual(other['failed'], 1)
 
+    def test_only_the_exact_named_block_setup_error_is_tolerated(self):
+        reply = "ERR Unknown option or number of arguments for CONFIG SET - 'list-compress-depth'"
+        err = dict(status='err', test='', data='n option or number of arguments\n' + reply +
+                   '\n    while executing\n"[srv $level "client"] {*}$args"\n    (procedure "r" line 7)'
+                   '\n    invoked from within\n"r config set list-compress-depth 2"\n    ("uplevel" body line 2)')
+        known = [dict(command='r config set list-compress-depth 2', reply=reply, count=1)]
+        row = dict(events=[err, dict(status='ok', test='a')], failed=1, error=None, complete=True, exit_code=1)
+        validate_passing(row, ['a'], known)
+        with self.assertRaises(ValueError):
+            validate_passing(row, ['a'])  # an undeclared block-setup error fails
+        mutations = {
+            'twice': lambda r: (r['events'].append(dict(err)), r.update(failed=2)),
+            'other command': lambda r: r['events'][0].update(data=err['data'].replace('depth 2"', 'depth 3"')),
+            'other reply': lambda r: r['events'][0].update(data=err['data'].replace('CONFIG SET', 'CONFIG GET')),
+            'named test failure': lambda r: r['events'][0].update(test='x in tests/unit/x.tcl'),
+            'declared but absent': lambda r: (r['events'].pop(0), r.update(failed=0)),
+            'another failure': lambda r: r.update(failed=2),
+            'clean exit despite the error': lambda r: r.update(exit_code=0),
+        }
+        for name, mutate in mutations.items():
+            bad = copy.deepcopy(row); mutate(bad)
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                validate_passing(bad, ['a'], known)
+
     def test_manifest_binds_upstream_bytes_and_names_every_known_failure(self):
         with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
             root = Path(directory)
@@ -56,6 +80,8 @@ class Controls(unittest.TestCase):
                 'no required pass': lambda m: spec(m).update(passed_tests=[]),
                 'selection argument': lambda m: spec(m).update(extra_args=['--only', 'a']),
                 'odd argument list': lambda m: spec(m).update(extra_args=['--tags']),
+                'malformed setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='', reply='x', count=1)]),
+                'zero-count setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='c', reply='x', count=0)]),
             }
             for name, mutate in mutations.items():
                 bad = copy.deepcopy(good); mutate(bad)
