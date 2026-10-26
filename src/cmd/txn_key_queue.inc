@@ -133,10 +133,8 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                         !txn_wound(holder, *this, *server_)) ready = false;
                     else wounded = true;
                 }
-                if (wounded) {
-                    watch_finalize_queue(name, q);
-                    if (q.empty()) { watch_reservations_.erase(name); refresh_has_watches(); }
-                }
+                if (wounded) watch_finalize_queue(name, q);
+                if (q.empty()) { watch_reservations_.erase(name); refresh_has_watches(); }
             };
             if (key.key.empty()) {
                 std::vector<std::string> names;

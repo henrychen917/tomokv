@@ -21,6 +21,7 @@ struct MultiWatchedKey {
     int32_t shard = -1;
     uint8_t ns = 0;
     uint8_t db = 0;
+    bool claim_finalizes = false;
 };
 
 enum class MultiCommandKind : uint8_t {
@@ -96,6 +97,7 @@ struct MultiWriteKey {
     int32_t shard = -1;
     uint8_t ns = 0;
     mutable bool signals_watch = true; // Not part of the hash/equality identity.
+    bool claim_finalizes = false;
 };
 
 struct MultiWriteKeyHash {
@@ -808,6 +810,20 @@ void prepare_claims(MultiExecState& state) {
             state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
     }
     for (auto& claims : state.claims) txn_cap_claims(claims);
+    // Exact claims already retire all decided reservations for that physical
+    // key. Keep the cold sweep only for capped whole-shard claims, inactive
+    // WATCH aliases and synthetic/unprepared cleanup states.
+    if (!state.read_only) {
+        const auto covered = [&](const auto& key) {
+            for (const auto& claim : state.claims[key.shard])
+                if (claim.key.size() == key.key.size() + 1 &&
+                    static_cast<uint8_t>(claim.key[0]) == key.ns &&
+                    claim.key.compare(1, std::string::npos, key.key) == 0) return true;
+            return false;
+        };
+        for (auto& key : state.write_keys) key.claim_finalizes = covered(key);
+        for (auto& key : state.watched) key.claim_finalizes = covered(key);
+    }
 }
 
 bool prepare_commands(Server& server, MultiExecState& state,
@@ -1830,14 +1846,14 @@ void finalize_reservations(MultiExecState& state, Shard& shard,
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
         const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
-        shard.watch_write_ready(key, nullptr);
+        if (!watched.claim_finalizes) shard.watch_write_ready(key, nullptr);
         // Cancellation discards only an attempt. Keep the original watch entry
         // and deadline so a write between attempts still gives EXEC's legal null.
         if (!state.doomed && state.kind == MultiStateKind::Execute)
             shard.watch_remove(key, state.client, state.watch_generation);
     }
     for (const MultiWriteKey& write : state.write_keys) {
-        if (write.shard != shard.id()) continue;
+        if (write.shard != shard.id() || write.claim_finalizes) continue;
         shard.watch_write_ready(
             Slice(write.key.data(), static_cast<uint32_t>(write.key.size()), write.ns), nullptr);
     }
@@ -3377,8 +3393,6 @@ bool Shard::watch_finalize_queue(const std::string& key, TxnKeyQueue& queue) {
                     entry.client->set_watch_dirty();
         }
     }
-    txn_live_head(queue);
-    txn_live_head(queue, true);
     return !blocked;
 }
 
@@ -3386,6 +3400,8 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
     auto found = watch_reservations_.find(key);
     if (found == watch_reservations_.end()) return true;
     const bool ready = watch_finalize_queue(key, found->second);
+    txn_live_head(found->second);
+    txn_live_head(found->second, true);
     if (found->second.empty()) {
         watch_reservations_.erase(found);
         refresh_has_watches();
@@ -3495,17 +3511,19 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
 }
 
 bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
-    // A sole reservation belonging to the caller cannot obstruct that caller.
-    // Keep finalization on every foreign/combined list and at unit retirement.
-    if (token) {
-        const auto own = watch_reservations_.find(owned);
-        if (own != watch_reservations_.end() && own->second.size() == 1 &&
-            own->second.front().token == token) return true;
-    }
-    watch_finalize_reservation(owned);
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
-    for (const auto& r : found->second.held) {
+    auto& queue = found->second;
+    if (token && queue.size() == 1 && queue.front().token == token) return true;
+    watch_finalize_queue(owned, queue);
+    if (queue.empty()) {
+        watch_reservations_.erase(found);
+        refresh_has_watches();
+        return true;
+    }
+    // Waiters and writer marks cannot falsify unit execution. Preserve the
+    // exact validation/all-units/started predicate and OrderViolations caller.
+    for (const auto& r : queue.held) {
         TOMO_TXN_REGISTRY_VISIT();
         if (r.token == token || !r.blocking || !txn_reservation_live(r)) continue;
         if (r.entry_kind != 1 || all_units) return false;
