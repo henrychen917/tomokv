@@ -4880,7 +4880,7 @@ job_feature_cell(){
         || bad "feature $FEATURE_CELL" "see $FEATURE_OUTPUT/$FEATURE_CELL.log"
 }
 
-# TM4.4 and HX-LB-PROBE: standing falsification suites, one row before quick exit.
+# NT4.17: valid quoted inline arguments must decode in every transport/mode.
 job_inline_quoted(){
   local mode engine boot_fn failed
   for mode in 1s 2s; do for engine in epoll uring; do
@@ -4960,6 +4960,7 @@ job_wb_mixed(){
   done; done
 }
 
+# TM4.4 and HX-LB-PROBE: standing falsification suites, one row before quick exit.
 job_witness_contracts(){
   local failed=0 suite
   row_begin "witness falsification contracts (testmap + placement)"
@@ -5479,8 +5480,9 @@ collect_job wb_rule_units
 # wbland: two rows before the quick exit; maintainer-owned EXPECT counts +2/+2.
 collect_job wbland_units
 
-# gaterows: eight independent rows, all ABOVE the quick-tier exit. EXPECT stays
-# maintainer-owned: +8 quick, +8 full. The 32-cell feature product is unchanged.
+# gaterows5: four native/harness rows plus three four-leg live jobs = 16 rows.
+# These collection lines are above the quick exit: DQ=+16, DF=+16.
+# EXPECT remains maintainer-owned: 798/815 -> 814/831.
 collect_job witness_contracts
 collect_job reorder_bounds
 collect_job rob_portable
@@ -5488,6 +5490,7 @@ collect_job layout_placement
 collect_job inline_quoted
 collect_job slotless
 collect_job wb_mixed
+# Earlier gaterows: eight independent rows; feature product unchanged.
 collect_job reorder_sync
 collect_job reorder_engagement
 collect_job reorder_identity

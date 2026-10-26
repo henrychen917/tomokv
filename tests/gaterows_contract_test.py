@@ -47,6 +47,27 @@ class Contracts(unittest.TestCase):
                 self.assertEqual(conn.value, atomic, "stale atomic label at exit")
         print("PASS TM4.1: mutating battery and failing battery both restore 0/1")
 
+    def test_original_missing_restore_is_rejected(self):
+        class Connection:
+            value = 0
+            file = SimpleNamespace(read=lambda count: b"")
+            def must(self, *args):
+                if args == ("QUIT",): return b"OK"
+                if args[1] == "SET":
+                    self.value = int(args[3]); return b"OK"
+                return [b"atomic", str(self.value).encode()]
+            def close(self): pass
+        conn = Connection()
+        def battery(command, **kwargs):
+            assert conn.value == 1, "stale advertised atomic arm"
+            return SimpleNamespace(returncode=0)
+        with patch.object(feature_atomic, "Conn", return_value=conn), \
+             patch.object(feature_atomic, "restore", return_value=None), \
+             patch.object(feature_atomic.subprocess, "run", side_effect=battery):
+            with self.assertRaisesRegex(AssertionError, "stale advertised atomic arm"):
+                feature_atomic.run("fixture", 0, 1, ["battery"])
+        print("CONTROL FAIL TM4.1: original missing restore exposes the stale arm")
+
     def test_ignored_restore_is_rejected(self):
         conn = SimpleNamespace(must=lambda *args: b"OK" if args[1] == "SET" else [b"atomic", b"0"])
         with self.assertRaisesRegex(AssertionError, "boundary mismatch"):
