@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/exbatch_units/exbatch-watch.log",
+    "sha256": "28dc550c396d8ef1330e5ccbd4c243ced8640b7a2e346c383d4030a28bda5280",
+    "bytes": 70
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/exbatch_units/output.log",
+    "sha256": "48cd7d3c603119832a1e18f5791bc3f66210f51cc6cb0e41108c5d746b2a22b2",
+    "bytes": 479
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/exbatch_units/exbatch-metadata.log",
+    "sha256": "e3caea711534e6604223bb122c8dd24d7df33cc8962020dfde064e62e0a370cb",
+    "bytes": 72
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/exbatch_units/exbatch-publication.log",
+    "sha256": "72895d0a34d860a769cc67c84f53ba243ac83a3215b4f1660ff6bcace2e4225b",
+    "bytes": 75
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/production_units/build.log",
+    "sha256": "293fe0cd60f2c3fafbe6acabd932e050c6eb360b2c875a0efde5fcdcd2e0464b",
+    "bytes": 3465
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/production_units/output.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/production_units/mdbqsbr-live-build.log",
+    "sha256": "c38073efb8545eff9bab4b0fbbf7913573cfc7d90f05a04a8b044f3bcb82a3c6",
+    "bytes": 763
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/production_units/blockfix-cost-build.log",
+    "sha256": "895675fe6a82f04353d8c15b3f57d97d8fff18b55fd79cf95dafc78f22399c0f",
+    "bytes": 206
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/release/output.log",
+    "sha256": "c62d612287e23dbc56cd185dacfa158f6918aa448ad7f7eb5ed39d511da20680",
+    "bytes": 211
+  },
+  {
+    "path": "/home/user/Projects/cx-woundfix/build/gate-run.uwmtPJ/jobs/release/gate-build.txt",
+    "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "bytes": 36
+  }
+]

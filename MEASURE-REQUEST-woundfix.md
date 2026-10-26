@@ -216,9 +216,14 @@ debug-0/1 (multirace, xscript, scriptatomic, txn_nx, EXEC and txniso), atomic
 batteries, release batteries, fused-0/1, transaction groups, every txnorder
 mode/atomic combination, execfair, all WATCH jobs and the correctness portion
 of atomic_floor. The split txnorder stress retains the gate's explicit 4:4
-exception; ordinary batteries retain 6:2, always 16 shards/eight server CPUs.
+exception; ordinary split batteries retain 6:2. Server slots use 16 shards/eight CPUs.
 
-ASAN and the standard differential matrix results will follow. No full iteration gate or performance benchmark
+The ASAN gate job passed **24/24 rows** across both modes and engines (four
+6/6 runs): torture, RYOW, atomic torn/window, atomic RYOW and clean-shutdown
+checks, with the gate's source-bound instrumented build. No sanitizer findings.
+Receipts: `docs/woundfix/gate/sanitizers.json` and adjacent job logs.
+
+The standard differential matrix is in progress. No full iteration gate or performance benchmark
 has been run. The partial-only `GATE_PROOF_NO_RATES=1` explicitly leaves the
 atomic floor and RYOW rate assertions NOT RUN, while retaining their correctness
 checks; default/full-gate semantics are unchanged.

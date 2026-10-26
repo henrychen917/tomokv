@@ -2,3 +2,16 @@ GATE(full): 16 physical cores; 1 correctness slots = min(14/8 server, 2/2 load),
   artifacts: /home/user/Projects/cx-woundfix/build/gate-run.rMqBDW
 PARTIAL jobs (including prerequisites): asan asan_batteries
 PARTIAL jobs (including prerequisites): asan asan_batteries
+  row budget: 900s; median=-s; no-history-conservative-default; ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; torture under ASAN
+  torture under ASAN                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; RYOW under ASAN
+  RYOW under ASAN                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic torn/window under ASAN
+  atomic torn/window under ASAN                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic RYOW under ASAN
+  atomic RYOW under ASAN                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; ASAN clean
+  ASAN clean                                           ok
+GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-woundfix/build/gate-run.rMqBDW/ledger.partial
