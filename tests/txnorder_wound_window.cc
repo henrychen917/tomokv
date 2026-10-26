@@ -151,12 +151,13 @@ int main(int argc, char** argv) {
     require(command_registry_init(false), "registry initialized");
     Config cfg;
     cfg.databases = 1; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
-    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.save.clear();
+    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0; cfg.atomic = 1; cfg.save.clear();
     cfg.thread_mode = std::string(argv[2]) == "1s"
         ? ThreadMode::Fused : ThreadMode::Split;
     Server server;
     require(server.prepare_boot(cfg) && server.init(cfg), "serverless owners initialized");
     command_bind_server(&server);
+    std::string error; require(acl_initialize(server, cfg, error), "default ACL initialized");
 
     const std::string name = argv[1];
     if (name == "group" || name == "oom") group_window(server, cfg, name == "oom");
