@@ -17,11 +17,11 @@ import sys
 
 from assert_map import directives, lex
 
-FORBIDDEN = {'assert', '__FILE__', '__LINE__', '__func__', '__FUNCTION__',
+FORBIDDEN = {'assert', '__FILE__', '__BASE_FILE__', '__FILE_NAME__', '__LINE__', '__func__', '__FUNCTION__',
              '__PRETTY_FUNCTION__', 'source_location', '__builtin_FILE',
              '__builtin_LINE', '__builtin_FUNCTION', '__DATE__', '__TIME__',
              '__TIMESTAMP__', '__COUNTER__', '__builtin_source_location'}
-BUILTINS = ('__FILE__', '__LINE__', '__DATE__', '__TIME__', '__TIMESTAMP__', '__COUNTER__')
+BUILTINS = ('__FILE__', '__BASE_FILE__', '__FILE_NAME__', '__LINE__', '__DATE__', '__TIME__', '__TIMESTAMP__', '__COUNTER__')
 SENTINEL = 'TOMO_SOURCE_IDENTITY_FORBIDDEN_'
 TRACE = re.compile(r'TOMO_\w+_TRACE\Z')
 
