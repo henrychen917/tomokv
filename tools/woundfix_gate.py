@@ -20,11 +20,13 @@ OUT = ROOT / 'docs/woundfix/gate'
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('suite', choices=('runtime', 'differential'))
+    parser.add_argument('suite', choices=('wounds', 'runtime', 'differential'))
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     cells = []
-    if args.suite == 'runtime':
+    if args.suite == 'wounds':
+        cells.append(('wounds', 'uring', 0, 'quick', 'txnorder_wound'))
+    elif args.suite == 'runtime':
         for engine in ('uring', 'epoll'):
             for fused in (0, 1):
                 jobs = 'debug-0 debug-1 atomic_batteries release_batteries'

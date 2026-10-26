@@ -291,7 +291,7 @@ void d2_group(Server& server, bool blind, int pause) {
     }
     require(tasks == run.state->nsub, "every fresh owner fragment was actually dispatched");
     carrier->detach_scatter_state();
-    std::printf("PASS D2 group %s seam=%d: read-only discard, retry version retained, count=1\n",
+    std::printf("PASS: D2 group %s seam=%d: read-only discard, retry version retained, count=1\n",
                 blind ? "blind" : "foreign", pause);
 }
 
@@ -368,7 +368,7 @@ void d2_exec(Server& server, bool blind, int pause) {
         std::tuple(state->decision.age_ns, state->decision.age_io, state->decision.age_seq), "EXEC original version retained");
     destroy_multi_state(next); server.multi_retry_lane(0).head.store(nullptr);
     release_records(server); destroy_multi_state(state);
-    std::printf("PASS D2 EXEC %s seam=%d: no execution, retry version retained, count=1\n", blind ? "blind" : "foreign", pause);
+    std::printf("PASS: D2 EXEC %s seam=%d: no execution, retry version retained, count=1\n", blind ? "blind" : "foreign", pause);
 }
 }
 namespace {
@@ -425,7 +425,7 @@ void d2_rank(Server& server) {
                 require(server.txn_counter(cause) == before + wounded, "successful phase wounds counted exactly");
                 ++cells;
             }
-    std::printf("PASS D2 rank: %u kind/phase/lexicographic age cells\n", cells);
+    std::printf("PASS: D2 rank: %u kind/phase/lexicographic age cells\n", cells);
 }
 void d2_condition(Server& server, bool wounded = false) {
     const auto a = key_on(server, 0, "d2-nx-a"), b = key_on(server, 1, "d2-nx-b");
@@ -463,7 +463,7 @@ void d2_condition(Server& server, bool wounded = false) {
     if (wounded) require(run.state->epoch.load() == kAtomicCancelledEpoch, "NX wound epoch cancelled");
     require(local(server, {"GET", a}) == "$6\r\nbefore\r\n" && local(server, {"GET", b}) == "$-1\r\n",
             "failed NX writes nothing");
-    std::puts(wounded ? "PASS wounded NX condition restarts" : "PASS non-wound MSETNX condition remains terminal");
+    std::puts(wounded ? "PASS: wounded NX condition restarts" : "PASS: non-wound MSETNX condition remains terminal");
 }
 void d2_windows(Server& server) {
     for (int point : {1, 4}) { d2_group(server, false, point); d2_exec(server, false, point); }
