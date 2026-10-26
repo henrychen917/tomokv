@@ -1,3 +1,4 @@
+#include "txn_retry_queue.h"
 // multi.inc -- MULTI/EXEC/DISCARD/WATCH/UNWATCH on the epoch-MVCC seam.
 //
 // This file is textually included by xshard.cc.  It shares the command-image helpers in the same
@@ -228,6 +229,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
     std::unique_ptr<TxnPlaceBlocker[]> place_blockers;
+    std::unique_ptr<MultiOwnerRetryNode[]> owner_retries;
 };
 
 namespace {
@@ -1068,6 +1070,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->kind = kind;
     try {
         state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
+        state->owner_retries = std::make_unique<MultiOwnerRetryNode[]>(server.nshards());
         state->shard_commands.resize(server.nshards());
         state->claims.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
@@ -2738,6 +2741,12 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     ok &= producer.finish_group();
     done = 1;
     return ok;
+}
+
+MultiOwnerRetryNode& multi_owner_retry_node(const Task& task) {
+    const auto tagged = reinterpret_cast<uintptr_t>(task.scatter);
+    auto& state = *reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
+    return state.owner_retries[task.shard];
 }
 
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,

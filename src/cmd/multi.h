@@ -23,6 +23,8 @@ class Shard;
 struct MultiExecState;
 struct MultiSession;
 struct Task;
+struct MultiOwnerRetryNode;
+MultiOwnerRetryNode& multi_owner_retry_node(const Task& task);
 struct AofOwnerContext;
 struct AtomicEntry;
 struct AtomicScriptIntent;
@@ -145,7 +147,7 @@ inline bool multi_task_retry(MultiTaskResult result) {
 // Owner-local, synchronous promotion; no task or state pointer outlives this call.
 struct MultiRetryPromoter {
     void* context;
-    void (*promote)(void*, const Task&);
+    void (*promote)(void*, MultiOwnerRetryNode&);
 };
 
 // Called after lookup/arity validation.  Transaction controls are handled here; while MULTI is

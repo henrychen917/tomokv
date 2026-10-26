@@ -201,7 +201,7 @@ void Shard::watch_promote_unit_waiter(const std::string& key,
     if (head->entry.unit_kind != 1) return;
     auto& next = *static_cast<MultiExecState*>(const_cast<void*>(head->entry.token));
     next.execution_noted[id()] |= 16u;
-    if (promoter) promoter->promote(promoter->context, multi_make_task(nullptr, 0, id(), &next));
+    if (promoter) promoter->promote(promoter->context, next.owner_retries[id()]);
 }
 
 void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*,

@@ -1,0 +1,12 @@
+visits N=16 op=place PRE=51 candidate=5 PRE_ratio=1.000 candidate_ratio=1.000
+visits N=16 op=finish PRE=33 candidate=5 PRE_ratio=1.000 candidate_ratio=1.000
+visits N=16 op=promote PRE=17 candidate=1 PRE_ratio=1.000 candidate_ratio=1.000
+visits N=16 op=key_ready PRE=18 candidate=4 PRE_ratio=1.000 candidate_ratio=1.000
+visits N=256 op=place PRE=771 candidate=5 PRE_ratio=15.118 candidate_ratio=1.000
+visits N=256 op=finish PRE=513 candidate=5 PRE_ratio=15.545 candidate_ratio=1.000
+visits N=256 op=promote PRE=257 candidate=1 PRE_ratio=15.118 candidate_ratio=1.000
+visits N=256 op=key_ready PRE=258 candidate=4 PRE_ratio=14.333 candidate_ratio=1.000
+visits N=4096 op=place PRE=12291 candidate=5 PRE_ratio=241.000 candidate_ratio=1.000
+visits N=4096 op=finish PRE=8193 candidate=5 PRE_ratio=248.273 candidate_ratio=1.000
+visits N=4096 op=promote PRE=4097 candidate=1 PRE_ratio=241.000 candidate_ratio=1.000
+visits N=4096 op=key_ready PRE=4098 candidate=4 PRE_ratio=227.667 candidate_ratio=1.000
