@@ -86,6 +86,8 @@ void group_window(Server& server, const Config& cfg, bool oom, bool wounded_oom 
         Client receiver{-1};
         assemble_final(receiver, request.op, state, nullptr, nullptr, nullptr);
         require(request.reply() == "-ERR out of memory\r\n", "OOM wire reply, never an unmaterialized image");
+        require(state.group_attempt()->phase.load() == TxnPhase::Executing,
+                "terminal error closes placement against a delayed wound");
     }
     const bool valid = wounded_oom
         ? read == TxnGroupRead::Done && aborted && source_present && !accepted &&
@@ -429,6 +431,12 @@ void d2_condition(Server& server, bool wounded = false) {
     const auto a = key_on(server, 0, "d2-nx-a"), b = key_on(server, 1, "d2-nx-b");
     require(local(server, {"SET", a, "before"}) == "+OK\r\n", "MSETNX veto seeded");
     ScatterRun run(server, {"MSETNX", a, "after", b, "after"}, false);
+    if (wounded) {
+        require(!txn_group_arrive(*run.state, server.shard(0), run.request.op), "NX first arrival");
+        require(txn_group_arrive(*run.state, server.shard(1), run.request.op), "NX arrivals before veto owner turn");
+        // Owner zero now places first and sees its existing key. The other
+        // owner has not placed yet, so the terminal condition is still Placing.
+    }
     Ring ring; bool done[16]{}; bool queued = false;
     for (unsigned turn = 0; turn < 64 && !queued; ++turn)
         for (unsigned i = 0; i < run.state->nsub; ++i) {
@@ -455,7 +463,7 @@ void d2_condition(Server& server, bool wounded = false) {
     if (wounded) require(run.state->epoch.load() == kAtomicCancelledEpoch, "NX wound epoch cancelled");
     require(local(server, {"GET", a}) == "$6\r\nbefore\r\n" && local(server, {"GET", b}) == "$-1\r\n",
             "failed NX writes nothing");
-    std::puts("PASS non-wound MSETNX condition remains terminal");
+    std::puts(wounded ? "PASS wounded NX condition restarts" : "PASS non-wound MSETNX condition remains terminal");
 }
 void d2_windows(Server& server) {
     for (int point : {1, 4}) { d2_group(server, false, point); d2_exec(server, false, point); }
