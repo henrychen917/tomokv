@@ -56,11 +56,26 @@ def boot(args, directory, mode, engine, atomic, oracle=False, single=False, aof=
     if getattr(args, 'debug_stacks', False) and not oracle:
         argv = ['taskset', '-c', args.cores, 'gdb', '-q', '-batch',
                 '-ex', 'set pagination off', '-ex', 'handle SIGINT stop nopass',
+                '-ex', 'set print elements 8', '-ex', 'set print max-depth 4',
                 '-ex', 'run', '-ex', 'thread apply all bt full', '--args', *argv[3:]]
     (directory / 'argv.json').write_text(json.dumps(argv) + '\n')
     with (directory / 'server.log').open('w') as log:
         p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
     c = None
+    original_read = Conn.read
+    stopped = threading.Event()
+    def diagnostic_read(conn):
+        try:
+            return original_read(conn)
+        except TimeoutError:
+            if not stopped.is_set():
+                stopped.set()
+                p.send_signal(signal.SIGINT)
+                try:
+                    p.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    pass
+            raise
     try:
         debug = getattr(args, 'debug_stacks', False) and not oracle
         c = wait_ready('127.0.0.1', port, process=None if debug else p, timeout=20)
@@ -68,6 +83,7 @@ def boot(args, directory, mode, engine, atomic, oracle=False, single=False, aof=
             info = dict(line.split(b':', 1) for line in c.must('INFO', 'server').splitlines() if b':' in line)
             pid = int(info[b'process_id'])
             assert Path(f'/proc/{pid}/exe').resolve() == Path(binary).resolve(), 'debug boot PID mismatch'
+            Conn.read = diagnostic_read
         c.sock.settimeout(4)
         yield c, port
     except Exception:
@@ -79,6 +95,7 @@ def boot(args, directory, mode, engine, atomic, oracle=False, single=False, aof=
                 pass
         raise
     finally:
+        Conn.read = original_read
         if c:
             c.close()
         p.terminate()
