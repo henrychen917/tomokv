@@ -192,7 +192,33 @@ subsuite, pinned to 32–47 with port 20377. The earlier CPU-loaded run's 12
 fixed-deadline scheduler failures are retained; the final run changed no
 assertion or deadline. See `docs/woundfix/gates_test.log`.
 
-The runtime, ASAN and standard differential matrix results will follow. No full iteration gate or performance benchmark
+The runtime matrix is complete: 265 passed rows and one WATCH negative-control
+fixture failure, corrected by a dedicated **4/4** gate rerun. The finalizer
+control patches `watch_finalize_reservation`; the old fixture first retired
+its entry through indexed `watch_write_ready` and failed only in a later OOM
+cleanup. The fixture now explicitly tests the patched finalizer, then retains
+its independent write-ready assertion. No diagnostic matcher or tolerance was
+relaxed. All 20 positive/negative WATCH checks pass in both builds; evidence
+and patch receipts are in `docs/woundfix/watch-control/`.
+
+| Runtime gate invocation | Passed | Failed | Status |
+| --- | ---: | ---: | --- |
+| uring, split battery boots plus mode-specific jobs | 81 | 1 | WATCH fixture corrected below |
+| uring, fused battery boots | 47 | 0 | passed |
+| epoll, split battery boots plus mode-specific jobs | 78 | 0 | passed |
+| epoll, fused battery boots | 47 | 0 | passed |
+| xscript atomic-0 bounds, both modes/engines | 12 | 0 | four 3/3 runs |
+| corrected exbatch unit job | 4 | 0 | all controls passed |
+
+`docs/woundfix/gate/runtime.json` records every command, environment, binary
+hash and gate run. Job ledgers and raw-log manifests are adjacent. This covers
+debug-0/1 (multirace, xscript, scriptatomic, txn_nx, EXEC and txniso), atomic
+batteries, release batteries, fused-0/1, transaction groups, every txnorder
+mode/atomic combination, execfair, all WATCH jobs and the correctness portion
+of atomic_floor. The split txnorder stress retains the gate's explicit 4:4
+exception; ordinary batteries retain 6:2, always 16 shards/eight server CPUs.
+
+ASAN and the standard differential matrix results will follow. No full iteration gate or performance benchmark
 has been run. The partial-only `GATE_PROOF_NO_RATES=1` explicitly leaves the
 atomic floor and RYOW rate assertions NOT RUN, while retaining their correctness
 checks; default/full-gate semantics are unchanged.
