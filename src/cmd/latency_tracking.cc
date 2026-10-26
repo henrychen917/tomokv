@@ -236,6 +236,24 @@ void latency_tracking_retire(uint32_t executor, const Op& op) {
         if (auto* server = command_server(); server && server->latency_tracking())
             latency_tracking_record(executor, op, duration);
 }
+void latency_tracking_retry(const Op& previous, const Op& next) {
+    // Disabling tracking clears all pending slices. The default-off retry path
+    // must not scan every physical executor's empty histogram slot.
+    if (auto* server = command_server(); !server || !server->latency_tracking()) return;
+    // Both attempts represent the same logical child. The old owners have all
+    // joined; new owners may already accumulate slices, but only IO can retire
+    // the replacement. Reuse the node so a retry needs no extra allocation.
+    for (auto& slot : stores) {
+        auto* local = slot.value.load(std::memory_order_acquire);
+        if (!local) continue;
+        std::lock_guard lock(local->mutex);
+        auto node = local->pending.extract(&previous);
+        if (node.empty()) continue;
+        node.key() = &next;
+        auto inserted = local->pending.insert(std::move(node));
+        if (!inserted.inserted) inserted.position->second += inserted.node.mapped();
+    }
+}
 void latency_tracking_forget(const Op& op) {
     for (auto& slot : stores) {
         auto* local = slot.value.load(std::memory_order_acquire);

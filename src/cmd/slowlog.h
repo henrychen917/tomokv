@@ -139,6 +139,7 @@ extern thread_local constinit __attribute__((tls_model("local-exec")))
 // These helpers are reached only by the cold scatter/transaction/blocking paths.
 void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started);
 void latency_tracking_retire(uint32_t executor, const Op& op);
+void latency_tracking_retry(const Op& previous, const Op& next);
 void latency_tracking_forget(const Op& op);
 void latency_tracking_forget_client(Client& client);
 void latency_tracking_discard_pending();

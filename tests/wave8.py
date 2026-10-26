@@ -26,8 +26,16 @@ def run(port):
             names = [prefix + str(i) for i in range(256)]
             routes = admin.cmd('DEBUG', 'SHARDS', *names)
             first = routes[0][1]
-            pair = [names[0], next(k for k, r in zip(names, routes) if r[1] != first)]
-            assert admin.cmd('MSET', pair[0], 0, pair[1], 0) == b'OK'
+            left = [k for k, r in zip(names, routes) if r[1] == first]
+            right = [k for k, r in zip(names, routes) if r[1] != first]
+            assert len(left) >= 5 and len(right) >= 5
+            pair = [left[0], right[0]]
+            script_pairs = list(zip(left[1:5], right[1:5]))
+            # Explicit cross-shard script key conflicts may return TRYAGAIN.
+            # Distinct script claims on the same owners isolate successful-command
+            # accounting while the eight EXEC clients contend on their hot pair.
+            for keys in [pair, *script_pairs]:
+                assert admin.cmd('MSET', keys[0], 0, keys[1], 0) == b'OK'
             assert admin.cmd('CONFIG', 'RESETSTAT') == b'OK'
             before = counters(admin)
             ready = threading.Barrier(12)
@@ -50,7 +58,7 @@ redis.sha1hex(cmsgpack.unpack(cmsgpack.pack('wave8')))})"""
                             assert result[0] == result[1] and result[0] > 0, result
                             assert result[2] == [str(result[0]).encode()] * 2, result
                         else:
-                            reply = c.cmd('EVAL', script, 2, *pair)
+                            reply = c.cmd('EVAL', script, 2, *script_pairs[index - 8])
                             assert isinstance(reply, bytes), reply
                             result = json.loads(reply)
                             assert result[0] == result[1] and result[0] > 0, result
@@ -61,19 +69,22 @@ redis.sha1hex(cmsgpack.unpack(cmsgpack.pack('wave8')))})"""
             expected = {'multi': 8 * rounds, 'exec': 8 * rounds, 'eval': 4 * rounds,
                         'incr': 24 * rounds, 'mget': 8 * rounds}
             assert calls == expected, ('attempt', attempt, calls, expected)
-            assert admin.cmd('MGET', *pair) == [str(12 * rounds).encode()] * 2
+            assert admin.cmd('MGET', *pair) == [str(8 * rounds).encode()] * 2
+            for keys in script_pairs:
+                assert admin.cmd('MGET', *keys) == [str(rounds).encode()] * 2
             after = counters(admin)
             delta = {k: v - before.get(k, 0) for k, v in after.items()}
             assert delta.get('atomic_txn_order_violations', 0) == 0, delta
             print(json.dumps(dict(attempt=attempt, histogram=calls, counters=delta)), flush=True)
-            if delta.get('atomic_txn_fast_polls', 0) > 0:
+            if (delta.get('atomic_txn_fast_polls', 0) > 0 and
+                    delta.get('atomic_txn_retries', 0) > 0):
                 break
         else:
-            raise AssertionError('EXEC fast-poll window never opened on three fresh states')
+            raise AssertionError('EXEC fast-poll/retry window never opened on three fresh states')
         assert admin.cmd('CONFIG', 'SET', 'latency-tracking', 'no') == b'OK'
         frozen = histogram(admin, 'get')
         for _ in range(8):
-            assert admin.cmd('GET', pair[0]) == str(12 * rounds).encode()
+            assert admin.cmd('GET', pair[0]) == str(8 * rounds).encode()
         assert histogram(admin, 'get') == frozen
     print('PASS wave8 contended EXEC, helper scripts, exact child histogram counts and off transition')
 

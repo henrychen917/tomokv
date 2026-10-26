@@ -1883,7 +1883,6 @@ void finish_command(MultiCommand& command, uint32_t stage, uint32_t owner_thread
         command.kind != MultiCommandKind::Admin &&
         command.kind != MultiCommandKind::Swapdb &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
-    latency_tracking_retire(owner_thread_id, *command.op);
     command.finished.store(true, std::memory_order_release);
 }
 
@@ -1893,7 +1892,7 @@ void assemble_ownerless_replies(MultiExecState& state, uint32_t owner_thread_id)
             command->kind == MultiCommandKind::IoLocal ||
             command->kind == MultiCommandKind::Prebuilt)
             continue;
-        LatencyTrackingScope latency(owner_thread_id, *command->op);
+        LatencyTrackingPart latency(owner_thread_id, command->op.get());
         assemble_cross_reply(*command);
     }
 }
@@ -2567,6 +2566,8 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
+            for (size_t i = 0; i < previous->commands.size(); ++i)
+                latency_tracking_retry(*previous->commands[i]->op, *next->commands[i]->op);
             previous->watched.clear();
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
@@ -2944,7 +2945,6 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     *command.scatter, command.xshard_stage_groups[next_stage]);
                 command.stage.store(next_stage, std::memory_order_release);
             } else if (finished == MultiChildFinish::Final) {
-                latency_tracking_retire(owner_thread_id, *command.op);
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
                 if (!kSingleDatabase && command.scatter->kind == Kind::DatabaseInfo && command.watch_map) {
@@ -3116,6 +3116,11 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
                 command->op->spec->handler(state->server->shard(0), *command->op);
             }
     }
+    // A completed child can belong to an internally wounded attempt. Publish
+    // samples only at logical EXEC retirement; retries transfer their active
+    // slices to replacement children instead of incrementing call counts.
+    for (const auto& command : state->commands)
+        latency_tracking_retire(state->owner_io, *command->op);
     set_state_reply(*state, op);
     op.detach_scatter_state();
     client.atomic_group_finished();
