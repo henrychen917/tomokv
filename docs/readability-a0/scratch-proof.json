@@ -1,0 +1,12 @@
+{
+  "formatter": "clang-format 18.1.8",
+  "file": "src/store/flatstore.h",
+  "original_lines": 3902,
+  "formatted_lines": 4034,
+  "moved": "make_word definition before round_pow2 within FlatStore",
+  "renamed": "make_word -> pack_slot_word (private static helper and all uses)",
+  "binary_sha256": "4a63aeaec5c8af39ad633fce6c590fe4477d970c21bbd27728806ca3cc49f2a1",
+  "assertion_ids_identical": true,
+  "binary_neutral": "IDENTICAL (9474960 bytes after stripping)",
+  "source_copy_deleted": true
+}
