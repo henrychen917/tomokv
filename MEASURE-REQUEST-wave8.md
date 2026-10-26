@@ -209,6 +209,16 @@ manifest and digest; the whole gate receipts are `jobs/final-differ-{uring,epoll
 Both complete engine matrices pass **190 ok / 0 FAIL** each. They retain all
 split/armed feature legs, MDB mode/read-local/atomic combinations, writeback
 policy, fused batteries, transaction groups and every transaction-ordering leg.
-The final uring 2s debug matrix passes **47 ok / 0 FAIL**, including both atomic
-debug batteries, script bounds, notifications and ASAN batteries. Whole-job
-receipts are under `jobs/final-engine-*` and `jobs/final-debug-uring-2s.*`.
+All four final debug matrices (1s/2s × uring/epoll) pass **47 ok / 0 FAIL** each,
+including both atomic debug batteries, script bounds, notifications and ASAN
+batteries. Whole-job receipts are under `jobs/final-engine-*` and
+`jobs/final-debug-*`.
+
+The first persistence invocation passes **141 ok / 0 FAIL**, retaining every
+AOF and snapshot leg on both engines (`jobs/final-persistence-1s.*`). These
+jobs also declare their own internal mode and atomic loops; all are retained.
+
+The integration-only whitespace check (`969b21fd3..HEAD`) is clean. The complete
+headline-to-landing diff retains 776 inherited warnings in 83 execindex receipt
+files and the final blank line of two vendored Lua helpers. Raw evidence and
+vendor formatting are preserved; `whitespace-review.json` lists every file.

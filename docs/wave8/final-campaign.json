@@ -33,5 +33,47 @@
     "summary": [
       "GATE(PARTIAL): 43 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-supplemental-jobs.tsv.partial"
     ]
+  },
+  {
+    "name": "final-engine-uring",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 190 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-engine-uring.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-persistence-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 141 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-persistence-1s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-differ-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-differ-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-engine-epoll",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 190 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-engine-epoll.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-epoll-2s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-epoll-2s.tsv.partial"
+    ]
+  },
+  {
+    "name": "final-debug-epoll-1s",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 47 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-debug-epoll-1s.tsv.partial"
+    ]
   }
 ]
