@@ -1,0 +1,35 @@
+{"affinity": [104, 105, 106, 107, 108, 109, 110, 111], "argv": ["taskset", "-c", "96-103", "/home/user/Projects/cx-execindex/build/tomokv", "--bind", "127.0.0.1", "--port", "46870", "--dir", "/home/user/Projects/cx-execindex/build/gate-run.ZBhFdi/jobs/flip/flipfix-sigterm-epoll/sigterm", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "sigterm", "loadavg": [8.7431640625, 12.6396484375, 10.45263671875]}
+{"event": "stop", "label": "sigterm", "loadavg": [8.7431640625, 12.6396484375, 10.45263671875], "log": "/home/user/Projects/cx-execindex/build/gate-run.ZBhFdi/jobs/flip/flipfix-sigterm-epoll/sigterm/sigterm.log", "rc": 1}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execindex/tests/flipfix.py", line 482, in <module>
+    main()
+  File "/home/user/Projects/cx-execindex/tests/flipfix.py", line 478, in main
+    stopping(args)
+  File "/home/user/Projects/cx-execindex/tests/flipfix.py", line 330, in stopping
+    with boot(args, args.case, save='3600 1') as (admin, process, directory):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/flipfix.py", line 105, in boot
+    conn = wait_ready('127.0.0.1', args.port, timeout=60, process=process, log_path=path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 244, in check_process
+    raise exited("server exited during boot (status %s)" % status)
+RuntimeError: server exited during boot (status 1)
+--net-io epoll: using syscall persistence (no io_uring ring)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [96,97,98,99,100,101,102,103]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=96 L3=0 shards=0
+  thread t1: role=ifid cpu=97 L3=0 shards=0
+  thread t2: role=ifid cpu=98 L3=0 shards=0
+  thread t3: role=ifid cpu=99 L3=0 shards=0
+  thread t4: role=ifid cpu=100 L3=0 shards=0
+  thread t5: role=ifid cpu=101 L3=0 shards=0
+  thread t6: role=ex cpu=102 L3=0 shards=8
+  thread t7: role=ex cpu=103 L3=0 shards=8
+bind: Address already in use
+

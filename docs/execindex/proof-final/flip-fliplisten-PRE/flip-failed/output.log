@@ -1,0 +1,18 @@
+  row budget: 900s; median=0.155s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=3.33s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=2.185s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       FAIL (see /home/user/Projects/cx-execindex/build/gate-run.8nOuib/jobs/flip/gate-flipfix-{close,churn}-epoll.txt)
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         FAIL (see /home/user/Projects/cx-execindex/build/gate-run.8nOuib/jobs/flip/gate-flipfix-sig*-*.txt)
+  row budget: 900s; median=-s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         FAIL (see /home/user/Projects/cx-execindex/build/gate-run.8nOuib/jobs/flip/perfio-epoll-flip.log)
+  row budget: 900s; median=-s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           FAIL (see /home/user/Projects/cx-execindex/build/gate-run.8nOuib/jobs/flip/perfio-epoll-lb.log)

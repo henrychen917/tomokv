@@ -1,0 +1,33 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_index execfair txnorder2 txnorder_wake core_units wait_units; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.120000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.170000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.770000	read-local topology demotion (1s)
+ok	0.560000	read-local topology demotion (2s)
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	20.770000	EXEC fast-lane polls
+ok	104.810000	txnorder index oracle
+ok	2.690000	txnorder index complexity
+ok	0.030000	txnorder2 writer episode R1
+ok	0.030000	txnorder2 writer episode R2
+ok	0.020000	txnorder2 writer episode R3
+ok	0.030000	txnorder2 writer episode R4
+ok	0.020000	txnorder2 writer episode R5
+ok	0.030000	txnorder2 writer episode R6
+ok	0.020000	txnorder2 writer episode R7
+ok	0.140000	txnorder2 writer episode R8
+ok	0.030000	txnorder2 writer episode R9
+ok	0.020000	txnorder2 writer episode R10
+ok	0.020000	txnorder2 writer episode R11
+ok	4.570000	txnorder2 writer episode R12
+ok	0.050000	txnorder2 direct RENAME owner join
+ok	22.590000	txnorder2 WATCH serve
+ok	30.250000	txnorder2 WATCH flush
+ok	26.970000	txnorder2 WATCH readonly
+ok	0.000000	txnorder2 busy owner inbox wake

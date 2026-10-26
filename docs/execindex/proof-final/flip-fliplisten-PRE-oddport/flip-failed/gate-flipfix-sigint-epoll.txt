@@ -1,0 +1,6 @@
+{"affinity": [104, 105, 106, 107, 108, 109, 110, 111], "argv": ["taskset", "-c", "96-103", "/home/user/Projects/cx-execindex/build/execindex/PRE", "--bind", "127.0.0.1", "--port", "46831", "--dir", "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigint-epoll/sigint", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "sigint", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-execindex/build/execindex/PRE", "label": "sigint", "pid": 3740152}
+{"acknowledged": 1000, "case": "sigint", "event": "armed", "moving": 1}
+{"elapsed": 0.0011, "event": "second-sigint-exit", "status": 1}
+{"event": "stop", "label": "sigint", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625], "log": "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigint-epoll/sigint/sigint.log", "rc": 1}
+{"case": "sigint", "result": "PASS"}

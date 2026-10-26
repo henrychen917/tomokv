@@ -1,0 +1,25 @@
+PARTIAL	0	GATE_ONLY_JOBS=release_batteries atomic_batteries auth dump_restore serverfix_waitaof; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	6.630000	torture battery
+ok	1.160000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.020000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.040000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	32.530000	atomic torn/window battery
+ok	4.070000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	0.060000	DUMP/RESTORE prepare + native SAVE
+ok	0.040000	DUMP/RESTORE cross-restart round-trip
+ok	0.020000	DUMP/RESTORE restart shutdown invariants
+ok	0.000000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	5.540000	ACL battery (atomic off)
+ok	5.540000	ACL battery (atomic on)
+ok	2.470000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream
+ok	6.870000	serverfix SV4.5 WAITAOF wait lifecycle

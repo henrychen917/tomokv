@@ -1,0 +1,91 @@
+Reading symbols from /home/user/Projects/cx-execindex/build/execindex/PRE...
+Breakpoint 1 at 0x451330: tomo::IoLoop::flip_publish_stage. (3 locations)
+Breakpoint 2 at 0x83080: tomo_db0::IoLoop::flip_publish_stage. (3 locations)
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [96,97,98,99,100,101,102,103]
+tomokv-cpp: 8 threads (4 io + 4 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=96 L3=0 shards=0
+  thread t1: role=ifid cpu=97 L3=0 shards=0
+  thread t2: role=ifid cpu=98 L3=0 shards=0
+  thread t3: role=ifid cpu=99 L3=0 shards=0
+  thread t4: role=ex cpu=100 L3=0 shards=4
+  thread t5: role=ex cpu=101 L3=0 shards=4
+  thread t6: role=ex cpu=102 L3=0 shards=4
+  thread t7: role=ex cpu=103 L3=0 shards=4
+[New Thread 0x7ffff607f6c0 (LWP 3843792)]
+[New Thread 0x7ffff587e6c0 (LWP 3843793)]
+[New Thread 0x7ffff4dff6c0 (LWP 3843795)]
+[New Thread 0x7ffff41ff6c0 (LWP 3843796)]
+[New Thread 0x7ffff23ff6c0 (LWP 3843798)]
+[New Thread 0x7ffff1bfe6c0 (LWP 3843799)]
+[New Thread 0x7ffff0dff6c0 (LWP 3843800)]
+[New Thread 0x7fffefbff6c0 (LWP 3843801)]
+listening on 127.0.0.1:46831
+listening with TLS on 127.0.0.1:46832
+listening on unix:/home/user/Projects/cx-execindex/build/fliplisten-46831.sock
+TLS client 27: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 32: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 28: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 38: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 39: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 31: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 44: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 30: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 33: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 37: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 36: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 42: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 41: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 47: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 35: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 46: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 43: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 34: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 48: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 40: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 49: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 45: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 51: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 50: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 2: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+[Thread 0x7ffff587e6c0 (LWP 3843793) exited]
+[Thread 0x7ffff0dff6c0 (LWP 3843800) exited]
+[Thread 0x7fffefbff6c0 (LWP 3843801) exited]
+[Thread 0x7ffff1bfe6c0 (LWP 3843799) exited]
+[Thread 0x7ffff23ff6c0 (LWP 3843798) exited]
+[Thread 0x7ffff41ff6c0 (LWP 3843796) exited]
+[Thread 0x7ffff4dff6c0 (LWP 3843795) exited]
+[Thread 0x7ffff607f6c0 (LWP 3843792) exited]
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io             11     124555      53.5      59.6      30.0        10       68
+io_tenure t0/0 busy_ns=53476471 idle_ns=59647797 entry_ns=4644721583828275 begin_ns=4644721583828315 end_ns=4644721696952583 exit_ns=4644721696952713 role_exit=0 stopped=1
+t1     io              7        167      50.9      62.1       6.2       401      404
+io_tenure t1/0 busy_ns=50949420 idle_ns=62112028 entry_ns=4644721583889915 begin_ns=4644721583889955 end_ns=4644721696951403 exit_ns=4644721696951523 role_exit=0 stopped=1
+t2     io              9     125777      50.5      62.4      27.2         3       61
+io_tenure t2/0 busy_ns=50498190 idle_ns=62424298 entry_ns=4644721584028116 begin_ns=4644721584028165 end_ns=4644721696950653 exit_ns=4644721696950773 role_exit=0 stopped=1
+t3     io             11     127487      51.9      61.0      28.3         5       63
+io_tenure t3/0 busy_ns=51910502 idle_ns=60951136 entry_ns=4644721584102165 begin_ns=4644721584102225 end_ns=4644721696963863 exit_ns=4644721696963893 role_exit=0 stopped=1
+t4     ex              0     181122       0.0     105.1      27.6         0       57
+t5     ex             58     245643       0.1     101.8      36.4         1       85
+t6     io             11       8629      32.8      80.4      10.5         7       62
+io_tenure t6/0 busy_ns=32749272 idle_ns=35845390 entry_ns=4644721628358091 begin_ns=4644721628358221 end_ns=4644721696952883 exit_ns=4644721696953013 role_exit=0 stopped=1
+t7     io              9      10569      30.2      82.9       8.0         4       59
+io_tenure t7/0 busy_ns=30121747 idle_ns=38469925 entry_ns=4644721628360511 begin_ns=4644721628360541 end_ns=4644721696952213 exit_ns=4644721696952343 role_exit=0 stopped=1
+wb: retired=235 direct=37 sends=96/96 short=0 err=0 peer_aborts=0 bytes=13480 zc_sends=0 zc_bytes=0 zc_releases=0 serves=421 empty=251
+tls: accepts=25 handshakes=25/25 failed=0 freed=25 want_read=100 want_write=0 cipher_in=0 plain_in=2576 cipher_out=0 plain_out=835 zc_suppressed=0 ktls_active=0 ktls_fallback=25
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=58 executed=58 accepts=59 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":58,"executed":58},"threads":[{"tid":0,"role":"io","ops":11,"iterations":124555,"busy_ns":53476471,"idle_ns":59647797,"cpu_ns":29952200,"wake_tx":10,"wake_rx":68,"io_tenures":[{"entry_ns":4644721583828275,"begin_ns":4644721583828315,"end_ns":4644721696952583,"exit_ns":4644721696952713,"busy_ns":53476471,"idle_ns":59647797,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":7,"iterations":167,"busy_ns":50949420,"idle_ns":62112028,"cpu_ns":6158391,"wake_tx":401,"wake_rx":404,"io_tenures":[{"entry_ns":4644721583889915,"begin_ns":4644721583889955,"end_ns":4644721696951403,"exit_ns":4644721696951523,"busy_ns":50949420,"idle_ns":62112028,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":9,"iterations":125777,"busy_ns":50498190,"idle_ns":62424298,"cpu_ns":27241744,"wake_tx":3,"wake_rx":61,"io_tenures":[{"entry_ns":4644721584028116,"begin_ns":4644721584028165,"end_ns":4644721696950653,"exit_ns":4644721696950773,"busy_ns":50498190,"idle_ns":62424298,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":11,"iterations":127487,"busy_ns":51910502,"idle_ns":60951136,"cpu_ns":28333662,"wake_tx":5,"wake_rx":63,"io_tenures":[{"entry_ns":4644721584102165,"begin_ns":4644721584102225,"end_ns":4644721696963863,"exit_ns":4644721696963893,"busy_ns":51910502,"idle_ns":60951136,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"ex","ops":0,"iterations":181122,"busy_ns":9149,"idle_ns":105087389,"cpu_ns":27564958,"wake_tx":0,"wake_rx":57,"io_tenures":[]},{"tid":5,"role":"ex","ops":58,"iterations":245643,"busy_ns":93391,"idle_ns":101788338,"cpu_ns":36428768,"wake_tx":1,"wake_rx":85,"io_tenures":[]},{"tid":6,"role":"io","ops":11,"iterations":8629,"busy_ns":32801451,"idle_ns":80407396,"cpu_ns":10479502,"wake_tx":7,"wake_rx":62,"io_tenures":[{"entry_ns":4644721628358091,"begin_ns":4644721628358221,"end_ns":4644721696952883,"exit_ns":4644721696953013,"busy_ns":32749272,"idle_ns":35845390,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":7,"role":"io","ops":9,"iterations":10569,"busy_ns":30171637,"idle_ns":82901468,"cpu_ns":8032505,"wake_tx":4,"wake_rx":59,"io_tenures":[{"entry_ns":4644721628360511,"begin_ns":4644721628360541,"end_ns":4644721696952213,"exit_ns":4644721696952343,"busy_ns":30121747,"idle_ns":38469925,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]}],"wb":{"retired":235,"direct":37,"sends_completed":96,"sends_submitted":96,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":13480,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":421,"serves_empty":251},"tls":{"accepts":25,"handshakes_completed":25,"handshakes_started":25,"handshakes_failed":0,"connections_freed":25,"want_read":100,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":2576,"ciphertext_output_bytes":0,"plaintext_output_bytes":835,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":25},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":59,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+[Inferior 1 (process 3841784) exited normally]
+(gdb) (gdb) warning: Inferior ID 1 is not running.
+(gdb) 

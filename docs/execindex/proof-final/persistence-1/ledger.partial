@@ -1,0 +1,147 @@
+PARTIAL	0	GATE_ONLY_JOBS=aof-epoll aof-uring snapshot-epoll snapshot-uring aof_frame aoforder; NOT A RECEIPT
+ok	0.020000	release build (+footprint locks)
+ok	0.080000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.390000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.000000	AOF replay fired (records=N skipped=N)
+ok	0.080000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.420000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.000000	AOF replay fired (records=N skipped=N)
+ok	0.030000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.030000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	0.840000	AOF in-window kill recovery (2s, epoll)
+ok	1.950000	AOF in-window term recovery (2s, epoll)
+ok	0.830000	AOF in-window kill recovery (1s, epoll)
+ok	1.920000	AOF in-window term recovery (1s, epoll)
+ok	1.730000	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+ok	1.860000	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+ok	1.930000	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+ok	2.020000	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.110000	AOF rewrite atomic/stage/corruption matrix
+ok	5.460000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.400000	aoffix2 snapshot (1s, epoll)
+ok	1.470000	aoffix2 filename (1s, epoll)
+ok	0.170000	aoffix2 error (1s, epoll)
+ok	0.520000	aoffix2 tickets (1s, epoll)
+ok	0.530000	aoffix2 exec_tickets (1s, epoll)
+ok	0.520000	aoffix2 resurrection (1s, epoll)
+ok	0.410000	aoffix2 rewrite_fail2 (1s, epoll)
+ok	0.290000	aoffix2 manifest_missing (1s, epoll)
+ok	0.260000	aoffix2 off-writer acknowledgement everysec (1s, epoll)
+ok	0.270000	aoffix2 off-writer acknowledgement always (1s, epoll)
+ok	0.400000	aoffix2 snapshot (2s, epoll)
+ok	1.480000	aoffix2 filename (2s, epoll)
+ok	0.160000	aoffix2 error (2s, epoll)
+ok	0.530000	aoffix2 tickets (2s, epoll)
+ok	0.520000	aoffix2 exec_tickets (2s, epoll)
+ok	0.520000	aoffix2 resurrection (2s, epoll)
+ok	0.400000	aoffix2 rewrite_fail2 (2s, epoll)
+ok	0.300000	aoffix2 manifest_missing (2s, epoll)
+ok	0.260000	aoffix2 off-writer acknowledgement everysec (2s, epoll)
+ok	0.270000	aoffix2 off-writer acknowledgement always (2s, epoll)
+ok	0.330000	aoffix2 large (1s, epoll)
+ok	0.190000	aoffix2 large_placed (1s, epoll)
+ok	0.070000	configuration reduction + actual geometry (uring, atomic 0)
+ok	0.400000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (uring, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.000000	AOF replay fired (records=N skipped=N)
+ok	0.080000	configuration reduction + actual geometry (uring, atomic 1)
+ok	0.390000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (uring, atomic 1)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.050000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.020000	AOF always sync + reply gate fired
+ok	0.020000	AOF always recovery after quiescent SIGKILL
+ok	0.830000	AOF in-window kill recovery (2s, uring)
+ok	3.070000	AOF in-window term recovery (2s, uring)
+ok	0.840000	AOF in-window kill recovery (1s, uring)
+ok	2.450000	AOF in-window term recovery (1s, uring)
+ok	1.750000	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)
+ok	1.860000	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)
+ok	1.860000	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)
+ok	1.980000	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.120000	AOF rewrite atomic/stage/corruption matrix
+ok	5.550000	AOF rewrite triggers + observability matrix
+ok	0.000000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.410000	aoffix2 snapshot (1s, uring)
+ok	1.470000	aoffix2 filename (1s, uring)
+ok	0.170000	aoffix2 error (1s, uring)
+ok	0.520000	aoffix2 tickets (1s, uring)
+ok	0.530000	aoffix2 exec_tickets (1s, uring)
+ok	0.520000	aoffix2 resurrection (1s, uring)
+ok	0.400000	aoffix2 rewrite_fail2 (1s, uring)
+ok	0.290000	aoffix2 manifest_missing (1s, uring)
+ok	0.260000	aoffix2 off-writer acknowledgement everysec (1s, uring)
+ok	0.270000	aoffix2 off-writer acknowledgement always (1s, uring)
+ok	0.400000	aoffix2 snapshot (2s, uring)
+ok	1.470000	aoffix2 filename (2s, uring)
+ok	0.170000	aoffix2 error (2s, uring)
+ok	0.520000	aoffix2 tickets (2s, uring)
+ok	0.520000	aoffix2 exec_tickets (2s, uring)
+ok	0.510000	aoffix2 resurrection (2s, uring)
+ok	0.310000	aoffix2 rewrite_fail2 (2s, uring)
+ok	0.290000	aoffix2 manifest_missing (2s, uring)
+ok	0.270000	aoffix2 off-writer acknowledgement everysec (2s, uring)
+ok	0.270000	aoffix2 off-writer acknowledgement always (2s, uring)
+ok	0.320000	aoffix2 large (1s, uring)
+ok	0.190000	aoffix2 large_placed (1s, uring)
+ok	0.650000	snapshot concurrent cut (epoll)
+ok	0.220000	snapshot cut reload (epoll)
+ok	2.650000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.140000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.150000	typed snapshot preimage race (epoll)
+ok	0.050000	typed snapshot race reload (epoll)
+ok	0.780000	shutdown keeps acknowledged writes (1s, sigterm, epoll)
+ok	0.780000	shutdown keeps acknowledged writes (1s, command, epoll)
+ok	0.940000	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+ok	0.940000	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+ok	0.810000	shutdown keeps acknowledged writes (2s, sigterm, epoll)
+ok	0.800000	shutdown keeps acknowledged writes (2s, command, epoll)
+ok	1.070000	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+ok	1.040000	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+ok	0.650000	snapshot concurrent cut (uring)
+ok	0.200000	snapshot cut reload (uring)
+ok	2.670000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.170000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.050000	typed snapshot save (uring)
+ok	0.050000	typed snapshot reload (uring)
+ok	0.150000	typed snapshot preimage race (uring)
+ok	0.050000	typed snapshot race reload (uring)
+ok	0.790000	shutdown keeps acknowledged writes (1s, sigterm, uring)
+ok	0.790000	shutdown keeps acknowledged writes (1s, command, uring)
+ok	0.950000	shutdown cancels BGSAVE capture (1s, atomic 0, uring)
+ok	0.960000	shutdown cancels BGSAVE capture (1s, atomic 1, uring)
+ok	0.800000	shutdown keeps acknowledged writes (2s, sigterm, uring)
+ok	0.790000	shutdown keeps acknowledged writes (2s, command, uring)
+ok	1.060000	shutdown cancels BGSAVE capture (2s, atomic 0, uring)
+ok	1.040000	shutdown cancels BGSAVE capture (2s, atomic 1, uring)
+ok	0.320000	AOF control frame never inside a large record (atomic 0)
+ok	0.320000	AOF control frame never inside a large record (atomic 1)
+ok	9.330000	AOF commit order single
+ok	4.230000	AOF commit order crossing
+ok	4.400000	AOF commit order rewrite

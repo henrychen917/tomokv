@@ -1,0 +1,10 @@
+{"affinity": [104, 105, 106, 107, 108, 109, 110, 111], "argv": ["taskset", "-c", "96-103", "/home/user/Projects/cx-execindex/build/execindex/PRE", "--bind", "127.0.0.1", "--port", "46831", "--dir", "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigterm-uring/sigterm", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "sigterm", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-execindex/build/execindex/PRE", "label": "sigterm", "pid": 3740064}
+{"acknowledged": 1000, "case": "sigterm", "event": "armed", "moving": 1}
+{"elapsed": 0.0032, "event": "sigterm-exit", "status": 0}
+{"event": "flip-reply", "reply": "RespError(b'ERR FLIP aborted: the server is shutting down')"}
+{"event": "stop", "label": "sigterm", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625], "log": "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigterm-uring/sigterm/sigterm.log", "rc": 0}
+{"affinity": [104, 105, 106, 107, 108, 109, 110, 111], "argv": ["taskset", "-c", "96-103", "/home/user/Projects/cx-execindex/build/execindex/PRE", "--bind", "127.0.0.1", "--port", "46831", "--dir", "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigterm-uring/sigterm", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "restart", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-execindex/build/execindex/PRE", "label": "restart", "pid": 3740085}
+{"case": "sigterm", "recovered": 1000, "result": "PASS"}
+{"event": "stop", "label": "restart", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625], "log": "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-sigterm-uring/sigterm/restart.log", "rc": 0}

@@ -1,0 +1,4 @@
+FAIL	74.960000	FLIP listener conservation (io-ex, complete)
+ok	27.550000	FLIP listener conservation (io-ex, rollback)
+ok	28.000000	FLIP listener conservation (ex-io, complete)
+ok	27.390000	FLIP listener conservation (ex-io, rollback)

@@ -1,0 +1,24 @@
+/home/user/Projects/cx-execindex/build/gate-run.8nOuib/jobs/fliplisten/fliplisten-ex-io-rollback/certs
+{"engine": "uring", "atomic": 0, "direction": "ex-io", "outcome": "rollback", "sha256": "957d19eafa7beb151bfae017ea6675fca1da40b334a100602fa3fd38764029f4", "arrived": 56, "served": 56, "errors": [], "accepted_delta": 56, "listeners_before": {"510569166": 0, "510582701": 0, "510554953": 0, "510597291": 0}, "listeners_during": {"510569174": 5, "510569172": 4, "510569166": 4, "510582701": 4, "510554953": 5, "510597291": 2}, "witness": {"pid": 3583242, "stage": "tomo_db0::FlipStage::ExDrain"}, "tls_listeners_before": {"510569167": 0, "510582702": 0, "510554954": 0, "510597292": 0}, "tls_listeners_during": {"510569175": 5, "510569173": 6, "510569167": 2, "510582702": 6, "510554954": 3, "510597292": 2}, "tls_arrived": 24, "unix_arrived": 8, "remaining_quiesce_s": 0.042864225804805756, "established_after_flip_s": 2.743024379014969e-05, "unique_ids": 56, "executions": "56", "passed": true}
+{"engine": "uring", "atomic": 1, "direction": "ex-io", "outcome": "rollback", "sha256": "957d19eafa7beb151bfae017ea6675fca1da40b334a100602fa3fd38764029f4", "arrived": 56, "served": 56, "errors": [], "accepted_delta": 56, "listeners_before": {"510569204": 0, "510582717": 0, "510554967": 0, "510597318": 0}, "listeners_during": {"510597329": 7, "510597327": 4, "510569204": 3, "510582717": 4, "510554967": 1, "510597318": 5}, "witness": {"pid": 3588698, "stage": "tomo_db0::FlipStage::ExDrain"}, "tls_listeners_before": {"510569205": 0, "510582718": 0, "510554968": 0, "510597319": 0}, "tls_listeners_during": {"510597330": 8, "510597328": 4, "510569205": 6, "510582718": 1, "510554968": 2, "510597319": 3}, "tls_arrived": 24, "unix_arrived": 8, "remaining_quiesce_s": 0.03337524551898241, "established_after_flip_s": 3.456044942140579e-05, "unique_ids": 56, "executions": "56", "passed": true}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 276, in main
+    try: leg(args, engine, atomic)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 104, in leg
+    admin = wait_ready('127.0.0.1', args.port, timeout=30)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 280, in wait_ready
+    raise AssertionError("readiness PING returned %r" % (answer,))
+AssertionError: readiness PING returned [b'PING']
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 276, in main
+    try: leg(args, engine, atomic)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 104, in leg
+    admin = wait_ready('127.0.0.1', args.port, timeout=30)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 307, in wait_ready
+    raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
+TimeoutError: server readiness timed out after 30.000s: ConnectionRefusedError(111, 'Connection refused')
+{"failed": ["epoll-a0", "epoll-a1"], "legs": 4}

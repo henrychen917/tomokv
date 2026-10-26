@@ -1,0 +1,34 @@
+{"affinity": [104, 105, 106, 107, 108, 109, 110, 111], "argv": ["taskset", "-c", "96-103", "/home/user/Projects/cx-execindex/build/execindex/PRE", "--bind", "127.0.0.1", "--port", "46831", "--dir", "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-churn-epoll/churn", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--databases", "1", "--net-io", "epoll", "--enable-debug-command", "yes", "--flip-auto", "1"], "event": "boot", "label": "churn", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-execindex/build/execindex/PRE", "label": "churn", "pid": 3740004}
+{"attempt": 0, "elapsed": 0.0159, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0004, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 7, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 8, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 9, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 10, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 13, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 15, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 17, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 18, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 19, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 20, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 21, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 22, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 23, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 24, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 25, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 26, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 27, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 28, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 29, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"applied": 30, "case": "churn", "closed": 300, "connector": {"ok": 12792, "refused": 0}, "engine": "epoll", "flip_auto": 1, "outcomes": {"OK": 30}, "result": "PASS", "witnessed": 30}
+{"event": "stop", "label": "churn", "loadavg": [8.4462890625, 9.02197265625, 9.79931640625], "log": "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf/jobs/flip/flipfix-churn-epoll/churn/churn.log", "rc": 0}

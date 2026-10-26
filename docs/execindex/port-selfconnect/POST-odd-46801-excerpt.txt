@@ -1,0 +1,12 @@
+# Socket samples during flip-uring-oddport (gate-run.dydRrY, POST, uring, slot ports 46801/46802/46803).
+# Odd slot port: zero self-connects on 46801. One client to 46801 drew 46802 (PORT+1, the
+# fliplisten --tls-port) as its ephemeral source port; its TIME-WAIT blocked the TLS bind:
+first: 12:18:16.814 TIME-WAIT 0      0      127.0.0.1:46802 127.0.0.1:46801 timer:(timewait,59sec,0) ino:0 sk:128d2d                                                                                                                    
+last:  12:19:19.849 TIME-WAIT 0      0      127.0.0.1:46802 127.0.0.1:46801 timer:(timewait,,0) ino:0 sk:12c08a     
+
+# self-connected entries on 46801 (count of samples):
+0
+
+# fliplisten uring legs' server logs (gate-run.dydRrY/jobs/fliplisten/fliplisten-io-ex-complete/uring-a{0,1}/server.log):
+bind tls-port: Address already in use
+bind tls-port: Address already in use

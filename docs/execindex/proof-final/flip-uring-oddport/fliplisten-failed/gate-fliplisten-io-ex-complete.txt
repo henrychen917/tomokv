@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 276, in main
+    try: leg(args, engine, atomic)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 104, in leg
+    admin = wait_ready('127.0.0.1', args.port, timeout=30)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 307, in wait_ready
+    raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
+TimeoutError: server readiness timed out after 30.000s: ConnectionRefusedError(111, 'Connection refused')
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 276, in main
+    try: leg(args, engine, atomic)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/fliplisten.py", line 104, in leg
+    admin = wait_ready('127.0.0.1', args.port, timeout=30)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-execindex/tests/_lib.py", line 307, in wait_ready
+    raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
+TimeoutError: server readiness timed out after 30.000s: ConnectionRefusedError(111, 'Connection refused')
+/home/user/Projects/cx-execindex/build/gate-run.dydRrY/jobs/fliplisten/fliplisten-io-ex-complete/certs
+{"engine": "epoll", "atomic": 0, "direction": "io-ex", "outcome": "complete", "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a", "arrived": 56, "served": 56, "errors": [], "accepted_delta": 56, "listeners_before": {"510841706": 0, "510839051": 0, "510835257": 0, "510842626": 0, "510830074": 0, "510844115": 0}, "listeners_during": {"510841706": 8, "510839051": 6, "510835257": 1, "510842626": 4, "510830074": 2, "510844115": 3}, "witness": {"pid": 3736090, "stage": "tomo_db0::FlipStage::ExDrain"}, "tls_listeners_before": {"510841707": 0, "510839052": 0, "510835258": 0, "510842627": 0, "510830075": 0, "510844116": 0}, "tls_listeners_during": {"510841707": 4, "510839052": 7, "510835258": 3, "510842627": 3, "510830075": 4, "510844116": 3}, "tls_arrived": 24, "unix_arrived": 8, "remaining_quiesce_s": 0.030258809216320515, "established_after_flip_s": 0.0027192551642656326, "unique_ids": 56, "executions": "56", "passed": true}
+{"engine": "epoll", "atomic": 1, "direction": "io-ex", "outcome": "complete", "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a", "arrived": 56, "served": 56, "errors": [], "accepted_delta": 56, "listeners_before": {"510841708": 0, "510839057": 0, "510842652": 0, "510835283": 0, "510844152": 0, "510830112": 0}, "listeners_during": {"510841708": 6, "510839057": 3, "510842652": 4, "510835283": 4, "510844152": 5, "510830112": 2}, "witness": {"pid": 3736436, "stage": "tomo_db0::FlipStage::ExDrain"}, "tls_listeners_before": {"510841709": 0, "510839058": 0, "510842653": 0, "510835284": 0, "510844153": 0, "510830113": 0}, "tls_listeners_during": {"510841709": 6, "510839058": 5, "510842653": 2, "510835284": 3, "510844153": 6, "510830113": 2}, "tls_arrived": 24, "unix_arrived": 8, "remaining_quiesce_s": 0.0043625785037875175, "established_after_flip_s": 0.020561530254781246, "unique_ids": 56, "executions": "56", "passed": true}
+{"failed": ["uring-a0", "uring-a1"], "legs": 4}
