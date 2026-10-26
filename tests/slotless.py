@@ -40,6 +40,19 @@ def run(host, port):
     finally:
         for conn in clients:
             conn.close()
+        # Socket close is asynchronous at the server. Retain a bounded, observed
+        # drain before gate.sh sends TERM; leaked clients must still fail.
+        with closing(_lib.Conn(host, port, timeout=5)) as observer:
+            deadline = time.monotonic() + 10
+            while True:
+                live = int(_lib.info(observer, "clients")["connected_clients"])
+                if live == 1:
+                    break
+                assert time.monotonic() < deadline, f"slotless clients did not drain: {live}"
+                time.sleep(.01)
+            assert observer.must("QUIT") == b"OK"
+            assert observer.file.read(1) == b"", "cleanup observer did not close"
+        print("PASS slotless all clients drained before shutdown")
 
 
 if __name__ == "__main__":
