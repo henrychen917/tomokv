@@ -2925,8 +2925,13 @@ local AT=${1##*-} mode=2s
           && ok "txniso battery (atomic $AT)" \
           || bad "txniso battery (atomic $AT)" "see $TMPDIR/gate-txniso-$AT.txt"
     else
-      py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
-        && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see $TMPDIR/gate-$t-$AT.txt"
+      local battery_ok=1
+      py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 || battery_ok=0
+      if [ "$t" = scriptatomic ]; then
+        py tests/scriptatomic_strict.py 127.0.0.1 "$PORT" >>"$TMPDIR/gate-$t-$AT.txt" 2>&1 || battery_ok=0
+      fi
+      [ "$battery_ok" = 1 ] && ok "$t battery (atomic $AT)" \
+          || bad "$t battery (atomic $AT)" "see $TMPDIR/gate-$t-$AT.txt"
     fi
   done
   stop
