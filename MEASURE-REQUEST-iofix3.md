@@ -158,9 +158,84 @@ counters, exact launch arguments and server logs; instrumentation diffs are in
 [the probe directory](docs/iofix3/probe/). No ordering or throughput conclusion
 is drawn from these event counts.
 
-### Remaining correctness
+### Correctness scope and completed batches
 
-The remaining engine/mode correctness matrix is still running. Its completed
-results, exact job ledger and any NOT RUN items will replace this paragraph
-before delivery. The first gate attempt's failures and resolving reruns are
-preserved, not counted as passes.
+The broad correctness matrix runs on **POST2**. Every POST arm additionally
+passes the complete WB4.1 row, the live `wb_policy` job on both engines, and
+main-command identity. The [scope inventory](docs/iofix3/validation-scope.json)
+names the jobs and legs. All runtime checks use the gate's job interface:
+`GATE_ONLY_JOBS=... tests/gate.sh full --server-cores 64-71 --load-cores 72-79
+--load-smt '' --ports <assigned-trio> --candidate-binary <frozen-arm>`.
+`full` selects the available jobs; `GATE_ONLY_JOBS` makes these **PARTIAL** runs,
+with no full-gate receipt. `GATE_NET_IO`, `GATE_ZC_NET_IO`,
+`GATE_SHUTDOWN_NET_IO` and `GATE_DIFFER_NET_IO` select the engine;
+`GATE_TXN_FUSED=1` selects fused boots for jobs that use the transaction helper.
+Each job's internally owned legs also run. Parent commands are pinned to 64–79.
+
+The optional `GATE_NET_IO` forwarding added to `launch()` makes ordinary epoll
+and ASAN boots selectable; it does not alter default boots or override an
+explicit job engine. Frozen release hashes remain unchanged throughout.
+
+Completed broad batches: the split epoll batch passes **80/80**, fused uring
+(including both persistence engines) **200/200**, and fused epoll **60/60**.
+These cover DEBUG/atomic 0/1, release torture and RYOW, reply suppression,
+zero-copy, shutdown accounting and ASAN in all four mode/engine combinations.
+The split uring runs also cover every `wb_rule_units`/`wbland_units` clause and
+negative control; FLIP state/load/TTL/controller/listener/rollback/signal jobs;
+DEBUG SLEEP and signal-stop four-leg batteries; shutdown policy/persistence;
+TLS, generated-envelope parity, engagement and identity; atomic and split-local
+units. Every internally enumerated mode/engine/policy leg is retained.
+
+The uring standard differential matrix passes **954 comparisons** across
+split-0 (235), split-1 (239), armed-0 (230), armed-1 (234) and equivalence (16).
+Permanent seeds are **7, 19, 20, 23**, plus rotating seed **21**. The gate
+accepts both armed read-local activity witnesses and all five completion
+records. No proof seed/suite overrides were used. See
+[the frozen plan and completions](docs/iofix3/differ-uring-complete.json).
+The epoll standard differential matrix is still running with rotating seed 22;
+its completed outcome will replace this sentence before delivery.
+
+`make all` and every `job_production_units` target built successfully. All
+**46 make -q checks pass**: ordinary release, 42 ordinary unit targets, both
+MDBQSBR live-arm `all` targets with their exact flags, and blockfix cost/hash
+prerequisites. The aggregate MDBQSBR target is phony, so freshness checks its
+real outputs through those two `all` graphs. See
+[the exact commands and exits](docs/iofix3/production-freshness-final.json).
+`python3 tests/gates_test.py` passed **72/72** through `abba_selftest`.
+
+### Retained failures and remaining owner work
+
+The first large partial run recorded **258 passes / 30 failures**. A writeback
+source guard needed exact anchors for the added grace sites (and initially
+rejected the word "new" in a comment); the final guard adds explicit negative
+controls for unbounded grace, false completions and a missing park boundary.
+The other runtime failures were listener bind failures, followed by dependent
+rows that could not run. A later **72/72** gate rerun resolved those rows and
+also passed the writeback guards, atomic/split-local units and R7 audits.
+Changing the comment and checker did not change the POST2 ELF SHA-256.
+
+Later port preflights also failed before starting any gate. The fixed-count
+client had used an assigned gate port as an ephemeral source port, leaving
+non-reusable TIME-WAIT. The completed matrix holds bound-only reservations on
+48840–48842 for its whole lifetime; listeners still bind normally, and no sysctl
+is changed. These early exits are **NOT RUN**, not failed runtime tests or
+valid negative controls. The completed PAD-A negative proof is separate.
+[The incident record](docs/iofix3/port-preflight-incidents.json) names the logs.
+
+One aggregate row remains **FAIL**: `ABBA comparison + saturation negative
+controls` rejects `EXPECT_FULL=815` while both the restored source inventory
+and explicit fixture contain 816 rows. The gate harness's 72 tests passed
+inside that job. The protected constants are untouched; the maintainer must
+set **EXPECT_QUICK=799 / EXPECT_FULL=816** for the restored row. This is not a
+full green gate claim. See [the harness outcome](docs/iofix3/harness-selftest.json).
+
+**NOT RUN:** merit throughput cells, ABBA/NIC performance and full
+`tests/gate.sh iteration`, because those remain maintainer-owned. The broad
+POST2 matrix is not repeated on POST4/POST8; those build-time variants run all
+WB4.1/live-writeback legs and identity checks as stated above. Their full
+post-selection gate remains with the maintainer. All five release arms and
+the exact 20-cell merit request are ready; no multiplier is nominated from
+these diagnostic event counts.
+
+Final gate-ledger archive, final freshness and clean-worktree confirmation are
+pending the epoll differential completion.
