@@ -126,29 +126,30 @@ def fliplisten_inventory(binary, namespaces):
                 f'missing fliplisten parser body: {namespace}: {name}'
 
 
-def execfair_inventory(binary, namespaces, *, latencyfix=False):
+def execfair_inventory(binary, namespaces, *, latencyfix=False, execindex=False):
     """Exactly three owner-local promotion callbacks, plus two with LAT-HIST-1.
 
     They are ordinary execute callbacks, not armed R7-only bodies. Keep each
     physical body in the strict byte comparison and reject a missing clone.
     """
     for namespace in namespaces:
+        node = namespace + ('::MultiOwnerRetryNode&' if execindex else '::Task const&')
         expected = {
             f'{namespace}::ExLoopT<{fused}>::execute<false, {no_evict}>'
-            f'({namespace}::Task const&)::{{lambda(void*, {namespace}::Task const&)#1}}'
-            f'::_FUN(void*, {namespace}::Task const&)'
+            f'({namespace}::Task const&)::{{lambda(void*, {node})#1}}'
+            f'::_FUN(void*, {node})'
             for fused, no_evict in (('false', 'false'), ('true', 'false'), ('true', 'true'))
         }
         if latencyfix:
             expected |= {
                 f'{namespace}::ExLoopT<true>::execute<true, {no_evict}>'
-                f'({namespace}::Task const&)::{{lambda(void*, {namespace}::Task const&)#1}}'
-                f'::_FUN(void*, {namespace}::Task const&)'
+                f'({namespace}::Task const&)::{{lambda(void*, {node})#1}}'
+                f'::_FUN(void*, {node})'
                 for no_evict in ('false', 'true')
             }
         found = {name for name in binary.groups
                  if name.startswith(namespace + '::ExLoopT<') and '::execute<' in name
-                 and '::{lambda(void*, ' + namespace + '::Task const&)#1}::_FUN(' in name}
+                 and '::{lambda(void*, ' + node + ')#1}::_FUN(' in name}
         assert found == expected and all(len(binary.groups[name]) == 1 for name in expected), \
             f'missing execfair promotion callback: {namespace}: expected={expected}, found={found}'
 
@@ -185,12 +186,25 @@ def latencyfix_inventory(binary):
     return Counter({'tomo': 164, 'tomo_db0': 162})
 
 
+def wave8_inventory(binary):
+    """Latencyfix's 326 bodies with ten execindex callback signature changes.
+
+    The explicit manifest is derived from the frozen latencyfix inventory by
+    replacing only promotion callback arguments; no body or clone is dropped.
+    """
+    path = Path(__file__).resolve().parents[1] / 'docs/wave8/reorder-inventory.json'
+    expected = json.loads(path.read_text())
+    actual = {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
+    assert actual == expected, 'wave8 named inventory differs'
+    return Counter({'tomo': 164, 'tomo_db0': 162})
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5', 'execfair', 'wave6', 'latencyfix', 'wave8'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -268,6 +282,8 @@ if __name__ == '__main__':
         expected['tomo'] += 1
     if args.inventory == 'latencyfix':
         for binary in (pre, post): expected = latencyfix_inventory(binary)
+    if args.inventory == 'wave8':
+        for binary in (pre, post): expected = wave8_inventory(binary)
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

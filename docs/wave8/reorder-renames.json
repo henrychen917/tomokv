@@ -1,0 +1,52 @@
+[
+  {
+    "old": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "new": "tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "new": "tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "new": "tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "new": "tomo::ExLoopT<true>::execute<true, false>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)::{lambda(void*, tomo::Task const&)#1}::_FUN(void*, tomo::Task const&)",
+    "new": "tomo::ExLoopT<true>::execute<true, true>(tomo::Task const&)::{lambda(void*, tomo::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "new": "tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "new": "tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "new": "tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "new": "tomo_db0::ExLoopT<true>::execute<true, false>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+    "copies": 1
+  },
+  {
+    "old": "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::Task const&)#1}::_FUN(void*, tomo_db0::Task const&)",
+    "new": "tomo_db0::ExLoopT<true>::execute<true, true>(tomo_db0::Task const&)::{lambda(void*, tomo_db0::MultiOwnerRetryNode&)#1}::_FUN(void*, tomo_db0::MultiOwnerRetryNode&)",
+    "copies": 1
+  }
+]
