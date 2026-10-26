@@ -15,12 +15,15 @@ STEP is one of
   {"sleep": 0.2}
   {"c": "a", "close": true}
 Optional per step: "compare": false excludes a volatile reply (timestamps, ids)
-from the verdict; it is still recorded.
+from the verdict; it is still recorded. "normalize": [[REGEX, REPLACEMENT], ...]
+rewrites every string in the reply before comparison (for example keeping only one
+INFO field); the untouched reply is kept as "raw_reply".
 """
 import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import signal
@@ -128,6 +131,18 @@ class Client:
             pass
 
 
+def normalize(value, rules):
+    if isinstance(value, str):
+        for pattern, replacement in rules:
+            value = re.sub(pattern, replacement, value)
+        return value
+    if isinstance(value, list):
+        return [normalize(v, rules) for v in value]
+    if isinstance(value, dict):
+        return {k: normalize(v, rules) for k, v in value.items()}
+    return value
+
+
 def boot(mode, binary, port, cores, ratio, extra, folder):
     folder.mkdir(parents=True, exist_ok=True)
     command = ['taskset', '-c', cores, str(binary), '--port', str(port), '--bind', '127.0.0.1',
@@ -195,6 +210,9 @@ def play(case, mode, binary, options, folder):
                         row['reply'] = client.read(step.get('timeout', 2.0))
                     except Timeout:
                         row['reply'] = 'TIMEOUT'
+                    if step.get('normalize'):
+                        row['raw_reply'] = row['reply']
+                        row['reply'] = normalize(row['reply'], step['normalize'])
             except (EOFError, OSError) as error:
                 row['reply'] = {'connection_error': str(error)}
             transcript.append(row)

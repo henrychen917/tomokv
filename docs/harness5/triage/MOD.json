@@ -1,0 +1,906 @@
+{
+ "group": "MOD",
+ "tests": [
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test existing users to have access to module commands loaded on runtime",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test existing users without permissions, do not have access to module commands loaded on runtime.",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test users without permissions, do not have access to module commands.",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (Command 'aclcheck.module.command.aclcategories.write' not found). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test if foocategory acl categories is added",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (ACL SETUSER modifier '+@foocategory'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test permission compaction and simplification for categories added by a module",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (ACL SETUSER modifier '+@foocategory'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/aclcheck",
+   "test": "test module load fails if exceeds the maximum number of adding acl categories",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis passes it only because it can load the module.",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/async_rm_call",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/auth",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/basics",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/blockedclient",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/blockonbackground",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/blockonkeys",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/cluster",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'cluster-enabled'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/cmdintrospection",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/commandfilter",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/commandfilter",
+   "test": "RM_CommandFilterArgInsert and script argv caching",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/commandfilter",
+   "test": "Blocking Commands don't run through command filter when reprocessed",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/commandfilter",
+   "test": "Filtering based on client id",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/crash",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/datatype",
+   "test": "DataType: test loadex with invalid config",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis passes it only because it can load the module.",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/datatype",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/datatype2",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/defrag",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'save \"\"'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/eventloop",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/fork",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/getchannels",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/getkeys",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/hash",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/hooks",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/infotest",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/infra",
+   "test": "modules config rewrite",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/keyspace_events",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/keyspecs",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/list",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/mallocsize",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/misc",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/moduleauth",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/moduleconfigs",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/postnotifications",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Modules can propagate in async and threaded contexts",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Modules RM_Replicate replicates MULTI/EXEC correctly: AOF-load type debug_cmd",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Modules RM_Call does not update stats during aof load: AOF-load type debug_cmd",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Modules RM_Replicate replicates MULTI/EXEC correctly: AOF-load type startup",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Modules RM_Call does not update stats during aof load: AOF-load type startup",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/propagate",
+   "test": "Replicas that was marked as CLIENT_CLOSE_ASAP should not keep the replication backlog from been trimmed",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/publish",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/rdbloadsave",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/reply",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/scan",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/stream",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/subcommands",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/test_lazyfree",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "modules are able to persist types",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "modules global are lost without aux",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "aux that saves no data are not saved to the rdb when aux_save2 is used",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "aux that saves no data are saved to the rdb when aux_save is used",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "modules are able to persist globals before and after",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "modules are able to persist globals just after",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "Verify module options info",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/testrdb",
+   "test": "diskless loading short read with module",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (CONFIG SET - 'loadmodule'). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/timer",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/usercall",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/moduleapi/zset",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "1s",
+    "2s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Module API test: TomoKV deliberately has no MODULE command or module loading (unknown command 'module', with args beginning with: 'l). Redis 7.4.10 fails it too here (the upstream test modules are not built).",
+   "class": "unsupported by design"
+  }
+ ],
+ "roots": [],
+ "notes": "All failures are module-API tests; on this Redis build the test modules (tests/modules/*.so) are not compiled, so Redis fails most of them as well.",
+ "merged_root_ids": {
+  "MOD:MODULES": "UNSUP-MODULE"
+ }
+}
