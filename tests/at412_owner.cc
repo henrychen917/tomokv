@@ -220,6 +220,51 @@ void lane_close(Server& server) {
 }
 }
 
+// Found by T6 (atomic 0): an optimistic script whose APPLY failed on one owner keeps its undecided
+// candidate on the other owner until its coordinator cancels the epoch. A touch (txn_group_touch,
+// multi_touch_key) that read the aborted flag as false, then reached multi_cancel_record after the
+// flag flipped, used to leave the epoch at 0 and count an OrderViolation for a dead candidate.
+void aborted_candidate(Server& server) {
+    const auto x = key_on(server, 0, "at412-abort-x"), y = key_on(server, 1, "at412-abort-y");
+    require(local(server, {"SET", x, "B"}) == "+OK\r\n" && local(server, {"SET", y, "B"}) == "+OK\r\n",
+            "seed both APPLY owners");
+    ScatterRun run(server, {"EVAL", "redis.call('SET',KEYS[2],'T'); return redis.call('SET',KEYS[1],'S')",
+                            "2", x, y});
+    run.phase(ScriptPhase::Pin);
+    run.state->script_cut = server.atomic_snapshot();
+    run.phase(ScriptPhase::Read); run.phase(ScriptPhase::Run);
+    require(server.script_try_certification(), "script certification");
+    run.state->script_certifier = true;
+    run.state->script_ticket = server.atomic_commit_reserve();
+    run.state->script_ticket_live = true;
+    run.phase(ScriptPhase::Validate);
+    require(!run.state->script_conflict.load(), "validation succeeded");
+    run.state->script_apply_after_unpin = true;
+    run.phase(ScriptPhase::Unpin);
+    run.state->script_phase = ScriptPhase::Apply; run.state->phase = 2;
+    const auto count = script_select_positions(*run.state, ScriptPhase::Apply);
+    reset_groups(*run.state); build_groups(*run.state, run.state->hop2, count);
+    initialize_owner_completion(*run.state);
+    require(xshard_execute(Task{&run.client, 0, 0, run.state}, server.shard(0), run.request.op,
+            server.worker_of_shard(0)) == ScatterTaskResult::Complete, "first APPLY installed");
+    require(!run.state->epoch.load(), "first owner's candidate is undecided");
+    run.state->aborted.store(true);  // the second owner's APPLY failed; no coordinator yet
+    unsigned visited = 0;
+    server.shard(0).store().atomic_visit_unit_records(FlatStore::hash_key(slice(x)), slice(x), false,
+        [&](AtomicEntry& entry) {
+            if (entry.group != run.state) return;
+            ++visited;
+            multi_cancel_record(entry);  // what a racing touch calls after its own aborted test
+        });
+    require(visited == 1, "the aborted candidate is visible to a touch");
+    require(run.state->epoch.load() == kAtomicCancelledEpoch,
+            "aborted candidate's cancellation published (no spurious OrderViolation)");
+    require(!run.state->script_conflict.load(), "the recorded abort reason is kept");
+    server.atomic_commit_publish(); run.state->script_ticket_live = false;
+    server.script_finish_certification(); run.state->script_certifier = false;
+    std::puts("aborted optimistic candidate: cancellation published PASS");
+}
+
 int main(int argc, char** argv) {
     static_assert(sizeof(ScatterState) == 896, "AT4.12 uses existing padding only");
     require(command_registry_init(false), "command registry");
@@ -232,6 +277,7 @@ int main(int argc, char** argv) {
     command_bind_server(&server);
     for (bool bad : {true, false}) { clock_cycle(server,bad); ticket_cycle(server,bad); final_window(server,bad); }
     wound_window(server);
+    aborted_candidate(server);
     lane_close(server);
     const auto a = queue_visits(server,16), b = queue_visits(server,128);
     require(a && b*10 <= a*12, "128/16 waiter placement visits <= 1.2");

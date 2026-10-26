@@ -310,8 +310,18 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
         if (!self) txn_group_cancel(script, shard);
         return;
     }
-    if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
+    if (script.kind != Kind::Script) return;
     uint64_t undecided = 0;
+    if (script.aborted.load(std::memory_order_acquire)) {
+        // An aborted activation never commits, but its coordinator may not have cancelled its
+        // epoch yet. Publish the cancellation here, keeping the recorded reason (an OOM stays an
+        // OOM), so callers that re-read the epoch (txn_group_touch, multi_touch_key) see a dead
+        // candidate instead of counting a spurious OrderViolation. AT4.12 escalated scripts
+        // touch such candidates routinely; the coordinator's own later CAS becomes a no-op.
+        script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel);
+        return;
+    }
     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
                                             std::memory_order_acq_rel)) {
         script.script_conflict.store(true, std::memory_order_release);

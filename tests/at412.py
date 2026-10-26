@@ -702,6 +702,11 @@ def episode(c, port, keys, call, oracle, disconnect=False):
             old.send(*call)
             wait(lambda: stats(c)['script_escalations'] > base['script_escalations'],
                  'E_old did not escalate at its APPLY conflict with H')
+            # The counter moves at the EX hand-off; E_old's age is drawn later, on the IO at its
+            # first escalated dispatch (C1). Wait until E_old is placing behind H, so W's stamp is
+            # certainly later than E_old's age (and a disconnect hits a dispatched E).
+            wait(lambda: stats(c)['atomic_txn_place_waits'] > base['atomic_txn_place_waits'],
+                 'E_old never placed behind H')
             if disconnect:
                 old.close()
             else:
@@ -775,7 +780,14 @@ def errors(c, port, keys, command, oracle):
                 c.must('CONFIG', 'SET', 'maxmemory', 1)
                 oom = script.read()
                 after = stats(c)
-                assert after['script_escalations'] == before['script_escalations']+1, 'OOM case did not escalate'
+                # A function checks maxmemory itself when its SET runs (FunctionMemoryScope::admit
+                # on the real owner), i.e. in the optimistic RUN, before any conflict is detected:
+                # its OOM is final without escalation. EVAL/EVALSHA write on the workbench and meet
+                # maxmemory only at APPLY admission, so they escalate first and the ESCALATED
+                # attempt answers OOM.
+                expected = 0 if command == 'FCALL' else 1
+                assert after['script_escalations'] == before['script_escalations']+expected, (
+                    'OOM case escalations', expected, after['script_escalations']-before['script_escalations'])
                 assert after['script_escalated_commits'] == before['script_escalated_commits'], 'OOM escalated script committed'
         finally:
             c.must('CONFIG', 'SET', 'maxmemory', 0)
