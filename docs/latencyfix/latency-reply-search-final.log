@@ -1,0 +1,43 @@
+tests/arity.py:94:    ("LATENCY HISTORY below", ["LATENCY", "HISTORY"], wrong("latency|history")),
+tests/arity.py:95:    ("LATENCY HISTORY above", ["LATENCY", "HISTORY", "command", "x"],
+tests/arity.py:96:     wrong("latency|history")),
+tests/arity.py:100:    ("LATENCY LATEST above", ["LATENCY", "LATEST", "x"], wrong("latency|latest")),
+tests/arity.py:140:    ("LATENCY", ["LATENCY", "RESET"]),
+tests/cmdmeta.py:28:function|stats latency|doctor latency|graph latency|help latency|histogram latency|history
+tests/cmdmeta.py:29:latency|latest latency|reset memory|doctor memory|help memory|malloc-stats memory|purge
+tests/r7shadow_pad.py:43:    assert elf.sections == control.sections and elf.symbols == control.symbols
+tests/abba_experiments.py:15:The rate window is central WINDOW seconds; memtier latency histograms cover
+tests/abba_experiments.py:454:        print("\n| Block | Latency metric | Histogram/run window | A/B ms | Delta % | Spread A/B % |")
+tests/infofields_test.py:61:        self.assertEqual(set(differ.infofields_sections(raw)), {b"Server", b"Cluster"})
+tests/at15.py:81:            assert sections == {b'# Server'} and b'redis_version:' in body
+tests/at15.py:83:            assert sections == {b'# Keyspace'}
+tests/at15.py:85:            assert sections == {b'# Server', b'# Keyspace'}
+tests/latencyfix.py:60:    c.sock.sendall(encode('LATENCY', 'HISTOGRAM', *names))
+tests/latencyfix.py:85:    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+tests/latencyfix.py:178:                assert {'get', 'set', 'incr', 'latency|histogram', 'client|id'} <= set(all_rows), all_rows
+tests/latencyfix.py:189:                c.cmd('LATENCY', 'RESET')
+tests/dispatch_children.py:56:                ('GET', 'allowed:key'), ('LATENCY', 'HISTOGRAM', 'NOSUCHCOMMAND'),
+tests/dispatch_children.py:57:                ('LATENCY', 'HISTOGRAM', 'NOSUCHCOMMAND', 'ANOTHER'),
+tests/dispatch_children.py:68:            for argv in [('CONFIG', 'SET', 'latency-tracking', 'no'), ('CONFIG', 'RESETSTAT')]:
+tests/dispatch_children.py:77:                for argv in [('LATENCY', 'HISTOGRAM'), ('LATENCY', 'HISTOGRAM', 'GET'),
+tests/dispatch_children.py:78:                             ('LATENCY', 'HISTOGRAM', 'ping', 'config|get', 'NOSUCHCOMMAND')]:
+tests/gate.sh:3205:  local label="latencyfix LAT-HIST-1 histogram and latencystats"
+tests/slowlog.py:260:    c.cmd("LATENCY", "RESET")
+tests/slowlog.py:266:    check("monitor off LATEST empty", c.cmd("LATENCY", "LATEST"), [])
+tests/slowlog.py:275:    latest = c.cmd("LATENCY", "LATEST")
+tests/slowlog.py:278:    check("LATEST latency is ~50ms", latest[0][2], lambda v: 40 <= v < 400)
+tests/slowlog.py:280:    history = c.cmd("LATENCY", "HISTORY", "command")
+tests/slowlog.py:282:    check("HISTORY of unknown event is empty", c.cmd("LATENCY", "HISTORY", "nosuch"), [])
+tests/slowlog.py:288:    check("RESET named event", c.cmd("LATENCY", "RESET", "command"), 1)
+tests/slowlog.py:289:    check("RESET cleared it", c.cmd("LATENCY", "LATEST"), [])
+tests/slowlog.py:290:    check("RESET of nothing", c.cmd("LATENCY", "RESET"), 0)
+tests/rlfix3_info.py:19:DEFAULT = set(SECTIONS) - {"commandstats", "lb"}
+tests/rlfix3_info.py:60:                    if name in ("all", "everything"): selected |= set(SECTIONS)
+tests/replyschema.py:1126:add("latency|histogram", "LATENCY", "HISTOGRAM", "GET")
+tests/replyschema.py:1127:add("latency|history", "LATENCY", "HISTORY", "replyschema-event")
+tests/replyschema.py:1128:add("latency|latest", "LATENCY", "LATEST")
+tests/replyschema.py:1129:add("latency|reset", "LATENCY", "RESET", "replyschema-event")
+tests/differ.py:2499:        ["LATENCY", "HISTORY"], ["LATENCY", "HISTORY", "command", "x"],
+tests/differ.py:2501:        ["LATENCY", "DOCTOR", "x"], ["LATENCY", "LATEST", "x"],
+tests/differ.py:5589:function|stats latency|doctor latency|graph latency|help latency|histogram latency|history
+tests/differ.py:5590:latency|latest latency|reset memory|doctor memory|help memory|malloc-stats memory|purge

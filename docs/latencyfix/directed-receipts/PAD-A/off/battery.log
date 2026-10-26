@@ -1,0 +1,53 @@
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+FAIL 1s-uring tracking really off []
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 372, in off_allocations
+    assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+FAIL 1s-uring complete battery False
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+FAIL 1s-epoll tracking really off []
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 372, in off_allocations
+    assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+FAIL 1s-epoll complete battery False
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+FAIL 2s-uring tracking really off []
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 372, in off_allocations
+    assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+FAIL 2s-uring complete battery False
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+FAIL 2s-epoll tracking really off []
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 372, in off_allocations
+    assert c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes') == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+FAIL 2s-epoll complete battery False
+LAT-HIST-1 off: 8 failed checks; /home/user/Projects/cx-latencyfix/build/gate-run.24WijA/jobs/latencyfix_off/latencyfix-off

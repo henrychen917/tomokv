@@ -1,0 +1,10 @@
+PARTIAL	0	GATE_ONLY_JOBS=bugs5 authfix; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	44.730000	bugs5 scancompact (both modes, both engines, atomic 0/1)
+ok	33.720000	bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+ok	27.100000	bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+ok	0.900000	authfix CG4.1 binary config requirepass
+ok	3.440000	authfix CG4.2 missing config value refuses boot
+ok	0.910000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.300000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.290000	authfix SV4.1 slowlog credential redaction (2s)

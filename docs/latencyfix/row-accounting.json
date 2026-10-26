@@ -1,0 +1,27 @@
+{
+  "before": {
+    "EXPECT_QUICK": "798",
+    "EXPECT_FULL": "815                 # ABBA reports only; self-test remains counted."
+  },
+  "after": {
+    "EXPECT_QUICK": "798",
+    "EXPECT_FULL": "815                 # ABBA reports only; self-test remains counted."
+  },
+  "collector_lines": [
+    5552,
+    5553,
+    5554
+  ],
+  "quick_tier_conditions": [
+    [
+      5642,
+      "if [ \"$TIER\" = quick ]; then"
+    ]
+  ],
+  "DQ": 3,
+  "DF": 3,
+  "owner_counts": {
+    "EXPECT_QUICK": 801,
+    "EXPECT_FULL": 818
+  }
+}

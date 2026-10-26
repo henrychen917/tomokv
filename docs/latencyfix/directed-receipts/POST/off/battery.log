@@ -1,0 +1,17 @@
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc: In function 'void trace(char, void*, size_t)':
+/home/user/Projects/cx-latencyfix/tests/serverfix_alloc.cc:36:31: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   36 |     if (fd >= 0) { (void)write(fd, record, used); close(fd); }
+      |                          ~~~~~^~~~~~~~~~~~~~~~~~
+LAT-HIST-1 off: 0 failed checks; /home/user/Projects/cx-latencyfix/build/gate-run.8lSZGN/jobs/latencyfix_off/latencyfix-off

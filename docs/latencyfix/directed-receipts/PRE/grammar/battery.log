@@ -1,0 +1,189 @@
+FAIL 1s-uring explicit default deviation []
+FAIL 1s-uring percentiles default []
+FAIL latency-tracking:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking-info-percentiles:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:10 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:11 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:12 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:13 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:14 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:15 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:16 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 168, in grammar
+    with Server(run, label + f'-file-{index}-{restart}', mode, conf=conf, extra=extra) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_grammar/latencyfix-grammar/candidate/1s-uring-file-0.conf:2: wrong number of arguments
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 1s-uring complete battery False
+FAIL 1s-epoll explicit default deviation []
+FAIL 1s-epoll percentiles default []
+FAIL latency-tracking:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking-info-percentiles:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:10 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:11 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:12 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:13 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:14 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:15 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:16 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 168, in grammar
+    with Server(run, label + f'-file-{index}-{restart}', mode, conf=conf, extra=extra) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_grammar/latencyfix-grammar/candidate/1s-epoll-file-0.conf:2: wrong number of arguments
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 1s-epoll complete battery False
+FAIL 2s-uring explicit default deviation []
+FAIL 2s-uring percentiles default []
+FAIL latency-tracking:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking-info-percentiles:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:10 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:11 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:12 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:13 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:14 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:15 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:16 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 168, in grammar
+    with Server(run, label + f'-file-{index}-{restart}', mode, conf=conf, extra=extra) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_grammar/latencyfix-grammar/candidate/2s-uring-file-0.conf:2: wrong number of arguments
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 2s-uring complete battery False
+FAIL 2s-epoll explicit default deviation []
+FAIL 2s-epoll percentiles default []
+FAIL latency-tracking:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}, []]
+FAIL latency-tracking-info-percentiles:0 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:1 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:2 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:3 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:4 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:5 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:6 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:7 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:8 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:9 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:10 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:11 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:12 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:13 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:14 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:15 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL latency-tracking-info-percentiles:16 [{'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}, []]
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'LATENCY-TRACKING-INFO-PERCENTILES', '2') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking-info-percentiles', '1', 'timeout', 'bad') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking-info-percentiles'"}
+FAIL ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x') {'error': "ERR Unknown option or number of arguments for CONFIG SET - 'latency-tracking'"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 168, in grammar
+    with Server(run, label + f'-file-{index}-{restart}', mode, conf=conf, extra=extra) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_grammar/latencyfix-grammar/candidate/2s-epoll-file-0.conf:2: wrong number of arguments
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 2s-epoll complete battery False
+LAT-HIST-1 grammar: 132 failed checks; /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_grammar/latencyfix-grammar

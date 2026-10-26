@@ -1,0 +1,61 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 181, in shape
+    with Server(run, label, mode, extra=extra + ['--latency-tracking', 'yes']) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: unknown argument '--latency-tracking' (see --help)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 1s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 181, in shape
+    with Server(run, label, mode, extra=extra + ['--latency-tracking', 'yes']) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: unknown argument '--latency-tracking' (see --help)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 1s-epoll complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 181, in shape
+    with Server(run, label, mode, extra=extra + ['--latency-tracking', 'yes']) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: unknown argument '--latency-tracking' (see --help)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 2s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 431, in main
+    probe(run, mode, label, extra)
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 181, in shape
+    with Server(run, label, mode, extra=extra + ['--latency-tracking', 'yes']) as server:
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 38, in __enter__
+    return self.server.__enter__()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/authfix.py", line 118, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: unknown argument '--latency-tracking' (see --help)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+
+FAIL 2s-epoll complete battery False
+LAT-HIST-1 shape: 4 failed checks; /home/user/Projects/cx-latencyfix/build/gate-run.vM5F74/jobs/latencyfix_shape/latencyfix-shape

@@ -1,0 +1,27 @@
+{
+  "binary": "/home/user/Projects/cx-latencyfix/build/latencyfix/pre/tomokv",
+  "sha256": "5e708c7aa744e251f1c1005a06f03f1815c08c97cd965c1a95ad650844e4ea68",
+  "checks": [
+    {
+      "label": "1s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    }
+  ],
+  "slowlog": {}
+}

@@ -242,5 +242,7 @@
       "delta": -284,
       "per_op_delta": -8.875
     }
-  ]
+  ],
+  "namespace": "tomo (normal database runtime); both executor thread modes",
+  "comparison": "POST median is no greater than PRE median in each of 24 scopes; this is not an all-command opcode-absence proof."
 }
