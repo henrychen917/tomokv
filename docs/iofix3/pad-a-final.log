@@ -1,0 +1,15 @@
+readelf: Warning: Corrupt file name list
+{
+  "kind": "A: PRE deferred-work behaviour with exact POST ELF/text layout",
+  "scope": "WB4.1 is the only production behaviour changed from 3700b51d7",
+  "limitation": "POST grace bookkeeping remains but cannot trigger a pending-FIFO park; no other feature differs",
+  "pre_sha256": "661117595196c46fc72d9c613b10d60b96336b6fe1cc65c56b7d32477cb42193",
+  "post_sha256": "dd1699ed4dc953cac8f24e9d47c8c5e43ef4b280e158f278c496c5193ab871d4",
+  "pad_sha256": "3895bc786a8029bae7eaebc7cbad437cc00108f6e3d894477578964c4dd40ab4",
+  "post_text_bytes": 8286743,
+  "pad_text_bytes": 8286743,
+  "all_sections_and_symbol_addresses_sizes_equal": true,
+  "bytes_changed": 312,
+  "functions_patched": 104,
+  "baseline": "3700b51d7fb3074f32330dd81f138efbf1ddd980"
+}

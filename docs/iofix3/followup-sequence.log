@@ -1,0 +1,10 @@
+START pad-a-idle-rerun
+END pad-a-idle-rerun 1
+START post4-wb-epoll
+END post4-wb-epoll 1
+START post8-wb-epoll
+END post8-wb-epoll 1
+START post2-fused-aof
+END post2-fused-aof 1
+FRESHNESS 46 46
+COMPLETE followup validation; inspect every exit and ledger

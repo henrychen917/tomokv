@@ -1,0 +1,151 @@
+{"bound_only_ports": [48830, 48831, 48832], "command": ["tests/gate.sh", "full", "--server-cores", "64-71", "--load-cores", "72-79", "--load-smt", "", "--ports", "48830-48832", "--candidate-binary", "/home/user/Projects/cx-iofix3/build/tomokv-iofix3-post2"]}
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-iofix3/build/gate-run.XLzQa8
+PARTIAL jobs (including prerequisites): release production_units iofix-deferred iofix-sleep iofix-signal wb_policy reorder_engagement reorder_identity climonfix wb_rule_units wbland_units splitlocal_units atomic_units release_batteries auth flip
+PARTIAL jobs (including prerequisites): release production_units iofix-deferred iofix-sleep iofix-signal wb_policy reorder_engagement reorder_identity climonfix wb_rule_units wbland_units splitlocal_units atomic_units release_batteries auth flip
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=26.89s; correctness-plan-fallback; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok
+  row budget: 900s; median=-s; correctness-plan-fallback; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      ok
+  row budget: 900s; median=-s; correctness-plan-fallback; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; writeback policies 0/1: 22 standard fixtures
+  writeback policies 0/1: 22 standard fixtures         ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 production engagement (both database runtimes)
+  R7 production engagement (both database runtimes)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=6.33s; correctness-plan-fallback; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=2.66s; correctness-plan-fallback; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=7.6s; correctness-plan-fallback; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok
+  row budget: 900s; median=-s; correctness-plan-fallback; writeback policy clauses witnesses + negative controls
+  writeback policy clauses witnesses + negative controls ok
+  row budget: 900s; median=2.01s; correctness-plan-fallback; writeback policy paths witnesses + negative controls
+  writeback policy paths witnesses + negative controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic commit publication catches up at quiescence
+  atomic commit publication catches up at quiescence   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix flush witnesses
+  flushfix flush witnesses                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; flushfix headers witnesses
+  flushfix headers witnesses                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb serverless owners
+  multidb serverless owners                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; multidb global namespace boundary
+  multidb global namespace boundary                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; storesize published monitoring
+  storesize published monitoring                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; MULTI admin command replies
+  MULTI admin command replies                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; EXECABORT releases WATCH reservation
+  EXECABORT releases WATCH reservation                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: post_apply_probe
+  atomic survivor: post_apply_probe                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: atomic-growth
+  armed resize retirement: atomic-growth               ok
+  row budget: 900s; median=-s; no-history-conservative-default; armed resize retirement: flush-prepared
+  armed resize retirement: flush-prepared              ok
+  row budget: 900s; median=-s; correctness-plan-fallback; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=-s; correctness-plan-fallback; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=-s; correctness-plan-fallback; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=-s; correctness-plan-fallback; shutdown invariants (nothing stuck)
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=-s; correctness-plan-fallback; direct-reply fired (direct=N)
+  direct-reply fired (direct=11439)                    ok
+  row budget: 900s; median=-s; correctness-plan-fallback; dispatched==executed (N)
+  dispatched==executed (55066)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=-s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=-s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+GATE(PARTIAL): 72 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-iofix3/build/gate-run.XLzQa8/ledger.partial

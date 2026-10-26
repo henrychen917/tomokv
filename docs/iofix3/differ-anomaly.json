@@ -17,5 +17,5 @@
     "src/cmd/t_server.cc:808",
     "tests/differ.py:6227"
   ],
-  "followup": "Queue the entire differ-split-1 gate job, same frozen POST2, epoll, standard permanent+rotating seeds; no suite or seed filters; original failure remains in evidence."
+  "followup": "Entire standard differ-split-1 job passed 239/239 in gate-run.6gP5Ph on the same POST2 SHA. Seeds 7,19,20,23,24. Original failure retained; its cause is not established and no full green initial epoll matrix is claimed."
 }

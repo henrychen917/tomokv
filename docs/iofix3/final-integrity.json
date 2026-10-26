@@ -1,0 +1,8 @@
+{
+  "release_arm_hashes_verified": 5,
+  "ordinary_release_matches_post2": true,
+  "production_make_q_passes": 46,
+  "additional_arm_make_q_passes": 3,
+  "asan_binary": "build/gate-cache/tomokv-asan",
+  "asan_sha256": "e7221bf3474a1191ddc3f5a8bbb6ab2d7386711aed8dc9382fc5fc65313b4765"
+}

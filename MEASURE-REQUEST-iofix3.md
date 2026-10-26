@@ -199,9 +199,18 @@ compared as a valid save result. The unchanged snapshot code also maps
 placement-transition admission to that error, so the cause is not established
 from this log. A real compatibility issue is not ruled out. The original
 [failure](docs/iofix3/psfix-epoll-a1-s20-failure.txt) and
-[investigation](docs/iofix3/differ-anomaly.json) are retained. The remaining
-matrix continues, followed by a complete standard `differ-split-1` rerun.
-Their outcomes will be recorded before delivery; no full epoll pass is claimed.
+[investigation](docs/iofix3/differ-anomaly.json) are retained. All 954 standard
+suite/equivalence legs executed: 953 passed and that one leg failed. Both armed
+partitions and equivalence passed; the gate correctly withheld split-1's
+completion record. [The complete execution inventory](docs/iofix3/differ-epoll-outcome.json)
+records this failure without filtering it out.
+
+A separate full standard `differ-split-1` rerun on the same frozen POST2 passed
+**239/239**, including PSFIX seed 20. Its seeds are **7, 19, 20, 23, 24**;
+no suite/seed filters or test changes were used. See
+[the recheck plan and accepted completion](docs/iofix3/differ-epoll-recheck-complete.json).
+The intermittent failure's cause remains unresolved; the passing rerun does
+not make the original epoll matrix green.
 
 `make all` and every `job_production_units` target built successfully. All
 **46 make -q checks pass**: ordinary release, 42 ordinary unit targets, both
@@ -209,6 +218,11 @@ MDBQSBR live-arm `all` targets with their exact flags, and blockfix cost/hash
 prerequisites. The aggregate MDBQSBR target is phony, so freshness checks its
 real outputs through those two `all` graphs. See
 [the exact commands and exits](docs/iofix3/production-freshness-final.json).
+Final `make -q all` also passes for PRE, POST4 and POST8 with their own roots
+and flags; all five frozen release SHA-256s were rechecked unchanged, and the
+ordinary `build/tomokv` matches frozen POST2. The ASAN SHA is recorded in
+[final integrity](docs/iofix3/final-integrity.json), with the extra arm checks
+in [arm freshness](docs/iofix3/arm-freshness-final.json).
 `python3 tests/gates_test.py` passed **72/72** through `abba_selftest`.
 
 ### Retained failures and remaining owner work
@@ -245,5 +259,21 @@ post-selection gate remains with the maintainer. All five release arms and
 the exact 20-cell merit request are ready; no multiplier is nominated from
 these diagnostic event counts.
 
-Final gate-ledger archive, final freshness and clean-worktree confirmation are
-pending the epoll differential completion.
+### Evidence and handoff
+
+[The gate-run inventory](docs/iofix3/gate-runs.json) retains all 15 partial run
+ledgers, including expected PRE/PAD failures, initial setup/source-guard
+failures, their reruns, and the PSFIX failure and recheck. The
+[gate evidence archive](docs/iofix3/gate-evidence.tar.gz) contains 8,672 text
+proof files, ledgers, server logs, argv records, comparison coverage and build
+logs. [Its index and SHA-256](docs/iofix3/gate-evidence-index.json) enumerate
+every archived file; there were no oversized proof-file omissions. Executables
+and persistence payloads remain under `build/` rather than in that archive.
+The original orchestration and exact argv/environment records are retained in
+`docs/iofix3/*recipe.py`, `run-status.jsonl`, `matrix-status.jsonl` and
+`differ-recheck-status.json`.
+
+All work is committed on `cx-iofix3`; no push. The assigned listener ports are
+clear after validation. The remaining decision is the maintainer's merit run
+and multiplier selection, with the PSFIX anomaly and required EXPECT updates
+explicitly visible above.
