@@ -5,5 +5,12 @@
     "summary": [
       "GATE(PARTIAL): 31 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-lanes.tsv.partial"
     ]
+  },
+  {
+    "name": "final-tcl",
+    "exit": 0,
+    "summary": [
+      "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/final-tcl.tsv.partial"
+    ]
   }
 ]

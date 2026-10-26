@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=compat2; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	230.780000	Redis 7.4.10 Tcl passing subset (2s)
+ok	233.050000	Redis 7.4.10 Tcl passing subset (1s)
+ok	1.760000	compat2 autharity
+ok	6.770000	compat2 expire_notify
+ok	1.760000	compat2 ktls_lifetime
