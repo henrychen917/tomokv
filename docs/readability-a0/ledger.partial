@@ -1,0 +1,70 @@
+PARTIAL	0	GATE_ONLY_JOBS=source_identity storage_units atomic_units core_units ring_unit config_unit dbdefault boot_grammar aoforder racefix_climon tracking_redirect; NOT A RECEIPT
+ok	4.980000	release build (+footprint locks)
+ok	0.410000	configuration docs match parser
+ok	5.520000	Redis config quoting + mid-value #
+ok	1.110000	read-local write ring + arming transient unit
+ok	0.170000	climon 128-owner delivery mask
+ok	0.940000	read-local MGET fence symmetry unit
+ok	0.000000	storage unlinked regression
+ok	0.000000	storage randomkey regression
+ok	0.000000	storage rehash regression
+ok	0.010000	storage rollback regression
+ok	0.000000	storage snapshot-eviction regression
+ok	0.070000	storage flags regression
+ok	0.000000	storage aof-eviction regression
+ok	0.000000	storage intents regression
+ok	0.010000	storage imported-hash regression
+ok	0.000000	storage field-index-failure regression
+ok	0.000000	storage hash-bytes regression
+ok	0.000000	storage deadline-allocation-failure regression
+ok	0.000000	storage flush-prepared-capacity regression
+ok	82.810000	production source identity + stable assertion ids
+ok	0.110000	core concurrency watch
+ok	0.310000	core concurrency lifetime
+ok	0.100000	core concurrency drain
+ok	7.210000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.590000	read-local topology demotion (2s)
+ok	1.630000	Climon armed refresh + stale-store suppression control
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.320000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.510000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	12.140000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.000000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	0.010000	reject --mode (flag deleted)
+ok	0.010000	reject --spread
+ok	0.010000	reject --nodes
+ok	0.010000	reject 3-part ratio
+ok	0.000000	reject missing conf
+ok	0.010000	reject bad conf key
+ok	0.010000	reject aclfile + conf user lines
+ok	0.190000	Redis default databases 16 (both modes)
+ok	37.250000	tracking REDIRECT close vs Redis 7.4
+ok	9.790000	AOF commit order single
+ok	4.360000	AOF commit order crossing
+ok	4.520000	AOF commit order rewrite

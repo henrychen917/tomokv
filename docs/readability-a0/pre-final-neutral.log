@@ -1,0 +1,6 @@
+DIFFERENT: per-section comparison (name size md5 A | size md5 B)
+  .data 19264 335de86773f3 19264 ee22f7ff1e16
+  .data.rel.ro 65680 2a9f2142c628 65680 2c486e47e8a4
+  .rela.dyn 87528 b8a18ad9516a 87528 dd5315bc4646
+  .rodata 164737 a74bcb3a5406 164737 928198df238d
+  .text 8279287 c404dfe0988f 8279287 e4ca4a0d3733

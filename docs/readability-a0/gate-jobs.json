@@ -1,0 +1,77 @@
+{
+  "run_directory": "build/gate-run.3Ydk6c",
+  "jobs": {
+    "aoforder": {
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    "atomic_units": {
+      "returncode": 0,
+      "passed": 27,
+      "failed": 0
+    },
+    "boot_grammar": {
+      "returncode": 0,
+      "passed": 7,
+      "failed": 0
+    },
+    "config_unit": {
+      "returncode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    "core_tsan_build": {
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    "core_units": {
+      "returncode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    "dbdefault": {
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    "production_units": {
+      "returncode": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    "racefix_climon": {
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    "release": {
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    "ring_unit": {
+      "returncode": 0,
+      "passed": 3,
+      "failed": 0
+    },
+    "source_identity": {
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    },
+    "storage_units": {
+      "returncode": 0,
+      "passed": 13,
+      "failed": 0
+    },
+    "tracking_redirect": {
+      "returncode": 0,
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "passed": 69,
+  "failed": 0
+}

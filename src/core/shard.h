@@ -25,7 +25,7 @@
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -64,7 +64,7 @@ public:
 
     void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
               const TypeLimits& type_limits, const StreamLimits& stream_limits) {
-        assert(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
+        TOMO_ASSERT(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
         server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;

@@ -1,0 +1,11 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE assertion diagnostics at POST code and data layout",
+  "failure_blocks": 41,
+  "diagnostic_strings": 18,
+  "diagnostic_bytes": 1089,
+  "pad_capacity": 1152,
+  "layout_identical": true,
+  "post_sha256": "423ba683d71492ab638d325ae6ea95069678716beb799fec826f7f7b1dcd8144",
+  "pad_sha256": "a9b260abd30dc04d11c1645d64b830d68890c66baba3a57374127557be382b83"
+}
