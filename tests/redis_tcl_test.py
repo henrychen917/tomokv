@@ -79,6 +79,8 @@ class Controls(unittest.TestCase):
                 'skip hides a required pass': lambda m: spec(m)['skip_tests'].update(a='hidden'),
                 'no required pass': lambda m: spec(m).update(passed_tests=[]),
                 'selection argument': lambda m: spec(m).update(extra_args=['--only', 'a']),
+                'arbitrary server option': lambda m: spec(m).update(server_args=['--port', '1']),
+                'tracking setup on another file': lambda m: spec(m).update(server_args=['--latency-tracking', 'yes']),
                 'odd argument list': lambda m: spec(m).update(extra_args=['--tags']),
                 'malformed setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='', reply='x', count=1)]),
                 'zero-count setup error': lambda m: spec(m).update(known_setup_errors=[dict(command='c', reply='x', count=0)]),
@@ -88,6 +90,23 @@ class Controls(unittest.TestCase):
                 path.write_text(json.dumps(bad))
                 with self.subTest(name=name), self.assertRaises(ValueError):
                     load_manifest(path, root, inventory)
+
+    def test_histogram_setup_only_enables_the_explicit_feature(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            root = Path(directory)
+            path = root / 'manifest.json'
+            good = dict(support={}, files={'unit/latency-monitor': dict(
+                sha256='bound', passed_tests=['histogram'], skip_tests={},
+                server_args=['--latency-tracking', 'yes'])})
+            path.write_text(json.dumps(good))
+            load_manifest(path, root, {'unit/latency-monitor': 'bound'})
+            for args in (['--latency-tracking', 'no'], ['--latency-tracking'],
+                         ['--latency-tracking', 'yes', '--port', '1']):
+                bad = copy.deepcopy(good)
+                bad['files']['unit/latency-monitor']['server_args'] = args
+                path.write_text(json.dumps(bad))
+                with self.assertRaises(ValueError):
+                    load_manifest(path, root, {'unit/latency-monitor': 'bound'})
 
     def test_failed_or_missing_private_job_turns_existing_compatibility_row_red(self):
         gate = (ROOT / 'tests/gate.sh').read_text()

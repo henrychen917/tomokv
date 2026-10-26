@@ -3058,6 +3058,7 @@ job_execfair(){
           --output "$log.json" >"$log.log" 2>&1 || passed=0
       py tests/wave6_exec.py "$PORT" >"$log-wave6.log" 2>&1 || passed=0
       py tests/wave7.py "$PORT" >"$log-wave7.log" 2>&1 || passed=0
+      py tests/wave8.py "$PORT" >"$log-wave8.log" 2>&1 || passed=0
     else passed=0; fi
     stop
     shutdown_clean || passed=0

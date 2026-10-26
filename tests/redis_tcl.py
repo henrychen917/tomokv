@@ -90,7 +90,7 @@ def counts(observed, unit):
         elif status in ('skip', 'ignore'): result['skipped'] += 1
     return result, complete
 
-def run_file(args, tree, unit, only=None, extra=()):
+def run_file(args, tree, unit, only=None, extra=(), server_args=()):
     folder=args.output/unit
     folder.mkdir(parents=True,exist_ok=True)
     event_path=folder/'events.tsv'
@@ -103,6 +103,7 @@ def run_file(args, tree, unit, only=None, extra=()):
         command+=['--thread-mode',args.mode,'--shards','16','--databases','16']
         if args.mode=='2s': command+=['--ratio', getattr(args, 'ratio', '6:2')]
     else: command+=['--enable-module-command','yes']
+    command += list(server_args)
     client=['taskset','-c',args.cores,'./runtest','--host','127.0.0.1','--port',str(port),
             '--singledb','--clients','1','--baseport',str(args.baseport),'--portcount','1',
             '--single',unit,'--durable','--timeout',str(args.idle_timeout),
@@ -193,6 +194,13 @@ def load_manifest(path, redis_root, inventory):
         required = {name.split(' in tests/')[0] for name in spec['passed_tests']}
         if not spec['passed_tests'] or set(spec.get('skip_tests', ())) & required:
             raise ValueError(f'manifest file has no required pass or skips a required test: {unit}')
+        # The upstream histogram file assumes Redis's default yes. TomoKV's
+        # owner-selected default is no, so this explicit, bound file setup
+        # enables the feature under test without editing upstream assertions.
+        server_args = spec.get('server_args', [])
+        if server_args and (unit != 'unit/latency-monitor' or
+                            server_args != ['--latency-tracking', 'yes']):
+            raise ValueError(f'invalid server arguments: {unit}')
         # Only tag exclusions (file-level setup TomoKV cannot run); never a
         # second selection such as --only/--skipfile that could hide a test.
         extra = spec.get('extra_args', [])
@@ -226,13 +234,15 @@ def main():
     for unit in units:
         path=args.output/unit/'result.json'
         extra=[]
+        server_args=[]
         if args.manifest:
             spec=manifest['files'][unit]
+            server_args=spec.get('server_args', [])
             skipfile=args.output/unit/'skip.txt'; skipfile.parent.mkdir(parents=True,exist_ok=True)
             skipfile.write_text(''.join(name+'\n' for name in sorted(spec.get('skip_tests', ()))), encoding='utf-8')
             extra=['--skipfile',str(skipfile),*spec.get('extra_args',[])]
         if args.resume and path.exists(): row=json.loads(path.read_text())
-        else: row=run_file(args,tree,unit,extra=extra)
+        else: row=run_file(args,tree,unit,extra=extra,server_args=server_args)
         if args.manifest:
             row['skip_tests']=sorted(spec.get('skip_tests', ()))
             row['setup_errors']=[dict(command=c, reply=r, count=n) for (c, r), n in sorted(setup_errors(row).items())]

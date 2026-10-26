@@ -678,6 +678,12 @@
     "LATENCY DOCTOR produces some output in tests/unit/latency-monitor.tcl",
     "LATENCY GRAPH can output the event graph in tests/unit/latency-monitor.tcl",
     "LATENCY HELP should not have unexpected options in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM all commands in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM command in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM sub commands in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM with a subset of commands in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM with empty histogram in tests/unit/latency-monitor.tcl",
+    "LATENCY HISTOGRAM with wrong command name skips the invalid one in tests/unit/latency-monitor.tcl",
     "LATENCY HISTORY / RESET with wrong event name is fine in tests/unit/latency-monitor.tcl",
     "LATENCY HISTORY output is ok in tests/unit/latency-monitor.tcl",
     "LATENCY LATEST output is ok in tests/unit/latency-monitor.tcl",
@@ -690,14 +696,12 @@
    },
    "sha256": "9a037cb9359858b12570c8e8400ddb6fc80a8ab28d0246de20081f80823be9dc",
    "skip_tests": {
-    "LATENCY HISTOGRAM all commands": "failed on TomoKV 2s in the survey",
-    "LATENCY HISTOGRAM command": "failed on TomoKV 2s in the survey",
-    "LATENCY HISTOGRAM sub commands": "failed on TomoKV 2s in the survey",
-    "LATENCY HISTOGRAM with a subset of commands": "failed on TomoKV 2s in the survey",
-    "LATENCY HISTOGRAM with empty histogram": "failed on TomoKV 2s in the survey",
-    "LATENCY HISTOGRAM with wrong command name skips the invalid one": "failed on TomoKV 2s in the survey",
     "LATENCY of expire events are correctly collected": "failed on TomoKV 2s in the survey"
-   }
+   },
+   "server_args": [
+    "--latency-tracking",
+    "yes"
+   ]
   },
   "unit/multi": {
    "extra_args": [],
@@ -1000,6 +1004,9 @@
     "EVAL - Are the KEYS and ARGV arrays populated correctly? in tests/unit/scripting.tcl",
     "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
     "EVAL - Does Lua interpreter replies to our requests? in tests/unit/scripting.tcl",
+    "EVAL - JSON numeric decoding in tests/unit/scripting.tcl",
+    "EVAL - JSON smoke test in tests/unit/scripting.tcl",
+    "EVAL - JSON string decoding in tests/unit/scripting.tcl",
     "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
     "EVAL - Lua error reply -> Redis protocol type conversion in tests/unit/scripting.tcl",
     "EVAL - Lua false boolean -> Redis protocol type conversion in tests/unit/scripting.tcl",
@@ -1026,18 +1033,28 @@
     "EVAL - Return table with a metatable that raise error in tests/unit/scripting.tcl",
     "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
     "EVAL - Test table unpack with invalid indexes in tests/unit/scripting.tcl",
+    "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl",
+    "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl",
+    "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl",
+    "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl",
     "EVALSHA - Do we get an error on invalid SHA1? in tests/unit/scripting.tcl",
     "EVALSHA - Do we get an error on non defined SHA1? in tests/unit/scripting.tcl",
+    "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl",
     "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
     "Globals protection reading an undeclared global variable in tests/unit/scripting.tcl",
     "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
     "Globals protection setting an undeclared global* in tests/unit/scripting.tcl",
     "SCRIPT EXISTS - can detect already defined scripts? in tests/unit/scripting.tcl",
     "SCRIPT LOAD - is able to register scripts in the scripting cache in tests/unit/scripting.tcl",
+    "Try trick readonly table on bit table in tests/unit/scripting.tcl",
+    "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl",
+    "Try trick readonly table on json table in tests/unit/scripting.tcl",
     "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
     "Verify Lua performs GC correctly after script loading in tests/unit/scripting.tcl",
     "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
-    "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl"
+    "Verify negative arg count is error instead of crash (issue #1842) in tests/unit/scripting.tcl",
+    "lua bit.tohex bug in tests/unit/scripting.tcl",
+    "redis.sha1hex() implementation in tests/unit/scripting.tcl"
    ],
    "seconds": {
     "1s": 20.76,
@@ -1050,9 +1067,6 @@
     "Call Redis command with many args from Lua (issue #1764)": "failed on TomoKV 2s in the survey",
     "Consistent eval error reporting": "failed on TomoKV 2s in the survey",
     "Correct handling of reused argv (issue #1939)": "failed on TomoKV 2s in the survey",
-    "EVAL - JSON numeric decoding": "failed on TomoKV 2s in the survey",
-    "EVAL - JSON smoke test": "failed on TomoKV 2s in the survey",
-    "EVAL - JSON string decoding": "failed on TomoKV 2s in the survey",
     "EVAL - Lua number -> Redis integer conversion": "failed on TomoKV 2s in the survey",
     "EVAL - No arguments to redis.call/pcall is considered an error": "failed on TomoKV 2s in the survey",
     "EVAL - Redis bulk -> Lua type conversion": "failed on TomoKV 2s in the survey",
@@ -1073,10 +1087,6 @@
     "EVAL - Scripts do not block on bzpopmin command": "failed on TomoKV 2s in the survey",
     "EVAL - Scripts do not block on wait": "failed on TomoKV 2s in the survey",
     "EVAL - Scripts do not block on waitaof": "failed on TomoKV 2s in the survey",
-    "EVAL - Verify minimal bitop functionality": "failed on TomoKV 2s in the survey",
-    "EVAL - cmsgpack can pack and unpack circular references?": "failed on TomoKV 2s in the survey",
-    "EVAL - cmsgpack can pack double?": "failed on TomoKV 2s in the survey",
-    "EVAL - cmsgpack can pack negative int64?": "failed on TomoKV 2s in the survey",
     "EVAL - cmsgpack pack/unpack smoke test": "failed on TomoKV 2s in the survey",
     "EVAL - explicit error() call handling": "failed on TomoKV 2s in the survey",
     "EVAL - is Lua able to call Redis API?": "failed on TomoKV 2s in the survey",
@@ -1088,7 +1098,6 @@
     "EVAL_RO - Cannot run write commands": "failed on TomoKV 2s in the survey",
     "EVAL_RO - Successful case": "failed on TomoKV 2s in the survey",
     "EXPIRE: We can call scripts rewriting client->argv from Lua": "failed on TomoKV 2s in the survey",
-    "Functions in the Redis namespace are able to report errors": "failed on TomoKV 2s in the survey",
     "INCRBYFLOAT: We can call scripts expanding client->argv from Lua": "failed on TomoKV 2s in the survey",
     "LUA redis.error_reply API": "failed on TomoKV 2s in the survey",
     "LUA redis.error_reply API with CRLF injection attempt": "failed on TomoKV 2s in the survey",
@@ -1134,19 +1143,14 @@
     "Try trick global protection 3": "failed on TomoKV 2s in the survey",
     "Try trick global protection 4": "failed on TomoKV 2s in the survey",
     "Try trick readonly table on basic types metatable": "failed on TomoKV 2s in the survey",
-    "Try trick readonly table on bit table": "failed on TomoKV 2s in the survey",
-    "Try trick readonly table on cmsgpack table": "failed on TomoKV 2s in the survey",
-    "Try trick readonly table on json table": "failed on TomoKV 2s in the survey",
     "Try trick readonly table on redis table": "failed on TomoKV 2s in the survey",
     "Unknown shebang flag": "failed on TomoKV 2s in the survey",
     "Unknown shebang option": "failed on TomoKV 2s in the survey",
     "Verify execution of prohibit dangerous Lua methods will fail": "failed on TomoKV 2s in the survey",
     "allow-oom shebang flag": "failed on TomoKV 2s in the survey",
-    "lua bit.tohex bug": "failed on TomoKV 2s in the survey",
     "no-writes shebang flag": "failed on TomoKV 2s in the survey",
     "not enough good replicas": "failed on TomoKV 2s in the survey",
     "random numbers are random now": "failed on TomoKV 2s in the survey",
-    "redis.sha1hex() implementation": "failed on TomoKV 2s in the survey",
     "reject script do not cause a Lua stack leak": "failed on TomoKV 2s in the survey"
    }
   },
@@ -2531,5 +2535,121 @@
   "tests/support/tmpfile.tcl": "5416b68b9af39f68d3bddce15de975a85d0550b08c2661464802c1ab6493da33",
   "tests/support/util.tcl": "6bca53d58fcdce0cfb767aab4797d122b95fdf5133943f5878bc8e3987c92920",
   "tests/test_helper.tcl": "844807d95218020cd79aecbaf10c2134190759d67c311185db76c204e6c08894"
- }
+ },
+ "wave8_promotions": [
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM all commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM command",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM sub commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with a subset of commands",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with empty histogram",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/latency-monitor",
+   "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON numeric decoding",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON smoke test",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - JSON string decoding",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - Verify minimal bitop functionality",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack and unpack circular references?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack double?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "EVAL - cmsgpack can pack negative int64?",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Functions in the Redis namespace are able to report errors",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on bit table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on cmsgpack table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "Try trick readonly table on json table",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "lua bit.tohex bug",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  },
+  {
+   "file": "unit/scripting",
+   "name": "redis.sha1hex() implementation",
+   "root": "LUA-HELPER-LIBS",
+   "prior_reason": "failed on TomoKV 2s in the survey"
+  }
+ ]
 }
