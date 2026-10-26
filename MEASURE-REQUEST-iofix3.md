@@ -46,7 +46,8 @@ use `taskset -c 64-79 make -j16`. Ports are 48800–48899. Gate jobs use the
 standard 16-shard 6:2 split geometry and eight-worker fused geometry. Every
 selected gate run is PARTIAL: no full iteration, ABBA, NIC or source receipt.
 
-The restored row is collected before the quick-tier exit: DQ=+1, DF=+1.
+The restored row is collected at `tests/gate.sh:5359`, before the quick-tier
+exit at line 5626: **DQ=+1, DF=+1**.
 `EXPECT_QUICK=798` and `EXPECT_FULL=815` remain untouched. The maintainer must
 set **799 / 816**. The fixture and declared source inventory both contain 816
 rows; [the inventory](docs/iofix3/row-inventory.json) records the collector and
