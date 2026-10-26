@@ -1,0 +1,36 @@
+tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned long)
+--- headline
+
++++ post
+
+@@ -48,7 +48,7 @@
+
+ CLONE 0 00c4 [ 7] cmp 0x2b8(%r8),%rax
+ CLONE 0 00cb [ 2] je <+0xd4>
+ CLONE 0 00cd [ 7] mov %rax,0x2b8(%r8)
+-CLONE 0 00d4 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8c8>
++CLONE 0 00d4 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x310>
+ CLONE 0 00db [ 4] vxorpd %xmm3,%xmm3,%xmm3
+ CLONE 0 00df [ 4] vxorpd %xmm0,%xmm0,%xmm0
+ CLONE 0 00e3 [ 9] vmovsd 0x4d8(%r8),%xmm2
+@@ -127,15 +127,15 @@
+
+ CLONE 0 0319 [ 4] vcomisd %xmm1,%xmm0
+ CLONE 0 031d [ 2] ja <+0x328>
+ CLONE 0 031f [ 9] vmovsd 0x628(%r8),%xmm0
+-CLONE 0 0328 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 0328 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x28>
+ CLONE 0 0330 [ 5] mov $0x1,%eax
+-CLONE 0 0335 [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>
+-CLONE 0 033d [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8a0>
++CLONE 0 0335 [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf0>
++CLONE 0 033d [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2e8>
+ CLONE 0 0345 [ 7] vrndscalesd $0xa,%xmm0,%xmm0,%xmm0
+ CLONE 0 034c [ 6] vcomisd %xmm0,%xmm16
+ CLONE 0 0352 [ 2] ja <+0x367>
+ CLONE 0 0354 [ 5] mov $0xffffffff,%eax
+-CLONE 0 0359 [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f0>
++CLONE 0 0359 [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x30>
+ CLONE 0 0361 [ 6] jbe <+0x500>
+ CLONE 0 0367 [ 4] mov %eax,0x30(%r8)
+ CLONE 0 036b [ 7] mov 0x10370(%r9),%rbx

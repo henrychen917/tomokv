@@ -1,0 +1,20 @@
+tomo::(anonymous namespace)::txn_unlink_waiter(tomo::TxnWaiter&, bool)
+--- execindex
+
++++ post
+
+@@ -50,9 +50,9 @@
+
+ CLONE 0 00c9 [ 4] mov %rdx,0x30(%rax)
+ CLONE 0 00cd [ 5] jmp <+0x33>
+ CLONE 0 00d2 [ 1] push %rbp
+-CLONE 0 00d3 [ 7] lea <rip>(%rip),%rcx # <literal-string-766f696420746f6d6f3a3a7b616e6f6e796d6f75737d3a3a74786e5f756e6c696e6b5f77616974657228746f6d6f3a3a54786e576169746572262c20626f6f6c2900>
+-CLONE 0 00da [ 5] mov $0x5,%edx
+-CLONE 0 00df [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f74786e5f6b65795f71756575652e696e6300>
++CLONE 0 00d3 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 00da [ 5] mov $0xb91ad684,%edx
++CLONE 0 00df [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
+ CLONE 0 00e6 [ 3] mov %rsp,%rbp
+-CLONE 0 00e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-6e6f64652e77616974696e6700>
++CLONE 0 00e9 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 00f0 [ 5] call <__assert_fail@plt>

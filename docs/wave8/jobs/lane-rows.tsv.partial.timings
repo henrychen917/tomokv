@@ -1,0 +1,11 @@
+ok	0.010000	release build (+footprint locks)
+ok	90.670000	production source identity + stable assertion ids
+ok	26.870000	iofix WB4.1 deferred IO parks
+ok	39.870000	iofix IO4.9 Redis hz cron
+ok	31.750000	iofix IO4.10 global DEBUG SLEEP
+ok	18.560000	iofix IO4.17 immediate signal shutdown
+ok	119.810000	R7 FIFO twin off-path identity + negative controls
+ok	38.000000	lualibs CC4.7 vs Redis 7.4
+ok	6.540000	latencyfix LAT-HIST-1 knob grammar
+ok	1.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	13.580000	latencyfix LAT-HIST-1 zero allocations off

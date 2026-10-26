@@ -1,0 +1,25 @@
+tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -175,7 +175,7 @@
+
+ CLONE 0 02d9 [ 8] cmpl $0x2,0xcc(%r15)
+ CLONE 0 02e1 [ 6] jne <+0x1b0>
+ CLONE 0 02e7 [ 7] lea -0x160(%rbp),%rbx
+-CLONE 0 02ee [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x126c8>
++CLONE 0 02ee [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
+ CLONE 0 02f5 [ 7] lea -0x150(%rbp),%r12
+ CLONE 0 02fc [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::je_stats_writer(void*, char const*)>
+ CLONE 0 0303 [ 3] mov %rbx,%rsi
+@@ -983,7 +983,7 @@
+
+ CLONE 0 1250 [10] movabs $0x7fffffffffffffff,%rax
+ CLONE 0 125a [ 8] vmovsd -0x1d8(%rbp),%xmm6
+ CLONE 0 1262 [ 3] sub %rsi,%rax
+-CLONE 0 1265 [ 8] vcomisd <rip>(%rip),%xmm6 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x858>
++CLONE 0 1265 [ 8] vcomisd <rip>(%rip),%xmm6 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2a8>
+ CLONE 0 126d [ 6] jbe <+0x200f>
+ CLONE 0 1273 [ 4] cmp $0x4a,%rax
+ CLONE 0 1277 [ 6] jbe <+0x27f1>

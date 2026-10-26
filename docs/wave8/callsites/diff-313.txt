@@ -1,0 +1,141 @@
+tomo_db0::(anonymous namespace)::create_sandbox_static(lua_State*, tomo_db0::(anonymous namespace)::ScriptContext**)
+--- headline
+
++++ post
+
+@@ -6,7 +6,7 @@
+
+ CLONE 0 0009 [ 3] mov %rsi,%rbp
+ CLONE 0 000c [ 7] lea <rip>(%rip),%rsi # <luaopen_base>
+ CLONE 0 0013 [ 1] push %rbx
+-CLONE 0 0014 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x126c8>
++CLONE 0 0014 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x788>
+ CLONE 0 001b [ 3] mov %rdi,%rbx
+ CLONE 0 001e [ 7] lea <rip>(%rip),%r14 # <literal-string-737472696e6700>
+ CLONE 0 0025 [ 7] lea <rip>(%rip),%r13 # <literal-string-6d61746800>
+@@ -180,66 +180,67 @@
+
+ CLONE 0 0311 [ 5] mov $0xfffffffe,%esi
+ CLONE 0 0316 [ 3] mov %rbx,%rdi
+ CLONE 0 0319 [ 5] call <lua_setfield>
+-CLONE 0 031e [ 7] lea <rip>(%rip),%rdx # <literal-string-726564697300>
+-CLONE 0 0325 [ 5] mov $0xffffd8ee,%esi
+-CLONE 0 032a [ 3] mov %rbx,%rdi
+-CLONE 0 032d [ 5] call <lua_setfield>
+-CLONE 0 0332 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_hook_context_key>
+-CLONE 0 0339 [ 3] mov %rbx,%rdi
+-CLONE 0 033c [ 5] call <lua_pushlightuserdata>
+-CLONE 0 0341 [ 3] mov %rbp,%rsi
+-CLONE 0 0344 [ 3] mov %rbx,%rdi
+-CLONE 0 0347 [ 5] call <lua_pushlightuserdata>
+-CLONE 0 034c [ 5] mov $0xffffd8f0,%esi
+-CLONE 0 0351 [ 3] mov %rbx,%rdi
+-CLONE 0 0354 [ 5] call <lua_settable>
+-CLONE 0 0359 [ 5] mov $0xffffd8ee,%esi
+-CLONE 0 035e [ 3] mov %rbx,%rdi
+-CLONE 0 0361 [ 5] call <lua_pushvalue>
+-CLONE 0 0366 [ 2] xor %esi,%esi
+-CLONE 0 0368 [ 5] mov $0x1,%edx
+-CLONE 0 036d [ 3] mov %rbx,%rdi
+-CLONE 0 0370 [ 5] call <lua_createtable>
+-CLONE 0 0375 [ 2] xor %edx,%edx
+-CLONE 0 0377 [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::protected_global_index(lua_State*)>
+-CLONE 0 037e [ 3] mov %rbx,%rdi
+-CLONE 0 0381 [ 5] call <lua_pushcclosure>
+-CLONE 0 0386 [ 7] lea <rip>(%rip),%rdx # <literal-string-5f5f696e64657800>
+-CLONE 0 038d [ 5] mov $0xfffffffe,%esi
+-CLONE 0 0392 [ 3] mov %rbx,%rdi
+-CLONE 0 0395 [ 5] call <lua_setfield>
+-CLONE 0 039a [ 5] mov $0xfffffffe,%esi
+-CLONE 0 039f [ 3] mov %rbx,%rdi
+-CLONE 0 03a2 [ 5] call <lua_setmetatable>
+-CLONE 0 03a7 [ 5] mov $0xffffffff,%esi
+-CLONE 0 03ac [ 3] mov %rbx,%rdi
+-CLONE 0 03af [ 5] call <tomo_db0::(anonymous namespace)::freeze_table(lua_State*, int)>
+-CLONE 0 03b4 [ 5] mov $0xfffffffe,%esi
+-CLONE 0 03b9 [ 3] mov %rbx,%rdi
+-CLONE 0 03bc [ 5] call <lua_settop>
+-CLONE 0 03c1 [ 2] xor %edx,%edx
+-CLONE 0 03c3 [ 3] mov %r12,%rsi
+-CLONE 0 03c6 [ 3] mov %rbx,%rdi
+-CLONE 0 03c9 [ 5] call <lua_pushlstring>
+-CLONE 0 03ce [ 5] mov $0xffffffff,%esi
+-CLONE 0 03d3 [ 3] mov %rbx,%rdi
+-CLONE 0 03d6 [ 5] call <lua_getmetatable>
+-CLONE 0 03db [ 2] test %eax,%eax
+-CLONE 0 03dd [ 2] jne <+0x400>
+-CLONE 0 03df [ 3] mov %rbx,%rdi
+-CLONE 0 03e2 [ 1] pop %rbx
+-CLONE 0 03e3 [ 1] pop %rbp
+-CLONE 0 03e4 [ 2] pop %r12
+-CLONE 0 03e6 [ 2] pop %r13
+-CLONE 0 03e8 [ 2] pop %r14
+-CLONE 0 03ea [ 5] mov $0xfffffffe,%esi
+-CLONE 0 03ef [ 5] jmp <lua_settop>
+-CLONE 0 03f4 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 03ff [ 1] nop
++CLONE 0 031e [ 3] mov %rbx,%rdi
++CLONE 0 0321 [ 5] call <tomo_db0::(anonymous namespace)::open_helper_libraries(lua_State*)>
++CLONE 0 0326 [ 7] lea <rip>(%rip),%rdx # <literal-string-726564697300>
++CLONE 0 032d [ 5] mov $0xffffd8ee,%esi
++CLONE 0 0332 [ 3] mov %rbx,%rdi
++CLONE 0 0335 [ 5] call <lua_setfield>
++CLONE 0 033a [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::g_hook_context_key>
++CLONE 0 0341 [ 3] mov %rbx,%rdi
++CLONE 0 0344 [ 5] call <lua_pushlightuserdata>
++CLONE 0 0349 [ 3] mov %rbp,%rsi
++CLONE 0 034c [ 3] mov %rbx,%rdi
++CLONE 0 034f [ 5] call <lua_pushlightuserdata>
++CLONE 0 0354 [ 5] mov $0xffffd8f0,%esi
++CLONE 0 0359 [ 3] mov %rbx,%rdi
++CLONE 0 035c [ 5] call <lua_settable>
++CLONE 0 0361 [ 5] mov $0xffffd8ee,%esi
++CLONE 0 0366 [ 3] mov %rbx,%rdi
++CLONE 0 0369 [ 5] call <lua_pushvalue>
++CLONE 0 036e [ 2] xor %esi,%esi
++CLONE 0 0370 [ 5] mov $0x1,%edx
++CLONE 0 0375 [ 3] mov %rbx,%rdi
++CLONE 0 0378 [ 5] call <lua_createtable>
++CLONE 0 037d [ 2] xor %edx,%edx
++CLONE 0 037f [ 7] lea <rip>(%rip),%rsi # <tomo_db0::(anonymous namespace)::protected_global_index(lua_State*)>
++CLONE 0 0386 [ 3] mov %rbx,%rdi
++CLONE 0 0389 [ 5] call <lua_pushcclosure>
++CLONE 0 038e [ 7] lea <rip>(%rip),%rdx # <literal-string-5f5f696e64657800>
++CLONE 0 0395 [ 5] mov $0xfffffffe,%esi
++CLONE 0 039a [ 3] mov %rbx,%rdi
++CLONE 0 039d [ 5] call <lua_setfield>
++CLONE 0 03a2 [ 5] mov $0xfffffffe,%esi
++CLONE 0 03a7 [ 3] mov %rbx,%rdi
++CLONE 0 03aa [ 5] call <lua_setmetatable>
++CLONE 0 03af [ 5] mov $0xffffffff,%esi
++CLONE 0 03b4 [ 3] mov %rbx,%rdi
++CLONE 0 03b7 [ 5] call <tomo_db0::(anonymous namespace)::freeze_table(lua_State*, int)>
++CLONE 0 03bc [ 5] mov $0xfffffffe,%esi
++CLONE 0 03c1 [ 3] mov %rbx,%rdi
++CLONE 0 03c4 [ 5] call <lua_settop>
++CLONE 0 03c9 [ 2] xor %edx,%edx
++CLONE 0 03cb [ 3] mov %r12,%rsi
++CLONE 0 03ce [ 3] mov %rbx,%rdi
++CLONE 0 03d1 [ 5] call <lua_pushlstring>
++CLONE 0 03d6 [ 5] mov $0xffffffff,%esi
++CLONE 0 03db [ 3] mov %rbx,%rdi
++CLONE 0 03de [ 5] call <lua_getmetatable>
++CLONE 0 03e3 [ 2] test %eax,%eax
++CLONE 0 03e5 [ 2] jne <+0x400>
++CLONE 0 03e7 [ 3] mov %rbx,%rdi
++CLONE 0 03ea [ 1] pop %rbx
++CLONE 0 03eb [ 1] pop %rbp
++CLONE 0 03ec [ 2] pop %r12
++CLONE 0 03ee [ 2] pop %r13
++CLONE 0 03f0 [ 2] pop %r14
++CLONE 0 03f2 [ 5] mov $0xfffffffe,%esi
++CLONE 0 03f7 [ 5] jmp <lua_settop>
++CLONE 0 03fc [ 4] nopl 0x0(%rax)
+ CLONE 0 0400 [ 3] mov %rbx,%rdi
+ CLONE 0 0403 [ 5] mov $0xffffffff,%esi
+ CLONE 0 0408 [ 5] call <tomo_db0::(anonymous namespace)::freeze_table(lua_State*, int)>
+ CLONE 0 040d [ 5] mov $0xfffffffe,%esi
+ CLONE 0 0412 [ 3] mov %rbx,%rdi
+ CLONE 0 0415 [ 5] call <lua_settop>
+-CLONE 0 041a [ 2] jmp <+0x3df>
++CLONE 0 041a [ 2] jmp <+0x3e7>

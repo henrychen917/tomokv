@@ -1,0 +1,15 @@
+tomo::HashFieldTtl::set(tomo::Slice, long)
+--- headline
+
++++ post
+
+@@ -215,7 +215,7 @@
+
+ CLONE 0 0349 [ 2] jne <+0x320>
+ CLONE 0 034b [ 3] mov (%r15),%rdi
+ CLONE 0 034e [ 3] test %r14,%r14
+-CLONE 0 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x126c8>
++CLONE 0 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x788>
+ CLONE 0 0358 [ 4] mov 0x8(%r15),%rdx
+ CLONE 0 035c [ 4] cmovne %r14,%rcx
+ CLONE 0 0360 [ 4] lea 0x10(%r15),%r14

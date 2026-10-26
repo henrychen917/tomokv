@@ -1,0 +1,138 @@
+tomo::latency_tracking_forget(tomo::Op const&)
+--- latencyfix
+
++++ post
+
+@@ -9,70 +9,72 @@
+
+ CLONE 0 0015 [ 4] sub $0x18,%rsp
+ CLONE 0 0019 [ 5] mov %rdi,0x8(%rsp)
+ CLONE 0 001e [ 2] xchg %ax,%ax
+-CLONE 0 0020 [ 4] mov 0x0(%r13),%r15
+-CLONE 0 0024 [ 3] test %r15,%r15
+-CLONE 0 0027 [ 2] je <+0x9a>
+-CLONE 0 0029 [ 3] mov %r15,%rdi
+-CLONE 0 002c [ 5] call <pthread_mutex_lock@plt>
+-CLONE 0 0031 [ 2] test %eax,%eax
+-CLONE 0 0033 [ 6] jne <+0x10e>
+-CLONE 0 0039 [ 5] mov 0x8(%rsp),%rsi
+-CLONE 0 003e [ 4] lea 0x58(%r15),%rdi
+-CLONE 0 0042 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::equal_range(tomo::Op const* const&) [clone .isra.0]>
+-CLONE 0 0047 [ 3] mov %rdx,%rbp
+-CLONE 0 004a [ 3] mov %rax,%rbx
+-CLONE 0 004d [ 4] cmp 0x70(%r15),%rax
+-CLONE 0 0051 [ 2] je <+0xc0>
+-CLONE 0 0053 [ 4] lea 0x60(%r15),%r12
+-CLONE 0 0057 [ 3] cmp %rax,%rbp
+-CLONE 0 005a [ 2] je <+0x92>
+-CLONE 0 005c [ 4] nopl 0x0(%rax)
+-CLONE 0 0060 [ 3] mov %rbx,%rdi
+-CLONE 0 0063 [ 3] mov %rbx,%r14
++CLONE 0 0020 [ 4] mov 0x0(%r13),%rbx
++CLONE 0 0024 [ 3] test %rbx,%rbx
++CLONE 0 0027 [ 6] je <+0xab>
++CLONE 0 002d [ 3] mov %rbx,%rdi
++CLONE 0 0030 [ 5] call <pthread_mutex_lock@plt>
++CLONE 0 0035 [ 2] test %eax,%eax
++CLONE 0 0037 [ 6] jne <+0x125>
++CLONE 0 003d [ 5] mov 0x8(%rsp),%rsi
++CLONE 0 0042 [ 4] lea 0x58(%rbx),%rdi
++CLONE 0 0046 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::equal_range(tomo::Op const* const&) [clone .isra.0]>
++CLONE 0 004b [ 3] mov %rdx,%rbp
++CLONE 0 004e [ 3] mov %rax,%r15
++CLONE 0 0051 [ 4] cmp 0x70(%rbx),%rax
++CLONE 0 0055 [ 2] je <+0xd0>
++CLONE 0 0057 [ 4] lea 0x60(%rbx),%r12
++CLONE 0 005b [ 3] cmp %rax,%rbp
++CLONE 0 005e [ 2] je <+0x92>
++CLONE 0 0060 [ 3] mov %r15,%rdi
++CLONE 0 0063 [ 3] mov %r15,%r14
+ CLONE 0 0066 [ 5] call <_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base@plt>
+ CLONE 0 006b [ 3] mov %r12,%rsi
+ CLONE 0 006e [ 3] mov %r14,%rdi
+-CLONE 0 0071 [ 3] mov %rax,%rbx
++CLONE 0 0071 [ 3] mov %rax,%r15
+ CLONE 0 0074 [ 5] call <_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_@plt>
+ CLONE 0 0079 [ 5] mov $0x30,%esi
+ CLONE 0 007e [ 3] mov %rax,%rdi
+ CLONE 0 0081 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0086 [ 7] decq 0x80(%r15)
+-CLONE 0 008d [ 3] cmp %rbx,%rbp
++CLONE 0 0086 [ 7] decq 0x80(%rbx)
++CLONE 0 008d [ 3] cmp %r15,%rbp
+ CLONE 0 0090 [ 2] jne <+0x60>
+-CLONE 0 0092 [ 3] mov %r15,%rdi
+-CLONE 0 0095 [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 009a [ 4] add $0x40,%r13
+-CLONE 0 009e [ 7] lea <rip>(%rip),%rax # <_end>
+-CLONE 0 00a5 [ 3] cmp %r13,%rax
+-CLONE 0 00a8 [ 6] jne <+0x20>
+-CLONE 0 00ae [ 4] add $0x18,%rsp
+-CLONE 0 00b2 [ 1] pop %rbx
+-CLONE 0 00b3 [ 1] pop %rbp
+-CLONE 0 00b4 [ 2] pop %r12
+-CLONE 0 00b6 [ 2] pop %r13
+-CLONE 0 00b8 [ 2] pop %r14
+-CLONE 0 00ba [ 2] pop %r15
+-CLONE 0 00bc [ 1] ret
+-CLONE 0 00bd [ 3] nopl (%rax)
+-CLONE 0 00c0 [ 4] lea 0x60(%r15),%r12
+-CLONE 0 00c4 [ 3] cmp %r12,%rdx
+-CLONE 0 00c7 [ 2] jne <+0x53>
+-CLONE 0 00c9 [ 4] mov 0x68(%r15),%rbx
+-CLONE 0 00cd [ 3] test %rbx,%rbx
+-CLONE 0 00d0 [ 2] je <+0xf1>
+-CLONE 0 00d2 [ 4] mov 0x18(%rbx),%rdi
+-CLONE 0 00d6 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, unsigned long> >*) [clone .isra.0]>
+-CLONE 0 00db [ 3] mov %rbx,%rdi
+-CLONE 0 00de [ 4] mov 0x10(%rbx),%rbx
+-CLONE 0 00e2 [ 5] mov $0x30,%esi
+-CLONE 0 00e7 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 00ec [ 3] test %rbx,%rbx
+-CLONE 0 00ef [ 2] jne <+0xd2>
+-CLONE 0 00f1 [ 8] movq $0x0,0x68(%r15)
+-CLONE 0 00f9 [ 4] mov %r12,0x70(%r15)
+-CLONE 0 00fd [ 4] mov %r12,0x78(%r15)
+-CLONE 0 0101 [11] movq $0x0,0x80(%r15)
+-CLONE 0 010c [ 2] jmp <+0x92>
+-CLONE 0 010e [ 2] mov %eax,%edi
+-CLONE 0 0110 [ 5] call <_ZSt20__throw_system_errori@plt>
++CLONE 0 0092 [ 5] mov 0x8(%rsp),%rsi
++CLONE 0 0097 [ 7] lea 0x88(%rbx),%rdi
++CLONE 0 009e [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::erase(tomo::Op const* const&) [clone .isra.0]>
++CLONE 0 00a3 [ 3] mov %rbx,%rdi
++CLONE 0 00a6 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 00ab [ 4] add $0x40,%r13
++CLONE 0 00af [ 7] lea <rip>(%rip),%rax # <once.0>
++CLONE 0 00b6 [ 3] cmp %r13,%rax
++CLONE 0 00b9 [ 6] jne <+0x20>
++CLONE 0 00bf [ 4] add $0x18,%rsp
++CLONE 0 00c3 [ 1] pop %rbx
++CLONE 0 00c4 [ 1] pop %rbp
++CLONE 0 00c5 [ 2] pop %r12
++CLONE 0 00c7 [ 2] pop %r13
++CLONE 0 00c9 [ 2] pop %r14
++CLONE 0 00cb [ 2] pop %r15
++CLONE 0 00cd [ 1] ret
++CLONE 0 00ce [ 2] xchg %ax,%ax
++CLONE 0 00d0 [ 4] lea 0x60(%rbx),%r12
++CLONE 0 00d4 [ 3] cmp %r12,%rdx
++CLONE 0 00d7 [ 6] jne <+0x57>
++CLONE 0 00dd [ 4] mov 0x68(%rbx),%rbp
++CLONE 0 00e1 [ 3] test %rbp,%rbp
++CLONE 0 00e4 [ 2] je <+0x105>
++CLONE 0 00e6 [ 4] mov 0x18(%rbp),%rdi
++CLONE 0 00ea [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, unsigned long> >*) [clone .isra.0]>
++CLONE 0 00ef [ 3] mov %rbp,%rdi
++CLONE 0 00f2 [ 4] mov 0x10(%rbp),%rbp
++CLONE 0 00f6 [ 5] mov $0x30,%esi
++CLONE 0 00fb [ 5] call <_ZdlPvm@plt>
++CLONE 0 0100 [ 3] test %rbp,%rbp
++CLONE 0 0103 [ 2] jne <+0xe6>
++CLONE 0 0105 [ 8] movq $0x0,0x68(%rbx)
++CLONE 0 010d [ 4] mov %r12,0x70(%rbx)
++CLONE 0 0111 [ 4] mov %r12,0x78(%rbx)
++CLONE 0 0115 [11] movq $0x0,0x80(%rbx)
++CLONE 0 0120 [ 5] jmp <+0x92>
++CLONE 0 0125 [ 2] mov %eax,%edi
++CLONE 0 0127 [ 5] call <_ZSt20__throw_system_errori@plt>

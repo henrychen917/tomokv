@@ -1,0 +1,103 @@
+std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >::push_back(tomo::MultiExecState* const&)
+--- headline
+
++++ post
+
+@@ -0,0 +1,96 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 2] push %r13
++CLONE 0 0006 [ 2] push %r12
++CLONE 0 0008 [ 1] push %rbp
++CLONE 0 0009 [ 1] push %rbx
++CLONE 0 000a [ 3] mov %rdi,%rbx
++CLONE 0 000d [ 4] sub $0x18,%rsp
++CLONE 0 0011 [ 4] mov 0x8(%rdi),%rax
++CLONE 0 0015 [ 4] cmp 0x10(%rdi),%rax
++CLONE 0 0019 [ 2] je <+0x40>
++CLONE 0 001b [ 3] mov (%rsi),%rdx
++CLONE 0 001e [ 4] add $0x8,%rax
++CLONE 0 0022 [ 4] mov %rdx,-0x8(%rax)
++CLONE 0 0026 [ 4] mov %rax,0x8(%rdi)
++CLONE 0 002a [ 4] add $0x18,%rsp
++CLONE 0 002e [ 1] pop %rbx
++CLONE 0 002f [ 1] pop %rbp
++CLONE 0 0030 [ 2] pop %r12
++CLONE 0 0032 [ 2] pop %r13
++CLONE 0 0034 [ 1] ret
++CLONE 0 0035 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0040 [ 3] mov (%rdi),%r12
++CLONE 0 0043 [ 3] mov %rax,%r13
++CLONE 0 0046 [10] movabs $0xfffffffffffffff,%rcx
++CLONE 0 0050 [ 3] sub %r12,%r13
++CLONE 0 0053 [ 3] mov %r13,%rdx
++CLONE 0 0056 [ 4] sar $0x3,%rdx
++CLONE 0 005a [ 3] cmp %rcx,%rdx
++CLONE 0 005d [ 6] je <+0x164>
++CLONE 0 0063 [ 3] cmp %r12,%rax
++CLONE 0 0066 [ 6] je <+0xf0>
++CLONE 0 006c [ 4] lea (%rdx,%rdx,1),%rax
++CLONE 0 0070 [ 3] cmp %rdx,%rax
++CLONE 0 0073 [ 6] jb <+0x130>
++CLONE 0 0079 [ 3] test %rax,%rax
++CLONE 0 007c [ 6] jne <+0x149>
++CLONE 0 0082 [ 2] xor %ebp,%ebp
++CLONE 0 0084 [ 2] xor %edi,%edi
++CLONE 0 0086 [ 3] mov (%rsi),%rdx
++CLONE 0 0089 [ 5] vmovq %rdi,%xmm1
++CLONE 0 008e [ 4] mov %rdx,(%rdi,%r13,1)
++CLONE 0 0092 [ 5] lea 0x8(%rdi,%r13,1),%rdx
++CLONE 0 0097 [ 6] vpinsrq $0x1,%rdx,%xmm1,%xmm0
++CLONE 0 009d [ 3] test %r13,%r13
++CLONE 0 00a0 [ 2] jg <+0xc0>
++CLONE 0 00a2 [ 3] test %r12,%r12
++CLONE 0 00a5 [ 6] jne <+0x140>
++CLONE 0 00ab [ 4] vmovdqu %xmm0,(%rbx)
++CLONE 0 00af [ 4] mov %rbp,0x10(%rbx)
++CLONE 0 00b3 [ 4] add $0x18,%rsp
++CLONE 0 00b7 [ 1] pop %rbx
++CLONE 0 00b8 [ 1] pop %rbp
++CLONE 0 00b9 [ 2] pop %r12
++CLONE 0 00bb [ 2] pop %r13
++CLONE 0 00bd [ 1] ret
++CLONE 0 00be [ 2] xchg %ax,%ax
++CLONE 0 00c0 [ 3] mov %r12,%rsi
++CLONE 0 00c3 [ 3] mov %r13,%rdx
++CLONE 0 00c6 [ 5] vmovdqa %xmm0,(%rsp)
++CLONE 0 00cb [ 5] call <memmove@plt>
++CLONE 0 00d0 [ 4] mov 0x10(%rbx),%rsi
++CLONE 0 00d4 [ 5] vmovdqa (%rsp),%xmm0
++CLONE 0 00d9 [ 3] sub %r12,%rsi
++CLONE 0 00dc [ 3] mov %r12,%rdi
++CLONE 0 00df [ 5] vmovdqa %xmm0,(%rsp)
++CLONE 0 00e4 [ 5] call <_ZdlPvm@plt>
++CLONE 0 00e9 [ 5] vmovdqa (%rsp),%xmm0
++CLONE 0 00ee [ 2] jmp <+0xab>
++CLONE 0 00f0 [ 4] add $0x1,%rdx
++CLONE 0 00f4 [ 2] jb <+0x130>
++CLONE 0 00f6 [10] movabs $0xfffffffffffffff,%rax
++CLONE 0 0100 [ 3] cmp %rax,%rdx
++CLONE 0 0103 [ 4] cmovbe %rdx,%rax
++CLONE 0 0107 [ 3] mov %rax,%rbp
++CLONE 0 010a [ 4] shl $0x3,%rbp
++CLONE 0 010e [ 4] mov %rsi,(%rsp)
++CLONE 0 0112 [ 3] mov %rbp,%rdi
++CLONE 0 0115 [ 5] call <_Znwm@plt>
++CLONE 0 011a [ 4] mov (%rsp),%rsi
++CLONE 0 011e [ 3] mov %rax,%rdi
++CLONE 0 0121 [ 3] add %rax,%rbp
++CLONE 0 0124 [ 5] jmp <+0x86>
++CLONE 0 0129 [ 7] nopl 0x0(%rax)
++CLONE 0 0130 [10] movabs $0x7ffffffffffffff8,%rbp
++CLONE 0 013a [ 2] jmp <+0x10e>
++CLONE 0 013c [ 4] nopl 0x0(%rax)
++CLONE 0 0140 [ 4] mov 0x10(%rbx),%rsi
++CLONE 0 0144 [ 3] sub %r12,%rsi
++CLONE 0 0147 [ 2] jmp <+0xdc>
++CLONE 0 0149 [10] movabs $0xfffffffffffffff,%rdx
++CLONE 0 0153 [ 3] cmp %rdx,%rax
++CLONE 0 0156 [ 4] cmova %rdx,%rax
++CLONE 0 015a [ 8] lea 0x0(,%rax,8),%rbp
++CLONE 0 0162 [ 2] jmp <+0x10e>
++CLONE 0 0164 [ 7] lea <rip>(%rip),%rdi # <literal-string-766563746f723a3a5f4d5f7265616c6c6f635f696e7365727400>
++CLONE 0 016b [ 5] call <_ZSt20__throw_length_errorPKc@plt>

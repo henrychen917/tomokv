@@ -1,0 +1,25 @@
+tomo_db0::flip_signature_pass_distance(tomo_db0::FlipSignature const&, tomo_db0::FlipSignature const&)
+--- headline
+
++++ post
+
+@@ -6,7 +6,7 @@
+
+ CLONE 0 0012 [ 2] je <+0x56>
+ CLONE 0 0014 [ 4] vmovupd (%rdi),%ymm1
+ CLONE 0 0018 [ 4] vsubpd (%rsi),%ymm1,%ymm1
+-CLONE 0 001c [ 9] vbroadcastsd <rip>(%rip),%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 001c [ 9] vbroadcastsd <rip>(%rip),%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0025 [ 4] vandpd %ymm0,%ymm1,%ymm1
+ CLONE 0 0029 [ 4] vaddsd %xmm2,%xmm1,%xmm0
+ CLONE 0 002d [ 4] vunpckhpd %xmm1,%xmm1,%xmm3
+@@ -15,7 +15,7 @@
+
+ CLONE 0 003c [ 7] valignq $0x3,%ymm1,%ymm1,%ymm1
+ CLONE 0 0043 [ 4] vaddsd %xmm2,%xmm0,%xmm0
+ CLONE 0 0047 [ 4] vaddsd %xmm1,%xmm0,%xmm0
+-CLONE 0 004b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 004b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 0053 [ 3] vzeroupper
+ CLONE 0 0056 [ 4] vmovsd %xmm2,%xmm2,%xmm0
+ CLONE 0 005a [ 1] ret

@@ -1,0 +1,19 @@
+tomo_db0::TxnGroupAttempt::~TxnGroupAttempt()
+--- execindex
+
++++ post
+
+@@ -128,8 +128,8 @@
+
+ CLONE 0 01d5 [ 1] ret
+ CLONE 0 01d6 [ 2] xor %esi,%esi
+ CLONE 0 01d8 [ 5] jmp <+0x51>
+-CLONE 0 01dd [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f5f6462303a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 01e4 [ 5] mov $0x39,%edx
+-CLONE 0 01e9 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 01f0 [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 01dd [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 01e4 [ 5] mov $0xa76723f6,%edx
++CLONE 0 01e9 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 01f0 [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 01f7 [ 5] call <__assert_fail@plt>

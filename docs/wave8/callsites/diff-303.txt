@@ -1,0 +1,15 @@
+tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)
+--- headline
+
++++ post
+
+@@ -835,7 +835,7 @@
+
+ CLONE 0 0fda [ 3] mov %r14,%rdi
+ CLONE 0 0fdd [ 4] cmovs %rdx,%rax
+ CLONE 0 0fe1 [ 5] vcvtsi2sd %rax,%xmm1,%xmm0
+-CLONE 0 0fe6 [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>
++CLONE 0 0fe6 [ 8] vdivsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf0>
+ CLONE 0 0fee [ 5] testb $0x4,0x1c(%r13)
+ CLONE 0 0ff3 [ 6] je <+0x1252>
+ CLONE 0 0ff9 [ 5] call <tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]>

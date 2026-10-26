@@ -1,0 +1,354 @@
+tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)
+--- headline
+
++++ post
+
+@@ -1,27 +1,27 @@
+
+ CLONE 0 0000 [ 1] push %rbp
+-CLONE 0 0001 [ 2] mov %esi,%eax
+-CLONE 0 0003 [ 1] push %rbx
+-CLONE 0 0004 [ 3] mov %rcx,%rsi
+-CLONE 0 0007 [ 7] movq $0x0,(%rcx)
+-CLONE 0 000e [ 7] movl $0x1,0x8(%rcx)
+-CLONE 0 0015 [ 4] movb $0x0,0xc(%rcx)
+-CLONE 0 0019 [ 8] movq $0x0,0x10(%rcx)
+-CLONE 0 0021 [ 7] movl $0x1,0x18(%rcx)
+-CLONE 0 0028 [ 4] movb $0x0,0x1c(%rcx)
+-CLONE 0 002c [ 8] movq $0x0,0x20(%rcx)
+-CLONE 0 0034 [ 6] mov 0xcc(%rdi),%ecx
+-CLONE 0 003a [ 3] mov %rdx,%rbp
+-CLONE 0 003d [ 5] mov $0x1,%edx
+-CLONE 0 0042 [ 2] test %ecx,%ecx
+-CLONE 0 0044 [ 3] cmove %edx,%ecx
++CLONE 0 0001 [ 3] mov %rdx,%rbp
++CLONE 0 0004 [ 1] push %rbx
++CLONE 0 0005 [ 7] movq $0x0,(%rcx)
++CLONE 0 000c [ 7] movl $0x1,0x8(%rcx)
++CLONE 0 0013 [ 8] movq $0x0,0x10(%rcx)
++CLONE 0 001b [ 7] movl $0x1,0x18(%rcx)
++CLONE 0 0022 [ 8] movq $0x0,0x20(%rcx)
++CLONE 0 002a [ 6] mov 0xcc(%rdi),%edx
++CLONE 0 0030 [ 2] mov %esi,%eax
++CLONE 0 0032 [ 4] movb $0x0,0xc(%rcx)
++CLONE 0 0036 [ 3] mov %rcx,%rsi
++CLONE 0 0039 [ 4] movb $0x0,0x1c(%rcx)
++CLONE 0 003d [ 5] mov $0x1,%ecx
++CLONE 0 0042 [ 2] test %edx,%edx
++CLONE 0 0044 [ 3] cmovne %edx,%ecx
+ CLONE 0 0047 [ 2] dec %ecx
+ CLONE 0 0049 [ 2] cmp $0x31,%al
+-CLONE 0 004b [ 2] ja <+0xc3>
+-CLONE 0 004d [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x40>
+-CLONE 0 0054 [ 3] movzbl %al,%eax
+-CLONE 0 0057 [ 3] mov %rdi,%rbx
+-CLONE 0 005a [ 4] movslq (%rdx,%rax,4),%rax
+-CLONE 0 005e [ 3] add %rdx,%rax
++CLONE 0 004b [ 2] ja <+0xc6>
++CLONE 0 004d [ 3] mov %rdi,%rbx
++CLONE 0 0050 [ 3] movzbl %al,%eax
++CLONE 0 0053 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::configure_protocols(ssl_ctx_st*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::versions+0x234>
++CLONE 0 005a [ 4] movslq (%rdi,%rax,4),%rax
++CLONE 0 005e [ 3] add %rdi,%rax
+ CLONE 0 0061 [ 3] notrack jmp *%rax
+ CLONE 0 0064 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 006f [ 1] nop
+@@ -43,12 +43,13 @@
+
+ CLONE 0 00a6 [ 6] mov $0x1,%r8d
+ CLONE 0 00ac [ 5] mov $0x1,%ecx
+ CLONE 0 00b1 [ 5] mov $0x1,%edx
+-CLONE 0 00b6 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 00bb [ 2] test %al,%al
+-CLONE 0 00bd [ 6] jne <+0x1f0>
+-CLONE 0 00c3 [ 2] xor %eax,%eax
+-CLONE 0 00c5 [ 2] jmp <+0x75>
+-CLONE 0 00c7 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 00b6 [ 3] mov %rbx,%rdi
++CLONE 0 00b9 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 00be [ 2] test %al,%al
++CLONE 0 00c0 [ 6] jne <+0x200>
++CLONE 0 00c6 [ 2] xor %eax,%eax
++CLONE 0 00c8 [ 2] jmp <+0x75>
++CLONE 0 00ca [ 6] nopw 0x0(%rax,%rax,1)
+ CLONE 0 00d0 [ 3] xor %r9d,%r9d
+ CLONE 0 00d3 [ 6] mov $0x1,%r8d
+ CLONE 0 00d9 [ 3] mov %rbx,%rdi
+@@ -67,141 +68,148 @@
+
+ CLONE 0 0116 [ 6] mov $0x1,%r8d
+ CLONE 0 011c [ 5] mov $0x1,%ecx
+ CLONE 0 0121 [ 5] mov $0x1,%edx
+-CLONE 0 0126 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 012b [ 2] test %al,%al
+-CLONE 0 012d [ 2] je <+0xc3>
+-CLONE 0 012f [ 3] mov 0x4(%rbp),%ecx
+-CLONE 0 0132 [ 3] mov %rbx,%rdi
+-CLONE 0 0135 [ 1] pop %rbx
+-CLONE 0 0136 [ 1] pop %rbp
+-CLONE 0 0137 [ 3] xor %r9d,%r9d
+-CLONE 0 013a [ 5] mov $0x3,%edx
+-CLONE 0 013f [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0144 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 014f [ 1] nop
++CLONE 0 0126 [ 3] mov %rbx,%rdi
++CLONE 0 0129 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 012e [ 2] test %al,%al
++CLONE 0 0130 [ 2] je <+0xc6>
++CLONE 0 0132 [ 3] mov 0x4(%rbp),%ecx
++CLONE 0 0135 [ 3] mov %rbx,%rdi
++CLONE 0 0138 [ 1] pop %rbx
++CLONE 0 0139 [ 1] pop %rbp
++CLONE 0 013a [ 3] xor %r9d,%r9d
++CLONE 0 013d [ 5] mov $0x3,%edx
++CLONE 0 0142 [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 0147 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 0150 [ 4] cmpb $0x0,0x10(%rbp)
+-CLONE 0 0154 [ 6] je <+0x380>
++CLONE 0 0154 [ 6] je <+0x3c0>
+ CLONE 0 015a [ 3] mov 0xc(%rbp),%edx
+ CLONE 0 015d [ 6] mov $0x1,%r9d
+ CLONE 0 0163 [ 6] mov $0x1,%r8d
+ CLONE 0 0169 [ 5] mov $0x1,%ecx
+-CLONE 0 016e [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0173 [ 2] test %al,%al
+-CLONE 0 0175 [ 6] je <+0xc3>
+-CLONE 0 017b [ 3] mov 0x8(%rbp),%edx
+-CLONE 0 017e [ 3] xor %r9d,%r9d
+-CLONE 0 0181 [ 3] mov %rbx,%rdi
+-CLONE 0 0184 [ 1] pop %rbx
+-CLONE 0 0185 [ 1] pop %rbp
+-CLONE 0 0186 [ 5] mov $0x1,%ecx
+-CLONE 0 018b [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0190 [ 2] shr $1,%ecx
+-CLONE 0 0192 [ 6] mov $0x1,%r9d
+-CLONE 0 0198 [ 6] mov $0x2,%r8d
+-CLONE 0 019e [ 5] jmp <+0xd9>
+-CLONE 0 01a3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 01ae [ 2] xchg %ax,%ax
+-CLONE 0 01b0 [ 3] mov 0x4(%rbp),%ecx
+-CLONE 0 01b3 [ 6] mov $0x1,%r9d
+-CLONE 0 01b9 [ 6] mov $0x1,%r8d
+-CLONE 0 01bf [ 5] jmp <+0x8c>
+-CLONE 0 01c4 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 01cf [ 1] nop
+-CLONE 0 01d0 [ 6] mov $0x1,%r9d
+-CLONE 0 01d6 [ 6] mov $0x1,%r8d
+-CLONE 0 01dc [ 5] jmp <+0xd9>
+-CLONE 0 01e1 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 01ec [ 4] nopl 0x0(%rax)
+-CLONE 0 01f0 [ 6] mov 0xcc(%rbx),%eax
+-CLONE 0 01f6 [ 3] xor %r9d,%r9d
+-CLONE 0 01f9 [ 3] lea -0x2(%rax),%ecx
+-CLONE 0 01fc [ 5] jmp <+0x8c>
+-CLONE 0 0201 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 020c [ 4] nopl 0x0(%rax)
+-CLONE 0 0210 [ 6] mov $0x1,%r9d
+-CLONE 0 0216 [ 6] mov $0x1,%r8d
+-CLONE 0 021c [ 5] mov $0x1,%ecx
+-CLONE 0 0221 [ 5] mov $0x1,%edx
+-CLONE 0 0226 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 022b [ 2] test %al,%al
+-CLONE 0 022d [ 6] je <+0xc3>
+-CLONE 0 0233 [ 3] xor %r9d,%r9d
+-CLONE 0 0236 [ 5] mov $0x1,%ecx
+-CLONE 0 023b [ 5] jmp <+0x8c>
+-CLONE 0 0240 [ 3] mov 0x4(%rbp),%ecx
+-CLONE 0 0243 [ 3] mov 0x0(%rbp),%edx
+-CLONE 0 0246 [ 3] xor %r9d,%r9d
+-CLONE 0 0249 [ 3] mov %rbx,%rdi
+-CLONE 0 024c [ 1] pop %rbx
+-CLONE 0 024d [ 1] pop %rbp
+-CLONE 0 024e [ 6] mov $0x1,%r8d
+-CLONE 0 0254 [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0259 [ 7] nopl 0x0(%rax)
+-CLONE 0 0260 [ 6] mov $0x1,%r9d
+-CLONE 0 0266 [ 6] mov $0x1,%r8d
+-CLONE 0 026c [ 5] mov $0x1,%ecx
+-CLONE 0 0271 [ 5] mov $0x2,%edx
+-CLONE 0 0276 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 027b [ 2] test %al,%al
+-CLONE 0 027d [ 6] je <+0xc3>
+-CLONE 0 0283 [ 6] mov 0xcc(%rbx),%eax
+-CLONE 0 0289 [ 3] lea -0x3(%rax),%ecx
+-CLONE 0 028c [ 5] jmp <+0x132>
+-CLONE 0 0291 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 029c [ 4] nopl 0x0(%rax)
+-CLONE 0 02a0 [ 3] xor %r9d,%r9d
+-CLONE 0 02a3 [ 6] mov $0x1,%r8d
+-CLONE 0 02a9 [ 5] mov $0x2,%ecx
+-CLONE 0 02ae [ 5] jmp <+0xd9>
+-CLONE 0 02b3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 02be [ 2] xchg %ax,%ax
+-CLONE 0 02c0 [ 3] mov (%rdi),%rax
+-CLONE 0 02c3 [ 3] mov 0x4(%rbp),%ecx
+-CLONE 0 02c6 [ 3] mov 0x0(%rbp),%edx
+-CLONE 0 02c9 [ 6] mov $0x1,%r9d
+-CLONE 0 02cf [ 7] testl $0x401,0x10(%rax)
+-CLONE 0 02d6 [ 6] jne <+0x249>
+-CLONE 0 02dc [ 5] jmp <+0x246>
+-CLONE 0 02e1 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 02ec [ 4] nopl 0x0(%rax)
+-CLONE 0 02f0 [ 4] cmpb $0x0,0x10(%rbp)
+-CLONE 0 02f4 [ 6] je <+0x3a0>
+-CLONE 0 02fa [ 3] mov 0xc(%rbp),%edx
+-CLONE 0 02fd [ 6] mov $0x1,%r9d
+-CLONE 0 0303 [ 5] mov $0x1,%ecx
+-CLONE 0 0308 [ 6] mov $0x1,%r8d
+-CLONE 0 030e [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0313 [ 3] xor %r9d,%r9d
+-CLONE 0 0316 [ 5] mov $0x1,%ecx
+-CLONE 0 031b [ 2] test %al,%al
+-CLONE 0 031d [ 6] jne <+0xd9>
+-CLONE 0 0323 [ 2] xor %eax,%eax
+-CLONE 0 0325 [ 5] jmp <+0x75>
+-CLONE 0 032a [ 6] nopw 0x0(%rax,%rax,1)
+-CLONE 0 0330 [ 3] xor %r9d,%r9d
+-CLONE 0 0333 [ 6] mov $0x1,%r8d
+-CLONE 0 0339 [ 5] mov $0x1,%ecx
+-CLONE 0 033e [ 5] mov $0x1,%edx
+-CLONE 0 0343 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
+-CLONE 0 0348 [ 6] mov $0x1,%r9d
+-CLONE 0 034e [ 2] test %al,%al
+-CLONE 0 0350 [ 6] jne <+0x236>
+-CLONE 0 0356 [ 2] xor %eax,%eax
+-CLONE 0 0358 [ 5] jmp <+0x75>
+-CLONE 0 035d [ 3] nopl (%rax)
+-CLONE 0 0360 [ 3] mov 0x4(%rbp),%ecx
+-CLONE 0 0363 [ 3] mov 0x0(%rbp),%edx
+-CLONE 0 0366 [ 6] mov $0x1,%r9d
+-CLONE 0 036c [ 5] jmp <+0x249>
+-CLONE 0 0371 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 037c [ 4] nopl 0x0(%rax)
+-CLONE 0 0380 [ 3] mov 0x8(%rbp),%edx
+-CLONE 0 0383 [ 3] xor %r9d,%r9d
++CLONE 0 016e [ 3] mov %rbx,%rdi
++CLONE 0 0171 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 0176 [ 2] test %al,%al
++CLONE 0 0178 [ 6] je <+0xc6>
++CLONE 0 017e [ 3] mov 0x8(%rbp),%edx
++CLONE 0 0181 [ 3] xor %r9d,%r9d
++CLONE 0 0184 [ 3] mov %rbx,%rdi
++CLONE 0 0187 [ 1] pop %rbx
++CLONE 0 0188 [ 1] pop %rbp
++CLONE 0 0189 [ 5] mov $0x1,%ecx
++CLONE 0 018e [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 0193 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 019e [ 2] xchg %ax,%ax
++CLONE 0 01a0 [ 2] shr $1,%ecx
++CLONE 0 01a2 [ 6] mov $0x1,%r9d
++CLONE 0 01a8 [ 6] mov $0x2,%r8d
++CLONE 0 01ae [ 5] jmp <+0xd9>
++CLONE 0 01b3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01be [ 2] xchg %ax,%ax
++CLONE 0 01c0 [ 3] mov 0x4(%rbp),%ecx
++CLONE 0 01c3 [ 6] mov $0x1,%r9d
++CLONE 0 01c9 [ 6] mov $0x1,%r8d
++CLONE 0 01cf [ 5] jmp <+0x8c>
++CLONE 0 01d4 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01df [ 1] nop
++CLONE 0 01e0 [ 6] mov $0x1,%r9d
++CLONE 0 01e6 [ 6] mov $0x1,%r8d
++CLONE 0 01ec [ 5] jmp <+0xd9>
++CLONE 0 01f1 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 01fc [ 4] nopl 0x0(%rax)
++CLONE 0 0200 [ 6] mov 0xcc(%rbx),%eax
++CLONE 0 0206 [ 3] xor %r9d,%r9d
++CLONE 0 0209 [ 3] lea -0x2(%rax),%ecx
++CLONE 0 020c [ 5] jmp <+0x8c>
++CLONE 0 0211 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 021c [ 4] nopl 0x0(%rax)
++CLONE 0 0220 [ 3] mov 0x4(%rbp),%ecx
++CLONE 0 0223 [ 3] mov 0x0(%rbp),%edx
++CLONE 0 0226 [ 3] xor %r9d,%r9d
++CLONE 0 0229 [ 3] mov %rbx,%rdi
++CLONE 0 022c [ 1] pop %rbx
++CLONE 0 022d [ 1] pop %rbp
++CLONE 0 022e [ 6] mov $0x1,%r8d
++CLONE 0 0234 [ 5] jmp <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 0239 [ 7] nopl 0x0(%rax)
++CLONE 0 0240 [ 6] mov $0x1,%r9d
++CLONE 0 0246 [ 6] mov $0x1,%r8d
++CLONE 0 024c [ 5] mov $0x1,%ecx
++CLONE 0 0251 [ 5] mov $0x2,%edx
++CLONE 0 0256 [ 3] mov %rbx,%rdi
++CLONE 0 0259 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 025e [ 2] test %al,%al
++CLONE 0 0260 [ 6] je <+0xc6>
++CLONE 0 0266 [ 6] mov 0xcc(%rbx),%eax
++CLONE 0 026c [ 3] lea -0x3(%rax),%ecx
++CLONE 0 026f [ 5] jmp <+0x135>
++CLONE 0 0274 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 027f [ 1] nop
++CLONE 0 0280 [ 3] xor %r9d,%r9d
++CLONE 0 0283 [ 6] mov $0x1,%r8d
++CLONE 0 0289 [ 5] mov $0x2,%ecx
++CLONE 0 028e [ 5] jmp <+0xd9>
++CLONE 0 0293 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 029e [ 2] xchg %ax,%ax
++CLONE 0 02a0 [ 3] mov 0x4(%rbp),%ecx
++CLONE 0 02a3 [ 3] mov 0x0(%rbp),%edx
++CLONE 0 02a6 [ 6] mov $0x1,%r9d
++CLONE 0 02ac [ 5] jmp <+0x229>
++CLONE 0 02b1 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 02bc [ 4] nopl 0x0(%rax)
++CLONE 0 02c0 [ 4] cmpb $0x0,0x10(%rbp)
++CLONE 0 02c4 [ 6] je <+0x3a0>
++CLONE 0 02ca [ 3] mov 0xc(%rbp),%edx
++CLONE 0 02cd [ 6] mov $0x1,%r9d
++CLONE 0 02d3 [ 5] mov $0x1,%ecx
++CLONE 0 02d8 [ 6] mov $0x1,%r8d
++CLONE 0 02de [ 3] mov %rbx,%rdi
++CLONE 0 02e1 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 02e6 [ 3] xor %r9d,%r9d
++CLONE 0 02e9 [ 5] mov $0x1,%ecx
++CLONE 0 02ee [ 2] test %al,%al
++CLONE 0 02f0 [ 6] jne <+0xd9>
++CLONE 0 02f6 [ 2] xor %eax,%eax
++CLONE 0 02f8 [ 5] jmp <+0x75>
++CLONE 0 02fd [ 3] nopl (%rax)
++CLONE 0 0300 [ 6] mov $0x1,%r9d
++CLONE 0 0306 [ 6] mov $0x1,%r8d
++CLONE 0 030c [ 5] mov $0x1,%ecx
++CLONE 0 0311 [ 5] mov $0x1,%edx
++CLONE 0 0316 [ 3] mov %rbx,%rdi
++CLONE 0 0319 [ 5] call <tomo_db0::(anonymous namespace)::append_key_span(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&, unsigned int, unsigned int, unsigned int, tomo_db0::(anonymous namespace)::XshardKeyUse)>
++CLONE 0 031e [ 2] test %al,%al
++CLONE 0 0320 [ 6] je <+0xc6>
++CLONE 0 0326 [ 3] xor %r9d,%r9d
++CLONE 0 0329 [ 5] mov $0x1,%ecx
++CLONE 0 032e [ 5] jmp <+0x8c>
++CLONE 0 0333 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 033e [ 2] xchg %ax,%ax
++CLONE 0 0340 [ 3] mov (%rbx),%rax
++CLONE 0 0343 [ 3] mov 0x4(%rbp),%ecx
++CLONE 0 0346 [ 3] mov 0x0(%rbp),%edx
++CLONE 0 0349 [ 6] mov $0x1,%r9d
++CLONE 0 034f [ 7] testl $0x401,0x10(%rax)
++CLONE 0 0356 [ 6] jne <+0x229>
++CLONE 0 035c [ 5] jmp <+0x226>
++CLONE 0 0361 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 036c [ 4] nopl 0x0(%rax)
++CLONE 0 0370 [ 3] cmp $0x1,%edx
++CLONE 0 0373 [ 6] jbe <+0xc6>
++CLONE 0 0379 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
++CLONE 0 0380 [ 6] mov $0x1,%r9d
+ CLONE 0 0386 [ 6] mov $0x1,%r8d
+-CLONE 0 038c [ 5] jmp <+0x181>
+-CLONE 0 0391 [11] data16 cs nopw 0x0(%rax,%rax,1)
+-CLONE 0 039c [ 4] nopl 0x0(%rax)
++CLONE 0 038c [ 7] movl $0x1,0x8(%rsi)
++CLONE 0 0393 [ 4] movb $0x0,0xc(%rsi)
++CLONE 0 0397 [ 3] mov %rax,(%rsi)
++CLONE 0 039a [ 4] mov %rax,0x20(%rsi)
++CLONE 0 039e [ 2] jmp <+0x329>
+ CLONE 0 03a0 [ 3] xor %r9d,%r9d
+ CLONE 0 03a3 [ 6] mov $0x1,%r8d
+ CLONE 0 03a9 [ 5] mov $0x1,%ecx
+ CLONE 0 03ae [ 5] jmp <+0xd9>
++CLONE 0 03b3 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 03be [ 2] xchg %ax,%ax
++CLONE 0 03c0 [ 3] mov 0x8(%rbp),%edx
++CLONE 0 03c3 [ 3] xor %r9d,%r9d
++CLONE 0 03c6 [ 6] mov $0x1,%r8d
++CLONE 0 03cc [ 5] jmp <+0x184>

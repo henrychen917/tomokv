@@ -1,0 +1,126 @@
+std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]
+--- latencyfix
+
++++ post
+
+@@ -1,60 +1,60 @@
+
+-CLONE 0 0000 [ 3] mov %r12,%rdi
++CLONE 0 0000 [ 3] mov %rbx,%rdi
+ CLONE 0 0003 [ 3] vzeroupper
+-CLONE 0 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 000b [ 8] lea 0xf0(%rsp),%rdi
+-CLONE 0 0013 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0018 [ 5] mov 0x70(%rsp),%rdi
+-CLONE 0 001d [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 0022 [ 8] lea 0xd0(%rsp),%rax
+-CLONE 0 002a [ 5] mov %rax,0x70(%rsp)
+-CLONE 0 002f [ 5] mov 0x70(%rsp),%rdi
+-CLONE 0 0034 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0039 [ 4] mov 0x60(%rsp),%esi
+-CLONE 0 003d [ 5] mov 0x40(%rsp),%rdi
+-CLONE 0 0042 [ 5] call <tomo::AofManager::worker_shutdown(unsigned int)>
+-CLONE 0 0047 [ 5] mov 0x68(%rsp),%rsi
+-CLONE 0 004c [ 5] mov 0x48(%rsp),%rdi
+-CLONE 0 0051 [ 5] call <tomo::SnapshotManager::worker_shutdown(tomo::ThreadCtx&)>
+-CLONE 0 0056 [ 5] mov 0x50(%rsp),%rdi
+-CLONE 0 005b [ 5] call <tomo::IoLoop::shutdown_on_issuer()>
+-CLONE 0 0060 [ 4] mov 0x64(%rsp),%esi
+-CLONE 0 0064 [ 5] mov 0x58(%rsp),%rdi
+-CLONE 0 0069 [ 5] call <tomo::DatabaseMap::worker_exited(unsigned int)>
+-CLONE 0 006e [ 8] mov 0x198(%rsp),%rax
+-CLONE 0 0076 [ 9] sub %fs:0x28,%rax
+-CLONE 0 007f [ 2] jne <+0xcd>
+-CLONE 0 0081 [ 3] mov %rbx,%rdi
+-CLONE 0 0084 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0089 [ 5] mov 0x30(%rsp),%rdi
+-CLONE 0 008e [ 3] vzeroupper
+-CLONE 0 0091 [ 5] call <std::unique_lock<std::mutex>::unlock()>
+-CLONE 0 0096 [ 8] lea 0xd0(%rsp),%rax
+-CLONE 0 009e [ 5] mov %rax,0x70(%rsp)
+-CLONE 0 00a3 [ 2] jmp <+0x2f>
+-CLONE 0 00a5 [ 3] mov %rbx,%rdi
+-CLONE 0 00a8 [ 3] vzeroupper
+-CLONE 0 00ab [ 3] mov %r13,%rbx
+-CLONE 0 00ae [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 00b3 [ 3] mov %r12,%rdi
+-CLONE 0 00b6 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00bb [ 8] lea 0xd0(%rsp),%rax
+-CLONE 0 00c3 [ 5] mov %rax,0x70(%rsp)
+-CLONE 0 00c8 [ 5] jmp <+0x2f>
+-CLONE 0 00cd [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00d2 [ 7] lea <rip>(%rip),%rdi # <literal-string-65706f6c6c5f6372656174653100>
+-CLONE 0 00d9 [ 5] call <perror@plt>
+-CLONE 0 00de [ 4] mov 0x8(%rbx),%r15d
+-CLONE 0 00e2 [ 3] xor %r12d,%r12d
+-CLONE 0 00e5 [ 5] jmp <std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()+0x19f>
+-CLONE 0 00ea [ 9] vmovdqa 0x0,%ymm0
+-CLONE 0 00f3 [ 9] vmovdqa %ymm0,0xa0(%rsp)
+-CLONE 0 00fc [ 8] mov 0x20,%rax
+-CLONE 0 0104 [ 2] ud2
+-CLONE 0 0106 [ 4] endbr64
+-CLONE 0 010a [ 5] jmp <std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()+0x1b14>
+-CLONE 0 010f [ 8] lea 0x80(%rsp),%rdi
+-CLONE 0 0117 [ 3] vzeroupper
+-CLONE 0 011a [ 5] call <std::unique_lock<std::mutex>::unlock()>
+-CLONE 0 011f [ 8] lea 0xd0(%rsp),%rax
+-CLONE 0 0127 [ 5] mov %rax,0x70(%rsp)
+-CLONE 0 012c [ 5] jmp <+0x2f>
++CLONE 0 0006 [ 3] mov %r13,%rbx
++CLONE 0 0009 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 000e [ 3] mov %r12,%rdi
++CLONE 0 0011 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0016 [ 8] lea 0xd0(%rsp),%rax
++CLONE 0 001e [ 5] mov %rax,0x70(%rsp)
++CLONE 0 0023 [ 5] mov 0x70(%rsp),%rdi
++CLONE 0 0028 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 002d [ 4] mov 0x60(%rsp),%esi
++CLONE 0 0031 [ 5] mov 0x40(%rsp),%rdi
++CLONE 0 0036 [ 5] call <tomo::AofManager::worker_shutdown(unsigned int)>
++CLONE 0 003b [ 5] mov 0x68(%rsp),%rsi
++CLONE 0 0040 [ 5] mov 0x48(%rsp),%rdi
++CLONE 0 0045 [ 5] call <tomo::SnapshotManager::worker_shutdown(tomo::ThreadCtx&)>
++CLONE 0 004a [ 5] mov 0x50(%rsp),%rdi
++CLONE 0 004f [ 5] call <tomo::IoLoop::shutdown_on_issuer()>
++CLONE 0 0054 [ 4] mov 0x64(%rsp),%esi
++CLONE 0 0058 [ 5] mov 0x58(%rsp),%rdi
++CLONE 0 005d [ 5] call <tomo::DatabaseMap::worker_exited(unsigned int)>
++CLONE 0 0062 [ 8] mov 0x198(%rsp),%rax
++CLONE 0 006a [ 9] sub %fs:0x28,%rax
++CLONE 0 0073 [ 6] jne <+0x133>
++CLONE 0 0079 [ 3] mov %rbx,%rdi
++CLONE 0 007c [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0081 [ 3] mov %r12,%rdi
++CLONE 0 0084 [ 3] vzeroupper
++CLONE 0 0087 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 008c [ 8] lea 0xf0(%rsp),%rdi
++CLONE 0 0094 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0099 [ 5] mov 0x70(%rsp),%rdi
++CLONE 0 009e [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 00a3 [ 8] lea 0xd0(%rsp),%rax
++CLONE 0 00ab [ 5] mov %rax,0x70(%rsp)
++CLONE 0 00b0 [ 5] jmp <+0x23>
++CLONE 0 00b5 [ 7] lea <rip>(%rip),%rdi # <literal-string-65706f6c6c5f6372656174653100>
++CLONE 0 00bc [ 5] call <perror@plt>
++CLONE 0 00c1 [ 4] mov 0x8(%rbx),%r15d
++CLONE 0 00c5 [ 3] xor %r12d,%r12d
++CLONE 0 00c8 [ 5] jmp <std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()+0x19f>
++CLONE 0 00cd [ 4] endbr64
++CLONE 0 00d1 [ 5] jmp <std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()+0x19c9>
++CLONE 0 00d6 [ 9] vmovdqa 0x0,%ymm0
++CLONE 0 00df [ 9] vmovdqa %ymm0,0xa0(%rsp)
++CLONE 0 00e8 [ 8] mov 0x20,%rax
++CLONE 0 00f0 [ 2] ud2
++CLONE 0 00f2 [ 8] lea 0x80(%rsp),%rdi
++CLONE 0 00fa [ 3] vzeroupper
++CLONE 0 00fd [ 5] call <std::unique_lock<std::mutex>::unlock()>
++CLONE 0 0102 [ 8] lea 0xd0(%rsp),%rax
++CLONE 0 010a [ 5] mov %rax,0x70(%rsp)
++CLONE 0 010f [ 5] jmp <+0x23>
++CLONE 0 0114 [ 5] mov 0x30(%rsp),%rdi
++CLONE 0 0119 [ 3] vzeroupper
++CLONE 0 011c [ 5] call <std::unique_lock<std::mutex>::unlock()>
++CLONE 0 0121 [ 8] lea 0xd0(%rsp),%rax
++CLONE 0 0129 [ 5] mov %rax,0x70(%rsp)
++CLONE 0 012e [ 5] jmp <+0x23>
++CLONE 0 0133 [ 5] call <__stack_chk_fail@plt>

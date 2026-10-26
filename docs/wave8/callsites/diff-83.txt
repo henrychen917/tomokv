@@ -1,0 +1,29 @@
+json_append_number
+--- lualibs
+
++++ post
+
+@@ -12,8 +12,8 @@
+
+ CLONE 0 001d [ 6] mov 0x538(%rbp),%edx
+ CLONE 0 0023 [ 2] test %edx,%edx
+ CLONE 0 0025 [ 2] jne <+0x80>
+-CLONE 0 0027 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::kNoThread+0x25c>
+-CLONE 0 002f [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::kNoThread+0x684>
++CLONE 0 0027 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 002f [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 0037 [ 6] ja <+0x100>
+ CLONE 0 003d [ 4] vucomisd %xmm0,%xmm0
+ CLONE 0 0041 [ 6] jp <+0x100>
+@@ -43,8 +43,8 @@
+
+ CLONE 0 008f [ 3] sub %rcx,%rsi
+ CLONE 0 0092 [ 3] cmp $0x1,%edx
+ CLONE 0 0095 [ 6] je <+0x160>
+-CLONE 0 009b [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::kNoThread+0x25c>
+-CLONE 0 00a3 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::kNoThread+0x684>
++CLONE 0 009b [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 00a3 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 00ab [ 2] ja <+0xb3>
+ CLONE 0 00ad [ 4] vucomisd %xmm0,%xmm0
+ CLONE 0 00b1 [ 2] jnp <+0x4f>

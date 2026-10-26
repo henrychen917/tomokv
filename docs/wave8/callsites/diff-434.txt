@@ -1,0 +1,15 @@
+tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
+--- headline
+
++++ post
+
+@@ -6,7 +6,7 @@
+
+ CLONE 0 000f [ 3] mov %rdi,%rdx
+ CLONE 0 0012 [ 2] ja <+0x3c>
+ CLONE 0 0014 [ 3] movzbl (%rdi),%eax
+-CLONE 0 0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x17aa8>
++CLONE 0 0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x1848c>
+ CLONE 0 001e [ 4] movslq (%rcx,%rax,4),%rax
+ CLONE 0 0022 [ 3] add %rcx,%rax
+ CLONE 0 0025 [ 3] notrack jmp *%rax

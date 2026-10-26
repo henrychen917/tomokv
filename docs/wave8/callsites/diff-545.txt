@@ -1,0 +1,33 @@
+void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)
+--- headline
+
++++ post
+
+@@ -153,22 +153,22 @@
+
+ CLONE 0 0298 [ 2] test %al,%al
+ CLONE 0 029a [ 6] je <+0xb50>
+ CLONE 0 02a0 [ 8] vmovsd -0x98(%rbp),%xmm5
+-CLONE 0 02a8 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 02a8 [ 8] vandpd <rip>(%rip),%xmm5,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 02b0 [ 8] vmovsd -0x90(%rbp),%xmm3
+ CLONE 0 02b8 [ 8] vmovsd <rip>(%rip),%xmm2 # <literal-load-ffffffffffffef7f>
+ CLONE 0 02c0 [ 8] vmovsd %xmm3,-0xb0(%rbp)
+ CLONE 0 02c8 [ 8] vmovsd %xmm5,-0xb8(%rbp)
+ CLONE 0 02d0 [ 4] vucomisd %xmm0,%xmm2
+ CLONE 0 02d4 [ 6] jb <+0x800>
+-CLONE 0 02da [ 8] vandpd <rip>(%rip),%xmm3,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 02da [ 8] vandpd <rip>(%rip),%xmm3,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 02e2 [ 4] vucomisd %xmm0,%xmm2
+ CLONE 0 02e6 [ 6] jb <+0x800>
+-CLONE 0 02ec [ 8] vcomisd <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7a8>
++CLONE 0 02ec [ 8] vcomisd <rip>(%rip),%xmm5 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x1f8>
+ CLONE 0 02f4 [ 6] jb <+0x800>
+ CLONE 0 02fa [ 8] vmovsd <rip>(%rip),%xmm0 # <literal-load-0000000000806640>
+ CLONE 0 0302 [ 4] vcomisd %xmm5,%xmm0
+ CLONE 0 0306 [ 6] jb <+0x800>
+-CLONE 0 030c [ 8] vcomisd <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x7b0>
++CLONE 0 030c [ 8] vcomisd <rip>(%rip),%xmm3 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x200>
+ CLONE 0 0314 [ 6] jb <+0x800>
+ CLONE 0 031a [ 8] vmovsd <rip>(%rip),%xmm0 # <literal-load-007fa5b145435540>
+ CLONE 0 0322 [ 4] vcomisd %xmm3,%xmm0

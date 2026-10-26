@@ -1,0 +1,92 @@
+[
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs",
+      "latencyfix"
+    ],
+    "reason": "Composition of lualibs, latencyfix; residual instructions/layout require merit review."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs",
+      "latencyfix"
+    ],
+    "reason": "Composition of lualibs, latencyfix; residual instructions/layout require merit review."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs",
+      "latencyfix"
+    ],
+    "reason": "Composition of lualibs, latencyfix; residual instructions/layout require merit review."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [
+      "lualibs",
+      "latencyfix"
+    ],
+    "reason": "Composition of lualibs, latencyfix; residual instructions/layout require merit review."
+  },
+  {
+    "name": "tomo_wave8_pad_a",
+    "hot": false,
+    "counted_command_scope": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      156128
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+  }
+]

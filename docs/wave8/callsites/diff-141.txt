@@ -1,0 +1,207 @@
+tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]
+--- lualibs
+
++++ post
+
+@@ -9,103 +9,103 @@
+
+ CLONE 0 0027 [ 5] mov 0x68(%rsp),%r13
+ CLONE 0 002c [ 3] mov %r12,%rbp
+ CLONE 0 002f [ 3] cmp %rbp,%r13
+-CLONE 0 0032 [ 6] je <+0xd4>
+-CLONE 0 0038 [ 4] mov 0x0(%rbp),%rdi
+-CLONE 0 003c [ 4] lea 0x10(%rbp),%rax
+-CLONE 0 0040 [ 3] cmp %rax,%rdi
+-CLONE 0 0043 [ 2] je <+0x52>
+-CLONE 0 0045 [ 4] mov 0x10(%rbp),%rax
+-CLONE 0 0049 [ 4] lea 0x1(%rax),%rsi
+-CLONE 0 004d [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0052 [ 4] add $0x20,%rbp
+-CLONE 0 0056 [ 2] jmp <+0x2f>
+-CLONE 0 0058 [ 3] mov %rbp,%rdi
+-CLONE 0 005b [ 3] vzeroupper
+-CLONE 0 005e [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0063 [ 5] mov 0x8(%rsp),%rdi
+-CLONE 0 0068 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 006d [ 8] lea 0x110(%rsp),%rdi
+-CLONE 0 0075 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 007a [ 3] mov %r12,%rdi
+-CLONE 0 007d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0082 [ 4] mov (%rsp),%rdi
+-CLONE 0 0086 [ 5] call <tomo::(anonymous namespace)::LibraryDef::~LibraryDef()>
+-CLONE 0 008b [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 0093 [ 9] sub %fs:0x28,%rax
+-CLONE 0 009c [ 2] jne <+0xcf>
+-CLONE 0 009e [ 3] mov %rbx,%rdi
+-CLONE 0 00a1 [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 00a6 [ 4] mov (%rsp),%rdi
+-CLONE 0 00aa [ 3] vzeroupper
+-CLONE 0 00ad [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 00b2 [ 5] mov 0x10(%rsp),%rdi
+-CLONE 0 00b7 [ 5] call <std::vector<tomo::(anonymous namespace)::LibraryDef, std::allocator<tomo::(anonymous namespace)::LibraryDef> >::~vector()>
+-CLONE 0 00bc [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 00c4 [ 9] sub %fs:0x28,%rax
+-CLONE 0 00cd [ 2] je <+0x9e>
+-CLONE 0 00cf [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 00d4 [ 5] mov 0x70(%rsp),%rsi
+-CLONE 0 00d9 [ 3] sub %r12,%rsi
+-CLONE 0 00dc [ 3] test %r12,%r12
+-CLONE 0 00df [ 2] je <+0x8b>
+-CLONE 0 00e1 [ 3] mov %r12,%rdi
+-CLONE 0 00e4 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 00e9 [ 2] jmp <+0x8b>
+-CLONE 0 00eb [ 3] mov %rbx,%rdi
+-CLONE 0 00ee [ 3] vzeroupper
+-CLONE 0 00f1 [ 3] mov %rbp,%rbx
+-CLONE 0 00f4 [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 00f9 [ 5] jmp <+0x63>
+-CLONE 0 00fe [ 3] mov %rbx,%rdi
+-CLONE 0 0101 [ 3] vzeroupper
+-CLONE 0 0104 [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 0109 [ 8] mov 0x278(%rsp),%rax
+-CLONE 0 0111 [ 9] sub %fs:0x28,%rax
+-CLONE 0 011a [ 2] jne <+0xcf>
+-CLONE 0 011c [ 3] mov %rbp,%rdi
+-CLONE 0 011f [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0124 [ 8] mov 0xa0(%rsp),%rdi
+-CLONE 0 012c [ 3] vzeroupper
+-CLONE 0 012f [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
+-CLONE 0 0134 [ 3] dec %r12
+-CLONE 0 0137 [ 2] jne <+0x183>
+-CLONE 0 0139 [ 3] mov %rbp,%rdi
+-CLONE 0 013c [ 8] lea 0x150(%rsp),%rbp
+-CLONE 0 0144 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 0149 [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 014e [ 8] mov 0xd0(%rsp),%rdi
+-CLONE 0 0156 [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
+-CLONE 0 015b [ 3] mov %rbx,%rdi
+-CLONE 0 015e [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 0163 [ 5] jmp <tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)+0x2baa>
++CLONE 0 0032 [ 2] je <+0x73>
++CLONE 0 0034 [ 4] mov 0x0(%rbp),%rdi
++CLONE 0 0038 [ 4] lea 0x10(%rbp),%rax
++CLONE 0 003c [ 3] cmp %rax,%rdi
++CLONE 0 003f [ 2] je <+0x4e>
++CLONE 0 0041 [ 4] mov 0x10(%rbp),%rax
++CLONE 0 0045 [ 4] lea 0x1(%rax),%rsi
++CLONE 0 0049 [ 5] call <_ZdlPvm@plt>
++CLONE 0 004e [ 4] add $0x20,%rbp
++CLONE 0 0052 [ 2] jmp <+0x2f>
++CLONE 0 0054 [ 3] dec %rax
++CLONE 0 0057 [ 2] jne <+0x6e>
++CLONE 0 0059 [ 3] mov %rbx,%rdi
++CLONE 0 005c [ 3] vzeroupper
++CLONE 0 005f [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0064 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0069 [ 5] jmp <tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)+0x2714>
++CLONE 0 006e [ 3] vzeroupper
++CLONE 0 0071 [ 2] jmp <+0x22>
++CLONE 0 0073 [ 5] mov 0x70(%rsp),%rsi
++CLONE 0 0078 [ 3] sub %r12,%rsi
++CLONE 0 007b [ 3] test %r12,%r12
++CLONE 0 007e [ 2] je <+0x88>
++CLONE 0 0080 [ 3] mov %r12,%rdi
++CLONE 0 0083 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0088 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 0090 [ 9] sub %fs:0x28,%rax
++CLONE 0 0099 [ 2] jne <+0xcc>
++CLONE 0 009b [ 3] mov %rbx,%rdi
++CLONE 0 009e [ 5] call <_Unwind_Resume@plt>
++CLONE 0 00a3 [ 4] mov (%rsp),%rdi
++CLONE 0 00a7 [ 3] vzeroupper
++CLONE 0 00aa [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00af [ 5] mov 0x10(%rsp),%rdi
++CLONE 0 00b4 [ 5] call <std::vector<tomo::(anonymous namespace)::LibraryDef, std::allocator<tomo::(anonymous namespace)::LibraryDef> >::~vector()>
++CLONE 0 00b9 [ 8] mov 0x278(%rsp),%rax
++CLONE 0 00c1 [ 9] sub %fs:0x28,%rax
++CLONE 0 00ca [ 2] je <+0x9b>
++CLONE 0 00cc [ 5] call <__stack_chk_fail@plt>
++CLONE 0 00d1 [ 5] mov 0x18(%rsp),%rdi
++CLONE 0 00d6 [ 3] vzeroupper
++CLONE 0 00d9 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 00de [ 4] mov (%rsp),%rdi
++CLONE 0 00e2 [ 5] call <tomo::(anonymous namespace)::LibraryDef::~LibraryDef()>
++CLONE 0 00e7 [ 5] jmp <+0x15>
++CLONE 0 00ec [ 8] mov 0xa0(%rsp),%rdi
++CLONE 0 00f4 [ 3] vzeroupper
++CLONE 0 00f7 [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
++CLONE 0 00fc [ 3] dec %r12
++CLONE 0 00ff [ 2] jne <+0x17a>
++CLONE 0 0101 [ 3] mov %rbp,%rdi
++CLONE 0 0104 [ 8] lea 0x150(%rsp),%rbp
++CLONE 0 010c [ 5] call <__cxa_begin_catch@plt>
++CLONE 0 0111 [ 5] call <__cxa_end_catch@plt>
++CLONE 0 0116 [ 8] mov 0xd0(%rsp),%rdi
++CLONE 0 011e [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
++CLONE 0 0123 [ 3] mov %rbx,%rdi
++CLONE 0 0126 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 012b [ 5] jmp <tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)+0x2bde>
++CLONE 0 0130 [ 3] mov %rbp,%rdi
++CLONE 0 0133 [ 3] vzeroupper
++CLONE 0 0136 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 013b [ 5] mov 0x8(%rsp),%rdi
++CLONE 0 0140 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0145 [ 8] lea 0x110(%rsp),%rdi
++CLONE 0 014d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 0152 [ 3] mov %r12,%rdi
++CLONE 0 0155 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 015a [ 4] mov (%rsp),%rdi
++CLONE 0 015e [ 5] call <tomo::(anonymous namespace)::LibraryDef::~LibraryDef()>
++CLONE 0 0163 [ 5] jmp <+0x88>
+ CLONE 0 0168 [ 5] mov 0x18(%rsp),%rdi
+ CLONE 0 016d [ 3] vzeroupper
+ CLONE 0 0170 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 0175 [ 4] mov (%rsp),%rdi
+-CLONE 0 0179 [ 5] call <tomo::(anonymous namespace)::LibraryDef::~LibraryDef()>
+-CLONE 0 017e [ 5] jmp <+0x15>
+-CLONE 0 0183 [ 3] mov %rbp,%r12
+-CLONE 0 0186 [ 8] lea 0x150(%rsp),%rbp
+-CLONE 0 018e [ 8] mov 0xd0(%rsp),%rdi
+-CLONE 0 0196 [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
+-CLONE 0 019b [ 3] mov %rbx,%rdi
+-CLONE 0 019e [ 3] mov %r12,%rbx
+-CLONE 0 01a1 [ 5] call <pthread_mutex_unlock@plt>
+-CLONE 0 01a6 [ 5] jmp <+0xd>
+-CLONE 0 01ab [ 5] mov 0x18(%rsp),%rdi
+-CLONE 0 01b0 [ 3] vzeroupper
+-CLONE 0 01b3 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 01b8 [ 5] jmp <+0xd>
+-CLONE 0 01bd [ 3] mov %rbp,%rdi
+-CLONE 0 01c0 [ 3] vzeroupper
+-CLONE 0 01c3 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+-CLONE 0 01c8 [ 5] jmp <+0x63>
+-CLONE 0 01cd [ 3] dec %rax
+-CLONE 0 01d0 [ 2] jne <+0x1e7>
+-CLONE 0 01d2 [ 3] mov %rbx,%rdi
+-CLONE 0 01d5 [ 3] vzeroupper
+-CLONE 0 01d8 [ 5] call <__cxa_begin_catch@plt>
+-CLONE 0 01dd [ 5] call <__cxa_end_catch@plt>
+-CLONE 0 01e2 [ 5] jmp <tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)+0x27ae>
+-CLONE 0 01e7 [ 3] vzeroupper
+-CLONE 0 01ea [ 5] jmp <+0x22>
++CLONE 0 0175 [ 5] jmp <+0xd>
++CLONE 0 017a [ 3] mov %rbp,%r12
++CLONE 0 017d [ 8] lea 0x150(%rsp),%rbp
++CLONE 0 0185 [ 8] mov 0xd0(%rsp),%rdi
++CLONE 0 018d [ 5] call <std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> > >::_M_erase(std::_Rb_tree_node<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, tomo::(anonymous namespace)::LibraryDef> >*) [clone .isra.0]>
++CLONE 0 0192 [ 3] mov %rbx,%rdi
++CLONE 0 0195 [ 3] mov %r12,%rbx
++CLONE 0 0198 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 019d [ 5] jmp <+0xd>
++CLONE 0 01a2 [ 3] mov %rbx,%rdi
++CLONE 0 01a5 [ 3] vzeroupper
++CLONE 0 01a8 [ 3] mov %rbp,%rbx
++CLONE 0 01ab [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 01b0 [ 2] jmp <+0x13b>
++CLONE 0 01b2 [ 3] mov %rbp,%rdi
++CLONE 0 01b5 [ 3] vzeroupper
++CLONE 0 01b8 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
++CLONE 0 01bd [ 5] jmp <+0x13b>
++CLONE 0 01c2 [ 3] mov %rbx,%rdi
++CLONE 0 01c5 [ 3] vzeroupper
++CLONE 0 01c8 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 01cd [ 8] mov 0x278(%rsp),%rax
++CLONE 0 01d5 [ 9] sub %fs:0x28,%rax
++CLONE 0 01de [ 6] jne <+0xcc>
++CLONE 0 01e4 [ 3] mov %rbp,%rdi
++CLONE 0 01e7 [ 5] call <_Unwind_Resume@plt>

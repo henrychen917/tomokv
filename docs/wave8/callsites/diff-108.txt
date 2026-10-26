@@ -1,0 +1,15 @@
+mp_decode_to_lua_type.part.0
+--- lualibs
+
++++ post
+
+@@ -264,7 +264,7 @@
+
+ CLONE 0 0465 [ 6] jbe <+0x500>
+ CLONE 0 046b [ 5] vmovd 0x1(%rcx),%xmm0
+ CLONE 0 0470 [ 3] mov %rbp,%rdi
+-CLONE 0 0473 [ 9] vpshufb <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::kNoThread+0x5cc>
++CLONE 0 0473 [ 9] vpshufb <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x988>
+ CLONE 0 047c [ 4] vcvtss2sd %xmm0,%xmm0,%xmm0
+ CLONE 0 0480 [ 5] call <lua_pushnumber>
+ CLONE 0 0485 [ 4] addq $0x5,(%rbx)

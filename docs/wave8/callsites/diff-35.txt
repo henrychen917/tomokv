@@ -1,0 +1,23 @@
+bit_arshift
+--- lualibs
+
++++ post
+
+@@ -5,14 +5,14 @@
+
+ CLONE 0 000c [ 1] push %rbx
+ CLONE 0 000d [ 3] mov %rdi,%r12
+ CLONE 0 0010 [ 5] call <lua_tonumber>
+-CLONE 0 0015 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::kNoThread+0x94c>
++CLONE 0 0015 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x388>
+ CLONE 0 001d [ 5] vmovq %xmm1,%rbx
+ CLONE 0 0022 [ 2] test %ebx,%ebx
+ CLONE 0 0024 [ 2] je <+0x70>
+ CLONE 0 0026 [ 5] mov $0x2,%esi
+ CLONE 0 002b [ 3] mov %r12,%rdi
+ CLONE 0 002e [ 5] call <lua_tonumber>
+-CLONE 0 0033 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::kNoThread+0x94c>
++CLONE 0 0033 [ 8] vaddsd <rip>(%rip),%xmm0,%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x388>
+ CLONE 0 003b [ 5] vmovq %xmm2,%rbp
+ CLONE 0 0040 [ 2] test %ebp,%ebp
+ CLONE 0 0042 [ 2] je <+0xa0>

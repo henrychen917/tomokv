@@ -1,0 +1,25 @@
+lua_getinfo
+--- headline
+
++++ post
+
+@@ -158,7 +158,7 @@
+
+ CLONE 0 0273 [ 3] test %rax,%rax
+ CLONE 0 0276 [ 4] mov %rax,0x10(%r15)
+ CLONE 0 027a [ 6] jne <+0xa3>
+-CLONE 0 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
++CLONE 0 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
+ CLONE 0 0287 [ 8] movq $0x0,0x8(%r15)
+ CLONE 0 028f [ 4] mov %rax,0x10(%r15)
+ CLONE 0 0293 [ 5] jmp <+0xa3>
+@@ -278,7 +278,7 @@
+
+ CLONE 0 048e [ 4] lea 0x38(%r15),%rdi
+ CLONE 0 0492 [ 5] mov $0x3c,%edx
+ CLONE 0 0497 [ 5] vmovq %rax,%xmm1
+-CLONE 0 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
++CLONE 0 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
+ CLONE 0 04a3 [ 8] movl $0xffffffff,0x28(%r15)
+ CLONE 0 04ab [ 8] movq $0xffffffffffffffff,0x30(%r15)
+ CLONE 0 04b3 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm1

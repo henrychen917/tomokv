@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/post-db0-GET-1s-1-1-10000.log
+SHA-256: d5fb242bd3653a6b7a72c74e0e4fa1ff65bfd72dcd3f5f961c693b28697b744d
+Exit: 0
+2356	    }
+0x00005555558a9f28	2356	    }
+0x00005555558a9f31	2356	    }
+0x00005555558a9f37	2356	    }
+0x00005555558a9f3b	2356	    }
+0x00005555558a9f3c	2356	    }
+0x00005555558a9f3e	2356	    }
+0x00005555558a9f40	2356	    }
+0x00005555558a9f42	2356	    }
+0x00005555558a9f44	2356	    }
+0x00005555558a9f45	2356	    }
+0x0000555555d86054 in tomo_db0::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=trueTomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+, slowlog=slowlog@entry=10000) at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2560763) exited normally]
+COUNT 1174

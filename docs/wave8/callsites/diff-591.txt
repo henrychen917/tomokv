@@ -1,0 +1,25 @@
+void tomo_db0::IoLoop::arm_tls_socket_poll<false>(tomo_db0::Client*, tomo_db0::TlsOp)
+--- headline
+
++++ post
+
+@@ -67,7 +67,7 @@
+
+ CLONE 0 00f5 [ 4] cmp $0xfe,%r12b
+ CLONE 0 00f9 [ 6] je <+0x200>
+ CLONE 0 00ff [ 3] mov %ecx,0x4(%rax)
+-CLONE 0 0102 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x630>
++CLONE 0 0102 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x78>
+ CLONE 0 0109 [ 6] movl $0x6,(%rax)
+ CLONE 0 010f [ 8] movq $0x0,0x8(%rax)
+ CLONE 0 0117 [ 8] movq $0x0,0x10(%rax)
+@@ -119,7 +119,7 @@
+
+ CLONE 0 01f3 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ CLONE 0 01fe [ 2] xchg %ax,%ax
+ CLONE 0 0200 [ 3] mov %ecx,0x4(%rax)
+-CLONE 0 0203 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
++CLONE 0 0203 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x70>
+ CLONE 0 020a [ 6] movl $0x6,(%rax)
+ CLONE 0 0210 [ 8] movq $0x0,0x8(%rax)
+ CLONE 0 0218 [ 8] movq $0x0,0x10(%rax)

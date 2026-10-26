@@ -1,0 +1,15 @@
+sort
+--- headline
+
++++ post
+
+@@ -24,7 +24,7 @@
+
+ CLONE 0 0057 [ 5] call <lua_checkstack.part.0>
+ CLONE 0 005c [ 2] test %eax,%eax
+ CLONE 0 005e [ 2] jne <+0x80>
+-CLONE 0 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x126c8>
++CLONE 0 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x788>
+ CLONE 0 0067 [ 7] lea <rip>(%rip),%rsi # <literal-string-737461636b206f766572666c6f77202825732900>
+ CLONE 0 006e [ 3] mov %rbx,%rdi
+ CLONE 0 0071 [ 5] call <luaL_error>

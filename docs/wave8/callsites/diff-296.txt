@@ -1,0 +1,15 @@
+tomo::sort_run(tomo::SortSpec const&, tomo::SortResolved const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned char, std::allocator<unsigned char> >&)
+--- headline
+
++++ post
+
+@@ -1538,7 +1538,7 @@
+
+ CLONE 0 1b12 [ 4] mov -0x8(%rdx),%r8
+ CLONE 0 1b16 [ 5] jmp <+0x53a>
+ CLONE 0 1b1b [ 2] xor %edx,%edx
+-CLONE 0 1b1d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x126c8>
++CLONE 0 1b1d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x788>
+ CLONE 0 1b24 [ 5] mov $0x8,%edi
+ CLONE 0 1b29 [ 5] call <newlocale@plt>
+ CLONE 0 1b2e [ 5] jmp <+0xb65>

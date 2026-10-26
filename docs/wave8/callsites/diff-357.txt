@@ -1,0 +1,48 @@
+tomo_db0::FlatStore::atomic_collapse_impl<true>(unsigned long, unsigned long)::{lambda(tomo_db0::AtomicCollapseKey&, tomo_db0::AtomicEntry&, tomo_db0::KvObj*)#1}::operator()(tomo_db0::AtomicCollapseKey&, tomo_db0::AtomicEntry&, tomo_db0::KvObj*) const
+--- headline
+
++++ post
+
+@@ -0,0 +1,41 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 4] mov 0x30(%rdx),%rax
++CLONE 0 0008 [ 3] test %rax,%rax
++CLONE 0 000b [ 2] je <+0x26>
++CLONE 0 000d [ 4] mov 0x40(%rdx),%rdi
++CLONE 0 0011 [ 3] test %rdi,%rdi
++CLONE 0 0014 [ 2] je <+0x90>
++CLONE 0 0016 [ 3] movzbl (%rdi),%eax
++CLONE 0 0019 [ 2] test %al,%al
++CLONE 0 001b [ 2] jne <+0x87>
++CLONE 0 001d [ 4] mov 0x30(%rdx),%rax
++CLONE 0 0021 [ 3] test %rax,%rax
++CLONE 0 0024 [ 2] jne <+0x90>
++CLONE 0 0026 [ 4] mov 0x58(%rdx),%rax
++CLONE 0 002a [ 2] xor %edi,%edi
++CLONE 0 002c [ 4] cmp $0xffffffffffffffff,%rax
++CLONE 0 0030 [ 5] vmovq 0x50(%rdx),%xmm0
++CLONE 0 0035 [ 4] cmove %rdi,%rax
++CLONE 0 0039 [ 4] cmpb $0x0,0x70(%rsi)
++CLONE 0 003d [ 2] je <+0x60>
++CLONE 0 003f [ 5] vmovq %xmm0,%rdi
++CLONE 0 0044 [ 4] cmp %rdi,0x60(%rsi)
++CLONE 0 0048 [ 2] jne <+0x60>
++CLONE 0 004a [ 4] mov 0x68(%rsi),%rdx
++CLONE 0 004e [ 3] cmp %rdx,%rax
++CLONE 0 0051 [ 4] cmovb %rdx,%rax
++CLONE 0 0055 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 0060 [ 4] cmpb $0x0,0x58(%rsi)
++CLONE 0 0064 [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0
++CLONE 0 006a [ 4] movb $0x1,0x70(%rsi)
++CLONE 0 006e [ 5] vmovdqu %xmm0,0x60(%rsi)
++CLONE 0 0073 [ 2] je <+0x7b>
++CLONE 0 0075 [ 4] cmp 0x50(%rsi),%rax
++CLONE 0 0079 [ 2] jb <+0x87>
++CLONE 0 007b [ 4] mov %rcx,0x28(%rsi)
++CLONE 0 007f [ 4] mov %rax,0x50(%rsi)
++CLONE 0 0083 [ 4] movb $0x1,0x58(%rsi)
++CLONE 0 0087 [ 1] ret
++CLONE 0 0088 [ 8] nopl 0x0(%rax,%rax,1)
++CLONE 0 0090 [ 3] mov (%rax),%rax
++CLONE 0 0093 [ 2] jmp <+0x2a>

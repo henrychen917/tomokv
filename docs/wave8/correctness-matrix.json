@@ -1,0 +1,72 @@
+{
+  "once": [
+    "source_identity",
+    "lualibs",
+    "latencyfix_grammar",
+    "latencyfix_shape",
+    "latencyfix_off",
+    "iofix-deferred",
+    "iofix-hz",
+    "iofix-sleep",
+    "iofix-signal",
+    "execfair",
+    "txnorder_index",
+    "txnorder2",
+    "txnorder_wake",
+    "reorder_identity",
+    "reorder_sync",
+    "reorder_engagement",
+    "wb_rule_units",
+    "wbland_units",
+    "scriptfix",
+    "atomfix5_watch",
+    "datafix2_watch",
+    "blockfix_structure",
+    "blockfix_registry",
+    "blockfix_mkstream",
+    "serverfix_slowlog",
+    "rlfix3_info",
+    "compat3",
+    "netcmd_units",
+    "atomic_units",
+    "splitlocal_units",
+    "exbatch_units",
+    "moverfix",
+    "core_units",
+    "wait_units",
+    "serverfix_waitaof",
+    "netio-1s",
+    "netio-2s"
+  ],
+  "each_engine": [
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "fused-0",
+    "fused-1",
+    "txn_group_fused",
+    "txn_group_split",
+    "txnorder-fused-0",
+    "txnorder-fused-1",
+    "txnorder-split-0",
+    "txnorder-split-1",
+    "replyoff",
+    "wb_policy"
+  ],
+  "each_mode_engine": [
+    "debug-0",
+    "debug-1",
+    "script_bounds"
+  ],
+  "tcl": [
+    "compat2"
+  ],
+  "differ_each_engine": [
+    "differ-split",
+    "differ-armed"
+  ],
+  "selftest_throwaway": [
+    "abba_selftest"
+  ]
+}

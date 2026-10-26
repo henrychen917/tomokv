@@ -1,0 +1,14 @@
+tomo_db0::FlipController::observe_rate(unsigned long, unsigned long)
+--- headline
+
++++ post
+
+@@ -3,6 +3,6 @@
+
+ CLONE 0 0008 [ 7] mov %rsi,0x5e0(%rdi)
+ CLONE 0 000f [ 6] vcvtusi2sd %rsi,%xmm1,%xmm0
+ CLONE 0 0015 [ 6] vcvtusi2sd %rdx,%xmm1,%xmm1
+-CLONE 0 001b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6b8>
++CLONE 0 001b [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf0>
+ CLONE 0 0023 [ 4] vdivsd %xmm1,%xmm0,%xmm0
+ CLONE 0 0027 [ 1] ret

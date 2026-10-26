@@ -1,0 +1,15 @@
+tomo_db0::AofProducer::record_post_image(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::AofOwnerContext&, unsigned long)
+--- headline
+
++++ post
+
+@@ -35,7 +35,7 @@
+
+ CLONE 0 0062 [ 4] cmp $0x11,%r12d
+ CLONE 0 0066 [ 2] jbe <+0x31>
+ CLONE 0 0068 [ 6] vmovdqu 0x0(%r13),%xmm0
+-CLONE 0 006e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x3c8>
++CLONE 0 006e [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x748>
+ CLONE 0 0076 [ 5] vptest %xmm0,%xmm0
+ CLONE 0 007b [ 2] jne <+0x31>
+ CLONE 0 007d [ 7] cmpw $0x3a77,0x10(%r13)

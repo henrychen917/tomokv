@@ -1,0 +1,15 @@
+tomo::FlipController::stabilize_rate(double&)
+--- headline
+
++++ post
+
+@@ -53,7 +53,7 @@
+
+ CLONE 0 00e0 [ 2] ja <+0xa0>
+ CLONE 0 00e2 [ 5] vmovsd 0x0(%rbp),%xmm0
+ CLONE 0 00e7 [ 6] vaddsd 0x20(%rsp),%xmm0,%xmm0
+-CLONE 0 00ed [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x620>
++CLONE 0 00ed [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x68>
+ CLONE 0 00f5 [ 5] vmovsd %xmm0,0x0(%rbp)
+ CLONE 0 00fa [ 2] jmp <+0xa2>
+ CLONE 0 00fc [ 4] nopl 0x0(%rax)

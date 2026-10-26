@@ -1,0 +1,300 @@
+{
+  "removed_names": [
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM all commands"
+    ],
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM command"
+    ],
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM sub commands"
+    ],
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with a subset of commands"
+    ],
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with empty histogram"
+    ],
+    [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with wrong command name skips the invalid one"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - JSON numeric decoding"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - JSON smoke test"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - JSON string decoding"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - Verify minimal bitop functionality"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack and unpack circular references?"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack double?"
+    ],
+    [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack negative int64?"
+    ],
+    [
+      "unit/scripting",
+      "Functions in the Redis namespace are able to report errors"
+    ],
+    [
+      "unit/scripting",
+      "Try trick readonly table on bit table"
+    ],
+    [
+      "unit/scripting",
+      "Try trick readonly table on cmsgpack table"
+    ],
+    [
+      "unit/scripting",
+      "Try trick readonly table on json table"
+    ],
+    [
+      "unit/scripting",
+      "lua bit.tohex bug"
+    ],
+    [
+      "unit/scripting",
+      "redis.sha1hex() implementation"
+    ]
+  ],
+  "added_names": [],
+  "named_known_failures": 405,
+  "runs": {
+    "tcl-final": {
+      "exit": 0,
+      "binary_sha256": "488ad56dd86bbb7f52c8cbf5b34070b81e3e782ef2b26adcbe788061cbc03509",
+      "modes": [
+        {
+          "mode": "2s",
+          "files": 35,
+          "passed": 1643,
+          "named_failures": [],
+          "file_errors": {},
+          "promoted": [
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM all commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM command",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM sub commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with a subset of commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with empty histogram",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON numeric decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON smoke test",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON string decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - Verify minimal bitop functionality",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack and unpack circular references?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack double?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack negative int64?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Functions in the Redis namespace are able to report errors",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on bit table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on cmsgpack table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on json table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "lua bit.tohex bug",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "redis.sha1hex() implementation",
+              "passing_occurrences": 2
+            }
+          ],
+          "source_summary": "/home/user/Projects/cx-wave8/build/gate-run.hzalOy/jobs/redis_tcl/redis-tcl-2s/summary.json"
+        },
+        {
+          "mode": "1s",
+          "files": 35,
+          "passed": 1643,
+          "named_failures": [],
+          "file_errors": {},
+          "promoted": [
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM all commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM command",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM sub commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with a subset of commands",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with empty histogram",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/latency-monitor",
+              "name": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+              "passing_occurrences": 1
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON numeric decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON smoke test",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - JSON string decoding",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - Verify minimal bitop functionality",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack and unpack circular references?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack double?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "EVAL - cmsgpack can pack negative int64?",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Functions in the Redis namespace are able to report errors",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on bit table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on cmsgpack table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "Try trick readonly table on json table",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "lua bit.tohex bug",
+              "passing_occurrences": 2
+            },
+            {
+              "file": "unit/scripting",
+              "name": "redis.sha1hex() implementation",
+              "passing_occurrences": 2
+            }
+          ],
+          "source_summary": "/home/user/Projects/cx-wave8/build/gate-run.hzalOy/jobs/redis_tcl/redis-tcl-1s/summary.json"
+        }
+      ]
+    }
+  }
+}

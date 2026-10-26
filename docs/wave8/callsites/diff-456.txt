@@ -1,0 +1,22 @@
+tomo_db0::parse_double_strict(tomo_db0::Slice, double&)
+--- headline
+
++++ post
+
+@@ -82,12 +82,12 @@
+
+ CLONE 0 016f [ 8] mov 0x110(%rsp),%rbx
+ CLONE 0 0177 [ 5] jmp <+0xaf>
+ CLONE 0 017c [ 4] nopl 0x0(%rax)
+-CLONE 0 0180 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0180 [ 8] vandpd <rip>(%rip),%xmm0,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 0188 [ 4] vucomisd %xmm1,%xmm1
+ CLONE 0 018c [ 6] jp <+0xf1>
+-CLONE 0 0192 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x678>
++CLONE 0 0192 [ 8] vucomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 019a [ 6] ja <+0xf1>
+-CLONE 0 01a0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x698>
++CLONE 0 01a0 [ 8] vcomisd <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xd0>
+ CLONE 0 01a8 [ 2] jae <+0x12c>
+ CLONE 0 01aa [ 4] vxorpd %xmm1,%xmm1,%xmm1
+ CLONE 0 01ae [ 4] vucomisd %xmm1,%xmm0

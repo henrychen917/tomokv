@@ -1,0 +1,25 @@
+void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)
+--- execindex
+
++++ post
+
+@@ -30,7 +30,7 @@
+
+ CLONE 0 0078 [ 6] fldt -0x14c0(%rbp)
+ CLONE 0 007e [ 2] fld %st(0)
+ CLONE 0 0080 [ 2] fabs
+-CLONE 0 0082 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 0082 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 0088 [ 2] fxch %st(1)
+ CLONE 0 008a [ 2] fucomip %st(1),%st
+ CLONE 0 008c [ 2] ffreep %st(0)
+@@ -222,7 +222,7 @@
+
+ CLONE 0 03e4 [ 2] jp <+0x404>
+ CLONE 0 03e6 [ 2] fld %st(0)
+ CLONE 0 03e8 [ 2] fabs
+-CLONE 0 03ea [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 03ea [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 03f0 [ 2] fxch %st(1)
+ CLONE 0 03f2 [ 2] fucomip %st(1),%st
+ CLONE 0 03f4 [ 2] ffreep %st(0)

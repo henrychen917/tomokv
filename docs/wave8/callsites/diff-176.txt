@@ -1,0 +1,13 @@
+tomo::(anonymous namespace)::watch_note_database(tomo::TxnReservation&, tomo::Server*, unsigned char)
+--- execindex
+
++++ post
+
+@@ -1,5 +1,5 @@
+
+ CLONE 0 0000 [ 1] push %rbx
+-CLONE 0 0001 [ 9] mov %fs:0xffffffffffffff18,%rcx
++CLONE 0 0001 [ 9] mov %fs:0xffffffffffffff10,%rcx
+ CLONE 0 000a [ 3] mov %rdi,%rbx
+ CLONE 0 000d [ 2] mov %edx,%eax
+ CLONE 0 000f [ 3] test %rcx,%rcx

@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-wave8/build/wave8/commands/pre-normal-MSET-1s-1-1--1.log
+SHA-256: 589bc7751ce556ae79909791d363735f675453ff0bd95325d1674a6366d3c809
+Exit: 0
+0x0000555555a40c21	569	}
+0x0000555555a40c22	569	}
+0x0000555555a40c24	569	}
+0x0000555555a40c26	569	}
+0x0000555555a40c28	569	}
+0x0000555555d5fc97 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fca3	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fcaa	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fcb2	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fcb9	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d5fcbf	115	   std::string want="+OK\r\n";
+0x0000555555d5fcc6	115	   std::string want="+OK\r\n";
+0x0000555555d5fccd	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-wave8/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 2450488) exited normally]
+COUNT 17080

@@ -3,7 +3,7 @@
 
 Derived from docs/wave6/commands.py, using the wave7 production scope.
 Count named tomo routines (including inlined code), exclude out-of-scope library
-callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1, slowlog -1, read-local 0.
+callees and fixture glue. The fixture calls the linked production exec_batch_prefetched entry point. Atomic 1 (also 0 for MSET), slowlog -1/10000 for single-key commands, read-local 0.
 """
 import argparse
 import concurrent.futures
@@ -168,13 +168,16 @@ def main():
                 build(arm, ns)
     if a.build_only:
         return
-    cases = [(arm, ns, command, mode, batch, atomic, -1) for arm in arms
+    cases = [(arm, ns, command, mode, batch, atomic, threshold) for arm in arms
              for ns in ("normal", "db0") for command in ("GET", "SET", "INCR", "MGET", "MSET")
              for mode in ("1s", "2s") for batch in (1, 32)
-             for atomic in ((0, 1) if command == "MSET" else (1,))]
+             for atomic in ((0, 1) if command == "MSET" else (1,))
+             for threshold in ((-1, 10000) if command in ("GET", "SET", "INCR") else (-1,))]
     with concurrent.futures.ThreadPoolExecutor(16) as pool:
         rows = list(pool.map(trace, cases))
     save(OUT / ("results-"+a.arms+".json"), rows)
+    for arm in arms:
+        save(OUT / ("results-"+arm+".json"), [r for r in rows if r["arm"] == arm])
     if not {"pre", "post"}.issubset(arms): return
     pairs=[]
     for row in rows:

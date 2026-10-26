@@ -1,0 +1,26 @@
+{
+  "pre-normal": {
+    "counted_groups": 125,
+    "strict_production_equal": 123,
+    "verified_constants": 2,
+    "verified_switches": 0
+  },
+  "pre-db0": {
+    "counted_groups": 124,
+    "strict_production_equal": 121,
+    "verified_constants": 1,
+    "verified_switches": 2
+  },
+  "post-normal": {
+    "counted_groups": 122,
+    "strict_production_equal": 122,
+    "verified_constants": 0,
+    "verified_switches": 0
+  },
+  "post-db0": {
+    "counted_groups": 121,
+    "strict_production_equal": 118,
+    "verified_constants": 1,
+    "verified_switches": 2
+  }
+}

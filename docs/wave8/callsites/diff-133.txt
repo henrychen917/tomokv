@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::ZsetMemberMap::rehash_step()
+--- headline
+
++++ post
+
+@@ -10,7 +10,7 @@
+
+ CLONE 0 0015 [ 3] test %rdi,%rdi
+ CLONE 0 0018 [ 6] je <+0x18a>
+ CLONE 0 001e [ 3] mov 0x30(%rbx),%eax
+-CLONE 0 0021 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x740>
++CLONE 0 0021 [ 8] vmovq <rip>(%rip),%xmm2 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x190>
+ CLONE 0 0029 [ 4] mov 0x20(%rbx),%r9d
+ CLONE 0 002d [10] movabs $0x100000001b3,%r11
+ CLONE 0 0037 [ 5] vmovq %rdi,%xmm3

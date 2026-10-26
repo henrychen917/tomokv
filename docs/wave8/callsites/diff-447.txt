@@ -1,0 +1,44 @@
+tomo_db0::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+--- headline
+
++++ post
+
+@@ -23,14 +23,14 @@
+
+ CLONE 0 0064 [ 6] jne <+0x120>
+ CLONE 0 006a [ 3] mov (%rdi),%rax
+ CLONE 0 006d [ 4] vmovdqu (%rax),%ymm0
+-CLONE 0 0071 [ 8] vpxor <rip>(%rip),%ymm0,%ymm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf38>
++CLONE 0 0071 [ 8] vpxor <rip>(%rip),%ymm0,%ymm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf98>
+ CLONE 0 0079 [ 5] vptest %ymm1,%ymm1
+ CLONE 0 007e [ 2] je <+0xf0>
+-CLONE 0 0080 [ 8] vpxor <rip>(%rip),%ymm0,%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xf58>
++CLONE 0 0080 [ 8] vpxor <rip>(%rip),%ymm0,%ymm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xfb8>
+ CLONE 0 0088 [ 5] vptest %ymm0,%ymm0
+ CLONE 0 008d [ 2] jne <+0x4f>
+ CLONE 0 008f [ 5] vmovdqu 0x1b(%rax),%xmm0
+-CLONE 0 0094 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x538>
++CLONE 0 0094 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8b8>
+ CLONE 0 009c [ 5] vptest %xmm0,%xmm0
+ CLONE 0 00a1 [ 2] jne <+0x4f>
+ CLONE 0 00a3 [ 5] mov $0x4,%eax
+@@ -51,7 +51,7 @@
+
+ CLONE 0 00e6 [ 1] ret
+ CLONE 0 00e7 [ 9] nopw 0x0(%rax,%rax,1)
+ CLONE 0 00f0 [ 5] vmovdqu 0x1b(%rax),%xmm1
+-CLONE 0 00f5 [ 8] vpxor <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x528>
++CLONE 0 00f5 [ 8] vpxor <rip>(%rip),%xmm1,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8a8>
+ CLONE 0 00fd [ 5] vptest %xmm1,%xmm1
+ CLONE 0 0102 [ 6] jne <+0x80>
+ CLONE 0 0108 [ 5] mov $0x3,%eax
+@@ -80,7 +80,7 @@
+
+ CLONE 0 0175 [ 5] vptest %ymm0,%ymm0
+ CLONE 0 017a [ 6] jne <+0x4f>
+ CLONE 0 0180 [ 5] vmovdqu 0x20(%rax),%xmm0
+-CLONE 0 0185 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x548>
++CLONE 0 0185 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8c8>
+ CLONE 0 018d [ 5] vptest %xmm0,%xmm0
+ CLONE 0 0192 [ 6] jne <+0x4f>
+ CLONE 0 0198 [ 5] mov $0x5,%eax

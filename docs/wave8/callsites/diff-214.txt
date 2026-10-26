@@ -1,0 +1,15 @@
+tomo::FlipShiftDetector::update_band()
+--- headline
+
++++ post
+
+@@ -38,7 +38,7 @@
+
+ CLONE 0 00ae [ 1] pop %rbx
+ CLONE 0 00af [ 1] ret
+ CLONE 0 00b0 [ 4] vcvtsi2sd %ebx,%xmm2,%xmm2
+-CLONE 0 00b4 [ 8] vdivsd <rip>(%rip),%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x890>
++CLONE 0 00b4 [ 8] vdivsd <rip>(%rip),%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 00bc [ 4] vmaxsd %xmm1,%xmm0,%xmm1
+ CLONE 0 00c0 [ 8] vmovsd %xmm1,0x218(%rdi)
+ CLONE 0 00c8 [ 4] add $0x10,%rsp

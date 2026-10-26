@@ -1,0 +1,15 @@
+tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)
+--- headline
+
++++ post
+
+@@ -236,7 +236,7 @@
+
+ CLONE 0 0427 [ 5] jmp <+0x1ae>
+ CLONE 0 042c [ 4] nopl 0x0(%rax)
+ CLONE 0 0430 [ 3] movzbl %dl,%edx
+-CLONE 0 0433 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.6850>
++CLONE 0 0433 [ 7] lea <rip>(%rip),%rcx # <CSWTCH.6925>
+ CLONE 0 043a [ 4] movzbl (%rcx,%rdx,1),%ecx
+ CLONE 0 043e [ 5] jmp <+0x200>
+ CLONE 0 0443 [11] data16 cs nopw 0x0(%rax,%rax,1)

@@ -1,0 +1,24 @@
+tomo::FlipController::learn_anchored_rate(double)
+--- headline
+
++++ post
+
+@@ -1,6 +1,6 @@
+
+ CLONE 0 0000 [ 4] endbr64
+ CLONE 0 0004 [ 1] push %rbx
+-CLONE 0 0005 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0005 [ 8] vmovq <rip>(%rip),%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 000d [ 8] vmovsd 0x300(%rdi),%xmm2
+ CLONE 0 0015 [ 4] vandpd %xmm1,%xmm0,%xmm3
+ CLONE 0 0019 [ 4] vandpd %xmm1,%xmm2,%xmm4
+@@ -18,7 +18,7 @@
+
+ CLONE 0 0048 [ 4] vunpcklpd %xmm3,%xmm2,%xmm2
+ CLONE 0 004c [ 4] vmovapd %xmm0,%xmm1
+ CLONE 0 0050 [ 3] mov %rbx,%rdi
+-CLONE 0 0053 [10] vfmadd132pd <rip>(%rip){1to2},%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8b0>
++CLONE 0 0053 [10] vfmadd132pd <rip>(%rip){1to2},%xmm2,%xmm1 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2f8>
+ CLONE 0 005d [ 8] vmovupd %xmm1,0x300(%rbx)
+ CLONE 0 0065 [ 4] vunpckhpd %xmm1,%xmm1,%xmm0
+ CLONE 0 0069 [ 5] call <tomo::FlipController::automatic_rate_band(double, double) const>

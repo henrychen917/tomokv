@@ -1,0 +1,22 @@
+void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)
+--- headline
+
++++ post
+
+@@ -879,12 +879,12 @@
+
+ CLONE 0 105c [ 7] mov %rax,-0x298(%rbp)
+ CLONE 0 1063 [ 2] jmp <+0x1002>
+ CLONE 0 1065 [ 4] vmovsd %xmm0,%xmm0,%xmm7
+-CLONE 0 1069 [ 8] vandpd <rip>(%rip),%xmm7,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
+-CLONE 0 1071 [ 8] vucomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x678>
++CLONE 0 1069 [ 8] vandpd <rip>(%rip),%xmm7,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
++CLONE 0 1071 [ 8] vucomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x50>
+ CLONE 0 1079 [ 6] ja <+0xdda>
+ CLONE 0 107f [ 4] vucomisd %xmm0,%xmm0
+ CLONE 0 1083 [ 6] jp <+0xdda>
+-CLONE 0 1089 [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x698>
++CLONE 0 1089 [ 8] vcomisd <rip>(%rip),%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xd0>
+ CLONE 0 1091 [ 6] jae <+0xe00>
+ CLONE 0 1097 [ 4] vxorpd %xmm0,%xmm0,%xmm0
+ CLONE 0 109b [ 8] vmovsd -0x260(%rbp),%xmm3

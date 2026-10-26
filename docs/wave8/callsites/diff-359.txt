@@ -1,0 +1,15 @@
+tomo_db0::FlatStore::choose_victim_read_local(tomo_db0::Slice)
+--- headline
+
++++ post
+
+@@ -400,7 +400,7 @@
+
+ CLONE 0 0684 [ 7] cmpb $0x7,0xf3(%rbp)
+ CLONE 0 068b [ 6] ja <+0x9d4>
+ CLONE 0 0691 [ 7] movzbl 0xf3(%rbp),%eax
+-CLONE 0 0698 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x17ad8>
++CLONE 0 0698 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x184bc>
+ CLONE 0 069f [ 4] movslq (%rdi,%rax,4),%rax
+ CLONE 0 06a3 [ 3] add %rdi,%rax
+ CLONE 0 06a6 [ 3] notrack jmp *%rax

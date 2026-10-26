@@ -1,0 +1,15 @@
+tomo::(anonymous namespace)::queue_aof_sync(tomo::Ring&, tomo::(anonymous namespace)::AofIoRequest&, bool) [clone .constprop.0]
+--- headline
+
++++ post
+
+@@ -32,7 +32,7 @@
+
+ CLONE 0 007c [ 8] movq $0x0,0x30(%rax)
+ CLONE 0 0084 [ 8] movq $0x0,0x38(%rax)
+ CLONE 0 008c [ 3] mov %edx,0x4(%rax)
+-CLONE 0 008f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x920>
++CLONE 0 008f [ 7] mov <rip>(%rip),%rdx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x368>
+ CLONE 0 0096 [ 4] mov %rdx,0x18(%rax)
+ CLONE 0 009a [10] movabs $0xffffffffffff,%rdx
+ CLONE 0 00a4 [ 3] and %rdx,%rbp

@@ -1,0 +1,9 @@
+tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]
+--- headline
+
++++ post
+
+@@ -1 +1,2 @@
+
+ CLONE 0 0000 [ 5] call <abort@plt>
++CLONE 1 0000 [ 5] call <abort@plt>

@@ -1,0 +1,92 @@
+tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)
+--- headline
+
++++ post
+
+@@ -784,17 +784,17 @@
+
+ CLONE 0 0faa [ 7] mov -0x148(%rbp),%rbx
+ CLONE 0 0fb1 [ 4] mov 0x78(%rbx),%rax
+ CLONE 0 0fb5 [ 8] lock incq 0x17598(%rax)
+-CLONE 0 0fbd [ 9] cmpb $0x0,%fs:0xffffffffffffff00
++CLONE 0 0fbd [ 9] cmpb $0x0,%fs:0xfffffffffffffef8
+ CLONE 0 0fc6 [ 7] mov 0xb0(%rbx),%r13d
+ CLONE 0 0fcd [ 4] mov 0x78(%rbx),%rbx
+ CLONE 0 0fd1 [ 6] je <+0x1991>
+-CLONE 0 0fd7 [10] cmpq $0x0,%fs:0xffffffffffffff38
++CLONE 0 0fd7 [10] cmpq $0x0,%fs:0xffffffffffffff30
+ CLONE 0 0fe1 [ 6] je <+0x48f0>
+-CLONE 0 0fe7 [ 9] cmpb $0x0,%fs:0xffffffffffffff00
++CLONE 0 0fe7 [ 9] cmpb $0x0,%fs:0xfffffffffffffef8
+ CLONE 0 0ff0 [ 6] je <+0x45ed>
+-CLONE 0 0ff6 [ 9] cmp %fs:0xffffffffffffff40,%rbx
++CLONE 0 0ff6 [ 9] cmp %fs:0xffffffffffffff38,%rbx
+ CLONE 0 0fff [ 6] jne <+0x54c9>
+-CLONE 0 1005 [ 9] mov %fs:0xffffffffffffff38,%r12
++CLONE 0 1005 [ 9] mov %fs:0xffffffffffffff30,%r12
+ CLONE 0 100e [ 4] cmp (%r12),%r13d
+ CLONE 0 1012 [ 6] je <+0x451b>
+ CLONE 0 1018 [ 8] mov %rbx,0x530(%r12)
+@@ -1294,8 +1294,8 @@
+
+ CLONE 0 1991 [ 9] mov %fs:0x0,%rax
+ CLONE 0 199a [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
+ CLONE 0 19a1 [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()>
+-CLONE 0 19a8 [ 9] movb $0x1,%fs:0xffffffffffffff00
+-CLONE 0 19b1 [ 7] lea -0xc8(%rax),%rsi
++CLONE 0 19a8 [ 9] movb $0x1,%fs:0xfffffffffffffef8
++CLONE 0 19b1 [ 7] lea -0xd0(%rax),%rsi
+ CLONE 0 19b8 [ 5] call <__cxa_thread_atexit@plt>
+ CLONE 0 19bd [ 5] jmp <+0xfd7>
+ CLONE 0 19c2 [ 2] test %dl,%dl
+@@ -3620,8 +3620,8 @@
+
+ CLONE 0 45ed [ 9] mov %fs:0x0,%rax
+ CLONE 0 45f6 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
+ CLONE 0 45fd [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()>
+-CLONE 0 4604 [ 9] movb $0x1,%fs:0xffffffffffffff00
+-CLONE 0 460d [ 7] lea -0xc8(%rax),%rsi
++CLONE 0 4604 [ 9] movb $0x1,%fs:0xfffffffffffffef8
++CLONE 0 460d [ 7] lea -0xd0(%rax),%rsi
+ CLONE 0 4614 [ 3] vzeroupper
+ CLONE 0 4617 [ 5] call <__cxa_thread_atexit@plt>
+ CLONE 0 461c [ 5] jmp <+0xff6>
+@@ -3779,7 +3779,7 @@
+
+ CLONE 0 48ff [ 5] mov $0x5a0,%edx
+ CLONE 0 4904 [ 3] mov %rax,%r12
+ CLONE 0 4907 [ 5] call <memset@plt>
+-CLONE 0 490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 490c [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 4913 [ 5] lea 0x38(%r12),%rdi
+ CLONE 0 4918 [ 5] mov $0x400,%esi
+ CLONE 0 491d [ 8] movl $0xffffffff,(%r12)
+@@ -3841,11 +3841,11 @@
+
+ CLONE 0 4b28 [ 7] lea <rip>(%rip),%rax # <tomo::notify_flat_emit(void*, unsigned int, tomo::NotifyEventId, tomo::Slice)>
+ CLONE 0 4b2f [ 6] vpinsrq $0x1,%rax,%xmm0,%xmm0
+ CLONE 0 4b35 [10] vmovdqu %xmm0,0x540(%r12)
+-CLONE 0 4b3f [ 9] cmpb $0x0,%fs:0xffffffffffffff00
++CLONE 0 4b3f [ 9] cmpb $0x0,%fs:0xfffffffffffffef8
+ CLONE 0 4b48 [ 6] je <+0x4fff>
+-CLONE 0 4b4e [ 9] mov %fs:0xffffffffffffff38,%r14
+-CLONE 0 4b57 [ 9] mov %rbx,%fs:0xffffffffffffff40
+-CLONE 0 4b60 [ 9] mov %r12,%fs:0xffffffffffffff38
++CLONE 0 4b4e [ 9] mov %fs:0xffffffffffffff30,%r14
++CLONE 0 4b57 [ 9] mov %rbx,%fs:0xffffffffffffff38
++CLONE 0 4b60 [ 9] mov %r12,%fs:0xffffffffffffff30
+ CLONE 0 4b69 [ 3] test %r14,%r14
+ CLONE 0 4b6c [ 6] je <+0xfe7>
+ CLONE 0 4b72 [ 3] mov %r14,%rdi
+@@ -4089,8 +4089,8 @@
+
+ CLONE 0 4fff [ 9] mov %fs:0x0,%rax
+ CLONE 0 5008 [ 7] lea <rip>(%rip),%rdx # <__dso_handle>
+ CLONE 0 500f [ 7] lea <rip>(%rip),%rdi # <tomo::(anonymous namespace)::ScriptWorkbench::~ScriptWorkbench()>
+-CLONE 0 5016 [ 9] movb $0x1,%fs:0xffffffffffffff00
+-CLONE 0 501f [ 7] lea -0xc8(%rax),%rsi
++CLONE 0 5016 [ 9] movb $0x1,%fs:0xfffffffffffffef8
++CLONE 0 501f [ 7] lea -0xd0(%rax),%rsi
+ CLONE 0 5026 [ 3] vzeroupper
+ CLONE 0 5029 [ 5] call <__cxa_thread_atexit@plt>
+ CLONE 0 502e [ 5] jmp <+0x4b4e>

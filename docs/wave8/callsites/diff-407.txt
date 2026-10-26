@@ -1,0 +1,15 @@
+tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&)#1}::operator()(double, double const*, std::vector<unsigned int, std::allocator<unsigned int> > const&) const [clone .isra.0]
+--- headline
+
++++ post
+
+@@ -18,7 +18,7 @@
+
+ CLONE 0 003e [ 1] ret
+ CLONE 0 003f [ 1] nop
+ CLONE 0 0040 [ 3] sub %r8,%rcx
+-CLONE 0 0043 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x890>
++CLONE 0 0043 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x58>
+ CLONE 0 004b [ 4] vxorps %xmm2,%xmm2,%xmm2
+ CLONE 0 004f [ 4] sar $0x2,%rcx
+ CLONE 0 0053 [ 6] vcvtusi2sd %rcx,%xmm2,%xmm2

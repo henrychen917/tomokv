@@ -1,0 +1,25 @@
+tomo::IoLoop::climon_serve_suppressed(tomo::Client*)
+--- headline
+
++++ post
+
+@@ -181,7 +181,7 @@
+
+ CLONE 0 032a [ 4] cmp $0xfe,%r14b
+ CLONE 0 032e [ 2] je <+0x3a3>
+ CLONE 0 0330 [ 3] mov %ecx,0x4(%rax)
+-CLONE 0 0333 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x630>
++CLONE 0 0333 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x78>
+ CLONE 0 033a [ 6] movl $0x6,(%rax)
+ CLONE 0 0340 [ 8] movq $0x0,0x8(%rax)
+ CLONE 0 0348 [ 8] movq $0x0,0x10(%rax)
+@@ -201,7 +201,7 @@
+
+ CLONE 0 039a [ 4] movb $0x1,0x3f(%rax)
+ CLONE 0 039e [ 5] jmp <+0x1eb>
+ CLONE 0 03a3 [ 3] mov %ecx,0x4(%rax)
+-CLONE 0 03a6 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
++CLONE 0 03a6 [ 7] mov <rip>(%rip),%rcx # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x70>
+ CLONE 0 03ad [ 6] movl $0x6,(%rax)
+ CLONE 0 03b3 [ 8] movq $0x0,0x8(%rax)
+ CLONE 0 03bb [ 8] movq $0x0,0x10(%rax)

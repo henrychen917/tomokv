@@ -1,0 +1,18 @@
+tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&) [clone .cold]
+--- lualibs
+
++++ post
+
+@@ -26,9 +26,9 @@
+
+ CLONE 0 0081 [ 2] xor %edx,%edx
+ CLONE 0 0083 [ 5] call <_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE15_M_replace_coldEPcmPKcmm@plt>
+ CLONE 0 0088 [ 7] mov -0x4c0(%rbp),%rcx
+-CLONE 0 008f [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x691>
++CLONE 0 008f [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x6b1>
+ CLONE 0 0094 [ 4] endbr64
+-CLONE 0 0098 [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x12da>
++CLONE 0 0098 [ 5] jmp <tomo::script_execute(tomo::Shard&, tomo::Op&, tomo::ScriptInvocation const&)+0x12ea>
+ CLONE 0 009d [ 7] mov -0x5d0(%rbp),%rdi
+ CLONE 0 00a4 [ 7] lea -0x500(%rbp),%r12
+ CLONE 0 00ab [ 3] vzeroupper

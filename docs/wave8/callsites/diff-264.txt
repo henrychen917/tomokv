@@ -1,0 +1,15 @@
+tomo::hll::selftest[abi:cxx11]()
+--- headline
+
++++ post
+
+@@ -221,7 +221,7 @@
+
+ CLONE 0 03bd [ 2] je <+0x3dd>
+ CLONE 0 03bf [ 4] vxorpd %xmm4,%xmm4,%xmm4
+ CLONE 0 03c3 [ 5] vcvtsi2sd %r14,%xmm4,%xmm0
+-CLONE 0 03c8 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x6e8>
++CLONE 0 03c8 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x120>
+ CLONE 0 03d0 [ 7] vrndscalesd $0xa,%xmm0,%xmm0,%xmm0
+ CLONE 0 03d7 [ 6] vcvttsd2usi %xmm0,%rdx
+ CLONE 0 03dd [ 3] cmp %rax,%rdx

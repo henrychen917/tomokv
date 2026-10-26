@@ -1,0 +1,43 @@
+tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)
+--- headline
+
++++ post
+
+@@ -33,7 +33,7 @@
+
+ CLONE 0 0097 [ 6] vmovdqa 0x50(%rsp),%xmm0
+ CLONE 0 009d [ 7] lea <rip>(%rip),%rsi # <literal-string-424c504f5000>
+ CLONE 0 00a4 [ 4] vmovdqu %xmm1,(%rax)
+-CLONE 0 00a8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x640>
++CLONE 0 00a8 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x10>
+ CLONE 0 00af [ 4] vpxor %xmm1,%xmm1,%xmm1
+ CLONE 0 00b3 [ 5] movb $0x0,0x68(%r15)
+ CLONE 0 00b8 [ 9] vmovdqu %ymm1,0xa0(%r15)
+@@ -936,7 +936,7 @@
+
+ CLONE 0 11c5 [ 4] fldcw 0x6c(%rsp)
+ CLONE 0 11c9 [ 2] frndint
+ CLONE 0 11cb [ 4] fldcw 0x6e(%rsp)
+-CLONE 0 11cf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2b8>
++CLONE 0 11cf [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x648>
+ CLONE 0 11d5 [ 2] fxch %st(1)
+ CLONE 0 11d7 [ 2] fcomi %st(1),%st
+ CLONE 0 11d9 [ 2] fstp %st(1)
+@@ -1295,14 +1295,14 @@
+
+ CLONE 0 18f1 [ 5] jmp <+0x905>
+ CLONE 0 18f6 [ 2] fld %st(0)
+ CLONE 0 18f8 [ 2] fabs
+-CLONE 0 18fa [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x298>
++CLONE 0 18fa [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 1900 [ 2] fxch %st(1)
+ CLONE 0 1902 [ 2] fucomi %st(1),%st
+ CLONE 0 1904 [ 2] fstp %st(1)
+ CLONE 0 1906 [ 6] ja <+0x1087>
+ CLONE 0 190c [ 2] fucomi %st(0),%st
+ CLONE 0 190e [ 6] jp <+0x108d>
+-CLONE 0 1914 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2a8>
++CLONE 0 1914 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
+ CLONE 0 191a [ 2] fxch %st(1)
+ CLONE 0 191c [ 2] fcomip %st(1),%st
+ CLONE 0 191e [ 2] ffreep %st(0)

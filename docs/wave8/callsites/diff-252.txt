@@ -1,0 +1,15 @@
+tomo::aof_record_local_op(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)
+--- headline
+
++++ post
+
+@@ -122,7 +122,7 @@
+
+ CLONE 0 01e2 [ 3] cmp $0x11,%edx
+ CLONE 0 01e5 [ 6] jbe <+0x119>
+ CLONE 0 01eb [ 6] vmovdqu (%r12),%xmm0
+-CLONE 0 01f1 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x3c8>
++CLONE 0 01f1 [ 8] vpxor <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x748>
+ CLONE 0 01f9 [ 5] vptest %xmm0,%xmm0
+ CLONE 0 01fe [ 6] jne <+0x119>
+ CLONE 0 0204 [ 8] cmpw $0x3a77,0x10(%r12)

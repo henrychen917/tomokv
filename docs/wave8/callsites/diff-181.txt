@@ -1,0 +1,89 @@
+tomo::Config::Config()
+--- headline
+
++++ post
+
+@@ -1,5 +1,5 @@
+
+ CLONE 0 0000 [ 4] endbr64
+-CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x610>
++CLONE 0 0004 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x8>
+ CLONE 0 000b [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-10270000000000002c010000ff010000>
+ CLONE 0 0013 [ 1] push %rbp
+ CLONE 0 0014 [ 7] lea <rip>(%rip),%rcx # <literal-string-2e00>
+@@ -89,38 +89,39 @@
+
+ CLONE 0 02b1 [ 4] vpxor %xmm0,%xmm0,%xmm0
+ CLONE 0 02b5 [ 8] vmovdqu %ymm0,0x1b8(%rbx)
+ CLONE 0 02bd [11] movq $0x0,0x20c(%rbx)
+-CLONE 0 02c8 [11] movq $0x0,0x218(%rbx)
+-CLONE 0 02d3 [ 3] vzeroupper
+-CLONE 0 02d6 [ 5] call <tomo::wb_rule::default_policy()>
+-CLONE 0 02db [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-1000000003000000000000000a000000>
+-CLONE 0 02e3 [ 6] mov %eax,0x220(%rbx)
+-CLONE 0 02e9 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x618>
+-CLONE 0 02f0 [11] movq $0x40000000,0x228(%rbx)
+-CLONE 0 02fb [10] movl $0xffffffff,0x238(%rbx)
+-CLONE 0 0305 [10] movl $0x1,0x24c(%rbx)
+-CLONE 0 030f [11] movq $0x0,0x268(%rbx)
+-CLONE 0 031a [ 7] mov %rax,0x230(%rbx)
+-CLONE 0 0321 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x126c8>
+-CLONE 0 0328 [ 8] vmovdqu %xmm0,0x23c(%rbx)
+-CLONE 0 0330 [ 4] vpxor %xmm0,%xmm0,%xmm0
+-CLONE 0 0334 [ 7] mov %rax,0x250(%rbx)
+-CLONE 0 033b [10] vmovdqu8 %xmm0,0x258(%rbx)
+-CLONE 0 0345 [ 1] pop %rbx
+-CLONE 0 0346 [ 2] pop %r12
+-CLONE 0 0348 [ 1] pop %rbp
+-CLONE 0 0349 [ 1] ret
+-CLONE 0 034a [ 4] endbr64
+-CLONE 0 034e [ 3] mov %rax,%r12
+-CLONE 0 0351 [ 7] mov 0xf0(%rbx),%rdi
+-CLONE 0 0358 [ 7] mov 0x100(%rbx),%rsi
+-CLONE 0 035f [ 3] sub %rdi,%rsi
+-CLONE 0 0362 [ 3] test %rdi,%rdi
+-CLONE 0 0365 [ 2] je <+0x383>
+-CLONE 0 0367 [ 3] vzeroupper
+-CLONE 0 036a [ 5] call <_ZdlPvm@plt>
+-CLONE 0 036f [ 7] lea 0xc8(%rbx),%rdi
+-CLONE 0 0376 [ 5] call <std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > >::~vector()>
+-CLONE 0 037b [ 3] mov %r12,%rdi
+-CLONE 0 037e [ 5] call <_Unwind_Resume@plt>
+-CLONE 0 0383 [ 3] vzeroupper
+-CLONE 0 0386 [ 2] jmp <+0x36f>
++CLONE 0 02c8 [ 9] movw $0x0,0x214(%rbx)
++CLONE 0 02d1 [11] movq $0x0,0x218(%rbx)
++CLONE 0 02dc [ 3] vzeroupper
++CLONE 0 02df [ 5] call <tomo::wb_rule::default_policy()>
++CLONE 0 02e4 [ 6] mov %eax,0x220(%rbx)
++CLONE 0 02ea [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-1000000003000000000000000a000000>
++CLONE 0 02f2 [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x60>
++CLONE 0 02f9 [11] movq $0x40000000,0x228(%rbx)
++CLONE 0 0304 [10] movl $0xffffffff,0x238(%rbx)
++CLONE 0 030e [10] movl $0x1,0x24c(%rbx)
++CLONE 0 0318 [11] movq $0x0,0x258(%rbx)
++CLONE 0 0323 [11] movq $0x0,0x260(%rbx)
++CLONE 0 032e [11] movq $0x0,0x268(%rbx)
++CLONE 0 0339 [ 7] mov %rax,0x230(%rbx)
++CLONE 0 0340 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x788>
++CLONE 0 0347 [ 8] vmovdqu %xmm0,0x23c(%rbx)
++CLONE 0 034f [ 7] mov %rax,0x250(%rbx)
++CLONE 0 0356 [ 1] pop %rbx
++CLONE 0 0357 [ 2] pop %r12
++CLONE 0 0359 [ 1] pop %rbp
++CLONE 0 035a [ 1] ret
++CLONE 0 035b [ 4] endbr64
++CLONE 0 035f [ 3] mov %rax,%r12
++CLONE 0 0362 [ 7] mov 0xf0(%rbx),%rdi
++CLONE 0 0369 [ 7] mov 0x100(%rbx),%rsi
++CLONE 0 0370 [ 3] sub %rdi,%rsi
++CLONE 0 0373 [ 3] test %rdi,%rdi
++CLONE 0 0376 [ 2] je <+0x394>
++CLONE 0 0378 [ 3] vzeroupper
++CLONE 0 037b [ 5] call <_ZdlPvm@plt>
++CLONE 0 0380 [ 7] lea 0xc8(%rbx),%rdi
++CLONE 0 0387 [ 5] call <std::vector<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > >::~vector()>
++CLONE 0 038c [ 3] mov %r12,%rdi
++CLONE 0 038f [ 5] call <_Unwind_Resume@plt>
++CLONE 0 0394 [ 3] vzeroupper
++CLONE 0 0397 [ 2] jmp <+0x380>

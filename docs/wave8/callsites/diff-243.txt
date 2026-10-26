@@ -1,0 +1,15 @@
+tomo::Shard::watch_flush(int) [clone .cold]
+--- headline
+
++++ post
+
+@@ -6,7 +6,7 @@
+
+ CLONE 0 0012 [ 2] xor %ebx,%ebx
+ CLONE 0 0014 [ 5] call <__cxa_end_catch@plt>
+ CLONE 0 0019 [ 8] mov 0x80(%rsp),%rdi
+-CLONE 0 0021 [ 5] jmp <tomo_multidb2_pad_545154+0x1d3>
++CLONE 0 0021 [ 5] jmp <tomo_multidb2_pad_541672+0x1d3>
+ CLONE 0 0026 [ 3] mov %rdi,%rbx
+ CLONE 0 0029 [ 8] lea 0x80(%rsp),%rdi
+ CLONE 0 0031 [ 3] vzeroupper

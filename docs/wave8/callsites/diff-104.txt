@@ -1,0 +1,15 @@
+math_abs
+--- headline
+
++++ post
+
+@@ -3,7 +3,7 @@
+
+ CLONE 0 0005 [ 5] mov $0x1,%esi
+ CLONE 0 000a [ 3] mov %rdi,%rbx
+ CLONE 0 000d [ 5] call <luaL_checknumber>
+-CLONE 0 0012 [ 8] vandpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x258>
++CLONE 0 0012 [ 8] vandpd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x418>
+ CLONE 0 001a [ 4] mov 0x10(%rbx),%rax
+ CLONE 0 001e [ 7] movl $0x3,0x8(%rax)
+ CLONE 0 0025 [ 4] add $0x10,%rax

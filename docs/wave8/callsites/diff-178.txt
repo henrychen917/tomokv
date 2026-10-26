@@ -1,0 +1,15 @@
+tomo::AofManager::prepare_group_commit(tomo::AofStreamOwner::OpenToken const&, tomo::AofChunk&, unsigned char*)
+--- headline
+
++++ post
+
+@@ -121,7 +121,7 @@
+
+ CLONE 0 01c4 [ 3] mov %dl,-0x1(%rax)
+ CLONE 0 01c7 [ 3] cmp %rcx,%r8
+ CLONE 0 01ca [ 2] jne <+0x190>
+-CLONE 0 01cc [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x850>
++CLONE 0 01cc [ 7] mov <rip>(%rip),%rax # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x2a0>
+ CLONE 0 01d3 [ 8] movl $0x0,0x8(%r14)
+ CLONE 0 01db [ 3] mov %rax,(%r14)
+ CLONE 0 01de [ 4] mov 0x20(%rbp),%rax

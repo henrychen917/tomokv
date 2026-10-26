@@ -1,0 +1,31 @@
+tomo::(anonymous namespace)::txn_cap_claims(std::vector<tomo::TxnClaim, std::allocator<tomo::TxnClaim> >&)
+--- execindex
+
++++ post
+
+@@ -117,16 +117,16 @@
+
+ CLONE 0 023e [ 2] xchg %ax,%ax
+ CLONE 0 0240 [ 3] xor %r12d,%r12d
+ CLONE 0 0243 [ 5] jmp <+0xb7>
+-CLONE 0 0248 [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f3a3a54786e5761697465723a3a7e54786e576169746572282900>
+-CLONE 0 024f [ 5] mov $0x39,%edx
+-CLONE 0 0254 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 025b [ 7] lea <rip>(%rip),%rdi # <literal-string-21717565756500>
++CLONE 0 0248 [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 024f [ 5] mov $0xa76723f6,%edx
++CLONE 0 0254 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 025b [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0262 [ 5] call <__assert_fail@plt>
+ CLONE 0 0267 [ 5] call <__stack_chk_fail@plt>
+-CLONE 0 026c [ 7] lea <rip>(%rip),%rcx # <literal-string-746f6d6f3a3a54786e5761697465723a3a54786e57616974657228746f6d6f3a3a54786e57616974657226262900>
+-CLONE 0 0273 [ 5] mov $0x37,%edx
+-CLONE 0 0278 [ 7] lea <rip>(%rip),%rsi # <literal-string-7372632f636d642f2e2e2f636f72652f2e2e2f636d642f74786e5f6b65795f71756575652e6800>
+-CLONE 0 027f [ 7] lea <rip>(%rip),%rdi # <literal-string-216f746865722e717565756500>
++CLONE 0 026c [ 7] lea <rip>(%rip),%rcx # <literal-string-7369746500>
++CLONE 0 0273 [ 5] mov $0xfb1fd85f,%edx
++CLONE 0 0278 [ 7] lea <rip>(%rip),%rsi # <literal-string-746f6d6f6b7600>
++CLONE 0 027f [ 7] lea <rip>(%rip),%rdi # <literal-string-73656520746f6d6f6b762e6173736572747300>
+ CLONE 0 0286 [ 3] vzeroupper
+ CLONE 0 0289 [ 5] call <__assert_fail@plt>
+ CLONE 0 028e [ 4] endbr64

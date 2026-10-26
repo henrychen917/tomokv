@@ -1,0 +1,99 @@
+tomo::(anonymous namespace)::Cleanup::~Cleanup()
+--- latencyfix
+
++++ post
+
+@@ -1,47 +1,49 @@
+
+ CLONE 0 0000 [ 4] endbr64
+ CLONE 0 0004 [ 2] push %r13
+ CLONE 0 0006 [ 2] push %r12
+-CLONE 0 0008 [ 1] push %rbp
+-CLONE 0 0009 [ 7] lea <rip>(%rip),%rbp # <tomo::(anonymous namespace)::stores>
++CLONE 0 0008 [ 7] lea <rip>(%rip),%r12 # <tomo::(anonymous namespace)::stores>
++CLONE 0 000f [ 1] push %rbp
+ CLONE 0 0010 [ 1] push %rbx
+-CLONE 0 0011 [ 7] lea 0x2000(%rbp),%r13
+-CLONE 0 0018 [ 4] sub $0x8,%rsp
+-CLONE 0 001c [ 4] nopl 0x0(%rax)
+-CLONE 0 0020 [ 4] mov 0x0(%rbp),%r12
+-CLONE 0 0024 [ 3] test %r12,%r12
+-CLONE 0 0027 [ 2] je <+0x8d>
+-CLONE 0 0029 [ 5] mov 0x68(%r12),%rbx
+-CLONE 0 002e [ 3] test %rbx,%rbx
+-CLONE 0 0031 [ 2] je <+0x52>
+-CLONE 0 0033 [ 4] mov 0x18(%rbx),%rdi
+-CLONE 0 0037 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, unsigned long> >*) [clone .isra.0]>
+-CLONE 0 003c [ 3] mov %rbx,%rdi
+-CLONE 0 003f [ 4] mov 0x10(%rbx),%rbx
+-CLONE 0 0043 [ 5] mov $0x30,%esi
+-CLONE 0 0048 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 004d [ 3] test %rbx,%rbx
+-CLONE 0 0050 [ 2] jne <+0x33>
+-CLONE 0 0052 [ 5] mov 0x38(%r12),%rbx
+-CLONE 0 0057 [ 3] test %rbx,%rbx
+-CLONE 0 005a [ 2] je <+0x7b>
+-CLONE 0 005c [ 4] mov 0x18(%rbx),%rdi
+-CLONE 0 0060 [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >*) [clone .isra.0]>
+-CLONE 0 0065 [ 3] mov %rbx,%rdi
+-CLONE 0 0068 [ 4] mov 0x10(%rbx),%rbx
+-CLONE 0 006c [ 5] mov $0x6030,%esi
+-CLONE 0 0071 [ 5] call <_ZdlPvm@plt>
+-CLONE 0 0076 [ 3] test %rbx,%rbx
+-CLONE 0 0079 [ 2] jne <+0x5c>
+-CLONE 0 007b [ 5] mov $0x40,%edx
+-CLONE 0 0080 [ 5] mov $0xc0,%esi
+-CLONE 0 0085 [ 3] mov %r12,%rdi
+-CLONE 0 0088 [ 5] call <_ZdlPvmSt11align_val_t@plt>
+-CLONE 0 008d [ 4] add $0x40,%rbp
+-CLONE 0 0091 [ 3] cmp %r13,%rbp
+-CLONE 0 0094 [ 2] jne <+0x20>
+-CLONE 0 0096 [ 4] add $0x8,%rsp
+-CLONE 0 009a [ 1] pop %rbx
+-CLONE 0 009b [ 1] pop %rbp
+-CLONE 0 009c [ 2] pop %r12
+-CLONE 0 009e [ 2] pop %r13
+-CLONE 0 00a0 [ 1] ret
++CLONE 0 0011 [ 8] lea 0x2000(%r12),%r13
++CLONE 0 0019 [ 4] sub $0x8,%rsp
++CLONE 0 001d [ 3] nopl (%rax)
++CLONE 0 0020 [ 4] mov (%r12),%rbp
++CLONE 0 0024 [ 3] test %rbp,%rbp
++CLONE 0 0027 [ 2] je <+0x97>
++CLONE 0 0029 [ 7] mov 0x98(%rbp),%rdi
++CLONE 0 0030 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > >, std::_Select1st<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, std::vector<std::pair<unsigned int, unsigned long>, std::allocator<std::pair<unsigned int, unsigned long> > > > >*) [clone .isra.0]>
++CLONE 0 0035 [ 4] mov 0x68(%rbp),%rbx
++CLONE 0 0039 [ 3] test %rbx,%rbx
++CLONE 0 003c [ 2] je <+0x5d>
++CLONE 0 003e [ 4] mov 0x18(%rbx),%rdi
++CLONE 0 0042 [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::_M_erase(std::_Rb_tree_node<std::pair<tomo::Op const* const, unsigned long> >*) [clone .isra.0]>
++CLONE 0 0047 [ 3] mov %rbx,%rdi
++CLONE 0 004a [ 4] mov 0x10(%rbx),%rbx
++CLONE 0 004e [ 5] mov $0x30,%esi
++CLONE 0 0053 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0058 [ 3] test %rbx,%rbx
++CLONE 0 005b [ 2] jne <+0x3e>
++CLONE 0 005d [ 4] mov 0x38(%rbp),%rbx
++CLONE 0 0061 [ 3] test %rbx,%rbx
++CLONE 0 0064 [ 2] je <+0x85>
++CLONE 0 0066 [ 4] mov 0x18(%rbx),%rdi
++CLONE 0 006a [ 5] call <std::_Rb_tree<unsigned int, std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram>, std::_Select1st<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned int const, tomo::(anonymous namespace)::Histogram> >*) [clone .isra.0]>
++CLONE 0 006f [ 3] mov %rbx,%rdi
++CLONE 0 0072 [ 4] mov 0x10(%rbx),%rbx
++CLONE 0 0076 [ 5] mov $0x6030,%esi
++CLONE 0 007b [ 5] call <_ZdlPvm@plt>
++CLONE 0 0080 [ 3] test %rbx,%rbx
++CLONE 0 0083 [ 2] jne <+0x66>
++CLONE 0 0085 [ 5] mov $0x40,%edx
++CLONE 0 008a [ 5] mov $0xc0,%esi
++CLONE 0 008f [ 3] mov %rbp,%rdi
++CLONE 0 0092 [ 5] call <_ZdlPvmSt11align_val_t@plt>
++CLONE 0 0097 [ 4] add $0x40,%r12
++CLONE 0 009b [ 3] cmp %r13,%r12
++CLONE 0 009e [ 2] jne <+0x20>
++CLONE 0 00a0 [ 4] add $0x8,%rsp
++CLONE 0 00a4 [ 1] pop %rbx
++CLONE 0 00a5 [ 1] pop %rbp
++CLONE 0 00a6 [ 2] pop %r12
++CLONE 0 00a8 [ 2] pop %r13
++CLONE 0 00aa [ 1] ret

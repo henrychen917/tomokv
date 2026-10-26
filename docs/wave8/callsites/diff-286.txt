@@ -1,0 +1,23 @@
+tomo::parse_long_double_strict(tomo::Slice, long double&)
+--- execindex
+
++++ post
+
+@@ -104,14 +104,14 @@
+
+ CLONE 0 01ac [ 4] nopl 0x0(%rax)
+ CLONE 0 01b0 [ 2] fld %st(0)
+ CLONE 0 01b2 [ 2] fabs
+-CLONE 0 01b4 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 01b4 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 01ba [ 2] fxch %st(1)
+ CLONE 0 01bc [ 2] fucomi %st(1),%st
+ CLONE 0 01be [ 2] fstp %st(1)
+ CLONE 0 01c0 [ 6] ja <+0x110>
+ CLONE 0 01c6 [ 2] fucomi %st(0),%st
+ CLONE 0 01c8 [ 6] jp <+0x116>
+-CLONE 0 01ce [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5f8>
++CLONE 0 01ce [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x638>
+ CLONE 0 01d4 [ 2] fxch %st(1)
+ CLONE 0 01d6 [ 2] fcomip %st(1),%st
+ CLONE 0 01d8 [ 2] ffreep %st(0)

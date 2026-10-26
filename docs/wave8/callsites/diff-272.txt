@@ -1,0 +1,106 @@
+tomo::latency_tracking_retry(tomo::Op const&, tomo::Op const&)
+--- headline
+
++++ post
+
+@@ -0,0 +1,99 @@
+
++CLONE 0 0000 [ 4] endbr64
++CLONE 0 0004 [ 2] push %r15
++CLONE 0 0006 [ 2] push %r14
++CLONE 0 0008 [ 2] push %r13
++CLONE 0 000a [ 2] push %r12
++CLONE 0 000c [ 1] push %rbp
++CLONE 0 000d [ 1] push %rbx
++CLONE 0 000e [ 3] mov %rdi,%rbx
++CLONE 0 0011 [ 4] sub $0x18,%rsp
++CLONE 0 0015 [ 5] mov %rsi,0x8(%rsp)
++CLONE 0 001a [ 5] call <tomo::command_server()>
++CLONE 0 001f [ 3] test %rax,%rax
++CLONE 0 0022 [ 6] je <+0x114>
++CLONE 0 0028 [ 7] movzbl 0x176fc(%rax),%eax
++CLONE 0 002f [ 2] test %al,%al
++CLONE 0 0031 [ 6] je <+0x114>
++CLONE 0 0037 [ 7] lea <rip>(%rip),%rbp # <tomo::(anonymous namespace)::stores>
++CLONE 0 003e [ 2] xchg %ax,%ax
++CLONE 0 0040 [ 4] mov 0x0(%rbp),%r15
++CLONE 0 0044 [ 3] test %r15,%r15
++CLONE 0 0047 [ 6] je <+0x100>
++CLONE 0 004d [ 3] mov %r15,%rdi
++CLONE 0 0050 [ 5] call <pthread_mutex_lock@plt>
++CLONE 0 0055 [ 2] test %eax,%eax
++CLONE 0 0057 [ 6] jne <+0x160>
++CLONE 0 005d [ 4] mov 0x68(%r15),%rax
++CLONE 0 0061 [ 4] lea 0x58(%r15),%r12
++CLONE 0 0065 [ 4] lea 0x60(%r15),%r13
++CLONE 0 0069 [ 3] test %rax,%rax
++CLONE 0 006c [ 6] je <+0xf8>
++CLONE 0 0072 [ 3] mov %r13,%rdi
++CLONE 0 0075 [ 2] jmp <+0x88>
++CLONE 0 0077 [ 9] nopw 0x0(%rax,%rax,1)
++CLONE 0 0080 [ 3] mov %rcx,%rax
++CLONE 0 0083 [ 3] test %rax,%rax
++CLONE 0 0086 [ 2] je <+0xa1>
++CLONE 0 0088 [ 4] mov 0x10(%rax),%rdx
++CLONE 0 008c [ 4] mov 0x18(%rax),%rcx
++CLONE 0 0090 [ 4] cmp %rbx,0x20(%rax)
++CLONE 0 0094 [ 2] jb <+0x80>
++CLONE 0 0096 [ 3] mov %rax,%rdi
++CLONE 0 0099 [ 3] mov %rdx,%rax
++CLONE 0 009c [ 3] test %rax,%rax
++CLONE 0 009f [ 2] jne <+0x88>
++CLONE 0 00a1 [ 3] cmp %rdi,%r13
++CLONE 0 00a4 [ 2] je <+0xf8>
++CLONE 0 00a6 [ 4] cmp 0x20(%rdi),%rbx
++CLONE 0 00aa [ 2] jb <+0xf8>
++CLONE 0 00ac [ 3] mov %r13,%rsi
++CLONE 0 00af [ 5] call <_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_@plt>
++CLONE 0 00b4 [ 3] mov %r12,%rdi
++CLONE 0 00b7 [ 7] decq 0x80(%r15)
++CLONE 0 00be [ 3] mov %rax,%r14
++CLONE 0 00c1 [ 5] mov 0x8(%rsp),%rax
++CLONE 0 00c6 [ 3] mov %rax,%rsi
++CLONE 0 00c9 [ 4] mov %rax,0x20(%r14)
++CLONE 0 00cd [ 5] call <std::_Rb_tree<tomo::Op const*, std::pair<tomo::Op const* const, unsigned long>, std::_Select1st<std::pair<tomo::Op const* const, unsigned long> >, std::less<tomo::Op const*>, std::allocator<std::pair<tomo::Op const* const, unsigned long> > >::_M_get_insert_unique_pos(tomo::Op const* const&) [clone .isra.0]>
++CLONE 0 00d2 [ 3] test %rdx,%rdx
++CLONE 0 00d5 [ 2] je <+0x130>
++CLONE 0 00d7 [ 3] test %rax,%rax
++CLONE 0 00da [ 2] jne <+0xe1>
++CLONE 0 00dc [ 3] cmp %rdx,%r13
++CLONE 0 00df [ 2] jne <+0x14f>
++CLONE 0 00e1 [ 5] mov $0x1,%edi
++CLONE 0 00e6 [ 3] mov %r13,%rcx
++CLONE 0 00e9 [ 3] mov %r14,%rsi
++CLONE 0 00ec [ 5] call <_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_@plt>
++CLONE 0 00f1 [ 7] incq 0x80(%r15)
++CLONE 0 00f8 [ 3] mov %r15,%rdi
++CLONE 0 00fb [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 0100 [ 4] add $0x40,%rbp
++CLONE 0 0104 [ 7] lea <rip>(%rip),%rax # <once.0>
++CLONE 0 010b [ 3] cmp %rax,%rbp
++CLONE 0 010e [ 6] jne <+0x40>
++CLONE 0 0114 [ 4] add $0x18,%rsp
++CLONE 0 0118 [ 1] pop %rbx
++CLONE 0 0119 [ 1] pop %rbp
++CLONE 0 011a [ 2] pop %r12
++CLONE 0 011c [ 2] pop %r13
++CLONE 0 011e [ 2] pop %r14
++CLONE 0 0120 [ 2] pop %r15
++CLONE 0 0122 [ 1] ret
++CLONE 0 0123 [11] data16 cs nopw 0x0(%rax,%rax,1)
++CLONE 0 012e [ 2] xchg %ax,%ax
++CLONE 0 0130 [ 4] mov 0x28(%r14),%rdx
++CLONE 0 0134 [ 3] mov %r14,%rdi
++CLONE 0 0137 [ 5] mov $0x30,%esi
++CLONE 0 013c [ 4] add %rdx,0x28(%rax)
++CLONE 0 0140 [ 5] call <_ZdlPvm@plt>
++CLONE 0 0145 [ 3] mov %r15,%rdi
++CLONE 0 0148 [ 5] call <pthread_mutex_unlock@plt>
++CLONE 0 014d [ 2] jmp <+0x100>
++CLONE 0 014f [ 5] mov 0x8(%rsp),%rax
++CLONE 0 0154 [ 2] xor %edi,%edi
++CLONE 0 0156 [ 4] cmp 0x20(%rdx),%rax
++CLONE 0 015a [ 4] setb %dil
++CLONE 0 015e [ 2] jmp <+0xe6>
++CLONE 0 0160 [ 2] mov %eax,%edi
++CLONE 0 0162 [ 5] call <_ZSt20__throw_system_errori@plt>

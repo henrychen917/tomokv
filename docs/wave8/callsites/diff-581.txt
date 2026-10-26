@@ -1,0 +1,15 @@
+void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)
+--- execindex
+
++++ post
+
+@@ -109,7 +109,7 @@
+
+ CLONE 0 01bb [ 6] jp <+0x300>
+ CLONE 0 01c1 [ 2] fld %st(0)
+ CLONE 0 01c3 [ 2] fabs
+-CLONE 0 01c5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x5e8>
++CLONE 0 01c5 [ 6] fldt <rip>(%rip) # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x628>
+ CLONE 0 01cb [ 2] fxch %st(1)
+ CLONE 0 01cd [ 2] fucomip %st(1),%st
+ CLONE 0 01cf [ 2] ffreep %st(0)

@@ -1,0 +1,19 @@
+{
+  "symbolic reference annotation": 287,
+  "Lua libraries and timing composition": 18,
+  "initialization and static data layout": 2,
+  "lane body retained": 1110,
+  "executor dispatch composition": 31,
+  "logical timing retirement": 34,
+  "boot and loop instantiation": 10,
+  "container template instantiation": 28,
+  "EXEC index and timing composition": 45,
+  "scatter classifier compilation": 2,
+  "configuration and INFO composition": 15,
+  "remaining compiler propagation": 17,
+  "stable assertion diagnostics": 17,
+  "IO admission and inline propagation": 21,
+  "verified operand relocation": 6,
+  "IO inline propagation": 52,
+  "IO grace and timing composition": 22
+}

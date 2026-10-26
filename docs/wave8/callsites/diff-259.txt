@@ -1,0 +1,15 @@
+tomo::dtoa::grisu2_digits(double, char*, int&)
+--- headline
+
++++ post
+
+@@ -30,7 +30,7 @@
+
+ CLONE 0 007d [ 4] vxorps %xmm0,%xmm0,%xmm0
+ CLONE 0 0081 [ 2] sub %esi,%edx
+ CLONE 0 0083 [ 4] vcvtsi2sd %edx,%xmm0,%xmm0
+-CLONE 0 0087 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0x670>
++CLONE 0 0087 [ 8] vmulsd <rip>(%rip),%xmm0,%xmm0 # <tomo_db0::cfg_shutdown_flags(tomo_db0::Slice, unsigned char&, char const*&)::values+0xb0>
+ CLONE 0 008f [ 4] vcvttsd2si %xmm0,%edx
+ CLONE 0 0093 [ 6] cmp $0xfffffe9d,%edx
+ CLONE 0 0099 [ 6] jl <+0x140>

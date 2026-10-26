@@ -1,0 +1,15 @@
+unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)
+--- headline
+
++++ post
+
+@@ -25,7 +25,7 @@
+
+ CLONE 0 005b [ 7] mov 0x190(%r14),%rax
+ CLONE 0 0062 [ 3] movslq %r12d,%rdx
+ CLONE 0 0065 [ 2] xor %ebp,%ebp
+-CLONE 0 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x17f64>
++CLONE 0 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x18948>
+ CLONE 0 006e [ 7] add %rdx,0x520(%rax)
+ CLONE 0 0075 [ 7] lea 0xac8(%r14),%rax
+ CLONE 0 007c [ 5] mov %rax,0x10(%rsp)

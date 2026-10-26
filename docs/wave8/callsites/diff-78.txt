@@ -1,0 +1,17 @@
+bool tomo_db0::wb_rule::defer<tomo_db0::Client>(tomo_db0::Client&, tomo_db0::wb_rule::Settings const&)
+--- headline
+
++++ post
+
+@@ -74,8 +74,8 @@
+
+ CLONE 0 0102 [ 2] test %al,%al
+ CLONE 0 0104 [ 6] je <+0x2d0>
+ CLONE 0 010a [ 3] xor %r8d,%r8d
+-CLONE 0 010d [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x17cec>
+-CLONE 0 0114 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x17cc4>
++CLONE 0 010d [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x186d0>
++CLONE 0 0114 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x186a8>
+ CLONE 0 011b [ 2] jmp <+0x14c>
+ CLONE 0 011d [ 3] nopl (%rax)
+ CLONE 0 0120 [ 6] mov 0xa4(%rcx),%eax
