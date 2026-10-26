@@ -6,6 +6,7 @@ are never compared: only command/call accounting, CDF structure and percentile k
 """
 import argparse
 import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ import subprocess
 import time
 import traceback
 
-from authfix import Run, Server as AuthServer, is_error
+from authfix import Resp, Run, Server as AuthServer, is_error
 from _lib import encode
 
 class Server:
@@ -51,21 +52,32 @@ class Server:
 KNOB = 'latency-tracking-info-percentiles'
 
 
-def pairs(value):
-    assert isinstance(value, list) and len(value) % 2 == 0, value
-    return list(zip(value[::2], value[1::2]))
-
-
 def histogram(c, *names, protocol=2):
+    def map_size():
+        header = c.file.readline()
+        assert header.endswith(b'\r\n'), header
+        assert header[:1] == (b'%' if protocol == 3 else b'*'), ('map wire type', header)
+        size = int(header[1:-2])
+        assert size >= 0 and (protocol == 3 or size % 2 == 0), header
+        return size if protocol == 3 else size // 2
+
+    def typed(tag):
+        assert c.file.peek(1)[:1] == tag, ('value wire type', tag)
+        return c.read()
+
     c.sock.sendall(encode('LATENCY', 'HISTOGRAM', *names))
-    assert c.file.peek(1)[:1] == (b'%' if protocol == 3 else b'*'), 'histogram wire type'
-    value = c.read()
     out = []
-    for name, raw in pairs(value):
-        fields = dict(pairs(raw))
-        assert set(fields) == {b'calls', b'histogram_usec'}, fields
+    for _ in range(map_size()):
+        name = typed(b'$')
+        assert map_size() == 2, 'histogram field count'
+        fields = {}
+        for _ in range(2):
+            field = typed(b'$')
+            assert field not in fields and field in (b'calls', b'histogram_usec'), field
+            fields[field] = (typed(b':') if field == b'calls' else
+                             [(typed(b':'), typed(b':')) for _ in range(map_size())])
         calls = fields[b'calls']
-        bins = pairs(fields[b'histogram_usec'])
+        bins = fields[b'histogram_usec']
         assert isinstance(calls, int) and calls > 0 and bins
         prior_key, prior_count = 0, 0
         for key, count in bins:
@@ -76,6 +88,30 @@ def histogram(c, *names, protocol=2):
         assert prior_count == calls, bins
         out.append((name.decode(), calls))
     return out
+
+
+def wire_controls():
+    class Wire(Resp):
+        def __init__(self, data):
+            self.file = io.BufferedReader(io.BytesIO(data))
+            self.sock = self
+
+        def sendall(self, _):
+            pass
+
+    good = (b'%1\r\n$3\r\nget\r\n%2\r\n$5\r\ncalls\r\n:1\r\n'
+            b'$14\r\nhistogram_usec\r\n%1\r\n:1\r\n:1\r\n')
+    assert histogram(Wire(good), protocol=3) == [('get', 1)]
+    resp2 = good.replace(b'%1\r\n', b'*2\r\n').replace(b'%2\r\n', b'*4\r\n')
+    assert histogram(Wire(resp2), protocol=2) == [('get', 1)]
+    for broken in (good.replace(b'%2\r\n', b'*4\r\n'),
+                   good.replace(b'histogram_usec\r\n%1', b'histogram_usec\r\n*2')):
+        try:
+            histogram(Wire(broken), protocol=3)
+        except AssertionError as error:
+            assert 'map wire type' in str(error), error
+        else:
+            raise AssertionError('nested RESP3 array passed histogram map validation')
 
 
 def percentile_keys(c):
@@ -370,6 +406,7 @@ def off_allocations(run, mode, label, extra):
 
 
 def main():
+    wire_controls()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', required=True)
     parser.add_argument('--oracle', required=True)
