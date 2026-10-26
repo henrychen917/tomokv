@@ -4358,6 +4358,16 @@ job_atomic_floor(){
 # regression class this catches lands under 70k. Boots the harness posture on purpose -- debug
 # enabled, tripwire NOT armed -- because that is the posture every bench and gate row runs in.
 boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
+local run_floor=1
+case "${GATE_PROOF_NO_RATES:-0}" in
+  0) ;;
+  1)
+    [ "${GATE_PARTIAL:-0}" = 1 ] || { echo 'GATE_PROOF_NO_RATES requires selected partial jobs' >&2; return 1; }
+    run_floor=0
+    echo 'NOT RUN: atomic MGET/MSET throughput floor (partial correctness-only request)';;
+  *) echo 'GATE_PROOF_NO_RATES must be 0 or 1' >&2; return 1;;
+esac
+if [ "$run_floor" = 1 ]; then
 row_begin "atomic MGET/MSET floor (N/s >= 120k)"
 MM_K8="__key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__"
 MM_M8="__key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__"
@@ -4376,6 +4386,7 @@ MM_RATE=$(( (${MM_C1:-0} - ${MM_C0:-0}) / 6 ))
 [ "$MM_RATE" -ge 120000 ] \
     && ok "atomic MGET/MSET floor (${MM_RATE}/s >= 120k)" \
     || bad "atomic MGET/MSET floor" "measured ${MM_RATE}/s < 120000/s"
+fi
 # Same boot: the explicit arm surface answers OK both ways (observation itself is priced by the
 # floor row above -- if arming ever becomes the boot default again, that row fails, not this one).
 row_begin "tripwire arm/disarm round-trip"

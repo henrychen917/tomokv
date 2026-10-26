@@ -42,6 +42,7 @@ def main():
     parser.add_argument('--rounds', type=int, default=8192)
     parser.add_argument('--repeats', type=int, default=20)
     parser.add_argument('--min-wounds', type=int, default=300000)
+    parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
     assert args.repeats >= 20 and args.rounds > 0 and args.min_wounds >= 300000
     out = args.output.resolve(); out.mkdir(parents=True, exist_ok=True)
@@ -49,11 +50,16 @@ def main():
     injector = ROOT / 'build/woundfix/preempt'
     subprocess.run(['gcc', '-O2', '-o', str(injector), str(ROOT / 'docs/execindex/nx-preempt/preempt.c')], check=True)
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
-    rows = []; total_wounds = 0
+    rows = json.loads((out / 'results.json').read_text()) if args.resume else []
+    assert all(r['binary_sha256'] == digest and r['failures'] == 0 for r in rows)
+    total_wounds = sum(r['counter_delta']['atomic_group_wounds'] for r in rows)
     cells = list(itertools.product(('1s', '2s'), (1, 16), ('uring', 'epoll')))
+    cells.append(('1s', 1, 'uring'))  # the original live symptom's exact posture
     for index, (mode, databases, engine) in enumerate(cells):
         port = 20381 + index * 2
-        label = f'{mode}-db{databases}-{engine}'
+        exposure = index == len(cells)-1
+        label = ('exposure-' if exposure else '') + f'{mode}-db{databases}-{engine}'
+        if any(r['cell'] == label for r in rows): continue
         directory = out / label; directory.mkdir(exist_ok=True)
         data = ROOT / 'build/woundfix/live-data' / label; data.mkdir(parents=True, exist_ok=True)
         cmd = ['taskset', '-c', '32-39', str(binary), '--bind', '127.0.0.1', '--port', str(port),
@@ -83,7 +89,7 @@ def main():
                     # The first twenty runs each cover EXEC and bare groups.
                     # Supplemental runs accumulate the requested bare-wound
                     # exposure after every geometry has met that repeat floor.
-                    bare = rep >= args.repeats
+                    bare = exposure or rep >= args.repeats
                     test = ['taskset', '-c', '40-47', 'python3', 'tests/txn_nx.py', '127.0.0.1',
                             str(port), '--rounds', str(args.rounds)] + (['--bare'] if bare else [])
                     result = subprocess.run(test, cwd=ROOT, text=True, capture_output=True, timeout=600)
@@ -94,14 +100,16 @@ def main():
                                not r['threads_alive'] for r in summaries), (label, rep, summaries)
                     return dict(rep=rep, command=test, results=summaries)
                 with concurrent.futures.ThreadPoolExecutor(4) as pool:
-                    for first in range(0, 2000, 4):
+                    for first in range(0, 4000, 4):
                         batch = list(pool.map(repetition, range(first, first + 4)))
                         after = counters(port)
                         assert after['atomic_txn_order_violations'] == 0, after
                         repetitions.extend(batch)
                         current = after['atomic_group_wounds'] - before['atomic_group_wounds']
                         (directory / 'repetitions.json').write_text(json.dumps(repetitions, indent=2) + '\n')
-                        if first + 4 >= args.repeats and (index != len(cells)-1 or total_wounds+current >= args.min_wounds): break
+                        if (exposure and current >= args.min_wounds) or (not exposure and first + 4 >= args.repeats): break
+                        if exposure and (first + 4) % 20 == 0:
+                            print(label, 'repeats', first + 4, 'group wounds', current, 'zero wrong replies', flush=True)
                     else: raise RuntimeError('bounded repetition limit did not attain wound witness')
             finally:
                 for proc in injectors: stop(proc)
@@ -109,11 +117,11 @@ def main():
             assert server.returncode == 0, (label, server.returncode)
         assert hashlib.sha256(binary.read_bytes()).hexdigest() == digest, 'binary changed during live proof'
         delta = {k: after[k] - before.get(k, 0) for k in after}
-        assert delta['atomic_group_wounds'] > 0 and delta['atomic_txn_wounds'] > 0, delta
+        assert delta['atomic_group_wounds'] > 0 and (exposure or delta['atomic_txn_wounds'] > 0), delta
         total_wounds += delta['atomic_group_wounds']
         rows.append(dict(cell=label, boot=cmd, binary_sha256=digest,
-                         repeats=len(repetitions), full_repeats=min(args.repeats, len(repetitions)),
-                         supplemental_bare=max(0, len(repetitions)-args.repeats), rounds=args.rounds, counter_delta=delta,
+                         repeats=len(repetitions), full_repeats=0 if exposure else min(args.repeats, len(repetitions)),
+                         supplemental_bare=len(repetitions) if exposure else max(0, len(repetitions)-args.repeats), rounds=args.rounds, counter_delta=delta,
                          failures=0, clients='four independent txn_nx processes, each with disjoint fresh keys',
                          injector='one spin 20us / sleep 30us process per server CPU 32-39'))
         (out / 'results.json').write_text(json.dumps(rows, indent=2) + '\n')
