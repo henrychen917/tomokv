@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+FAIL	52.400000	txnorder battery (fused, atomic 0)
+ok	48.450000	txnorder battery (fused, atomic 1)
+ok	48.220000	txnorder battery (split, atomic 0)
+ok	48.250000	txnorder battery (split, atomic 1)

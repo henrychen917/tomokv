@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=txnorder_index; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	104.220000	txnorder index oracle
+ok	2.720000	txnorder index complexity

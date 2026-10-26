@@ -1,0 +1,537 @@
+[
+  {
+    "name": "index-final",
+    "jobs": [
+      "txnorder_index"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 928.0058584213257,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.NzvzPo",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.NzvzPo/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.NzvzPo/jobs/release"
+      },
+      {
+        "name": "txnorder_index",
+        "returncode": 0,
+        "passed": 2,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.NzvzPo/jobs/txnorder_index"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "txnorder-uring-2",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 1,
+    "elapsed_s": 782.8381700515747,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 1,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/txnorder-split-1"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "txnorder-uring-3",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 319.3236720561981,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.smLPMY/jobs/txnorder-split-1"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "txnorder-epoll-1",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 197.2840118408203,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.iixwpY/jobs/txnorder-split-1"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "txnorder-epoll-2",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 197.26427340507507,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.ypUQ2p/jobs/txnorder-split-1"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "txnorder-epoll-3",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 198.1652283668518,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9",
+    "jobs_evidence": [
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/release"
+      },
+      {
+        "name": "txnorder-fused-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/txnorder-fused-0"
+      },
+      {
+        "name": "txnorder-fused-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/txnorder-fused-1"
+      },
+      {
+        "name": "txnorder-split-0",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/txnorder-split-0"
+      },
+      {
+        "name": "txnorder-split-1",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.me0Op9/jobs/txnorder-split-1"
+      }
+    ],
+    "proof_no_rates": false
+  },
+  {
+    "name": "debug-split-uring",
+    "jobs": [
+      "debug-0",
+      "debug-1",
+      "txn_group_split",
+      "txn_group_fused",
+      "fused-0",
+      "fused-1",
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "command": [
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46899"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 765.3115270137787,
+    "run_directory": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5",
+    "jobs_evidence": [
+      {
+        "name": "debug-0",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/debug-0"
+      },
+      {
+        "name": "debug-1",
+        "returncode": 0,
+        "passed": 16,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/debug-1"
+      },
+      {
+        "name": "feature-armed-0",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/feature-armed-0"
+      },
+      {
+        "name": "feature-armed-1",
+        "returncode": 0,
+        "passed": 35,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/feature-armed-1"
+      },
+      {
+        "name": "feature-split-0",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/feature-split-0"
+      },
+      {
+        "name": "feature-split-1",
+        "returncode": 0,
+        "passed": 34,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/feature-split-1"
+      },
+      {
+        "name": "fused-0",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/fused-0"
+      },
+      {
+        "name": "fused-1",
+        "returncode": 0,
+        "passed": 9,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/fused-1"
+      },
+      {
+        "name": "production_units",
+        "returncode": 0,
+        "passed": 0,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/production_units"
+      },
+      {
+        "name": "release",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/release"
+      },
+      {
+        "name": "txn_group_fused",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/txn_group_fused"
+      },
+      {
+        "name": "txn_group_split",
+        "returncode": 0,
+        "passed": 1,
+        "failed": 0,
+        "path": "/home/user/Projects/cx-execindex/build/gate-run.1KNQE5/jobs/txn_group_split"
+      }
+    ],
+    "proof_no_rates": false
+  }
+]

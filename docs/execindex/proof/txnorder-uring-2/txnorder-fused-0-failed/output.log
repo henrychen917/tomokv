@@ -1,0 +1,2 @@
+  row budget: 900s; median=48.77s; correctness-plan-fallback; txnorder battery (fused, atomic 0)
+  txnorder battery (fused, atomic 0)                   FAIL (see /home/user/Projects/cx-execindex/build/gate-run.aiaiHU/jobs/txnorder-fused-0/txnorder-2s-0.txt)
