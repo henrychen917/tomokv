@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 autharity
+  compat2 autharity                                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 expire_notify
+  compat2 expire_notify                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 ktls_lifetime
+  compat2 ktls_lifetime                                ok
