@@ -8,14 +8,41 @@ import _lib
 from wb_policy import check_replies
 
 
+def check_settings(admin, settings):
+    info = _lib.info(admin, "WRITEBACK")
+    for knob, value in settings.items():
+        check_replies(admin.must("CONFIG", "GET", knob), [knob.encode(), str(value).encode()], knob)
+        assert info[knob.replace("-", "_")] == str(value), knob
+
+
+def retained_head(ready):
+    assert not ready, "small complete pipe did not hold"
+
+
+def self_test():
+    from types import SimpleNamespace
+    from unittest.mock import patch
+    controls = [("leaked SKIP reply", lambda: check_replies([b"value", b"leak", b"end"],
+                                                          [b"value", b"end"], "SKIP")),
+                ("corrupted borrowed bytes", lambda: check_replies([b"bad", b"end"],
+                                                                  [b"value", b"end"], "borrow")),
+                ("ignored complete-pipe hold", lambda: retained_head(True))]
+    for name, control in controls:
+        try: control()
+        except AssertionError as exc: print(f"CONTROL FAIL WB: {name}: {exc}")
+        else: raise AssertionError(f"negative control passed: {name}")
+    admin = SimpleNamespace(must=lambda *args: [args[2].encode(), b"16"])
+    with patch.object(_lib, "info", return_value={"wb_small_pipe": "16"}):
+        try: check_settings(admin, {"wb-small-pipe": 2})
+        except AssertionError as exc: print(f"CONTROL FAIL WB: ignored boot knob: {exc}")
+        else: raise AssertionError("ignored boot knob passed")
+
+
 def run(args):
     with closing(_lib.Conn("127.0.0.1", args.port, timeout=5)) as admin:
         settings = {"wb-policy": args.policy, "wb-small-pipe": args.small,
                     "wb-complete-visits": args.visits}
-        info = _lib.info(admin, "WRITEBACK")
-        for knob, value in settings.items():
-            check_replies(admin.must("CONFIG", "GET", knob), [knob.encode(), str(value).encode()], knob)
-            assert info[knob.replace("-", "_")] == str(value), knob
+        check_settings(admin, settings)
         key, blocked = "wb-mixed:value", "wb-mixed:block"
         old, new = b"old:" + bytes(range(256)) * 32, b"new:" + bytes(range(256)) * 32
         admin.must("SET", key, old)
@@ -54,7 +81,7 @@ def run(args):
                     assert time.monotonic() < deadline, "held group never admitted"
                     time.sleep(.001)
                 if held:
-                    assert not select.select([conn.sock], [], [], .03)[0], "small complete pipe did not hold"
+                    retained_head(bool(select.select([conn.sock], [], [], .03)[0]))
                 else:
                     check_replies(conn.read(), b"tiny", "bounded/half head must progress")
             finally:
@@ -67,8 +94,10 @@ def run(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, required=True)
-    parser.add_argument("--policy", type=int, required=True)
-    parser.add_argument("--small", type=int, required=True)
-    parser.add_argument("--visits", type=int, required=True)
-    run(parser.parse_args())
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--port", type=int)
+    parser.add_argument("--policy", type=int)
+    parser.add_argument("--small", type=int)
+    parser.add_argument("--visits", type=int)
+    args = parser.parse_args()
+    self_test() if args.self_test else run(args)

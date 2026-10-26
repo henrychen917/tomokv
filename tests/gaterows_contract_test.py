@@ -29,7 +29,9 @@ class Contracts(unittest.TestCase):
             for rc in (0, 7):
                 class Connection:
                     value = 1 - atomic
+                    file = SimpleNamespace(read=lambda count: b"")
                     def must(self, *args):
+                        if args == ("QUIT",): return b"OK"
                         if args[1] == "SET":
                             self.value = int(args[3]); return b"OK"
                         return [b"atomic", str(self.value).encode()]

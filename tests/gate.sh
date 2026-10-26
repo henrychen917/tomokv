@@ -4936,6 +4936,7 @@ job_wb_mixed(){
   for mode in 1s 2s; do for engine in epoll uring; do
     row_begin "writeback mixed replies and live knob bounds ($mode, $engine)"
     failed=0
+    py tests/wb_mixed.py --self-test >"$TMPDIR/controls-$mode-$engine.log" 2>&1 || failed=1
     boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
     for policy in 0 1; do for knobs in 0:0 2:0 2:1 64:255; do
       IFS=: read -r small visits <<< "$knobs"
