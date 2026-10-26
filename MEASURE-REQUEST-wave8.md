@@ -86,3 +86,41 @@ The serverless probes' actual executed addresses are checked against their ordin
 The original standalone core TSAN link omitted all six lualibs C translation units and failed with four undefined `luaopen_*` symbols. ASAN and read-local debug links shared the omission. All three now include the helper sources; `parbuild.sh` compiles C sources as C with the same sanitizer flags and includes Lua headers/amalgamated sources in its cache key. A directed C-linkage/header-invalidation check and the TSAN dependency inventory guard this integration.
 
 Execindex's queue-specific ready path bypasses the finalizer overload patched by the old EX-batch negative control. That control still failed, but only later in OOM cleanup, so its expected witness was absent. The fixture retains the original lazy-finalization check and adds a fresh explicitly armed reservation followed by direct finalization. The planted missing cache update must fail at this new exact witness in both namespaces. These are harness changes; the frozen production POST is unchanged.
+
+### Maintainer measurement request — NOT RUN here
+
+Use the gate's ABBA instrument on the quiet box, with the reviewed server/load geometry and matched offered load. Frozen arms are headline `tomokv-headline-3700b51d7`, rebuilt PRE, merged POST and **PAD-A (kind A: behaviour twin, aggregate text placement/size control)**. First confirm headline/PRE and contemporaneous identical-arm controls; then compare headline/POST and PRE/PAD-A. POST uses the owner default `--latency-tracking no`; PRE/PAD retain their existing default. No build multiplier override exists.
+
+`docs/wave8/null-cells.txt` contains 28 exact rate/latency cells:
+
+- Generic 14 unchanged: `h05 h06 p8g p8s d1g_l0 d1s_l0 m8g_l0 v1g_l0 d128g_l0 d32g_l1 d8s_l1 d32s_l1 x9_32_l1 x9_32_l0`.
+- TTL: `ttls ttlm`, retaining the 20M-key population and expiry-firing requirement.
+- NOTIFY configuration null: `notify_exm`, the existing `--notify-keyspace-events Exm` cell.
+- Split GET/SET: `h53 h54 h21 h22` (p1/p32).
+- MGET/MSET p8: generic `m8g_l0` plus `m05 m26 m29 m50 m53 m74 m77` (1s/2s, read-local off/on, atomic=1, reorder off).
+
+Also rerun `/home/user/Projects/calib/exec-merit.py` at **64 connections, pipeline 4**, all eight 1s/2s × atomic 0/1 × hot/uncontended cells. Run `/home/user/Projects/calib/exec-depth-sweep.py` in both modes, cross-owner, same-owner/different-shard and same-shard, at **16×1, 16×4, 32×4, 64×4, 128×4**, three blocks each. Retain the lane's depth criteria: median(64×4)/median(16×4) ≥0.90 and median(128×4)/median(16×4) ≥0.85 for cross-owner/same-owner. Capture order-violation, retry, claim-visit and fast-poll counters. The already judged approximately 2% uncontended EXEC code cost is an accepted lane limitation; this integration does not attempt its separately planned recovery.
+
+For every cell report rate at matched offered load, cycles/op, instructions/op and IPC, plus the instrument's depth-1 latency result. Main-command cells require the normal null verdict; instruction identity/counts do not substitute for it. Compare POST's EXEC behavior with the selected execindex result and depth criteria. PAD-A's aggregate-only limitation must accompany its results. Full landing `tests/gate.sh iteration` is **NOT RUN** here and remains with the maintainer after the totals change to 806/823. No throughput claim is made by this report.
+
+### Helper assertion boundary (final source audit)
+
+The final integration scan also covers the six new production helper C translation
+units under `third_party/lua/helpers`, beyond readability-a0's original `src/`
+boundary. Seven `assert` sites now use explicit stable IDs through the C wrapper
+`src/base/tomo_assert_c.h`; the generated map contains 22 unique sites. The two
+identical `len <= UINT_MAX` conditions have distinct pins (salts 0 and 1). The
+vendored license notices remain intact; these assertion substitutions and one
+include per affected file are the only integration changes to the helper sources.
+
+The existing source-identity gate row now preprocesses the shared C units once,
+in addition to both C++ namespaces. Directed controls verify C aborts resolve to
+the map, single evaluation and NDEBUG semantics, cross-language duplicate rejection,
+and both lexical and expanded rejection in helper sources. Literal include header
+names are tokens, not identifier uses; macro-valued includes remain checked.
+No gate row or EXPECT constant changes.
+
+The earlier 488ad56d POST and its PAD, map, object hashes and instruction receipts
+are preserved in `build/wave8/before-helper-assertions/`. Its latest uring gate
+batch passed all 166 rows. The final binary is rebuilt after the helper diagnostic
+change and receives fresh final receipts below.

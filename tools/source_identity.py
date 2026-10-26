@@ -15,7 +15,7 @@ import shlex
 import subprocess
 import sys
 
-from assert_map import directives, lex
+from assert_map import directives, lex, production_paths
 
 FORBIDDEN = {'assert', '__FILE__', '__BASE_FILE__', '__FILE_NAME__', '__LINE__', '__func__', '__FUNCTION__',
              '__PRETTY_FUNCTION__', 'source_location', '__builtin_FILE',
@@ -61,6 +61,12 @@ def trace_lines(source):
 
 def lint_source(source, path):
     skipped = trace_lines(source)
+    # A literal header name is a preprocessing token, not an identifier use.
+    # Macro-valued includes still pass through the identifier checks below.
+    for start, end, directive in directives(source):
+        words = [t.text for t in lex(directive)]
+        if words[:3] == ['#', 'include', '<'] and words[-1:] == ['>']:
+            skipped.update(range(start, end + 1))
     tokens = [t for t in lex(source) if t.line not in skipped]
     errors = []
     for token in tokens:
@@ -99,9 +105,8 @@ def lint_source(source, path):
 
 def source_check(root):
     errors = []
-    for path in sorted((root / 'src').rglob('*')):
-        if path.suffix in ('.h', '.cc', '.inc', '.c', '.def'):
-            errors.extend(lint_source(path.read_text(), path.relative_to(root)))
+    for path in production_paths(root):
+        errors.extend(lint_source(path.read_text(), path.relative_to(root)))
     return errors
 
 
@@ -130,7 +135,9 @@ def expanded_check(root, source, cxx, flags, db0):
         if marker:
             flush()
             number, current = int(marker[1]), marker[2]
-            local = (root / current).resolve().is_relative_to(root / 'src') if not current.startswith('<') else False
+            local = not current.startswith('<') and any(
+                (root / current).resolve().is_relative_to(root / directory)
+                for directory in ('src', 'third_party/lua/helpers'))
             continue
         if local:
             if not block:
@@ -145,22 +152,27 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path('.'))
     parser.add_argument('--cxx', default='g++')
+    parser.add_argument('--cc', default='gcc')
     parser.add_argument('--flags', default='-std=c++20 -O2')
     parser.add_argument('--sources', nargs='*', default=[])
+    parser.add_argument('--c-sources', nargs='*', default=[])
     parser.add_argument('--jobs', type=int, default=1)
     args = parser.parse_args()
     root = args.root.resolve()
     errors = source_check(root)
-    if args.sources and not errors:
-        tasks = [(source, db0) for source in args.sources for db0 in (False, True)]
+    if (args.sources or args.c_sources) and not errors:
+        tasks = [(source, args.cxx, args.flags, db0) for source in args.sources for db0 in (False, True)]
+        cflags = shlex.join([f for f in shlex.split(args.flags) if not f.startswith('-std=')]
+                           + ['-std=c11', '-DENABLE_CJSON_GLOBAL', '-Ithird_party/lua'])
+        tasks += [(source, args.cc, cflags, False) for source in args.c_sources]
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-            results = pool.map(lambda task: expanded_check(root, task[0], args.cxx, args.flags, task[1]), tasks)
+            results = pool.map(lambda task: expanded_check(root, *task), tasks)
             for result in results:
                 errors.extend(result)
     if errors:
         print('\n'.join(errors), file=sys.stderr)
         return 1
-    print(f'PASS source identity lint ({len(args.sources)} TUs, both database variants)')
+    print(f'PASS source identity lint ({len(args.sources)} C++ TUs, both database variants; {len(args.c_sources)} shared C TUs)')
     return 0
 
 

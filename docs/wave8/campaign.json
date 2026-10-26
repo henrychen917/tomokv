@@ -1,0 +1,9 @@
+[
+  {
+    "name": "remaining-once",
+    "exit": 1,
+    "summary": [
+      "GATE(PARTIAL): 117 ok, 9 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-wave8/docs/wave8/jobs/remaining-once.tsv.partial"
+    ]
+  }
+]

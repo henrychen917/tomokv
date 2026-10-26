@@ -36,7 +36,7 @@
  *       difficult to know object/array sizes ahead of time.
  */
 
-#include <assert.h>
+#include "../../../src/base/tomo_assert_c.h"
 #include <string.h>
 #include <strings.h> /* TomoKV: POSIX strncasecmp declaration. */
 #include <math.h>
@@ -891,7 +891,7 @@ static void json_next_string_token(json_parse_t *json, json_token_t *token)
     char ch;
 
     /* Caller must ensure a string is next */
-    assert(*json->ptr == '"');
+    TOMO_ASSERT_ID(*json->ptr == '"', 0xd58617aau);
 
     /* Skip " */
     json->ptr++;

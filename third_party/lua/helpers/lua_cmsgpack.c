@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <assert.h>
+#include "../../../src/base/tomo_assert_c.h"
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -206,7 +206,7 @@ void mp_encode_double(lua_State *L, mp_buf *buf, double d) {
     unsigned char b[9];
     float f = d;
 
-    assert(sizeof(f) == 4 && sizeof(d) == 8);
+    TOMO_ASSERT_ID(sizeof(f) == 4 && sizeof(d) == 8, 0xb125b2cbu);
     if (d == (double)f) {
         b[0] = 0xca;    /* float IEEE 754 */
         memcpy(b+1,&f,4);
@@ -552,7 +552,7 @@ int mp_pack(lua_State *L) {
 void mp_decode_to_lua_type(lua_State *L, mp_cur *c);
 
 void mp_decode_to_lua_array(lua_State *L, mp_cur *c, size_t len) {
-    assert(len <= UINT_MAX);
+    TOMO_ASSERT_ID(len <= UINT_MAX, 0xe3abdf66u);
     int index = 1;
 
     lua_newtable(L);
@@ -566,7 +566,7 @@ void mp_decode_to_lua_array(lua_State *L, mp_cur *c, size_t len) {
 }
 
 void mp_decode_to_lua_hash(lua_State *L, mp_cur *c, size_t len) {
-    assert(len <= UINT_MAX);
+    TOMO_ASSERT_ID(len <= UINT_MAX, 0x93bbfc19u);
     lua_newtable(L);
     while(len--) {
         mp_decode_to_lua_type(L,c); /* key */
@@ -678,7 +678,7 @@ void mp_decode_to_lua_type(lua_State *L, mp_cur *c) {
         break;
     case 0xca:  /* float */
         mp_cur_need(c,5);
-        assert(sizeof(float) == 4);
+        TOMO_ASSERT_ID(sizeof(float) == 4, 0x838fb830u);
         {
             float f;
             memcpy(&f,c->p+1,4);
@@ -689,7 +689,7 @@ void mp_decode_to_lua_type(lua_State *L, mp_cur *c) {
         break;
     case 0xcb:  /* double */
         mp_cur_need(c,9);
-        assert(sizeof(double) == 8);
+        TOMO_ASSERT_ID(sizeof(double) == 8, 0xd501e359u);
         {
             double d;
             memcpy(&d,c->p+1,8);

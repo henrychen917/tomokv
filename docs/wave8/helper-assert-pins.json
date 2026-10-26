@@ -1,0 +1,44 @@
+[
+  {
+    "file": "third_party/lua/helpers/fpconv.c",
+    "condition": "1 <= precision && precision <= 14",
+    "salt": 0,
+    "id": "0x9c7472e5u"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cjson.c",
+    "condition": "*json->ptr == '\"'",
+    "salt": 0,
+    "id": "0xd58617aau"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cmsgpack.c",
+    "condition": "sizeof(f) == 4 && sizeof(d) == 8",
+    "salt": 0,
+    "id": "0xb125b2cbu"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cmsgpack.c",
+    "condition": "len <= UINT_MAX",
+    "salt": 0,
+    "id": "0xe3abdf66u"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cmsgpack.c",
+    "condition": "len <= UINT_MAX",
+    "salt": 1,
+    "id": "0x93bbfc19u"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cmsgpack.c",
+    "condition": "sizeof(float) == 4",
+    "salt": 0,
+    "id": "0x838fb830u"
+  },
+  {
+    "file": "third_party/lua/helpers/lua_cmsgpack.c",
+    "condition": "sizeof(double) == 8",
+    "salt": 0,
+    "id": "0xd501e359u"
+  }
+]

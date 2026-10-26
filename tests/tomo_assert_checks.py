@@ -3,6 +3,7 @@
 import argparse
 import csv
 import io
+import json
 from pathlib import Path
 import re
 import resource
@@ -30,7 +31,7 @@ class AssertionChecks(unittest.TestCase):
 
     def test_hash_and_function(self):
         sites = amap.scan(ROOT)
-        self.assertEqual(len(sites), 15)
+        self.assertEqual(len(sites), 22)
         self.assertEqual({s.function for s in sites}, {
             'tomo::FlatStore::storesize_replace', 'tomo::FlatStore::storesize_deadline',
             'tomo::FlatStore::make_word', 'tomo::Shard::init',
@@ -38,10 +39,60 @@ class AssertionChecks(unittest.TestCase):
             'tomo::TxnWaiter::~TxnWaiter', 'tomo::MultiOwnerRetryNode::~MultiOwnerRetryNode',
             'tomo::TxnRetryQueues::link', 'tomo::TxnRetryQueues::unlink',
             '(anonymous)::txn_unlink_waiter', '(anonymous)::txn_link_waiter',
-            'tomo::Shard::watch_append_reservation'})
+            'tomo::Shard::watch_append_reservation', 'set_number_format',
+            'json_next_string_token', 'mp_encode_double', 'mp_decode_to_lua_array',
+            'mp_decode_to_lua_hash', 'mp_decode_to_lua_type'})
         amap.verify(sites, ROOT, 'g++')
         self.assertEqual(amap.fnv(' a\t +\n b '), amap.fnv('a+b'))
         self.assertNotEqual(amap.fnv('a', 0), amap.fnv('a', 1))
+
+    def test_c_helper_pins(self):
+        sites = {s.id: s for s in amap.scan(ROOT)}
+        pins = json.loads((ROOT / 'docs/wave8/helper-assert-pins.json').read_text())
+        self.assertEqual(len(pins), 7)
+        for pin in pins:
+            value = int(pin['id'].removesuffix('u'), 16)
+            self.assertEqual(value, amap.fnv(pin['condition'], pin['salt']))
+            self.assertEqual(sites[value].location.rsplit(':', 1)[0], pin['file'])
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            root = Path(directory)
+            (root / 'src').mkdir()
+            helpers = root / 'third_party/lua/helpers'
+            helpers.mkdir(parents=True)
+            (root / 'src/fixture.cc').write_text('void f(){TOMO_ASSERT_ID(1,0x80000001u);}')
+            (helpers / 'fixture.c').write_text('void g(){TOMO_ASSERT_ID(1,0x80000001u);}')
+            with self.assertRaisesRegex(ValueError, 'duplicate id'):
+                amap.scan(root)
+
+    def test_c_macro_semantics_and_abort(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            binary = Path(directory) / 'c-semantics'
+            source = '''#include "src/base/tomo_assert_c.h"
+int main(void) {
+    int calls = 0;
+    if (1) TOMO_ASSERT_ID(++calls, 0x9c7472e5u); else return 3;
+#ifdef NDEBUG
+    return calls != 0;
+#else
+    return calls != 1;
+#endif
+}
+'''
+            for flags in ([], ['-DNDEBUG']):
+                subprocess.run(['gcc', '-std=c11', '-O2', '-I', str(ROOT), *flags,
+                                '-x', 'c', '-', '-o', str(binary)], input=source, text=True, check=True)
+                subprocess.run([str(binary)], check=True)
+            source = '#include "src/base/tomo_assert_c.h"\nint main(void){TOMO_ASSERT_ID(0,0x9c7472e5u);}'
+            subprocess.run(['gcc', '-std=c11', '-O2', '-I', str(ROOT), '-x', 'c', '-', '-o', str(binary)],
+                           input=source, text=True, check=True)
+            def no_core():
+                resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+            result = subprocess.run([str(binary)], text=True, capture_output=True, preexec_fn=no_core)
+            self.assertEqual(result.returncode, -signal.SIGABRT)
+            self.assertIn('tomokv:2624877285: site:', result.stderr)
+            matches = [s for s in amap.scan(ROOT) if s.id == 2624877285]
+            self.assertEqual(len(matches), 1)
+            self.assertEqual(matches[0].function, 'set_number_format')
 
     def test_claim_node_declarators(self):
         sites = self.site('namespace n { struct Node {'
@@ -109,6 +160,9 @@ int main() {
                 subprocess.run([str(binary)], check=True)
 
     def test_lint_negative_controls(self):
+        self.assertFalse(identity.lint_source('#include <assert.h>\n', 'src/test.c'))
+        self.assertTrue(identity.lint_source('#include __FILE__\n', 'src/test.c'))
+        self.assertTrue(identity.lint_source('#include <assert.h>\nvoid f(){assert(1);}', 'src/test.c'))
         for word in identity.FORBIDDEN:
             with self.subTest(word=word):
                 self.assertTrue(identity.lint_source(f'auto x = {word};', 'src/test.cc'))
@@ -148,6 +202,20 @@ const char* diagnostic = __FILE__;
                 # Proves the second pass adds coverage beyond a lexical grep.
                 self.assertFalse(identity.source_check(root))
                 self.assertTrue(identity.expanded_check(root, 'src/fixture.cc', 'g++', '-std=c++20', False))
+
+    def test_helper_lint_negative_controls(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as directory:
+            root = Path(directory)
+            helpers = root / 'third_party/lua/helpers'
+            helpers.mkdir(parents=True)
+            path = helpers / 'fixture.c'
+            for word in ('assert(0)', '__FILE__', '__LINE__'):
+                path.write_text('void f(void){' + word + ';}\n')
+                self.assertTrue(identity.source_check(root))
+            for spelling in ('CAT(__FI,LE__)', 'CAT(__builtin_,FUNCTION)()'):
+                path.write_text('#define CAT(a,b) a##b\nconst char *x = ' + spelling + ';\n')
+                self.assertFalse(identity.source_check(root))
+                self.assertTrue(identity.expanded_check(root, str(path.relative_to(root)), 'gcc', '-std=c11', False))
 
 
 def check_failure(binary, map_path):

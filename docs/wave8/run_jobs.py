@@ -25,7 +25,9 @@ argv=['bash','tests/gate.sh','full','--server-cores','64-71' if a.single_slot el
     '--load-cores','72-95' if a.single_slot else '88-95','--load-smt','',
     '--ports',f'{a.port}-{a.port+9}','--candidate-binary',str(binary)]
 receipt=dict(argv=argv,cwd=str(a.root),env={k:v for k,v in env.items() if k.startswith('GATE_') or k in ('LANG','REDIS74_ROOT')},
-    binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),started=time.time())
+    binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+    source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    gate_sha256=hashlib.sha256((a.root/'tests/gate.sh').read_bytes()).hexdigest(),started=time.time())
 with log.open('w') as f:
     result=subprocess.run(argv,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT)
 receipt.update(exit=result.returncode,seconds=time.time()-receipt['started'])

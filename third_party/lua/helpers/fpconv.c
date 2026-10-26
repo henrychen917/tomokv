@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+#include "../../../src/base/tomo_assert_c.h"
 #include <string.h>
 #include <pthread.h> /* TomoKV: concurrent Lua state initialization. */
 
@@ -155,7 +155,7 @@ static void set_number_format(char *fmt, int precision)
 {
     int d1, d2, i;
 
-    assert(1 <= precision && precision <= 14);
+    TOMO_ASSERT_ID(1 <= precision && precision <= 14, 0x9c7472e5u);
 
     /* Create printf format (%.14g) from precision */
     d1 = precision / 10;

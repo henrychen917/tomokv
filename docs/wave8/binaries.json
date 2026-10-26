@@ -13,5 +13,10 @@
     "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-PAD-A",
     "sha256": "3683af2efc51666fbb2686cac26e7883fa6c86dc79e33428968c321361e86708",
     "bytes": 10799272
+  },
+  "POST_assert_map": {
+    "path": "/home/user/Projects/cx-wave8/build/tomokv-wave8-POST.asserts.tsv",
+    "sha256": "6b385ef7d19237f91ec93fe713a5517372460195e6911a9d1c429b37e34fce03",
+    "bytes": 1929
   }
 }

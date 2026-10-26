@@ -1,0 +1,28 @@
+{
+  "once": [
+    "core_units",
+    "exbatch_units",
+    "asan",
+    "rldbg",
+    "netfix_query_stats",
+    "ntfix_input",
+    "persistfix2_lastsave",
+    "racefix_counters",
+    "notify_aof",
+    "notify_order",
+    "notifycompat"
+  ],
+  "each_mode": [
+    "aof-epoll",
+    "aof-uring",
+    "snapshot-epoll",
+    "snapshot-uring"
+  ],
+  "each_mode_engine": [
+    "notify"
+  ],
+  "quiet_after": [
+    "gates_test.py",
+    "abba_selftest"
+  ]
+}

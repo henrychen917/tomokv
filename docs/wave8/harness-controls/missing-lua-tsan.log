@@ -1,0 +1,7 @@
+  row budget: 900s; median=-s; no-history-conservative-default; build dependency: core-concurrency-tsan
+/usr/bin/ld: /home/user/Projects/cx-wave8/build/gate-cache/obj-core-tsan/src_cmd_scripting.o: in function `tomo::(anonymous namespace)::open_helper_libraries(lua_State*)':
+/home/user/Projects/cx-wave8/src/cmd/scripting.cc:814:(.text+0x1efb1): undefined reference to `luaopen_cjson'
+/usr/bin/ld: /home/user/Projects/cx-wave8/src/cmd/scripting.cc:826:(.text+0x1f050): undefined reference to `luaopen_struct'
+/usr/bin/ld: /home/user/Projects/cx-wave8/src/cmd/scripting.cc:827:(.text+0x1f066): undefined reference to `luaopen_cmsgpack'
+/usr/bin/ld: /home/user/Projects/cx-wave8/src/cmd/scripting.cc:828:(.text+0x1f07c): undefined reference to `luaopen_bit'
+collect2: error: ld returned 1 exit status

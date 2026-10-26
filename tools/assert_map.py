@@ -164,7 +164,7 @@ class Site:
 
 def scan_file(path, root):
     source = path.read_text()
-    if path.relative_to(root).as_posix() != 'src/base/tomo_assert.h':
+    if path.relative_to(root).as_posix() not in ('src/base/tomo_assert.h', 'src/base/tomo_assert_c.h'):
         for start, _, directive in directives(source):
             if any(t.kind != 'literal' and t.text in MACROS for t in lex(directive)):
                 raise ValueError(f'{path.relative_to(root)}:{start}: assertion wrappers hide source sites; call TOMO_ASSERT directly')
@@ -207,11 +207,18 @@ def scan_file(path, root):
     return sites
 
 
+def production_paths(root):
+    # The six separately compiled helper C files are production code too. The
+    # pre-existing upstream Lua VM keeps its original vendored boundary.
+    for directory in (root / 'src', root / 'third_party/lua/helpers'):
+        for path in sorted(directory.rglob('*')):
+            if path.suffix in ('.h', '.cc', '.inc', '.c', '.def'):
+                yield path
+
+
 def scan(root):
     sites, seen = [], {}
-    for path in sorted((root / 'src').rglob('*')):
-        if path.suffix not in ('.h', '.cc', '.inc', '.c', '.def'):
-            continue
+    for path in production_paths(root):
         for site in scan_file(path, root):
             if site.id in seen:
                 raise ValueError(f'duplicate id {site.id} (0x{site.id:08x}): '

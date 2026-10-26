@@ -64,9 +64,9 @@ SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 ASSERT_MAP := $(BUILD_ROOT)/tomokv.asserts.tsv
-ASSERT_SOURCES := $(shell find src -type f \( -name '*.h' -o -name '*.cc' -o -name '*.inc' -o -name '*.c' -o -name '*.def' \))
+ASSERT_SOURCES := $(shell find src third_party/lua/helpers -type f \( -name '*.h' -o -name '*.cc' -o -name '*.inc' -o -name '*.c' -o -name '*.def' \))
 
-ASSERT_DIRS := $(shell find src -type d)
+ASSERT_DIRS := $(shell find src third_party/lua/helpers -type d)
 
 all: $(BIN) $(ASSERT_MAP)
 
@@ -390,7 +390,7 @@ $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
 # The only shared code is third-party Lua; all database state is variant-private.
-$(BUILD_ROOT)/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+$(BUILD_ROOT)/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
 	@mkdir -p $(dir $@)
 	$(CC) $(filter-out -std=c++20,$(CXXFLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -c $< -o $@
 
@@ -505,7 +505,7 @@ build/tomo-assert-fail: tests/tomo_assert_fail.cc $(CORE_TEST_OBJ) $(wildcard sr
 ASSERT_LINT_JOBS ?= 1
 .PHONY: source-identity-check
 source-identity-check:
-	python3 tools/source_identity.py --cxx "$(CXX)" --flags "$(CXXFLAGS) $(JEFLAGS)" --jobs $(ASSERT_LINT_JOBS) --sources $(SRC) $(SERVER_ONLY_SRC)
+	python3 tools/source_identity.py --cxx "$(CXX)" --cc "$(CC)" --flags "$(CXXFLAGS) $(JEFLAGS)" --jobs $(ASSERT_LINT_JOBS) --sources $(SRC) $(SERVER_ONLY_SRC) --c-sources $(LUA_HELPER_SRC)
 
 build/rlfix3-info-unit: build/tests/rlfix3_info_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
@@ -636,10 +636,10 @@ build/mdbqsbr-asan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makef
 build/mdbqsbr-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread -c $< -o $@
-build/mdbqsbr-asan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+build/mdbqsbr-asan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
 	@mkdir -p $(dir $@)
 	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=address,undefined -c $< -o $@
-build/mdbqsbr-tsan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) Makefile
+build/mdbqsbr-tsan/third_party/lua/helpers/%.o: third_party/lua/helpers/%.c $(wildcard third_party/lua/*.h) $(wildcard third_party/lua/helpers/*.h) src/base/tomo_assert_c.h Makefile
 	@mkdir -p $(dir $@)
 	$(CC) $(filter-out -std=c++20,$(MDBQSBR_FLAGS)) -std=c11 -DENABLE_CJSON_GLOBAL -Ithird_party/lua -fsanitize=thread -c $< -o $@
 build/mdbqsbr-asan/src/cmd/l4prebuild.o build/mdbqsbr-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
