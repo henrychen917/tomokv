@@ -222,3 +222,9 @@ The integration-only whitespace check (`969b21fd3..HEAD`) is clean. The complete
 headline-to-landing diff retains 776 inherited warnings in 83 execindex receipt
 files and the final blank line of two vendored Lua helpers. Raw evidence and
 vendor formatting are preserved; `whitespace-review.json` lists every file.
+
+After every live job completed, the final direct `python3 tests/gates_test.py`
+run passed **73 tests** in 89.3 seconds, with the unchanged frozen POST digest
+(`gates-test-final73.{json,log}`). This includes the new C-link/cache dependency
+control. The final ABBA harness self-test runs separately in the documented
+throwaway copy; no performance campaign is invoked.
