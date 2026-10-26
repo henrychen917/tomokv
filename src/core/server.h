@@ -2777,6 +2777,23 @@ public:
         script_stage_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
         script_staged_bytes_total_.fetch_add(bytes, std::memory_order_relaxed);
     }
+    // Owner-local queue observation, armed only by SCRIPT-ESCALATE-FORCE.
+    // This is a simultaneous waiter count, not a count of placement polls.
+    void note_script_waiters(uint32_t count) {
+        auto old = script_waiters_peak_.load(std::memory_order_relaxed);
+        while (old < count && !script_waiters_peak_.compare_exchange_weak(
+                   old, count, std::memory_order_relaxed)) {}
+    }
+    uint64_t script_waiters_peak() const { return script_waiters_peak_.load(); }
+    void set_debug_script_stage_watch(uint64_t client) {
+        debug_script_stage_watch_.store(client);
+        debug_script_stage_watch_tasks_.store(0);
+    }
+    void note_debug_script_stage_watch(uint64_t client) {
+        if (debug_script_stage_watch_.load(std::memory_order_relaxed) == client)
+            debug_script_stage_watch_tasks_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t debug_script_stage_watch_tasks() const { return debug_script_stage_watch_tasks_.load(); }
     void note_script_run() { script_run_attempts_.fetch_add(1, std::memory_order_relaxed); }
     void note_script_validate_owner() {
         script_validate_owner_tasks_.fetch_add(1, std::memory_order_relaxed);
@@ -3688,11 +3705,6 @@ private:
     std::atomic<uint64_t> script_group_occ_giveups_{0};
     std::atomic<uint64_t> script_staged_bytes_total_{0};
     std::atomic<uint64_t> script_crossshard_window_refusals_{0};
-    std::atomic<uint64_t> script_crossshard_window_waits_{0};
-    std::atomic<uint64_t> script_escalations_{0};
-    std::atomic<uint64_t> script_escalated_commits_{0};
-    std::atomic<uint32_t> debug_script_apply_defer_{0};
-    std::atomic<bool> debug_script_escalate_force_{false};
     std::atomic<uint64_t> sort_deref_lookups_{0};
     std::atomic<uint64_t> sort_deref_refusals_{0};
     std::atomic<uint64_t> sort_scatter_general_{0};
@@ -3791,6 +3803,16 @@ private:
     // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
     ClientHz client_hz_;
     DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
+
+    // AT4.12 cold state at the true tail preserves all established offsets.
+    std::atomic<uint64_t> script_crossshard_window_waits_{0};
+    std::atomic<uint64_t> script_escalations_{0};
+    std::atomic<uint64_t> script_escalated_commits_{0};
+    std::atomic<uint64_t> script_waiters_peak_{0};
+    std::atomic<uint32_t> debug_script_apply_defer_{0};
+    std::atomic<bool> debug_script_escalate_force_{false};
+    std::atomic<uint64_t> debug_script_stage_watch_{0};
+    std::atomic<uint64_t> debug_script_stage_watch_tasks_{0};
 
 };
 

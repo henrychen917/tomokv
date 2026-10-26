@@ -127,7 +127,13 @@ ScatterTaskResult script_group_read(const Task& task, Shard& shard, Op& op) {
     if (wounded()) return ScatterTaskResult::Complete;
     const auto prepared = txn_group_read_prepare(state, shard, op);
     if (wounded() || prepared == TxnGroupRead::Done) return ScatterTaskResult::Complete;
-    if (prepared == TxnGroupRead::Wait) return ScatterTaskResult::Defer;
+    if (prepared == TxnGroupRead::Wait) {
+        if (state.debug_direct_defer & (1u << 31))
+            for (const auto& claim : attempt.claims[shard.id()])
+                if (claim.waiter.queue)
+                    state.server->note_script_waiters(claim.waiter.queue->waiters);
+        return ScatterTaskResult::Defer;
+    }
     auto& group = *group_for(state, shard.id());
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
     uint64_t bytes = 0;

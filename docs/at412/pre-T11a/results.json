@@ -1,0 +1,101 @@
+[
+  {
+    "case": "T11a",
+    "leg": "redis-redis-0-EVAL",
+    "value": [
+      1,
+      1
+    ],
+    "pass": true
+  },
+  {
+    "case": "T11a",
+    "leg": "redis-redis-0-EVALSHA",
+    "value": [
+      1,
+      1
+    ],
+    "pass": true
+  },
+  {
+    "case": "T11a",
+    "leg": "redis-redis-0-FCALL",
+    "value": [
+      1,
+      1
+    ],
+    "pass": true
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-0-EVAL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-0-EVALSHA",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-0-FCALL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-1-EVAL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-1-EVALSHA",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-uring-1-FCALL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-0-EVAL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-0-EVALSHA",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-0-FCALL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-1-EVAL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-1-EVALSHA",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  },
+  {
+    "case": "T11a",
+    "leg": "2s-epoll-1-FCALL",
+    "pass_": false,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 322, in main\n    result['value'] = run_case(args, c, port, oracle, mode, command)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 286, in run_case\n    result = save(c, port, keys, call, oracle)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/at412.py\", line 213, in save\n    assert c.must('SAVE') == b'OK'\n           ^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 204, in must\n    reply = self.cmd(*args)\n            ^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 201, in cmd\n    return self.read()\n           ^^^^^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 161, in read\n    head = read(1)\n           ^^^^^^^\n  File \"/home/user/Projects/cx-at412/tests/_lib.py\", line 124, in _read\n    return self.file.read(size)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/socket.py\", line 707, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n"
+  }
+]

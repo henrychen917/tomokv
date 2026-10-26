@@ -1130,7 +1130,7 @@ plan_jobs(){
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
   JOB_NAMES+=(flipctl)
-  for section in T1 T2 T3 T4 T5 T6 T11a T11b T12; do JOB_NAMES+=("at412-$section"); done
+  for section in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -3128,6 +3128,17 @@ job_txnorder2(){
 job_at412(){
   local case=$1 label="at412 $1"
   row_begin "$label"
+  if [ "$case" = owner ]; then
+    local mode atomic engine passed=1
+    if unit_ready at412-owner; then
+      for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+        taskset -c "$CORES" build/at412-owner "$mode" "$atomic" "$engine" \
+            >>"$TMPDIR/at412-owner.log" 2>&1 || passed=0
+      done; done; done
+    else passed=0; fi
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/at412-owner.log"
+    return
+  fi
   py tests/at412.py --case "$case" --binary "$CANDIDATE_BINARY" \
       --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
       --output "$TMPDIR/at412-$case" >"$TMPDIR/at412-$case.log" 2>&1 \
@@ -5230,14 +5241,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/at412-owner build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit at412-owner txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -5327,7 +5338,7 @@ job_dependencies(){
     tls|compat2|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|txnorder_index|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder_index|txnorder2|txnorder_wake|txnorder-*|at412-owner|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -5565,7 +5576,7 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 
 collect_job script_bounds
 collect_job scriptfix
-for AT412_CASE in T1 T2 T3 T4 T5 T6 T11a T11b T12; do collect_job "at412-$AT412_CASE"; done
+for AT412_CASE in T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11a T11b T12 T13 T14 T15 T16 owner; do collect_job "at412-$AT412_CASE"; done
 
 collect_job efficiency
 

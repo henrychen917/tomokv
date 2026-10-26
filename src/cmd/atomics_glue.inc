@@ -691,11 +691,15 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER): same shape for the cross-owner script GATHER wave.
         // The coordinator's own shard reads immediately; every other declared key's owner is parked
         // until the deadline, which is the interval a competing plain write has to land in.
-        if (__builtin_expect(state.debug_script_defer_deadline != 0, false) &&
-            (state.script_phase == ScriptPhase::Read || state.script_phase == ScriptPhase::Apply) &&
-            shard.id() != state.script_coordinator_shard &&
-            now_ns() < state.debug_script_defer_deadline)
-            return true;
+        if (__builtin_expect(state.debug_script_defer_deadline != 0, false)) {
+            if (state.script_phase == ScriptPhase::Read &&
+                shard.id() == state.script_coordinator_shard)
+                server.note_debug_script_stage_watch(state.origin_conn_id);
+            if ((state.script_phase == ScriptPhase::Read || state.script_phase == ScriptPhase::Apply) &&
+                shard.id() != state.script_coordinator_shard &&
+                now_ns() < state.debug_script_defer_deadline)
+                return true;
+        }
         if (state.atomic_direct) {
             if (!txn_group_arrive(state, shard, op)) return true;
             if (state.direct_ready.load(std::memory_order_acquire) == 0 ||

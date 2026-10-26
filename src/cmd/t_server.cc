@@ -1271,6 +1271,17 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), xshard_plain_stale_cuts());
         return;
     }
+    if (eq_icase(subcommand, "script-stage-watch") && op.argc() == 3) {
+        uint64_t client = 0;
+        if (!parse_u64(op.arg(2), client)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_script_stage_watch(client);
+        reply_ok(op.sink());
+        return;
+    }
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors
     // available for CONFIG. It retains the existing commit queue until explicitly released.
     if (eq_icase(subcommand, "atomic-commit-hold") && op.argc() == 3) {
@@ -2869,6 +2880,10 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        appendf(body, "script_waiters_peak:%llu\r\n", static_cast<unsigned long long>(
+            g_server ? g_server->script_waiters_peak() : 0));
+        appendf(body, "script_stage_watch_tasks:%llu\r\n", static_cast<unsigned long long>(
+            g_server ? g_server->debug_script_stage_watch_tasks() : 0));
         static constexpr const char* txn_fields[] = {
             "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
             "atomic_txn_waits", "atomic_txn_intents", "atomic_txn_intents_live",

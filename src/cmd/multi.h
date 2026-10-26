@@ -116,6 +116,7 @@ struct alignas(64) MultiRetryLane {
     std::atomic<uint8_t> script_releases{0}; // last owners publish; IO folds
     std::shared_ptr<ScriptWindow> script_window; // allocated only for waiters
 };
+static_assert(sizeof(MultiRetryLane) == 64);
 
 // Cold writer visitors; self is a scatter writer (possibly an EXEC child).
 void multi_cancel_record(AtomicEntry&, const ScatterState* self = nullptr);
