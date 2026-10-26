@@ -1,14 +1,14 @@
 {
   "kind": "A: PRE behaviour with the exact POST-layout image",
   "release_candidate": "/home/user/Projects/cx-at412/build/tomokv",
-  "release_sha256": "31f9d06e557f23ea22073ee628cb647ebdc1923651862e9756c920de1a4593fe",
+  "release_sha256": "3c9ea2e65f351e7cbf203c203a2819d301fab2bb5c109b65df2013555c795eaa",
   "post_layout": "/home/user/Projects/cx-at412/build/at412/POST-layout",
-  "post_sha256": "c5d95954f3f77e2017a964cca89cf07667db7bc1832dd59757082603740a3015",
+  "post_sha256": "d22a3b7c1c0ceb0be19bfb937e369fb055fda90407c6ec7cd72d8b70c01af987",
   "pad_a": "/home/user/Projects/cx-at412/build/at412/PAD-A",
-  "pad_sha256": "f9e5789becab89035415c5fac8c6e2c52a6355368fb6a1d7957937b10a5a9a02",
+  "pad_sha256": "a04975a6b790852afd8187c51ba06a0b6229d3dc559807f8dcf4e6c913edd886",
   "matching_sections": true,
   "matching_symbols": true,
-  "patch_offset": 683780,
+  "patch_offset": 685412,
   "before": "4c8d542408",
   "after": "e957c90000",
   "changed_bytes": 5,
@@ -16,14 +16,14 @@
     "name": "main",
     "info": 18,
     "sec": 16,
-    "value": 683776,
+    "value": 685408,
     "size": 8676
   },
   "entry_target": {
     "name": "at412_pre_main",
     "info": 18,
     "sec": 16,
-    "value": 735328,
+    "value": 736960,
     "size": 8634
   },
   "link": [

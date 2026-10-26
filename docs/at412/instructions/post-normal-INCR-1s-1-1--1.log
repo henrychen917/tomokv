@@ -1,0 +1,23 @@
+Full bounded GDB trace: /home/user/Projects/cx-at412/build/at412/commands/post-normal-INCR-1s-1-1--1.log
+SHA-256: 487424e7f03db34cdc1a3340a237fab7ca8d6cb61bd919674bb834045895d2b1
+Exit: 0
+2349	    }
+0x0000555555c83a48	2349	    }
+0x0000555555c83a51	2349	    }
+0x0000555555c83a57	2349	    }
+0x0000555555c83a5b	2349	    }
+0x0000555555c83a5c	2349	    }
+0x0000555555c83a5e	2349	    }
+0x0000555555c83a60	2349	    }
+0x0000555555c83a62	2349	    }
+0x0000555TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+555c83a64	2349	    }
+0x0000555555c83a65	2349	    }
+0x0000555555d63092 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=1, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-at412/tests/txnorder_command_scope.cc:112
+112	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-at412/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 24683) exited normally]
+COUNT 1541
