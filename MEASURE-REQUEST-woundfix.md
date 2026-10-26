@@ -126,8 +126,8 @@ instructions/op, IPC, and rate. Do not infer throughput from serverless counts.
   from the release binary sizes.
 
 Correctness is mandatory: zero wrong replies and zero order violations. For
-merit/nulls, rate at matched offered load is the verdict; cycles/op and its
-instructions/IPC factors explain it. A tiny rate change is not a claim without
+merit/nulls, the cell's rate or latency score at matched offered load is the
+verdict; cycles/op and its instructions/IPC factors explain it. A tiny rate change is not a claim without
 the gate's same-session spread and null. The fix is on cancellation/exception
 paths; the uncontended-command instruction comparison is a separate required
 proof below.
@@ -223,7 +223,14 @@ The ASAN gate job passed **24/24 rows** across both modes and engines (four
 checks, with the gate's source-bound instrumented build. No sanitizer findings.
 Receipts: `docs/woundfix/gate/sanitizers.json` and adjacent job logs.
 
-The standard differential matrix is in progress. No full iteration gate or performance benchmark
+The uring standard differential completed: **6/6 gate rows**, split atomic 0/1
+(235/239 legs), armed fused atomic 0/1 (230/234 legs), and mode equivalence
+(16 configurations). All Redis comparisons and mechanism witnesses pass.
+Permanent seeds are 7/19/20/23; this run's rotating seed is 21. The 47-suite
+inventory is unchanged. `docs/woundfix/gate/differ-uring/` retains the frozen
+plan, completed part receipts, leg lists and log manifests.
+
+The epoll standard differential is in progress. No full iteration gate or performance benchmark
 has been run. The partial-only `GATE_PROOF_NO_RATES=1` explicitly leaves the
 atomic floor and RYOW rate assertions NOT RUN, while retaining their correctness
 checks; default/full-gate semantics are unchanged.
