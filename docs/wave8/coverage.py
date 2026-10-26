@@ -39,6 +39,8 @@ def job_passed(data, job):
         return rc == 0 and failed == 0
     # Public differential aliases fold several private jobs. Their complete
     # batch verdict is required; never infer a fold from one private child.
+    if data['exit'] != 0:
+        return False  # rejected selector or missing build dependency never passes
     assert job in ('differ-split', 'differ-armed'), (job, done)
     return data['exit'] == 0
 

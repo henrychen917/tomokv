@@ -18,7 +18,7 @@ campaign = [('final-lanes', matrix['once'][:14], []),
             ('final-tcl', ['compat2'], []),
             ('final-tcl-planted', ['compat2'], ['--binary', 'build/wave8/planted/tomokv']),
             ('final-units', matrix['once'][14:], []),
-            ('final-supplemental', [j for j in extra['once'] if j not in matrix['once']], [])]
+            ('final-supplemental-jobs', [j for j in extra['once'] if j not in matrix['once']], [])]
 for engine in ('uring', 'epoll'):
     campaign.append(('final-engine-' + engine, matrix['each_engine'] + extra['each_engine'], ['--engine', engine]))
     for fused in (False, True):

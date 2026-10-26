@@ -183,3 +183,10 @@ The repaired whole EX-batch job passes **4 ok / 0 FAIL**. Its WATCH row executes
 at the explicit-finalization witness. `exbatch-watch-final.json` preserves the
 checks. All 49 production freshness queries pass again after rebuilding these
 two test binaries; POST remains `f94fbd1d`.
+
+One supplemental selector attempt was rejected before dispatch because
+`production_units` is a build-only prerequisite, not a selectable public job.
+The corrected selector uses all its consuming jobs, which run that prerequisite
+automatically, and retains the standalone 49-target freshness proof. No row was
+removed. The rejected attempt remains `jobs/final-supplemental.*`; the actual
+complete run is `final-supplemental-jobs`.

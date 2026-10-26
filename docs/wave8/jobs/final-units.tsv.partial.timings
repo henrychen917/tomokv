@@ -1,0 +1,106 @@
+ok	0.000000	release build (+footprint locks)
+ok	46.290000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	38.020000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	46.300000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	2.980000	epoll directed correctness (1s)
+ok	2.930000	epoll directed correctness (2s)
+ok	0.930000	R7 generated envelope parity
+ok	14.170000	R7 production engagement (both database runtimes)
+ok	1.890000	atomfix5 WATCH key count (both modes, both engines, atomic 0/1)
+ok	0.120000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+ok	7.290000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.180000	core concurrency config
+ok	0.180000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.580000	read-local topology demotion (2s)
+ok	15.840000	exbatch publication unit + negative controls
+FAIL	0.100000	exbatch watch unit + negative controls
+ok	17.000000	exbatch metadata unit + negative controls
+ok	0.110000	writeback c12 policy witnesses + negative controls
+ok	6.100000	writeback c12 phase witnesses + negative controls
+ok	2.170000	writeback c12 stages witnesses + negative controls
+ok	5.860000	writeback c12 split-phase witnesses + negative controls
+ok	6.190000	writeback policy clauses witnesses + negative controls
+ok	2.030000	writeback policy paths witnesses + negative controls
+ok	0.930000	splitlocal template forwarding + old-argument controls
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.360000	flushfix flush witnesses
+ok	0.060000	flushfix headers witnesses
+ok	3.530000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	11.180000	storesize published monitoring
+ok	0.230000	MULTI admin command replies
+ok	0.150000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.000000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.150000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.020000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.050000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.000000	netcmd wb-complete-visits regression
+ok	0.000000	netcmd hexpire-oom regression
+ok	0.010000	encodingfix knob
+ok	0.010000	encodingfix precedence
+ok	0.020000	NET1 serverless bounds + scan + reclamation
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	2.900000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.920000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.910000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.920000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.830000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.920000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.820000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.920000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	32.400000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	32.910000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.270000	compat3 CC4.14 history vs Redis 7.4
+ok	33.150000	compat3 CC4.16 grammar vs Redis 7.4
+ok	33.240000	compat3 CC4.5 glob vs Redis 7.4
+ok	34.190000	compat3 CC4.17 flags vs Redis 7.4
+ok	112.250000	datafix2 CD4.9 write WATCH table vs Redis 7.4
+ok	0.780000	INFO selective collection (1s, epoll, read-local 0)
+ok	0.780000	INFO selective collection (1s, epoll, read-local 1)
+ok	0.780000	INFO selective collection (1s, uring, read-local 0)
+ok	0.760000	INFO selective collection (1s, uring, read-local 1)
+ok	0.770000	INFO selective collection (2s, epoll, read-local 0)
+ok	0.770000	INFO selective collection (2s, epoll, read-local 1)
+ok	0.770000	INFO selective collection (2s, uring, read-local 0)
+ok	0.770000	INFO selective collection (2s, uring, read-local 1)
+ok	0.110000	scriptfix sandbox (1s)
+ok	0.120000	scriptfix functions (1s)
+ok	0.690000	scriptfix replies (1s)
+ok	0.920000	scriptfix dump (1s)
+ok	0.120000	scriptfix sandbox (2s)
+ok	0.120000	scriptfix functions (2s)
+ok	0.720000	scriptfix replies (2s)
+ok	0.940000	scriptfix dump (2s)
+ok	6.900000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	12.990000	serverfix SV4.14 disabled slowlog allocation

@@ -11,7 +11,6 @@
     "notify_aof",
     "notify_order",
     "notifycompat",
-    "production_units",
     "exbatch_live",
     "atomfix5_accounting",
     "acl_recheck",
@@ -43,5 +42,6 @@
     "multidb-2s-0-1",
     "multidb-2s-1-0",
     "multidb-2s-1-1"
-  ]
+  ],
+  "build_only": "production_units runs as the prerequisite of its selected consuming jobs; 49 concrete freshness checks are recorded separately."
 }

@@ -4,7 +4,7 @@ import hashlib,json,os,subprocess,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];os.chdir(ROOT)
 os.sched_setaffinity(0,set(range(64,96)))
-names=['final-lanes','final-tcl','final-tcl-planted','final-units','final-supplemental']
+names=['final-lanes','final-tcl','final-tcl-planted','final-units','final-supplemental-jobs']
 for engine in ('uring','epoll'):
  names += ['final-engine-'+engine,'final-differ-'+engine]
  for mode in ('1s','2s'):names.append('final-debug-'+engine+'-'+mode)
