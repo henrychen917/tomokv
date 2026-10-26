@@ -5,6 +5,7 @@
 #pragma once
 
 #include "watch_modified.h"
+#include "txn_key_queue.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -37,6 +38,7 @@ struct TxnClaim {
     std::string key;
     uint64_t hash = 0;
     TxnClaimMode mode = TxnClaimMode::Read;
+    mutable TxnWaiter waiter; // stable once the attempt is published; also caches the queue
 };
 // A refused unit's owner-local lifetime pin. No Op, Shard or plain-writer state.
 // Only older conflicting units may be retained, so these pins cannot form a cycle.

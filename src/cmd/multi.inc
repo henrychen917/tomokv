@@ -3240,141 +3240,12 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
 }
 }
 
-// This helper is cold and owner-local. No claim on this shard is published
-// until every conflicting entry has been examined. Waiter marks retain the
-// original version across polls, so newer arrivals cannot overtake a waiter.
-bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit,
-                             const MultiRetryPromoter* promoter) {
-    auto& cached = unit.unit_kind == 1
-        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[id()]
-        : static_cast<ScatterState*>(const_cast<void*>(unit.token))->group_attempt()->place_blockers[id()];
-    if (!txn_reservation_live(unit)) { cached.clear(); return true; }
-    if (cached.live()) {
-        server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PollSkips);
-        return false;
-    }
-    cached.clear();
-    TxnPlaceBlocker older;
-    bool younger_placing = false;
-    bool ready = true;
-    const auto own = txn_unit_view(unit);
-    try {
-        for (const auto& key : keys) {
-            const auto inspect = [&](const std::string& name) {
-                watch_finalize_reservation(name);
-                auto found = watch_reservations_.find(name);
-                if (found == watch_reservations_.end()) return;
-                bool wounded = false;
-                for (const auto& holder : found->second) {
-        TOMO_TXN_REGISTRY_VISIT();
-                    if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
-                    if (holder.entry_kind == 2) {
-                        // A' writer episodes: only arrivals after the episode wait.
-                        if (own.age_ns > holder.writer_generation) ready = false;
-                        continue;
-                    }
-                    if (!holder.blocking && holder.entry_kind != 3) continue;
-                    if (key.mode == TxnClaimMode::Read &&
-                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
-                    if (!holder.unit_kind) { ready = false; continue; }
-                    const auto foreign = txn_unit_view(holder);
-                    const bool before = txn_version_before(foreign, own);
-                    // Pin immediately: a later key scan can retire this entry
-                    // and let the IO owner reclaim its state during this scan.
-                    if (before && !older.refs)
-                        older.pin(holder.epoch, holder.aborted, holder.refs);
-                    if (holder.entry_kind == 3) {
-                        if (before) ready = false;
-                        continue;
-                    }
-                    const auto phase = foreign.phase->load(std::memory_order_acquire);
-                    younger_placing |= phase == TxnPhase::Placing && txn_version_before(own, foreign);
-                    if (phase == TxnPhase::Executing ||
-                        !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
-                        ready = false;
-                    else wounded = true;
-                }
-                // The first scan already retired every previously decided entry.
-                // Only a successful wound creates more work in this owner turn.
-                if (wounded) watch_finalize_reservation(name);
-            };
-            if (key.key.empty()) {
-                // FLUSH visits a registry which finalization may erase from.
-                std::vector<std::string> names;
-                names.reserve(watch_reservations_.size());
-                for (const auto& [name, entries] : watch_reservations_) names.push_back(name);
-                for (const auto& name : names) inspect(name);
-            } else {
-                inspect("");
-                inspect(key.key);
-            }
-        }
-        if (!txn_reservation_live(unit)) return true;
-        if (!ready) server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PlaceWaits);
-        for (const auto& key : keys) {
-            auto found = watch_reservations_.find(key.key);
-            bool exists = false;
-            if (found != watch_reservations_.end()) {
-                for (auto& r : found->second) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == unit.token) && r.entry_kind >= 1) {
-                    r.entry_kind = ready ? 1 : 3;
-                    r.blocking = ready;
-                    r.unit_mode = static_cast<uint8_t>(key.mode);
-                    exists = true;
-                }
-            }
-            if (exists) continue;
-            unit.entry_kind = ready ? 1 : 3;
-            unit.blocking = ready;
-            unit.unit_mode = static_cast<uint8_t>(key.mode);
-            if (!watch_append_reservation(key.key, unit)) throw std::bad_alloc();
-        }
-        if (ready)
-            for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
-        // All own waiter marks now exist. A new younger placing claim cannot
-        // pass them. Preserve full wound scans if this scan found such a claim,
-        // even when its wound succeeded; never cache writer or legacy validation waits.
-        else if (older.refs && !younger_placing) cached.take(older);
-        return ready;
-    } catch (const std::bad_alloc&) {
-        unit.aborted->store(true, std::memory_order_release);
-        return true; // final error, never replay an allocation failure
-    }
-}
-
-void Shard::watch_promote_unit_waiter(const std::string& key,
-                                      const MultiRetryPromoter* promoter) {
-    const auto found = watch_reservations_.find(key);
-    if (found == watch_reservations_.end()) return;
-    const WatchReservation* oldest = nullptr;
-    for (const auto& waiter : found->second) {
-        TOMO_TXN_REGISTRY_VISIT();
-        if (waiter.entry_kind != 3 || !waiter.unit_kind || !txn_reservation_live(waiter)) continue;
-        if (!oldest || txn_version_before(txn_unit_view(waiter), txn_unit_view(*oldest)))
-            oldest = &waiter;
-    }
-    // Scatter units use their existing deferred queue. Only EXEC fragments live
-    // in multi_retries_. A missed synchronous promotion still gets its hint at
-    // its next rotation turn (including retirement outside an EXEC task).
-    if (!oldest || oldest->unit_kind != 1) return;
-    auto& next = *static_cast<MultiExecState*>(const_cast<void*>(oldest->token));
-    // The unused owner-local bit travels with the fragment on shard forwarding.
-    next.execution_noted[id()] |= 16u;
-    if (promoter) promoter->promote(promoter->context, multi_make_task(nullptr, 0, id(), &next));
-}
-
-void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*,
-                              const MultiRetryPromoter* promoter) {
-    for (const auto& key : keys) {
-        watch_finalize_reservation(key.key);
-        watch_promote_unit_waiter(key.key, promoter);
-    }
-    if (has_blocking_waiters()) set_blocking_dirty();
-}
+#include "txn_key_queue.inc"
 
 uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) const {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return 0;
-    for (const auto& r : found->second)
+    for (const auto& r : found->second.marks)
         if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
     return 0;
 }
@@ -3382,7 +3253,7 @@ uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) con
 bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp) {
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
-        for (const auto& r : found->second)
+        for (const auto& r : found->second.marks)
             if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
@@ -3399,7 +3270,7 @@ bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t
 void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return;
-    auto& list = found->second;
+    auto& list = found->second.marks;
     const auto removed = std::erase_if(list, [&](const auto& r) {
         return r.entry_kind == 2 && r.token == token;
     });
@@ -3408,14 +3279,14 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
 #else
     (void)removed;
 #endif
-    if (list.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+    if (found->second.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
 }
 
 // Allocation failure must not leave a partial episode. This fallback does not
 // allocate, including for long keys whose owned spelling could not be built.
 void Shard::watch_writer_forget(const void* token) {
     for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
-        const auto removed = std::erase_if(it->second, [&](const auto& r) {
+        const auto removed = std::erase_if(it->second.marks, [&](const auto& r) {
             return r.entry_kind == 2 && r.token == token;
         });
 #ifdef TOMO_TXNORDER_DEBUG
@@ -3445,11 +3316,11 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
         }
     };
     if (whole) {
-        for (const auto& [name, entries] : watch_reservations_) check(entries);
+        for (const auto& [name, entries] : watch_reservations_) check(entries.held);
     } else {
-        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second);
+        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second.held);
         if (auto it = watch_reservations_.find(watch_key_string(key));
-            it != watch_reservations_.end()) check(it->second);
+            it != watch_reservations_.end()) check(it->second.held);
     }
 }
 
@@ -3460,21 +3331,14 @@ void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
 // reservation is kept. Only an undecided BLOCKING reservation -- the EXEC validate claim --
 // makes this return false; an undecided atomic-group write reservation is left in place and
 // answers "ready", because nothing may wait on it (Shard::WatchReservation::blocking).
-bool Shard::watch_finalize_reservation(const std::string& key) {
-    auto found = watch_reservations_.find(key);
-    if (found == watch_reservations_.end()) return true;
-    std::vector<WatchReservation>& list = found->second;
+bool Shard::watch_finalize_queue(const std::string& key, TxnKeyQueue& queue) {
+    auto& list = queue.held;
     bool blocked = false;
     std::array<uint64_t, 4> dirty{};
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
-        WatchReservation& reservation = list[i];
+        auto& reservation = list[i];
         TOMO_TXN_REGISTRY_VISIT();
-        if (reservation.entry_kind == 2) {
-            if (keep != i) list[keep] = reservation;
-            ++keep;
-            continue;
-        }
         const uint64_t epoch = reservation.epoch
             ? reservation.epoch->load(std::memory_order_acquire) : 1;
         const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&
@@ -3491,9 +3355,10 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
         if (!aborted && reservation.mutates)
             for (unsigned db = 0; db < dirty.size(); ++db)
                 dirty[db] |= reservation.dirty_databases[db];
+        if (reservation.handle) reservation.handle->queue = nullptr;
         if (reservation.refs) reservation.refs->fetch_sub(1, std::memory_order_release);
     }
-    list.resize(keep);
+    list.erase(list.begin() + keep, list.end());
     if (dirty[0] || dirty[1] || dirty[2] || dirty[3]) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
@@ -3503,11 +3368,20 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
                     entry.client->set_watch_dirty();
         }
     }
-    if (list.empty()) {
+    txn_live_head(queue);
+    txn_live_head(queue, true);
+    return !blocked;
+}
+
+bool Shard::watch_finalize_reservation(const std::string& key) {
+    auto found = watch_reservations_.find(key);
+    if (found == watch_reservations_.end()) return true;
+    const bool ready = watch_finalize_queue(key, found->second);
+    if (found->second.empty()) {
         watch_reservations_.erase(found);
         refresh_has_watches();
     }
-    return !blocked;
+    return ready;
 }
 
 void Shard::watch_prune_stale(const std::string& key) {
@@ -3597,7 +3471,7 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!reserve) return true;
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (auto& r : existing->second) if (r.token == token) {
+        for (auto& r : existing->second.held) if (r.token == token) {
             r.entry_kind = 0; // WATCH blocks from validation, before the started bit
             r.blocking = true;
             if (r.mutates) watch_note_database(r, server_, key.ns);
@@ -3622,7 +3496,7 @@ bool Shard::watch_key_ready(const std::string& owned, const void* token, bool al
     watch_finalize_reservation(owned);
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
-    for (const auto& r : found->second) {
+    for (const auto& r : found->second.held) {
         TOMO_TXN_REGISTRY_VISIT();
         if (r.token == token || !r.blocking || !txn_reservation_live(r)) continue;
         if (r.entry_kind != 1 || all_units) return false;
@@ -3661,7 +3535,7 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
     // existing registrations need a dirty reservation for this decision.
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
-        for (WatchReservation& reservation : existing->second)
+        for (WatchReservation& reservation : existing->second.held)
             if (reservation.token == token) {
                 reservation.mutates = true;
                 watch_note_database(reservation, server_, key.ns);
@@ -3680,13 +3554,27 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
 
 // Appends one reservation, leaving the map unchanged on allocation failure. Returns false when the
 // caller must abort its unit rather than proceed with an unrecorded reservation.
-bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation) {
+bool Shard::watch_append_reservation(const std::string& key, const WatchReservation& reservation,
+                                      TxnWaiter* handle) {
     try {
-        std::vector<WatchReservation>& list = watch_reservations_[key];
-        list.push_back(reservation);
+        auto& queue = watch_reservations_[key];
+        if (reservation.entry_kind == 3) {
+            assert(handle && !reservation.mutates);
+            txn_link_waiter(queue, *handle, reservation);
+        } else if (reservation.entry_kind == 2) {
+            const auto at = std::upper_bound(queue.marks.begin(), queue.marks.end(),
+                reservation.writer_generation, [](uint64_t stamp, const auto& r) {
+                    TOMO_TXN_REGISTRY_VISIT();
+                    return stamp < r.writer_generation;
+                });
+            queue.marks.insert(at, reservation);
+        } else {
+            queue.held.emplace_back(reservation, handle);
+            if (reservation.mutates) watch_note_database(queue.held.back(), server_, static_cast<uint8_t>(key[0]));
+            if (handle) handle->queue = &queue;
+            if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
+        }
         arm_watches();
-        if (reservation.mutates) watch_note_database(list.back(), server_, static_cast<uint8_t>(key[0]));
-        if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
     } catch (const std::bad_alloc&) {
         auto found = watch_reservations_.find(key);
         if (found != watch_reservations_.end() && found->second.empty())

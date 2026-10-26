@@ -88,6 +88,8 @@ void oracle(Server& server, uint64_t operations, uint64_t seed) {
                 txn_add_claim(p.b->keys(), ki == 4 ? Slice{} : key(ki), mode, ki == 4);
             }
         } else if (event == 1 || event == 2) {
+            if (p.a->phase().load() != TxnPhase::Placing || p.a->epoch().load() ||
+                p.a->aborted().load()) continue;
             // Hints may select different older predecessors; compare the full predicates.
             p.a->unpin(); p.b->unpin();
             const bool a = actual.watch_place_unit(p.a->keys(), p.a->entry());
@@ -135,6 +137,13 @@ void oracle(Server& server, uint64_t operations, uint64_t seed) {
                 !p.a->epoch().load() && !p.a->aborted().load() &&
                 !p.a->keys().empty() && !p.a->keys()[0].key.empty()) {
                 const auto s = txn_claim_slice(p.a->keys()[0]);
+                if (!p.a->grouped && (random() & 1)) {
+                    equal(actual.watch_validate_and_reserve(s, &ca, 0, p.a->token(),
+                            &p.a->epoch(), &p.a->aborted(), &p.a->refs(), false, p.a->exec.get()) ==
+                          linear.watch_validate_and_reserve(s, &cb, 0, p.b->token(),
+                            &p.b->epoch(), &p.b->aborted(), &p.b->refs(), false, p.b->exec.get()),
+                          "WATCH validation reservation");
+                }
                 actual.watch_reserve_write(s, &ca, 0, p.a->token(), &p.a->epoch(), &p.a->aborted(), &p.a->refs());
                 linear.watch_reserve_write(s, &cb, 0, p.b->token(), &p.b->epoch(), &p.b->aborted(), &p.b->refs());
             }
