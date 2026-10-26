@@ -1,0 +1,7508 @@
+{
+ "binary_sha256": "ef368a64f969aa5b44dead90743d70949dc6681f949c0171726d0f46d826dc52",
+ "redis_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+ "iterations": 5,
+ "modes": {
+  "2s": {
+   "boots": 30,
+   "boots_with_abort": 3,
+   "boots_all_aborted": 3,
+   "trials": [
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-0",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-1",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-2",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-3",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-4",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-5",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-6",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-7",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-8",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-9",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-10",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-11",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-12",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-13",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-14",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-15",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-16",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-17",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-18",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-19",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-20",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-21",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-22",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-23",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-24",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-25",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-26",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-27",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-28",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/2s-29",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--ratio",
+      "6:2"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    }
+   ]
+  },
+  "1s": {
+   "boots": 60,
+   "boots_with_abort": 5,
+   "boots_all_aborted": 5,
+   "trials": [
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-0",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-1",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-2",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-3",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-4",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-5",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-6",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-7",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-8",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-9",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-10",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-11",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-12",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-13",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-14",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-15",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-16",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-17",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-18",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-19",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-20",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-21",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-22",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-23",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-24",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-25",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-26",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-27",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-28",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-29",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-30",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-31",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-32",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-33",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-34",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-35",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      },
+      {
+       "smove": 1,
+       "exec": null,
+       "scard": 1
+      }
+     ],
+     "aborted": 5
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-36",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-37",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-38",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-39",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-40",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-41",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-42",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-43",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-44",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-45",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-46",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-47",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-48",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-49",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-50",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-51",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-52",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-53",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-54",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-55",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-56",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-57",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-58",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-harness5/build/tomokv",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/1s-59",
+      "--enable-debug-command",
+      "yes",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--databases",
+      "16"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    }
+   ]
+  },
+  "redis": {
+   "boots": 30,
+   "boots_with_abort": 0,
+   "boots_all_aborted": 0,
+   "trials": [
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-0",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-1",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-2",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-3",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-4",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-5",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-6",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-7",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-8",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-9",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-10",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-11",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-12",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-13",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-14",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-15",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-16",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-17",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-18",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-19",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-20",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-21",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-22",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-23",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-24",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-25",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-26",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-27",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-28",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    },
+    {
+     "server_argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/redis/src/redis-server",
+      "--port",
+      "45880",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-harness5/build/h5-watch-probe/redis-29",
+      "--enable-debug-command",
+      "yes"
+     ],
+     "outcomes": [
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      },
+      {
+       "smove": 1,
+       "exec": [
+        1
+       ],
+       "scard": 2
+      }
+     ],
+     "aborted": 0
+    }
+   ]
+  }
+ }
+}

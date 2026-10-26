@@ -1,0 +1,4 @@
+ERROR: test_idle_listener_blocks_only_intended_port
+ERROR: test_real_socket_owner_reports_pid_cmdline_and_refuses_boot
+ERROR: test_driver_reuses_stopped_port_but_refuses_live_listener
+FAIL: test_driver_identity_and_recovery_diagnostics

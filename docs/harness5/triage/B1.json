@@ -1,0 +1,3599 @@
+{
+ "group": "B1",
+ "tests": [
+  {
+   "file": "integration/redis-cli",
+   "test": "Non-interactive non-TTY CLI: ASK redirect test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "Cluster-mode redis-cli (-c) against fake nodes: fails identically on Redis 7.4.10 ('ASKING failed: ERR unexpected command ASKING'; 1s full-file run could not even allocate the second fake-node port); never reaches TomoKV's data path."
+  },
+  {
+   "file": "integration/redis-cli",
+   "test": "Non-interactive non-TTY CLI: Test command-line hinting - latest server",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "COMMAND-DOCS-INCOMPLETE",
+   "cascade_of": null,
+   "basis": "redis-cli builds hints from COMMAND DOCS; TomoKV's docs have no 'arguments' array, so every hint is empty ('GET ' expected 'key', got ''). The 'old server' variant (cached commands.c) passes."
+  },
+  {
+   "file": "integration/redis-cli",
+   "test": "Dumping an RDB - functions only: no",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "First step is CONFIG SET repl-diskless-sync (replication config absent); redis-cli --rdb then needs SYNC/REPLCONF, which TomoKV deliberately lacks."
+  },
+  {
+   "file": "integration/redis-cli",
+   "test": "Dumping an RDB - functions only: yes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Same as functions only: no -- CONFIG SET repl-diskless-sync unknown; redis-cli --functions-rdb needs the replication handshake."
+  },
+  {
+   "file": "integration/redis-cli",
+   "test": "Connecting as a replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "redis-cli --replica (SYNC/REPLCONF) and CONFIG SET repl-diskless-sync: replication family deliberately absent."
+  },
+  {
+   "file": "unit/info-command",
+   "test": "info command with at most one sub command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-MISSING-FIELDS",
+   "cascade_of": null,
+   "basis": "assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes."
+  },
+  {
+   "file": "unit/info-command",
+   "test": "info command with one sub-section",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-MISSING-FIELDS",
+   "cascade_of": null,
+   "basis": "assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes."
+  },
+  {
+   "file": "unit/info-command",
+   "test": "info command with multiple sub-sections",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-MISSING-FIELDS",
+   "cascade_of": null,
+   "basis": "assert [string match *used_cpu_user* $info] fails: TomoKV's INFO has no '# CPU' section (INFO CPU is an empty bulk), so used_cpu_user is absent; isolated rerun fails the same way while Redis passes."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "TTL, TYPE and EXISTS do not alter the last access time of a key",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "OBJECT-IDLETIME-ZERO",
+   "cascade_of": null,
+   "basis": "After SET + 3 s, OBJECT IDLETIME returns 0 (expected >= 2): TomoKV only arms its idle clock when maxmemory is configured (with CONFIG SET maxmemory 1gb the same sequence reports 2-3), so TTL/TYPE/EXISTS are not the cause."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "Operations in no-touch mode do not alter the last access time of a key",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "getlru parses the lru: field of DEBUG OBJECT; TomoKV does not implement DEBUG OBJECT ('unknown subcommand'), and the assertion is on DEBUG OBJECT LRU internals (tagged needs:debug)."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "errors stats for GEOADD",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-ERRORSTATS",
+   "cascade_of": null,
+   "basis": "cmdstat_geoadd is 'calls=1,rejected_calls=0' with no failed_calls (nor usec/usec_per_call) and INFO ERRORSTATS is empty after a WRONGTYPE GEOADD; Redis reports failed_calls=1 and errorstat_WRONGTYPE:count=1."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "command stats for scripts",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "The EVAL body calls redis.call('expire', ...): TomoKV rejects it ('command EXPIRE is not allowed from scripts') before any commandstats are checked."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "COMMAND LIST FILTERBY PATTERN - list all commands/subcommands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "All set/get/config|*/client|help assertions pass; it fails only on lsearch 'cluster|help' -- the CLUSTER family is deliberately absent."
+  },
+  {
+   "file": "unit/introspection-2",
+   "test": "MIGRATE command is marked with movablekeys",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "COMMAND INFO MIGRATE is empty because MIGRATE is not implemented; COMMAND LIST shows TomoKV lacks exactly cluster*, migrate, module*, psync, replconf, sync (the owner's cluster/replication/module boundary)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CLIENT LIST",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CLIENT-LIST-CMD-NAME",
+   "cascade_of": null,
+   "basis": "Line has cmd=client where Redis has cmd=client|list (REAL); qbuf=0 vs qbuf=26 also differs (query-buffer internals, class-2 on its own), but the cmd field alone fails it (see CLIENT LIST with IDs)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CLIENT LIST with IDs",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CLIENT-LIST-CMD-NAME",
+   "cascade_of": null,
+   "basis": "assert_match 'id=$myid * cmd=client|list *' fails: TomoKV reports the container name cmd=client instead of client|list."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CLIENT INFO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CLIENT-LIST-CMD-NAME",
+   "cascade_of": null,
+   "basis": "Same pattern as CLIENT LIST: cmd=client instead of cmd=client|info (qbuf=0 vs 26 is the class-2 part)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CLIENT KILL SKIPME YES/NO will kill all clients",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CONNECTED-CLIENTS-LAG",
+   "cascade_of": null,
+   "basis": "connected_clients still counts connections that were already closed/killed (6 reported vs 3 live in the full-file run, 4 vs 3 in fresh isolated reruns in 2s and 1s: recently closed harness connections are still counted), so 'res == connected_clients - 1' fails; Redis frees killed clients synchronously."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CLIENT KILL close the client connection during bgsave",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "HIDDEN-DEBUG-CONFIGS",
+   "cascade_of": null,
+   "basis": "Needs CONFIG SET rdb-key-save-delay, a Redis test-only hidden knob that stretches BGSAVE; TomoKV lacks it ('Unknown option'), so the test cannot create a long bgsave."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "MONITOR can log commands issued by the scripting engine",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "MONITOR-SCRIPT-CMDS",
+   "cascade_of": null,
+   "basis": "HANG: the monitor gets the EVAL line but never the '[0 lua] \"set\" \"foo\" \"bar\"' line, so the second [$rd read] blocks until the idle deadline (both modes)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "MONITOR can log commands issued by functions",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": null,
+   "basis": "FCALL test 0 runs redis.call('set','foo','bar') on an undeclared key: TomoKV rejects it; once allowed, it would still hang like the EVAL MONITOR test (MONITOR-SCRIPT-CMDS)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "MONITOR supports redacting command arguments",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "First step is MIGRATE (unknown command; MIGRATE is in the deliberately absent cluster family); test is also tagged needs:repl."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "RESET does NOT clean library name",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "RESET-CLEARS-LIBNAME",
+   "cascade_of": null,
+   "basis": "After CLIENT SETINFO lib-name redis.py + RESET, CLIENT INFO shows lib-name= (cleared); Redis keeps lib-name/lib-ver across RESET."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG sanity",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CONFIG-RUNTIME-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "Re-setting each CONFIG GET * value fails first on hll-sparse-max-bytes (encoding threshold, class-2 by itself) but then also on port, bind, tls-auth-clients, tracking-table-max-keys (Redis-mutable configs TomoKV makes immutable), appendonly (accepted AOF design) and TomoKV-only boot knobs (thread-mode, net-io, ...)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG SET with multiple args",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "The multi-config set includes repl-backlog-size (replication config absent); the same SET without it (maxmemory + save) works on TomoKV."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG SET rollback on set error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "CLIENT-EVICTION-ABSENT",
+   "cascade_of": null,
+   "basis": "Expects the maxmemory-clients percentage validation error; TomoKV has no client-memory eviction (maxmemory-clients unknown). Rollback itself works (maxmemory stays 10000002 after a failed multi-set)."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG SET rollback on apply error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CONFIG-RUNTIME-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "Expects 'Unable to listen on this port' from applying a new port; TomoKV answers \"can't set immutable config\" because port cannot be changed at runtime."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG SET set immutable",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "CONFIG-DAEMONIZE-ABSENT",
+   "cascade_of": null,
+   "basis": "CONFIG SET daemonize yes must fail with *immutable*; TomoKV has no daemonize parameter and answers 'Unknown option'."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG GET hidden configs",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "HIDDEN-DEBUG-CONFIGS",
+   "cascade_of": null,
+   "basis": "Asserts the hidden test-only knob key-load-delay is returned when named; TomoKV does not have Redis's loading-delay debug knobs."
+  },
+  {
+   "file": "unit/introspection",
+   "test": "CONFIG GET multiple args",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Fails on 'dict exists slaveof && replicaof' (replication configs absent); the later maxmemory-clients check would also fail (CLIENT-EVICTION-ABSENT)."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM with empty histogram",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "After CONFIG RESETSTAT the histogram must hold config|resetstat; TomoKV's LATENCY HISTOGRAM is always an empty array."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM all commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "dict get $histo set fails: LATENCY HISTOGRAM returns an empty array (no per-command latency tracking)."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM sub commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "Expects client|id and client|list entries; LATENCY HISTOGRAM client returns nothing."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM with a subset of commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "dict get $histo set fails: empty histogram."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "llength of LATENCY HISTOGRAM set get is 0, expected 4."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "LATENCY-HISTOGRAM-ABSENT",
+   "cascade_of": null,
+   "basis": "The invalid names are skipped correctly (empty reply) but the valid set/get entries are missing too."
+  },
+  {
+   "file": "unit/latency-monitor",
+   "test": "LATENCY of expire events are correctly collected",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-INSTRUCTION-LIMIT",
+   "cascade_of": null,
+   "basis": "The setup EVAL loops 1,000,000 SADDs and is aborted with 'BUSY script exceeded the 100000 instruction limit' before the expire-cycle latency assertion."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "UNLINK can reclaim memory in background",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-MEMORY",
+   "cascade_of": null,
+   "basis": "used_memory rises with the 100k-member set but does not fall below orig*2 after UNLINK within 5 s ('Memory is not reclaimed by UNLINK'): allocator/used_memory accounting internals."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "FLUSHDB ASYNC can reclaim memory in background",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "wait_lazyfree_done polls INFO lazyfree_pending_objects, which TomoKV does not report ('lazyfree isn't done'); lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "lazy free a stream with all types of metadata",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "polls INFO lazyfree_pending_objects / lazyfreed_objects, which TomoKV does not report; lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "lazy free a stream with deleted cgroup",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "polls INFO lazyfree_pending_objects, which TomoKV does not report; lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "FLUSHALL SYNC optimized to run in bg as blocking FLUSHALL ASYNC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "asserts lazyfree_pending_objects == 0 and lazyfreed_objects == 1000; TomoKV reports neither counter (got ''); lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "Run consecutive blocking FLUSHALL ASYNC successfully",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "the three pipelined flushes all answer OK; only 'lazyfreed_objects == 2' fails (counter absent); lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "FLUSHALL SYNC in MULTI not optimized to run as blocking FLUSHALL ASYNC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-POLICY-REFUSAL",
+   "cascade_of": null,
+   "basis": "'r flushall' inside MULTI answers 'ERR Command not allowed inside a transaction' (Redis queues it); its later lazyfree-counter assertions would be class 2."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "Client closed in the middle of blocking FLUSHALL ASYNC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "waits for lazyfreed_objects == 100000; counter absent ('Unexpected number of lazyfreed_objects: '); lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/lazyfree",
+   "test": "Pending commands in querybuf processed once unblocking FLUSHALL ASYNC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "FLUSHALL then the pipelined PING answer OK/PONG; only 'lazyfreed_objects == 2' fails (counter absent); lazyfree counters are Redis-internal."
+  },
+  {
+   "file": "unit/multi",
+   "test": "EXEC fails if there are errors while queueing commands #2",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": null,
+   "basis": "With maxmemory 1 the LPUSH inside MULTI is QUEUED instead of rejected with -OOM, so EXEC runs ('OK 1 OK') instead of answering EXECABORT; fails identically in isolation."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC is not propagated (single write command)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC is propagated correctly (multiple commands)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC is propagated correctly (empty transaction)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC is propagated correctly (read-only commands)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC is propagated correctly (write command, no effect)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI / EXEC with REPLICAOF",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at 'config set repl-ping-replica-period' (unknown) before any MULTI assertion; the test asserts the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "DISCARD should not fail during OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": null,
+   "basis": "With maxmemory 1, 'r set x 1' inside MULTI answers QUEUED instead of -OOM; the test aborts before 'r discard' and 'config set maxmemory 0', leaving the main client inside MULTI with maxmemory 1 for the rest of the file (root of the later 'MULTI calls can not be nested' failures)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI and script timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set lua-time-limit 10' (unknown option): the test needs Redis's busy-script window and SCRIPT KILL; in the full-file run its $r2 EXEC answered an OOM/'execution error' instead because of the maxmemory 1 left by 'DISCARD should not fail during OOM'."
+  },
+  {
+   "file": "unit/multi",
+   "test": "EXEC and script timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set lua-time-limit 10' (unknown option): the test needs Redis's busy-script window and SCRIPT KILL; in the full-file run its $r2 EXEC answered an OOM/'execution error' instead because of the maxmemory 1 left by 'DISCARD should not fail during OOM'."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI-EXEC body and script timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set lua-time-limit 10' (unknown option): the test needs Redis's busy-script window and SCRIPT KILL; in the full-file run its $r2 EXEC answered an OOM/'execution error' instead because of the maxmemory 1 left by 'DISCARD should not fail during OOM'."
+  },
+  {
+   "file": "unit/multi",
+   "test": "just EXEC and script timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-NO-BUSY-WINDOW",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set lua-time-limit 10' (unknown option): the test needs Redis's busy-script window and SCRIPT KILL; in the full-file run its $r2 EXEC answered an OOM/'execution error' instead because of the maxmemory 1 left by 'DISCARD should not fail during OOM'."
+  },
+  {
+   "file": "unit/multi",
+   "test": "exec with write commands and state change",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set min-replicas-to-write 2' (unknown replication config, needs:repl); the full-file 'MULTI calls can not be nested' symptom came from the leftover MULTI of 'DISCARD should not fail during OOM'."
+  },
+  {
+   "file": "unit/multi",
+   "test": "exec with read commands and stale replica state change",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "On a fresh server it fails at 'config set replica-serve-stale-data no' (unknown replication config; test uses REPLICAOF, needs:repl); full-file symptom was the leftover-MULTI cascade."
+  },
+  {
+   "file": "unit/multi",
+   "test": "EXEC with only read commands should not be rejected when OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": "unit/multi: DISCARD should not fail during OOM",
+   "basis": "Full-file: 'ERR MULTI calls can not be nested' because the main client was left inside MULTI by 'DISCARD should not fail during OOM'; passes on a fresh server in both modes."
+  },
+  {
+   "file": "unit/multi",
+   "test": "EXEC with at least one use-memory command should fail",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-EXEC",
+   "cascade_of": null,
+   "basis": "On a fresh server EXEC answers per-command '-OOM ...' elements instead of 'EXECABORT ... OOM' when maxmemory is reached between queueing and EXEC (full-file symptom was the leftover-MULTI cascade)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "Blocking commands ignores the timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-XREADGROUP-BLOCK-HANG",
+   "cascade_of": null,
+   "basis": "HANGS on a fresh server in both modes: EXEC never replies because the queued 'XREADGROUP ... BLOCK 0' blocks (the other seven blocking commands run non-blocking); masked in the full-file run by the leftover-MULTI cascade ('MULTI calls can not be nested')."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI propagation of PUBLISH",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream gets \"-ERR unknown command 'SYNC'\": the assertion is on the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI propagation of SCRIPT LOAD",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream gets \"-ERR unknown command 'SYNC'\": the assertion is on the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI propagation of EVAL",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream gets \"-ERR unknown command 'SYNC'\": the assertion is on the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI propagation of SCRIPT FLUSH",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream gets \"-ERR unknown command 'SYNC'\": the assertion is on the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI propagation of XREADGROUP",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream gets \"-ERR unknown command 'SYNC'\": the assertion is on the replication stream (needs:repl)."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI with SAVE",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": "unit/multi: DISCARD should not fail during OOM",
+   "basis": "Full-file: 'r multi' answers 'ERR MULTI calls can not be nested' because the main client was left inside MULTI by 'DISCARD should not fail during OOM'; passes on a fresh server in both modes."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI with SHUTDOWN",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": "unit/multi: DISCARD should not fail during OOM",
+   "basis": "Full-file: 'r multi' answers 'ERR MULTI calls can not be nested' because the main client was left inside MULTI by 'DISCARD should not fail during OOM'; passes on a fresh server in both modes."
+  },
+  {
+   "file": "unit/multi",
+   "test": "MULTI with config error",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": "unit/multi: DISCARD should not fail during OOM",
+   "basis": "Full-file: 'r multi' answers 'ERR MULTI calls can not be nested' because the main client was left inside MULTI by 'DISCARD should not fail during OOM'; passes on a fresh server in both modes."
+  },
+  {
+   "file": "unit/multi",
+   "test": "Flushall while watching several keys by one client",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-OOM-QUEUE",
+   "cascade_of": "unit/multi: DISCARD should not fail during OOM",
+   "basis": "Full-file: 'r flushall' was sent while the main client was still inside the MULTI left by 'DISCARD should not fail during OOM' (TomoKV then refuses FLUSHALL in MULTI, see MULTI-FLUSHALL-REFUSED); passes on a fresh server in both modes."
+  },
+  {
+   "file": "unit/other",
+   "test": "Coverage: HELP commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-MODULE",
+   "cascade_of": null,
+   "basis": "Every HELP assertion passes up to 'r MODULE HELP', which fails with unknown command 'MODULE' (module family deliberately absent)."
+  },
+  {
+   "file": "unit/other",
+   "test": "Check consistency of different data types after a reload",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "check_consistency calls 'debug digest', a DEBUG subcommand TomoKV does not implement."
+  },
+  {
+   "file": "unit/other",
+   "test": "Same dataset digest if saving/reloading as AOF?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "check_consistency calls 'debug digest', a DEBUG subcommand TomoKV does not implement."
+  },
+  {
+   "file": "unit/other",
+   "test": "EXPIRES after a reload (snapshot + append only file rewrite)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "DEBUG-LOADAOF-AOF-OFF",
+   "cascade_of": null,
+   "basis": "SAVE, DEBUG RELOAD and BGREWRITEAOF succeed, then 'debug loadaof' answers 'ERR appendonly is disabled' (Redis reloads the rewritten AOF with appendonly no and answers OK)."
+  },
+  {
+   "file": "unit/other",
+   "test": "EXPIRES after AOF reload (without rewrite)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "APPENDONLY-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "'config set appendonly yes' answers \"can't set immutable config\" (boot-only appendonly)."
+  },
+  {
+   "file": "unit/other",
+   "test": "RESET clears MONITOR state",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "RESET-MONITOR-ECHO",
+   "cascade_of": null,
+   "basis": "After MONITOR, '$rd reset' first returns the client's own monitor line '... \"reset\"' instead of RESET: TomoKV feeds MONITOR before executing, Redis after (when RESET has already removed the client from the monitors)."
+  },
+  {
+   "file": "unit/other",
+   "test": "RESET clears and discards MULTI state",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "RESET-IN-MULTI",
+   "cascade_of": null,
+   "basis": "RESET inside MULTI is QUEUED, so EXEC returns 'OK RESET' instead of 'ERR EXEC without MULTI' (Redis executes RESET immediately and discards the transaction)."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-CLIENT-EXEMPT",
+   "cascade_of": null,
+   "basis": "assert_lessthan 200 $elapsed fails (elapsed ~50 ms): under PAUSE 200 ALL Redis postpones the second 'CLIENT PAUSE 20 WRITE' itself until the ALL pause ends, TomoKV exempts CLIENT commands from the pause (and the new WRITE mode replaces ALL); fails identically on a fresh server."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test new pause time is smaller than old one, then old time preserved",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "wait_for_blocked_clients_count 1 times out: the SET really is held, but TomoKV never counts a postponed client in INFO blocked_clients (Redis blocks it as BLOCKED_POSTPONE, blocked_clients:1); fails identically in isolation."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test write commands are paused by RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "'Timeout waiting for blocked clients' although the SET is held: postponed clients are not counted in blocked_clients; fails identically in isolation and leaves its 60 s PAUSE WRITE armed (no unpause), which is what makes later tests hang."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test special commands are paused by RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-MAY-REPLICATE",
+   "cascade_of": null,
+   "basis": "PFCOUNT and PUBLISH are answered during PAUSE WRITE (Redis postpones may-replicate commands), so wait_for_blocked_clients_count 1 times out (blocked_clients is never counted either); fails in isolation. The reach-discovery HANG was a cascade: its first 'r PFADD' was held by the 60 s pause left armed by 'Test write commands are paused by RO'."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test read/admin multi-execs are not blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-MAY-REPLICATE",
+   "cascade_of": "unit/pause: Test special commands are paused by RO",
+   "basis": "Hung at its first 'r SET FOO BAR', which is held by the 100 s PAUSE WRITE the previous test left armed when it failed before 'client unpause'; passes on a fresh TomoKV server in both modes."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test write multi-execs are blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-EXEC-NOT-HELD",
+   "cascade_of": null,
+   "basis": "On a fresh server EXEC of the queued SET executes during PAUSE WRITE (Redis postpones EXEC whose queue holds a write), so wait_for_blocked_clients_count 1 times out. The reach-discovery HANG was a cascade: its queued SET was held by a pause left armed by an earlier failed test."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test RO scripts are not blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-SCRIPT-FLAGS",
+   "cascade_of": null,
+   "basis": "HANGS on a fresh server in both modes: EVAL '#!lua flags=no-writes' (and FCALL of a no-writes function) is postponed by PAUSE WRITE because TomoKV decides from the static EVAL/FCALL write flag; Redis derives the decision from the script flags and runs it."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test read-only scripts in multi-exec are not blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-SCRIPT-FLAGS",
+   "cascade_of": null,
+   "basis": "HANGS on a fresh server: the no-writes EVAL being queued inside MULTI is postponed by PAUSE WRITE (Redis does not pause a no-writes script), so the blocking client never gets QUEUED."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test write scripts in multi-exec are blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-EXEC-NOT-HELD",
+   "cascade_of": null,
+   "basis": "On a fresh server the two EXECs (queued EVALs) are not postponed by PAUSE WRITE, so wait_for_blocked_clients_count 2 times out. The reach-discovery HANG was a cascade of a leftover pause holding the queued EVAL."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test scripts are blocked by pause RO",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "Both EVALs are held, but wait_for_blocked_clients_count 2 times out because postponed clients are not counted in blocked_clients; fails identically in isolation (the shebang EVAL would also fail to compile later, see notes)."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test may-replicate commands are rejected in RO scripts",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Expected 'ERR Write commands are not allowed from read-only scripts' but got \"ERR command 'PUBLISH' is not allowed from scripts\": PUBLISH is outside TomoKV's script command whitelist (the non-RO EVAL publish assertion fails the same way)."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test multiple clients can be queued up and unblocked",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "Three held SETs are never counted in blocked_clients, so wait_for_blocked_clients_count 3 times out; fails identically in isolation."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test both active and passive expires are skipped during client pause",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-IN-MULTI",
+   "cascade_of": null,
+   "basis": "'r exec' raises \"ERR unknown subcommand 'PAUSE'. Try CLIENT HELP.\": a CLIENT PAUSE queued in MULTI is executed by the executor-side CLIENT handler, which has no PAUSE; fails identically in isolation."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test that client pause starts at the end of a transaction",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-IN-MULTI",
+   "cascade_of": null,
+   "basis": "EXEC answers \"ERR unknown subcommand 'PAUSE'\" for the queued CLIENT PAUSE (Redis pauses at the end of the transaction); fails identically in isolation."
+  },
+  {
+   "file": "unit/pause",
+   "test": "Test the randomkey command will not cause the server to get into an infinite loop during the client pause write",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-IN-MULTI",
+   "cascade_of": null,
+   "basis": "EXEC answers \"ERR unknown subcommand 'pause'\" for 'client pause 10000 write' queued in MULTI; fails identically in isolation."
+  },
+  {
+   "file": "unit/pause",
+   "test": "CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "The two BLPOPs are held by PAUSE WRITE but never counted in blocked_clients, so wait_for_blocked_clients_count 2 times out; fails identically in isolation."
+  },
+  {
+   "file": "unit/printver",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-MISSING-FIELDS",
+   "cascade_of": null,
+   "basis": "File body does regexp redis_git_sha1 on INFO and then reads $sha1: TomoKV's INFO server section has no redis_git_sha1 (nor redis_git_dirty/redis_build_id), so the file errors with 'can't read sha1'."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "RESP3 attributes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "RESP3 attributes readraw",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "RESP3 attributes on RESP2",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "test big number parsing",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "test bool parsing",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "test verbatim str parsing",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Uses DEBUG PROTOCOL (attrib/bignum/true/false/verbatim), which TomoKV does not implement ('unknown subcommand'); fails the same way when RESP3 attributes readraw is skipped."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "test large number of args",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": "unit/protocol: RESP3 attributes readraw",
+   "basis": "Passes on TomoKV in isolation and in a rerun that skips RESP3 attributes readraw: that test aborts on DEBUG PROTOCOL after 'r readraw 1; r deferred 1', leaving the shared client in raw/deferred mode, so later replies read as ''."
+  },
+  {
+   "file": "unit/protocol",
+   "test": "test argument rewriting - issue 9598",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": "unit/protocol: RESP3 attributes readraw",
+   "basis": "Passes on TomoKV in isolation and in a rerun that skips RESP3 attributes readraw: that test aborts on DEBUG PROTOCOL after 'r readraw 1; r deferred 1', leaving the shared client in raw/deferred mode, so later replies read as ''."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "PubSub messages with CLIENT REPLY OFF",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-REPLY-OFF-PUSH",
+   "cascade_of": null,
+   "basis": "Hung (fresh too, both modes): CLIENT REPLY OFF then SUBSCRIBE; TomoKV swallows the (p)subscribe confirmation that Redis delivers despite REPLY OFF/SKIP, so the helper's read blocks. Published messages themselves are delivered."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "Keyspace notifications: we receive keyspace notifications",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-REPLY-OFF-PUSH",
+   "cascade_of": null,
+   "basis": "Hung (fresh too, both modes): CLIENT REPLY OFF then PSUBSCRIBE *; TomoKV swallows the (p)subscribe confirmation that Redis delivers despite REPLY OFF/SKIP, so the helper's read blocks. Published messages themselves are delivered."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "Keyspace notifications: we receive keyevent notifications",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-REPLY-OFF-PUSH",
+   "cascade_of": null,
+   "basis": "Hung (fresh too, both modes): CLIENT REPLY SKIP then PSUBSCRIBE *; TomoKV swallows the (p)subscribe confirmation that Redis delivers despite REPLY OFF/SKIP, so the helper's read blocks. Published messages themselves are delivered."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "Keyspace notifications: evicted events",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-EVICT-ON-MAXMEMORY",
+   "cascade_of": null,
+   "basis": "Hung (fresh too, both modes): allkeys-lru + CONFIG SET maxmemory 1 evicts nothing, so no 'evicted foo' event; the key survives even a later write (which TomoKV OOM-rejects). Redis evicts during CONFIG SET."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "Keyspace notifications: hash events test (listpackex)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "assert_encoding listpackex myhash got 'listpack' (fresh, both modes); the hashtable variant of the same event sequence passes."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "Keyspace notifications: stream events test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-IMPLICIT-CONSUMER-EVENT",
+   "cascade_of": null,
+   "basis": "4th read expected xgroup-createconsumer (consumer Alice created by XREADGROUP) but got xgroup-delconsumer: TomoKV emits createconsumer only for explicit XGROUP CREATECONSUMER, not for XREADGROUP/XCLAIM-created consumers. Fresh, both modes."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "publish to self inside multi",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": "unit/pubsub: Keyspace notifications: hash events test (listpackex)",
+   "basis": "PUBLISH inside MULTI returned 3 receivers, not 1: the listpackex and stream-events tests failed before '$rd1 close', leaving two 'psubscribe *' clients that match 'foo'. Passes fresh in both modes. (Either leftover alone breaks it; the earlier one is cited.)"
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "publish to self inside script",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "Fresh run both modes: EVAL calling redis.call('ping',...) -> \"command 'PING' is not allowed from scripts\" (reach-pass text was a desynced HELLO reply left by the previous failure)."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "unsubscribe inside multi, and publish to self",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MULTI-POLICY-REFUSAL",
+   "cascade_of": null,
+   "basis": "Fresh run both modes: 'r unsubscribe bar' inside MULTI -> 'ERR Command not allowed inside a transaction' (Redis queues it; EXEC returns the unsubscribe pushes). Reach-pass text was the previous test's deferred PING-from-script error."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "subscribe  fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "ssubscribe  fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "psubscribe  fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "subscribe with 2 clients fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "ssubscribe with 2 clients fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "psubscribe with 2 clients fails with OOM when memory limit exceeded",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "subscribe with large channel name fails due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "psubscribe with large pattern name fails due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "ssubscribe with large shard channel name fails due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "subscribe succeeds with small channel but fails with large channel due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "psubscribe succeeds with small pattern but fails with large pattern due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/pubsub",
+   "test": "ssubscribe succeeds with small channel but fails with large channel due to OOM",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "cascade_of": null,
+   "basis": "No OOM error ever comes back for (s|p)subscribe over maxmemory (fresh, both modes). TomoKV implements the OOM gate (SET is rejected at maxmemory 1) but not for SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE, which are DENYOOM in Redis 7.4.10."
+  },
+  {
+   "file": "unit/querybuf",
+   "test": "query buffer resized correctly",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "CLIENT-QBUF-INTERNALS",
+   "cascade_of": null,
+   "basis": "Asserts qbuf+qbuf-free of a fresh client is within Redis's PROTO_IOBUF_LEN..PROTO_RESIZE_THRESHOLD (16384..32768) and shrinks to 0 after 2 s idle; TomoKV reports 16323 (its own 16 KB read buffer accounting)."
+  },
+  {
+   "file": "unit/querybuf",
+   "test": "query buffer resized correctly when not idle",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "First step DEBUG PAUSE-CRON is not implemented ('unknown subcommand'); the rest asserts Redis query-buffer peak-shrink internals."
+  },
+  {
+   "file": "unit/querybuf",
+   "test": "query buffer resized correctly with fat argv",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "CLIENT-QBUF-INTERNALS",
+   "cascade_of": null,
+   "basis": "Expects Redis to pre-size the query buffer to >= 1,000,000 bytes after a partial 1 MB bulk header; TomoKV's buffer growth policy differs (internal allocation, not a reply)."
+  },
+  {
+   "file": "unit/replybufsize",
+   "test": "verify reply buffer limits",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "DEBUG REPLYBUFFER peak-reset-time is not implemented; the test asserts Redis reply-buffer (rbs) resizing internals."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - max entries is correctly handled",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": null,
+   "basis": "With slowlog-max-len 10, 'slowlog len' is 11: TomoKV keeps one slowlog per thread, each trimmed to max-len, and LEN sums them (passes in some layouts, e.g. the 6:2 isolated rerun)."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - GET optional argument to limit output len works",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": null,
+   "basis": "'slowlog get -1' returns 12 entries although slowlog-max-len is 10 (per-thread logs each trimmed separately)."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - Certain commands are omitted that contain sensitive information",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "Fails at 'config set masteruser \"\"' (unknown replication config; test tagged needs:repl) before the redaction assertions."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - Some commands can redact sensitive fields",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "Fails at 'r migrate ...' (unknown command): MIGRATE is in TomoKV's deliberately absent cluster family."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - Rewritten commands are logged as their original command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+   "cascade_of": null,
+   "basis": "SPOP/GEOADD/GETSET/INCRBYFLOAT assertions pass; the final one expects 'blpop l 0' (logged when the blocked BLPOP is served after EXEC) but the slowlog is empty: a served blocked command is never logged."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - EXEC is not logged, just executed commands",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-EXEC-BODY-NOT-LOGGED",
+   "cascade_of": null,
+   "basis": "MULTI; DEBUG SLEEP 0.2; EXEC leaves 'slowlog len' 0 (Redis 1, entry 'debug sleep 0.2'): commands run by EXEC are not timed by the slowlog hook."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - get all slow logs",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": null,
+   "basis": "With slowlog-max-len 3 and four keyed writes 'slowlog len' is 5 (Redis 3): per-thread logs each trimmed to max-len."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - blocking command is reported only after unblocked",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-BLOCKED-NOT-LOGGED",
+   "cascade_of": null,
+   "basis": "The 'not logged while blocked' assertion passes, but after LPUSH serves the BLPOP the slowlog still holds no BLPOP entry (expected 1)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "The connection gets invalidation messages about all the keys",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": null,
+   "basis": "BCAST MSET a{t} b{t} c{t} delivers three one-key invalidations; the test reads one ('a{t}', expected all three in one message). Fails fresh in both modes (prereqs only); first test that leaves extra messages in $rd_redirection."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Clients can enable the BCAST mode with prefixes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": null,
+   "basis": "Fresh run: the two reads return a:1{t} and a:2{t} (one key per message) instead of one message per prefix with both keys; full-file text (b{t} c{t}) additionally shows the previous test's leftovers."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Adding prefixes to BCAST mode works",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking NOLOOP mode in standard mode works",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking NOLOOP mode in BCAST mode works",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking gets notification of expired keys",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking gets notification of lazy expired keys",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP3 tracking redirection",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidations of previous keys can be redirected after switching to RESP3",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidations of new keys can be redirected after switching to RESP3",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Assertion read a stale key (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); passes on TomoKV 2s and 1s in a fresh run with only its prerequisites."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking only occurs for scripts when a command calls a read-only command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-UNDECLARED-KEY",
+   "cascade_of": null,
+   "basis": "EVAL \"redis.call('set','key3{t}','bar')\" 2 key1{t} key2{t} is refused 'Script attempted to access an undeclared key'; deterministic in every run and mode (Redis allows undeclared keys outside cluster mode)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "assert_equal OK [$rd_redirection read] got a stale 'message __redis__:invalidate ...' (stale per-key BCAST invalidations queued in $rd_redirection by the BCAST tests shift every later $rd_redirection read by one or more messages); the test aborts BEFORE recreating $rd_redirection, which starts the I/O-error/hang chain. Passes fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Different clients can redirect to the same connection",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Reads stale key1 instead of key1{t}; r/$rd REDIRECT to the QUIT client is still accepted (TomoKV keeps a QUIT client in its directory briefly; Redis errors). Passes fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Different clients using different protocols can track the same key",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "res1 read the QUIT reply 'OK' (lindex -> '') because of the stale queue. Passes fresh in both modes. Reach pass: failed in 1s only, passed in 2s by coincidence (one extra stale message, see notes)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "No invalidation message when using OPTIN option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'I/O error reading reply' = EOF of the QUIT redirection socket once its stale messages and OK are consumed (reach 2s: read 'OK' -> '' instead). Passes fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidation message sent when using OPTIN option with CLIENT CACHING yes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Hung: after the I/O error redis.tcl RECONNECTS the deferred $rd_redirection on its next use, and that read waits forever on a fresh, unsubscribed socket; whichever test first reads $rd_redirection after the EOF hangs (the point moves with the stale-message count). Passes fresh in both modes (in-sync run of all nine tests)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking gets notification on tracking table key eviction",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "Fresh run (both modes): CONFIG SET tracking-table-max-keys 1 -> 'can't set immutable config'. In the discovery runs it HUNG instead, because r was out of sync (error reply deferred) and the while-loop read $rd_redirection on the reconnected socket."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidation message sent when using OPTOUT option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Hung: after the I/O error redis.tcl RECONNECTS the deferred $rd_redirection on its next use, and that read waits forever on a fresh, unsubscribed socket; whichever test first reads $rd_redirection after the EOF hangs (the point moves with the stale-message count). Passes fresh in both modes (in-sync run of all nine tests)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "No invalidation message when using OPTOUT option with CLIENT CACHING no",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Hung: after the I/O error redis.tcl RECONNECTS the deferred $rd_redirection on its next use, and that read waits forever on a fresh, unsubscribed socket; whichever test first reads $rd_redirection after the EOF hangs (the point moves with the stale-message count). Passes fresh in both modes (in-sync run of all nine tests)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Able to redirect to a RESP3 client",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "Hung: after the I/O error redis.tcl RECONNECTS the deferred $rd_redirection on its next use, and that read waits forever on a fresh, unsubscribed socket; whichever test first reads $rd_redirection after the EOF hangs (the point moves with the stale-message count). Passes fresh in both modes (in-sync run of all nine tests)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "[r PING] returned 'OK' because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). Passes fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "hdel deliver invalidate message after response in the same connection",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "HDEL returned the HELLO reply: r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). Passes fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking invalidation message is not interleaved with multiple keys response",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-INVALIDATE-BEFORE-REPLY",
+   "cascade_of": null,
+   "basis": "Fresh run both modes: [r MGET x{t} y{t}] returns the push 'invalidate y{t}' (written before the MGET reply; a duplicate push follows the reply). Redis writes the reply first."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking invalidation message is not interleaved with transaction response",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-INVALIDATE-BEFORE-REPLY",
+   "cascade_of": "unit/tracking: Tracking invalidation message is not interleaved with multiple keys response",
+   "basis": "EXEC returned a stale reply (reach: r desync from the first half; fresh tail run: the MGET reply left unread by the previous test). Passes fresh alone in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking invalidation message of eviction keys should be before response",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "LAZYFREE-COUNTERS",
+   "cascade_of": null,
+   "basis": "wait_lazyfree_done polls INFO lazyfree_pending_objects, which TomoKV lacks ('lazyfree isn't done', fresh, both modes); the test then sizes maxmemory from used_memory - mem_not_counted_for_evict (also absent). Memory/lazyfree internals."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidation message received for flushdb",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Test ASYNC flushall",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "flushdb tracking invalidation message is not interleaved with transaction response",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Tracking info is correct",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT GETREDIR provides correct client id",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": "unit/tracking: Tracking info is correct",
+   "basis": "Its REDIRECT setup lives in 'Tracking info is correct', which aborts in clean_all; fresh pair: GETREDIR -1 vs expected redir id (reach: 'OK' from r desync). Redirect reporting itself is right (TRACKINGINFO ... with options passes fresh)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking off",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking on",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking on with options",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking optin",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking optout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-BCAST-BATCH",
+   "cascade_of": "unit/tracking: The connection gets invalidation messages about all the keys",
+   "basis": "'dict get $res flags' failed on a non-map reply because r (RESP3) is several replies behind: the aborted 'RESP3 Client gets tracking-redir-broken...' test never recreated $rd_redirection, so r kept REDIRECT to the QUIT client and accumulated unread tracking-redir-broken pushes (plus error replies left by clean_all failures). All six pass fresh in both modes."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "CLIENT TRACKINGINFO provides reasonable results when tracking redir broken",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Regression test for #11715",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync). It would next hit DEBUG PAUSE-CRON (UNSUP-DEBUG)."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP2 based basic invalidation with client reply off",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync). Probe: TomoKV delivers RESP3 tracking pushes under CLIENT REPLY OFF like Redis, so no second defect behind it."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP3 based basic redirect invalidation with client reply off",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync). Probe: TomoKV delivers RESP3 tracking pushes under CLIENT REPLY OFF like Redis, so no second defect behind it."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP3 based basic tracking-redir-broken with client reply off",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "clean_all (or the test) runs CONFIG SET tracking-table-max-keys -> 'ERR CONFIG SET failed ... can't set immutable config'; fails the same way in a fresh run in both modes (in the reach pass the error surfaced on a later r command because r was out of sync). Probe: TomoKV delivers RESP3 tracking pushes under CLIENT REPLY OFF like Redis, so no second defect behind it."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - logged entry sanity check",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": "unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "basis": "With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - commands with too many arguments are trimmed",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": "unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "basis": "With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - too long arguments are trimmed",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": "unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "basis": "With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/slowlog",
+   "test": "SLOWLOG - can clean older entries",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SLOWLOG-MAXLEN-PER-THREAD",
+   "cascade_of": "unit/slowlog: SLOWLOG - max entries is correctly handled",
+   "basis": "With the skipped 'max entries' test (which sets slowlog-max-len 10) missing, slowlog-max-len 0 from 'zero max length is correctly handled' persists and the expected entry is never kept; the same skip list would fail on Redis. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "Invalidation message received for flushall",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "The file helper's CONFIG SET tracking-table-max-keys is refused as immutable. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  },
+  {
+   "file": "unit/tracking",
+   "test": "RESP3 based basic invalidation with client reply off",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "TRACK-MAXKEYS-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "The file helper's CONFIG SET tracking-table-max-keys is refused as immutable. Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  }
+ ],
+ "roots": [
+  {
+   "id": "UNSUP-CLUSTER",
+   "class": "unsupported by design",
+   "title": "Cluster family absent: CLUSTER, ASKING / cluster-mode redis-cli, MIGRATE",
+   "subsystem": "no CLUSTER/MIGRATE command spec (src/cmd/cmdgap.cc keeps only ASKING/READONLY/READWRITE answering cluster-disabled)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "COMMAND LIST includes cluster|help, migrate",
+   "tomokv": "absent (COMMAND LIST diff: cluster*, migrate, module*, psync, replconf, sync)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "integration/redis-cli: Non-interactive non-TTY CLI: ASK redirect test",
+    "unit/introspection-2: COMMAND LIST FILTERBY PATTERN - list all commands/subcommands",
+    "unit/introspection-2: MIGRATE command is marked with movablekeys",
+    "unit/introspection: MONITOR supports redacting command arguments",
+    "unit/slowlog: SLOWLOG - Some commands can redact sensitive fields"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "A",
+     "id": "UNSUPPORTED-CLUSTER",
+     "repro_case": null,
+     "title": "CLUSTER command family absent"
+    },
+    {
+     "group": "B2",
+     "id": "MIGRATE-ABSENT",
+     "repro_case": null,
+     "title": "MIGRATE (and its migrate_cached_sockets INFO field) is absent with the cluster/replication command family"
+    }
+   ]
+  },
+  {
+   "id": "UNSUP-DEBUG",
+   "class": "unsupported by design",
+   "title": "DEBUG internals TomoKV does not implement: PROTOCOL, OBJECT, DIGEST, DIGEST-VALUE, PAUSE-CRON, REPLYBUFFER, QUICKLIST-PACKED-THRESHOLD, SET-SKIP-CHECKSUM-VALIDATION, SET-DISABLE-DENY-SCRIPTS",
+   "subsystem": "src/cmd/t_server.cc DEBUG dispatcher (implements sleep/reload/loadaof/set-active-expire/... only)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "DEBUG PROTOCOL attrib / OBJECT / DIGEST ... answer",
+   "tomokv": "ERR unknown subcommand or wrong number of arguments for 'debug' command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection-2: Operations in no-touch mode do not alter the last access time of a key",
+    "unit/other: Check consistency of different data types after a reload",
+    "unit/other: Same dataset digest if saving/reloading as AOF?",
+    "unit/protocol: RESP3 attributes",
+    "unit/protocol: RESP3 attributes readraw",
+    "unit/protocol: RESP3 attributes on RESP2",
+    "unit/protocol: test big number parsing",
+    "unit/protocol: test bool parsing",
+    "unit/protocol: test verbatim str parsing",
+    "unit/protocol: test large number of args",
+    "unit/protocol: test argument rewriting - issue 9598",
+    "unit/querybuf: query buffer resized correctly when not idle",
+    "unit/replybufsize: verify reply buffer limits"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "A",
+     "id": "UNSUPPORTED-DEBUG-SET-DISABLE-DENY-SCRIPTS",
+     "repro_case": null,
+     "title": "DEBUG SET-DISABLE-DENY-SCRIPTS not implemented (aborts the needs:debug block at scripting.tcl:1781)"
+    },
+    {
+     "group": "B2",
+     "id": "DEBUG-DIGEST-VALUE",
+     "repro_case": null,
+     "title": "DEBUG DIGEST-VALUE not implemented"
+    },
+    {
+     "group": "B2",
+     "id": "DEBUG-OBJECT",
+     "repro_case": null,
+     "title": "DEBUG OBJECT not implemented (encoding/address/LRU internals)"
+    },
+    {
+     "group": "B2",
+     "id": "DEBUG-QUICKLIST-PACKED-THRESHOLD",
+     "repro_case": null,
+     "title": "DEBUG QUICKLIST-PACKED-THRESHOLD not implemented (quicklist plain/packed node tests)"
+    },
+    {
+     "group": "B2",
+     "id": "DEBUG-SET-SKIP-CHECKSUM-VALIDATION",
+     "repro_case": null,
+     "title": "DEBUG SET-SKIP-CHECKSUM-VALIDATION not implemented"
+    }
+   ]
+  },
+  {
+   "id": "UNSUP-ENCODING",
+   "class": "unsupported by design",
+   "title": "Keyspace layout assumptions: OBJECT ENCODING listpack/quicklist/listpackex conversions, list-compress-depth (quicklist compression), shared small-integer refcount",
+   "subsystem": "hash encoding",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "listpackex",
+   "tomokv": "listpack",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pubsub: Keyspace notifications: hash events test (listpackex)",
+    "unit/pubsub: publish to self inside multi"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "B2",
+     "id": "QUICKLIST-COMPRESSION",
+     "repro_case": null,
+     "title": "list-compress-depth (quicklist node compression) is not a TomoKV config"
+    },
+    {
+     "group": "B2",
+     "id": "LIST-ENCODING",
+     "repro_case": null,
+     "title": "OBJECT ENCODING listpack/quicklist conversion assumptions"
+    },
+    {
+     "group": "B2",
+     "id": "SHARED-INTEGER-REFCOUNT",
+     "repro_case": null,
+     "title": "No shared small-integer objects (OBJECT REFCOUNT 1)"
+    }
+   ]
+  },
+  {
+   "id": "UNSUP-MODULE",
+   "class": "unsupported by design",
+   "title": "Module API absent: MODULE LOAD/LOADEX/HELP, loadmodule, module commands, types and ACL categories",
+   "subsystem": "no MODULE command spec",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "MODULE HELP -> help text",
+   "tomokv": "ERR unknown command 'MODULE'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/other: Coverage: HELP commands"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "MOD",
+     "id": "MODULES",
+     "repro_case": null,
+     "title": "Module API (MODULE LOAD/LOADEX, loadmodule, module commands, ACL categories and types)"
+    }
+   ]
+  },
+  {
+   "id": "UNSUP-REPLICATION",
+   "class": "unsupported by design",
+   "title": "Replication family absent: repl-*/replicaof/min-replicas/masteruser configs, SYNC/PSYNC/REPLCONF, WAIT/WAITAOF semantics, assertions on the replication/propagation stream",
+   "subsystem": "src/core/config.h (no replication knobs); no SYNC/PSYNC/REPLCONF command spec",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "configs accepted; SYNC streams the replication feed",
+   "tomokv": "ERR Unknown option ... / ERR unknown command 'SYNC'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "integration/redis-cli: Dumping an RDB - functions only: no",
+    "integration/redis-cli: Dumping an RDB - functions only: yes",
+    "integration/redis-cli: Connecting as a replica",
+    "unit/introspection: CONFIG SET with multiple args",
+    "unit/introspection: CONFIG GET multiple args",
+    "unit/multi: MULTI / EXEC is not propagated (single write command)",
+    "unit/multi: MULTI / EXEC is propagated correctly (multiple commands)",
+    "unit/multi: MULTI / EXEC is propagated correctly (empty transaction)",
+    "unit/multi: MULTI / EXEC is propagated correctly (read-only commands)",
+    "unit/multi: MULTI / EXEC is propagated correctly (write command, no effect)",
+    "unit/multi: MULTI / EXEC with REPLICAOF",
+    "unit/multi: exec with write commands and state change",
+    "unit/multi: exec with read commands and stale replica state change",
+    "unit/multi: MULTI propagation of PUBLISH",
+    "unit/multi: MULTI propagation of SCRIPT LOAD",
+    "unit/multi: MULTI propagation of EVAL",
+    "unit/multi: MULTI propagation of SCRIPT FLUSH",
+    "unit/multi: MULTI propagation of XREADGROUP",
+    "unit/slowlog: SLOWLOG - Certain commands are omitted that contain sensitive information"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "A",
+     "id": "UNSUPPORTED-REPLICATION",
+     "repro_case": null,
+     "title": "Replication-family behaviour: replication-stream assertions (repl-ping-replica-period), min-replicas-to-write/NOREPLICAS, WAIT/WAITAOF"
+    },
+    {
+     "group": "B2",
+     "id": "REPL-STREAM",
+     "repro_case": null,
+     "title": "Tests assert on the replication stream (attach_to_replication_stream -> CONFIG SET repl-ping-replica-period)"
+    }
+   ]
+  },
+  {
+   "id": "CLIENT-EVICTION-ABSENT",
+   "class": "Redis-internal assumption",
+   "title": "maxmemory-clients (client-memory eviction) does not exist",
+   "subsystem": "src/core/config.h (parameter table)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "CONFIG SET maxmemory-clients 200% -> ERR ... percentage argument must be less or equal to 100",
+   "tomokv": "ERR Unknown option or number of arguments for CONFIG SET - 'maxmemory-clients'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CONFIG SET rollback on set error"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "CLIENT-QBUF-INTERNALS",
+   "class": "Redis-internal assumption",
+   "title": "Tests assert Redis's query-buffer sizing/shrinking policy (PROTO_IOBUF_LEN, idle resize, fat-argv preallocation)",
+   "subsystem": "src/cmd/t_server.cc client_info_line_impl (qbuf/qbuf-free from TomoKV's own read buffer)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "fresh client qbuf+qbuf-free 16384..32767, shrinks to 0 when idle; >=1,000,000 after a 1 MB bulk header",
+   "tomokv": "16323; no Redis-style resize/preallocation",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/querybuf: query buffer resized correctly",
+    "unit/querybuf: query buffer resized correctly with fat argv"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "HIDDEN-DEBUG-CONFIGS",
+   "class": "Redis-internal assumption",
+   "title": "Redis's hidden test-only persistence delay knobs (rdb-key-save-delay, key-load-delay) are absent",
+   "subsystem": "src/core/config.h (parameter table)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "CONFIG GET rdb-key-save-delay / key-load-delay -> 0",
+   "tomokv": "[] / ERR Unknown option",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CLIENT KILL close the client connection during bgsave",
+    "unit/introspection: CONFIG GET hidden configs"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "LAZYFREE-COUNTERS",
+   "class": "Redis-internal assumption",
+   "title": "INFO lazyfree_pending_objects / lazyfreed_objects (and mem_not_counted_for_evict) are not reported, so the suite's lazyfree waits and maxmemory sizing cannot work",
+   "subsystem": "src/cmd/t_server.cc INFO memory/stats (fields absent)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "lazyfree_pending_objects:0, lazyfreed_objects:N",
+   "tomokv": "fields absent",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/lazyfree: FLUSHDB ASYNC can reclaim memory in background",
+    "unit/lazyfree: lazy free a stream with all types of metadata",
+    "unit/lazyfree: lazy free a stream with deleted cgroup",
+    "unit/lazyfree: FLUSHALL SYNC optimized to run in bg as blocking FLUSHALL ASYNC",
+    "unit/lazyfree: Run consecutive blocking FLUSHALL ASYNC successfully",
+    "unit/lazyfree: Client closed in the middle of blocking FLUSHALL ASYNC",
+    "unit/lazyfree: Pending commands in querybuf processed once unblocking FLUSHALL ASYNC",
+    "unit/tracking: Tracking invalidation message of eviction keys should be before response"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "LAZYFREE-MEMORY",
+   "class": "Redis-internal assumption",
+   "title": "used_memory does not drop after UNLINK of a 100k-member set",
+   "subsystem": "used_memory accounting / allocator (src/cmd/t_server.cc INFO memory)",
+   "design_note": null,
+   "repro_case": null,
+   "redis": "used_memory back below 2x baseline within 5 s",
+   "tomokv": "used_memory stays above 2x baseline",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/lazyfree: UNLINK can reclaim memory in background"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "CLIENT-LIST-CMD-NAME",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT INFO / CLIENT LIST report cmd=NULL for a connection's first command and the container name (cmd=client) afterwards, instead of the full subcommand name",
+   "subsystem": "src/cmd/t_server.cc client_info_line_impl (cmd= built from last.spec->name)",
+   "design_note": null,
+   "repro_case": "CLIENT-LIST-CMD-NAME",
+   "redis": "cmd=client|info, cmd=client|list",
+   "tomokv": "cmd=NULL, cmd=client",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CLIENT LIST",
+    "unit/introspection: CLIENT LIST with IDs",
+    "unit/introspection: CLIENT INFO"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "COMMAND-DOCS-INCOMPLETE",
+   "class": "REAL compatibility defect",
+   "title": "COMMAND DOCS has no 'arguments' (placeholder summary/since/group), so redis-cli cannot build hints from the server",
+   "subsystem": "src/cmd/t_server.cc cmd_command DOCS -> reply_command_docs (metadata from src/cmd/cmdmeta.cc / cmdmeta_generated.inc)",
+   "design_note": null,
+   "repro_case": "COMMAND-DOCS-INCOMPLETE",
+   "redis": "COMMAND DOCS GET -> {summary 'Returns the string value of a key.', since 1.0.0, group string, complexity O(1), arguments [[name key type key ...]]}",
+   "tomokv": "COMMAND DOCS GET -> {summary 'tomokv compatible get command', since 0.1.0, group generic, complexity ...} with no arguments; redis-cli --test_hint_file against TomoKV: FAILURE 10/69 (Redis: SUCCESS 69/69)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "integration/redis-cli: Non-interactive non-TTY CLI: Test command-line hinting - latest server"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "CONFIG-DAEMONIZE-ABSENT",
+   "class": "REAL compatibility defect",
+   "title": "Process/logging configs absent: daemonize (also supervised, pidfile, logfile, loglevel, syslog-*)",
+   "subsystem": "src/core/config.h parameter table",
+   "design_note": null,
+   "repro_case": "CONFIG-DAEMONIZE-ABSENT",
+   "redis": "CONFIG GET daemonize -> [daemonize, no]; CONFIG SET daemonize yes -> -ERR ... can't set immutable config",
+   "tomokv": "CONFIG GET daemonize -> []; CONFIG SET daemonize yes -> -ERR Unknown option or number of arguments for CONFIG SET - 'daemonize'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CONFIG SET set immutable"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "CONFIG-RUNTIME-IMMUTABLE",
+   "class": "REAL compatibility defect",
+   "title": "Configs Redis changes at runtime are immutable on TomoKV, even when set to their current value (port, bind, tls-auth-clients; also hll-sparse-max-bytes; tracking-table-max-keys is root TRACK-MAXKEYS-IMMUTABLE)",
+   "subsystem": "src/core/config.h parameter table (immutable flags) / CONFIG SET in src/cmd/t_server.cc",
+   "design_note": "Likely deliberate for the listener knobs (io_uring listeners are created at boot). hll-sparse-max-bytes alone would be an encoding threshold (class 2) and appendonly is the accepted AOF-IMMUTABLE constraint; port/bind/tls-auth-clients are the client-visible part.",
+   "repro_case": "CONFIG-RUNTIME-IMMUTABLE",
+   "redis": "CONFIG SET bind 127.0.0.1 / port <current> / tls-auth-clients yes -> +OK each",
+   "tomokv": "-ERR CONFIG SET failed (possibly related to argument 'bind'|'port'|'tls-auth-clients') - can't set immutable config",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CONFIG sanity",
+    "unit/introspection: CONFIG SET rollback on apply error"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "CONNECTED-CLIENTS-LAG",
+   "class": "REAL compatibility defect",
+   "title": "Killed/closed connections stay counted for a short window after CLIENT KILL or close (INFO connected_clients and the maxclients admission check); Redis frees killed clients synchronously",
+   "subsystem": "src/core/io_loop.h client release at the quiescence fence (srv_->client_released(), ~line 5019); counter src/core/server.h live_clients(); read by INFO (src/cmd/t_server.cc) and maxclients admission (src/core/reorder.cc:1303)",
+   "design_note": null,
+   "repro_case": "CONNECTED-CLIENTS-LAG",
+   "redis": "3 extra clients, CONFIG SET maxclients 2, CLIENT KILL SKIPME YES -> 3, new connection PING -> +PONG",
+   "tomokv": "new connection PING right after the kill -> -ERR max number of clients reached (killed clients still counted; deterministic 6/6 per mode); the stale count clears within ~1 s even when idle. Tcl run: connected_clients 6 with 3 live clients",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: CLIENT KILL SKIPME YES/NO will kill all clients"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "DEBUG-LOADAOF-AOF-OFF",
+   "class": "REAL compatibility defect",
+   "title": "DEBUG LOADAOF refuses with 'ERR appendonly is disabled' when booted with appendonly no",
+   "subsystem": "src/cmd/scatter_engine.inc Kind::DebugLoadAof (if !server.aof().configured()); BGREWRITEAOF does write an offline AOF in that state (src/cmd/t_server.cc cmd_bgrewriteaof)",
+   "design_note": null,
+   "repro_case": "DEBUG-LOADAOF-AOF-OFF",
+   "redis": "BGREWRITEAOF then DEBUG LOADAOF -> OK",
+   "tomokv": "DEBUG LOADAOF -> -ERR appendonly is disabled",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/other: EXPIRES after a reload (snapshot + append only file rewrite)"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "INFO-MISSING-FIELDS",
+   "class": "REAL compatibility defect",
+   "title": "INFO omits Redis fields: the whole # CPU section (INFO CPU is an empty bulk) and redis_git_sha1/redis_git_dirty/redis_build_id in # Server",
+   "subsystem": "src/cmd/t_server.cc INFO section builder (no CPU section; Server section field list)",
+   "design_note": null,
+   "repro_case": "INFO-MISSING-FIELDS",
+   "redis": "INFO CPU -> '# CPU\\r\\nused_cpu_sys:...\\r\\nused_cpu_user:...' (values volatile); INFO SERVER has redis_git_sha1:f103d127",
+   "tomokv": "INFO CPU -> '' (empty bulk); INFO SERVER has no redis_git_sha1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/info-command: info command with at most one sub command",
+    "unit/info-command: info command with one sub-section",
+    "unit/info-command: info command with multiple sub-sections",
+    "unit/printver: <file setup/teardown>"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "LATENCY-HISTOGRAM-ABSENT",
+   "class": "REAL compatibility defect",
+   "title": "Per-command latency tracking absent: LATENCY HISTOGRAM always empty, latency-tracking / latency-tracking-info-percentiles configs and INFO LATENCYSTATS missing",
+   "subsystem": "src/cmd/slowlog.cc cmd_latency (HISTOGRAM subcommand returns an empty array); src/core/config.h (no latency-tracking)",
+   "design_note": null,
+   "repro_case": "LATENCY-HISTOGRAM-ABSENT",
+   "redis": "CONFIG GET latency-tracking -> [latency-tracking, yes]; LATENCY HISTOGRAM set -> [set, [calls, 1, histogram_usec, {...}]]",
+   "tomokv": "CONFIG GET latency-tracking -> []; LATENCY HISTOGRAM set -> []",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/latency-monitor: LATENCY HISTOGRAM with empty histogram",
+    "unit/latency-monitor: LATENCY HISTOGRAM all commands",
+    "unit/latency-monitor: LATENCY HISTOGRAM sub commands",
+    "unit/latency-monitor: LATENCY HISTOGRAM with a subset of commands",
+    "unit/latency-monitor: LATENCY HISTOGRAM command",
+    "unit/latency-monitor: LATENCY HISTOGRAM with wrong command name skips the invalid one"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "MONITOR-SCRIPT-CMDS",
+   "class": "REAL compatibility defect",
+   "title": "MONITOR does not show commands issued from scripts ('[0 lua] \"set\" ...' never arrives)",
+   "subsystem": "src/cmd/climon.cc climon_monitor_feed (fed from the client dispatch path only; src/cmd/scripting.cc redis.call does not feed monitors)",
+   "design_note": null,
+   "repro_case": "MONITOR-SCRIPT-CMDS",
+   "redis": "monitor reads '... \"EVAL\" ...' then '<ts> [0 lua] \"set\" \"foo\" \"bar\"'",
+   "tomokv": "monitor reads the EVAL line, then TIMEOUT (upstream test hangs)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: MONITOR can log commands issued by the scripting engine"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "MULTI-OOM-EXEC",
+   "class": "REAL compatibility defect",
+   "title": "EXEC is not rejected as a whole when a queued deny-oom command meets OOM at EXEC time",
+   "subsystem": "src/cmd/multi.inc EXEC dispatch (no EXEC-level deny-oom admission; each child command is OOM-checked individually)",
+   "design_note": null,
+   "repro_case": "MULTI-OOM-EXEC",
+   "redis": "-EXECABORT Transaction discarded because of: OOM command not allowed when used memory > 'maxmemory'.",
+   "tomokv": "[-OOM command not allowed..., nil] (transaction executed partially)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/multi: EXEC with at least one use-memory command should fail"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "MULTI-OOM-QUEUE",
+   "class": "REAL compatibility defect",
+   "title": "Deny-oom commands are not rejected with -OOM while being queued in MULTI",
+   "subsystem": "src/cmd/multi.inc queue path (after command_metadata_no_multi/multi_engine_policy_refusal there is no maxmemory admission before QUEUED)",
+   "design_note": null,
+   "repro_case": "MULTI-OOM-QUEUE",
+   "redis": "SET inside MULTI -> -OOM command not allowed...; EXEC -> -EXECABORT Transaction discarded because of previous errors.",
+   "tomokv": "SET -> QUEUED; EXEC -> [-OOM ...]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/multi: EXEC fails if there are errors while queueing commands #2",
+    "unit/multi: DISCARD should not fail during OOM",
+    "unit/multi: EXEC with only read commands should not be rejected when OOM",
+    "unit/multi: MULTI with SAVE",
+    "unit/multi: MULTI with SHUTDOWN",
+    "unit/multi: MULTI with config error",
+    "unit/multi: Flushall while watching several keys by one client"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "MULTI-POLICY-REFUSAL",
+   "class": "REAL compatibility defect",
+   "title": "FLUSHALL/FLUSHDB, ACL, the (P|S)(UN)SUBSCRIBE family and DEBUG RELOAD|LOADAOF are refused inside MULTI ('ERR Command not allowed inside a transaction', EXEC then EXECABORT); Redis queues and runs them",
+   "subsystem": "src/cmd/multi.inc multi_engine_policy_refusal (line 461), checked on the queue path (line 2160)",
+   "design_note": "Deliberate engine limitation ('Owner decision group 5' comment in multi_engine_policy_refusal): whole-store replacement has no transaction-private image and subscription/ACL commands need their IO-owned protocols; outside the owner's unsupported list, so REAL.",
+   "repro_case": "MULTI-POLICY-REFUSAL",
+   "redis": "MULTI; FLUSHALL -> QUEUED; EXEC -> [OK]; DBSIZE 0. RESP3 subscriber: MULTI; UNSUBSCRIBE bar -> QUEUED; EXEC -> [push unsubscribe bar 1]",
+   "tomokv": "FLUSHALL / UNSUBSCRIBE inside MULTI -> -ERR Command not allowed inside a transaction; EXEC -> -EXECABORT; DBSIZE 1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/lazyfree: FLUSHALL SYNC in MULTI not optimized to run as blocking FLUSHALL ASYNC",
+    "unit/pubsub: unsubscribe inside multi, and publish to self"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "MULTI-XREADGROUP-BLOCK-HANG",
+   "class": "REAL compatibility defect",
+   "title": "XREADGROUP ... BLOCK queued in MULTI makes EXEC block forever",
+   "subsystem": "src/cmd/multi.inc normalize_multi_blocking_pop lowers BLPOP/BRPOP/BLMPOP/BZPOP*/BZMPOP (XREAD BLOCK also runs non-blocking) but not XREADGROUP BLOCK (src/cmd/t_stream_groups.cc)",
+   "design_note": null,
+   "repro_case": "MULTI-XREADGROUP-BLOCK-HANG",
+   "redis": "EXEC -> [nil] immediately",
+   "tomokv": "EXEC never replies (TIMEOUT)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/multi: Blocking commands ignores the timeout"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "OBJECT-IDLETIME-ZERO",
+   "class": "REAL compatibility defect",
+   "title": "OBJECT IDLETIME is always 0 unless maxmemory is configured",
+   "subsystem": "src/store/flatstore.h object_idle_seconds / configure_maxmemory -> configure_object_idle(enabled); src/cmd/server_tail.cc cmd_object_impl",
+   "design_note": "Apparently deliberate zero-cost default: the per-object idle clock (ObjectIdleClock, src/store/object_idle.h) is installed only when maxmemory is enabled; with CONFIG SET maxmemory 1gb the same sequence reports 2-3 s.",
+   "repro_case": "OBJECT-IDLETIME-ZERO",
+   "redis": "SET foo bar; sleep 2.5; OBJECT IDLETIME foo -> :2 or :3",
+   "tomokv": "OBJECT IDLETIME foo -> :0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection-2: TTL, TYPE and EXISTS do not alter the last access time of a key"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PAUSE-BLOCKED-COUNT",
+   "class": "REAL compatibility defect",
+   "title": "Clients postponed by CLIENT PAUSE are not counted as blocked (INFO blocked_clients 0, CLIENT LIST flags=N)",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_armed_gate/climon_pause_holds (a paused frame is left unparsed; nothing feeds Server::blocked_clients, reported by INFO in src/cmd/t_server.cc)",
+   "design_note": null,
+   "repro_case": "PAUSE-BLOCKED-COUNT",
+   "redis": "blocked_clients:1 while a SET waits on CLIENT PAUSE WRITE",
+   "tomokv": "blocked_clients:0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test new pause time is smaller than old one, then old time preserved",
+    "unit/pause: Test write commands are paused by RO",
+    "unit/pause: Test scripts are blocked by pause RO",
+    "unit/pause: Test multiple clients can be queued up and unblocked",
+    "unit/pause: CLIENT UNBLOCK is not allow to unblock client blocked by CLIENT PAUSE"
+   ],
+   "group": "B1",
+   "also_found_as": [
+    {
+     "group": "B2",
+     "id": "PAUSE-POSTPONED-NOT-BLOCKED",
+     "repro_case": "B2-PAUSE-POSTPONED-NOT-BLOCKED",
+     "title": "A command held back by CLIENT PAUSE WRITE is not counted in INFO blocked_clients"
+    }
+   ]
+  },
+  {
+   "id": "PAUSE-CLIENT-EXEMPT",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT commands bypass PAUSE ALL, and a later PAUSE WRITE replaces an active PAUSE ALL",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_pause_holds (CmdFlags::Climon exemption) + src/core/server.h Server::climon_set_pause (mode stored unconditionally; Redis pauseClientsByClient keeps ALL)",
+   "design_note": "Deliberate divergence documented in climon_pause_holds: CLIENT/RESET/MONITOR are exempt so CLIENT UNPAUSE always works; Redis postpones them under PAUSE ALL.",
+   "repro_case": "PAUSE-CLIENT-EXEMPT",
+   "redis": "second CLIENT PAUSE and a GET both postponed until the 1500 ms ALL pause ends",
+   "tomokv": "second CLIENT PAUSE answers OK at once and the GET is served during the ALL pause",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test old pause-all takes precedence over new pause-write (less restrictive)"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PAUSE-EXEC-NOT-HELD",
+   "class": "REAL compatibility defect",
+   "title": "EXEC of a transaction containing writes is not postponed by CLIENT PAUSE WRITE",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_pause_holds (EXEC's own row lacks Write; the queued commands' flags are not considered) / src/cmd/multi.inc",
+   "design_note": null,
+   "repro_case": "PAUSE-EXEC-NOT-HELD",
+   "redis": "EXEC postponed until UNPAUSE; GET k during the pause is nil",
+   "tomokv": "EXEC answers [OK] during the pause and GET k already returns 'v'",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test write multi-execs are blocked by pause RO",
+    "unit/pause: Test write scripts in multi-exec are blocked by pause RO"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PAUSE-IN-MULTI",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT PAUSE queued in MULTI fails at EXEC with \"ERR unknown subcommand 'PAUSE'\"",
+   "subsystem": "src/cmd/t_server.cc cmd_client (executor-side CLIENT handler used by EXEC has no PAUSE/UNPAUSE; only the IO-side climon handler does)",
+   "design_note": null,
+   "repro_case": "PAUSE-IN-MULTI",
+   "redis": "EXEC -> [OK, OK]; the pause starts after the transaction",
+   "tomokv": "EXEC -> [OK, -ERR unknown subcommand 'PAUSE'. Try CLIENT HELP.]; no pause",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test both active and passive expires are skipped during client pause",
+    "unit/pause: Test that client pause starts at the end of a transaction",
+    "unit/pause: Test the randomkey command will not cause the server to get into an infinite loop during the client pause write"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PAUSE-MAY-REPLICATE",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT PAUSE WRITE does not postpone may-replicate commands (PFCOUNT, PUBLISH)",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_pause_holds (WRITE mode tests only CmdFlags::Write; Redis pauses CMD_WRITE|CMD_MAY_REPLICATE)",
+   "design_note": null,
+   "repro_case": "PAUSE-MAY-REPLICATE",
+   "redis": "PFCOUNT and PUBLISH postponed until UNPAUSE, then 1 / 0",
+   "tomokv": "PFCOUNT 1 and PUBLISH 0 answered during the pause",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test special commands are paused by RO",
+    "unit/pause: Test read/admin multi-execs are not blocked by pause RO"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PAUSE-SCRIPT-FLAGS",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT PAUSE WRITE postpones read-only scripts/functions (EVAL #!lua flags=no-writes, FCALL of a no-writes function)",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_pause_holds (decides from the static EVAL/EVALSHA/FCALL command row; Redis uses the script/function flags via getCommandFlags)",
+   "design_note": null,
+   "repro_case": "PAUSE-SCRIPT-FLAGS",
+   "redis": "FCALL f1 (no-writes) answers 'hello' during PAUSE WRITE",
+   "tomokv": "FCALL f1 is held until UNPAUSE (TIMEOUT); blocking-client tests hang",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pause: Test RO scripts are not blocked by pause RO",
+    "unit/pause: Test read-only scripts in multi-exec are not blocked by pause RO"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PUBSUB-EVICT-ON-MAXMEMORY",
+   "class": "REAL compatibility defect",
+   "title": "allkeys-lru with maxmemory 1: nothing is evicted (no evicted event, key survives, writes OOM-rejected); Redis evicts during CONFIG SET maxmemory",
+   "subsystem": "src/store/flatstore.h eviction (Evicted erase paths) / CONFIG SET maxmemory apply",
+   "design_note": null,
+   "repro_case": "PUBSUB-EVICT-ON-MAXMEMORY",
+   "redis": "pmessage * __keyevent@0__:evicted foo; DBSIZE 0",
+   "tomokv": "TIMEOUT; DBSIZE 1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pubsub: Keyspace notifications: evicted events"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PUBSUB-IMPLICIT-CONSUMER-EVENT",
+   "class": "REAL compatibility defect",
+   "title": "Consumers created implicitly by XREADGROUP/XCLAIM emit no 'xgroup-createconsumer' keyspace event",
+   "subsystem": "src/cmd/t_stream_groups.cc: NotifyEventId::XgroupCreateconsumer is recorded only in XGROUP CREATECONSUMER (line 514); the consumer auto-create paths of XREADGROUP/XCLAIM/XAUTOCLAIM record none",
+   "design_note": null,
+   "repro_case": "PUBSUB-IMPLICIT-CONSUMER-EVENT",
+   "redis": "xgroup-create, xadd, xgroup-createconsumer x2",
+   "tomokv": "xgroup-create, xadd, then TIMEOUT",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pubsub: Keyspace notifications: stream events test"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PUBSUB-REPLY-OFF-PUSH",
+   "class": "REAL compatibility defect",
+   "title": "CLIENT REPLY OFF/SKIP also suppresses (p)subscribe confirmations (Redis 7 delivers pub/sub pushes regardless)",
+   "subsystem": "src/core/pubsub.inc PubSubPending Modify completion (~line 729): (p|s)subscribe acks are appended to the command's reply sink via pubsub_append_ack, so CLIENT REPLY OFF/SKIP discards them; published messages go out-of-band and survive",
+   "design_note": null,
+   "repro_case": "PUBSUB-REPLY-OFF-PUSH",
+   "redis": "[subscribe ch 1] / [psubscribe * 1]",
+   "tomokv": "TIMEOUT (no confirmation)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pubsub: PubSub messages with CLIENT REPLY OFF",
+    "unit/pubsub: Keyspace notifications: we receive keyspace notifications",
+    "unit/pubsub: Keyspace notifications: we receive keyevent notifications"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "class": "REAL compatibility defect",
+   "title": "SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE are not OOM-gated (DENYOOM in Redis 7.4.10)",
+   "subsystem": "command metadata/admission for the subscribe family (src/core/pubsub.inc; OOM gate applied to SET but not to subscribe)",
+   "design_note": null,
+   "repro_case": "PUBSUB-SUBSCRIBE-NO-DENYOOM",
+   "redis": "-OOM command not allowed when used memory > 'maxmemory'.",
+   "tomokv": "[subscribe ch 1] (SET is OOM-rejected by both)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/pubsub: subscribe  fails with OOM when memory limit exceeded",
+    "unit/pubsub: ssubscribe  fails with OOM when memory limit exceeded",
+    "unit/pubsub: psubscribe  fails with OOM when memory limit exceeded",
+    "unit/pubsub: subscribe with 2 clients fails with OOM when memory limit exceeded",
+    "unit/pubsub: ssubscribe with 2 clients fails with OOM when memory limit exceeded",
+    "unit/pubsub: psubscribe with 2 clients fails with OOM when memory limit exceeded",
+    "unit/pubsub: subscribe with large channel name fails due to OOM",
+    "unit/pubsub: psubscribe with large pattern name fails due to OOM",
+    "unit/pubsub: ssubscribe with large shard channel name fails due to OOM",
+    "unit/pubsub: subscribe succeeds with small channel but fails with large channel due to OOM",
+    "unit/pubsub: psubscribe succeeds with small pattern but fails with large pattern due to OOM",
+    "unit/pubsub: ssubscribe succeeds with small channel but fails with large channel due to OOM"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "RESET-CLEARS-LIBNAME",
+   "class": "REAL compatibility defect",
+   "title": "RESET clears CLIENT SETINFO lib-name/lib-ver (Redis keeps them)",
+   "subsystem": "src/cmd/t_server.cc command_client_reset_meta (meta->lib_name.clear(); meta->lib_ver.clear())",
+   "design_note": null,
+   "repro_case": "RESET-CLEARS-LIBNAME",
+   "redis": "lib-name=redis.py lib-ver=1.0 after RESET",
+   "tomokv": "lib-name= lib-ver= after RESET",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/introspection: RESET does NOT clean library name"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "RESET-IN-MULTI",
+   "class": "REAL compatibility defect",
+   "title": "RESET inside MULTI is queued instead of executed immediately",
+   "subsystem": "src/cmd/multi.inc queue path (RESET is not in the immediate set EXEC/DISCARD/MULTI/WATCH/QUIT/RESET that Redis processCommand applies)",
+   "design_note": null,
+   "repro_case": "RESET-IN-MULTI",
+   "redis": "RESET -> +RESET; EXEC -> -ERR EXEC without MULTI; key not set",
+   "tomokv": "RESET -> QUEUED; EXEC -> [OK, RESET]; key set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/other: RESET clears and discards MULTI state"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "RESET-MONITOR-ECHO",
+   "class": "REAL compatibility defect",
+   "title": "A MONITOR client sending RESET first receives its own monitor line",
+   "subsystem": "src/cmd/climon.cc IoLoop::climon_armed_gate -> climon_monitor_feed (feeds monitors before execution; Redis feeds after call(), when RESET has removed the client from the monitor list)",
+   "design_note": null,
+   "repro_case": "RESET-MONITOR-ECHO",
+   "redis": "+RESET only",
+   "tomokv": "+<ts> [0 addr] \"RESET\" then +RESET",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/other: RESET clears MONITOR state"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "SLOWLOG-BLOCKED-NOT-LOGGED",
+   "class": "REAL compatibility defect",
+   "title": "A blocked command that is later served is never written to the slowlog",
+   "subsystem": "src/cmd/slowlog.cc slowlog_complete (returns unless the op owns the active SlowlogTiming); src/cmd/blocking.inc blocking_publish_completion/blocking_task_done call it from the pass of the command that served the key (e.g. LPUSH), so the BLPOP is skipped",
+   "design_note": null,
+   "repro_case": "SLOWLOG-BLOCKED-NOT-LOGGED",
+   "redis": "SLOWLOG LEN 3 including 'BLPOP mylist 0' after it is served",
+   "tomokv": "SLOWLOG LEN 2, no BLPOP entry",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/slowlog: SLOWLOG - Rewritten commands are logged as their original command",
+    "unit/slowlog: SLOWLOG - blocking command is reported only after unblocked"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "SLOWLOG-EXEC-BODY-NOT-LOGGED",
+   "class": "REAL compatibility defect",
+   "title": "Slow commands executed by EXEC are not logged",
+   "subsystem": "src/cmd/slowlog.cc slowlog_complete records only the op that owns the active SlowlogTiming; EXEC children (src/cmd/multi.inc) are not that op and EXEC itself is not logged (inferred from code + behaviour)",
+   "design_note": null,
+   "repro_case": "SLOWLOG-EXEC-BODY-NOT-LOGGED",
+   "redis": "SLOWLOG LEN 1, entry 'DEBUG SLEEP 0.2'",
+   "tomokv": "SLOWLOG LEN 0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/slowlog: SLOWLOG - EXEC is not logged, just executed commands"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "SLOWLOG-MAXLEN-PER-THREAD",
+   "class": "REAL compatibility defect",
+   "title": "slowlog-max-len enforced per thread; SLOWLOG LEN / GET -1 exceed it",
+   "subsystem": "src/cmd/slowlog.cc slowlog push (per-thread SlowlogShard trimmed to live_max) and cmd_slowlog LEN/GET (sum/merge of all shards)",
+   "design_note": null,
+   "repro_case": "SLOWLOG-MAXLEN-PER-THREAD",
+   "redis": "SLOWLOG LEN 3 with slowlog-max-len 3",
+   "tomokv": "SLOWLOG LEN 4 (2s) / 5 (1s)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/slowlog: SLOWLOG - max entries is correctly handled",
+    "unit/slowlog: SLOWLOG - GET optional argument to limit output len works",
+    "unit/slowlog: SLOWLOG - get all slow logs"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "TRACK-BCAST-BATCH",
+   "class": "REAL compatibility defect",
+   "title": "BCAST tracking sends one invalidation message per changed key instead of one per prefix batching all keys changed in the event-loop pass",
+   "subsystem": "src/cmd/tracking.cc IoLoop::tracking_invalidate_local (bcast branch: tracking_deliver_frame per key; tracking_emit_invalidation always builds a 1-key array)",
+   "design_note": null,
+   "repro_case": "TRACK-BCAST-BATCH",
+   "redis": "MSET a b c -> one push [invalidate [a b c]]",
+   "tomokv": "three pushes [invalidate [a]], [invalidate [b]], [invalidate [c]]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/tracking: The connection gets invalidation messages about all the keys",
+    "unit/tracking: Clients can enable the BCAST mode with prefixes",
+    "unit/tracking: Adding prefixes to BCAST mode works",
+    "unit/tracking: Tracking NOLOOP mode in standard mode works",
+    "unit/tracking: Tracking NOLOOP mode in BCAST mode works",
+    "unit/tracking: Tracking gets notification of expired keys",
+    "unit/tracking: Tracking gets notification of lazy expired keys",
+    "unit/tracking: RESP3 tracking redirection",
+    "unit/tracking: Invalidations of previous keys can be redirected after switching to RESP3",
+    "unit/tracking: Invalidations of new keys can be redirected after switching to RESP3",
+    "unit/tracking: RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+    "unit/tracking: Different clients can redirect to the same connection",
+    "unit/tracking: Different clients using different protocols can track the same key",
+    "unit/tracking: No invalidation message when using OPTIN option",
+    "unit/tracking: Invalidation message sent when using OPTIN option with CLIENT CACHING yes",
+    "unit/tracking: Invalidation message sent when using OPTOUT option",
+    "unit/tracking: No invalidation message when using OPTOUT option with CLIENT CACHING no",
+    "unit/tracking: Able to redirect to a RESP3 client",
+    "unit/tracking: After switching from normal tracking to BCAST mode, no invalidation message is produced for pre-BCAST keys",
+    "unit/tracking: hdel deliver invalidate message after response in the same connection",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking off",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking on",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking on with options",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking optin",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking optout",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking bcast mode"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "TRACK-INVALIDATE-BEFORE-REPLY",
+   "class": "REAL compatibility defect",
+   "title": "Invalidation for a key tracked inside MULTI/EXEC and lazily expired by a later MGET is written before the MGET reply, and then again after it",
+   "subsystem": "src/cmd/tracking.cc invalidation delivery vs reply ordering (tracking_invalidate_local / tracking_emit_invalidation; same-connection invalidations are not deferred until after the reply)",
+   "design_note": null,
+   "repro_case": "TRACK-INVALIDATE-BEFORE-REPLY",
+   "redis": "MGET -> [1, nil], then push [invalidate [y{t}]]",
+   "tomokv": "push [invalidate [y{t}]], then [1, nil], then a duplicate push",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/tracking: Tracking invalidation message is not interleaved with multiple keys response",
+    "unit/tracking: Tracking invalidation message is not interleaved with transaction response"
+   ],
+   "group": "B1"
+  },
+  {
+   "id": "TRACK-MAXKEYS-IMMUTABLE",
+   "class": "REAL compatibility defect",
+   "title": "CONFIG SET tracking-table-max-keys is rejected as immutable (Redis: runtime-mutable; the file helper clean_all sets it)",
+   "subsystem": "src/cmd/t_server.cc:428 g_config entry for tracking-table-max-keys flagged immutable (boot-latched; read by io owners from Config)",
+   "design_note": "Deliberate: comment at t_server.cc:426 says boot-latched, 'redis allows CONFIG SET'; not on the owner's unsupported list, so still REAL",
+   "repro_case": "TRACK-MAXKEYS-IMMUTABLE",
+   "redis": "+OK",
+   "tomokv": "-ERR CONFIG SET failed (possibly related to argument 'tracking-table-max-keys') - can't set immutable config",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/tracking: Tracking gets notification on tracking table key eviction",
+    "unit/tracking: Invalidation message received for flushdb",
+    "unit/tracking: Test ASYNC flushall",
+    "unit/tracking: flushdb tracking invalidation message is not interleaved with transaction response",
+    "unit/tracking: Server is able to evacuate enough keys when num of keys surpasses limit by more than defined initial effort",
+    "unit/tracking: Tracking info is correct",
+    "unit/tracking: CLIENT GETREDIR provides correct client id",
+    "unit/tracking: CLIENT TRACKINGINFO provides reasonable results when tracking redir broken",
+    "unit/tracking: Regression test for #11715",
+    "unit/tracking: RESP2 based basic invalidation with client reply off",
+    "unit/tracking: RESP3 based basic redirect invalidation with client reply off",
+    "unit/tracking: RESP3 based basic tracking-redir-broken with client reply off"
+   ],
+   "group": "B1"
+  }
+ ],
+ "notes": "EVIDENCE/HARNESS: Every file in every mode (Redis included) ends with the teardown exception 'expected non-negative integer but got \"\"' after done (controller socket closes); the harness counts it as teardown_exceptions, not a test, so it is not listed. TomoKV answers the harness's per-test 'DEBUG LOG' marker with an error (harmless). Full-file runs used --ratio 6:2 on 8 CPUs; all repro cases and Tcl reruns for this triage used --ratio 3:1 on CPUs 36-39 (fresh servers; 2s AND 1s were rerun in isolation for every independent root). build/h5reach/final/report.json.gz was checked row by row against final-a/final-b: identical failing sets. 'hung' and 'where' come from the full-file and reach evidence: 'unit/multi: Blocking commands ignores the timeout' is hung=false (it errored in the full-file run behind the MULTI cascade) but HANGS on a fresh server (MULTI-XREADGROUP-BLOCK-HANG). run_file's SO_REUSEADDR probe bind can fail with EADDRINUSE for ~60 s on a port that only holds TIME-WAIT sockets from a killed server; use another port or wait. CASCADES: (1) unit/tracking -- TRACK-BCAST-BATCH is the only first-half root: 'The connection gets invalidation messages about all the keys' (then the prefix test) leaves extra one-key invalidations in $rd_redirection, so every later read is shifted; 'RESP3 Client gets tracking-redir-broken...' then reads a stale message instead of the QUIT 'OK' and aborts before recreating $rd_redirection, r keeps REDIRECT to the dead client and accumulates tracking-redir-broken pushes; once the stale queue drains the next read hits EOF ('I/O error reading reply'), redis.tcl silently reconnects the deferred client and the following read waits forever on a fresh unsubscribed socket = the hang. The hang point moves because the active-expire invalidation for mykey{t} lands before or after that read (one-message offset); that offset is also the only reason 'Different clients using different protocols can track the same key' passed in reach-2s and failed in reach-1s -- not a mode difference. All 11 tests from the redir-broken test to 'hdel deliver...' pass on 2s and 1s with an in-sync redirection client. The 5th tracking hang ('...tracking table key eviction') is independent (fresh: TRACK-MAXKEYS-IMMUTABLE). (2) unit/pause -- every failing pause test returns before 'client unpause', leaving a 60-100 s PAUSE WRITE armed that holds the next test's first write past the idle deadline; that explains four of the six discovery hangs; the two RO-script tests hang on a FRESH server (PAUSE-SCRIPT-FLAGS); only 'Test read/admin multi-execs are not blocked by pause RO' is a pure cascade. (3) unit/multi -- 'DISCARD should not fail during OOM' aborts before DISCARD and before 'config set maxmemory 0', so the main client stays inside MULTI with maxmemory 1 for the rest of the file: 5 tests are pure cascades ('MULTI calls can not be nested', 'Command not allowed inside a transaction'), the others fail on their own roots in a fresh run. (4) unit/protocol -- 'test large number of args' and 'test argument rewriting - issue 9598' are cascades of 'RESP3 attributes readraw' (aborts on DEBUG PROTOCOL with readraw/deferred left on); a rerun skipping it passes both in 2s and 1s. (5) unit/pubsub -- 'publish to self inside multi' gets 3 receivers because two earlier failing keyspace tests never close their 'psubscribe *' clients: the listpackex test (UNSUP-ENCODING, cited) and the stream-events test (PUBSUB-IMPLICIT-CONSUMER-EVENT); the cascade survives a fix of either one alone. MODE DIFFERENCES: none that are real. In the original 6:2 full-file run the 2s multi script-timeout tests saw '$r2 EXEC' answer 'EXECABORT ... execution error' where 1s answered '-OOM ...'; a traced 3:1 rerun gave -OOM in both -- a geometry-dependent view of MULTI-OOM-EXEC through the leftover maxmemory 1. SLOWLOG-MAXLEN-PER-THREAD counts depend on the thread layout (max-len 3 -> 2s 4 entries, 1s 5; a 6:2 isolated 'max entries' rerun passed). JUDGMENT CALLS: MIGRATE is treated as part of the deliberately absent cluster family (COMMAND LIST diff vs Redis 7.4.10: TomoKV lacks exactly cluster*, migrate, module*, psync, replconf, sync) -> 'MIGRATE command is marked with movablekeys', 'MONITOR supports redacting command arguments', 'SLOWLOG - Some commands can redact sensitive fields' are class 1; if MIGRATE should exist they are REAL. maxmemory-clients (client eviction) and the hidden test-only knobs rdb-key-save-delay/key-load-delay are class 2 (memory / persistence-timing internals); 'CONFIG SET rollback on set error' otherwise rolls back correctly. 'CONFIG sanity' first trips on hll-sparse-max-bytes (class 2 alone) but also on port/bind/tls-auth-clients (REAL) and TomoKV-only boot knobs (thread-mode, net-io, ...), hence REAL. Merged roots: MULTI-POLICY-REFUSAL = FLUSHALL-in-MULTI (unit/lazyfree) + UNSUBSCRIBE-in-MULTI (unit/pubsub), both multi_engine_policy_refusal ('Owner decision group 5'); LAZYFREE-COUNTERS also covers the tracking eviction test (same missing lazyfree_pending_objects). REPRO CAVEATS: CLIENT-LIST-CMD-NAME and RESET-CLEARS-LIBNAME compare a CLIENT INFO line that also carries volatile per-connection fields, so read cmd=client vs cmd=client|info and lib-name= vs lib-name=redis.py in repros.json (upstream: ./runtest --single unit/introspection --only \"CLIENT LIST with IDs\"; --only \"CLIENT SETINFO can set a library name to this connection\" --only \"RESET does NOT clean library name\"). PAUSE-BLOCKED-COUNT compares the whole INFO clients reply (TomoKV prints 4 of Redis's 13 fields); the discriminating field is blocked_clients (Redis 1, TomoKV 0) (upstream: ./runtest --single unit/pause --only \"Test write commands are paused by RO\"). INFO-MISSING-FIELDS: Redis's CPU numbers are volatile, the defect is TomoKV's empty bulk. OBJECT-IDLETIME-ZERO: Redis answers 2 or 3 depending on clock alignment, TomoKV 0. CONNECTED-CLIENTS-LAG reproduced 6/6 per mode; the stale count clears within ~1 s even when idle. SECONDARY FINDINGS (not the first failure of any B1 test): EVAL bodies with a '#!lua' shebang (with or without flags=) fail to compile on TomoKV -- only FUNCTION LOAD parses shebangs; it sits behind PAUSE-SCRIPT-FLAGS/PAUSE-BLOCKED-COUNT in the pause script tests (case EVAL-SHEBANG-UNPARSED, DIFFERENT in 2s and 1s). CLIENT TRACKING REDIRECT is briefly accepted for a client that has just QUIT (Redis: 'does not exist'), probably the same deferred-release window as CONNECTED-CLIENTS-LAG; it feeds the tracking chain (probe parts/T-probe-quit.py). INFO CLIENTS lacks most Redis fields (cluster_connections, maxclients, client_recent_max_*, pubsub_clients, watching_clients, ...). DEBUG OBJECT is not implemented on this base (the brief lists it as implemented).",
+ "merged_root_ids": {
+  "B1:SCRIPT-CMD-WHITELIST": "SCRIPT-CMD-WHITELIST",
+  "B1:SCRIPT-UNDECLARED-KEY": "SCRIPT-UNDECLARED-KEY",
+  "B1:ERROR-STATS-ABSENT": "INFO-ERRORSTATS",
+  "B1:AOF-IMMUTABLE": "APPENDONLY-IMMUTABLE",
+  "B1:SCRIPT-INSTR-LIMIT": "SCRIPT-INSTRUCTION-LIMIT (latency-monitor) / SCRIPT-NO-BUSY-WINDOW (multi)"
+ }
+}

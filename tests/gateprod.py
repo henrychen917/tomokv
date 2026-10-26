@@ -174,6 +174,11 @@ def run_gate(argv):
 
     old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
     statuses = []
+    primary = parse_abba(argv)
+    product = dict(schema=1, complete=False, passes=[])
+    if primary.output is not None:
+        # A previous run's complete record must not survive a run that fails early.
+        (primary.output / "product.json").unlink(missing_ok=True)
     try:
         for name, arguments in commands:
             print(f"GATE measurement pass: {name}", flush=True)
@@ -183,20 +188,36 @@ def run_gate(argv):
                                       cwd=ROOT, start_new_session=True)
             rc = active.wait()
             statuses.append(dict(pass_name=name, exit_code=rc))
+            args = parse_abba(arguments)
+            row = dict(statuses[-1])
+            if args.output is not None:
+                from gate_product_evidence import artifact
+                for key, filename in (("report", "results.json"), ("null", "null-control.json")):
+                    path = args.output / filename
+                    if path.is_file():
+                        row[key] = artifact(path)
+            product["passes"].append(row)
             active = None
+        product["complete"] = True
         print("GATE measurement passes: " + json.dumps(statuses), flush=True)
         return 1 if any(row["exit_code"] not in (0, 3) for row in statuses) else (
             3 if any(row["exit_code"] == 3 for row in statuses) else 0)
     finally:
-        if active is not None and active.poll() is None:
-            active.terminate()
-            try:
-                active.wait(timeout=30)
-            except subprocess.TimeoutExpired:
-                active.kill()
-                active.wait()
-        for sig, handler in old.items():
-            signal.signal(sig, handler)
+        try:
+            if active is not None and active.poll() is None:
+                active.terminate()
+                try:
+                    active.wait(timeout=30)
+                except subprocess.TimeoutExpired:
+                    active.kill()
+                    active.wait()
+        finally:
+            # Even an interrupted cleanup records the (incomplete) product.
+            for sig, handler in old.items():
+                signal.signal(sig, handler)
+            if primary.output is not None:
+                primary.output.mkdir(parents=True, exist_ok=True)
+                (primary.output / "product.json").write_text(json.dumps(product, indent=2) + "\n")
 
 
 def smoke(args):
@@ -406,6 +427,42 @@ def self_test():
                 parsed = parse_abba(second[2:])
                 self.assertEqual(parsed.cells, EPOLL)
                 self.assertEqual(parsed.output, Path("build/result-epoll"))
+
+        def test_product_record_binds_both_passes_and_refuses_changed_or_interrupted_evidence(self):
+            from gate_product_evidence import read_product
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+                out = Path(directory) / "result"
+
+                def started(argv, **_):
+                    args = parse_abba(argv[2:])
+                    args.output.mkdir(parents=True, exist_ok=True)
+                    for name in ("results.json", "null-control.json"):
+                        (args.output / name).write_text(json.dumps(dict(pass_output=args.output.name, file=name)))
+                    return mock.Mock(wait=mock.Mock(return_value=0))
+                with mock.patch.object(subprocess, "Popen", side_effect=started), redirect_stdout(io.StringIO()):
+                    self.assertEqual(run_gate(["--output", str(out)]), 0)
+                product = json.loads((out / "product.json").read_text())
+                self.assertTrue(product["complete"])
+                self.assertEqual([row["pass_name"] for row in product["passes"]], ["headline", "epoll"])
+                for row, folder in zip(product["passes"], (out, out.with_name("result-epoll"))):
+                    self.assertEqual(row["exit_code"], 0)
+                    for key, name in (("report", "results.json"), ("null", "null-control.json")):
+                        path = (folder / name).resolve()
+                        self.assertEqual(row[key], dict(path=str(path),
+                                                        sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+                replayed = read_product(out / "product.json")
+                self.assertEqual(replayed["passes"][1]["report"]["pass_output"], "result-epoll")
+                (out.with_name("result-epoll") / "results.json").write_text("{}")
+                with self.assertRaisesRegex(ValueError, "artifact changed"):
+                    read_product(out / "product.json")
+                process = mock.Mock(wait=mock.Mock(side_effect=InterruptedError("control")))
+                process.poll.return_value = None
+                with mock.patch.object(subprocess, "Popen", return_value=process), \
+                        redirect_stdout(io.StringIO()), self.assertRaises(InterruptedError):
+                    run_gate(["--output", str(out)])
+                self.assertFalse(json.loads((out / "product.json").read_text())["complete"])
+                with self.assertRaisesRegex(ValueError, "did not complete"):
+                    read_product(out / "product.json")
 
         def test_coordinator_interrupt_terminates_the_active_driver_once(self):
             process = mock.Mock()

@@ -1,0 +1,3658 @@
+{
+ "A-SCRIPT-CMD-WHITELIST": {
+  "title": "redis.call/pcall rejects every command outside a fixed single-key whitelist (PING, MGET, SORT, blocking pops ...)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call('ping')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call('mget',KEYS[1],KEYS[2])",
+     "2",
+     "a{t}",
+     "b{t}"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.pcall('blpop',KEYS[1],0)",
+     "1",
+     "l"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-UNDECLARED-KEY": {
+  "title": "redis.call on a key not passed in KEYS is rejected",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call('set','x','1')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "get",
+     "x"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-NUMBER-ARG": {
+  "title": "Lua number arguments to redis.call are stringified with %.14g instead of exact (fpconv) conversion",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "redis.call('set',KEYS[1],9007199254740991) return redis.call('get',KEYS[1])",
+     "1",
+     "foo"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "redis.call('set',KEYS[1],0.1+0.2) return redis.call('get',KEYS[1])",
+     "1",
+     "foo"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-EVAL-SHEBANG": {
+  "title": "EVAL / SCRIPT LOAD do not parse the #!lua shebang line or its flags",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "#!lua\nreturn 1",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "#!lua flags=no-writes\nreturn redis.call('set',KEYS[1],'1')",
+     "1",
+     "x"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "#!not-lua\nreturn 1",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "script",
+     "load",
+     "#!lua\nreturn 1"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-ERROR-WORDING": {
+  "title": "Script error texts differ: empty redis.call(), wrong arity, non-string argument, error({})",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call()",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call('get','a','b','c')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.call('get',{})",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "error({})",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-REPLY-DEPTH": {
+  "title": "A script reply nested deeper than 32 levels fails as a whole instead of being converted",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "local t={} local c=t for i=1,40 do c[1]={} c=c[1] end return t",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-LUA-HELPER-LIBS": {
+  "title": "cjson, cmsgpack, bit, struct and redis.sha1hex are absent (implemented on unmerged cx-lualibs)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return cjson.encode({1,2})",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return #cmsgpack.pack(1)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return bit.band(3,1)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return #struct.pack('>I2',1)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.sha1hex('')",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-LUA-SANDBOX-GLOBALS": {
+  "title": "Sandbox strips standard globals Redis keeps: os.clock, loadstring, coroutine, collectgarbage, math.random/randomseed",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return type(os.clock)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return type(loadstring)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return type(coroutine)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return type(collectgarbage)",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return {type(math.random), type(math.randomseed)}",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-LUA-REDIS-API": {
+  "title": "redis.* helpers absent: error_reply, status_reply, log, REDIS_VERSION_NUM (and acl_check_cmd, set_repl ...)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.error_reply('MY_ERR custom msg')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.status_reply('MY_OK custom msg')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "redis.log(redis.LOG_NOTICE,'x') return 1",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "return redis.REDIS_VERSION_NUM",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-INSTRUCTION-LIMIT": {
+  "title": "Scripts are aborted after 100,000 Lua instructions (EVAL BUSY error; FUNCTION LOAD instruction-limit error)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "eval",
+     "local i=0 while i<200000 do i=i+1 end return i",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=loop\nlocal a = 1\nwhile 1 do a = a + 1 end"
+    ],
+    "timeout": 3.0
+   }
+  ],
+  "group": "A"
+ },
+ "A-SCRIPT-NO-BUSY-WINDOW": {
+  "title": "No busy-script window: lua-time-limit/busy-reply-threshold unknown, other clients never see BUSY, SCRIPT KILL answers NOTBUSY",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "config",
+     "set",
+     "busy-reply-threshold",
+     "10"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "eval",
+     "while true do end",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.3
+   },
+   {
+    "c": "a",
+    "send": [
+     "ping"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "script",
+     "kill"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 2.0
+   }
+  ],
+  "group": "A"
+ },
+ "A-ACL-SCRIPTS-NEED-ALLCOMMANDS": {
+  "title": "A user without +@all cannot run EVAL/FCALL even when +@scripting grants them",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "acl",
+     "setuser",
+     "bob",
+     "on",
+     ">123",
+     "+@scripting",
+     "~*"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "auth",
+     "bob",
+     "123"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "eval",
+     "return 1",
+     "0"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "fcall",
+     "nosuch",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-EVALSHA-SHA-CASE": {
+  "title": "EVALSHA / SCRIPT EXISTS sha1 lookup is case-sensitive",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "script",
+     "load",
+     "return 'hello'"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "evalsha",
+     "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "script",
+     "exists",
+     "1B936E3FE509BCBC9CD0664897BBE8FD0CAC101B"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-INFO-ERRORSTATS": {
+  "title": "INFO errorstats section is empty (no errorstat_<PREFIX> counters)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "set",
+     "x"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "info",
+     "errorstats"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FCALL-NAME-CASE": {
+  "title": "FCALL function-name lookup is case-sensitive",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=lib1\nredis.register_function('test', function() return 'hello' end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "fcall",
+     "TEST",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-SUBCMD-ARGS": {
+  "title": "FUNCTION LOAD/RESTORE/FLUSH/LIST argument validation and errors differ",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "foo",
+     "bar",
+     "#!lua name=lib9\nredis.register_function('t9', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "restore",
+     "arg1",
+     "arg2",
+     "arg3"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "flush",
+     "sync",
+     "extra"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "list",
+     "withcode",
+     "withcode"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "list",
+     "libraryname",
+     "a",
+     "libraryname",
+     "b"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-LIST-CRLF": {
+  "title": "FUNCTION LIST echoes an unknown argument with raw CR/LF into its error: a forged reply desyncs the connection",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "list",
+     "X\r\n+INJECTED"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "ping"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "ping"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-REGISTER-ARGS": {
+  "title": "redis.register_function argument validation and messages differ",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=lib2\nredis.register_function('f2', 'not a function')"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=lib2\nredis.register_function(nil, function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=lib2\nredis.register_function('test\u0000test', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "replace",
+     "#!lua name=lib3\nredis.register_function('', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=lib4\nlocal lib = redis\nlib.register_function('f4', function() lib.register_function('f5', function() return 1 end) end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "fcall",
+     "f4",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-LOAD-ENV": {
+  "title": "FUNCTION LOAD runs the library body with the full sandbox (math, getmetatable ...) instead of only the redis API",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=env1\nlocal p = math.pi\nredis.register_function('e1', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=env2\nlocal mt = getmetatable(_G)\nredis.register_function('e2', function() return 1 end)"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-SHEBANG-META": {
+  "title": "Library shebang metadata: duplicate name= accepted (last wins), quoted name rejected",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=foo name=bar\nredis.register_function('foo', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=\"foo\"\nredis.register_function('foo', function() return 1 end)"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-FUNCTION-LOAD-DENYOOM": {
+  "title": "FUNCTION LOAD is not refused while the server is over maxmemory",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "set",
+     "x",
+     "123"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "config",
+     "set",
+     "maxmemory",
+     "1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "set",
+     "x",
+     "456"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "function",
+     "load",
+     "#!lua name=oom1\nredis.register_function('o1', function() return 1 end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "config",
+     "set",
+     "maxmemory",
+     "0"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "A-DEBUG-RELOAD-OPTIONS": {
+  "title": "DEBUG RELOAD accepts no options (NOSAVE/NOFLUSH/MERGE rejected)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "debug",
+     "reload"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "debug",
+     "reload",
+     "nosave",
+     "noflush",
+     "merge"
+    ]
+   }
+  ],
+  "group": "A"
+ },
+ "SCRIPT-CMD-WHITELIST": {
+  "title": "Scripts may only call whitelisted commands: redis.call('ping') / redis.call('expire', KEYS[1], ...) work on Redis, TomoKV rejects them (\"command 'X' is not allowed from scripts\")",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "return redis.call('ping')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "return redis.call('expire', KEYS[1], 100)",
+     "1",
+     "k"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "return redis.call('publish', 'ch', 'm')",
+     "0"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "SCRIPT-UNDECLARED-KEY": {
+  "title": "Standalone Redis lets a script (or function) touch a key it did not declare; TomoKV rejects it (\"Script attempted to access an undeclared key\")",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "return redis.call('set', 'undeclared', 'v')",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "FUNCTION",
+     "LOAD",
+     "#!lua name=b1lib\nredis.register_function('b1f', function() return redis.call('set', 'foo', 'bar') end)"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "FCALL",
+     "b1f",
+     "0"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "SCRIPT-INSTR-LIMIT": {
+  "title": "A script that runs more than 100,000 Lua instructions is aborted with BUSY on TomoKV (Redis runs it; lua-time-limit / busy-reply-threshold configs absent)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "local i = 0 while i < 300000 do i = i + 1 end return i",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "busy-reply-threshold"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "lua-time-limit"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "AOF-IMMUTABLE": {
+  "title": "CONFIG SET appendonly yes is accepted by Redis at runtime; TomoKV answers can't set immutable config (boot-only appendonly)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "appendonly",
+     "yes"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "appendonly"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "COMMAND-DOCS-INCOMPLETE": {
+  "title": "COMMAND DOCS carries no 'arguments' (and a placeholder summary/since/group), so redis-cli cannot build command-line hints from the server",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "COMMAND",
+     "DOCS",
+     "GET"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "INFO-MISSING-FIELDS": {
+  "title": "INFO CPU is an empty bulk on TomoKV (Redis: '# CPU' with used_cpu_sys/used_cpu_user...; numbers are volatile, the difference is the empty section); INFO SERVER also lacks redis_git_sha1/redis_git_dirty (recorded, not compared: volatile)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "CPU"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "SERVER"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "OBJECT-IDLETIME-ZERO": {
+  "title": "OBJECT IDLETIME is always 0 unless maxmemory is configured (idle clock armed only with maxmemory); Redis reports the idle seconds",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "foo",
+     "bar"
+    ]
+   },
+   {
+    "sleep": 2.5
+   },
+   {
+    "c": "a",
+    "send": [
+     "OBJECT",
+     "IDLETIME",
+     "foo"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "ERROR-STATS-ABSENT": {
+  "title": "Failed-command accounting is absent: after a WRONGTYPE GEOADD Redis reports errorstat_WRONGTYPE:count=1 and cmdstat_geoadd ...failed_calls=1; TomoKV has an empty INFO ERRORSTATS and cmdstat lines without usec/failed_calls",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "RESETSTAT"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "foo",
+     "1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "GEOADD",
+     "foo",
+     "0",
+     "0",
+     "bar"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "ERRORSTATS"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "COMMANDSTATS"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "CLIENT-LIST-CMD-NAME": {
+  "title": "CLIENT INFO/LIST report cmd=client instead of the full subcommand name cmd=client|info (the line also carries volatile per-connection fields id/addr/fd/age/mem, so read the cmd= field in the recorded replies)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "INFO"
+    ],
+    "normalize": [
+     [
+      "(?s)^.*\\b(cmd=[^ ]*).*$",
+      "\\1"
+     ]
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "LIST"
+    ],
+    "normalize": [
+     [
+      "(?s)^.*\\b(cmd=[^ ]*).*$",
+      "\\1"
+     ]
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "RESET-CLEARS-LIBNAME": {
+  "title": "RESET clears lib-name/lib-ver on TomoKV; Redis keeps the CLIENT SETINFO library name across RESET (read lib-name= in the recorded CLIENT INFO line; the line carries volatile per-connection fields)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "SETINFO",
+     "lib-name",
+     "redis.py"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "SETINFO",
+     "lib-ver",
+     "1.0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "INFO"
+    ],
+    "normalize": [
+     [
+      "(?s)^.*\\b(lib-name=[^ ]* lib-ver=[^ \\r\\n]*).*$",
+      "\\1"
+     ]
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "CONNECTED-CLIENTS-LAG": {
+  "title": "Killed connections stay counted (connected_clients and the maxclients admission check) until the IO loop's later release: with maxclients 2, after CLIENT KILL of 3 clients a new connection is refused on TomoKV, accepted by Redis",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "PING"
+    ]
+   },
+   {
+    "c": "c",
+    "send": [
+     "PING"
+    ]
+   },
+   {
+    "c": "d",
+    "send": [
+     "PING"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxclients",
+     "2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "KILL",
+     "SKIPME",
+     "YES"
+    ]
+   },
+   {
+    "c": "e",
+    "send": [
+     "PING"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "MONITOR-SCRIPT-CMDS": {
+  "title": "MONITOR does not show commands issued by a script: Redis logs the EVAL then '[0 lua] \"set\" \"foo\" \"bar\"'; TomoKV logs only the EVAL (second read TIMEOUT -> the upstream test hangs)",
+  "steps": [
+   {
+    "c": "m",
+    "send": [
+     "MONITOR"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "redis.call('set', KEYS[1], ARGV[1])",
+     "1",
+     "foo",
+     "bar"
+    ]
+   },
+   {
+    "c": "m",
+    "read": 1,
+    "timeout": 1.0,
+    "compare": false
+   },
+   {
+    "c": "m",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "LATENCY-HISTOGRAM-ABSENT": {
+  "title": "Per-command latency tracking is absent: LATENCY HISTOGRAM returns an empty array (Redis: per-command calls + histogram_usec; buckets are volatile, recorded only) and the latency-tracking config does not exist",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "latency-tracking"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "a",
+     "b"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "LATENCY",
+     "HISTOGRAM",
+     "set"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "CONFIG-RUNTIME-IMMUTABLE": {
+  "title": "Configs that Redis can change at runtime are immutable on TomoKV even when set to their current value: port, bind, tls-auth-clients (also hll-sparse-max-bytes, tracking-table-max-keys)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "bind",
+     "127.0.0.1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "port",
+     "45850"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "tls-auth-clients",
+     "yes"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "CONFIG-DAEMONIZE-ABSENT": {
+  "title": "The daemonize config does not exist on TomoKV: CONFIG GET daemonize is empty and CONFIG SET daemonize answers Unknown option instead of can't set immutable config",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "daemonize"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "daemonize",
+     "yes"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "TRACK-BCAST-BATCH": {
+  "title": "BCAST tracking: one invalidation per key instead of one message per prefix carrying every key changed in the same event-loop pass (MSET a b c)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "HELLO",
+     "3"
+    ],
+    "compare": false
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "TRACKING",
+     "on",
+     "BCAST"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MSET",
+     "a",
+     "1",
+     "b",
+     "2",
+     "c",
+     "3"
+    ]
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 0.5
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 0.5
+   }
+  ],
+  "group": "B1"
+ },
+ "TRACK-INVALIDATE-BEFORE-REPLY": {
+  "title": "Lazy-expire invalidation raised while serving MGET (key tracked by a GET inside MULTI/EXEC) is written BEFORE the MGET reply; Redis defers it until after the reply",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "HELLO",
+     "3"
+    ],
+    "compare": false
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "TRACKING",
+     "on"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "DEBUG",
+     "SET-ACTIVE-EXPIRE",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MSET",
+     "x{t}",
+     "1",
+     "y{t}",
+     "2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "PEXPIRE",
+     "y{t}",
+     "100"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "GET",
+     "y{t}"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "MGET",
+     "x{t}",
+     "y{t}"
+    ]
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "DEBUG",
+     "SET-ACTIVE-EXPIRE",
+     "1"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "TRACK-MAXKEYS-IMMUTABLE": {
+  "title": "CONFIG SET tracking-table-max-keys is refused as immutable (Redis: mutable; the Tcl clean_all helper sets it)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "tracking-table-max-keys",
+     "1000000"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "GET",
+     "tracking-table-max-keys"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "PUBSUB-REPLY-OFF-PUSH": {
+  "title": "CLIENT REPLY OFF/SKIP also swallows pub/sub pushes: no (p)subscribe confirmation (Redis delivers them)",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "CLIENT",
+     "REPLY",
+     "OFF"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "send": [
+     "SUBSCRIBE",
+     "ch"
+    ],
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "PUBLISH",
+     "ch",
+     "hello"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "send": [
+     "CLIENT",
+     "REPLY",
+     "SKIP"
+    ],
+    "read": 0
+   },
+   {
+    "c": "c",
+    "send": [
+     "PSUBSCRIBE",
+     "*"
+    ],
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PUBSUB-EVICT-ON-MAXMEMORY": {
+  "title": "CONFIG SET maxmemory below usage does not evict (no 'evicted' keyspace event, key survives); Redis evicts at once",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "notify-keyspace-events",
+     "Ee"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory-policy",
+     "allkeys-lru"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "PSUBSCRIBE",
+     "*"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "foo",
+     "bar"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.5
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "DBSIZE"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "PUBSUB-SUBSCRIBE-NO-DENYOOM": {
+  "title": "SUBSCRIBE/PSUBSCRIBE/SSUBSCRIBE are not rejected with OOM over maxmemory (Redis 7.4.10 marks them DENYOOM); SET is rejected by both",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SUBSCRIBE",
+     "ch"
+    ]
+   },
+   {
+    "c": "c",
+    "send": [
+     "PSUBSCRIBE",
+     "p*"
+    ]
+   },
+   {
+    "c": "d",
+    "send": [
+     "SSUBSCRIBE",
+     "s"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "0"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "PUBSUB-IMPLICIT-CONSUMER-EVENT": {
+  "title": "Implicit consumer creation (XREADGROUP by a new consumer, XCLAIM to a new consumer) emits no 'xgroup-createconsumer' keyspace event; explicit XGROUP CREATECONSUMER does",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "notify-keyspace-events",
+     "Kt"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "PSUBSCRIBE",
+     "*"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "mystream",
+     "mygroup",
+     "$",
+     "MKSTREAM"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "mystream",
+     "1-0",
+     "field1",
+     "A"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "mygroup",
+     "Alice",
+     "STREAMS",
+     "mystream",
+     ">"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XCLAIM",
+     "mystream",
+     "mygroup",
+     "Mike",
+     "0",
+     "1-0",
+     "FORCE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-BLOCKED-COUNT": {
+  "title": "A client postponed by CLIENT PAUSE WRITE is not counted as blocked: INFO clients blocked_clients:0 (Redis blocked_clients:1, CLIENT LIST flags=b). NOTE the compared INFO reply also differs in its field set (TomoKV prints 4 fields); the discriminating field is blocked_clients",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "100000",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.3
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "clients"
+    ],
+    "normalize": [
+     [
+      "(?s)^.*(blocked_clients:[0-9]+).*$",
+      "\\1"
+     ]
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "UNPAUSE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-CLIENT-EXEMPT": {
+  "title": "CLIENT PAUSE issued during PAUSE ALL executes at once (Redis postpones it until the ALL pause ends) and its WRITE mode replaces ALL, so a GET is served during the ALL pause",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "1500",
+     "ALL"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "20",
+     "WRITE"
+    ],
+    "read": 0
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 0.5
+   },
+   {
+    "c": "b",
+    "send": [
+     "GET",
+     "k"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 0.5
+   },
+   {
+    "sleep": 1.2
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-MAY-REPLICATE": {
+  "title": "CLIENT PAUSE WRITE does not postpone may-replicate commands: PFCOUNT and PUBLISH answer at once (Redis postpones both until UNPAUSE)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "PFADD",
+     "hll",
+     "x"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "100000",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "PFCOUNT",
+     "hll"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 0.7
+   },
+   {
+    "c": "c",
+    "send": [
+     "PUBLISH",
+     "foo",
+     "bar"
+    ],
+    "read": 0
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 0.7
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "UNPAUSE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-SCRIPT-FLAGS": {
+  "title": "CLIENT PAUSE WRITE postpones FCALL of a no-writes function (Redis derives the pause decision from the script/function flags and runs it); same for EVAL #!lua flags=no-writes",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "FUNCTION",
+     "LOAD",
+     "#!lua name=lib1\nredis.register_function{function_name='f1', callback=function() return 'hello' end, flags={'no-writes'}}"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "100000",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "FCALL",
+     "f1",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 0.7
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "UNPAUSE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-EXEC-NOT-HELD": {
+  "title": "EXEC of a transaction holding a write is not postponed by CLIENT PAUSE WRITE: it executes during the pause (Redis postpones EXEC until UNPAUSE)",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "100000",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "EXEC"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 0.7
+   },
+   {
+    "c": "a",
+    "send": [
+     "GET",
+     "k"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "UNPAUSE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "PAUSE-IN-MULTI": {
+  "title": "CLIENT PAUSE queued inside MULTI fails at EXEC with 'ERR unknown subcommand 'PAUSE'' (Redis pauses at the end of the transaction)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "300",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SET",
+     "k2",
+     "v"
+    ],
+    "read": 0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 0.15
+   },
+   {
+    "sleep": 0.4
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B1"
+ },
+ "MULTI-OOM-QUEUE": {
+  "title": "Under maxmemory OOM a deny-oom command is QUEUED inside MULTI (Redis rejects it with -OOM while queueing and EXEC answers EXECABORT)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SET",
+     "x",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "0"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "PING"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "MULTI-OOM-EXEC": {
+  "title": "OOM reached between queueing and EXEC: TomoKV executes the transaction with per-command -OOM elements (Redis rejects the whole EXEC: -EXECABORT Transaction discarded because of: OOM ...)",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "SET",
+     "y",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "GET",
+     "y"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory",
+     "0"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "MULTI-XREADGROUP-BLOCK-HANG": {
+  "title": "XREADGROUP ... BLOCK 0 queued in MULTI makes EXEC block forever (Redis runs it non-blocking inside EXEC and answers [nil])",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "s",
+     "g",
+     "$",
+     "MKSTREAM"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "g",
+     "c",
+     "BLOCK",
+     "0",
+     "STREAMS",
+     "s",
+     ">"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ],
+    "read": 0
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.5
+   }
+  ],
+  "group": "B1"
+ },
+ "RESET-IN-MULTI": {
+  "title": "RESET inside MULTI is QUEUED and executed by EXEC (Redis executes RESET immediately, discarding the transaction)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "key-a",
+     "a"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXISTS",
+     "key-a"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "RESET-MONITOR-ECHO": {
+  "title": "A MONITOR client that sends RESET first receives its own monitor line for RESET, then +RESET (Redis feeds monitors after execution, so the reply is +RESET only)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "MONITOR"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 0.5
+   }
+  ],
+  "group": "B1"
+ },
+ "DEBUG-LOADAOF-AOF-OFF": {
+  "title": "DEBUG LOADAOF after BGREWRITEAOF with appendonly no: TomoKV answers 'ERR appendonly is disabled' (Redis reloads the rewritten AOF and answers OK)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "x",
+     "10"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXPIRE",
+     "x",
+     "1000"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "BGREWRITEAOF"
+    ]
+   },
+   {
+    "sleep": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "DEBUG",
+     "LOADAOF"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "GET",
+     "x"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "SLOWLOG-MAXLEN-PER-THREAD": {
+  "title": "slowlog-max-len is enforced per executor thread, so SLOWLOG LEN / GET -1 exceed it (max-len 3, four keyed commands: TomoKV 4 in 2s / 5 in 1s, Redis 3)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "slowlog-log-slower-than",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "slowlog-max-len",
+     "3"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "key",
+     "test"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SADD",
+     "set",
+     "a",
+     "b",
+     "c"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "INCR",
+     "num"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "list",
+     "a"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "LEN"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "GET",
+     "-1"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "SLOWLOG-EXEC-BODY-NOT-LOGGED": {
+  "title": "A slow command executed by EXEC is not logged (SLOWLOG LEN 0; Redis logs the inner command, not EXEC: LEN 1 'debug sleep 0.2')",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "slowlog-log-slower-than",
+     "100000"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "DEBUG",
+     "SLEEP",
+     "0.2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "LEN"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "GET"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "SLOWLOG-BLOCKED-NOT-LOGGED": {
+  "title": "A BLPOP that blocks and is later served is never written to the slowlog (Redis logs it when it is unblocked)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "slowlog-log-slower-than",
+     "0"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "BLPOP",
+     "mylist",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.3
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "RESET"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "mylist",
+     "1"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "LEN"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SLOWLOG",
+     "GET"
+    ],
+    "compare": false
+   }
+  ],
+  "group": "B1"
+ },
+ "MULTI-POLICY-REFUSAL": {
+  "title": "Commands on TomoKV's MULTI refusal list (FLUSHALL/FLUSHDB, ACL, (P|S)(UN)SUBSCRIBE, DEBUG RELOAD|LOADAOF) answer 'ERR Command not allowed inside a transaction' and abort the EXEC; Redis queues and executes them",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "k",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "FLUSHALL"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "DBSIZE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "HELLO",
+     "3"
+    ],
+    "compare": false
+   },
+   {
+    "c": "b",
+    "send": [
+     "SUBSCRIBE",
+     "foo",
+     "bar"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "UNSUBSCRIBE",
+     "bar"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "EXEC"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "EVAL-SHEBANG-UNPARSED": {
+  "title": "[secondary, masked: not the first failure of any B1 test] EVAL bodies starting with a '#!lua' shebang (with or without flags=) fail to compile on TomoKV; only FUNCTION LOAD parses shebangs. Sits behind PAUSE-SCRIPT-FLAGS / PAUSE-BLOCKED-COUNT in the pause script tests",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "#!lua flags=no-writes\nreturn 'world'",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "#!lua\nreturn 1",
+     "0"
+    ]
+   }
+  ],
+  "group": "B1"
+ },
+ "B2-BLOCK-WAKE-ORDER-MULTI": {
+  "title": "MULTI/EXEC readies two keys: Redis serves waiters key by key in signal order (blist{t} first); TomoKV services ready keys in unordered_map order",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "BLMPOP",
+     "0",
+     "2",
+     "blist{t}",
+     "blist2{t}",
+     "LEFT",
+     "COUNT",
+     "1"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "c",
+    "send": [
+     "BLMPOP",
+     "0",
+     "2",
+     "blist{t}",
+     "blist2{t}",
+     "RIGHT",
+     "COUNT",
+     "10"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "MULTI"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "blist{t}",
+     "a",
+     "b",
+     "c",
+     "d",
+     "e"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "blist2{t}",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EXEC"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-BLOCK-MOVE-WRONGTYPE-STRANDS": {
+  "title": "BRPOPLPUSH waiter whose destination is WRONGTYPE gets the error; Redis then serves the next waiter, TomoKV leaves the element and the second waiter blocked forever",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "target1{t}",
+     "nolist"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "BRPOPLPUSH",
+     "blist{t}",
+     "target1{t}",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "c",
+    "send": [
+     "BRPOPLPUSH",
+     "blist{t}",
+     "target2{t}",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "blist{t}",
+     "foo"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "LRANGE",
+     "blist{t}",
+     "0",
+     "-1"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-BLOCK-WAKE-RENAME-SORTSTORE": {
+  "title": "A waited key created by RENAME or SORT ... STORE wakes BLPOP/XREADGROUP waiters on Redis; TomoKV never publishes these writes",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "BLPOP",
+     "foo{t}",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "bob{t}",
+     "abc",
+     "def",
+     "hij"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RENAME",
+     "bob{t}",
+     "foo{t}"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "send": [
+     "BLPOP",
+     "bar{t}",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "LPUSH",
+     "notfoo{t}",
+     "hello",
+     "hola",
+     "aguacate"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "SORT",
+     "notfoo{t}",
+     "ALPHA",
+     "STORE",
+     "bar{t}"
+    ]
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "ms{t}",
+     "mygroup",
+     "$",
+     "MKSTREAM"
+    ]
+   },
+   {
+    "c": "d",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "mygroup",
+     "Alice",
+     "BLOCK",
+     "0",
+     "STREAMS",
+     "ms{t}",
+     ">"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "ms2{t}",
+     "mygroup",
+     "$",
+     "MKSTREAM"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "ms2{t}",
+     "100",
+     "f1",
+     "v1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RENAME",
+     "ms2{t}",
+     "ms{t}"
+    ]
+   },
+   {
+    "c": "d",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-BLOCK-STREAM-REMOVED-NO-UNBLOCK": {
+  "title": "Blocked XREADGROUP is unblocked on Redis when its key is deleted (-NOGROUP), overwritten by another type (-WRONGTYPE) or its group destroyed (-NOGROUP); TomoKV keeps it blocked",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "s1",
+     "666",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "s1",
+     "g",
+     "$"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "g",
+     "Alice",
+     "BLOCK",
+     "0",
+     "STREAMS",
+     "s1",
+     ">"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "DEL",
+     "s1"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "s2",
+     "666",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "s2",
+     "g",
+     "$"
+    ]
+   },
+   {
+    "c": "c",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "g",
+     "Alice",
+     "BLOCK",
+     "0",
+     "STREAMS",
+     "s2",
+     ">"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "SET",
+     "s2",
+     "val1"
+    ]
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "s3",
+     "g",
+     "$",
+     "MKSTREAM"
+    ]
+   },
+   {
+    "c": "d",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "g",
+     "Alice",
+     "BLOCK",
+     "0",
+     "STREAMS",
+     "s3",
+     ">"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "DESTROY",
+     "s3",
+     "g"
+    ]
+   },
+   {
+    "c": "d",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-BLOCK-CHAIN-ASYNC": {
+  "title": "Chained blocked moves (Linked LMOVEs, pipelined): Redis finishes list1->list2->list3 before the pusher's next command, so LRANGE list3{t} is [foo]; on TomoKV the element is still in flight (in neither list)",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "BLMOVE",
+     "list1{t}",
+     "list2{t}",
+     "RIGHT",
+     "LEFT",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "c",
+    "send": [
+     "BLMOVE",
+     "list2{t}",
+     "list3{t}",
+     "LEFT",
+     "RIGHT",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "raw": "*3\r\n$5\r\nRPUSH\r\n$8\r\nlist1{t}\r\n$3\r\nfoo\r\n*4\r\n$6\r\nLRANGE\r\n$8\r\nlist2{t}\r\n$1\r\n0\r\n$2\r\n-1\r\n*4\r\n$6\r\nLRANGE\r\n$8\r\nlist3{t}\r\n$1\r\n0\r\n$2\r\n-1\r\n"
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "a",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 1.0
+   },
+   {
+    "c": "c",
+    "read": 1,
+    "timeout": 1.0
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-INFO-TOTAL-BLOCKING-KEYS": {
+  "title": "INFO clients: Redis reports total_blocking_keys / total_blocking_keys_on_nokey; TomoKV has neither field (INFO clients compared whole: other fields differ too, see root)",
+  "steps": [
+   {
+    "c": "b",
+    "send": [
+     "BLPOP",
+     "mylist",
+     "0"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.2
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "clients"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-PAUSE-POSTPONED-NOT-BLOCKED": {
+  "title": "A client postponed by CLIENT PAUSE WRITE counts in INFO blocked_clients on Redis (1); TomoKV reports 0 (INFO compared whole, see root)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "PAUSE",
+     "100000",
+     "WRITE"
+    ]
+   },
+   {
+    "c": "b",
+    "send": [
+     "BLPOP",
+     "mylist",
+     "1"
+    ],
+    "read": 0
+   },
+   {
+    "sleep": 0.3
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "clients"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CLIENT",
+     "UNPAUSE"
+    ]
+   },
+   {
+    "c": "b",
+    "read": 1,
+    "timeout": 2.0
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-INFO-CMDSTAT-FIELDS": {
+  "title": "INFO commandstats: Redis lines carry usec, usec_per_call, failed_calls; TomoKV prints only calls and rejected_calls (usec values are volatile: compare false, see root)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "RESETSTAT"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "BLPOP",
+     "nolist",
+     "0.01"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "INFO",
+     "commandstats"
+    ],
+    "normalize": [
+     [
+      "(?s)^.*(cmdstat_blpop:[^\\r\\n]*).*$",
+      "\\1"
+     ],
+     [
+      "usec=[0-9]+",
+      "usec=N"
+     ],
+     [
+      "usec_per_call=[0-9.]+",
+      "usec_per_call=N"
+     ]
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-MPOP-ARG-ERROR-TEXT": {
+  "title": "*MPOP non-integer COUNT / numkeys: Redis replies \"count/numkeys should be greater than 0\", TomoKV the generic integer error",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "LMPOP",
+     "1",
+     "mylist{t}",
+     "RIGHT",
+     "COUNT",
+     "a"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "ZMPOP",
+     "1",
+     "myzset{t}",
+     "MIN",
+     "COUNT",
+     "a"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "BZMPOP",
+     "0",
+     "a",
+     "myzset{t}",
+     "MIN"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "BLMPOP",
+     "0",
+     "a",
+     "mylist{t}",
+     "LEFT"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-XREAD-PLUS-LAST": {
+  "title": "XREAD with ID \"+\" (Redis 7.4: read the last entry) is rejected by TomoKV",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "lestream",
+     "1-0",
+     "k1",
+     "v1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "lestream",
+     "2-0",
+     "k2",
+     "v2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XREAD",
+     "STREAMS",
+     "lestream",
+     "+"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-XRANGE-EXCLUSIVE-SENTINEL": {
+  "title": "XRANGE with an exclusive \"(-\" start or \"(+\" end is an error on Redis (invalid stream ID); TomoKV accepts both",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "vip",
+     "1-0",
+     "foo",
+     "bar"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XRANGE",
+     "vip",
+     "(-",
+     "+"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XRANGE",
+     "vip",
+     "-",
+     "(+"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-STREAM-GROUP-ID-DASH": {
+  "title": "\"-\" as an ID (0-0) is accepted by Redis in XGROUP SETID and XAUTOCLAIM start; TomoKV rejects it",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "events",
+     "1-0",
+     "f1",
+     "v1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "events",
+     "2-0",
+     "f1",
+     "v1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "events",
+     "g1",
+     "$"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "SETID",
+     "events",
+     "g1",
+     "-"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XREADGROUP",
+     "GROUP",
+     "g1",
+     "c1",
+     "STREAMS",
+     "events",
+     ">"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XAUTOCLAIM",
+     "events",
+     "g1",
+     "c2",
+     "0",
+     "-",
+     "COUNT",
+     "1"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-XAUTOCLAIM-COUNT-RANGE": {
+  "title": "XAUTOCLAIM COUNT above LONG_MAX/16 is \"ERR COUNT must be > 0\" on Redis; TomoKV accepts it",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "x",
+     "1-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XGROUP",
+     "CREATE",
+     "x",
+     "grp",
+     "0"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XAUTOCLAIM",
+     "x",
+     "grp",
+     "Bob",
+     "0",
+     "3-0",
+     "COUNT",
+     "8070450532247928833"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-STREAM-TRIM-APPROX-LIMIT": {
+  "title": "XTRIM/XADD \"~\" trims only whole macro nodes and LIMIT caps evictions on Redis; TomoKV trims exactly and ignores LIMIT",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "stream-node-max-entries",
+     "2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "s",
+     "1-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "s",
+     "2-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "s",
+     "3-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XTRIM",
+     "s",
+     "MAXLEN",
+     "~",
+     "0",
+     "LIMIT",
+     "1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XLEN",
+     "s"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "t",
+     "1-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "t",
+     "2-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "t",
+     "3-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "t",
+     "4-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "t",
+     "5-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XTRIM",
+     "t",
+     "MAXLEN",
+     "~",
+     "2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "XLEN",
+     "t"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-DUMP-STREAM-REFUSED": {
+  "title": "DUMP of a stream: Redis returns a payload, TomoKV \"ERR object could not be serialized\"",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "XADD",
+     "mystream",
+     "1-0",
+     "f",
+     "v"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "DUMP",
+     "mystream"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-RESTORE-IDLETIME-FREQ-IGNORED": {
+  "title": "RESTORE ... IDLETIME / FREQ set the LRU idle time / LFU counter on Redis; TomoKV ignores both",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory-policy",
+     "allkeys-lru"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RESTORE",
+     "k1",
+     "0",
+     "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+     "IDLETIME",
+     "1000"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "OBJECT",
+     "IDLETIME",
+     "k1"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory-policy",
+     "allkeys-lfu"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "RESTORE",
+     "k2",
+     "0",
+     "\u0000\u0003v26\f\u0000P\u001cp#\u0003p#^",
+     "FREQ",
+     "100"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "OBJECT",
+     "FREQ",
+     "k2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "GET",
+     "k2"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "maxmemory-policy",
+     "noeviction"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-SCRIPT-SORT-NOT-ALLOWED": {
+  "title": "redis.call(\"sort\", ...) inside EVAL: Redis runs it, TomoKV refuses (script command whitelist)",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "ZADD",
+     "zset",
+     "1",
+     "a",
+     "5",
+     "b",
+     "2",
+     "c"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "EVAL",
+     "return redis.call('sort',KEYS[1],'by','nosort','asc')",
+     "1",
+     "zset"
+    ]
+   }
+  ],
+  "group": "B2"
+ },
+ "B2-APPENDONLY-IMMUTABLE": {
+  "title": "CONFIG SET appendonly yes at runtime: Redis OK, TomoKV \"can't set immutable config\"",
+  "steps": [
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "appendonly",
+     "yes"
+    ]
+   },
+   {
+    "c": "a",
+    "send": [
+     "CONFIG",
+     "SET",
+     "appendonly",
+     "no"
+    ]
+   }
+  ],
+  "group": "B2"
+ }
+}

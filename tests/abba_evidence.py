@@ -363,7 +363,7 @@ def validate_workload_evidence(cell, run, *, report=None):
     require(accounting == run.get("whole_run_accounting"), f"{cell.id}: workload accounting differs")
 
 
-def validate_campaign_evidence(report):
+def validate_campaign_evidence(report, *, full=True):
     """Replay the completed frozen campaign, including raw workload witnesses.
 
     This is stricter than the historical diagnostic report reader. Promotions
@@ -374,7 +374,8 @@ def validate_campaign_evidence(report):
     require(report.get("complete") is True and report.get("process_cleanup") ==
             {"complete": True, "remaining": 0} and not report.get("error"),
             "campaign incomplete or owned processes unreaped")
-    require(report.get("subset") == "full" and not report.get("only") and not report.get("escalate"),
+    require(report.get("subset") in ("full", "smoke") and not report.get("escalate") and
+            (not full or report.get("subset") == "full" and not report.get("only")),
             "campaign requires full coverage without only/subset/escalation salvage")
     layouts = {}
     for row in report["cells"]:
@@ -490,7 +491,9 @@ def _match_null(comparison, control, *, now):
     if "promotion" in control or comparison.get("run_kind") == "null-holdout":
         from abbagate import Cell, assess, resolution_bounds
         validate_campaign_evidence(control)
-        validate_campaign_evidence(comparison)
+        # A promoted control is always full. A diagnostic comparison may select
+        # cells; replay all of its raw evidence, then require exact coverage below.
+        validate_campaign_evidence(comparison, full=comparison.get("run_kind") == "null-holdout")
         validate_null_integrity(control)
         for row in comparison["cells"]:
             if comparison.get("run_kind") == "null-holdout":

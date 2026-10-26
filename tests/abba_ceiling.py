@@ -37,15 +37,15 @@ def campaign_verdict(rows):
 
 def validate_ceiling_plan(plan):
     """Validate imported DATA; raw calibration replay authorizes its creation."""
-    from gate_measurements import require, provenance, SHAPE, AXES
+    from gate_measurements import require, provenance, validate_shape, AXES
     import re
     require(set(plan) == {"instances", "shape", "geometry", "instrument_sha256", "status",
                          "evidence", "calibration_sha256", "binary_sha256", "provenance"},
             "invalid ceiling-only plan fields")
     require(plan["status"] in CEILING_STATUSES and type(plan["instances"]) is int and plan["instances"] > 0,
             "invalid ceiling-only plan status/instances")
-    require(set(plan["shape"]) in (set(SHAPE), set(SHAPE) | {"data_bytes"}) and
-            set(plan["geometry"]) == set(AXES), "invalid ceiling-only shape/geometry")
+    validate_shape(plan["shape"])
+    require(set(plan["geometry"]) == set(AXES), "invalid ceiling-only geometry")
     for field in ("instrument_sha256", "calibration_sha256", "binary_sha256"):
         require(isinstance(plan[field], str) and re.fullmatch("[0-9a-f]{64}", plan[field]),
                 "ceiling-only plan lacks provenance digest")

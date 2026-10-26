@@ -527,9 +527,14 @@ row_begin(){
     # exhaustive 64-cell/two-arm argv test takes only 1.68s. Allow the measured
     # landing runtime +40%, rounded up to a minute, for all suites. The wave-6
     # landing measured 1128.59s and the wave-7 landing exhausted the old 1200s,
-    # so the basis is now the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
-    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md.
-    ROW_TIMEOUT=1620; ROW_BASIS=abba-selftest-wave6-landing-1128.59s-plus-40pct-rounded
+    # so the basis became the wave-6 landing: 1128.59s x 1.4, rounded up = 1620s.
+    # wave7b then removed the contention pathologies (fingerprint path filtering,
+    # bounded scheduler fixtures) and the wave-7 landing measured 442.80s
+    # (cx-final build/gate-ledger-iteration.txt, 2026-10-26). Same rule, newest
+    # landing: 442.80s x 1.4 = 619.92s, rounded up to a minute = 660s.
+    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md and
+    # MEASURE-REQUEST-harness5.md (harness5 before/after, landing-like geometry).
+    ROW_TIMEOUT=660; ROW_BASIS=abba-selftest-wave7-landing-442.80s-plus-40pct-rounded
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
@@ -1110,7 +1115,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(datafix1_randscan datafix1_hexpire datafix1_bitfield datafix1_locale datafix1_lists datafix1_spop datafix1_geo config_unit flip_unit filter_unit ring_unit storage_units
-              production_units acl_metadata cmd_metadata abba_selftest bugs5)
+              production_units acl_metadata cmd_metadata abba_selftest redis_tcl bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -1667,8 +1672,16 @@ job_compat2(){
   for case in autharity expire_notify ktls_lifetime; do
     row_begin "compat2 $case"
     failed=0
-    local extra=()
+    local extra=() detail="see $TMPDIR/compat2-$case-*.log"
     if [ "$case" = autharity ]; then
+      # The private Tcl job is a prerequisite of this existing compatibility
+      # verdict. Missing/failed/unreached subsets cannot disappear from the gate.
+      # Its two private rows are never collected, so show them here on failure.
+      if [ ! -f "$RUN_DIR/unit-ready/redis-tcl" ]; then
+        failed=1
+        detail="Redis 7.4.10 Tcl passing subset did not pass; see $RUN_DIR/jobs/redis_tcl and $detail"
+        cat "$RUN_DIR/jobs/redis_tcl/output.log" 2>/dev/null || :
+      fi
       extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$GATE_DIFFER_ORACLE_CORES")
     elif [ "$case" = expire_notify ]; then
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
@@ -1689,7 +1702,7 @@ job_compat2(){
           >"$TMPDIR/compat2-$case-$mode-$engine.log" 2>&1 || failed=1
     done; done
     if [ "$failed" = 0 ]; then ok "compat2 $case";
-    else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
+    else bad "compat2 $case" "$detail"; fi
   done
 }
 
@@ -4899,6 +4912,7 @@ py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || con
 py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/redis_tcl_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
@@ -4906,6 +4920,27 @@ py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || contr
 py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
 [ "$controls_ok" = 1 ] && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
+}
+
+job_redis_tcl(){
+  local mode passed=1 label
+  for mode in 2s 1s; do
+    label="Redis 7.4.10 Tcl passing subset ($mode)"
+    row_begin "$label"
+    if py tests/redis_tcl.py --redis-root "$REDIS74_ROOT" --binary "$CANDIDATE_BINARY" \
+        --mode "$mode" --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --controller-port "$((PORT+1))" \
+        --baseport "$((PORT+2))" --manifest tests/redis_tcl_passing.json \
+        --output "$TMPDIR/redis-tcl-$mode" >"$TMPDIR/redis-tcl-$mode.log" 2>&1; then
+      say "$label" ok; ledger ok "$label" 0
+    else
+      passed=0; say "$label" FAIL; ledger FAIL "$label" 0
+    fi
+  done
+  # Private rows retain independent timings and raw evidence. compat2 autharity
+  # owns their public verdict; no public row is added (DQ=0, DF=0).
+  if [ "$passed" = 1 ] && [ "$FAIL" = 0 ]; then
+    mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/redis-tcl"
+  fi
 }
 
 job_asan_batteries(){
@@ -5273,7 +5308,8 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls|compat2|blockfix_registry) echo 'release production_units';;
+    compat2) echo 'release production_units redis_tcl';;
+    tls|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
@@ -5858,7 +5894,7 @@ if [ "$RECEIPT_REQUIRED" = 1 ]; then
     # override. Re-reading a mutable default could certify or reject against another control.
     python3 tests/gate_receipt.py finish --start "$RECEIPT_START" --gate-result "$RUN_DIR/gate-result.json" \
         --ledger "$LEDGER" --observations "$ROW_HISTORY/row-observations.jsonl" \
-        --abba-result "$ABBA_OUTPUT/results.json" \
+        --abba-result "$ABBA_OUTPUT/results.json" --product-result "$ABBA_OUTPUT/product.json" \
         --null-result "$ABBA_OUTPUT/null-control.json" || RECEIPT_RC=1
   else
     echo "GATE RECEIPT WITHHELD: start/binding evidence was unavailable; full gate work has completed; see $RUN_DIR/receipt-begin.log" >&2

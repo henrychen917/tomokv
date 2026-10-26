@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "tests/wb_policy.py",
+    "--self-test"
+  ],
+  "affinity": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "seconds": 0.010322479531168938,
+  "tests": []
+}

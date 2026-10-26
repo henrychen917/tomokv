@@ -23,6 +23,7 @@ from abba_ceiling import CEILING_STATUSES, campaign_verdict, validate_ceiling_pl
 DEFAULT = Path(__file__).with_name("gate_measurements.json")
 SHAPE = ("mode", "read_local", "overlap", "reorder", "op", "depth", "conns", "atomic", "score", "mix")
 AXES = ("server_physical", "server_smt", "load_physical", "load_smt", "split_ratio")
+OPTIONAL_SHAPE = ("data_bytes", "server_flags", "dbs", "poll", "keys", "client_flags")
 
 
 def require(condition, message):
@@ -38,6 +39,20 @@ def provenance(value, label):
     require(isinstance(value, dict) and set(value) == {"when", "how"} and
             all(isinstance(v, str) and v.strip() for v in value.values()),
             f"{label}: measurement requires when/how provenance")
+
+
+def validate_shape(value):
+    """Accept exactly the workload axes emitted by shape(), with cell grammar."""
+    require(isinstance(value, dict) and set(SHAPE) <= set(value) <= set(SHAPE + OPTIONAL_SHAPE),
+            "invalid measurement shape fields")
+    for name, minimum in (("data_bytes", 1), ("dbs", 0), ("keys", 0)):
+        require(type(value.get(name, minimum)) is int and value.get(name, minimum) >= minimum,
+                f"invalid measurement shape {name}")
+    for name in ("server_flags", "poll", "client_flags"):
+        require(isinstance(value.get(name, ""), str), f"invalid measurement shape {name}")
+    from abbagate import cell_options
+    names = dict(server_flags="srv", dbs="dbs", poll="poll", keys="keys", client_flags="cli")
+    cell_options([f"{option}={value[name]}" for name, option in names.items() if value.get(name)])
 
 
 def load(path=DEFAULT):
@@ -80,11 +95,9 @@ def load(path=DEFAULT):
         fields = {"instances", "shape", "geometry", "instrument_sha256", "status", "observed_rate", "observed_busy", "provenance"}
         require(set(floor) in (fields, fields | {"variance_pin"})
                 and type(floor["instances"]) is int and floor["instances"] > 0 and
-                set(floor["shape"]) in (set(SHAPE), set(SHAPE) | {"data_bytes"}) and
-                type(floor["shape"].get("data_bytes", 64)) is int and
-                floor["shape"].get("data_bytes", 64) > 0 and
                 floor["status"] in ("calibrated", "historical-unverified"),
                 f"{ident}: invalid load-floor fields")
+        validate_shape(floor["shape"])
         provenance(floor["provenance"], ident)
         require(not floor["provenance"]["how"].startswith("abbagate --pin;") or "variance_pin" in floor,
                 f"{ident}: invalid load-floor fields (missing variance evidence)")
@@ -479,6 +492,41 @@ def self_test():
             for key in SHAPE:
                 changed = {**self.cell, key: "changed"}
                 self.assertEqual(apply_floor(changed, self.config, self.placement)["instances"], 0, key)
+
+        def test_optional_axes_round_trip_floor_and_ceiling_data(self):
+            import copy
+            from abba_ceiling import ceiling_observation
+            axes = [dict(server_flags="--net-io epoll"),
+                    dict(server_flags="--databases 16", dbs=16), dict(poll="info1hz"),
+                    dict(keys=40000), dict(client_flags="--expiry-range=1-10")]
+            axes.append({**axes[1], **axes[2], **axes[3], **axes[4]})
+            for axis in axes:
+                with self.subTest(axis=axis), tempfile.TemporaryDirectory() as directory:
+                    cell = {**self.cell, "op": "SET", **axis}
+                    config = copy.deepcopy(self.config)
+                    config["load_floors"]["unit"]["shape"] = shape(cell)
+                    path = Path(directory) / "config.json"
+                    path.write_text(json.dumps(config))
+                    loaded = load(path)
+                    self.assertEqual(apply_floor(cell, loaded, self.placement)["instances"], 4)
+                    self.assertEqual(apply_floor(self.cell, loaded, self.placement)["instances"], 0)
+                    plan = dict(instances=4, shape=shape(cell), geometry=self.placement,
+                        instrument_sha256=instrument_digest(), status="LOADGEN-BOUND",
+                        calibration_sha256="a" * 64, binary_sha256="b" * 64,
+                        provenance=dict(when="synthetic", how="schema regression"),
+                        evidence=ceiling_observation([
+                            dict(instances=2, rate=100, worker_threads=2, saturation_pct=50),
+                            dict(instances=4, rate=150, worker_threads=4, saturation_pct=60)], 4))
+                    config["load_floors"].pop("unit")
+                    config["ceiling_loads"] = {"unit": plan}
+                    path.write_text(json.dumps(config))
+                    self.assertEqual(load(path)["ceiling_loads"]["unit"], plan)
+                    for bad in (dict(unknown=1), dict(keys=-1), dict(dbs=True), dict(poll="info2hz"),
+                                dict(server_flags="--port 45800"), dict(client_flags="--threads=999")):
+                        plan["shape"] = {**shape(cell), **bad}
+                        path.write_text(json.dumps(config))
+                        with self.assertRaises(ValueError):
+                            load(path)
 
         def test_value_sizes_cannot_share_a_load_floor(self):
             sized = {**self.cell, "data_bytes": 256}

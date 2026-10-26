@@ -1,0 +1,5 @@
+ tests/abba_ceiling.py      |  6 +++---
+ tests/abba_evidence.py     |  2 +-
+ tests/gate_measurements.py |  4 +++-
+ tests/gate_receipt.py      | 15 ++++-----------
+ 4 files changed, 11 insertions(+), 16 deletions(-)

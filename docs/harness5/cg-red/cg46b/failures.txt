@@ -1,0 +1,1 @@
+      1 ERROR: test_epoll_companion_calibrates_freezes_and_checks_its_own_inventory

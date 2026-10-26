@@ -1,0 +1,10 @@
+  row budget: 900s; median=1.77s; correctness-plan-fallback; compat2 autharity
+  row budget: 900s; median=227.98s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (2s)
+  Redis 7.4.10 Tcl passing subset (2s)                 FAIL
+  row budget: 900s; median=231.58s; correctness-plan-fallback; Redis 7.4.10 Tcl passing subset (1s)
+  Redis 7.4.10 Tcl passing subset (1s)                 FAIL
+  compat2 autharity                                    FAIL (Redis 7.4.10 Tcl passing subset did not pass; see /home/user/Projects/cx-harness5/build/gate-run.Jc661R/jobs/redis_tcl and see /home/user/Projects/cx-harness5/build/gate-run.Jc661R/jobs/compat2/compat2-autharity-*.log)
+  row budget: 900s; median=6.75s; correctness-plan-fallback; compat2 expire_notify
+  compat2 expire_notify                                ok
+  row budget: 900s; median=2.09s; correctness-plan-fallback; compat2 ktls_lifetime
+  compat2 ktls_lifetime                                ok

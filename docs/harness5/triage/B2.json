@@ -1,0 +1,2219 @@
+{
+ "group": "B2",
+ "tests": [
+  {
+   "file": "unit/bitops",
+   "test": "SETBIT/BITFIELD only increase dirty when the value changed",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "DIRTY-COUNTER",
+   "cascade_of": null,
+   "basis": "Expected 0 == 0 + 2: rdb_changes_since_last_save never moves because TomoKV counts dirty changes only while save points are armed and the harness boots with --save ''."
+  },
+  {
+   "file": "unit/dump",
+   "test": "MIGRATE cached connections are released after some time",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-CLUSTER",
+   "cascade_of": null,
+   "basis": "INFO has no migrate_cached_sockets: MIGRATE is absent from TomoKV's command table together with CLUSTER/MODULE/PSYNC/REPLCONF/SYNC (COMMAND LIST diff), i.e. the deliberately missing cluster/replication family."
+  },
+  {
+   "file": "unit/dump",
+   "test": "RESTORE can set LFU",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "RESTORE-IDLETIME-FREQ-IGNORED",
+   "cascade_of": null,
+   "basis": "Expected freq 100, got 0: RESTORE ... FREQ 100 is accepted but not applied (OBJECT FREQ 0)."
+  },
+  {
+   "file": "unit/dump",
+   "test": "RESTORE can set LRU",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "RESTORE-IDLETIME-FREQ-IGNORED",
+   "cascade_of": null,
+   "basis": "Expected idle 1000..1010, got 0: RESTORE ... IDLETIME 1000 is accepted but not applied (OBJECT IDLETIME 0)."
+  },
+  {
+   "file": "unit/dump",
+   "test": "RESTORE fail with invalid payload size",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG SET-SKIP-CHECKSUM-VALIDATION, a DEBUG subcommand TomoKV does not implement."
+  },
+  {
+   "file": "unit/dump",
+   "test": "RESTORE should not store key that are already expired, with REPLACE will propagate it as DEL or UNLINK",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/dump",
+   "test": "RESTORE with ABSTTL in the past",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Expected 'ERR no such key' from DEBUG OBJECT, got the unknown-subcommand error: DEBUG OBJECT is not implemented. The RESTORE semantics behind it match Redis (expired key not stored, DBSIZE equal; probe P-RESTORE-ABSTTL-PAST)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "All TTL in commands are propagated as absolute timestamp in replication stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "GETEX propagate as to replica as PERSIST, DEL, or nothing",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "GETEX use of PERSIST option should remove TTL after loadaof",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "APPENDONLY-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "CONFIG SET appendonly yes -> 'can't set immutable config'. (Redis passes it in the full-file run; its isolated failure is an artifact: DEBUG LOADAOF right after enabling AOF.)"
+  },
+  {
+   "file": "unit/expire",
+   "test": "RANDOMKEY: Lazy-expire should not be wrapped in MULTI/EXEC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "Redis should not propagate the read command on lazy expire",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "SCAN: Lazy-expire should not be wrapped in MULTI/EXEC",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/expire",
+   "test": "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "APPENDONLY-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "CONFIG SET appendonly yes -> 'can't set immutable config' (accepted boot-only constraint), so the DEBUG LOADAOF round trip never runs."
+  },
+  {
+   "file": "unit/hyperloglog",
+   "test": "Change hll-sparse-max-bytes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "HLL-SPARSE-MAX-BYTES",
+   "cascade_of": null,
+   "basis": "CONFIG SET hll-sparse-max-bytes -> 'can't set immutable config': HLL sparse/dense encoding threshold (listed Redis-internal encoding threshold)."
+  },
+  {
+   "file": "unit/hyperloglog",
+   "test": "HyperLogLogs are promote from sparse to dense",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "HLL-SPARSE-MAX-BYTES",
+   "cascade_of": null,
+   "basis": "CONFIG SET hll-sparse-max-bytes -> 'can't set immutable config': HLL sparse/dense encoding threshold (listed Redis-internal encoding threshold)."
+  },
+  {
+   "file": "unit/hyperloglog",
+   "test": "Hyperloglog promote to dense well in different hll-sparse-max-bytes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "HLL-SPARSE-MAX-BYTES",
+   "cascade_of": null,
+   "basis": "CONFIG SET hll-sparse-max-bytes -> 'can't set immutable config': HLL sparse/dense encoding threshold (listed Redis-internal encoding threshold)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for $type set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for hashtable hash",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for list - listpack",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for list - quicklist",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for listpack hash",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for listpack sorted set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for skiplist sorted set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/keyspace",
+   "test": "COPY basic usage for stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG DIGEST-VALUE (debug_digest_value), a DEBUG subcommand TomoKV does not implement; COPY itself matches Redis for list/set/zset/hash/stream (probe P-COPY-TYPES)."
+  },
+  {
+   "file": "unit/sort",
+   "test": "SORT STORE quicklist with the right options",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "CONFIG SET list-compress-depth -> Unknown option; the test then asserts quicklist encoding and DEBUG OBJECT ql_listpack_max/ql_compressed (quicklist internals)."
+  },
+  {
+   "file": "unit/sort",
+   "test": "SORT sorted set BY nosort works as expected from scripts",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "SCRIPT-CMD-WHITELIST",
+   "cascade_of": null,
+   "basis": "EVAL redis.call('sort',...) -> \"ERR command 'SORT' is not allowed from scripts\": SORT is outside the script whitelist (deliberate restriction)."
+  },
+  {
+   "file": "unit/type/hash",
+   "test": "Is a ziplist encoded Hash promoted on big payload?",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG OBJECT smallhash (unimplemented DEBUG subcommand; asserts the hash encoding)."
+  },
+  {
+   "file": "unit/type/incr",
+   "test": "INCR can modify objects in-place",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG OBJECT foo (unimplemented); the test compares the object's 'at:' address."
+  },
+  {
+   "file": "unit/type/incr",
+   "test": "INCR uses shared objects in the 0-9999 range",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "Expected OBJECT REFCOUNT > 1 for a shared small integer, got 1: TomoKV has no shared integer objects (object representation internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP propagate as pop with count command to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP with multiple blocked clients",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": null,
+   "basis": "After MULTI {LPUSH blist{t}; LPUSH blist2{t}} EXEC, rd1 got 'blist2{t} 5' instead of 'blist{t} e' (2s discovery: rd2 got blist2 instead of blist): waiters are served in TomoKV's hash order, not key-signal order. Flaky: passed in 1s discovery and in --only runs, failed in the final pass in both modes."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP_LEFT when new key is moved into place",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Hung: RENAME bob{t} foo{t} does not wake the BLMPOP blocked on foo{t}."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP_LEFT when result key is created by SORT..STORE",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Fresh --only run (both modes): got '' (SORT..STORE does not wake BLMPOP). In the final reach pass the leftover foo{t} from the previous variant made it return 'foo{t} konichiwa'; Redis failed it there too, but only because the skipped 'moved into place' test did not empty foo{t} (skip-list artifact)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLPOP unblock but the key is expired and then block again - reprocessing command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLPOP when new key is moved into place",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Hung: RENAME bob{t} foo{t} does not wake the BLPOP blocked on foo{t}."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLPOP when result key is created by SORT..STORE",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Expected 'foo{t} aguacate', got '' (BLPOP timed out after 5 s): SORT ... STORE foo{t} does not wake the waiter. Fails the same way in a fresh --only run in both modes."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLPOP/BLMOVE should increase dirty",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "DIRTY-COUNTER",
+   "cascade_of": null,
+   "basis": "Expected 0 == 0 + 2: rdb_changes_since_last_save stays 0 with save points disarmed (--save '')."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BLPOP: with 0.001 timeout should not block indefinitely",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BRPOP: with 0.001 timeout should not block indefinitely",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BRPOPLPUSH timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "BRPOPLPUSH with multiple blocked clients",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-MOVE-WRONGTYPE-STRANDS",
+   "cascade_of": null,
+   "basis": "Hung: rd1 (BRPOPLPUSH into a string key) gets WRONGTYPE, but the pushed element stays in blist{t} and rd2 is never served, so $rd2 read never returns."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Blocking command accounted only once in commandstats",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-CMDSTAT-FIELDS",
+   "cascade_of": null,
+   "basis": "Fresh --only run: cmdstat_blpop is 'calls=1,rejected_calls=0', which does not match '*calls=1,*,rejected_calls=0,failed_calls=0' (no usec/usec_per_call/failed_calls). The final reach pass failed it earlier via the stale-client cascade."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Blocking command accounted only once in commandstats after timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-CMDSTAT-FIELDS",
+   "cascade_of": null,
+   "basis": "Fresh --only run: cmdstat_blpop lacks the usec and failed_calls fields. The final reach pass failed it earlier via the stale-client cascade."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Blocking timeout following PAUSE should honor the timeout",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "PAUSE-BLOCKED-COUNT",
+   "cascade_of": null,
+   "basis": "Fresh --only run (both modes): 'Timeout waiting for blocked clients' at wait_for_blocked_clients_count 1: a BLPOP held by CLIENT PAUSE WRITE is not counted in blocked_clients (Redis: 1). Redis passes alone and in the full reach pass."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Circular BRPOPLPUSH",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-CHAIN-ASYNC",
+   "cascade_of": null,
+   "basis": "--only batch run: list1{t} was empty right after RPUSH (the return hop list2->list1 had not completed), both modes; flaky (passed alone once). The final reach pass failed it via the stale-client cascade from 'BLMPOP with multiple blocked clients'."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Command being unblocked cause another command to get unblocked execution order test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Crash due to delete entry from a compress quicklist node",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Crash due to split quicklist node wrongly",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "LMPOP propagate as pop with count command to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "LMPOP with illegal argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MPOP-ARG-ERROR-TEXT",
+   "cascade_of": null,
+   "basis": "Expected 'ERR count*' for LMPOP ... COUNT a, got 'ERR value is not an integer or out of range'."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Linked LMOVEs",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-CHAIN-ASYNC",
+   "cascade_of": null,
+   "basis": "Fresh --only run: list2{t} still held 'foo' right after RPUSH (the second hop BLMOVE list2->list3 had not run yet), in both modes; flaky. The final reach pass failed it earlier with the stale-client 'Timeout waiting for blocked clients' from 'BLMPOP with multiple blocked clients'."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "List invalid list-max-listpack-size config",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "Expected OBJECT ENCODING quicklist, got listpack: list-max-listpack-size conversion semantics (representation)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "List listpack -> quicklist encoding conversion",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "Expected OBJECT ENCODING quicklist, got listpack (one of its two parameterized runs): listpack/quicklist conversion thresholds."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Self-referential BRPOPLPUSH",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: blist{t} was empty after RPUSH because the stale BLMPOP left blocked by 'BLMPOP with multiple blocked clients' (first in the blist{t} queue) took 'foo'; passes in a fresh --only run in both modes."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LINDEX and LINSERT on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LMOVE on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LPOS on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LPUSH and LPOP on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LREM on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LSET with packed / plain combinations",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LSET with packed consist only one item",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LSET with packed is split in the middle",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Test LTRIM on plain nodes",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-DEBUG",
+   "cascade_of": null,
+   "basis": "Aborts at DEBUG QUICKLIST-PACKED-THRESHOLD, a DEBUG subcommand TomoKV does not implement (quicklist plain-node internals)."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Unblock fairness is kept during nested unblock",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "Unblock fairness is kept while pipelining",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/list: BLMPOP with multiple blocked clients",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' (or a stolen element) because 'BLMPOP with multiple blocked clients' aborted with its BLMPOP 0 deferring client(s) still blocked on blist{t}/blist2{t}, and each aborted test added more; passes on TomoKV 2s and 1s in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list-3",
+   "test": "Check compression with recompress",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "config_set list-compress-depth -> Unknown option: quicklist node compression internals."
+  },
+  {
+   "file": "unit/type/list-3",
+   "test": "Crash due to wrongly recompress after lrem",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "config_set list-compress-depth -> Unknown option: quicklist node compression internals."
+  },
+  {
+   "file": "unit/type/list-3",
+   "test": "LINSERT correctly recompress full quicklistNode after inserting a element after it",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "config_set list-compress-depth -> Unknown option: quicklist node compression internals."
+  },
+  {
+   "file": "unit/type/list-3",
+   "test": "LINSERT correctly recompress full quicklistNode after inserting a element before it",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "config_set list-compress-depth -> Unknown option: quicklist node compression internals."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE basics - from intset to regular set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE basics - from regular set to intset",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE from intset to non existing destination set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE from regular set to non existing destination set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE non existing key",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE non existing src set",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SRANDMEMBER with a dict containing long chain",
+   "basis": "Expected 'hashtable' to match 'listpack' on TomoKV AND Redis in the full-file run: the aborted SRANDMEMBER long-chain test left set-max-listpack-entries 0; passes on both in a fresh --only run."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SPOP new implementation: code path #1 propagate as DEL or UNLINK",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SRANDMEMBER with a dict containing long chain",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": null,
+   "basis": "Fails on Redis 7.4.10 too in external mode (get_child_pid: key 'pid' not known, needs the harness to own the server). TomoKV stops earlier at CONFIG SET rdb-key-save-delay (Unknown option, a fork-child persistence knob); the subject is dict rehashing."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XADD with LIMIT consecutive calls",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XADD with LIMIT delete entries no more than limit",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XADD with MAXLEN option and the '~' argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XRANGE exclusive ranges",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XRANGE-EXCLUSIVE-SENTINEL",
+   "cascade_of": null,
+   "basis": "XRANGE vipstream (- + returned the whole stream; Redis replies ERR (invalid stream ID)."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element blocking from empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element blocking from non-empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element from empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element from multiple streams",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element from non-empty stream",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD last element with count > 1",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XREAD: read last element after XDEL (issue #13628)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XREAD-PLUS-LAST",
+   "cascade_of": null,
+   "basis": "XREAD ... STREAMS key + -> 'ERR Invalid stream ID specified as stream command argument' (the blocking variant then reports 'no blocked clients'); Redis 7.4 returns the last entry."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XTRIM with LIMIT delete entries no more than limit",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XTRIM with MAXLEN option basic test",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "XTRIM with ~ is limited",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-TRIM-APPROX-LIMIT",
+   "cascade_of": null,
+   "basis": "XLEN/XTRIM count differs from Redis's node-granular result (e.g. XTRIM MAXLEN ~ 0 LIMIT 1 -> TomoKV 3 removed, Redis 0): TomoKV trims '~' exactly and ignores LIMIT and the default ~ cap."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP for stream key that has clients blocked on list",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-TOTAL-BLOCKING-KEYS",
+   "cascade_of": null,
+   "basis": "Expected total_blocking_keys 1, got '' (field absent from INFO clients); fails alone in both modes. The abort leaves its BLPOP mystream 0 client blocked for the rest of the file."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-TOTAL-BLOCKING-KEYS",
+   "cascade_of": "unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' because the previous test aborted with BLPOP mystream 0 still blocked; passes in a fresh --only run in both modes."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "INFO-TOTAL-BLOCKING-KEYS",
+   "cascade_of": "unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+   "basis": "Final reach pass: 'Timeout waiting for blocked clients' because the previous test aborted with BLPOP mystream 0 still blocked; passes in a fresh --only run in both modes."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP: flushed DB",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "cascade_of": null,
+   "basis": "Hung: FLUSHALL does not unblock the XREADGROUP waiter (Redis: -NOGROUP)."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP: key deleted",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "cascade_of": null,
+   "basis": "Hung: DEL mystream does not unblock the XREADGROUP waiter (Redis: -NOGROUP)."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP: key type changed with SET",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "cascade_of": null,
+   "basis": "Hung: SET mystream val1 does not unblock the XREADGROUP waiter (Redis: -WRONGTYPE)."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Blocking XREADGROUP: key type changed with transaction",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "cascade_of": null,
+   "basis": "Hung: MULTI DEL + SADD EXEC does not unblock the XREADGROUP waiter (Redis: -WRONGTYPE)."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "Consumer seen-time and active-time",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "DUMP-STREAM-REFUSED",
+   "cascade_of": null,
+   "basis": "Final reach pass: DUMP mystream -> 'ERR object could not be serialized' (TomoKV refuses DUMP for every stream). Its --only run fails on Redis too only because key x comes from an earlier test."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "PEL NACK reassignment after XGROUP SETID event",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-GROUP-ID-DASH",
+   "cascade_of": null,
+   "basis": "XGROUP SETID events g1 - -> 'ERR Invalid stream ID'; Redis accepts '-' as 0-0."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "RENAME can unblock XREADGROUP with -NOGROUP",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Hangs in a fresh --only run in both modes (RENAME does not wake the waiter, which should get -NOGROUP); masked in the final reach pass by the stale-client cascade."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "RENAME can unblock XREADGROUP with data",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "cascade_of": null,
+   "basis": "Hangs in a fresh --only run in both modes (RENAME mystream2{t} mystream{t} does not wake the XREADGROUP waiter); masked in the final reach pass by the stale-client cascade."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XAUTOCLAIM as an iterator",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-GROUP-ID-DASH",
+   "cascade_of": null,
+   "basis": "XAUTOCLAIM ... 10 - COUNT 2 -> 'ERR Invalid stream ID' (fails alone in both modes)."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XAUTOCLAIM can claim PEL items from another consumer",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "STREAM-GROUP-ID-DASH",
+   "cascade_of": null,
+   "basis": "XAUTOCLAIM mystream mygroup consumer2 10 - COUNT 1 -> 'ERR Invalid stream ID'; Redis accepts '-' as the start."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XAUTOCLAIM with out of range count",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "XAUTOCLAIM-COUNT-RANGE",
+   "cascade_of": null,
+   "basis": "Expected 'ERR COUNT*' for COUNT 8070450532247928833, got a normal reply '0-0 {{3-0 {f v}}} {}'."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XGROUP DESTROY should unblock XREADGROUP with -NOGROUP",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": true,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "cascade_of": null,
+   "basis": "Hangs in a fresh --only run in both modes (XGROUP DESTROY does not unblock the waiter); the final reach pass failed it earlier via the stale-client cascade, which masked the hang. Its errorstats/cmdstat assertions would then hit INFO-CMDSTAT-FIELDS."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XREADGROUP from PEL does not change dirty",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "DIRTY-COUNTER",
+   "cascade_of": null,
+   "basis": "Expected 0 == 0 + 1: rdb_changes_since_last_save stays 0 with save points disarmed (--save ''); even armed, TomoKV does not count XREADGROUP."
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "XREADGROUP of multiple entries changes dirty by one",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "DIRTY-COUNTER",
+   "cascade_of": null,
+   "basis": "Expected 0 == 0 + 1: rdb_changes_since_last_save stays 0 with save points disarmed (--save ''); even armed, TomoKV does not count XREADGROUP."
+  },
+  {
+   "file": "unit/type/string",
+   "test": "GETDEL propagate as DEL command to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/string",
+   "test": "GETEX without argument does not propagate to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "BZMPOP propagate as pop with count command to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "BZMPOP should not blocks on non key arguments - #10762",
+   "modes": [
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/zset: BZMPOP with multiple blocked clients",
+   "basis": "1s full-file: 'Timeout waiting for blocked clients' because the aborted BZMPOP multi-client test left its rd4 BZMPOP blocked; passes in a fresh --only run in both modes."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "BZMPOP with illegal argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MPOP-ARG-ERROR-TEXT",
+   "cascade_of": null,
+   "basis": "Expected 'ERR numkeys*' for BZMPOP 0 a ..., got 'ERR value is not an integer or out of range'."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "BZMPOP with multiple blocked clients",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": null,
+   "basis": "Expected rd1 'myzset{t} {{a 1}}', got 'myzset2{t} {{a 1}}' after MULTI {ZADD myzset{t}; ZADD myzset2{t}} EXEC. Failed in the 1s full-file run, passed in the 2s one, failed in fresh --only runs in both modes (flaky)."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "ZMPOP propagate as pop with count command to replica",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "unsupported by design",
+   "root": "UNSUP-REPLICATION",
+   "cascade_of": null,
+   "basis": "attach_to_replication_stream fails at CONFIG SET repl-ping-replica-period (replication stream assertions; replication is on the owner's list)."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "ZMPOP with illegal argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "MPOP-ARG-ERROR-TEXT",
+   "cascade_of": null,
+   "basis": "Expected 'ERR count*' for ZMPOP ... COUNT a, got 'ERR value is not an integer or out of range'."
+  },
+  {
+   "file": "unit/type/zset",
+   "test": "ZRANDMEMBER - listpack",
+   "modes": [
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "BLOCK-WAKE-ORDER-MULTI",
+   "cascade_of": "unit/type/zset: BZMPOP with multiple blocked clients",
+   "basis": "1s full-file: member 'a' missing because a stale BZMPOP left by the aborted #10762 test (itself a cascade) popped it on create_zset's first ZADD; passes in a fresh --only run."
+  },
+  {
+   "file": "unit/type/list",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "both",
+   "hung": false,
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "Block setup `r config set list-compress-depth 2` is refused (quicklist compression is a Redis keyspace-layout knob TomoKV does not have); --durable abandons that block, so its 6 compression tests never run in either mode. Added at integration.",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/type/list-3",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "UNSUP-ENCODING",
+   "cascade_of": null,
+   "basis": "Block setup `config_set list-compress-depth $comp` is refused (quicklist compression knob); the block's 5 tests never run in either mode. Added at integration.",
+   "class": "unsupported by design"
+  },
+  {
+   "file": "unit/type/stream",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "full-file",
+   "hung": false,
+   "root": "APPENDONLY-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "The first `start_server {overrides {appendonly yes}}` block applies its override with CONFIG SET appendonly yes, which TomoKV refuses as immutable; the exception aborts the full-file run (accepted boot-only appendonly constraint). The rest of the file was reached with --tags -needs:debug, which removes only those blocks. Added at integration.",
+   "class": "REAL compatibility defect"
+  },
+  {
+   "file": "unit/type/stream-cgroups",
+   "test": "<file setup/teardown>",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "reach",
+   "hung": false,
+   "root": "APPENDONLY-IMMUTABLE",
+   "cascade_of": null,
+   "basis": "An `appendonly yes` server block's CONFIG SET override is refused as immutable; --durable abandons that block, so its 10 tests never run (accepted boot-only appendonly constraint). Added at integration.",
+   "class": "REAL compatibility defect"
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE only notify dstset when the addition is successful",
+   "modes": [
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "REAL compatibility defect",
+   "root": "WATCH-SPURIOUS-INVALIDATION",
+   "cascade_of": null,
+   "basis": "Passed in the survey and in 9 of 10 gated-subset builder runs; failed once (1s, builder round 1): EXEC returned nil and SCARD dstset{t} was 1, not 2. The upstream sequence on fresh servers: some EXEC aborts on 3/30 2s boots and 5/60 1s boots (every iteration of that boot), never on Redis (0/30). Added at integration; the test is a named known failure of the gate."
+  },
+  {
+   "file": "unit/type/set",
+   "test": "SMOVE wrong dst key type",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "where": "builder",
+   "hung": false,
+   "class": "Redis-internal assumption",
+   "root": "EXTERNAL-CHILD-PID",
+   "cascade_of": "unit/type/set: SMOVE from intset to non existing destination set",
+   "basis": "SMOVE answered 0, not WRONGTYPE, because myset2{t} did not exist: the skipped setup_move tests create it. SMOVE itself matches Redis (fresh-server check: WRONGTYPE when src exists, 0 when it does not). Seen only in the first gated-subset builder run, whose --skipfile (the survey failures) changed the state later tests see; it passes in the full-file runs. Added at integration."
+  }
+ ],
+ "roots": [
+  {
+   "id": "BLOCK-WAKE-ORDER-MULTI",
+   "class": "REAL compatibility defect",
+   "title": "When one MULTI/EXEC readies several waited keys, blocked BLMPOP/BZMPOP clients are served in hash order instead of the order the keys became ready (flaky)",
+   "subsystem": "src/cmd/blocking.inc: blocking_atomic_published() only marks shards dirty; BlockingRegistry::sweep() then services queues_ (a std::unordered_map) in bucket order, not in the order EXEC signalled the keys",
+   "design_note": null,
+   "repro_case": "B2-BLOCK-WAKE-ORDER-MULTI",
+   "redis": "rd1 [blist{t},[e]]; rd2 [blist{t},[a b c d]]",
+   "tomokv": "rd1 [blist2{t},[5]]; rd2 [blist2{t},[1 2 3 4]] (DIFFERENT in 4/6 runs in 2s, 5/6 in 1s)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: BLMPOP with multiple blocked clients",
+    "unit/type/list: BLMPOP_LEFT: with 0.001 timeout should not block indefinitely",
+    "unit/type/list: BLMPOP_RIGHT: with 0.001 timeout should not block indefinitely",
+    "unit/type/list: BLPOP unblock but the key is expired and then block again - reprocessing command",
+    "unit/type/list: BLPOP: with 0.001 timeout should not block indefinitely",
+    "unit/type/list: BRPOP: with 0.001 timeout should not block indefinitely",
+    "unit/type/list: BRPOPLPUSH timeout",
+    "unit/type/list: Regression for bug 593 - chaining BRPOPLPUSH with other blocking cmds",
+    "unit/type/list: Self-referential BRPOPLPUSH",
+    "unit/type/list: Unblock fairness is kept during nested unblock",
+    "unit/type/list: Unblock fairness is kept while pipelining",
+    "unit/type/zset: BZMPOP should not blocks on non key arguments - #10762",
+    "unit/type/zset: BZMPOP with multiple blocked clients",
+    "unit/type/zset: ZRANDMEMBER - listpack"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "BLOCK-MOVE-WRONGTYPE-STRANDS",
+   "class": "REAL compatibility defect",
+   "title": "A BRPOPLPUSH/BLMOVE waiter whose destination has the wrong type gets WRONGTYPE, but the element is not offered to the next waiter (hang)",
+   "subsystem": "src/cmd/blocking.inc: BlockingRegistry::service() claims one move-kind waiter and returns; blocking_resume_move_impl() runs the move through xshard_prepare, and when it fails on the destination type nothing re-publishes the source key (blocking_scatter_mutation_published only publishes after a successful move)",
+   "design_note": null,
+   "repro_case": "B2-BLOCK-MOVE-WRONGTYPE-STRANDS",
+   "redis": "rd1 -WRONGTYPE; rd2 \"foo\"; blist{t} empty",
+   "tomokv": "rd1 -WRONGTYPE; rd2 TIMEOUT (blocked forever); blist{t} still [foo]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: BRPOPLPUSH with multiple blocked clients"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "BLOCK-WAKE-RENAME-SORTSTORE",
+   "class": "REAL compatibility defect",
+   "title": "A waited key created by RENAME or SORT ... STORE never wakes BLPOP/BLMPOP/XREADGROUP waiters (hang or timeout)",
+   "subsystem": "src/cmd/blocking.inc blocking_plain_mutation_published(): wake publication is a whitelist (LPUSH/RPUSH/LPUSHX/RPUSHX/ZADD/ZINCRBY/XADD, LMOVE/RPOPLPUSH destination, plus explicit blocking_publish_* calls in t_list.cc/t_zset.cc/t_stream.cc/geo.cc); RENAME and SORT..STORE (src/cmd/t_sort.cc) never call blocking_publish_key",
+   "design_note": null,
+   "repro_case": "B2-BLOCK-WAKE-RENAME-SORTSTORE",
+   "redis": "BLPOP -> [foo{t},hij] after RENAME; [bar{t},aguacate] after SORT..STORE; XREADGROUP -> [[ms{t},[[100-0,[f1,v1]]]]] after RENAME",
+   "tomokv": "TIMEOUT for all three waiters",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: BLMPOP_LEFT when new key is moved into place",
+    "unit/type/list: BLMPOP_LEFT when result key is created by SORT..STORE",
+    "unit/type/list: BLPOP when new key is moved into place",
+    "unit/type/list: BLPOP when result key is created by SORT..STORE",
+    "unit/type/stream-cgroups: RENAME can unblock XREADGROUP with -NOGROUP",
+    "unit/type/stream-cgroups: RENAME can unblock XREADGROUP with data"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "class": "REAL compatibility defect",
+   "title": "A blocked XREADGROUP is never unblocked when its stream is deleted, overwritten with another type, flushed, or its group destroyed (hang)",
+   "subsystem": "no counterpart of Redis signalDeletedKeyAsReady / the XGROUP DESTROY signal: DEL, SET over a stream, MULTI DEL+SADD, FLUSHALL (keyspace commands) and XGROUP DESTROY (src/cmd/t_stream_groups.cc) never publish to the BlockingRegistry in src/cmd/blocking.inc, so XREADGROUP waiters are never re-probed",
+   "design_note": null,
+   "repro_case": "B2-BLOCK-STREAM-REMOVED-NO-UNBLOCK",
+   "redis": "-NOGROUP after DEL; -WRONGTYPE after SET; -NOGROUP after XGROUP DESTROY",
+   "tomokv": "TIMEOUT (waiter stays blocked) in all three",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream-cgroups: Blocking XREADGROUP: flushed DB",
+    "unit/type/stream-cgroups: Blocking XREADGROUP: key deleted",
+    "unit/type/stream-cgroups: Blocking XREADGROUP: key type changed with SET",
+    "unit/type/stream-cgroups: Blocking XREADGROUP: key type changed with transaction",
+    "unit/type/stream-cgroups: XGROUP DESTROY should unblock XREADGROUP with -NOGROUP"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "BLOCK-CHAIN-ASYNC",
+   "class": "REAL compatibility defect",
+   "title": "Chained blocked moves (BLMOVE/BRPOPLPUSH whose push readies another waiter) finish after the triggering command's reply, so the pusher's next command sees an intermediate state (flaky)",
+   "subsystem": "src/cmd/blocking.inc: a served move waiter is resumed on its IO thread (blocking_request_move -> blocking_resume_move_impl -> xshard scatter); the next hop is published only from blocking_scatter_mutation_published() after that move commits, with no barrier before the pusher's next command",
+   "design_note": null,
+   "repro_case": "B2-BLOCK-CHAIN-ASYNC",
+   "redis": "pipelined RPUSH list1{t} foo; LRANGE list2{t}; LRANGE list3{t} -> 1, [], [foo] (whole chain done)",
+   "tomokv": "1, [], [] (foo is between hops, in no list); pipelined case DIFFERENT 4/4 in both modes (the unpipelined circular variant was flaky: 5/6 in 2s, 2/6 in 1s)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: Circular BRPOPLPUSH",
+    "unit/type/list: Linked LMOVEs"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "INFO-TOTAL-BLOCKING-KEYS",
+   "class": "REAL compatibility defect",
+   "title": "INFO clients has no total_blocking_keys / total_blocking_keys_on_nokey fields",
+   "subsystem": "src/cmd/t_server.cc INFO renderer, Clients section (about line 2459): prints only connected_clients, blocked_clients, tracking_clients, monitor_clients",
+   "design_note": null,
+   "repro_case": "B2-INFO-TOTAL-BLOCKING-KEYS",
+   "redis": "total_blocking_keys:1, total_blocking_keys_on_nokey:0 with one BLPOP blocked",
+   "tomokv": "fields absent (the case compares the whole INFO clients text, which also differs in other fields)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on list",
+    "unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on stream - avoid endless loop",
+    "unit/type/stream-cgroups: Blocking XREADGROUP for stream key that has clients blocked on stream - reprocessing command"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "INFO-CMDSTAT-FIELDS",
+   "class": "REAL compatibility defect",
+   "title": "INFO commandstats lines lack usec, usec_per_call and failed_calls",
+   "subsystem": "src/cmd/t_server.cc INFO Commandstats renderer (about line 2972): prints 'cmdstat_<cmd>:calls=N,rejected_calls=N' only",
+   "design_note": "Deliberate: the code says 'Omit unmeasured timing and unimplemented failed_calls; never invent counters' (failed_calls is summed but not printed). Outside the owner's list, so still REAL. The case marks INFO commandstats compare:false because Redis's usec values vary per run, so its verdict is SAME by construction. Upstream selection: ./runtest --single unit/type/list --only 'Blocking command accounted only once in commandstats'.",
+   "repro_case": "B2-INFO-CMDSTAT-FIELDS",
+   "redis": "cmdstat_blpop:calls=1,usec=N,usec_per_call=N,rejected_calls=0,failed_calls=0",
+   "tomokv": "cmdstat_blpop:calls=1,rejected_calls=0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: Blocking command accounted only once in commandstats",
+    "unit/type/list: Blocking command accounted only once in commandstats after timeout"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "MPOP-ARG-ERROR-TEXT",
+   "class": "REAL compatibility defect",
+   "title": "*MPOP with a non-integer COUNT (all four commands) or non-integer numkeys (BLMPOP/BZMPOP) gives the generic integer error instead of 'count/numkeys should be greater than 0'",
+   "subsystem": "src/cmd/xshard_commands.inc COUNT parse for LMPOP/ZMPOP (reply_invalid_integer, about line 181); src/cmd/blocking.inc blocking_validate() numkeys parse and blocking_parse_positive_count() for BLMPOP/BZMPOP",
+   "design_note": null,
+   "repro_case": "B2-MPOP-ARG-ERROR-TEXT",
+   "redis": "ERR count should be greater than 0 / ERR numkeys should be greater than 0",
+   "tomokv": "ERR value is not an integer or out of range",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/list: LMPOP with illegal argument",
+    "unit/type/zset: BZMPOP with illegal argument",
+    "unit/type/zset: ZMPOP with illegal argument"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "XREAD-PLUS-LAST",
+   "class": "REAL compatibility defect",
+   "title": "XREAD with ID '+' (Redis 7.4 'last entry') is rejected",
+   "subsystem": "src/cmd/t_stream.cc XREAD argument parsing (STREAMS ids, about line 1572-1620): no '+' last-entry case",
+   "design_note": null,
+   "repro_case": "B2-XREAD-PLUS-LAST",
+   "redis": "[[lestream,[[2-0,[k2,v2]]]]]",
+   "tomokv": "ERR Invalid stream ID specified as stream command argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream: XREAD last element blocking from empty stream",
+    "unit/type/stream: XREAD last element blocking from non-empty stream",
+    "unit/type/stream: XREAD last element from empty stream",
+    "unit/type/stream: XREAD last element from multiple streams",
+    "unit/type/stream: XREAD last element from non-empty stream",
+    "unit/type/stream: XREAD last element with count > 1",
+    "unit/type/stream: XREAD: read last element after XDEL (issue #13628)"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "XRANGE-EXCLUSIVE-SENTINEL",
+   "class": "REAL compatibility defect",
+   "title": "XRANGE accepts '(-' and '(+' as exclusive bounds; Redis rejects them",
+   "subsystem": "src/cmd/t_stream.cc parse_range_bound(): strips '(' and then parses with sentinels allowed (parse_id_numeric(..., true))",
+   "design_note": null,
+   "repro_case": "B2-XRANGE-EXCLUSIVE-SENTINEL",
+   "redis": "ERR Invalid stream ID specified as stream command argument",
+   "tomokv": "[[1-0,[foo,bar]]]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream: XRANGE exclusive ranges"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "STREAM-GROUP-ID-DASH",
+   "class": "REAL compatibility defect",
+   "title": "'-' (0-0) is rejected as an ID by XGROUP SETID and as the XAUTOCLAIM start",
+   "subsystem": "src/cmd/t_stream_groups.cc stream ID parser (about line 90-101): no '-'/'+' sentinel handling, unlike t_stream.cc's allow_sentinels parser",
+   "design_note": null,
+   "repro_case": "B2-STREAM-GROUP-ID-DASH",
+   "redis": "XGROUP SETID ... - -> OK; XAUTOCLAIM ... 0 - COUNT 1 -> [2-0,[[1-0,[f1,v1]]],[]]",
+   "tomokv": "ERR Invalid stream ID specified as stream command argument",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream-cgroups: PEL NACK reassignment after XGROUP SETID event",
+    "unit/type/stream-cgroups: XAUTOCLAIM as an iterator",
+    "unit/type/stream-cgroups: XAUTOCLAIM can claim PEL items from another consumer"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "XAUTOCLAIM-COUNT-RANGE",
+   "class": "REAL compatibility defect",
+   "title": "XAUTOCLAIM COUNT larger than LONG_MAX/16 is accepted",
+   "subsystem": "src/cmd/t_stream_groups.cc cmd_xautoclaim(): COUNT is not capped at LONG_MAX / max(sizeof(streamID), attempts_factor)",
+   "design_note": null,
+   "repro_case": "B2-XAUTOCLAIM-COUNT-RANGE",
+   "redis": "ERR COUNT must be > 0",
+   "tomokv": "[0-0,[],[]]",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream-cgroups: XAUTOCLAIM with out of range count"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "STREAM-TRIM-APPROX-LIMIT",
+   "class": "REAL compatibility defect",
+   "title": "XADD/XTRIM '~' trims exactly instead of by whole macro nodes, and LIMIT (including the default ~ cap of 100 x stream-node-max-entries) is ignored",
+   "subsystem": "src/cmd/t_stream.cc trim_cut()/trim_stream(): TrimSpec::approximate and TrimSpec::limit are parsed and validated but never consulted",
+   "design_note": "Exact trimming under '~' is within the documented 'at least N' contract, but evicting more entries than LIMIT is not; both show up as different XLEN/XTRIM counts.",
+   "repro_case": "B2-STREAM-TRIM-APPROX-LIMIT",
+   "redis": "XTRIM s MAXLEN ~ 0 LIMIT 1 -> 0 (XLEN 3); XTRIM t MAXLEN ~ 2 -> 2 (XLEN 3)",
+   "tomokv": "-> 3 (XLEN 0); -> 3 (XLEN 2)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream: XADD with LIMIT consecutive calls",
+    "unit/type/stream: XADD with LIMIT delete entries no more than limit",
+    "unit/type/stream: XADD with MAXLEN option and the '~' argument",
+    "unit/type/stream: XTRIM with LIMIT delete entries no more than limit",
+    "unit/type/stream: XTRIM with MAXLEN option basic test",
+    "unit/type/stream: XTRIM with ~ is limited"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "DUMP-STREAM-REFUSED",
+   "class": "REAL compatibility defect",
+   "title": "DUMP refuses every stream value",
+   "subsystem": "src/cmd/serialize.cc cmd_dump_impl(): explicit Type::Stream -> 'ERR object could not be serialized'",
+   "design_note": null,
+   "repro_case": "B2-DUMP-STREAM-REFUSED",
+   "redis": "RDB payload (bulk)",
+   "tomokv": "ERR object could not be serialized",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/stream-cgroups: Consumer seen-time and active-time"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "RESTORE-IDLETIME-FREQ-IGNORED",
+   "class": "REAL compatibility defect",
+   "title": "RESTORE IDLETIME / FREQ are accepted but not applied",
+   "subsystem": "src/cmd/serialize.cc parse_restore_options(): IDLETIME/FREQ are validated, but RestoreOptions keeps only replace/absttl, so the LRU/LFU state is never set",
+   "design_note": null,
+   "repro_case": "B2-RESTORE-IDLETIME-FREQ-IGNORED",
+   "redis": "OBJECT IDLETIME 1000; OBJECT FREQ 100",
+   "tomokv": "0; 0",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/dump: RESTORE can set LFU",
+    "unit/dump: RESTORE can set LRU"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "APPENDONLY-IMMUTABLE",
+   "class": "REAL compatibility defect",
+   "title": "CONFIG SET appendonly is immutable at runtime",
+   "subsystem": "CONFIG SET appendonly (boot-only appendonly; src/core/config.h)",
+   "design_note": "Accepted constraint: appendonly is boot-only on TomoKV. The same constraint aborts the needs:debug appendonly start_server blocks of unit/type/stream and unit/type/stream-cgroups (see notes).",
+   "repro_case": "B2-APPENDONLY-IMMUTABLE",
+   "redis": "OK",
+   "tomokv": "ERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/expire: GETEX use of PERSIST option should remove TTL after loadaof",
+    "unit/expire: SET - use KEEPTTL option, TTL should not be removed after loadaof"
+   ],
+   "group": "B2",
+   "also_found_as": [
+    {
+     "group": "B1",
+     "id": "AOF-IMMUTABLE",
+     "repro_case": "AOF-IMMUTABLE",
+     "title": "CONFIG SET appendonly is immutable at runtime"
+    }
+   ]
+  },
+  {
+   "id": "DIRTY-COUNTER",
+   "class": "Redis-internal assumption",
+   "title": "rdb_changes_since_last_save is maintained only while save points are armed; the harness disarms them (--save '')",
+   "subsystem": "src/core/server.h save_changes_since_last_save() + src/cmd/notify.h/notify.inc NOTIFY_SAVE observer gated by config.save_armed",
+   "design_note": "Persistence-internal counter. With CONFIG SET save '3600 1000000' TomoKV counts, but still not like Redis: a served BLPOP adds 3 (Redis 2) and XREADGROUP adds 0 (Redis 2) (probe P-DIRTY-ARMED).",
+   "repro_case": null,
+   "redis": null,
+   "tomokv": null,
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/bitops: SETBIT/BITFIELD only increase dirty when the value changed",
+    "unit/type/list: BLPOP/BLMOVE should increase dirty",
+    "unit/type/stream-cgroups: XREADGROUP from PEL does not change dirty",
+    "unit/type/stream-cgroups: XREADGROUP of multiple entries changes dirty by one"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "HLL-SPARSE-MAX-BYTES",
+   "class": "Redis-internal assumption",
+   "title": "hll-sparse-max-bytes is immutable (HLL encoding threshold)",
+   "subsystem": "CONFIG SET hll-sparse-max-bytes -> can't set immutable config",
+   "design_note": null,
+   "repro_case": null,
+   "redis": null,
+   "tomokv": null,
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/hyperloglog: Change hll-sparse-max-bytes",
+    "unit/hyperloglog: HyperLogLogs are promote from sparse to dense",
+    "unit/hyperloglog: Hyperloglog promote to dense well in different hll-sparse-max-bytes"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "EXTERNAL-CHILD-PID",
+   "class": "Redis-internal assumption",
+   "title": "SRANDMEMBER long-chain test needs to own the server process (get_child_pid) and fails on Redis too; its abort leaves set-max-listpack-entries 0",
+   "subsystem": "test harness, external mode",
+   "design_note": null,
+   "repro_case": null,
+   "redis": null,
+   "tomokv": null,
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/set: SMOVE basics - from intset to regular set",
+    "unit/type/set: SMOVE basics - from regular set to intset",
+    "unit/type/set: SMOVE from intset to non existing destination set",
+    "unit/type/set: SMOVE from regular set to non existing destination set",
+    "unit/type/set: SMOVE non existing key",
+    "unit/type/set: SMOVE non existing src set",
+    "unit/type/set: SRANDMEMBER with a dict containing long chain"
+   ],
+   "group": "B2"
+  },
+  {
+   "id": "WATCH-SPURIOUS-INVALIDATION",
+   "class": "REAL compatibility defect",
+   "group": "B2",
+   "title": "SMOVE that leaves an already-present member in dstset invalidates WATCH dstset on some boots (EXEC aborts); the outcome is fixed per process",
+   "subsystem": "WATCH validation in src/cmd/multi.inc (watch reservations / writer stamps) with version state reached through the per-process seeded key hash (src/store/flatstore.h g_hash_seed); not root-caused",
+   "design_note": null,
+   "repro_case": null,
+   "probe": "redis-tcl-watch-probe.json (docs/harness5/watch_probe.py)",
+   "redis": "EXEC -> [1] (SADD dstset{t} c applied); SCARD dstset{t} = 2 on 30/30 boots",
+   "tomokv": "EXEC -> nil on 3/30 2s and 5/60 1s fresh boots (every iteration within such a boot)",
+   "modes": [
+    "2s",
+    "1s"
+   ],
+   "tests": [
+    "unit/type/set: SMOVE only notify dstset when the addition is successful"
+   ]
+  }
+ ],
+ "notes": "EVIDENCE: build/h5reach/final/report.json.gz did not exist when I started; both it (written later) and the merged docs/harness5/redis-tcl-reach.json.gz have exactly the failing sets I triaged for list, stream and stream-cgroups in 2s/1s/Redis (checked). The finished final pass is split between build/h5reach/final-a/report.json.gz (2s + Redis) and build/h5reach/final-b/report.json.gz (1s). Both used the same union skip list and build/tomokv sha ef368a64..., the same binary as the full-file runs. Fresh --only reruns: build/b2-iso (cores 40-43, ports 45861/45862/45863, ratio 3:1, 2s/1s/Redis). Extra probes are under B2/work/probe*.json.\n\nMODE DIFFERENCES ARE NOT MODE BUGS:\n(1) In unit/type/list discovery, 2s gave 227/48 and 1s gave 240/35. The 13 extra 2s failures are the stale-client cascade of the flaky root 'BLMPOP with multiple blocked clients' (BLOCK-WAKE-ORDER-MULTI): it passed in 1s discovery attempt #3 and failed in 2s. In the final pass it failed in both modes, and both report the identical 48 failures.\n(2) unit/type/zset (2s 4 failures, 1s 7) is the same mechanism. 'BZMPOP with multiple blocked clients' failed only in the 1s full-file run, but fails in fresh runs in both modes; #10762 and 'ZRANDMEMBER - listpack' are its cascades.\n(3) Both wake-order roots are flaky in both modes: B2-BLOCK-WAKE-ORDER-MULTI was DIFFERENT in 4/6 runs (2s) and 5/6 (1s); the unpipelined chain probe in 5/6 (2s) and 2/6 (1s). A single SAME run does not mean fixed. The recorded B2-BLOCK-CHAIN-ASYNC case pipelines RPUSH+LRANGE and was DIFFERENT 4/4 in both modes.\n\nCASCADE MECHANISM: a failing blocking test aborts with its deferring clients still blocked. Every later wait_for_blocked_clients_count is then off by the number of stale clients, and stale waiters steal elements pushed by later tests. Roots: list 'BLMPOP with multiple blocked clients', stream-cgroups 'Blocking XREADGROUP for stream key that has clients blocked on list' (missing total_blocking_keys), zset 'BZMPOP with multiple blocked clients'. Tests that also fail when run alone are classified by their own root with cascade_of null: Linked LMOVEs, Circular BRPOPLPUSH, both commandstats tests, the PAUSE test, both SORT..STORE tests, XGROUP DESTROY, and both RENAME/XREADGROUP tests.\n\nHIDDEN HANGS: 'XGROUP DESTROY should unblock XREADGROUP with -NOGROUP', 'RENAME can unblock XREADGROUP with data' and 'RENAME can unblock XREADGROUP with -NOGROUP' hang when run alone, in both modes. In the reach pass the cascade made them fail fast. Once INFO-TOTAL-BLOCKING-KEYS is fixed, the stream-cgroups reach run will hang at XGROUP DESTROY unless these three join the skip list. Ten tests are hung in total: 3 list, 4 stream-cgroups on the skip list, plus these 3.\n\nUNREACHED, NOT LISTED (block-level aborts with no test name; Redis runs these tests):\n- unit/type/list: the first start_server block aborts at 'r config set list-compress-depth 2', skipping 6 '<packed|plain> node check compression ...' tests (quicklist compression, class-1 subject).\n- unit/type/list-3: the 'foreach comp' block aborts at config_set list-compress-depth, skipping 5 tests (Stress tester for #3343-alike bugs comp: 0/1/2, and ziplist implementation: encoding stress testing / value encoding and backlink).\n- unit/type/stream-cgroups: the needs:debug block at line 1074 with overrides {appendonly yes ...} aborts the rest of the file on the boot-only appendonly constraint, skipping 10 tests (XREADGROUP with NOACK creates consumer, Consumer without PEL is present in AOF after AOFRW, consumer-group lag/read-counter tests, legacy RDB loading, ...). The reach pass excluded needs:debug only for unit/type/stream (8 ignored there).\n\nREDIS-SIDE REACH ARTIFACT: Redis fails 'BLMPOP_LEFT when result key is created by SORT..STORE' in the final pass ('no blocked clients') only because the skipped 'BLMPOP_LEFT when new key is moved into place' normally empties foo{t}. TomoKV fails the test independently (fresh run: SORT..STORE does not wake).\n\nISOLATION ARTIFACTS ON REDIS (not class 2):\n- 'GETEX use of PERSIST option should remove TTL after loadaof': fails on Redis only in isolation (DEBUG LOADAOF right after enabling AOF); passes full-file.\n- 'Consumer seen-time and active-time': --only fails on both servers because key x comes from an earlier test. The reach pass, where TomoKV fails at DUMP, is the evidence.\n- 'Blocking timeout following PAUSE should honor the timeout': failed on Redis inside one multi-test --only batch but passes alone and in the full reach pass.\n\nBRIEF CORRECTION: DEBUG OBJECT is NOT implemented on this base ('DEBUG OBJECT nokey' gives the unknown-subcommand error). Implemented: SET-ACTIVE-EXPIRE, LOADAOF, RELOAD, SLEEP (IoLoop), plus TomoKV-internal hooks.\n\nJUDGEMENT CALLS (maintainer may override):\n- MIGRATE-ABSENT is class 1: COMMAND LIST shows MIGRATE missing together with cluster*, module*, psync, replconf and sync.\n- SRANDMEMBER long chain is class 2: it needs to own the server process (get_child_pid) and fails on Redis too. Its 6 SMOVE cascades fail identically on Redis.\n- STREAM-TRIM-APPROX-LIMIT is REAL, not class 1: LIMIT is a documented eviction cap, and TomoKV does have nodes (stream-node-max-entries is honoured for node rolling).\n- DIRTY-COUNTER is class 2 (persistence-internal counter), but even with save points armed TomoKV miscounts a served BLPOP (+3 vs +2) and XREADGROUP (+0 vs +2).\n- No defect is hidden behind the class-1 failures that I checked: COPY of list/set/zset/hash/stream (with a group and PEL) and RESTORE ABSTTL-in-the-past match Redis exactly.\n\nREPRO NOTES:\n- B2-INFO-TOTAL-BLOCKING-KEYS and B2-PAUSE-POSTPONED-NOT-BLOCKED compare the whole INFO clients text, so DIFFERENT also reflects fields TomoKV never prints. The defining field is named in each root.\n- B2-INFO-CMDSTAT-FIELDS is SAME by construction (Redis usec values are volatile, so compare:false); use the upstream --only selection named in its design_note.\n- B2-RESTORE-IDLETIME-FREQ-IGNORED uses an all-ASCII DUMP payload for the string 'v26' (RDB v12 + Redis CRC64), because repro_tcl.py sends UTF-8 text.\n\nHARNESS: Redis's find_available_port also binds port+10000 (55862 here). One isolation batch hit \"Can't find a non busy port in the 45862-45862 range\" transiently; my runner now retries.\n\nINTEGRATION (lead): the four block-setup failures above (list, list-3, stream, stream-cgroups) were listed in notes rather than tests; they are now explicit entries with test name <file setup/teardown>.",
+ "merged_root_ids": {
+  "B2:SCRIPT-SORT-NOT-ALLOWED": "SCRIPT-CMD-WHITELIST",
+  "B2:PAUSE-POSTPONED-NOT-BLOCKED": "PAUSE-BLOCKED-COUNT",
+  "B2:REPL-STREAM": "UNSUP-REPLICATION",
+  "B2:MIGRATE-ABSENT": "UNSUP-CLUSTER",
+  "B2:DEBUG-DIGEST-VALUE": "UNSUP-DEBUG",
+  "B2:DEBUG-OBJECT": "UNSUP-DEBUG",
+  "B2:DEBUG-QUICKLIST-PACKED-THRESHOLD": "UNSUP-DEBUG",
+  "B2:DEBUG-SET-SKIP-CHECKSUM-VALIDATION": "UNSUP-DEBUG",
+  "B2:LIST-ENCODING": "UNSUP-ENCODING",
+  "B2:QUICKLIST-COMPRESSION": "UNSUP-ENCODING",
+  "B2:SHARED-INTEGER-REFCOUNT": "UNSUP-ENCODING"
+ }
+}

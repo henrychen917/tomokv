@@ -1,0 +1,7 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(14/8 server, 2/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 14 server + 2 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-harness5/build/harness5-baseline/build/gate-run.mEvrtl
+PARTIAL jobs (including prerequisites): abba_selftest
+PARTIAL jobs (including prerequisites): abba_selftest
+  row budget: 1620s; median=-s; abba-selftest-wave6-landing-1128.59s-plus-40pct-rounded; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       FAIL (see /home/user/Projects/cx-harness5/build/harness5-baseline/build/gate-run.mEvrtl/jobs/abba_selftest/gate-abbagate-unit.txt)
+GATE(PARTIAL): 0 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/timing/L-before-1/ledger.partial

@@ -1,0 +1,22 @@
+{
+  "equal": true,
+  "baseline_commit": "3700b51d7",
+  "post_commit": "46c53da09 (final harness code; no later commit changes tests/ or src/)",
+  "uncompressed_sha256": "de21c0e524af5c189d3009a04b9cb5f4c70329b2478abe81190dd7075b2c42bb",
+  "bytes": 53596159,
+  "files": 66,
+  "parsed_files": 65,
+  "cells": 1230,
+  "runnable_cells": 1225,
+  "retired_cells": 5,
+  "refused_files": [
+    "docs/respresume/cells-check.txt"
+  ],
+  "plans": 7335,
+  "server_argv": 14670,
+  "load_argv": 106370,
+  "standing_headline_cells": 181,
+  "epoll_cells": 32,
+  "scope": "Complete server/load argv and connection layouts for both arms at every ladder rung through 24 plus the original pin, every tracked *cells*.txt file. No process launched. Retired cells preserve the exact refusal.",
+  "rechecked": "2026-10-26 continuation: docs/harness5/argv_snapshot.py on the final tree; uncompressed sha256 identical to before/argv.json.gz"
+}

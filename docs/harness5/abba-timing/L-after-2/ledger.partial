@@ -1,0 +1,2 @@
+PARTIAL	0	GATE_ONLY_JOBS=abba_selftest; NOT A RECEIPT
+ok	402.790000	ABBA comparison + saturation negative controls

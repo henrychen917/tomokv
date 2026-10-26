@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "tests/netio.py",
+    "--self-test"
+  ],
+  "affinity": [
+    46,
+    47
+  ],
+  "seconds": 0.00637966301292181,
+  "tests": []
+}
