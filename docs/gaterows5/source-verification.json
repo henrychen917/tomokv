@@ -1,0 +1,38 @@
+{
+  "base": "3700b51d7",
+  "code_commit": "dfae990e9618f71698fb612fab3dfa7ee6650266",
+  "production_diff_empty": true,
+  "expected_assignments": [
+    "EXPECT_QUICK=798",
+    "EXPECT_FULL=815"
+  ],
+  "changed_code_sha256": {
+    "Makefile": "a0e7fe7c695a8d1636b4cc29407b4289d2350b77b221aff13bb7f8b33e9e6d5a",
+    "tests/_lib.py": "c7e88cf30e1be986e60a61b96126d01129def2a8b1130245585ae4cb4f87f5db",
+    "tests/atomicwindow.py": "e4b3f0632ebfa18ac6d9ec86488084dc65bce47d47fa881f372aa04bbc29a6f1",
+    "tests/feature_atomic.py": "9362692c18f3c2ec41b21b6a1a37fedebc4fa304311855a2551724a3e069368d",
+    "tests/fixtures/nullrefresh-ledger-labels.json": "fc564dd838051a85ff4395da79b8e885adc7467eee9c87c7da8de3f3ba69db08",
+    "tests/gate.sh": "a26d0ed3e9d532e9c6b08837b8662f792835359d34b915dcf11f52b9ca64b148",
+    "tests/gaterows_contract_test.py": "6e3c3e1288a9d120e224117b95d1d00a4505ffe137c1ae38cd7a70a8544323b9",
+    "tests/inline_quoted.py": "bbd94d8a7aa11af614fb7296ba04369e365fcd3e1ee3a799913bddd2cf520473",
+    "tests/layout_placement.cc": "0773bdf0086d65aad03f456aa67715533f59bf3ca71bfdf9dcf313e0d1f65feb",
+    "tests/reorderscan_gate.py": "6598c4bfe96eb4d30c2dbda009e8d2d2a420eb1577ecda81104f6bed71147e62",
+    "tests/reorderscan_paths.cc": "a2020f7ac958780751a8873b3d8743f140c5d6820119fa6222c55a0405591959",
+    "tests/reorderscan_unit.cc": "2437ad00289dcc7f2571714cb8d1c6eb483011927c22582fbd66aef698eaa813",
+    "tests/rob_portable_control.py": "279a015208be67e9ec06fc71d8da3eafa8e55bf7b35fdca81d9a28f33e4a4f91",
+    "tests/scriptatomic.py": "389f0e7ee32db1b7172f92f322dc9adb32dd93c67d20156eaea2e4f875202491",
+    "tests/scriptatomic_strict.py": "d8095c2347c0770340ca875259256eec0fd63568471b4b1aa35d17455118bdcc",
+    "tests/slotless.py": "a12a0dd1139d0ad57f049b730352e69815ff313013d74a74a81132de1117c217",
+    "tests/slotless_unit.cc": "b516440cb91553ea9e23cd1f3f5337d3b15cffd6823eee3c2eb7d8686eb1ba2e",
+    "tests/wb_mixed.py": "5fd170666be890431ec45705a7b1ecd764c167965a04a5296e49ae400d55e319"
+  },
+  "final_correctness_rows": {
+    "pass_count": 249,
+    "fail_count": 5,
+    "total": 254
+  },
+  "failures": [
+    "inline quoted argument decoding: 1s/2s x epoll/uring",
+    "cross-thread heap and vector line placement"
+  ]
+}

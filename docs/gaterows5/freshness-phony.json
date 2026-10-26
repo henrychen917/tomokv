@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "make",
+    "-q",
+    "mdbqsbr-live-arms"
+  ],
+  "exit": 0,
+  "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-gaterows5'\nmake[1]: Leaving directory '/home/user/Projects/cx-gaterows5'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-gaterows5'\nmake[1]: Leaving directory '/home/user/Projects/cx-gaterows5'\n",
+  "explanation": "Query concrete park and no-wake all targets separately; the wrapper has no timestamp."
+}
