@@ -1,0 +1,22 @@
+Full compressed GDB trace: /home/user/Projects/cx-execindex/build/execindex/instruction-logs/initial/post-db0-MSET-2s-32-1--1.log.gz
+SHA-256 (gzip): e90c36c53a7b917be2c42da1da7c10643ee5c2668ddcd66fd01c7dae9a3f47b5
+0x00005555556744c9	569	}
+0x00005555556744ca	569	}
+0x00005555556744cc	569	}
+0x00005555556744ce	569	}
+0x00005555556744d0	569	}
+0x0000555555d62c66 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:112
+112	    xshard_retire(server,server.thread(io),ring,client,op,pool,io,nullptr,nullptr,nullptr);
+95	   for(unsigned i=0;i<n;i++){
+0x0000555555d62c72	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d62c79	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d62c81	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d62c88	95	   for(unsigned i=0;i<n;i++){
+0x0000555555d62c8e	115	   std::string want="+OK\r\n";
+0x0000555555d62c95	115	   std::string want="+OK\r\n";
+0x0000555555d62c9c	114	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 607177) exited normally]
+COUNT 945814

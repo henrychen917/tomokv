@@ -1,0 +1,494 @@
+[
+  {
+    "arm": "PRE",
+    "command": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE",
+      "--port",
+      "46890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--thread-mode",
+      "fused",
+      "--net-io",
+      "uring",
+      "--databases",
+      "1",
+      "--atomic",
+      "1",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-execindex/build/execindex/nx-control/PRE"
+    ],
+    "sha256": "957d19eafa7beb151bfae017ea6675fca1da40b334a100602fa3fd38764029f4",
+    "runs": [
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-0.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-1.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-2.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-3.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-4.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-5.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-6.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-7.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-8.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-9.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-10.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-11.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-12.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-13.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-14.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "PRE-15.log"
+      }
+    ]
+  },
+  {
+    "arm": "POST",
+    "command": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/POST",
+      "--port",
+      "46890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--thread-mode",
+      "fused",
+      "--net-io",
+      "uring",
+      "--databases",
+      "1",
+      "--atomic",
+      "1",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-execindex/build/execindex/nx-control/POST"
+    ],
+    "sha256": "aee048859f6f8d84d5aa4e0b30767ad1e8dac4595d383ff634a8226027d1566a",
+    "runs": [
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-0.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-1.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-2.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-3.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-4.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-5.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-6.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-7.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-8.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-9.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-10.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-11.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-12.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-13.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-14.log"
+      },
+      {
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "python3",
+          "tests/txn_nx.py",
+          "127.0.0.1",
+          "46890"
+        ],
+        "exit_code": 0,
+        "log": "POST-15.log"
+      }
+    ]
+  }
+]

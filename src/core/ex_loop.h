@@ -11,6 +11,7 @@
 // also must not sleep so eagerly that it pays a wakeup per op under load. So: spin briefly, then arm
 // the blocked flag, re-check, and block. Producers only pay a wake syscall while that flag is armed.
 #pragma once
+#include "../cmd/txn_retry_queue.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -2431,51 +2432,32 @@ private:
     }
 
     __attribute__((noinline)) MultiTaskResult execute_multi_unit(
-        const Task& task, Shard& shard, void (*promote)(void*, const Task&)) {
+        const Task& task, Shard& shard, void (*promote)(void*, MultiOwnerRetryNode&)) {
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
         const MultiRetryPromoter promoter{this, promote};
         return multi_execute_task(*srv_, task, shard, self_->id(), self_->domain(),
                                   aof_manager_ ? &context : nullptr, &promoter);
     }
 
-    // deque insertion needs an aligned temporary; keep that frame entirely on
-    // the unit retry path instead of changing every ordinary execute prologue.
     __attribute__((noinline)) void queue_fast_multi_retry(const Task& task) {
-        multi_retries_.insert(multi_retries_.begin() + multi_fast_count_, task);
-        ++multi_fast_count_;
+        multi_retries_.enqueue(multi_owner_retry_node(task), task, true);
     }
-
-    void promote_multi_retry(const Task& next) {
-        for (size_t i = multi_fast_count_; i < multi_retries_.size(); ++i) {
-            if (multi_retries_[i].scatter != next.scatter || multi_retries_[i].shard != next.shard)
-                continue;
-            // Moving a queued task must not allocate or lose it on failure.
-            std::rotate(multi_retries_.begin() + multi_fast_count_,
-                        multi_retries_.begin() + i, multi_retries_.begin() + i + 1);
-            ++multi_fast_count_;
-            return;
-        }
+    __attribute__((noinline)) void queue_multi_retry(const Task& task) {
+        multi_retries_.enqueue(multi_owner_retry_node(task), task, false);
     }
+    void promote_multi_retry(MultiOwnerRetryNode& node) { multi_retries_.promote(node); }
 
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
-        // Snapshot the prefix: retries and promotions append to it, behind the
-        // as-yet unpolled members. No fragment can be polled twice in this pass.
-        const uint32_t fast = multi_fast_count_;
-        // Reserve the original rotation head before promotions or demotions.
-        // It is polled last, exactly once, even if a fast poll promotes it.
-        const bool rotate = multi_retries_.size() > fast;
+        // Snapshot the prefix and reserve the original rotation head. Promotions
+        // and demotions append behind it, exactly as in the former deque.
+        const uint32_t fast = multi_retries_.fast_count;
+        const bool rotate = multi_retries_.rotation_head != nullptr;
         Task rotation{};
-        if (rotate) {
-            const auto at = multi_retries_.begin() + fast;
-            rotation = *at;
-            multi_retries_.erase(at);
-        }
+        if (rotate) rotation = multi_retries_.pop(false);
         for (uint32_t i = 0; i < fast; ++i) {
-            const Task task = multi_retries_.front();
-            multi_retries_.pop_front();
-            --multi_fast_count_;
+            const Task task = multi_retries_.pop(true);
             srv_->note_txn(self_->id(), TxnCounter::FastPolls);
             execute_resumed<IofusedPrivateQueue>(task);
         }
@@ -2837,7 +2819,7 @@ private:
     std::vector<std::unique_ptr<SnapshotChunk>> snapshot_pending_chunks_;
     std::vector<std::deque<Task>> snapshot_backlogs_;
     std::deque<Task> atomic_deferred_;
-    std::deque<Task> multi_retries_;
+    TxnRetryQueues multi_retries_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
     // Backpressure cannot turn a stale route into a dropped request/release. These queues contain
@@ -2875,7 +2857,7 @@ private:
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
     // Counted prefix keeps every existing empty-queue test unchanged. Cold tail
     // preserves offsets of the ordinary executor fields.
-    uint32_t multi_fast_count_ = 0;
+    uint32_t multi_retry_layout_pad_ = 0; // former fast count; retain following offsets
 public:
     // R7 bodies are isolated from the FIFO translation units.
 // BEGIN R7 GENERATED ENVELOPES

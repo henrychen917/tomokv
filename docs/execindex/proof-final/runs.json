@@ -1,0 +1,4748 @@
+[
+  {
+    "name": "txnorder-fused0-rep1",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46800-46809",
+    "slot_ports": [
+      46800,
+      46801,
+      46802
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46800-46809"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:46:53",
+    "ended": "2026-10-26 11:47:44",
+    "elapsed_s": 51.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.o5GK1l",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.3,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-fused0-rep2",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46810-46819",
+    "slot_ports": [
+      46810,
+      46811,
+      46812
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46810-46819"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:47:44",
+    "ended": "2026-10-26 11:48:36",
+    "elapsed_s": 51.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.GQgPrB",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.23,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-fused0-rep3",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46820-46829",
+    "slot_ports": [
+      46820,
+      46821,
+      46822
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46820-46829"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:48:36",
+    "ended": "2026-10-26 11:49:27",
+    "elapsed_s": 51.5,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.8MW0w8",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.16,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-fused0-rep4",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46830-46839",
+    "slot_ports": [
+      46830,
+      46831,
+      46832
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46830-46839"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:49:27",
+    "ended": "2026-10-26 11:50:19",
+    "elapsed_s": 51.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.sZiaqo",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.26,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-fused0-rep5",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46840-46849",
+    "slot_ports": [
+      46840,
+      46841,
+      46842
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46840-46849"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:50:19",
+    "ended": "2026-10-26 11:51:11",
+    "elapsed_s": 51.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.FTMdut",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.26,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-fused0-rep6",
+    "jobs": [
+      "txnorder-fused-0"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46850-46859",
+    "slot_ports": [
+      46850,
+      46851,
+      46852
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46850-46859"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:51:11",
+    "ended": "2026-10-26 11:52:03",
+    "elapsed_s": 51.7,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.Eef62V",
+    "ok": 2,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.31,
+        "label": "txnorder battery (fused, atomic 0)"
+      }
+    ]
+  },
+  {
+    "name": "feature-epoll-rerun",
+    "jobs": [
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46860-46869",
+    "slot_ports": [
+      46860,
+      46861,
+      46862
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46860-46869"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 11:52:43",
+    "ended": "2026-10-26 12:00:08",
+    "elapsed_s": 445.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.nVKKub",
+    "ok": 104,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.46,
+        "label": "s6 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.07,
+        "label": "multi_exec battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.59,
+        "label": "blocking battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.45,
+        "label": "blockmulti battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "stream battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "streamgroups battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.87,
+        "label": "pubsub battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "lua_scripting battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "scriptsurf battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 14.94,
+        "label": "limits battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "resp3 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "bitfield battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "dumprestore battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "zsetops battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "geo battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.12,
+        "label": "climon battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.32,
+        "label": "climon2 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 13.31,
+        "label": "tracking battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.29,
+        "label": "hexpire battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.56,
+        "label": "servertail battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "lcs battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.8,
+        "label": "concur battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.58,
+        "label": "edgeproto battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.36,
+        "label": "edgeenc battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.6,
+        "label": "edgetime battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "arity battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "contarity battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "cmdgap battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "aclsel battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 82.82,
+        "label": "expwide battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.15,
+        "label": "infofix battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.93,
+        "label": "pushtear battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "netcmd battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "feature shutdown invariants (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "fused+armed boot line (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.14,
+        "label": "fused+armed s6 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.07,
+        "label": "fused+armed multi_exec battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.59,
+        "label": "fused+armed blocking battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.46,
+        "label": "fused+armed blockmulti battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.54,
+        "label": "fused+armed stream battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "fused+armed streamgroups battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.87,
+        "label": "fused+armed pubsub battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed lua_scripting battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "fused+armed scriptsurf battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 14.62,
+        "label": "fused+armed limits battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed resp3 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed bitfield battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "fused+armed dumprestore battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "fused+armed zsetops battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed geo battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.13,
+        "label": "fused+armed climon battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.33,
+        "label": "fused+armed climon2 battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 13.23,
+        "label": "fused+armed tracking battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.05,
+        "label": "fused+armed hexpire battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.57,
+        "label": "fused+armed servertail battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "fused+armed lcs battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.84,
+        "label": "fused+armed concur battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.72,
+        "label": "fused+armed edgeproto battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.39,
+        "label": "fused+armed edgeenc battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.81,
+        "label": "fused+armed edgetime battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed arity battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed contarity battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed cmdgap battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed aclsel battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 63.49,
+        "label": "fused+armed expwide battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.2,
+        "label": "fused+armed infofix battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 7.93,
+        "label": "fused+armed pushtear battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "fused+armed netcmd battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.16,
+        "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.42,
+        "label": "s6 battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.08,
+        "label": "multi_exec battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.53,
+        "label": "blocking battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.45,
+        "label": "blockmulti battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "stream battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "streamgroups battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.89,
+        "label": "pubsub battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "lua_scripting battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "scriptsurf battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 14.73,
+        "label": "limits battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "resp3 battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "bitfield battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "dumprestore battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "zsetops battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "geo battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.13,
+        "label": "climon battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.31,
+        "label": "climon2 battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 13.37,
+        "label": "tracking battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.05,
+        "label": "hexpire battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.56,
+        "label": "servertail battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "lcs battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.77,
+        "label": "concur battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.62,
+        "label": "edgeproto battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.36,
+        "label": "edgeenc battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.79,
+        "label": "edgetime battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "arity battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "contarity battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "cmdgap battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "aclsel battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 92.47,
+        "label": "expwide battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.2,
+        "label": "infofix battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 7.93,
+        "label": "pushtear battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "netcmd battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "feature shutdown invariants (atomic 1)"
+      }
+    ]
+  },
+  {
+    "name": "flip-uring-rerun",
+    "jobs": [
+      "flip",
+      "fliplisten"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46870-46879",
+    "slot_ports": [
+      46870,
+      46871,
+      46872
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46870-46879"
+    ],
+    "exit_code": 1,
+    "started": "2026-10-26 12:00:08",
+    "ended": "2026-10-26 12:03:48",
+    "elapsed_s": 219.8,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.ZBhFdi",
+    "ok": 8,
+    "fail": [
+      "FLIP close during FLIP (epoll)",
+      "FLIP signal stop during FLIP + second SIGINT",
+      "perfio stale epoll registration (epoll-flip)",
+      "perfio stale epoll registration (epoll-lb)",
+      "FLIP listener conservation (io-ex, complete)",
+      "FLIP listener conservation (ex-io, complete)"
+    ],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "FLIP state battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "FLIP under verified load"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.44,
+        "label": "FLIP TTL + expiry events"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.23,
+        "label": "partial-frame conn parks (no io spin)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.18,
+        "label": "FLIP close during FLIP (uring)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.33,
+        "label": "FLIP close during FLIP (epoll)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.9,
+        "label": "FLIP signal stop during FLIP + second SIGINT"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.12,
+        "label": "perfio stale epoll registration (epoll-flip)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.12,
+        "label": "perfio stale epoll registration (epoll-lb)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 75.23,
+        "label": "FLIP listener conservation (io-ex, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.82,
+        "label": "FLIP listener conservation (io-ex, rollback)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 75.1,
+        "label": "FLIP listener conservation (ex-io, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 28.52,
+        "label": "FLIP listener conservation (ex-io, rollback)"
+      }
+    ]
+  },
+  {
+    "name": "txnorder-uring-final",
+    "jobs": [
+      "txnorder-fused-0",
+      "txnorder-fused-1",
+      "txnorder-split-0",
+      "txnorder-split-1"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46880-46889",
+    "slot_ports": [
+      46880,
+      46881,
+      46882
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46880-46889"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:03:48",
+    "ended": "2026-10-26 12:07:04",
+    "elapsed_s": 196.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.Aad5q1",
+    "ok": 5,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.11,
+        "label": "txnorder battery (fused, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 48.36,
+        "label": "txnorder battery (fused, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 47.92,
+        "label": "txnorder battery (split, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 47.86,
+        "label": "txnorder battery (split, atomic 1)"
+      }
+    ]
+  },
+  {
+    "name": "index-execfair-final",
+    "jobs": [
+      "txnorder_index",
+      "execfair",
+      "txnorder2",
+      "txnorder_wake",
+      "core_units",
+      "wait_units"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46890-46899",
+    "slot_ports": [
+      46890,
+      46891,
+      46892
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46890-46899"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:07:04",
+    "ended": "2026-10-26 12:11:00",
+    "elapsed_s": 235.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.kZ32F3",
+    "ok": 32,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.12,
+        "label": "core concurrency watch"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "core concurrency lifetime"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.11,
+        "label": "core concurrency drain"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 7.17,
+        "label": "core concurrency route"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.11,
+        "label": "core concurrency snapshot"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "core concurrency config"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "core concurrency notify"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.77,
+        "label": "read-local topology demotion (1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.56,
+        "label": "read-local topology demotion (2s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "waits config publication + admission unit"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.01,
+        "label": "reads never wait for retirement quiescence"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 20.77,
+        "label": "EXEC fast-lane polls"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 104.81,
+        "label": "txnorder index oracle"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.69,
+        "label": "txnorder index complexity"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "txnorder2 writer episode R1"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "txnorder2 writer episode R2"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "txnorder2 writer episode R3"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "txnorder2 writer episode R4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "txnorder2 writer episode R5"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "txnorder2 writer episode R6"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "txnorder2 writer episode R7"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.14,
+        "label": "txnorder2 writer episode R8"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "txnorder2 writer episode R9"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "txnorder2 writer episode R10"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "txnorder2 writer episode R11"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.57,
+        "label": "txnorder2 writer episode R12"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "txnorder2 direct RENAME owner join"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 22.59,
+        "label": "txnorder2 WATCH serve"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 30.25,
+        "label": "txnorder2 WATCH flush"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 26.97,
+        "label": "txnorder2 WATCH readonly"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "txnorder2 busy owner inbox wake"
+      }
+    ]
+  },
+  {
+    "name": "flip-fliplisten-PRE",
+    "jobs": [
+      "flip",
+      "fliplisten"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46810-46819",
+    "slot_ports": [
+      46810,
+      46811,
+      46812
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/execindex/PRE",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46810-46819",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE"
+    ],
+    "exit_code": 1,
+    "started": "2026-10-26 12:11:19",
+    "ended": "2026-10-26 12:15:25",
+    "elapsed_s": 246.5,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.8nOuib",
+    "ok": 6,
+    "fail": [
+      "FLIP close during FLIP (epoll)",
+      "FLIP signal stop during FLIP + second SIGINT",
+      "perfio stale epoll registration (epoll-flip)",
+      "perfio stale epoll registration (epoll-lb)",
+      "FLIP listener conservation (io-ex, complete)",
+      "FLIP listener conservation (io-ex, rollback)",
+      "FLIP listener conservation (ex-io, complete)",
+      "FLIP listener conservation (ex-io, rollback)"
+    ],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "FLIP state battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "FLIP under verified load"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.44,
+        "label": "FLIP TTL + expiry events"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.23,
+        "label": "partial-frame conn parks (no io spin)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.19,
+        "label": "FLIP close during FLIP (uring)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.32,
+        "label": "FLIP close during FLIP (epoll)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.89,
+        "label": "FLIP signal stop during FLIP + second SIGINT"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.12,
+        "label": "perfio stale epoll registration (epoll-flip)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 0.12,
+        "label": "perfio stale epoll registration (epoll-lb)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 76.01,
+        "label": "FLIP listener conservation (io-ex, complete)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 29.22,
+        "label": "FLIP listener conservation (io-ex, rollback)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 75.77,
+        "label": "FLIP listener conservation (ex-io, complete)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 52.35,
+        "label": "FLIP listener conservation (ex-io, rollback)"
+      }
+    ]
+  },
+  {
+    "name": "flip-uring-oddport",
+    "jobs": [
+      "flip",
+      "fliplisten"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46801-46809",
+    "slot_ports": [
+      46801,
+      46802,
+      46803
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46801-46809"
+    ],
+    "exit_code": 1,
+    "started": "2026-10-26 12:18:07",
+    "ended": "2026-10-26 12:21:02",
+    "elapsed_s": 174.5,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.dydRrY",
+    "ok": 13,
+    "fail": [
+      "FLIP listener conservation (io-ex, complete)"
+    ],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "FLIP state battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "FLIP under verified load"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.54,
+        "label": "FLIP TTL + expiry events"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.23,
+        "label": "partial-frame conn parks (no io spin)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.17,
+        "label": "FLIP close during FLIP (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.13,
+        "label": "FLIP close during FLIP (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.05,
+        "label": "FLIP signal stop during FLIP + second SIGINT"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.55,
+        "label": "perfio stale epoll registration (epoll-flip)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.1,
+        "label": "perfio stale epoll registration (epoll-lb)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 74.96,
+        "label": "FLIP listener conservation (io-ex, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.55,
+        "label": "FLIP listener conservation (io-ex, rollback)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 28.0,
+        "label": "FLIP listener conservation (ex-io, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.39,
+        "label": "FLIP listener conservation (ex-io, rollback)"
+      }
+    ]
+  },
+  {
+    "name": "flip-fliplisten-PRE-oddport",
+    "jobs": [
+      "flip",
+      "fliplisten"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46831-46839",
+    "slot_ports": [
+      46831,
+      46832,
+      46833
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/execindex/PRE",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46831-46839",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE"
+    ],
+    "exit_code": 1,
+    "started": "2026-10-26 12:21:02",
+    "ended": "2026-10-26 12:24:14",
+    "elapsed_s": 192.5,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.C4WVsf",
+    "ok": 12,
+    "fail": [
+      "perfio stale epoll registration (epoll-lb)",
+      "FLIP listener conservation (io-ex, complete)"
+    ],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "FLIP state battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "FLIP under verified load"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.44,
+        "label": "FLIP TTL + expiry events"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.23,
+        "label": "partial-frame conn parks (no io spin)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.17,
+        "label": "FLIP close during FLIP (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.13,
+        "label": "FLIP close during FLIP (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.07,
+        "label": "FLIP signal stop during FLIP + second SIGINT"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "perfio stale epoll registration (epoll-flip)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 11.13,
+        "label": "perfio stale epoll registration (epoll-lb)"
+      },
+      {
+        "verdict": "FAIL",
+        "seconds": 76.36,
+        "label": "FLIP listener conservation (io-ex, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 30.05,
+        "label": "FLIP listener conservation (io-ex, rollback)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 29.71,
+        "label": "FLIP listener conservation (ex-io, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 29.89,
+        "label": "FLIP listener conservation (ex-io, rollback)"
+      }
+    ]
+  },
+  {
+    "name": "support-epoll",
+    "jobs": [
+      "moverfix",
+      "blockfix_structure",
+      "blockfix_registry",
+      "blockfix_mkstream",
+      "script_bounds",
+      "scriptfix",
+      "sort",
+      "notify",
+      "notifycompat",
+      "tracking_redirect",
+      "notify_order",
+      "notify_aof",
+      "trackfix_accounting",
+      "trackfix_order",
+      "flip",
+      "flipctl"
+    ],
+    "engine": "epoll",
+    "fused": 1,
+    "extra_env": {},
+    "ports": "46811-46819",
+    "slot_ports": [
+      46811,
+      46812,
+      46813
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46811-46819"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:24:14",
+    "ended": "2026-10-26 12:43:36",
+    "elapsed_s": 1161.8,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.XE9k7H",
+    "ok": 52,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 127.89,
+        "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 46.75,
+        "label": "blockfix CC4.19 XINFO structural counts vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 38.97,
+        "label": "blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 47.25,
+        "label": "blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.49,
+        "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.49,
+        "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.49,
+        "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.49,
+        "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.51,
+        "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.5,
+        "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.5,
+        "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.5,
+        "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.13,
+        "label": "cross-owner SORT battery (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.13,
+        "label": "cross-owner SORT battery (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "xscript limit control"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.56,
+        "label": "xscript window control"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.11,
+        "label": "scriptfix sandbox (1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.12,
+        "label": "scriptfix functions (1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.7,
+        "label": "scriptfix replies (1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "scriptfix dump (1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.11,
+        "label": "scriptfix sandbox (2s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.12,
+        "label": "scriptfix functions (2s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.7,
+        "label": "scriptfix replies (2s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "scriptfix dump (2s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.08,
+        "label": "MULTI feature battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.63,
+        "label": "blocking feature battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.89,
+        "label": "pubsub feature battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "Lua feature battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 46.2,
+        "label": "keyspace notification battery (atomic 0/1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "feature battery shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 22.5,
+        "label": "notification compatibility setbit vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 41.4,
+        "label": "notification compatibility setpast vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 50.46,
+        "label": "notification compatibility emptystore vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 42.8,
+        "label": "notification compatibility writemiss vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 43.74,
+        "label": "notification compatibility objectmiss vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 144.46,
+        "label": "notification compatibility expiredstore vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 56.77,
+        "label": "notification compatibility flush vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 35.88,
+        "label": "tracking REDIRECT close vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 65.89,
+        "label": "keyspace lazy-expiry order vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 11.93,
+        "label": "local script notification AOF vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 54.78,
+        "label": "tracking-only delivery/drop accounting vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 219.05,
+        "label": "tracking delayed-write order vs Redis 7.4"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "FLIP state battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "FLIP under verified load"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.44,
+        "label": "FLIP TTL + expiry events"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.23,
+        "label": "partial-frame conn parks (no io spin)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.24,
+        "label": "FLIP close during FLIP (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.16,
+        "label": "FLIP close during FLIP (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.07,
+        "label": "FLIP signal stop during FLIP + second SIGINT"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.54,
+        "label": "perfio stale epoll registration (epoll-flip)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.09,
+        "label": "perfio stale epoll registration (epoll-lb)"
+      }
+    ]
+  },
+  {
+    "name": "persistence-0",
+    "jobs": [
+      "aof-epoll",
+      "aof-uring",
+      "snapshot-epoll",
+      "snapshot-uring",
+      "aof_frame",
+      "aoforder"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46821-46829",
+    "slot_ports": [
+      46821,
+      46822,
+      46823
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46821-46829"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:44:37",
+    "ended": "2026-10-26 12:48:04",
+    "elapsed_s": 207.0,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.wSTzLa",
+    "ok": 146,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.43,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF process-restart script replay (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.42,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF process-restart script replay (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "AOF directed group interruption fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF atomic-group recovery + writer order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF group shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always sync + reply gate fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always recovery after quiescent SIGKILL"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "AOF in-window kill recovery (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.27,
+        "label": "AOF in-window term recovery (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "AOF in-window kill recovery (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.91,
+        "label": "AOF in-window term recovery (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.67,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.85,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.85,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.97,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.3,
+        "label": "AOF everysec write gate + idle sync fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF everysec durability window + tail warning"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF no-sync bypassed sync + reply gate"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.13,
+        "label": "AOF rewrite atomic/stage/corruption matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.45,
+        "label": "AOF rewrite triggers + observability matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "AOF-off negative-control seed landed"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative control lost data"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.41,
+        "label": "aoffix2 snapshot (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.5,
+        "label": "aoffix2 filename (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "aoffix2 error (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 tickets (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 exec_tickets (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.35,
+        "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.28,
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.31,
+        "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.42,
+        "label": "aoffix2 snapshot (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.43,
+        "label": "aoffix2 filename (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "aoffix2 error (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 tickets (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 exec_tickets (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 resurrection (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.43,
+        "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.34,
+        "label": "aoffix2 large (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.19,
+        "label": "aoffix2 large_placed (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "configuration reduction + actual geometry (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.41,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF process-restart script replay (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "configuration reduction + actual geometry (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.43,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF process-restart script replay (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF directed group interruption fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF atomic-group recovery + writer order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF group shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always sync + reply gate fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always recovery after quiescent SIGKILL"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.84,
+        "label": "AOF in-window kill recovery (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.44,
+        "label": "AOF in-window term recovery (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.84,
+        "label": "AOF in-window kill recovery (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.49,
+        "label": "AOF in-window term recovery (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.73,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.84,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.95,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.05,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.29,
+        "label": "AOF everysec write gate + idle sync fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF everysec durability window + tail warning"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF no-sync bypassed sync + reply gate"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.14,
+        "label": "AOF rewrite atomic/stage/corruption matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.56,
+        "label": "AOF rewrite triggers + observability matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative-control seed landed"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative control lost data"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 snapshot (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.47,
+        "label": "aoffix2 filename (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "aoffix2 error (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 tickets (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 exec_tickets (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.41,
+        "label": "aoffix2 rewrite_fail2 (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 snapshot (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.49,
+        "label": "aoffix2 filename (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "aoffix2 error (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 tickets (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 exec_tickets (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 rewrite_fail2 (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.3,
+        "label": "aoffix2 manifest_missing (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.33,
+        "label": "aoffix2 large (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.21,
+        "label": "aoffix2 large_placed (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.64,
+        "label": "snapshot concurrent cut (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.2,
+        "label": "snapshot cut reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.72,
+        "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.15,
+        "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot save (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "typed snapshot reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "typed snapshot preimage race (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot race reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.96,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.93,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.8,
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.81,
+        "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.06,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.62,
+        "label": "snapshot concurrent cut (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "snapshot cut reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.72,
+        "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.19,
+        "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot save (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "typed snapshot preimage race (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "typed snapshot race reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.96,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.96,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.8,
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.8,
+        "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.05,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.06,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "AOF control frame never inside a large record (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "AOF control frame never inside a large record (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 9.34,
+        "label": "AOF commit order single"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.46,
+        "label": "AOF commit order crossing"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.4,
+        "label": "AOF commit order rewrite"
+      }
+    ]
+  },
+  {
+    "name": "persistence-1",
+    "jobs": [
+      "aof-epoll",
+      "aof-uring",
+      "snapshot-epoll",
+      "snapshot-uring",
+      "aof_frame",
+      "aoforder"
+    ],
+    "engine": "uring",
+    "fused": 1,
+    "extra_env": {},
+    "ports": "46841-46849",
+    "slot_ports": [
+      46841,
+      46842,
+      46843
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46841-46849"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:48:04",
+    "ended": "2026-10-26 12:51:31",
+    "elapsed_s": 207.5,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.lbdtZ0",
+    "ok": 146,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.08,
+        "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.39,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF process-restart script replay (epoll, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.08,
+        "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.42,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF process-restart script replay (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF directed group interruption fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF atomic-group recovery + writer order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF group shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always sync + reply gate fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF always recovery after quiescent SIGKILL"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.84,
+        "label": "AOF in-window kill recovery (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.95,
+        "label": "AOF in-window term recovery (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "AOF in-window kill recovery (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.92,
+        "label": "AOF in-window term recovery (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.73,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.86,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.93,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.02,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.3,
+        "label": "AOF everysec write gate + idle sync fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF everysec durability window + tail warning"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF no-sync bypassed sync + reply gate"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.11,
+        "label": "AOF rewrite atomic/stage/corruption matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.46,
+        "label": "AOF rewrite triggers + observability matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative-control seed landed"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative control lost data"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 snapshot (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.47,
+        "label": "aoffix2 filename (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "aoffix2 error (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 tickets (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 exec_tickets (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.41,
+        "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 snapshot (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.48,
+        "label": "aoffix2 filename (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.16,
+        "label": "aoffix2 error (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 tickets (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 exec_tickets (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.3,
+        "label": "aoffix2 manifest_missing (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.33,
+        "label": "aoffix2 large (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.19,
+        "label": "aoffix2 large_placed (1s, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.07,
+        "label": "configuration reduction + actual geometry (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF process-restart script replay (uring, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.08,
+        "label": "configuration reduction + actual geometry (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.39,
+        "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "AOF writer fired (records=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF process-restart script replay (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF native snapshot streams byte-exact"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF replay fired (records=N skipped=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF directed group interruption fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "AOF atomic-group recovery + writer order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF group shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF always sync + reply gate fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "AOF always recovery after quiescent SIGKILL"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.83,
+        "label": "AOF in-window kill recovery (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 3.07,
+        "label": "AOF in-window term recovery (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.84,
+        "label": "AOF in-window kill recovery (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.45,
+        "label": "AOF in-window term recovery (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.75,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.86,
+        "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.86,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.98,
+        "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.3,
+        "label": "AOF everysec write gate + idle sync fired"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF everysec durability window + tail warning"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "AOF no-sync bypassed sync + reply gate"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.12,
+        "label": "AOF rewrite atomic/stage/corruption matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.55,
+        "label": "AOF rewrite triggers + observability matrix"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "AOF-off negative-control seed landed"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "AOF-off negative control lost data"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.41,
+        "label": "aoffix2 snapshot (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.47,
+        "label": "aoffix2 filename (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "aoffix2 error (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 tickets (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.53,
+        "label": "aoffix2 exec_tickets (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 resurrection (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 rewrite_fail2 (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.26,
+        "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.4,
+        "label": "aoffix2 snapshot (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.47,
+        "label": "aoffix2 filename (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.17,
+        "label": "aoffix2 error (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 tickets (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.52,
+        "label": "aoffix2 exec_tickets (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.51,
+        "label": "aoffix2 resurrection (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.31,
+        "label": "aoffix2 rewrite_fail2 (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.29,
+        "label": "aoffix2 manifest_missing (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "aoffix2 large (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.19,
+        "label": "aoffix2 large_placed (1s, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.65,
+        "label": "snapshot concurrent cut (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.22,
+        "label": "snapshot cut reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.65,
+        "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.14,
+        "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot save (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "typed snapshot preimage race (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot race reload (epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.78,
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.78,
+        "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.94,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.94,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.81,
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.8,
+        "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.07,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.65,
+        "label": "snapshot concurrent cut (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.2,
+        "label": "snapshot cut reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.67,
+        "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.17,
+        "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot save (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "typed snapshot preimage race (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "typed snapshot race reload (uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.95,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.96,
+        "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.8,
+        "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.79,
+        "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.06,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.04,
+        "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "AOF control frame never inside a large record (atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.32,
+        "label": "AOF control frame never inside a large record (atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 9.33,
+        "label": "AOF commit order single"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.23,
+        "label": "AOF commit order crossing"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.4,
+        "label": "AOF commit order rewrite"
+      }
+    ]
+  },
+  {
+    "name": "atomic-release-uring-0",
+    "jobs": [
+      "release_batteries",
+      "atomic_batteries",
+      "auth",
+      "dump_restore",
+      "serverfix_waitaof"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "ports": "46851-46859",
+    "slot_ports": [
+      46851,
+      46852,
+      46853
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46851-46859"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:51:32",
+    "ended": "2026-10-26 12:52:56",
+    "elapsed_s": 84.0,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.sR3otX",
+    "ok": 24,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.63,
+        "label": "torture battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.16,
+        "label": "RYOW battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL category runtime table"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.03,
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "dispatched==executed (N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 32.53,
+        "label": "atomic torn/window battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.07,
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.24,
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "DUMP/RESTORE prepare + native SAVE"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "DUMP/RESTORE cross-restart round-trip"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "DUMP/RESTORE restart shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "reject bad protected-mode"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "reject bad enable-debug-command"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "AUTH/HELLO/protected state machine"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic off)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic on)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.47,
+        "label": "DEBUG toggle/reload battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.12,
+        "label": "typed snapshot round-trip incl stream"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.87,
+        "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+      }
+    ]
+  },
+  {
+    "name": "atomic-release-uring-1",
+    "jobs": [
+      "release_batteries",
+      "atomic_batteries",
+      "auth",
+      "dump_restore",
+      "serverfix_waitaof"
+    ],
+    "engine": "uring",
+    "fused": 1,
+    "extra_env": {
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "ports": "46861-46869",
+    "slot_ports": [
+      46861,
+      46862,
+      46863
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46861-46869"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:52:56",
+    "ended": "2026-10-26 12:54:12",
+    "elapsed_s": 76.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.ZlDGRn",
+    "ok": 24,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.67,
+        "label": "torture battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.96,
+        "label": "RYOW battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL category runtime table"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.03,
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "dispatched==executed (N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 25.0,
+        "label": "atomic torn/window battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.06,
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.24,
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "DUMP/RESTORE prepare + native SAVE"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "DUMP/RESTORE cross-restart round-trip"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "DUMP/RESTORE restart shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "reject bad protected-mode"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "reject bad enable-debug-command"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "AUTH/HELLO/protected state machine"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic off)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.55,
+        "label": "ACL battery (atomic on)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.45,
+        "label": "DEBUG toggle/reload battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.12,
+        "label": "typed snapshot round-trip incl stream"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.86,
+        "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+      }
+    ]
+  },
+  {
+    "name": "atomic-release-epoll-0",
+    "jobs": [
+      "release_batteries",
+      "atomic_batteries",
+      "auth",
+      "dump_restore",
+      "serverfix_waitaof"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "extra_env": {
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "ports": "46871-46879",
+    "slot_ports": [
+      46871,
+      46872,
+      46873
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46871-46879"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:54:12",
+    "ended": "2026-10-26 12:55:36",
+    "elapsed_s": 84.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.DPofok",
+    "ok": 24,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.68,
+        "label": "torture battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.97,
+        "label": "RYOW battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL category runtime table"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.03,
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.04,
+        "label": "dispatched==executed (N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 32.53,
+        "label": "atomic torn/window battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.05,
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.24,
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "DUMP/RESTORE prepare + native SAVE"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "DUMP/RESTORE cross-restart round-trip"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "DUMP/RESTORE restart shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "reject bad protected-mode"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "reject bad enable-debug-command"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.46,
+        "label": "AUTH/HELLO/protected state machine"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic off)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic on)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.53,
+        "label": "DEBUG toggle/reload battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.13,
+        "label": "typed snapshot round-trip incl stream"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.87,
+        "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+      }
+    ]
+  },
+  {
+    "name": "atomic-release-epoll-1",
+    "jobs": [
+      "release_batteries",
+      "atomic_batteries",
+      "auth",
+      "dump_restore",
+      "serverfix_waitaof"
+    ],
+    "engine": "epoll",
+    "fused": 1,
+    "extra_env": {
+      "GATE_PROOF_NO_RATES": "1"
+    },
+    "ports": "46881-46889",
+    "slot_ports": [
+      46881,
+      46882,
+      46883
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46881-46889"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:55:36",
+    "ended": "2026-10-26 12:56:53",
+    "elapsed_s": 76.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.uOJIVa",
+    "ok": 24,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.67,
+        "label": "torture battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.97,
+        "label": "RYOW battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL category runtime table"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "ACL LOAD/SAVE no-file errors"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 1.03,
+        "label": "idle loop ceiling (LBSIGNALS, 1s)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "shutdown invariants (nothing stuck)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "direct-reply fired (direct=N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "dispatched==executed (N)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 25.05,
+        "label": "atomic torn/window battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.06,
+        "label": "atomic RYOW/mixed-write battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.24,
+        "label": "atomic owner-local hazard battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "atomic shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.06,
+        "label": "DUMP/RESTORE prepare + native SAVE"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.05,
+        "label": "DUMP/RESTORE cross-restart round-trip"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.02,
+        "label": "DUMP/RESTORE restart shutdown invariants"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.01,
+        "label": "reject bad protected-mode"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.0,
+        "label": "reject bad enable-debug-command"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.15,
+        "label": "AUTH/HELLO/protected state machine"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.54,
+        "label": "ACL battery (atomic off)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 5.55,
+        "label": "ACL battery (atomic on)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 2.45,
+        "label": "DEBUG toggle/reload battery"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.13,
+        "label": "typed snapshot round-trip incl stream"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 6.86,
+        "label": "serverfix SV4.5 WAITAOF wait lifecycle"
+      }
+    ]
+  },
+  {
+    "name": "watch-multidb-uring",
+    "jobs": [
+      "datafix2_watch",
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46891-46899",
+    "slot_ports": [
+      46891,
+      46892,
+      46893
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46891-46899"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 12:56:53",
+    "ended": "2026-10-26 12:59:49",
+    "elapsed_s": 176.1,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.cyTIGa",
+    "ok": 26,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.46,
+        "label": "multidb (1s, read-local 0, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.43,
+        "label": "multidb (1s, read-local 0, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.44,
+        "label": "multidb (1s, read-local 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.44,
+        "label": "multidb (1s, read-local 1, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.33,
+        "label": "multidb (2s, read-local 0, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.33,
+        "label": "multidb (2s, read-local 0, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.33,
+        "label": "multidb (2s, read-local 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.1,
+        "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.28,
+        "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.34,
+        "label": "multidb (2s, read-local 1, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 112.12,
+        "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+      }
+    ]
+  },
+  {
+    "name": "watch-multidb-epoll",
+    "jobs": [
+      "datafix2_watch",
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46831-46839",
+    "slot_ports": [
+      46831,
+      46832,
+      46833
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46831-46839"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 13:00:39",
+    "ended": "2026-10-26 13:03:36",
+    "elapsed_s": 176.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.zYoZoH",
+    "ok": 26,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.45,
+        "label": "multidb (1s, read-local 0, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.1,
+        "label": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.28,
+        "label": "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.45,
+        "label": "multidb (1s, read-local 0, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.48,
+        "label": "multidb (1s, read-local 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.08,
+        "label": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.46,
+        "label": "multidb (1s, read-local 1, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.1,
+        "label": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.4,
+        "label": "multidb (2s, read-local 0, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.4,
+        "label": "multidb (2s, read-local 0, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.4,
+        "label": "multidb (2s, read-local 1, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 4.41,
+        "label": "multidb (2s, read-local 1, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.09,
+        "label": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 0.27,
+        "label": "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 112.28,
+        "label": "datafix2 CD4.9 write WATCH table vs Redis 7.4"
+      }
+    ]
+  },
+  {
+    "name": "differ-uring",
+    "jobs": [
+      "differ-split",
+      "differ-armed"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46841-46849",
+    "slot_ports": [
+      46841,
+      46842,
+      46843
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46841-46849"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 13:03:51",
+    "ended": "2026-10-26 13:39:31",
+    "elapsed_s": 2140.1,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.GKTASz",
+    "ok": 6,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 530.39,
+        "label": "Redis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 531.99,
+        "label": "Redis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 526.0,
+        "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 527.41,
+        "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 21.3,
+        "label": "mode equivalence part (all execution modes and knobs)"
+      }
+    ]
+  },
+  {
+    "name": "differ-epoll",
+    "jobs": [
+      "differ-split",
+      "differ-armed"
+    ],
+    "engine": "epoll",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46801-46809",
+    "slot_ports": [
+      46801,
+      46802,
+      46803
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46801-46809"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 13:39:31",
+    "ended": "2026-10-26 14:14:55",
+    "elapsed_s": 2124.3,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.OHDgNw",
+    "ok": 6,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 525.86,
+        "label": "Redis 7.4 differential part (split, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 528.66,
+        "label": "Redis 7.4 differential part (split, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 521.91,
+        "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 523.56,
+        "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 21.29,
+        "label": "mode equivalence part (all execution modes and knobs)"
+      }
+    ]
+  },
+  {
+    "name": "fliplisten-rerun",
+    "jobs": [
+      "fliplisten"
+    ],
+    "engine": "uring",
+    "fused": 0,
+    "extra_env": {},
+    "ports": "46811-46819",
+    "slot_ports": [
+      46811,
+      46812,
+      46813
+    ],
+    "candidate": "/home/user/Projects/cx-execindex/build/tomokv",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "96-103",
+      "--load-cores",
+      "104-111",
+      "--server-smt",
+      "",
+      "--load-smt",
+      "",
+      "--ports",
+      "46811-46819"
+    ],
+    "exit_code": 0,
+    "started": "2026-10-26 14:15:11",
+    "ended": "2026-10-26 14:17:02",
+    "elapsed_s": 111.6,
+    "artifacts": "/home/user/Projects/cx-execindex/build/gate-run.TJV9SZ",
+    "ok": 5,
+    "fail": [],
+    "rows": [
+      {
+        "verdict": "ok",
+        "seconds": 0.03,
+        "label": "release build (+footprint locks)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.52,
+        "label": "FLIP listener conservation (io-ex, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.4,
+        "label": "FLIP listener conservation (io-ex, rollback)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.67,
+        "label": "FLIP listener conservation (ex-io, complete)"
+      },
+      {
+        "verdict": "ok",
+        "seconds": 27.2,
+        "label": "FLIP listener conservation (ex-io, rollback)"
+      }
+    ]
+  }
+]

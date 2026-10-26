@@ -1362,6 +1362,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+#ifdef TOMO_TXNORDER_DEBUG
+    if (eq_icase(subcommand, "txn-registry-visits") && op.argc() == 2) {
+        reply_int(op.sink(), registry_visits.load(std::memory_order_relaxed));
+        return;
+    }
+#endif
     if (eq_icase(subcommand, "txn-last-attempts") && op.argc() == 2) {
         reply_int(op.sink(), g_client ? multi_last_attempts(*g_client) : 0);
         return;

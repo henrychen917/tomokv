@@ -1,0 +1,22 @@
+Full compressed GDB trace: /home/user/Projects/cx-execindex/build/execindex/instruction-logs/pre-db0-INCR-2s-32-1--1.log.gz
+SHA-256 (gzip): 9cd6deb5262465bede1aa0059321b5899cc8b85cd778218a22f1a8a422d48eb7
+0x0000555555657268	2345	        // owned shards after each atomic batch so their pending-entry lists stay short.
+0x0000555555657133 in tomo_db0::ExLoopT<false>::exec_batch_prefetched<false> (this=0x7ffff618bb48, batch=batch@entry=0x7ffffffda200, n=n@entry=32) at src/core/ex_loop.h:2348
+2348	        }
+0x0000555555657138	2348	        }
+0x0000555555657141	2348	        }
+0x0000555555657147	2348	        }
+0x000055555565714b	2348	        }
+0x000055555565714c	2348	        }
+0x000055555565714e	2348	        }
+0x0000555555657150	2348	        }
+0x0000555555657152	2348	        }
+0x0000555555657154	2348	        }
+0x0000555555657155	2348	        }
+0x0000555555d63114 in tomo_db0::CoreConcurrencyTest::run<false> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:72
+72	   scope_end();
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3941828) exited normally]
+COUNT 35076

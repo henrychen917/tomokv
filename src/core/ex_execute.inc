@@ -56,7 +56,7 @@
                 if (no_touch) srv_->climon_note_no_touch();
             }
             const MultiTaskResult result = execute_multi_unit(t, shard,
-                [](void* loop, const Task& next) {
+                [](void* loop, MultiOwnerRetryNode& next) {
                     static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
                 });
             shard.publish_size();
@@ -65,7 +65,7 @@
                 return true;
             }
             if (result == MultiTaskResult::Retry) {
-                multi_retries_.push_back(t);
+                queue_multi_retry(t);
                 return true;
             }
             if (result == MultiTaskResult::Final) {

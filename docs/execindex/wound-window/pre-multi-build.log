@@ -1,0 +1,11 @@
+In file included from /home/user/Projects/cx-execindex/build/execindex/pre-source/src/cmd/xshard.cc:67,
+                 from /home/user/Projects/cx-execindex/build/execindex/pre-source/tests/atomic_survivors_unit.cc:6,
+                 from /home/user/Projects/cx-execindex/tests/txnorder_wound_window.cc:5:
+/home/user/Projects/cx-execindex/build/execindex/pre-source/src/cmd/notify.inc: In function ‘void tomo::notify_elapsed_set(Shard&, Op&, Slice)’:
+/home/user/Projects/cx-execindex/build/execindex/pre-source/src/cmd/notify.inc:583:78: warning: narrowing conversion of ‘key.tomo::Slice::ns’ from ‘uint32_t’ {aka ‘unsigned int’} to ‘uint8_t’ {aka ‘unsigned char’} [-Wnarrowing]
+  583 |         pending.push_back(NotifyPendingExpiry{std::string(key.p, key.n), key.ns, std::move(ready)});
+      |                                                                          ~~~~^~
+/home/user/Projects/cx-execindex/build/execindex/pre-source/tests/atomic_survivors_unit.cc: In function ‘int survivors_fixture_main(int, char**)’:
+/home/user/Projects/cx-execindex/build/execindex/pre-source/tests/atomic_survivors_unit.cc:872:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  872 | }
+      | ^

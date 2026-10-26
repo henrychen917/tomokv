@@ -1,0 +1,2332 @@
+[
+  {
+    "block": 0,
+    "arm": "PRE",
+    "binary": "/home/user/Projects/cx-execindex/build/execindex/PRE",
+    "port": 46897,
+    "boot": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE",
+      "--port",
+      "46897",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--dir",
+      "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/nx-preempt-ib75do1p",
+      "--save",
+      "",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "fused",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--net-io",
+      "uring"
+    ],
+    "injectors": "8 x (spin 20 us, sleep 30 us), one per server CPU 96-103",
+    "seconds": 121.3,
+    "iterations": 466944,
+    "failures": 0,
+    "reps": [
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep0",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep1",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep2",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep3",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep4",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep5",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep6",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep7",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep8",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep9",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep10",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep11",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep12",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep13",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep14",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep15",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep16",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep17",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep18",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep19",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep20",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep21",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep22",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep23",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep24",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep25",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep26",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep27",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep28",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep29",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep30",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep31",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep32",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep33",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep34",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep35",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep36",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep37",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep38",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep39",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep40",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep41",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep42",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep43",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep44",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep45",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep46",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep47",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep48",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep49",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep50",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep51",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep52",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep53",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep54",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep55",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "0-PRE-reps.log#rep56",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      }
+    ],
+    "counter_deltas": {
+      "atomic_group_retries": 38379,
+      "atomic_group_wounds": 38379,
+      "atomic_txn_intents": 1920730,
+      "atomic_txn_place_waits": 331567,
+      "atomic_txn_poll_skips": 200227,
+      "atomic_txn_waits": 75
+    },
+    "summary": {
+      "reps": 57,
+      "iterations": 466944,
+      "failures": 0,
+      "group_wounds": 38379,
+      "order_violations": 0
+    }
+  },
+  {
+    "block": 1,
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-execindex/build/execindex/POST",
+    "port": 46895,
+    "boot": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/POST",
+      "--port",
+      "46895",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--dir",
+      "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/nx-preempt-1dn6vuk7",
+      "--save",
+      "",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "fused",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--net-io",
+      "uring"
+    ],
+    "injectors": "8 x (spin 20 us, sleep 30 us), one per server CPU 96-103",
+    "seconds": 122.5,
+    "iterations": 573440,
+    "failures": 2,
+    "reps": [
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep0",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep1",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep2",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep3",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep4",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep5",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep6",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep7",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep8",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep9",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep10",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "1-POST-reps.log#rep11",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 4170,
+            "replies": [
+              "RespError(b'ERR no such key')",
+              1
+            ],
+            "values": [
+              "b'winner-a'",
+              null,
+              "b'winner-b'"
+            ]
+          }
+        ],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep12",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep13",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep14",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep15",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep16",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep17",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep18",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep19",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep20",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep21",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep22",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep23",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep24",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep25",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep26",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep27",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep28",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep29",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep30",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep31",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep32",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep33",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep34",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep35",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep36",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep37",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep38",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep39",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep40",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep41",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep42",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep43",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep44",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "1-POST-reps.log#rep45",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 5352,
+            "replies": [
+              1,
+              "RespError(b'ERR no such key')"
+            ],
+            "values": [
+              null,
+              "b'winner-b'",
+              "b'winner-a'"
+            ]
+          }
+        ],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep46",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep47",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep48",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep49",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep50",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep51",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep52",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep53",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep54",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep55",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep56",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep57",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep58",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep59",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep60",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep61",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep62",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep63",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep64",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep65",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep66",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep67",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep68",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "1-POST-reps.log#rep69",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      }
+    ],
+    "counter_deltas": {
+      "atomic_group_retries": 56325,
+      "atomic_group_wounds": 56325,
+      "atomic_txn_intents": 2366170,
+      "atomic_txn_place_waits": 429605,
+      "atomic_txn_poll_skips": 251922,
+      "atomic_txn_waits": 150
+    },
+    "summary": {
+      "reps": 70,
+      "iterations": 573440,
+      "failures": 2,
+      "group_wounds": 56325,
+      "order_violations": 0
+    }
+  },
+  {
+    "block": 2,
+    "arm": "POST",
+    "binary": "/home/user/Projects/cx-execindex/build/execindex/POST",
+    "port": 46893,
+    "boot": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/POST",
+      "--port",
+      "46893",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--dir",
+      "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/nx-preempt-bbojygrb",
+      "--save",
+      "",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "fused",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--net-io",
+      "uring"
+    ],
+    "injectors": "8 x (spin 20 us, sleep 30 us), one per server CPU 96-103",
+    "seconds": 121.0,
+    "iterations": 516096,
+    "failures": 1,
+    "reps": [
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep0",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep1",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep2",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "2-POST-reps.log#rep3",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 7571,
+            "replies": [
+              1,
+              "RespError(b'ERR no such key')"
+            ],
+            "values": [
+              null,
+              "b'winner-b'",
+              "b'winner-a'"
+            ]
+          }
+        ],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep4",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep5",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep6",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep7",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep8",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep9",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep10",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep11",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep12",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep13",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep14",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep15",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep16",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep17",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep18",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep19",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep20",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep21",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep22",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep23",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep24",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep25",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep26",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep27",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep28",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep29",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep30",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep31",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep32",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep33",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep34",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep35",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep36",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep37",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep38",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep39",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep40",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep41",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep42",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep43",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep44",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep45",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep46",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep47",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep48",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep49",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep50",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep51",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep52",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep53",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep54",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep55",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep56",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep57",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep58",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep59",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep60",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep61",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "2-POST-reps.log#rep62",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      }
+    ],
+    "counter_deltas": {
+      "atomic_group_retries": 36813,
+      "atomic_group_wounds": 36813,
+      "atomic_txn_intents": 2114133,
+      "atomic_txn_place_waits": 394092,
+      "atomic_txn_poll_skips": 232917,
+      "atomic_txn_waits": 119
+    },
+    "summary": {
+      "reps": 63,
+      "iterations": 516096,
+      "failures": 1,
+      "group_wounds": 36813,
+      "order_violations": 0
+    }
+  },
+  {
+    "block": 3,
+    "arm": "PRE",
+    "binary": "/home/user/Projects/cx-execindex/build/execindex/PRE",
+    "port": 46891,
+    "boot": [
+      "taskset",
+      "-c",
+      "96-103",
+      "/home/user/Projects/cx-execindex/build/execindex/PRE",
+      "--port",
+      "46891",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--dir",
+      "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/nx-preempt-8c1c7wql",
+      "--save",
+      "",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "fused",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0",
+      "--net-io",
+      "uring"
+    ],
+    "injectors": "8 x (spin 20 us, sleep 30 us), one per server CPU 96-103",
+    "seconds": 122.8,
+    "iterations": 507904,
+    "failures": 3,
+    "reps": [
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep0",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep1",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep2",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep3",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep4",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep5",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep6",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep7",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep8",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep9",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep10",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep11",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep12",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep13",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep14",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "3-PRE-reps.log#rep15",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 1761,
+            "replies": [
+              1,
+              "RespError(b'ERR no such key')"
+            ],
+            "values": [
+              null,
+              "b'winner-b'",
+              "b'winner-a'"
+            ]
+          }
+        ],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep16",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep17",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep18",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep19",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep20",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep21",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep22",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep23",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep24",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep25",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep26",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep27",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep28",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep29",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep30",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep31",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep32",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep33",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep34",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep35",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep36",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep37",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep38",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep39",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep40",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep41",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep42",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "3-PRE-reps.log#rep43",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 3655,
+            "replies": [
+              "RespError(b'ERR no such key')",
+              1
+            ],
+            "values": [
+              "b'winner-a'",
+              null,
+              "b'winner-b'"
+            ]
+          }
+        ],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep44",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep45",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep46",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep47",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep48",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep49",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep50",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep51",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep52",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep53",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep54",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep55",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep56",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep57",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep58",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep59",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 0,
+        "log": "3-PRE-reps.log#rep60",
+        "completed": 8192,
+        "failures": 0,
+        "examples": [],
+        "errors": []
+      },
+      {
+        "exit_code": 1,
+        "log": "3-PRE-reps.log#rep61",
+        "completed": 8192,
+        "failures": 1,
+        "examples": [
+          {
+            "iteration": 4150,
+            "replies": [
+              "RespError(b'ERR no such key')",
+              1
+            ],
+            "values": [
+              "b'winner-a'",
+              null,
+              "b'winner-b'"
+            ]
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "counter_deltas": {
+      "atomic_group_retries": 51038,
+      "atomic_group_wounds": 51038,
+      "atomic_txn_intents": 2097983,
+      "atomic_txn_place_waits": 376835,
+      "atomic_txn_poll_skips": 218111,
+      "atomic_txn_waits": 92
+    },
+    "summary": {
+      "reps": 62,
+      "iterations": 507904,
+      "failures": 3,
+      "group_wounds": 51038,
+      "order_violations": 0
+    }
+  }
+]

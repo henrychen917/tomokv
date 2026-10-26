@@ -1,0 +1,22 @@
+Full compressed GDB trace: /home/user/Projects/cx-execindex/build/execindex/instruction-logs/pre-normal-GET-1s-32-1--1.log.gz
+SHA-256 (gzip): 929db0d6f839577614469afa0736bf2e2e4901e087ce071de9096a83c314d5f3
+2348	        }
+0x0000555555c81458	2348	        }
+0x0000555555c81461	2348	        }
+0x0000555555c81467	2348	        }
+0x0000555555c8146b	2348	        }
+0x0000555555c8146c	2348	        }
+0x0000555555c8146e	2348	        }
+0x0000555555c81470	2348	        }
+0x0000555555c81472	2348	        }
+0x0000555555c81474	2348	        }
+0x0000555555c81475	2348	        }
+0x0000555555d5f838 in tomo::CoreConcurrencyTest::run<true> (command=..., n=n@entry=32, atomic=atomic@entry=true, slowlog=slowlog@entry=-1) at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:72
+72	   scope_end();TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+PASS bounded production command scope
+
+
+Breakpoint 2, scope_end () at /home/user/Projects/cx-execindex/tests/txnorder_command_scope.cc:20
+20	[[gnu::noinline]] void scope_end(){asm volatile("" ::: "memory");}
+[Inferior 1 (process 3879969) exited normally]
+COUNT 18898

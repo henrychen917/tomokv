@@ -422,6 +422,8 @@
     "txniso battery (atomic 1)",
     "txngroup battery (atomic 1)",
     "EXEC fast-lane polls",
+    "txnorder index oracle",
+    "txnorder index complexity",
     "txnorder2 writer episode R1",
     "txnorder2 writer episode R2",
     "txnorder2 writer episode R3",

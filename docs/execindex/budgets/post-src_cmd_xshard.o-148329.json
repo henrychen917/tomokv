@@ -1,0 +1,37 @@
+{
+  "arm": "post",
+  "unit": "src/cmd/xshard.o",
+  "budget": 148329,
+  "initial": 118577,
+  "command": [
+    "taskset",
+    "-c",
+    "96-111",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=148329",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-execindex/build/execindex/budgets/post-src_cmd_xshard.o-148329.o",
+    "-g0",
+    "-fdump-ipa-inline=/home/user/Projects/cx-execindex/build/execindex/budgets/post-src_cmd_xshard.o-148329.inline"
+  ],
+  "output": "/home/user/Projects/cx-execindex/build/execindex/budgets/post-src_cmd_xshard.o-148329.o",
+  "changed": [
+    "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)"
+  ],
+  "total": 27
+}
