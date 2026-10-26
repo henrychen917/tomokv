@@ -1,0 +1,277 @@
+{
+  "argv": [
+    "tests/gate_receipt.py",
+    "--self-test"
+  ],
+  "affinity": [
+    46,
+    47
+  ],
+  "seconds": 132.1184136401862,
+  "tests": [
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_count_only_drift_is_actionable",
+      "seconds": 0.05523565877228975
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_current_inventory_and_duplicate_occurrences",
+      "seconds": 0.0534586850553751
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_future_literal_row_names_missing_label",
+      "seconds": 0.05359158385545015
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_future_loop_row_names_missing_label",
+      "seconds": 0.05404289625585079
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_partial_fixture_cannot_redefine_inventory_via_count",
+      "seconds": 0.0556642385199666
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_receipt_refuses_once_before_control_setup",
+      "seconds": 0.05618594028055668
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_retired_row_names_extra_label",
+      "seconds": 0.05387789569795132
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_same_count_substitution_and_duplicate_loss_are_rejected",
+      "seconds": 0.10706185735762119
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_stale_wbland_fixture_names_both_missing_labels",
+      "seconds": 0.053659453988075256
+    },
+    {
+      "test": "gate_ledger_fixture.FixtureControls.test_unsupported_label_expression_refuses_without_evaluation",
+      "seconds": 0.030426369048655033
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_actual_begin_reads_explicit_previous_ledger_before_rotation",
+      "seconds": 1.5619404502213001
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_actual_git_refs_hook_and_commit_after_validation",
+      "seconds": 2.5877468213438988
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_actual_history_recorder_matches_context_and_unscored_prerequisites",
+      "seconds": 1.8364517344161868
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_actual_shell_receipt_blocks_do_not_short_circuit_work_or_certify_iteration",
+      "seconds": 3.4496046528220177
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_explicit_unscored_dependencies_and_context_do_not_change_counts",
+      "seconds": 1.335554827004671
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_full_inventory_cannot_retire_a_multikey_geometry",
+      "seconds": 0.6637456053867936
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_future_full_row_count_needs_new_baseline_and_actual_observation",
+      "seconds": 1.6536075863987207
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_harness_filters_paths_before_reading_without_changing_identity",
+      "seconds": 0.576752164401114
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_ignored_generated_outputs_preserve_fingerprint_but_tracked_ignored_files_count",
+      "seconds": 1.3285866007208824
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_ledger_and_comparison_guards_have_individual_removal_controls",
+      "seconds": 3.5084186727181077
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_missing_baseline_retains_start_binding_and_completed_work_without_receipt",
+      "seconds": 0.7716580657288432
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_missing_rows_cannot_pass_by_count_or_exit_zero",
+      "seconds": 0.8312583705410361
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_prior_null_may_have_other_correctness_harness_but_comparison_cannot",
+      "seconds": 1.3222168982028961
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_selected_core_quiet_evidence_and_diagnostic_poison_controls",
+      "seconds": 3.2093941178172827
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_smoke_partial_failed_unreached_quiet_and_null_controls",
+      "seconds": 4.447494958527386
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_standing_null_replays_saturation_instead_of_cached_pass",
+      "seconds": 0.7787039680406451
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_start_end_and_push_source_binary_mode_and_symlink_identity",
+      "seconds": 1.3987845266237855
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_unresolved_cell_names_withhold_receipt_even_with_forged_pass_coordinator",
+      "seconds": 1.0999908139929175
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_worktree_hook_config_is_reversible_without_common_changes",
+      "seconds": 0.5368020748719573
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_absent_and_stale_prior_null_bootstrap_without_receipt",
+      "seconds": 2.1144947400316596
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_age_ladder_window_and_fixed_resolution_checks_cannot_be_bypassed",
+      "seconds": 2.401926029473543
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_ceiling_import_freeze_promotion_holdout_and_forgery_controls",
+      "seconds": 5.245228704996407
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_current_instrument_config_generator_and_inventory_cannot_change",
+      "seconds": 0.6921310685575008
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_freeze_requires_full_replayed_import_and_is_immutable",
+      "seconds": 1.317704176530242
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_independent_holdout_cannot_use_its_own_error_to_widen_resolution",
+      "seconds": 5.1543531734496355
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_interrupted_atomic_replace_and_executable_byte_mutation",
+      "seconds": 1.7825726699084044
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_mutations_reject_before_replacing_previous_default",
+      "seconds": 19.601595136336982
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_campaign_missing_or_supplementary_proof_cannot_repair_collection",
+      "seconds": 0.47859982028603554
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_collection_uses_real_workload_path_once_and_retains_failures",
+      "seconds": 0.29611203633248806
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_freeze_binds_precalibration_receipt_and_requires_it",
+      "seconds": 1.0054497243836522
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_raw_proof_replay_and_per_guard_removal",
+      "seconds": 0.39430099725723267
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_receipt_inventory_time_geometry_and_artifact_guards",
+      "seconds": 0.17462259903550148
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_receipt_reused_without_rerunning_directed_controls",
+      "seconds": 0.391661562025547
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_read_local_zero_permutations_promote_and_holdout_with_frozen_control",
+      "seconds": 4.079490996897221
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_removed_promotion_validation_is_detected_per_mechanism",
+      "seconds": 1.8603917639702559
+    },
+    {
+      "test": "_nullrefresh_test.PromotionControls.test_unresolved_complete_campaign_freezes_promotes_and_cannot_earn_pass",
+      "seconds": 5.907374016009271
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_campaign6_compact_replay_preserves_exact_map_and_classification_control",
+      "seconds": 0.013811356388032436
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_cv_permits_fixed_repeats_and_all_signed_deltas_pool_to_resolving",
+      "seconds": 0.0036302367225289345
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_repeat_plan_cannot_be_missing_truncated_reordered_or_refitted",
+      "seconds": 0.007012523710727692
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_replay_is_reporting_only_and_rejects_nonfinite_nonpositive_or_incomplete_blocks",
+      "seconds": 0.004551459103822708
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_replay_reads_once_and_hashes_exactly_the_parsed_bytes",
+      "seconds": 0.000981091521680355
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_unattainable_cv_stops_at_frozen_budget_and_raw_maximum_never_shrinks",
+      "seconds": 0.007700765505433083
+    },
+    {
+      "test": "_nullrefresh_test.NullpublishControls.test_unresolved_nonloss_is_reporting_only_and_beyond_floor_still_fails",
+      "seconds": 0.006339722312986851
+    },
+    {
+      "test": "_nullrefresh_test.ExemptionControls.test_each_depth_only_branch_restoration_breaks_its_exempt_fixture",
+      "seconds": 0.2851795442402363
+    },
+    {
+      "test": "_nullrefresh_test.ExemptionControls.test_p999_depth32_and_p1_mixed_and_all_exempt_import_replay",
+      "seconds": 0.2469968292862177
+    },
+    {
+      "test": "_nullrefresh_test.ExemptionControls.test_unsaturated_depth32_rate_cannot_claim_exempt_even_when_predicate_removed",
+      "seconds": 0.0006912313401699066
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_all_planned_repeats_finish_even_after_an_outside_floor_block",
+      "seconds": 0.03304656408727169
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_campaign7_real_replay_names_all_outside_floors",
+      "seconds": 1.4748785551637411
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_every_cell_inside_floors_makes_overall_pass_without_reclassifying_null",
+      "seconds": 1.940964000299573
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_plan_is_copied_not_refitted_and_cap_is_visible",
+      "seconds": 0.0004737311974167824
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_published_spread_makes_real_t02_pass_and_removing_it_fails_assertion",
+      "seconds": 0.011619022116065025
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_two_sided_drift_and_spread_use_same_immutable_floor",
+      "seconds": 0.03071494959294796
+    },
+    {
+      "test": "nullpublish4_test.HoldoutControls.test_zero_floor_gets_a_metric_quantum_from_published_samples_only",
+      "seconds": 0.01103942096233368
+    },
+    {
+      "test": "nullpublish4_test.PublicationControls.test_archive_matches_without_access_to_campaign_worktree",
+      "seconds": 18.939234068617225
+    },
+    {
+      "test": "nullpublish4_test.PublicationControls.test_stale_fingerprint_inventory_and_age_are_explicit_refusals",
+      "seconds": 8.23935859464109
+    },
+    {
+      "test": "nullpublish4_test.PublicationControls.test_tracked_default_and_retained_receipt_ignore_stale_local_null",
+      "seconds": 1.9799102982506156
+    }
+  ]
+}

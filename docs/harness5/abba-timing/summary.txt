@@ -1,0 +1,7 @@
+L before 1 gate_rc=1 row=[FAIL 431.700000] wall=432.8
+L after 1 gate_rc=0 row=[ok 403.340000] wall=404.4
+L after 2 gate_rc=0 row=[ok 402.790000] wall=403.8
+L before 2 gate_rc=1 row=[FAIL 430.980000] wall=432.0
+I after 1 gate_rc=0 row=[ok 333.440000] wall=334.5
+DONE
+L before 3 gate_rc=0 row=[ok 430.800000] wall=431.9

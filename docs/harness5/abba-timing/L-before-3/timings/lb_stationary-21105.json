@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "tests/lb_stationary.py",
+    "--self-test"
+  ],
+  "affinity": [
+    46,
+    47
+  ],
+  "seconds": 0.17298411205410957,
+  "tests": []
+}
