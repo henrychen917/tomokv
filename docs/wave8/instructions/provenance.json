@@ -1213,7 +1213,9 @@
           "digest": "9d5ca47a1dcc45fd69bc2d812db696fcfdb1dd1b7ec90ad9dc560e11a70d688d"
         }
       ],
-      "headline_equal": false
+      "headline_equal": false,
+      "verified_constant_equal": true,
+      "verified_constant_headline_equal": true
     },
     {
       "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
@@ -1818,7 +1820,9 @@
           "digest": "187058970710fa04d44d9b3510030252e2eb3e517a5216b10bc618d578547aa7"
         }
       ],
-      "headline_equal": false
+      "headline_equal": false,
+      "verified_constant_equal": true,
+      "verified_constant_headline_equal": true
     },
     {
       "name": "tomo::Slice::key_eq(tomo::Slice const&) const",
@@ -4285,7 +4289,9 @@
           "digest": "7a24da6a4bc62faaf499bc2d25b717e1d0ae96cdbb68a0eab1be31065d0f1423"
         }
       ],
-      "headline_equal": false
+      "headline_equal": false,
+      "verified_constant_equal": true,
+      "verified_constant_headline_equal": true
     },
     {
       "name": "tomo_db0::Slice::key_eq(tomo_db0::Slice const&) const",
@@ -5690,7 +5696,9 @@
           "digest": "b4086eec1a8f6faa073d5e987643b695431f7a712b6b272e8d5aa4868e085bc9"
         }
       ],
-      "headline_equal": false
+      "headline_equal": false,
+      "verified_switch_equal": true,
+      "verified_switch_headline_equal": true
     },
     {
       "name": "tomo_db0::kvobj_size(tomo_db0::KvObj const*)",
@@ -5730,7 +5738,9 @@
           "digest": "be8e095e09f18dd8b71b1123f1df37c23df306d357c442b1be287ee895336d16"
         }
       ],
-      "headline_equal": false
+      "headline_equal": false,
+      "verified_switch_equal": true,
+      "verified_switch_headline_equal": true
     },
     {
       "name": "tomo_db0::now_ns()",
@@ -9684,7 +9694,8 @@
           "address": "0x12b260",
           "digest": "db7d84070a2a59fc3ab0dc22e20d37cce32e1feb3c00288b39c9fbf4bfbb1508"
         }
-      ]
+      ],
+      "verified_constant_equal": true
     },
     {
       "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
@@ -11515,7 +11526,8 @@
           "address": "0x7e9c0",
           "digest": "6fb94402f96855772d0d81f47e123c7e1760d61475d2abd5cc3d93c406ea9dcc"
         }
-      ]
+      ],
+      "verified_switch_equal": true
     },
     {
       "name": "tomo_db0::kvobj_size(tomo_db0::KvObj const*)",
@@ -11553,7 +11565,8 @@
           "address": "0x7f1b0",
           "digest": "850c70f18941915d77f85aea66394e14469cb01e9cd205973b822d88850315c3"
         }
-      ]
+      ],
+      "verified_switch_equal": true
     },
     {
       "name": "tomo_db0::now_ns()",

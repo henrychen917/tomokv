@@ -71,7 +71,7 @@ PRE is rebuilt from exactly `3700b51d7`; all 9,427 normalized function groups eq
 
 `docs/wave8/instructions/table.md` gives all 72 PRE/POST cells: GET, SET and INCR at batches 1/32, slowlog -1/10000, both modes and namespaces; MGET at batches 1/32 and MSET at batches 1/32 with both atomic settings. The 48 single-key cells add **zero** instructions (totals decrease through helper inlining). All 24 MGET/MSET cells have identical counts, with identical per-function counts. External-library call counts match throughout. The only excluded-name normalization removes the known fixture callback artifact path; its symbol and call count remain exact (`docs/wave8/command_summary.py`). Counts include named production TomoKV routines and inlined code, with exact reply/data checks; they exclude fixture glue and external library bodies and make no cycles/IPC/rate claim.
 
-`make all`, all 45 `job_production_units` targets, both MDB parked/no-wake arms, and the blockfix cost target build successfully. All 49 concrete freshness checks pass; `docs/wave8/build/receipt.json` records commands and unchanged candidate digest.
+`make all`, all 45 `job_production_units` targets, both MDB parked/no-wake arms, and the blockfix cost target build successfully. All 49 concrete freshness checks pass; `docs/wave8/production-freshness.json` records all 49 checks, commands and the unchanged candidate digest.
 
 ### Complete linked-body review
 
@@ -129,3 +129,17 @@ Four additional linked bodies differ in assertion arguments; four others differ
 only in reference annotations after the helper strings move. The existing
 inlining-budget trials still describe the exact final C++ objects. All 49
 production build/freshness checks pass again against this POST.
+
+### Final correctness receipts
+
+`docs/wave8/run_final_matrix.py` selects complete gate jobs only. The two standard
+differential folds also run concurrently in separate server allocations: uring
+CPUs 72–79 / ports 20040–20049, epoll CPUs 80–87 / ports 20060–20069. Other jobs
+use CPUs 64–71 / ports 20020–20029. Each invocation retains the gate's eight-server
+6:2 geometry and builds with all 32 authorized CPUs. No perf tier is selected.
+`runtime-affinity-snapshot.json` checks all active worker threads and owned TCP
+listeners; the tool-launcher ancestor processes are explicitly excluded.
+
+The separately assigned AT4-WOUND-1 serverless diagnostic remains a documented
+non-gate failure inherited from execindex. It is not converted to a gate pass,
+suppressed, or repaired here.

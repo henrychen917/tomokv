@@ -1,0 +1,17 @@
+{
+  "source_commit": "e930f28551b25def54b46f7b954dfa5b6f565fa0",
+  "root": "/home/user/Projects/cx-wave8/build/wave8/selftest-final",
+  "count_changes": {
+    "EXPECT_QUICK": [
+      798,
+      806
+    ],
+    "EXPECT_FULL": [
+      815,
+      823
+    ]
+  },
+  "fixture": "committed 823-row fixture; no further fixture change needed",
+  "original_gate_sha256": "74f8bbc4cc94072ed894c65b1ddc9f4035bfcb4e8c74321bc2596d383f7544a6",
+  "copy_gate_sha256": "bd41c16a1a51a9eeb1db68b1a3f7f2cca9e8d61f1a95a6a5f242d127bced0b13"
+}
