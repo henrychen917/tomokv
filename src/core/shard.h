@@ -517,6 +517,8 @@ private:
     }
 
     friend struct ShardLayoutLock;
+    friend struct TxnLinearOracle; // test-only frozen registry, TOMO_TXN_ORACLE
+    friend struct TxnIndexTest;
     int32_t   id_ = -1;
     // Both endpoints include at most kNumBuckets (16384). Packing the route
     // endpoints leaves the WATCH gate in the hot header without moving zc_min,
