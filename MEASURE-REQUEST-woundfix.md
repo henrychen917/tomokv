@@ -84,6 +84,8 @@ The maintainer owns that update.
 
 All artifacts are under `build/woundfix/`; SHA-256s are recorded in
 `docs/woundfix/binaries.sha256`, sizes in `binaries.size`.
+`docs/woundfix/source-identity.json` verifies all 234 archived PRE build/source
+files against the base commit and records the compiler.
 
 | Arm | Path | SHA-256 |
 | --- | --- | --- |
@@ -96,7 +98,7 @@ PAD-A is **type A, behaviour twin**: PRE behaviour in the exact common image
 of POST-layout. Both link POST first and a symbol-isolated PRE second; PAD-A
 changes only five bytes at the entry to run PRE. Sections, function addresses,
 and data match. It is the exact twin of **POST-layout**, not the smaller release
-POST. The release text-size total shrinks by 196 bytes; the common-image pair is
+POST. The release `.text` shrinks by 224 bytes (GNU size text total: −196 bytes); the common-image pair is
 an additional layout control, not a substitute for the release comparison.
 `docs/woundfix/pad-a.json` records all objects, link commands, patch and identity
 checks. Both common-image arms pass all 16 bounded boots (both modes, engines
@@ -143,9 +145,10 @@ violations occurred.
 An additional fused/uring, databases-1 boot ran 572 bare-only repetitions:
 4,685,824 rounds and **301,615 group wounds**, exceeding DEFECT §6's 300,000
 exposure requirement in the original symptom's posture. Its order violations
-and wrong replies are zero. Live INFO counts are exposure witnesses; the
-serverless phase-gap fixture separately proves exact one-per-successful-CAS
-accounting. Commands, all repetition logs, counter deltas and binary identity
+and wrong replies are zero. In all nine completed cells, group and EXEC wound counts equal their
+respective completed retry counts, with zero blind restarts.
+`live/counter-conservation.json` records this cross-check. The serverless
+phase-gap fixture separately proves exact one-per-successful-CAS accounting. Commands, all repetition logs, counter deltas and binary identity
 are in `docs/woundfix/live/`.
 
 | Cell | Full repetitions | Extra bare repetitions | Group wounds | EXEC wounds |

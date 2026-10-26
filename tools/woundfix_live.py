@@ -118,6 +118,9 @@ def main():
         assert hashlib.sha256(binary.read_bytes()).hexdigest() == digest, 'binary changed during live proof'
         delta = {k: after[k] - before.get(k, 0) for k in after}
         assert delta['atomic_group_wounds'] > 0 and (exposure or delta['atomic_txn_wounds'] > 0), delta
+        assert delta['atomic_txn_blind_restarts'] == 0, delta
+        assert delta['atomic_group_retries'] == delta['atomic_group_wounds'], delta
+        assert delta['atomic_txn_retries'] == delta['atomic_txn_wounds'], delta
         total_wounds += delta['atomic_group_wounds']
         rows.append(dict(cell=label, boot=cmd, binary_sha256=digest,
                          repeats=len(repetitions), full_repeats=0 if exposure else min(args.repeats, len(repetitions)),
