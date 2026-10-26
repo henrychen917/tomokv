@@ -1,7 +1,7 @@
 #pragma once
 #include "../core/thread.h"
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 namespace tomo {
 struct TxnRetryQueues;
 struct MultiOwnerRetryNode {
@@ -11,7 +11,7 @@ struct MultiOwnerRetryNode {
     std::atomic<TxnRetryQueues*> lane{nullptr};
     Task task;
     bool fast = false;
-    ~MultiOwnerRetryNode() { assert(!lane.load(std::memory_order_relaxed)); }
+    ~MultiOwnerRetryNode() { TOMO_ASSERT(!lane.load(std::memory_order_relaxed)); }
 };
 struct TxnRetryQueues {
     MultiOwnerRetryNode *fast_head = nullptr, *fast_tail = nullptr;
@@ -21,7 +21,7 @@ struct TxnRetryQueues {
     std::byte layout_pad[sizeof(std::deque<Task>) - 4 * sizeof(void*) - 2 * sizeof(uint32_t)]{};
     bool empty() const { return count == 0; }
     void link(MultiOwnerRetryNode& node, bool fast) {
-        assert(!node.lane.load(std::memory_order_relaxed));
+        TOMO_ASSERT(!node.lane.load(std::memory_order_relaxed));
         auto*& head = fast ? fast_head : rotation_head;
         auto*& tail = fast ? fast_tail : rotation_tail;
         node.prev = tail; node.next = nullptr; node.fast = fast;
@@ -30,7 +30,7 @@ struct TxnRetryQueues {
         node.lane.store(this, std::memory_order_release);
     }
     void unlink(MultiOwnerRetryNode& node) {
-        assert(node.lane.load(std::memory_order_relaxed) == this);
+        TOMO_ASSERT(node.lane.load(std::memory_order_relaxed) == this);
         auto*& head = node.fast ? fast_head : rotation_head;
         auto*& tail = node.fast ? fast_tail : rotation_tail;
         if (node.prev) node.prev->next = node.next; else head = node.next;

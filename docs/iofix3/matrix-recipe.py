@@ -28,8 +28,6 @@ def gate(name, jobs, arm='post2', engine='uring', fused=False, expected=0):
     print('END',name,result.returncode,flush=True)
 
 gate('pad-a-idle-final', 'iofix-deferred', arm='pad-a', expected=1)
-gate('post4-wb-epoll-rerun','wb_policy',arm='post4',engine='epoll')
-gate('post8-wb-epoll-rerun','wb_policy',arm='post8',engine='epoll')
 gate('post2-correctness-epoll-rerun',
      'wb_policy flip flip_saturated flipctl climonfix debug-0 debug-1 '
      'release_batteries asan_batteries replyoff zc auth',engine='epoll')

@@ -54,30 +54,15 @@ gate('post2-recheck-uring', 'iofix-deferred iofix-sleep iofix-signal wb_policy w
      'wb_rule_units climonfix release_batteries flip auth atomic_units splitlocal_units '
      'reorder_engagement reorder_identity')
 gate('pad-a-idle-gate', 'iofix-deferred', arm='pad-a', expected=1)
-for multiplier in (4, 8):
-    root = f'build/iofix3/post{multiplier}'
-    flags = FLAGS+f' -DTOMO_WB_IDLE_MULTIPLIER={multiplier}'
-    rc = step(f'post{multiplier}-build', ['make','-j16',f'BUILD_ROOT={root}',f'CXXFLAGS={flags}','all'])
-    if rc:
-        raise SystemExit(f'POST{multiplier} build failed; dependent steps not run')
-    shutil.copy2(ROOT/root/'tomokv', ROOT/f'build/tomokv-iofix3-post{multiplier}')
-    step(f'post{multiplier}-freshness', ['make','-q',f'BUILD_ROOT={root}',f'CXXFLAGS={flags}','all'])
-    step(f'identity-post{multiplier}', ['python3','tools/iofix3_artifacts.py','identity',
-         '--pre','build/tomokv-iofix3-pre','--post',f'build/tomokv-iofix3-post{multiplier}',
-         '--output',f'docs/iofix3/identity-post{multiplier}'])
-    gate(f'post{multiplier}-idle-wb-gate','iofix-deferred wb_policy',arm=f'post{multiplier}')
-
-for arm, multiplier in [('pre',None),('post2',2),('post4',4),('post8',8)]:
+for arm, multiplier in [('pre',None),('post2',2)]:
     argv = ['python3','tools/wave5b_trace.py','prepare',f'iofix3-{arm}',
             '--ref','3700b51d7' if multiplier is None else 'working',
             '--build-cores','64-79','--jobs','16','--output-dir','docs/iofix3/probe']
-    if multiplier:
-        argv += ['--multiplier',str(multiplier)]
     if step(f'trace-{arm}-build', argv):
         raise SystemExit(f'trace {arm} build failed; fixed-count dependent step not run')
 step('fixed-count', ['python3','tools/iofix3_ports.py','--ports','48820-48820','--',
                     'python3','tools/wave5b_trace.py','run','--arms',
-                    'iofix3-pre','iofix3-post2','iofix3-post4','iofix3-post8',
+                    'iofix3-pre','iofix3-post2',
                     '--name','fixed-count','--repeats','3','--requests','2048',
                     '--server-cores','64-71','--load-cores','72-79','--port','48820',
                     '--output-dir','docs/iofix3/probe'])

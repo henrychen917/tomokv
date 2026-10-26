@@ -120,8 +120,18 @@ def enclosing(tokens, stop):
                 depth = 0
                 for j, word in enumerate(words):
                     if word == '(':
-                        if depth == 0 and j and re.fullmatch(r'[a-zA-Z_][a-zA-Z0-9_]*', words[j - 1]) and words[j - 1] not in control:
+                        if depth == 0 and j:
                             first = j - 1
+                            # Assignment operators and destructors occur in the
+                            # intrusive claim nodes; retain their exact names.
+                            if j >= 2 and words[j - 2:j] == ['operator', '=']:
+                                first = j - 2
+                            elif re.fullmatch(r'[a-zA-Z_][a-zA-Z0-9_]*', words[j - 1]) and words[j - 1] not in control:
+                                if first and words[first - 1] == '~':
+                                    first -= 1
+                            else:
+                                depth += 1
+                                continue
                             while first >= 2 and words[first - 1] == '::':
                                 first -= 2
                             scope, kind = ''.join(words[first:j]), 'function'

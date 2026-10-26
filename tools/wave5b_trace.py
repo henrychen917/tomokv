@@ -85,9 +85,6 @@ def prepare(args):
         patch(name, '            const uint8_t previous_deferrals = c->wb_deferrals();\n', '')
         patch(name, '                work += c->wb_deferrals() != previous_deferrals;\n', '')
         patch(name, '        work += served;\n', '        work += served;\n        if (!loop.pending_serve_.empty()) ++work;\n')
-    if args.multiplier is not None:
-        patch('src/core/wb_rule.h', '#define TOMO_WB_IDLE_MULTIPLIER 2',
-              f'#define TOMO_WB_IDLE_MULTIPLIER {args.multiplier}')
     files['wave5b_trace.h'] = HOOK.encode()
     patch('Makefile', 'CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread',
           'CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread\noverride CXXFLAGS += -include wave5b_trace.h')
@@ -118,7 +115,7 @@ def prepare(args):
         if not path.exists() or path.read_bytes() != data: path.write_bytes(data)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir/(args.arm+'-instrumentation.json')).write_text(json.dumps(dict(ref=args.ref, revert=args.revert,
-        multiplier=args.multiplier, source=str(source), hook=HOOK, patches=patches), indent=2)+'\n')
+        source=str(source), hook=HOOK, patches=patches), indent=2)+'\n')
     if args.prepare_only:
         print(json.dumps(dict(arm=args.arm, source=str(source), patches=len(patches))), flush=True)
         return
@@ -209,7 +206,6 @@ if __name__ == '__main__':
     p=argparse.ArgumentParser(description=__doc__)
     sub=p.add_subparsers(dest='action',required=True)
     b=sub.add_parser('prepare'); b.add_argument('arm'); b.add_argument('--ref',default='working'); b.add_argument('--revert',action='store_true')
-    b.add_argument('--multiplier', type=int, choices=(2,4,8))
     b.add_argument('--build-cores', default='64-111'); b.add_argument('--jobs', type=int, default=32)
     b.add_argument('--output-dir', type=Path, default=DOC)
     b.add_argument('--prepare-only', action='store_true', help='validate and write the copied source without building')

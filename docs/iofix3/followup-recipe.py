@@ -29,8 +29,6 @@ def gate(name, jobs, arm='post2', fused=False, expected=0):
     print('END', name, result.returncode, flush=True)
 
 gate('pad-a-idle-rerun', 'iofix-deferred', arm='pad-a', expected=1)
-gate('post4-wb-epoll', 'wb_policy', arm='post4')
-gate('post8-wb-epoll', 'wb_policy', arm='post8')
 gate('post2-fused-aof', 'aof-uring aof-epoll', fused=True)
 
 checks = json.loads((doc/'production-freshness.json').read_text())

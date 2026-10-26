@@ -30,13 +30,26 @@ class AssertionChecks(unittest.TestCase):
 
     def test_hash_and_function(self):
         sites = amap.scan(ROOT)
-        self.assertEqual(len(sites), 5)
+        self.assertEqual(len(sites), 15)
         self.assertEqual({s.function for s in sites}, {
             'tomo::FlatStore::storesize_replace', 'tomo::FlatStore::storesize_deadline',
-            'tomo::FlatStore::make_word', 'tomo::Shard::init'})
+            'tomo::FlatStore::make_word', 'tomo::Shard::init',
+            'tomo::TxnWaiter::operator=', 'tomo::TxnWaiter::TxnWaiter',
+            'tomo::TxnWaiter::~TxnWaiter', 'tomo::MultiOwnerRetryNode::~MultiOwnerRetryNode',
+            'tomo::TxnRetryQueues::link', 'tomo::TxnRetryQueues::unlink',
+            '(anonymous)::txn_unlink_waiter', '(anonymous)::txn_link_waiter',
+            'tomo::Shard::watch_append_reservation'})
         amap.verify(sites, ROOT, 'g++')
         self.assertEqual(amap.fnv(' a\t +\n b '), amap.fnv('a+b'))
         self.assertNotEqual(amap.fnv('a', 0), amap.fnv('a', 1))
+
+    def test_claim_node_declarators(self):
+        sites = self.site('namespace n { struct Node {'
+            'Node& operator=(const Node&) { TOMO_ASSERT(a); return *this; }'
+            'Node(Node&&) noexcept { TOMO_ASSERT(b); }'
+            '~Node() { TOMO_ASSERT(c); } }; }')
+        self.assertEqual([s.function for s in sites],
+                         ['n::Node::operator=', 'n::Node::Node', 'n::Node::~Node'])
 
     def test_lexer_and_physical_lines(self):
         code = '''// TOMO_ASSERT(nope)

@@ -3604,7 +3604,7 @@ bool Shard::watch_append_reservation(const std::string& key, const WatchReservat
     try {
         auto& queue = watch_reservations_[key];
         if (reservation.entry_kind == 3) {
-            assert(handle && !reservation.mutates);
+            TOMO_ASSERT(handle && !reservation.mutates);
             txn_link_waiter(queue, *handle, reservation);
         } else if (reservation.entry_kind == 2) {
             const auto at = std::upper_bound(queue.marks.begin(), queue.marks.end(),

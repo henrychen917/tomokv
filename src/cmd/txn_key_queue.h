@@ -2,7 +2,7 @@
 // Owner-local claim index. Nodes live in immutable-after-publication claim slots.
 #include <array>
 #include <atomic>
-#include <cassert>
+#include "../base/tomo_assert.h"
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
@@ -51,10 +51,10 @@ struct TxnWaiter {
     // Claim vectors are built/capped before publication. Copies are new claims,
     // never another owner of a linked node (retire_claims is such a copy).
     TxnWaiter(const TxnWaiter&) {}
-    TxnWaiter& operator=(const TxnWaiter&) { assert(!queue); return *this; }
-    TxnWaiter(TxnWaiter&& other) noexcept { assert(!other.queue); }
-    TxnWaiter& operator=(TxnWaiter&& other) noexcept { assert(!queue && !other.queue); return *this; }
-    ~TxnWaiter() { assert(!queue); }
+    TxnWaiter& operator=(const TxnWaiter&) { TOMO_ASSERT(!queue); return *this; }
+    TxnWaiter(TxnWaiter&& other) noexcept { TOMO_ASSERT(!other.queue); }
+    TxnWaiter& operator=(TxnWaiter&& other) noexcept { TOMO_ASSERT(!queue && !other.queue); return *this; }
+    ~TxnWaiter() { TOMO_ASSERT_SALT(!queue, 1); }
 };
 struct TxnHeld : TxnReservation {
     TxnWaiter* handle = nullptr;

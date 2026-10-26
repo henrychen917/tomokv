@@ -24,11 +24,8 @@ struct Settings {
 };
 // Measurement arms only; the maintainer keeps the smallest multiplier that
 // passes merit and removes this override. No runtime knob or machine time bound.
-#ifndef TOMO_WB_IDLE_MULTIPLIER
-#define TOMO_WB_IDLE_MULTIPLIER 2
-#endif
-inline constexpr uint64_t kIdleMultiplier = TOMO_WB_IDLE_MULTIPLIER;
-static_assert(TOMO_WB_IDLE_MULTIPLIER > 0);
+// WB4.1 merit selected the two-completion grace window.
+inline constexpr uint64_t kIdleMultiplier = 2;
 
 // Learn completion intervals only within a busy split-IO tenure. A completion
 // after a park must not teach the duration of the long operation we waited for.

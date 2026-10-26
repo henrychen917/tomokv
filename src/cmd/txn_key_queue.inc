@@ -2,7 +2,7 @@
 namespace {
 void txn_unlink_waiter(TxnWaiter& node, bool release = true) {
     auto& q = *node.queue;
-    assert(node.waiting);
+    TOMO_ASSERT(node.waiting);
     if (node.prev) node.prev->next = node.next; else q.head = node.next;
     if (node.next) node.next->prev = node.prev; else q.tail = node.prev;
     if (node.entry.unit_mode == static_cast<uint8_t>(TxnClaimMode::Write)) {
@@ -30,7 +30,7 @@ TxnWaiter* txn_live_head(TxnKeyQueue& q, bool writes = false) {
 }
 void txn_link_waiter(TxnKeyQueue& q, TxnWaiter& node,
                      const Shard::WatchReservation& entry, bool acquire = true) {
-    assert(!node.waiting);
+    TOMO_ASSERT(!node.waiting);
     auto* before = q.tail;
     const auto own = txn_unit_view(entry);
     while (before) {
