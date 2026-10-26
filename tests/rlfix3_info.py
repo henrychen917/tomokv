@@ -15,8 +15,8 @@ from wave7 import selected_fields
 
 
 SECTIONS = ("server", "clients", "memory", "persistence", "stats", "replication",
-            "commandstats", "cluster", "keyspace", "writeback", "lb", "flipctl")
-DEFAULT = set(SECTIONS) - {"commandstats", "lb"}
+            "commandstats", "latencystats", "cluster", "keyspace", "writeback", "lb", "flipctl")
+DEFAULT = set(SECTIONS) - {"commandstats", "latencystats", "lb"}
 
 
 def headings(body):
@@ -53,6 +53,7 @@ def main():
             for names in ((), ("default",), ("all",), ("everything",),
                           ("SERVER", "clients", "server"), ("unknown",),
                           ("default", "commandstats"), ("everything", "unknown", "all"),
+                          ("default", "latencystats"), ("latencystats", "commandstats"),
                           *((section,) for section in SECTIONS)):
                 selected = DEFAULT if not names else set()
                 for name in names:

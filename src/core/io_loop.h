@@ -116,7 +116,7 @@ public:
             if (op.has_scatter_state()) {
                 loop->climon_flush_completed(op);
                 notifications = notify_take_batch(op);
-                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
+                latency_xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
                     loop->scatter_pool_, loop->self_->id(), loop,
                     [](void* release_ctx, int32_t shard, const char* ptr) {
                         static_cast<IoLoop*>(release_ctx)->queue_borrow_release(shard, ptr);
@@ -125,10 +125,10 @@ public:
                     });
             } else if (op.has_blocking_state()) {
                 notifications = notify_take_batch(op);
-                blocking_retire(*loop->srv_, client, op, *loop->self_);
+                latency_blocking_retire(*loop->srv_, client, op, *loop->self_);
             } else if (op.has_multi_state()) {
                 notifications = notify_take_batch(op);
-                multi_retire_entry(*loop, client, op);
+                latency_multi_retire(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
             }
@@ -3176,7 +3176,7 @@ private:
         static constexpr bool Fused = SplitLocal || (
             BatchOps == kGenthreadIfidBatchOps);
         [[maybe_unused]] const bool read_local_enabled =
-            Fused && __builtin_expect(srv_->read_local_enabled(), false);
+            Fused && __builtin_expect(latency_reads_local_, false);
         Client& conn = *c;
         if (__builtin_expect(query_buffer_exceeded(conn), false)) {
             close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -3684,7 +3684,7 @@ subscriber_checks_done:
                         if (__builtin_expect(slowlog_armed_, false)) {
                             timespec wall{};
                             ::clock_gettime(CLOCK_REALTIME, &wall);
-                            slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                            slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                            static_cast<int64_t>(wall.tv_sec) * 1000 +
                                                wall.tv_nsec / 1000000,
                                            slowlog_arm_, true);
@@ -3705,11 +3705,13 @@ subscriber_checks_done:
                 // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
                 if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                     uint64_t timeout_ms = 0;
+                    const uint64_t latency_started = latency_tracking_start();
                     const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                     if (wait == WaitCommandResult::Unsatisfied) {
                         if (!deferred_timer_start(c, rob.dispatch_id(),
-                                                  DeferredTimerKind::WaitZero, timeout_ms, 0,
-                                                  SlowlogArm{})) {
+                                                  DeferredTimerKind::WaitZero, timeout_ms,
+                                                  latency_started ? now_ns() - latency_started : 0,
+                                                  slowlog_arm_)) {
                             reply_err(op->sink(), "ERR out of memory");
                         } else {
                             conn.advance_parse(consumed);
@@ -3731,6 +3733,7 @@ subscriber_checks_done:
                     }
                     // Error already carries its exact validation reply. Immediate already carries
                     // :0. Both retire through the ordinary local completion path below.
+                    latency_tracking_finish(self_id, *op, latency_started);
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
@@ -3761,7 +3764,7 @@ subscriber_checks_done:
                 if (__builtin_expect(slowlog_armed_, false)) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                    slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
                                    slowlog_arm_, true);
@@ -4723,13 +4726,16 @@ ordinary_shard_ready:
             Client* client = timer.client;
             Op& op = client->rob().at(timer.op_id);
             if (timer.kind == DeferredTimerKind::WaitZero) {
+                const uint64_t started = timer.slowlog_arm.latency_tracking ? now_ns() : 0;
                 server_tail_reply_wait(op);
+                if (started)
+                    latency_tracking_finish(self_->id(), op, started - timer.slow_started_ns);
             } else {
                 reply_ok(op.sink());
                 if (timer.slowlog_arm.armed()) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_->id(), client->id(), op,
+                    slowlog_recorder(self_->id(), client->id(), op,
                                    now_ns() - timer.slow_started_ns,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
@@ -4927,6 +4933,11 @@ ordinary_shard_ready:
         // Same snapshot, same pass, no extra load.
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_arm_.latency_tracking = snapshot.latency_tracking;
+        latency_tracking_bind(snapshot.latency_tracking);
+        // Arming changes admission only: the store's immutable replacement / QSBR
+        // contract remains armed until the boot-latched lane is dismantled.
+        latency_reads_local_ = srv_->read_local_enabled() && !snapshot.latency_tracking;
         slowlog_armed_ = slowlog_arm_.armed();
         if (srv_->read_local_enabled()) {
             fused_executor_->set_read_local_point_writes_precise(
@@ -5073,6 +5084,7 @@ ordinary_shard_ready:
             }
             wb_.teardown(*c);
             release_tls(c);
+            latency_tracking_forget_client(*c);
             delete c;
         }
         dead_ready_.resize(keep);
@@ -5221,6 +5233,7 @@ ordinary_shard_ready:
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
     // Slow-log arm for connection-local commands. Appended here rather than earlier so no
     // pre-existing IoLoop member offset moves.
+    bool latency_reads_local_ = false; // per-pass admission, preserves owner timing while armed
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only

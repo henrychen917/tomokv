@@ -1,0 +1,2922 @@
+[
+  {
+    "unit": "src/core/genthread.o",
+    "value": 132825,
+    "counts": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          42817,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          51257,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46262,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46849,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          42240,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          43359,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          46470,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          47051,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      }
+    ]
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "value": 132889,
+    "counts": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          42817,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          51257,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46262,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46849,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          42240,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          43359,
+          42555,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          46470,
+          46190,
+          46190,
+          46190,
+          46190,
+          46191,
+          46190,
+          46190,
+          46190
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          47051,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      }
+    ]
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "value": 132953,
+    "counts": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          23790,
+          23791,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1773,
+          1773,
+          1774,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          42817,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          51257,
+          42353,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2434,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46262,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46849,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2271,
+          2271,
+          2272,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          1720,
+          1720,
+          1720,
+          1721,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23993,
+          23992,
+          23992
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2853,
+          2852,
+          2852
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          42240,
+          41966,
+          41967,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          43359,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          46470,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          47051,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      }
+    ]
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "value": 133017,
+    "counts": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          42817,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          51257,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46262,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46849,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          42240,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          43359,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          46470,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          47051,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      }
+    ]
+  },
+  {
+    "unit": "src/core/genthread.o",
+    "value": 133081,
+    "counts": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718,
+          1718
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190,
+          1190
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790,
+          23790
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378,
+          24378
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773,
+          1773
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          42817,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764,
+          41764
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          51257,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352,
+          42352
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "counts": [
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905,
+          1905
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46262,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988,
+          45988
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "counts": [
+          46849,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576,
+          46576
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271,
+          2271
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720,
+          1720
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992,
+          23992
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580,
+          24580
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852,
+          2852
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301,
+          2301
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          42240,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966,
+          41966
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          43359,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554,
+          42554
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984,
+          2984
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "counts": [
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433,
+          2433
+        ]
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          46470,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190,
+          46190
+        ]
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "counts": [
+          47051,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778,
+          46778
+        ]
+      }
+    ],
+    "diffs": [
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": -1,
+        "delta": 17
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": -1,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "GET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "SET",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 22
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 1,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "2s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 0
+      },
+      {
+        "mode": "1s",
+        "command": "INCR",
+        "batch": 32,
+        "slowlog_us": 10000,
+        "delta": 544
+      }
+    ]
+  }
+]

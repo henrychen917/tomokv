@@ -1931,7 +1931,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     static constexpr bool Fused = SplitLocal || (
         BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
-        Fused && __builtin_expect(srv_->read_local_enabled(), false);
+        Fused && __builtin_expect(latency_reads_local_, false);
     Client& conn = *c;
     if (__builtin_expect(query_buffer_exceeded(conn), false)) {
         close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -2442,7 +2442,7 @@ subscriber_checks_done:
                     if (__builtin_expect(slowlog_armed_, false)) {
                         timespec wall{};
                         ::clock_gettime(CLOCK_REALTIME, &wall);
-                        slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                        slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                        static_cast<int64_t>(wall.tv_sec) * 1000 +
                                            wall.tv_nsec / 1000000,
                                        slowlog_arm_, true);
@@ -2464,11 +2464,13 @@ subscriber_checks_done:
             // IoLocal child calls cmd_wait at retirement and receives :0 immediately.
             if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                 uint64_t timeout_ms = 0;
+                const uint64_t latency_started = latency_tracking_start();
                 const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
                     if (!deferred_timer_start(c, rob.dispatch_id(),
-                                              DeferredTimerKind::WaitZero, timeout_ms, 0,
-                                              SlowlogArm{})) {
+                                              DeferredTimerKind::WaitZero, timeout_ms,
+                                              latency_started ? now_ns() - latency_started : 0,
+                                              slowlog_arm_)) {
                         reply_err(op->sink(), "ERR out of memory");
                     } else {
                         conn.advance_parse(consumed);
@@ -2491,6 +2493,7 @@ subscriber_checks_done:
                 }
                 // Error already carries its exact validation reply. Immediate already carries
                 // :0. Both retire through the ordinary local completion path below.
+                latency_tracking_finish(self_id, *op, latency_started);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 flip_fingerprint_note(*spec, *op);
@@ -2522,7 +2525,7 @@ subscriber_checks_done:
             if (__builtin_expect(slowlog_armed_, false)) {
                 timespec wall{};
                 ::clock_gettime(CLOCK_REALTIME, &wall);
-                slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                static_cast<int64_t>(wall.tv_sec) * 1000 +
                                    wall.tv_nsec / 1000000,
                                slowlog_arm_, true);

@@ -1,0 +1,27 @@
+{
+  "binary": "/home/user/Projects/cx-latencyfix/build/tomokv-latencyfix-pad-a",
+  "sha256": "68cc2a8996d2924b692b490bbdb0bf2ecd10259816b04f6f6bcc440b668c764a",
+  "checks": [
+    {
+      "label": "1s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "1s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-uring complete battery",
+      "passed": false,
+      "actual": false
+    },
+    {
+      "label": "2s-epoll complete battery",
+      "passed": false,
+      "actual": false
+    }
+  ],
+  "slowlog": {}
+}

@@ -1,0 +1,286 @@
+PARTIAL	0	GATE_ONLY_JOBS=latencyfix_grammar latencyfix_shape latencyfix_off config_unit cmd_metadata acl_metadata exbatch_units core_units atomic_units wait_units climonfix persistfix_units serverfix_lines serverfix_scalar serverfix_config serverfix_slowlog serverfix_hello serverfix_waitaof dispatch_children dispatch_arity dispatch_errors feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 debug-0 debug-1 fused-0 fused-1 compat2 compat3 scriptfix script_bounds release_batteries blockfix_structure blockfix_registry blockfix_mkstream persistfix2_shutdown; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.400000	configuration docs match parser
+ok	5.390000	Redis config quoting + mid-value #
+ok	0.050000	generated Redis 7.4 ACL categories
+ok	0.080000	cmdmeta covers every registered command
+ok	2.460000	s6 battery (atomic 0)
+ok	2.070000	multi_exec battery (atomic 0)
+ok	1.520000	blocking battery (atomic 0)
+ok	0.450000	blockmulti battery (atomic 0)
+ok	0.520000	stream battery (atomic 0)
+ok	0.050000	streamgroups battery (atomic 0)
+ok	0.900000	pubsub battery (atomic 0)
+ok	0.030000	lua_scripting battery (atomic 0)
+ok	0.040000	scriptsurf battery (atomic 0)
+ok	15.300000	limits battery (atomic 0)
+ok	0.030000	resp3 battery (atomic 0)
+ok	0.030000	bitfield battery (atomic 0)
+ok	0.050000	dumprestore battery (atomic 0)
+ok	0.100000	zsetops battery (atomic 0)
+ok	0.070000	geo battery (atomic 0)
+ok	1.170000	climon battery (atomic 0)
+ok	3.330000	climon2 battery (atomic 0)
+ok	13.260000	tracking battery (atomic 0)
+ok	3.300000	hexpire battery (atomic 0)
+ok	0.560000	servertail battery (atomic 0)
+ok	0.150000	lcs battery (atomic 0)
+ok	2.780000	concur battery (atomic 0)
+ok	0.620000	edgeproto battery (atomic 0)
+ok	0.340000	edgeenc battery (atomic 0)
+ok	3.700000	edgetime battery (atomic 0)
+ok	0.020000	arity battery (atomic 0)
+ok	0.020000	contarity battery (atomic 0)
+ok	0.030000	cmdgap battery (atomic 0)
+ok	0.030000	aclsel battery (atomic 0)
+ok	49.110000	expwide battery (atomic 0)
+ok	4.200000	infofix battery (atomic 0)
+ok	5.430000	pushtear battery (atomic 0)
+ok	0.030000	netcmd battery (atomic 0)
+ok	0.020000	feature shutdown invariants (atomic 0)
+ok	0.260000	fused+armed boot line (atomic 0)
+ok	1.170000	fused+armed s6 battery (atomic 0)
+ok	2.070000	fused+armed multi_exec battery (atomic 0)
+ok	1.590000	fused+armed blocking battery (atomic 0)
+ok	0.450000	fused+armed blockmulti battery (atomic 0)
+ok	0.570000	fused+armed stream battery (atomic 0)
+ok	0.050000	fused+armed streamgroups battery (atomic 0)
+ok	0.880000	fused+armed pubsub battery (atomic 0)
+ok	0.030000	fused+armed lua_scripting battery (atomic 0)
+ok	0.050000	fused+armed scriptsurf battery (atomic 0)
+ok	15.570000	fused+armed limits battery (atomic 0)
+ok	0.030000	fused+armed resp3 battery (atomic 0)
+ok	0.030000	fused+armed bitfield battery (atomic 0)
+ok	0.060000	fused+armed dumprestore battery (atomic 0)
+ok	0.050000	fused+armed zsetops battery (atomic 0)
+ok	0.030000	fused+armed geo battery (atomic 0)
+ok	1.130000	fused+armed climon battery (atomic 0)
+ok	3.330000	fused+armed climon2 battery (atomic 0)
+ok	13.240000	fused+armed tracking battery (atomic 0)
+ok	3.050000	fused+armed hexpire battery (atomic 0)
+ok	0.570000	fused+armed servertail battery (atomic 0)
+ok	0.160000	fused+armed lcs battery (atomic 0)
+ok	2.790000	fused+armed concur battery (atomic 0)
+ok	0.740000	fused+armed edgeproto battery (atomic 0)
+ok	0.370000	fused+armed edgeenc battery (atomic 0)
+ok	3.790000	fused+armed edgetime battery (atomic 0)
+ok	0.030000	fused+armed arity battery (atomic 0)
+ok	0.030000	fused+armed contarity battery (atomic 0)
+ok	0.030000	fused+armed cmdgap battery (atomic 0)
+ok	0.030000	fused+armed aclsel battery (atomic 0)
+ok	51.800000	fused+armed expwide battery (atomic 0)
+ok	4.170000	fused+armed infofix battery (atomic 0)
+ok	5.460000	fused+armed pushtear battery (atomic 0)
+ok	0.030000	fused+armed netcmd battery (atomic 0)
+ok	1.170000	fused+armed shutdown report + lane fired (hits=N, atomic 0)
+ok	2.460000	s6 battery (atomic 1)
+ok	2.070000	multi_exec battery (atomic 1)
+ok	1.570000	blocking battery (atomic 1)
+ok	0.460000	blockmulti battery (atomic 1)
+ok	0.510000	stream battery (atomic 1)
+ok	0.050000	streamgroups battery (atomic 1)
+ok	0.900000	pubsub battery (atomic 1)
+ok	0.020000	lua_scripting battery (atomic 1)
+ok	0.040000	scriptsurf battery (atomic 1)
+ok	14.720000	limits battery (atomic 1)
+ok	0.030000	resp3 battery (atomic 1)
+ok	0.030000	bitfield battery (atomic 1)
+ok	0.060000	dumprestore battery (atomic 1)
+ok	0.040000	zsetops battery (atomic 1)
+ok	0.030000	geo battery (atomic 1)
+ok	1.130000	climon battery (atomic 1)
+ok	3.350000	climon2 battery (atomic 1)
+ok	13.250000	tracking battery (atomic 1)
+ok	3.050000	hexpire battery (atomic 1)
+ok	0.560000	servertail battery (atomic 1)
+ok	0.150000	lcs battery (atomic 1)
+ok	2.790000	concur battery (atomic 1)
+ok	0.580000	edgeproto battery (atomic 1)
+ok	0.340000	edgeenc battery (atomic 1)
+ok	3.930000	edgetime battery (atomic 1)
+ok	0.030000	arity battery (atomic 1)
+ok	0.030000	contarity battery (atomic 1)
+ok	0.020000	cmdgap battery (atomic 1)
+ok	0.030000	aclsel battery (atomic 1)
+ok	53.700000	expwide battery (atomic 1)
+ok	4.200000	infofix battery (atomic 1)
+ok	5.430000	pushtear battery (atomic 1)
+ok	0.030000	netcmd battery (atomic 1)
+ok	0.020000	feature shutdown invariants (atomic 1)
+ok	0.260000	fused+armed boot line (atomic 1)
+ok	1.170000	fused+armed s6 battery (atomic 1)
+ok	2.070000	fused+armed multi_exec battery (atomic 1)
+ok	1.670000	fused+armed blocking battery (atomic 1)
+ok	0.450000	fused+armed blockmulti battery (atomic 1)
+ok	0.540000	fused+armed stream battery (atomic 1)
+ok	0.050000	fused+armed streamgroups battery (atomic 1)
+ok	0.870000	fused+armed pubsub battery (atomic 1)
+ok	0.030000	fused+armed lua_scripting battery (atomic 1)
+ok	0.040000	fused+armed scriptsurf battery (atomic 1)
+ok	15.010000	fused+armed limits battery (atomic 1)
+ok	0.020000	fused+armed resp3 battery (atomic 1)
+ok	0.030000	fused+armed bitfield battery (atomic 1)
+ok	0.060000	fused+armed dumprestore battery (atomic 1)
+ok	0.050000	fused+armed zsetops battery (atomic 1)
+ok	0.020000	fused+armed geo battery (atomic 1)
+ok	1.130000	fused+armed climon battery (atomic 1)
+ok	3.280000	fused+armed climon2 battery (atomic 1)
+ok	13.240000	fused+armed tracking battery (atomic 1)
+ok	3.050000	fused+armed hexpire battery (atomic 1)
+ok	0.570000	fused+armed servertail battery (atomic 1)
+ok	0.160000	fused+armed lcs battery (atomic 1)
+ok	2.810000	fused+armed concur battery (atomic 1)
+ok	0.720000	fused+armed edgeproto battery (atomic 1)
+ok	0.370000	fused+armed edgeenc battery (atomic 1)
+ok	3.820000	fused+armed edgetime battery (atomic 1)
+ok	0.020000	fused+armed arity battery (atomic 1)
+ok	0.020000	fused+armed contarity battery (atomic 1)
+ok	0.020000	fused+armed cmdgap battery (atomic 1)
+ok	0.030000	fused+armed aclsel battery (atomic 1)
+ok	56.010000	fused+armed expwide battery (atomic 1)
+ok	4.200000	fused+armed infofix battery (atomic 1)
+ok	2.980000	fused+armed pushtear battery (atomic 1)
+ok	0.030000	fused+armed netcmd battery (atomic 1)
+ok	1.160000	fused+armed shutdown report + lane fired (hits=N, atomic 1)
+ok	46.900000	blockfix CC4.19 XINFO structural counts vs Redis 7.4
+ok	39.010000	blockfix AT4.8 keyed registry cost and FIFO vs Redis 7.4
+ok	47.350000	blockfix CC4.18 MKSTREAM node rollover vs Redis 7.4
+ok	59.150000	persistfix2 shutdown modifiers and signal policy
+ok	9.160000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.480000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.050000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.870000	execiso battery (atomic 0)
+ok	0.450000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.730000	multirace battery (atomic 0)
+ok	30.490000	session_monotonic battery (atomic 0)
+ok	0.360000	xacct battery (atomic 0)
+ok	0.300000	xmove battery (atomic 0)
+ok	1.870000	xscript battery (atomic 0)
+ok	1.980000	txn_nx battery (atomic 0)
+ok	9.340000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.050000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.450000	execfix battery (atomic 1)
+ok	0.110000	multires battery (atomic 1)
+ok	0.740000	multirace battery (atomic 1)
+ok	30.480000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.310000	xmove battery (atomic 1)
+ok	1.860000	xscript battery (atomic 1)
+ok	1.950000	txn_nx battery (atomic 1)
+ok	9.380000	txniso battery (atomic 1)
+ok	0.120000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.110000	core concurrency drain
+FAIL	1.370000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.560000	read-local topology demotion (1s)
+ok	0.560000	read-local topology demotion (2s)
+ok	0.030000	shutdown policy + signal handoff serverless
+ok	0.330000	shutdown persistence (1s, command)
+ok	0.140000	shutdown persistence (1s, sigterm)
+ok	0.130000	shutdown persistence (1s, sigint)
+ok	0.340000	shutdown persistence (2s, command)
+ok	0.130000	shutdown persistence (2s, sigterm)
+ok	0.130000	shutdown persistence (2s, sigint)
+ok	0.040000	AOF publication/shutdown witnesses + negative controls
+ok	15.490000	exbatch publication unit + negative controls
+ok	40.130000	exbatch watch unit + negative controls
+ok	17.390000	exbatch metadata unit + negative controls
+ok	0.000000	atomic commit publication catches up at quiescence
+ok	2.170000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.530000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	11.820000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.000000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	6.700000	torture battery
+ok	0.980000	RYOW battery
+ok	0.030000	ACL category runtime table
+ok	0.030000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.040000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=N)
+ok	0.040000	dispatched==executed (N)
+ok	1.850000	compat2 autharity
+ok	6.780000	compat2 expire_notify
+ok	2.260000	compat2 ktls_lifetime
+ok	33.590000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.550000	compat3 CC4.13 pending vs Redis 7.4
+ok	33.530000	compat3 CC4.14 history vs Redis 7.4
+ok	34.610000	compat3 CC4.16 grammar vs Redis 7.4
+ok	34.300000	compat3 CC4.5 glob vs Redis 7.4
+ok	33.990000	compat3 CC4.17 flags vs Redis 7.4
+ok	0.860000	dispatchfix EX4.10 container outer arity
+ok	0.880000	dispatchfix EX4.11 container errors
+ok	0.960000	dispatchfix EX4.4 advertised children
+ok	0.060000	xscript limit control
+ok	0.540000	xscript window control
+ok	0.120000	scriptfix sandbox (1s)
+ok	0.120000	scriptfix functions (1s)
+ok	0.710000	scriptfix replies (1s)
+ok	0.830000	scriptfix dump (1s)
+ok	0.110000	scriptfix sandbox (2s)
+ok	0.110000	scriptfix functions (2s)
+ok	0.700000	scriptfix replies (2s)
+ok	0.820000	scriptfix dump (2s)
+ok	6.430000	latencyfix LAT-HIST-1 knob grammar
+ok	1.780000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	13.370000	latencyfix LAT-HIST-1 zero allocations off
+ok	8.560000	serverfix CG4.3 physical config lines
+ok	19.790000	serverfix CG4.4 shared scalar grammar
+ok	1.030000	serverfix SV4.6 CONFIG validation matrix
+ok	0.790000	serverfix SV4.7 HELLO canonical protocol
+ok	6.900000	serverfix SV4.5 WAITAOF wait lifecycle
+ok	12.880000	serverfix SV4.14 disabled slowlog allocation
+ok	0.260000	fused boot line (atomic 0)
+ok	1.170000	fused s6 battery (atomic 0)
+ok	2.080000	fused multi_exec battery (atomic 0)
+ok	0.710000	fused edgeproto battery (atomic 0)
+ok	0.040000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.170000	fused shutdown report (atomic 0)
+ok	1.630000	fused txn_nx battery (atomic 0)
+ok	9.220000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.170000	fused s6 battery (atomic 1)
+ok	2.070000	fused multi_exec battery (atomic 1)
+ok	0.710000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	2.630000	fused txn_nx battery (atomic 1)
+ok	9.620000	fused txniso battery (atomic 1)

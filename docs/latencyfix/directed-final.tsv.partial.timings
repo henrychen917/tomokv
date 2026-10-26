@@ -1,0 +1,4 @@
+ok	0.020000	release build (+footprint locks)
+ok	6.380000	latencyfix LAT-HIST-1 knob grammar
+ok	1.810000	latencyfix LAT-HIST-1 histogram and latencystats
+ok	12.930000	latencyfix LAT-HIST-1 zero allocations off

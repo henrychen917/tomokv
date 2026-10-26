@@ -1,0 +1,260 @@
+{
+  "scope": "production exec_batch_prefetched through return; steady median of nine, no sockets/workers",
+  "no_added_instructions": true,
+  "rows": [
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 1718,
+      "post_instructions": 1702,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 1173,
+      "post_instructions": 1163,
+      "delta": -10,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 23790,
+      "post_instructions": 23278,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 23834,
+      "post_instructions": 23514,
+      "delta": -320,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 2301,
+      "post_instructions": 2285,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 1756,
+      "post_instructions": 1746,
+      "delta": -10,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 41764,
+      "post_instructions": 41252,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 41808,
+      "post_instructions": 41488,
+      "delta": -320,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 2433,
+      "post_instructions": 2417,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": -1,
+      "pre_instructions": 1888,
+      "post_instructions": 1878,
+      "delta": -10,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 45988,
+      "post_instructions": 45476,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": -1,
+      "pre_instructions": 46032,
+      "post_instructions": 45712,
+      "delta": -320,
+      "per_op_delta": -10.0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 2249,
+      "post_instructions": 2233,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 1720,
+      "post_instructions": 1687,
+      "delta": -33,
+      "per_op_delta": -33.0
+    },
+    {
+      "mode": "2s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 23992,
+      "post_instructions": 23480,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "GET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 24036,
+      "post_instructions": 23752,
+      "delta": -284,
+      "per_op_delta": -8.875
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 2830,
+      "post_instructions": 2814,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 2301,
+      "post_instructions": 2269,
+      "delta": -32,
+      "per_op_delta": -32.0
+    },
+    {
+      "mode": "2s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 41966,
+      "post_instructions": 41454,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "SET",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 42010,
+      "post_instructions": 41726,
+      "delta": -284,
+      "per_op_delta": -8.875
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 2962,
+      "post_instructions": 2946,
+      "delta": -16,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 1,
+      "slowlog_us": 10000,
+      "pre_instructions": 2433,
+      "post_instructions": 2401,
+      "delta": -32,
+      "per_op_delta": -32.0
+    },
+    {
+      "mode": "2s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 46190,
+      "post_instructions": 45678,
+      "delta": -512,
+      "per_op_delta": -16.0
+    },
+    {
+      "mode": "1s",
+      "command": "INCR",
+      "batch": 32,
+      "slowlog_us": 10000,
+      "pre_instructions": 46234,
+      "post_instructions": 45950,
+      "delta": -284,
+      "per_op_delta": -8.875
+    }
+  ],
+  "namespace": "tomo (normal database runtime); both executor thread modes",
+  "comparison": "POST median is no greater than PRE median in each of 24 scopes; this is not an all-command opcode-absence proof.",
+  "witness_binaries": {
+    "PRE": {
+      "path": "build/latencyfix/pre/latencyfix-counts",
+      "sha256": "cfdbca4713e73be3e39f303c614632c5cd6359c2d3bbb3ddac1032aa81ca4100",
+      "results": "docs/latencyfix/counts-pre.jsonl"
+    },
+    "POST": {
+      "path": "build/latencyfix-counts",
+      "sha256": "43b472422b98301640876777ac8ece69b05725c2cfefb3648502289112395d45",
+      "results": "docs/latencyfix/counts-post.jsonl"
+    }
+  }
+}

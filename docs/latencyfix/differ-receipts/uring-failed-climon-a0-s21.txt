@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/differ.py", line 5186, in <module>
+    sys.exit(1 if run_climon_suite(rng) else 0)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/differ.py", line 5013, in run_climon_suite
+    climon_reader_control()
+  File "/home/user/Projects/cx-latencyfix/tests/differ.py", line 5000, in climon_reader_control
+    listener.bind(("127.0.0.1", control_port)); listener.listen()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 98] Address already in use

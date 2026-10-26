@@ -48,6 +48,7 @@ SRC      += src/cmd/objectpread.cc src/cmd/hexpread.cc
 SRC      += src/cmd/autharity.cc
 SRC      += src/core/fliplisten.cc
 SRC      += src/core/shutdown.cc
+SRC      += src/cmd/latency_tracking.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
@@ -259,7 +260,9 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # notifycompat: source-accurate IPA deltas are +2531/+2526. Bounded per-unit
 # trials (docs/notifycompat/budgets-final) reduce unrelated compiler spillover;
 # db0 prepare and shared execution deltas remain inventoried for merit review.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147163
+# LAT-HIST-1: compensate cold instrumentation growth; audited GET/SET/MGET/MSET
+# bodies remain PRE-identical (including the MGET template branch encodings).
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147327
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
 $(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=145970

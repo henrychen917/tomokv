@@ -1,0 +1,42 @@
+tests/infofields_test.py:14:spec = importlib.util.spec_from_file_location("infofields_differ", ROOT / "tests/differ.py")
+tests/infofields_test.py:26:        differ.infofields_txn_stats(fields)
+tests/infofields_test.py:31:                differ.infofields_txn_stats(missing)
+tests/infofields_test.py:36:                    differ.infofields_txn_stats(invalid)
+tests/infofields_test.py:41:        differ.infofields_names(fields, fields)
+tests/infofields_test.py:48:                        differ.infofields_names(missing, fields)
+tests/infofields_test.py:52:            differ.infofields_names(misplaced, fields)
+tests/infofields_test.py:56:            differ.infofields_names(duplicate, fields)
+tests/infofields_test.py:61:        self.assertEqual(set(differ.infofields_sections(raw)), {b"Server", b"Cluster"})
+tests/infofields_test.py:66:                differ.infofields_sections(raw)
+tests/infofields_test.py:73:        self.assertEqual(differ.infofields_server_versions(target, oracle), (b"7.4.10", b"7.4.10"))
+tests/infofields_test.py:76:                differ.infofields_version(bad)
+tests/infofields_test.py:80:                differ.infofields_server_versions({**target, field: bad}, oracle)
+tests/infofields_test.py:86:                    differ.infofields_server_versions(*pair)
+tests/infofields_test.py:88:            differ.infofields_server_versions(target, {**oracle, b"redis_version": b"8.0.0"})
+tests/infofields_test.py:90:            differ.infofields_server_versions(target, {**oracle, b"tomokv_version": b"1.0-cpp"})
+tests/infofields_test.py:91:        self.assertEqual(differ.infofields_server_versions(target, {**oracle, b"redis_version": b"7.4.9"})[1], b"7.4.9")
+tests/infofields_test.py:103:            differ.infofields_hello_version(frame(protocol), protocol, b"7.4.10")
+tests/infofields_test.py:107:                    differ.infofields_hello_version(bad, protocol, b"7.4.10")
+tests/infofields_test.py:111:            differ.infofields_rate_check(rate, 2000)
+tests/infofields_test.py:114:                differ.infofields_rate_check(rate, 2000)
+tests/latencyfix.py:85:    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+tests/differ.py:6355:def infofields_sections(raw):
+tests/differ.py:6386:def infofields_txn_stats(target):
+tests/differ.py:6394:def infofields_names(target, oracle):
+tests/differ.py:6409:def infofields_rate_check(rate, offered):
+tests/differ.py:6413:def infofields_version(value):
+tests/differ.py:6418:def infofields_server_versions(target, oracle):
+tests/differ.py:6426:    assert infofields_version(target[b"redis_version"]) == (7, 4, 10)
+tests/differ.py:6427:    assert infofields_version(oracle[b"redis_version"])[:2] == (7, 4), "requires Redis 7.4 oracle"
+tests/differ.py:6433:def infofields_hello_version(raw, protocol, expected):
+tests/differ.py:6443:    assert infofields_version(fields[b"version"]) == infofields_version(expected)
+tests/differ.py:6446:def run_infofields_properties(peers):
+tests/differ.py:6453:        return infofields_sections(issue(peer, ["INFO", section]))
+tests/differ.py:6456:    infofields_names(*all_fields)
+tests/differ.py:6457:    infofields_txn_stats(all_fields[0])
+tests/differ.py:6458:    versions = infofields_server_versions(*(rows[b"Server"] for rows in all_fields))
+tests/differ.py:6461:            infofields_hello_version(issue(peer, ["HELLO", str(protocol)]), protocol, version)
+tests/differ.py:6474:        infofields_hello_version(issue(peer, ["HELLO", "3" if RESP3 else "2"]), 3 if RESP3 else 2, version)
+tests/differ.py:6552:            infofields_rate_check(int(rows[b"instantaneous_ops_per_sec"]), offered)
+tests/differ.py:6556:    print("  infofields offered=%.1f/s polls=%r" %
+tests/differ.py:7156:    run_infofields_properties(((ts, tf), (os_, of)))

@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <charconv>
+#include <cmath>
 #include <limits>
 #include <locale.h>
 #include <string>
@@ -45,6 +46,52 @@ namespace tomo {
 
 inline bool cfg_parse_u32(const char* s, uint32_t& out);
 inline bool cfg_parse_u64(const char* s, uint64_t& out);
+
+inline bool cfg_split_args(const char* line, std::vector<std::string>& out);
+
+// LAT-HIST-1: Redis 7.4 uses space-separated string2d tokens (no sorting or
+// deduplication). A null/default vector owns no memory while tracking is off.
+__attribute__((noipa)) inline bool cfg_latency_percentiles(
+        Slice input, std::vector<double>& out, const char*& error) {
+    out.clear();
+    if (!input.n) return true;
+    size_t start = 0;
+    do {
+        size_t end = start;
+        while (end < input.n && input.p[end] != ' ') ++end;
+        std::string token(input.p + start, end - start);
+        char* tail = nullptr;
+        errno = 0;
+        const double value = std::strtod(token.c_str(), &tail);
+        if (token.empty() || std::isspace(static_cast<unsigned char>(token[0])) ||
+            tail != token.data() + token.size() || std::isnan(value) ||
+            errno == EINVAL || (errno == ERANGE && (value == 0 || std::isinf(value)))) {
+            error = "Invalid latency-tracking-info-percentiles parameters";
+            return false;
+        }
+        if (value < 0 || value > 100) {
+            error = "latency-tracking-info-percentiles parameters should sit between [0.0,100.0]";
+            return false;
+        }
+        out.push_back(value);
+        start = end + 1;
+    } while (start <= input.n);
+    return true;
+}
+
+__attribute__((noipa)) inline std::string cfg_latency_percentiles_string(
+        const std::vector<double>& values) {
+    std::string out;
+    for (double value : values) {
+        char text[128];
+        int n = std::snprintf(text, sizeof(text), "%f", value);
+        while (n > 0 && text[n - 1] == '0') --n;
+        if (n > 0 && text[n - 1] == '.') --n;
+        if (!out.empty()) out += ' ';
+        out.append(text, n);
+    }
+    return out;
+}
 
 struct ClientBufferLimit {
     uint64_t hard_bytes = 0;
@@ -497,6 +544,10 @@ struct Config {
     int64_t  slowlog_log_slower_than = 10000;
     uint64_t slowlog_max_len = 128;
     uint32_t latency_monitor_threshold = 0;
+    // Deliberate deviation from Redis 7.4 (yes): tracking defaults to no.
+    // These flags occupy alignment bytes; the percentile vector uses reserved storage.
+    bool latency_tracking = false;
+    bool latency_percentiles_explicit = false;
     // The conf file this process booted from, retained purely so CONFIG REWRITE has a destination.
     // It is set from the optional first argv path in main, before parse_config_args runs.
     // Null means "started without a config file", which is exactly the
@@ -519,7 +570,7 @@ struct Config {
     uint32_t hz = ClientHz::kDefault;
     uint32_t dynamic_hz = 1;
     const char* locale_collate = ""; // Redis: empty selects the environment LC_COLLATE.
-    uint8_t layout_reserved[24]{};
+    std::vector<double> latency_tracking_info_percentiles; // implicit default: 50 99 99.9
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -910,6 +961,43 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 std::fprintf(stderr, "--slowlog-max-len wants an unsigned integer\n");
                 return kConfigError;
             }
+        }
+        else if (!std::strcmp(a, "--latency-tracking")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.latency_tracking = true;
+            else if (cfg_eq_icase(value, "no")) cfg.latency_tracking = false;
+            else {
+                std::fprintf(stderr, "%s: argument must be 'yes' or 'no'\n", a);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--latency-tracking-info-percentiles")) {
+            const int begin = i + 1;
+            int end = begin;
+            while (end < argc && std::strncmp(args[end], "--", 2)) ++end;
+            std::vector<std::string> tokens;
+            if (end == begin + 1 && args[begin][0]) {
+                if (!cfg_split_args(args[begin], tokens)) {
+                    std::fprintf(stderr, "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
+                    return kConfigError;
+                }
+            } else for (int j = begin; j < end; ++j)
+                tokens.emplace_back(args[j], lengths ? (*lengths)[j] : std::strlen(args[j]));
+            if (tokens.size() == 1 && tokens[0].empty()) tokens.clear();
+            cfg.latency_tracking_info_percentiles.clear();
+            for (const auto& token : tokens) {
+                std::vector<double> one;
+                const char* error = nullptr;
+                if (!cfg_latency_percentiles(Slice(token.data(), token.size()), one, error) ||
+                    one.size() != 1) {
+                    std::fprintf(stderr, "%s: %s\n", a, error ? error :
+                        "Invalid latency-tracking-info-percentiles parameters");
+                    return kConfigError;
+                }
+                cfg.latency_tracking_info_percentiles.push_back(one[0]);
+            }
+            cfg.latency_percentiles_explicit = true;
+            i = end - 1;
         }
         else if (!std::strcmp(a, "--latency-monitor-threshold")) {
             const char* value = next("");
@@ -1322,6 +1410,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  observability: --slowlog-log-slower-than US (default 10000; -1 off)\n"
                         "            --slowlog-max-len N (default 128)\n"
                         "            --latency-monitor-threshold MS (default 0 = off)\n"
+                        "            --latency-tracking yes|no (default no; Redis defaults yes)\n"
+                        "            --latency-tracking-info-percentiles P... (default 50 99 99.9)\n"
                         "  atomics: --atomic 0|1 (default 0)\n"
                         "  encodings: --hash-max-listpack-entries N --hash-max-listpack-value BYTES\n"
                         "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
@@ -1581,9 +1671,12 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
         // different from an explicit empty string, and cannot consume the next line.
         const bool valueless = words[0] == "no-pin" || words[0] == "help";
         const bool variadic = words[0] == "user" || words[0] == "save" ||
-                              words[0] == "client-output-buffer-limit";
+                              words[0] == "client-output-buffer-limit" ||
+                              words[0] == "latency-tracking-info-percentiles";
         if ((valueless && words.size() != 1) ||
-            (!valueless && (words.size() < 2 || (!variadic && words.size() != 2)))) {
+            (!valueless && ((words.size() < 2 &&
+                             words[0] != "latency-tracking-info-percentiles") ||
+                            (!variadic && words.size() != 2)))) {
             std::fprintf(stderr, "%s:%d: wrong number of arguments\n", path, lineno);
             ok = false;
             continue;
