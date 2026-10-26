@@ -315,7 +315,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown
+    Signed, Encoding, Uint32, Uint32Bytes, Hz, Shutdown, LatencyPercentiles
 };
 struct ConfigValue {
     const char* name;
@@ -456,6 +456,10 @@ void init_config(const Config& cfg) {
     g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
                         std::to_string(cfg.slowlog_log_slower_than)});
     add_config("slowlog-max-len", ConfigKind::Unsigned, cfg.slowlog_max_len);
+    g_config.push_back({"latency-tracking", ConfigKind::Bool, cfg.latency_tracking ? "yes" : "no"});
+    g_config.push_back({"latency-tracking-info-percentiles", ConfigKind::LatencyPercentiles,
+        cfg.latency_percentiles_explicit
+            ? cfg_latency_percentiles_string(cfg.latency_tracking_info_percentiles) : "50 99 99.9"});
     add_config("latency-monitor-threshold", ConfigKind::Uint32,
                cfg.latency_monitor_threshold);
     const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
@@ -531,6 +535,12 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             input.n = static_cast<const char*>(end) - input.p;
     }
     switch (entry.kind) {
+        case ConfigKind::LatencyPercentiles: {
+            std::vector<double> values;
+            if (!cfg_latency_percentiles(input, values, error)) return false;
+            out = cfg_latency_percentiles_string(values);
+            return true;
+        }
         case ConfigKind::Shutdown: {
             uint8_t flags = 0;
             if (!cfg_shutdown_flags(input, flags, error)) return false;
@@ -1771,6 +1781,10 @@ void cmd_config(Shard& sh, Op& op) {
                 if (!std::strcmp(update.first->name, "requirepass")) {
                     auth_publish_requirepass(
                         *g_server, Slice(update.second.data(), update.second.size()));
+                    continue;
+                }
+                if (!std::strcmp(update.first->name, "latency-tracking")) {
+                    g_server->set_latency_tracking(update.second == "yes");
                     continue;
                 }
                 if (!std::strcmp(update.first->name, "protected-mode")) {

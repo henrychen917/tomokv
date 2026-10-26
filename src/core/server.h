@@ -314,6 +314,7 @@ public:
         live_notify_events_.store(cfg.notify_events, std::memory_order_relaxed);
         live_slowlog_us_.store(cfg.slowlog_log_slower_than, std::memory_order_relaxed);
         live_latency_ms_.store(cfg.latency_monitor_threshold, std::memory_order_relaxed);
+        live_latency_tracking_.store(cfg.latency_tracking, std::memory_order_relaxed);
         live_save_armed_.store(!cfg.save.empty(), std::memory_order_relaxed);
         live_proto_max_bulk_len_.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
         live_client_query_buffer_limit_.store(cfg.client_query_buffer_limit, std::memory_order_relaxed);
@@ -3189,6 +3190,14 @@ public:
         live_notify_events_.store(value, std::memory_order_relaxed);
         end_live_config_update(write_version);
     }
+    void set_latency_tracking(bool enabled) {
+        const uint64_t version = begin_live_config_update();
+        live_latency_tracking_.store(enabled, std::memory_order_relaxed);
+        end_live_config_update(version);
+    }
+    bool latency_tracking() const {
+        return live_latency_tracking_.load(std::memory_order_relaxed);
+    }
     void set_slowlog_config(int64_t slowlog_us, uint32_t latency_ms) {
         const uint64_t write_version = begin_live_config_update();
         live_slowlog_us_.store(slowlog_us, std::memory_order_relaxed);
@@ -3429,6 +3438,7 @@ private:
             (climon_armed_.load(std::memory_order_relaxed) & kClimonTracking) != 0;
         snapshot.slowlog_log_slower_than = live_slowlog_us_.load(std::memory_order_relaxed);
         snapshot.latency_monitor_threshold = live_latency_ms_.load(std::memory_order_relaxed);
+        snapshot.latency_tracking = live_latency_tracking_.load(std::memory_order_relaxed);
         snapshot.save_armed = live_save_armed_.load(std::memory_order_relaxed);
         snapshot.proto_max_bulk_len = live_proto_max_bulk_len_.load(std::memory_order_relaxed);
         snapshot.client_query_buffer_limit = live_client_query_buffer_limit_.load(std::memory_order_relaxed);
@@ -3720,6 +3730,7 @@ private:
     std::atomic<uint64_t> client_scatter_io_responses_{0};
     // Slow-log arming, published through the same mailboxes as the eviction/notify knobs and read
     // once per executor pass. Appended at the true tail so no pre-existing offset moves.
+    std::atomic<bool> live_latency_tracking_{false};
     std::atomic<int64_t>  live_slowlog_us_{10000};
     std::atomic<uint32_t> live_latency_ms_{0};
     // Periodic snapshot policy is cold: one designated IO owner locks it once per second. Mutation

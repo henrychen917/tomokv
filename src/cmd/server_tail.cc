@@ -778,7 +778,9 @@ bool config_rewrite(std::string& error) {
         body += item.first;
         body.push_back(' ');
         // Output limits are a multi-token directive; every other value is one parser token.
-        if (item.first == "client-output-buffer-limit") body += item.second;
+        if (item.first == "client-output-buffer-limit" ||
+            (item.first == "latency-tracking-info-percentiles" && !item.second.empty()))
+            body += item.second;
         else body += config_quote(item.second);
         body.push_back('\n');
     }
