@@ -359,6 +359,8 @@ reference: `tomokv.conf:202`, `:344`, `:376`.
 | `slowlog-log-slower-than` | R | i64 microseconds ≥-1 | `10000` | Live | Related: `slowlog_batches_timed`, `slowlog_entries_recorded` | -1 disables log, 0 logs all; default arms batch timing; `src/core/config.h:739`, `src/cmd/slowlog.h:27`. |
 | `slowlog-max-len` | R | u64 | `128` | Live | — | Entries per recording thread; SLOWLOG LEN may exceed this number; 0 retains none; `src/core/config.h:747`, `tomokv.conf:393`. |
 | `latency-monitor-threshold` | R | Canonical decimal 0..4294967295 milliseconds | `0` | Live | Related: `latency_events_recorded` | Command latency samples, 0 off; shares timing arming with slowlog; `src/core/config.h:753`, `src/cmd/slowlog.h:27`. |
+| `latency-tracking` | R | `yes` / `no` | `no` | Live; file; REWRITE | Per-executor command histograms | Deliberate default deviation from Redis 7.4 (`yes`). Records command execution only; disabled tracking allocates no histograms. |
+| `latency-tracking-info-percentiles` | R | Space-separated percentiles in [0,100]; empty string allowed | `50 99 99.9` | Live; file; REWRITE | INFO latencystats | Redis 7.4 grammar, ordering, duplicates and decimal formatting; empty list omits percentile values. |
 
 ## CONFIG and limits of this reference
 

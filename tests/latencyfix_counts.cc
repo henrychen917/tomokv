@@ -140,8 +140,13 @@ struct CoreConcurrencyTest {
     }
 };
 }
-int main() {
+int main(int argc, char** argv) {
     CoreConcurrencyTest::need(command_registry_init(false), "command registry");
+    if (argc > 1) {
+        if (std::string(argv[1]) == "--trace-1s") CoreConcurrencyTest::run<true>("GET", 1, 10000);
+        else CoreConcurrencyTest::run<false>("GET", 1, 10000);
+        return 0;
+    }
     for (int64_t slowlog : {int64_t{-1}, int64_t{10000}})
         for (const char* command : {"GET", "SET", "INCR"})
             for (uint32_t batch : {1u, 32u}) {

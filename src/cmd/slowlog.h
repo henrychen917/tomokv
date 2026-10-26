@@ -23,6 +23,8 @@ class Ring;
 class Client;
 class IoLoop;
 class ScatterArenaPool;
+struct Task;
+enum class ScatterTaskResult : uint8_t;
 
 // Latched once per executor pass from the live-config seqlock; passed by value into the hook so
 // the armed test is a register compare, not a memory load, inside the batch loop.
@@ -115,6 +117,12 @@ using SlowlogRecorder = decltype(&slowlog_record);
 extern thread_local constinit __attribute__((tls_model("local-exec")))
     SlowlogRecorder slowlog_recorder;
 void latency_tracking_bind(bool enabled, uint32_t* escalation = nullptr);
+using LatencyScatterExecutor = ScatterTaskResult (*)(const Task&, Shard&, Op&, uint32_t);
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    LatencyScatterExecutor latency_xshard_execute;
+extern thread_local constinit __attribute__((tls_model("local-exec")))
+    LatencyScatterExecutor latency_watch_execute;
+
 using LatencyScatterRetirer = void (*)(Server&, ThreadCtx&, Ring&, Client&, Op&,
     ScatterArenaPool&, uint32_t, void*, void (*)(void*, int32_t, const char*), void (*)(void*));
 using LatencyBlockingRetirer = void (*)(Server&, Client&, Op&, ThreadCtx&);

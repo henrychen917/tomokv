@@ -199,6 +199,8 @@ def execution_paths(run, mode, label, extra):
             ('wait-timeout', [('WAIT', 1, 1)], ['wait']),
             ('exec-cross', [('MULTI',), ('MGET', *keys), ('MSET', keys[0], '3', keys[1], '4'),
                             ('EXEC',)], ['multi', 'exec', 'mget', 'mset']),
+            ('exec-controls', [('MULTI',), ('PING',), ('ECHO', 'v'), ('CLIENT', 'ID'), ('EXEC',)],
+             ['multi', 'exec', 'ping', 'echo', 'client|id']),
             ('local-read', [('GET', keys[0]), ('GET', keys[0]), ('MGET', keys[0])],
              ['get', 'mget']),
         ]
@@ -209,6 +211,10 @@ def execution_paths(run, mode, label, extra):
                 assert not is_error(reply, ''), (command, reply)
             actual = sorted(histogram(c, *selectors))
             oracle_equal(run, 'path:' + name, actual)
+        c.cmd('CONFIG', 'SET', 'latency-tracking', 'no', 'slowlog-log-slower-than', '-1')
+        c.cmd('CONFIG', 'RESETSTAT')
+        c.cmd('CONFIG', 'SET', 'latency-tracking', 'yes')
+        oracle_equal(run, 'path:enable-command', sorted(histogram(c, 'config|set')))
         c.cmd('CONFIG', 'RESETSTAT')
         c.cmd('LPUSH', 'latencyfix:pop', 'v')
         c.cmd('BLPOP', 'latencyfix:pop', '0')

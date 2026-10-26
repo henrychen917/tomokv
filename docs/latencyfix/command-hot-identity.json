@@ -12,14 +12,6 @@
     },
     {
       "object": "src/cmd/xshard.o",
-      "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
-      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
-      "pre_size": 18231,
-      "post_size": 18231,
-      "relocation_equal": false
-    },
-    {
-      "object": "src/cmd/xshard.o",
       "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
       "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
       "pre_size": 1190,
@@ -32,14 +24,6 @@
       "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
       "pre_size": 23675,
       "post_size": 23675,
-      "relocation_equal": false
-    },
-    {
-      "object": "db0/src/cmd/xshard.o",
-      "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
-      "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
-      "pre_size": 18665,
-      "post_size": 18665,
       "relocation_equal": false
     }
   ],
@@ -90,7 +74,7 @@
       "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
       "pre_size": 18231,
       "post_size": 18231,
-      "relocation_equal": false
+      "relocation_equal": true
     },
     {
       "object": "src/cmd/xshard.o",
@@ -386,7 +370,7 @@
       "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
       "pre_size": 18665,
       "post_size": 18665,
-      "relocation_equal": false
+      "relocation_equal": true
     },
     {
       "object": "db0/src/cmd/xshard.o",

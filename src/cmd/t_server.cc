@@ -1681,12 +1681,19 @@ void cmd_config(Shard& sh, Op& op) {
         return;
     }
     if (eq_icase(op.arg(1), "SET")) {
+        uint64_t latency_enable_start = 0;
         std::vector<std::pair<ConfigValue*, std::string>> updates;
         {
             std::lock_guard<std::mutex> lock(g_config_mu);
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
             if (sh.id() == 0) {
+                // Redis samples the enabling CONFIG SET itself. This executor's
+                // previous batch selector is still off until its next refresh.
+                if (g_server && !g_server->latency_tracking())
+                    for (const auto& update : updates)
+                        if (!std::strcmp(update.first->name, "latency-tracking") &&
+                            update.second == "yes") latency_enable_start = now_ns();
                 for (auto& update : updates) {
                     if (!std::strcmp(update.first->name, "locale-collate") &&
                         !sort_locale_set(update.second.c_str())) {
@@ -1908,6 +1915,9 @@ void cmd_config(Shard& sh, Op& op) {
         }
         sh.set_type_limits(limits);
         sh.set_stream_limits(stream_limits);
+        if (latency_enable_start)
+            latency_tracking_record(g_server->worker_of_shard(sh.id()), op,
+                                    now_ns() - latency_enable_start);
         return;
     }
     // REWRITE / RESETSTAT / HELP live in the server-tail feature file. They are IO-local, like GET.

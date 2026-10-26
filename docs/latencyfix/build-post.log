@@ -88,11 +88,11 @@ src/core/reorder.cc:1296:37: warning: ‘always_inline’ function might not be 
       |                                     ^~~~~~
 src/core/reorder.cc:1296:37: warning: ‘always_inline’ function might not be inlinable [-Wattributes]
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_hash_ttl.cc -o build/db0/src/cmd/t_hash_ttl.o
-g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_list.cc -o build/db0/src/cmd/t_list.o
 In file included from src/cmd/xshard.cc:67:
 src/cmd/notify.inc:255:8: warning: ‘tomo_db0::NotifyBatch’ has a field ‘std::shared_ptr<tomo_db0::{anonymous}::NotifyExpiryCompletion> tomo_db0::NotifyBatch::expiry_completion’ whose type has internal linkage [-Wsubobject-linkage]
   255 | struct NotifyBatch {
       |        ^~~~~~~~~~~
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_list.cc -o build/db0/src/cmd/t_list.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=26651 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_set.cc -o build/db0/src/cmd/t_set.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33229 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset.cc -o build/db0/src/cmd/t_zset.o
 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset_ops.cc -o build/db0/src/cmd/t_zset_ops.o

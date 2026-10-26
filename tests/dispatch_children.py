@@ -62,8 +62,8 @@ def run(a):
                 if row['target'] != row['oracle']:
                     failures.append(row)
             assert target.cmd('GET', 'allowed:key') == oracle.cmd('GET', 'allowed:key') == b'before'
-            # TomoKV currently has no command-histogram recorder. Compare its
-            # empty state with Redis's explicit equivalent, in both protocols.
+            # TomoKV deliberately defaults latency tracking off. Compare that
+            # state with Redis's explicit equivalent, in both protocols.
             setup = []
             for argv in [('CONFIG', 'SET', 'latency-tracking', 'no'), ('CONFIG', 'RESETSTAT')]:
                 reply = oracle.cmd(*argv)

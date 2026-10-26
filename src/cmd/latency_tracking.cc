@@ -49,7 +49,7 @@ struct Histogram {
         for (size_t i = 0; i < kBins; ++i) bins[i] += other.bins[i];
     }
     uint64_t percentile(double p) const {
-        const uint64_t rank = std::max(uint64_t{1}, uint64_t(p * double(calls) / 100 + .5));
+        const uint64_t rank = std::max(uint64_t{1}, uint64_t((p / 100) * double(calls) + .5));
         uint64_t n = 0;
         for (size_t i = 0; i < kBins; ++i) {
             n += bins[i];
@@ -130,6 +130,18 @@ void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t n
 }
 }
 namespace {
+ScatterTaskResult execute_scatter(const Task& task, Shard& shard, Op& op, uint32_t executor) {
+    const uint64_t started = now_ns();
+    const auto result = xshard_execute(task, shard, op, executor);
+    latency_tracking_part(executor, op, started);
+    return result;
+}
+ScatterTaskResult execute_watched(const Task& task, Shard& shard, Op& op, uint32_t executor) {
+    const uint64_t started = now_ns();
+    const auto result = watch_execute_scatter(task, shard, op, executor);
+    latency_tracking_part(executor, op, started);
+    return result;
+}
 void retire_scatter(Server& server, ThreadCtx& self, Ring& ring, Client& client, Op& op,
                     ScatterArenaPool& pool, uint32_t owner_io, void* context,
                     void (*release)(void*, int32_t, const char*), void (*suppressed)(void*)) {
@@ -145,12 +157,16 @@ void retire_multi(IoLoop& loop, Client& client, Op& op) {
     multi_retire_entry(loop, client, op);
 }
 }
+thread_local constinit LatencyScatterExecutor latency_xshard_execute = xshard_execute;
+thread_local constinit LatencyScatterExecutor latency_watch_execute = watch_execute_scatter;
 thread_local constinit LatencyScatterRetirer latency_xshard_retire = xshard_retire;
 thread_local constinit LatencyBlockingRetirer latency_blocking_retire = blocking_retire;
 thread_local constinit LatencyMultiRetirer latency_multi_retire = multi_retire_entry;
 thread_local constinit SlowlogRecorder slowlog_recorder = slowlog_record;
 void latency_tracking_bind(bool enabled, uint32_t* escalation) {
     slowlog_recorder = enabled ? record_tracked : slowlog_record;
+    latency_xshard_execute = enabled ? execute_scatter : xshard_execute;
+    latency_watch_execute = enabled ? execute_watched : watch_execute_scatter;
     latency_xshard_retire = enabled ? retire_scatter : xshard_retire;
     latency_blocking_retire = enabled ? retire_blocking : blocking_retire;
     latency_multi_retire = enabled ? retire_multi : multi_retire_entry;

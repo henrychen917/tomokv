@@ -152,12 +152,14 @@
             tracking_observe_read(sh, op);
 
         if (t.scatter) {
-            uint64_t latency_started = 0;
-            if constexpr (Timed) latency_started = latency_tracking_start();
-            const ScatterTaskResult result = sh.has_watches()
-                ? watch_execute_scatter(t, sh, op, self_->id())
-                : xshard_execute(t, sh, op, self_->id());
-            if constexpr (Timed) latency_tracking_part(self_->id(), op, latency_started);
+            const ScatterTaskResult result = [&] {
+                if constexpr (Timed) return sh.has_watches()
+                    ? latency_watch_execute(t, sh, op, self_->id())
+                    : latency_xshard_execute(t, sh, op, self_->id());
+                else return sh.has_watches()
+                    ? watch_execute_scatter(t, sh, op, self_->id())
+                    : xshard_execute(t, sh, op, self_->id());
+            }();
             if (result == ScatterTaskResult::Defer) {
                 atomic_deferred_.push_back(t);
                 return true;

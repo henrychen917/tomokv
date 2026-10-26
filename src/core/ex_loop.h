@@ -2642,7 +2642,7 @@ private:
     __attribute__((noinline)) void flush_xshard_commits() {
         flush_xshard_commits_impl<false>();
     }
-    void flush_xshard_commits_timed() {
+    __attribute__((always_inline)) void flush_xshard_commits_timed() {
         flush_xshard_commits_impl<true>();
     }
     template <bool Timed>
