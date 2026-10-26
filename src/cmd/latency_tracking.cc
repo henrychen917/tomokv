@@ -116,16 +116,12 @@ void reply_histogram(Op& op, uint32_t id, const Histogram& histogram) {
 } // namespace
 
 namespace {
-thread_local uint32_t* exact_batches = nullptr;
 void record_tracked(uint32_t executor, uint64_t client, const Op& op, uint64_t ns,
                     int64_t ms, const SlowlogArm& arm, bool exact) {
     // Disabling CONFIG SET must not insert itself after disabling the feature.
     if (auto* server = command_server(); server && server->latency_tracking())
         latency_tracking_record(executor, op, ns);
     slowlog_record(executor, client, op, ns, ms, arm, exact);
-    // Reuse the existing exact-timing selector, including for a full first batch.
-    // Refresh after every record so the countdown cannot expire while armed.
-    if (exact_batches) *exact_batches = UINT32_MAX;
 }
 }
 thread_local constinit SlowlogRecorder slowlog_recorder = slowlog_record;
@@ -134,7 +130,6 @@ void latency_tracking_bind(bool enabled, uint32_t* escalation) {
     if (escalation) {
         if (enabled) *escalation = UINT32_MAX;
         else if (*escalation > kSlowlogEscalateBatches) *escalation = 0;
-        exact_batches = escalation;
     }
 }
 

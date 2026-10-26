@@ -1931,7 +1931,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     static constexpr bool Fused = SplitLocal || (
         BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
-        Fused && __builtin_expect(srv_->read_local_enabled(), false);
+        Fused && __builtin_expect(latency_reads_local_, false);
     Client& conn = *c;
     if (__builtin_expect(query_buffer_exceeded(conn), false)) {
         close_client(c); // Redis query-buffer overflow closes without a protocol reply.

@@ -48,6 +48,8 @@ def histogram(c, *names, protocol=2):
 
 def percentile_keys(c):
     info = c.cmd('INFO', 'latencystats')
+    if isinstance(info, bytes):
+        info = info.removeprefix(b'txt:')
     assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
     result = {}
     for line in info.decode().splitlines():
@@ -202,6 +204,7 @@ def off_allocations(run, mode, label, extra):
         with server.client() as c:
             if run.oracle:
                 c.cmd('CONFIG', 'SET', 'latency-tracking', 'no')
+                c.cmd('CONFIG', 'RESETSTAT')
             run.check(label + ' tracking really off', c.cmd('CONFIG', 'GET', 'latency-tracking'),
                       [b'latency-tracking', b'no'])
             for i in range(32):

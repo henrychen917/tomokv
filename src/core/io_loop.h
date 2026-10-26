@@ -3176,7 +3176,7 @@ private:
         static constexpr bool Fused = SplitLocal || (
             BatchOps == kGenthreadIfidBatchOps);
         [[maybe_unused]] const bool read_local_enabled =
-            Fused && __builtin_expect(srv_->read_local_enabled(), false);
+            Fused && __builtin_expect(latency_reads_local_, false);
         Client& conn = *c;
         if (__builtin_expect(query_buffer_exceeded(conn), false)) {
             close_client(c); // Redis query-buffer overflow closes without a protocol reply.
@@ -4929,6 +4929,9 @@ ordinary_shard_ready:
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_arm_.latency_tracking = snapshot.latency_tracking;
         latency_tracking_bind(snapshot.latency_tracking);
+        // Arming changes admission only: the store's immutable replacement / QSBR
+        // contract remains armed until the boot-latched lane is dismantled.
+        latency_reads_local_ = srv_->read_local_enabled() && !snapshot.latency_tracking;
         slowlog_armed_ = slowlog_arm_.armed();
         if (srv_->read_local_enabled()) {
             fused_executor_->set_read_local_point_writes_precise(
@@ -5223,6 +5226,7 @@ ordinary_shard_ready:
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
     // Slow-log arm for connection-local commands. Appended here rather than earlier so no
     // pre-existing IoLoop member offset moves.
+    bool latency_reads_local_ = false; // per-pass admission, preserves owner timing while armed
     bool slowlog_armed_ = false;
     SlowlogArm slowlog_arm_{};
     // Notification publications are sequenced through one coordinator IO. Keep this v2-only

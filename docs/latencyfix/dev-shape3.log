@@ -1,0 +1,56 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 138, in shape
+    keys = percentile_keys(c)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 51, in percentile_keys
+    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'txt:# Latencystats\r\nlatency_percentiles_usec_config|resetstat:p50=5.023,p99=5.023,p99.9=5.023\r\nlatency_percentiles_usec_config|get:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_set:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_client|id:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_client|getname:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_latency|histogram:p50=6.015,p99=55.039,p99.9=55.039\r\nlatency_percentiles_usec_command|count:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_get:p50=0.001,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_incr:p50=0.001,p99=1.003,p99.9=1.003\r\n'
+FAIL redis-redis complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 138, in shape
+    keys = percentile_keys(c)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 51, in percentile_keys
+    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'txt:# Latencystats\r\nlatency_percentiles_usec_client|getname:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_client|id:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_command|count:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_config|get:p50=3.007,p99=3.007,p99.9=3.007\r\nlatency_percentiles_usec_config|resetstat:p50=15.039,p99=15.039,p99.9=15.039\r\nlatency_percentiles_usec_get:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_incr:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_latency|histogram:p50=10.047,p99=15.039,p99.9=15.039\r\nlatency_percentiles_usec_set:p50=0.001,p99=0.001,p99.9=0.001\r\n'
+FAIL 1s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 138, in shape
+    keys = percentile_keys(c)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 51, in percentile_keys
+    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'txt:# Latencystats\r\nlatency_percentiles_usec_client|getname:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_client|id:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_command|count:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_config|get:p50=3.007,p99=3.007,p99.9=3.007\r\nlatency_percentiles_usec_config|resetstat:p50=16.063,p99=16.063,p99.9=16.063\r\nlatency_percentiles_usec_get:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_incr:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_latency|histogram:p50=10.047,p99=14.015,p99.9=14.015\r\nlatency_percentiles_usec_set:p50=0.001,p99=0.001,p99.9=0.001\r\n'
+FAIL 1s-epoll complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 138, in shape
+    keys = percentile_keys(c)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 51, in percentile_keys
+    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'txt:# Latencystats\r\nlatency_percentiles_usec_client|getname:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_client|id:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_command|count:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_config|get:p50=3.007,p99=3.007,p99.9=3.007\r\nlatency_percentiles_usec_config|resetstat:p50=15.039,p99=15.039,p99.9=15.039\r\nlatency_percentiles_usec_get:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_incr:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_latency|histogram:p50=10.047,p99=13.055,p99.9=13.055\r\nlatency_percentiles_usec_set:p50=1.003,p99=1.003,p99.9=1.003\r\n'
+FAIL 2s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 138, in shape
+    keys = percentile_keys(c)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 51, in percentile_keys
+    assert isinstance(info, bytes) and info.startswith(b'# Latencystats\r\n'), info
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'txt:# Latencystats\r\nlatency_percentiles_usec_client|getname:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_client|id:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_command|count:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_config|get:p50=3.007,p99=3.007,p99.9=3.007\r\nlatency_percentiles_usec_config|resetstat:p50=15.039,p99=15.039,p99.9=15.039\r\nlatency_percentiles_usec_get:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_incr:p50=0.001,p99=0.001,p99.9=0.001\r\nlatency_percentiles_usec_latency|histogram:p50=10.047,p99=14.015,p99.9=14.015\r\nlatency_percentiles_usec_set:p50=0.001,p99=0.001,p99.9=0.001\r\n'
+FAIL 2s-epoll complete battery False
+LAT-HIST-1 shape: 5 failed checks; /home/user/Projects/cx-latencyfix/build/latencyfix/dev-shape3

@@ -2208,7 +2208,9 @@ private:
     __attribute__((noinline, cold))
     void exec_batch_exact(const Task* batch, uint32_t n,
                           const SlowlogArm& arm, int64_t now_ms) {
-        if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
+        // UINT32_MAX is the tracking selector; only finite slowlog escalations count down.
+        if (static_cast<int32_t>(slowlog_state_.escalate_batches) > 0)
+            slowlog_state_.escalate_batches--;
         for (uint32_t i = 0; i < n; i++) {
             Client* client = batch[i].client;
             const uint64_t started = now_ns();
