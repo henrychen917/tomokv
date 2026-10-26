@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "tests/redis_tcl_test.py"
+  ],
+  "affinity": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "seconds": 0.01699962466955185,
+  "tests": [
+    {
+      "test": "__main__.Controls.test_failed_or_missing_private_job_turns_existing_compatibility_row_red",
+      "seconds": 0.004371012561023235
+    },
+    {
+      "test": "__main__.Controls.test_no_missing_failed_skipped_renamed_or_duplicate_assertion_can_pass",
+      "seconds": 0.0002069082111120224
+    },
+    {
+      "test": "__main__.Controls.test_only_the_exact_post_completion_controller_eof_is_not_an_assertion",
+      "seconds": 3.535859286785126e-05
+    }
+  ]
+}

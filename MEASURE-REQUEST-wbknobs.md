@@ -257,12 +257,12 @@ diagnostic marker. Those profiled runs explain the rate; they do not substitute
 for the default `--profile 0` acceptance runs above. Preserve per-cell/arm
 profiles with the comparison; do not combine samples across instrument modes.
 
-| Pending performance receipt | A | B | Result |
+| Historical request, resolved only to the scope below | A | B | Retained evidence |
 | --- | --- | --- | --- |
-| 14-cell default rate/latency null | Newest headline | POST defaults | MAINLINE PENDING |
-| p8 GET merit | POST S=0 | Same POST defaults | MAINLINE PENDING |
-| p8 SET merit | POST S=0 | Same POST defaults | MAINLINE PENDING |
-| Per-cell cycles/op, instructions/op, IPC | Corresponding A | Corresponding B | MAINLINE PENDING |
+| 14-cell default rate/latency null | Newest headline | POST defaults | Historical 1s maintainer record: CLEAN; see MEASURE-RESULT below |
+| p8 GET merit | POST S=0 | Same POST defaults | Historical +8.72%; rc=3 PARTIAL, untrusted standing-null instrument |
+| p8 SET merit | POST S=0 | Same POST defaults | Historical +7.90%; rc=3 PARTIAL, untrusted standing-null instrument |
+| Per-cell cycles/op, instructions/op, IPC | Corresponding A | Corresponding B | Not established by the retained landing excerpt |
 
 Mainline also runs `tests/gate.sh iteration` at its own geometry. Targeted differ
 suite names, one per line (with the ordinary zero-regression gate retained):

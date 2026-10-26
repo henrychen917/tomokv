@@ -1,0 +1,3406 @@
+[
+  {
+    "id": "R001",
+    "mode": "2s",
+    "file": "unit/dump",
+    "test": "RESTORE can set LRU",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/store/object_idle.h / RESTORE",
+    "event_index": 12,
+    "detail": "RESTORE can set LRU in tests/unit/dump.tcl\nExpected 0 >= 1000 && 0 <= 1010 (context: type eval line 8 cmd {assert {$idle >= 1000 && $idle <= 1010}} proc ::test)",
+    "isolation_case": "002",
+    "reproduction": [
+      "unit/dump",
+      "RESTORE can set LRU",
+      [
+        "RESTORE can set LRU"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R002",
+    "mode": "2s",
+    "file": "unit/dump",
+    "test": "RESTORE can set LFU",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/store/object_idle.h / RESTORE",
+    "event_index": 14,
+    "detail": "RESTORE can set LFU in tests/unit/dump.tcl\nExpected 0 == 100 (context: type eval line 8 cmd {assert {$freq == 100}} proc ::test)",
+    "isolation_case": "003",
+    "reproduction": [
+      "unit/dump",
+      "RESTORE can set LFU",
+      [
+        "RESTORE can set LFU"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R003",
+    "mode": "2s",
+    "file": "unit/expire",
+    "test": "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "CONFIG / persistence",
+    "event_index": 82,
+    "detail": "SET - use KEEPTTL option, TTL should not be removed after loadaof in tests/unit/expire.tcl\n SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set appendonly yes\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "004",
+    "reproduction": [
+      "unit/expire",
+      "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+      [
+        "SET - use KEEPTTL option, TTL should not be removed after loadaof"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R004",
+    "mode": "2s",
+    "file": "unit/expire",
+    "test": "GETEX use of PERSIST option should remove TTL after loadaof",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "CONFIG / persistence",
+    "event_index": 86,
+    "detail": "GETEX use of PERSIST option should remove TTL after loadaof in tests/unit/expire.tcl\n SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set appendonly yes\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "prefix-000",
+    "reproduction": [
+      "unit/expire",
+      "GETEX use of PERSIST option should remove TTL after loadaof",
+      [
+        "EXPIRE - set timeouts multiple times",
+        "EXPIRE - It should be still possible to read 'x'",
+        "EXPIRE - After 2.1 seconds the key should no longer be here",
+        "EXPIRE - write on expire should work",
+        "EXPIREAT - Check for EXPIRE alike behavior",
+        "SETEX - Set + Expire combo operation. Check for TTL",
+        "SETEX - Check value",
+        "SETEX - Overwrite old key",
+        "SETEX - Wait for the key to expire",
+        "SETEX - Wrong time parameter",
+        "PERSIST can undo an EXPIRE",
+        "PERSIST returns 0 against non existing or non volatile keys",
+        "EXPIRE precision is now the millisecond",
+        "PSETEX can set sub-second expires",
+        "PEXPIRE can set sub-second expires",
+        "PEXPIREAT can set sub-second expires",
+        "TTL returns time to live in seconds",
+        "PTTL returns time to live in milliseconds",
+        "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -1 if key has no expire",
+        "TTL / PTTL / EXPIRETIME / PEXPIRETIME return -2 if key does not exit",
+        "EXPIRETIME returns absolute expiration time in seconds",
+        "PEXPIRETIME returns absolute expiration time in milliseconds",
+        "Redis should actively expire keys incrementally",
+        "Redis should lazy expire keys",
+        "EXPIRE should not resurrect keys (issue #1026)",
+        "5 keys in, 5 keys out",
+        "EXPIRE with empty string as TTL should report an error",
+        "SET with EX with big integer should report an error",
+        "SET with EX with smallest integer should report an error",
+        "GETEX with big integer should report an error",
+        "GETEX with smallest integer should report an error",
+        "EXPIRE with big integer overflows when converted to milliseconds",
+        "PEXPIRE with big integer overflow when basetime is added",
+        "EXPIRE with big negative integer",
+        "PEXPIREAT with big integer works",
+        "PEXPIREAT with big negative integer works",
+        "All TTL in commands are propagated as absolute timestamp in replication stream",
+        "SET command will remove expire",
+        "SET - use KEEPTTL option, TTL should not be removed",
+        "SET - use KEEPTTL option, TTL should not be removed after loadaof",
+        "GETEX use of PERSIST option should remove TTL",
+        "GETEX use of PERSIST option should remove TTL after loadaof"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R005",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - Load with unknown argument",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 4,
+    "detail": "FUNCTION - Load with unknown argument in tests/unit/functions.tcl\nExpected '*Unknown option given*' to equal or match 'ERR wrong number of arguments for 'function|load' command'",
+    "isolation_case": "006",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - Load with unknown argument",
+      [
+        "FUNCTION - Load with unknown argument"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R006",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function case insensitive",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 18,
+    "detail": "FUNCTION - test function case insensitive in tests/unit/functions.tcl\non not found\nERR Function not found\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall TEST 0\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "prefix-001",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function case insensitive",
+      [
+        "FUNCTION - Basic usage",
+        "FUNCTION - Load with unknown argument",
+        "FUNCTION - Create an already exiting library raise error",
+        "FUNCTION - Create an already exiting library raise error (case insensitive)",
+        "FUNCTION - Create a library with wrong name format",
+        "FUNCTION - Create library with unexisting engine",
+        "FUNCTION - Test uncompiled script",
+        "FUNCTION - test replace argument",
+        "FUNCTION - test function case insensitive"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R007",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function restore with wrong number of arguments",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 54,
+    "detail": "FUNCTION - test function restore with wrong number of arguments in tests/unit/functions.tcl\nExpected '*unknown subcommand or wrong number of arguments for 'restore'. Try FUNCTION HELP.' to equal or match 'ERR wrong number of arguments for 'function|restore' command'",
+    "isolation_case": "008",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function restore with wrong number of arguments",
+      [
+        "FUNCTION - test function restore with wrong number of arguments"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R008",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function kill",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 66,
+    "detail": "FUNCTION - test function kill in tests/unit/functions.tcl\nn option or number of arguments for CONFIG SET - 'busy-reply-threshold'\nERR Unknown option or number of arguments for CONFIG SET - 'busy-reply-threshold'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set busy-reply-threshold 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "more-000",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function kill",
+      [
+        "FUNCTION - test function kill"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R009",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test script kill not working on function",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 68,
+    "detail": "FUNCTION - test script kill not working on function in tests/unit/functions.tcl\nn option or number of arguments for CONFIG SET - 'busy-reply-threshold'\nERR Unknown option or number of arguments for CONFIG SET - 'busy-reply-threshold'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set busy-reply-threshold 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "more-001",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test script kill not working on function",
+      [
+        "FUNCTION - test script kill not working on function"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R010",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function kill not working on eval",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 70,
+    "detail": "FUNCTION - test function kill not working on eval in tests/unit/functions.tcl\nn option or number of arguments for CONFIG SET - 'busy-reply-threshold'\nERR Unknown option or number of arguments for CONFIG SET - 'busy-reply-threshold'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set busy-reply-threshold 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "more-002",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function kill not working on eval",
+      [
+        "FUNCTION - test function kill not working on eval"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R011",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - test shared function can access default globals",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 80,
+    "detail": "LIBRARIES - test shared function can access default globals in tests/unit/functions.tcl\nd 'PING' is not allowed from scripts script: f1, on @user_function:3.\nERR command 'PING' is not allowed from scripts script: f1, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall f1 0\"\n    (\"uplevel\" body line 13)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "011",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - test shared function can access default globals",
+      [
+        "LIBRARIES - test shared function can access default globals"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R012",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - test registration failure revert the entire load",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 84,
+    "detail": "LIBRARIES - test registration failure revert the entire load in tests/unit/functions.tcl\nExpected 'ERR Error registering functions: ERR callback argument given to redis.register_function must be a function' to match '*second argument to redis.register_function must be a function*' (context: type eval line 19 cmd {assert_match {*second argument to redis.register_function must be a function*} $e} proc ::test) ",
+    "isolation_case": "prefix-002",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - test registration failure revert the entire load",
+      [
+        "FUNCTION - Basic usage",
+        "FUNCTION - Load with unknown argument",
+        "FUNCTION - Create an already exiting library raise error",
+        "FUNCTION - Create an already exiting library raise error (case insensitive)",
+        "FUNCTION - Create a library with wrong name format",
+        "FUNCTION - Create library with unexisting engine",
+        "FUNCTION - Test uncompiled script",
+        "FUNCTION - test replace argument",
+        "FUNCTION - test function case insensitive",
+        "FUNCTION - test replace argument with failure keeps old libraries",
+        "FUNCTION - test function delete",
+        "FUNCTION - test fcall bad arguments",
+        "FUNCTION - test fcall bad number of keys arguments",
+        "FUNCTION - test fcall negative number of keys",
+        "FUNCTION - test delete on not exiting library",
+        "FUNCTION - test function kill when function is not running",
+        "FUNCTION - test wrong subcommand",
+        "FUNCTION - test loading from rdb",
+        "FUNCTION - test debug reload different options",
+        "FUNCTION - test debug reload with nosave and noflush",
+        "FUNCTION - test flushall and flushdb do not clean functions",
+        "FUNCTION - test function dump and restore",
+        "FUNCTION - test function dump and restore with flush argument",
+        "FUNCTION - test function dump and restore with append argument",
+        "FUNCTION - test function dump and restore with replace argument",
+        "FUNCTION - test function restore with bad payload do not drop existing functions",
+        "FUNCTION - test function restore with wrong number of arguments",
+        "FUNCTION - test fcall_ro with write command",
+        "FUNCTION - test fcall_ro with read only commands",
+        "FUNCTION - test keys and argv",
+        "FUNCTION - test command get keys on fcall",
+        "FUNCTION - test command get keys on fcall_ro",
+        "FUNCTION - test function kill",
+        "FUNCTION - test script kill not working on function",
+        "FUNCTION - test function kill not working on eval",
+        "FUNCTION - test function flush",
+        "FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread",
+        "FUNCTION - test function wrong argument",
+        "LIBRARIES - test shared function can access default globals",
+        "LIBRARIES - usage and code sharing",
+        "LIBRARIES - test registration failure revert the entire load"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R013",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - test registration with no string name",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 96,
+    "detail": "LIBRARIES - test registration with no string name in tests/unit/functions.tcl\nExpected '*first argument to redis.register_function must be a string*' to equal or match 'ERR Error registering functions: ERR function_name argument given to redis.register_function must be a string'",
+    "isolation_case": "013",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - test registration with no string name",
+      [
+        "LIBRARIES - test registration with no string name"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R014",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - test registration with wrong name format",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 98,
+    "detail": "LIBRARIES - test registration with wrong name format in tests/unit/functions.tcl\nExpected '*Library names can only contain letters, numbers, or underscores(_) and must be at least one character long*' to equal or match 'lib2'",
+    "isolation_case": "014",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - test registration with wrong name format",
+      [
+        "LIBRARIES - test registration with wrong name format"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R015",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - test registration with empty name",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 100,
+    "detail": "LIBRARIES - test registration with empty name in tests/unit/functions.tcl\nExpected '*Library names can only contain letters, numbers, or underscores(_) and must be at least one character long*' to equal or match 'ERR Error registering functions: ERR redis.register_function must get a function name argument'",
+    "isolation_case": "015",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - test registration with empty name",
+      [
+        "LIBRARIES - test registration with empty name"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R016",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - math.random from function load",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 102,
+    "detail": "LIBRARIES - math.random from function load in tests/unit/functions.tcl\nExpected '*attempted to access nonexistent global variable 'math'*' to equal or match 'ERR Error registering functions: ERR user_function:2: attempt to call field 'random' (a nil value)'",
+    "isolation_case": "016",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - math.random from function load",
+      [
+        "LIBRARIES - math.random from function load"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R017",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - malicious access test",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 112,
+    "detail": "LIBRARIES - malicious access test in tests/unit/functions.tcl\nExpected 'ERR redis.register_function is not available here script: f2, on @user_function:10.' to match '*can only be called on FUNCTION LOAD command*' (context: type eval line 40 cmd {assert_match {*can only be called on FUNCTION LOAD command*} $e} proc ::test) ",
+    "isolation_case": "017",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - malicious access test",
+      [
+        "LIBRARIES - malicious access test"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R018",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - delete removed all functions on library",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 114,
+    "detail": "LIBRARIES - delete removed all functions on library in tests/unit/functions.tcl\nExpected '' to equal or match '{library_name lib2 engine LUA functions {{name test\u0000test description {} flags {}}}}'",
+    "isolation_case": "prefix-003",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - delete removed all functions on library",
+      [
+        "FUNCTION - Basic usage",
+        "FUNCTION - Load with unknown argument",
+        "FUNCTION - Create an already exiting library raise error",
+        "FUNCTION - Create an already exiting library raise error (case insensitive)",
+        "FUNCTION - Create a library with wrong name format",
+        "FUNCTION - Create library with unexisting engine",
+        "FUNCTION - Test uncompiled script",
+        "FUNCTION - test replace argument",
+        "FUNCTION - test function case insensitive",
+        "FUNCTION - test replace argument with failure keeps old libraries",
+        "FUNCTION - test function delete",
+        "FUNCTION - test fcall bad arguments",
+        "FUNCTION - test fcall bad number of keys arguments",
+        "FUNCTION - test fcall negative number of keys",
+        "FUNCTION - test delete on not exiting library",
+        "FUNCTION - test function kill when function is not running",
+        "FUNCTION - test wrong subcommand",
+        "FUNCTION - test loading from rdb",
+        "FUNCTION - test debug reload different options",
+        "FUNCTION - test debug reload with nosave and noflush",
+        "FUNCTION - test flushall and flushdb do not clean functions",
+        "FUNCTION - test function dump and restore",
+        "FUNCTION - test function dump and restore with flush argument",
+        "FUNCTION - test function dump and restore with append argument",
+        "FUNCTION - test function dump and restore with replace argument",
+        "FUNCTION - test function restore with bad payload do not drop existing functions",
+        "FUNCTION - test function restore with wrong number of arguments",
+        "FUNCTION - test fcall_ro with write command",
+        "FUNCTION - test fcall_ro with read only commands",
+        "FUNCTION - test keys and argv",
+        "FUNCTION - test command get keys on fcall",
+        "FUNCTION - test command get keys on fcall_ro",
+        "FUNCTION - test function kill",
+        "FUNCTION - test script kill not working on function",
+        "FUNCTION - test function kill not working on eval",
+        "FUNCTION - test function flush",
+        "FUNCTION - async function flush rebuilds Lua VM without causing race condition between main and lazyfree thread",
+        "FUNCTION - test function wrong argument",
+        "LIBRARIES - test shared function can access default globals",
+        "LIBRARIES - usage and code sharing",
+        "LIBRARIES - test registration failure revert the entire load",
+        "LIBRARIES - test registration function name collision",
+        "LIBRARIES - test registration function name collision on same library",
+        "LIBRARIES - test registration with no argument",
+        "LIBRARIES - test registration with only name",
+        "LIBRARIES - test registration with to many arguments",
+        "LIBRARIES - test registration with no string name",
+        "LIBRARIES - test registration with wrong name format",
+        "LIBRARIES - test registration with empty name",
+        "LIBRARIES - math.random from function load",
+        "LIBRARIES - redis.call from function load",
+        "LIBRARIES - redis.setresp from function load",
+        "LIBRARIES - redis.set_repl from function load",
+        "LIBRARIES - redis.acl_check_cmd from function load",
+        "LIBRARIES - malicious access test",
+        "LIBRARIES - delete removed all functions on library"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R019",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "LIBRARIES - load timeout",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 120,
+    "detail": "LIBRARIES - load timeout in tests/unit/functions.tcl\nExpected '*FUNCTION LOAD timeout*' to equal or match 'ERR Error registering functions: ERR ERR function library exceeded the instruction limit'",
+    "isolation_case": "019",
+    "reproduction": [
+      "unit/functions",
+      "LIBRARIES - load timeout",
+      [
+        "LIBRARIES - load timeout"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R020",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function list withcode multiple times",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 148,
+    "detail": "FUNCTION - test function list withcode multiple times in tests/unit/functions.tcl\nExpected '*Unknown argument withcode*' to equal or match '{library_name lib1 engine LUA functions {{name f7 description {} flags {}}} library_code {#!lua name=lib1\n            redis.register_function('f7', function(keys, args) return 7 end)\n        }} {library_name library1 engine LUA functions {{name f6 description {} flags {}}} library_code {#!lua name=library1\n            redis.register_function('f6', function(keys, args) return 7 end)\n        }}'",
+    "isolation_case": "020",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function list withcode multiple times",
+      [
+        "FUNCTION - test function list withcode multiple times"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R021",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function list libraryname multiple times",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 150,
+    "detail": "FUNCTION - test function list libraryname multiple times in tests/unit/functions.tcl\nExpected '*Unknown argument libraryname*' to equal or match ''",
+    "isolation_case": "021",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function list libraryname multiple times",
+      [
+        "FUNCTION - test function list libraryname multiple times"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R022",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - verify OOM on function load and function restore",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 152,
+    "detail": "FUNCTION - verify OOM on function load and function restore in tests/unit/functions.tcl\nExpected 'test' to match '*command not allowed when used memory*' (context: type eval line 13 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test) ",
+    "isolation_case": "022",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - verify OOM on function load and function restore",
+      [
+        "FUNCTION - verify OOM on function load and function restore"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R023",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test function list with CRLF injection attempt",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 156,
+    "detail": "FUNCTION - test function list with CRLF injection attempt in tests/unit/functions.tcl\nExpected 'ERR Unknown argument X' to match '*Unknown argument X  +INJECTED*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "023",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test function list with CRLF injection attempt",
+      [
+        "FUNCTION - test function list with CRLF injection attempt"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R024",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - deny oom",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 168,
+    "detail": "FUNCTION - deny oom in tests/unit/functions.tcl\nExpected 'invalid command name \"OK\"' to match 'OOM *when used memory > 'maxmemory'*' (context: type eval line 9 cmd {assert_match {OOM *when used memory > 'maxmemory'*} $e} proc ::test) ",
+    "isolation_case": "024",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - deny oom",
+      [
+        "FUNCTION - deny oom"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R025",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - redis version api",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 173,
+    "detail": "FUNCTION - redis version api in tests/unit/functions.tcl\nregistering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'REDIS_VERSION_NUM'\nERR Error registering functions: ERR user_function:2: Script attempted to access nonexistent global variable 'REDIS_VERSION_NUM'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r FUNCTION load replace {#!lua name=test\n            local version = redis.REDIS_VERSION_NUM\n\n            redis.register_function{function_name='get_v...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "more-004",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - redis version api",
+      [
+        "FUNCTION - redis version api"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R026",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - function test multiple names",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 191,
+    "detail": "FUNCTION - function test multiple names in tests/unit/functions.tcl\nExpected 'ERR Invalid metadata value, name argument was given multiple times' to equal or match 'bar'",
+    "isolation_case": "025",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - function test multiple names",
+      [
+        "FUNCTION - function test multiple names"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R027",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - function test name with quotes",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 193,
+    "detail": "FUNCTION - function test name with quotes in tests/unit/functions.tcl\ny names can only contain letters, numbers, or underscores(_) and must be at least one character long\nERR Library names can only contain letters, numbers, or underscores(_) and must be at least one character long\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r function load replace {#!lua name=\"foo\"\n            redis.register_function('foo', function() return 1 end)\n        }\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "more-005",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - function test name with quotes",
+      [
+        "FUNCTION - function test name with quotes"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R028",
+    "mode": "2s",
+    "file": "unit/functions",
+    "test": "FUNCTION - test getmetatable on script load",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/functions.cc",
+    "event_index": 197,
+    "detail": "FUNCTION - test getmetatable on script load in tests/unit/functions.tcl\nExpected '*Script attempted to access nonexistent global variable 'getmetatable'*' to equal or match 'ERR Error registering functions: ERR user_function:2: Attempt to modify a readonly table'",
+    "isolation_case": "026",
+    "reproduction": [
+      "unit/functions",
+      "FUNCTION - test getmetatable on script load",
+      [
+        "FUNCTION - test getmetatable on script load"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R029",
+    "mode": "2s",
+    "file": "unit/info-command",
+    "test": "info command with one sub-section",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "INFO section selection",
+    "event_index": 4,
+    "detail": "info command with one sub-section in tests/unit/info-command.tcl\nExpected  [string match \"*used_cpu_user*\" ]  (context: type eval line 3 cmd {assert { [string match \"*used_cpu_user*\" $info] }} proc ::test)",
+    "isolation_case": "030",
+    "reproduction": [
+      "unit/info-command",
+      "info command with one sub-section",
+      [
+        "info command with one sub-section"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R030",
+    "mode": "2s",
+    "file": "unit/info-command",
+    "test": "info command with multiple sub-sections",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "INFO section selection",
+    "event_index": 6,
+    "detail": "info command with multiple sub-sections in tests/unit/info-command.tcl\nExpected  [string match \"*used_cpu_user*\" ]  (context: type eval line 3 cmd {assert { [string match \"*used_cpu_user*\" $info] }} proc ::test)",
+    "isolation_case": "031",
+    "reproduction": [
+      "unit/info-command",
+      "info command with multiple sub-sections",
+      [
+        "info command with multiple sub-sections"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R031",
+    "mode": "2s",
+    "file": "unit/introspection-2",
+    "test": "TTL, TYPE and EXISTS do not alter the last access time of a key",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "command statistics / scripting",
+    "event_index": 4,
+    "detail": "TTL, TYPE and EXISTS do not alter the last access time of a key in tests/unit/introspection-2.tcl\nExpected [r object idletime foo] >= 2 (context: type eval line 7 cmd {assert {[r object idletime foo] >= 2}} proc ::test)",
+    "isolation_case": "032",
+    "reproduction": [
+      "unit/introspection-2",
+      "TTL, TYPE and EXISTS do not alter the last access time of a key",
+      [
+        "TTL, TYPE and EXISTS do not alter the last access time of a key"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R032",
+    "mode": "2s",
+    "file": "unit/introspection-2",
+    "test": "errors stats for GEOADD",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "command statistics / scripting",
+    "event_index": 14,
+    "detail": "errors stats for GEOADD in tests/unit/introspection-2.tcl\nExpected 'calls=1,rejected_calls=0' to match '*calls=1*,rejected_calls=0,failed_calls=1*' (context: type eval line 6 cmd {assert_match {*calls=1*,rejected_calls=0,failed_calls=1*} [cmdstat geoadd]} proc ::test) ",
+    "isolation_case": "033",
+    "reproduction": [
+      "unit/introspection-2",
+      "errors stats for GEOADD",
+      [
+        "errors stats for GEOADD"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R033",
+    "mode": "2s",
+    "file": "unit/introspection-2",
+    "test": "command stats for scripts",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "command statistics / scripting",
+    "event_index": 22,
+    "detail": "command stats for scripts in tests/unit/introspection-2.tcl\nd 'EXPIRE' is not allowed from scripts script: 67f06db3229218458a8defc01ab51e788a78adc5, on @user_script:3.\nERR command 'EXPIRE' is not allowed from scripts script: 67f06db3229218458a8defc01ab51e788a78adc5, on @user_script:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {\n            redis.call('set', KEYS[1], 0)\n            redis.call('expire', KEYS[1], 0)\n            redis.call('geoadd', KEYS[1], 0, 0, \"bar\")...\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "034",
+    "reproduction": [
+      "unit/introspection-2",
+      "command stats for scripts",
+      [
+        "command stats for scripts"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R034",
+    "mode": "2s",
+    "file": "unit/introspection",
+    "test": "CLIENT KILL SKIPME YES/NO will kill all clients",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "CLIENT / INFO accounting",
+    "event_index": 14,
+    "detail": "CLIENT KILL SKIPME YES/NO will kill all clients in tests/unit/introspection.tcl\nExpected 2 == 6 - 1 (context: type eval line 8 cmd {assert {$res == $connected_clients - 1}} proc ::test)",
+    "isolation_case": "039",
+    "reproduction": [
+      "unit/introspection",
+      "CLIENT KILL SKIPME YES/NO will kill all clients",
+      [
+        "CLIENT KILL SKIPME YES/NO will kill all clients"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R035",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM with empty histogram",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 2,
+    "detail": "LATENCY HISTOGRAM with empty histogram in tests/unit/latency-monitor.tcl\nExpected '0' to be equal to '1' (context: type eval line 5 cmd {assert_equal [dict size $histo] 1} proc ::test)",
+    "isolation_case": "041",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with empty histogram",
+      [
+        "LATENCY HISTOGRAM with empty histogram"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R036",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM all commands",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 4,
+    "detail": "LATENCY HISTOGRAM all commands in tests/unit/latency-monitor.tcl\nnot known in dictionary\nkey \"set\" not known in dictionary\n    while executing\n\"dict get $histo set\"\n    (\"uplevel\" body line 6)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "042",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM all commands",
+      [
+        "LATENCY HISTOGRAM all commands"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R037",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM sub commands",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 6,
+    "detail": "LATENCY HISTOGRAM sub commands in tests/unit/latency-monitor.tcl\nExpected [dict size ] == 2 (context: type eval line 7 cmd {assert {[dict size $histo] == 2}} proc ::test)",
+    "isolation_case": "043",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM sub commands",
+      [
+        "LATENCY HISTOGRAM sub commands"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R038",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM with a subset of commands",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 8,
+    "detail": "LATENCY HISTOGRAM with a subset of commands in tests/unit/latency-monitor.tcl\nnot known in dictionary\nkey \"set\" not known in dictionary\n    while executing\n\"dict get $histo set\"\n    (\"uplevel\" body line 9)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "044",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with a subset of commands",
+      [
+        "LATENCY HISTOGRAM with a subset of commands"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R039",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 10,
+    "detail": "LATENCY HISTOGRAM command in tests/unit/latency-monitor.tcl\nExpected [llength [r latency histogram set get]] == 4 (context: type eval line 5 cmd {assert {[llength [r latency histogram set get]] == 4}} proc ::test)",
+    "isolation_case": "045",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM command",
+      [
+        "LATENCY HISTOGRAM command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R040",
+    "mode": "2s",
+    "file": "unit/latency-monitor",
+    "test": "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "LATENCY / command histogram accounting",
+    "event_index": 12,
+    "detail": "LATENCY HISTOGRAM with wrong command name skips the invalid one in tests/unit/latency-monitor.tcl\nExpected '' to match 'calls 1 histogram_usec *' (context: type eval line 7 cmd {assert_match {calls 1 histogram_usec *} [lindex [r latency histogram blabla blabla2 set get] 1]} proc ::test) ",
+    "isolation_case": "046",
+    "reproduction": [
+      "unit/latency-monitor",
+      "LATENCY HISTOGRAM with wrong command name skips the invalid one",
+      [
+        "LATENCY HISTOGRAM with wrong command name skips the invalid one"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R041",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "EXEC fails if there are errors while queueing commands #2",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 14,
+    "detail": "EXEC fails if there are errors while queueing commands #2 in tests/unit/multi.tcl\nExpected 'OK 1 OK' to match 'EXECABORT*' (context: type eval line 13 cmd {assert_match {EXECABORT*} $e} proc ::test) ",
+    "isolation_case": "057",
+    "reproduction": [
+      "unit/multi",
+      "EXEC fails if there are errors while queueing commands #2",
+      [
+        "EXEC fails if there are errors while queueing commands #2"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R042",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "DISCARD should not fail during OOM",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 77,
+    "detail": "DISCARD should not fail during OOM in tests/unit/multi.tcl\nExpected 'QUEUED' to match 'OOM*' (context: type eval line 7 cmd {assert_match {OOM*} $e} proc ::test) ",
+    "isolation_case": "058",
+    "reproduction": [
+      "unit/multi",
+      "DISCARD should not fail during OOM",
+      [
+        "DISCARD should not fail during OOM"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R043",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "MULTI and script timeout",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 79,
+    "detail": "MULTI and script timeout in tests/unit/multi.tcl\nExpected 'EXECABORT Transaction discarded because of an execution error.' to match 'EXECABORT*previous errors*' (context: type eval line 16 cmd {assert_match {EXECABORT*previous errors*} $e} proc ::test) ",
+    "isolation_case": "059",
+    "reproduction": [
+      "unit/multi",
+      "MULTI and script timeout",
+      [
+        "MULTI and script timeout"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R044",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "EXEC and script timeout",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 81,
+    "detail": "EXEC and script timeout in tests/unit/multi.tcl\nExpected 'EXECABORT Transaction discarded because of an execution error.' to match 'EXECABORT*BUSY*' (context: type eval line 14 cmd {assert_match {EXECABORT*BUSY*} $e} proc ::test) ",
+    "isolation_case": "060",
+    "reproduction": [
+      "unit/multi",
+      "EXEC and script timeout",
+      [
+        "EXEC and script timeout"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R045",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "MULTI-EXEC body and script timeout",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 83,
+    "detail": "MULTI-EXEC body and script timeout in tests/unit/multi.tcl\nExpected 'EXECABORT Transaction discarded because of an execution error.' to match 'EXECABORT*previous errors*' (context: type eval line 16 cmd {assert_match {EXECABORT*previous errors*} $e} proc ::test) ",
+    "isolation_case": "061",
+    "reproduction": [
+      "unit/multi",
+      "MULTI-EXEC body and script timeout",
+      [
+        "MULTI-EXEC body and script timeout"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R046",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "just EXEC and script timeout",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 85,
+    "detail": "just EXEC and script timeout in tests/unit/multi.tcl\nExpected 'EXECABORT Transaction discarded because of an execution error.' to match 'EXECABORT*BUSY*' (context: type eval line 13 cmd {assert_match {EXECABORT*BUSY*} $e} proc ::test) ",
+    "isolation_case": "062",
+    "reproduction": [
+      "unit/multi",
+      "just EXEC and script timeout",
+      [
+        "just EXEC and script timeout"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R047",
+    "mode": "2s",
+    "file": "unit/multi",
+    "test": "EXEC with at least one use-memory command should fail",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/multi.inc / multi_admin.cc",
+    "event_index": 93,
+    "detail": "EXEC with at least one use-memory command should fail in tests/unit/multi.tcl\ncalls can not be nested\nERR MULTI calls can not be nested\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r multi\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "065",
+    "reproduction": [
+      "unit/multi",
+      "EXEC with at least one use-memory command should fail",
+      [
+        "EXEC with at least one use-memory command should fail"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R048",
+    "mode": "2s",
+    "file": "unit/other",
+    "test": "EXPIRES after AOF reload (without rewrite)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (RESET/connection state)",
+    "event_index": 27,
+    "detail": "EXPIRES after AOF reload (without rewrite) in tests/unit/other.tcl\n SET failed (possibly related to argument 'appendonly') - can't set immutable config\nERR CONFIG SET failed (possibly related to argument 'appendonly') - can't set immutable config\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set appendonly yes\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "071",
+    "reproduction": [
+      "unit/other",
+      "EXPIRES after AOF reload (without rewrite)",
+      [
+        "EXPIRES after AOF reload (without rewrite)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R049",
+    "mode": "2s",
+    "file": "unit/other",
+    "test": "RESET clears MONITOR state",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (RESET/connection state)",
+    "event_index": 43,
+    "detail": "RESET clears MONITOR state in tests/unit/other.tcl\nExpected '1792975387.834782 [0 127.0.0.1:33147] \"reset\"' to be equal to 'RESET' (context: type eval line 7 cmd {assert_equal [$rd read] \"RESET\"} proc ::test)",
+    "isolation_case": "072",
+    "reproduction": [
+      "unit/other",
+      "RESET clears MONITOR state",
+      [
+        "RESET clears MONITOR state"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R050",
+    "mode": "2s",
+    "file": "unit/other",
+    "test": "RESET clears and discards MULTI state",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (RESET/connection state)",
+    "event_index": 45,
+    "detail": "RESET clears and discards MULTI state in tests/unit/other.tcl\nExpected 'OK RESET' to match '*EXEC without MULTI*' (context: type eval line 7 cmd {assert_match {*EXEC without MULTI*} $err} proc ::test) ",
+    "isolation_case": "073",
+    "reproduction": [
+      "unit/other",
+      "RESET clears and discards MULTI state",
+      [
+        "RESET clears and discards MULTI state"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R051",
+    "mode": "2s",
+    "file": "unit/pause",
+    "test": "Test old pause-all takes precedence over new pause-write (less restrictive)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (CLIENT PAUSE)",
+    "event_index": 4,
+    "detail": "Test old pause-all takes precedence over new pause-write (less restrictive) in tests/unit/pause.tcl\nExpected '200' to be less than '51' (context: type eval line 24 cmd {assert_lessthan 200 $elapsed} proc ::test)",
+    "isolation_case": "074",
+    "reproduction": [
+      "unit/pause",
+      "Test old pause-all takes precedence over new pause-write (less restrictive)",
+      [
+        "Test old pause-all takes precedence over new pause-write (less restrictive)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R052",
+    "mode": "2s",
+    "file": "unit/pause",
+    "test": "Test new pause time is smaller than old one, then old time preserved",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (CLIENT PAUSE)",
+    "event_index": 6,
+    "detail": "Test new pause time is smaller than old one, then old time preserved in tests/unit/pause.tcl\nTimeout waiting for blocked clients",
+    "isolation_case": "075",
+    "reproduction": [
+      "unit/pause",
+      "Test new pause time is smaller than old one, then old time preserved",
+      [
+        "Test new pause time is smaller than old one, then old time preserved"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R053",
+    "mode": "2s",
+    "file": "unit/pause",
+    "test": "Test write commands are paused by RO",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (CLIENT PAUSE)",
+    "event_index": 8,
+    "detail": "Test write commands are paused by RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients",
+    "isolation_case": "076",
+    "reproduction": [
+      "unit/pause",
+      "Test write commands are paused by RO",
+      [
+        "Test write commands are paused by RO"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R054",
+    "mode": "2s",
+    "file": "unit/pause",
+    "test": "Test special commands are paused by RO",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (CLIENT PAUSE)",
+    "event_index": 10,
+    "detail": "Test special commands are paused by RO in tests/unit/pause.tcl\nTimeout waiting for blocked clients",
+    "isolation_case": "077",
+    "reproduction": [
+      "unit/pause",
+      "Test special commands are paused by RO",
+      [
+        "Test special commands are paused by RO"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R055",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Lua number -> Redis integer conversion",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 30,
+    "detail": "EVAL - Lua number -> Redis integer conversion in tests/unit/scripting.tcl\n attempted to access an undeclared key\nERR Script attempted to access an undeclared key\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n            local foo = redis.pcall('hincrby','hash','field',200000000)\n            return {type(foo),foo}\n        } 0\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "084",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Lua number -> Redis integer conversion",
+      [
+        "EVAL - Lua number -> Redis integer conversion"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R056",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on blpop command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 44,
+    "detail": "EVAL - Scripts do not block on blpop command in tests/unit/scripting.tcl\nd 'BLPOP' is not allowed from scripts\nERR command 'BLPOP' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('blpop','l',0)} 1 l\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "085",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on blpop command",
+      [
+        "EVAL - Scripts do not block on blpop command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R057",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on brpop command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 46,
+    "detail": "EVAL - Scripts do not block on brpop command in tests/unit/scripting.tcl\nd 'BRPOP' is not allowed from scripts\nERR command 'BRPOP' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('brpop','l',0)} 1 l\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "086",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on brpop command",
+      [
+        "EVAL - Scripts do not block on brpop command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R058",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on brpoplpush command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 48,
+    "detail": "EVAL - Scripts do not block on brpoplpush command in tests/unit/scripting.tcl\nd 'BRPOPLPUSH' is not allowed from scripts\nERR command 'BRPOPLPUSH' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('brpoplpush','empty_list1{t}', 'empty_list2{t}',0)} 2 empty_list1{t} empty_list2{t}\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "087",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on brpoplpush command",
+      [
+        "EVAL - Scripts do not block on brpoplpush command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R059",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on blmove command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 50,
+    "detail": "EVAL - Scripts do not block on blmove command in tests/unit/scripting.tcl\nd 'BLMOVE' is not allowed from scripts\nERR command 'BLMOVE' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('blmove','empty_list1{t}', 'empty_list2{t}', 'LEFT', 'LEFT', 0)} 2 empty_list1{t} empty_list2{t}\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "088",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on blmove command",
+      [
+        "EVAL - Scripts do not block on blmove command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R060",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on bzpopmin command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 52,
+    "detail": "EVAL - Scripts do not block on bzpopmin command in tests/unit/scripting.tcl\nd 'BZPOPMIN' is not allowed from scripts\nERR command 'BZPOPMIN' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('bzpopmin','empty_zset', 0)} 1 empty_zset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "089",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on bzpopmin command",
+      [
+        "EVAL - Scripts do not block on bzpopmin command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R061",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on bzpopmax command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 54,
+    "detail": "EVAL - Scripts do not block on bzpopmax command in tests/unit/scripting.tcl\nd 'BZPOPMAX' is not allowed from scripts\nERR command 'BZPOPMAX' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('bzpopmax','empty_zset', 0)} 1 empty_zset\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "090",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on bzpopmax command",
+      [
+        "EVAL - Scripts do not block on bzpopmax command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R062",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on XREAD with BLOCK option",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 60,
+    "detail": "EVAL - Scripts do not block on XREAD with BLOCK option in tests/unit/scripting.tcl\nd 'XREAD' is not allowed from scripts\nERR command 'XREAD' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('xread','STREAMS','s','$')} 1 s\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "093",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on XREAD with BLOCK option",
+      [
+        "EVAL - Scripts do not block on XREAD with BLOCK option"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R063",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 62,
+    "detail": "EVAL - Scripts do not block on XREADGROUP with BLOCK option in tests/unit/scripting.tcl\nd 'XREADGROUP' is not allowed from scripts\nERR command 'XREADGROUP' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('xreadgroup','group','g','c','STREAMS','s','>')} 1 s\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "prefix-005",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+      [
+        "EVAL - Does Lua interpreter replies to our requests?",
+        "EVAL - Return _G",
+        "EVAL - Return table with a metatable that raise error",
+        "EVAL - Return table with a metatable that call redis",
+        "EVAL - Lua integer -> Redis protocol type conversion",
+        "EVAL - Lua string -> Redis protocol type conversion",
+        "EVAL - Lua true boolean -> Redis protocol type conversion",
+        "EVAL - Lua false boolean -> Redis protocol type conversion",
+        "EVAL - Lua status code reply -> Redis protocol type conversion",
+        "EVAL - Lua error reply -> Redis protocol type conversion",
+        "EVAL - Lua table -> Redis protocol type conversion",
+        "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+        "EVAL - is Lua able to call Redis API?",
+        "EVAL - Redis integer -> Lua type conversion",
+        "EVAL - Lua number -> Redis integer conversion",
+        "EVAL - Redis bulk -> Lua type conversion",
+        "EVAL - Redis multi bulk -> Lua type conversion",
+        "EVAL - Redis status reply -> Lua type conversion",
+        "EVAL - Redis error reply -> Lua type conversion",
+        "EVAL - Redis nil bulk reply -> Lua type conversion",
+        "EVAL - Scripts do not block on blpop command",
+        "EVAL - Scripts do not block on brpop command",
+        "EVAL - Scripts do not block on brpoplpush command",
+        "EVAL - Scripts do not block on blmove command",
+        "EVAL - Scripts do not block on bzpopmin command",
+        "EVAL - Scripts do not block on bzpopmax command",
+        "EVAL - Scripts do not block on wait",
+        "EVAL - Scripts do not block on waitaof",
+        "EVAL - Scripts do not block on XREAD with BLOCK option",
+        "EVAL - Scripts do not block on XREADGROUP with BLOCK option"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R064",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 64,
+    "detail": "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream in tests/unit/scripting.tcl\nd 'XREAD' is not allowed from scripts\nERR command 'XREAD' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('xread','BLOCK',0,'STREAMS','s','$')} 1 s\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "095",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+      [
+        "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R065",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 66,
+    "detail": "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream in tests/unit/scripting.tcl\nd 'XREADGROUP' is not allowed from scripts\nERR command 'XREADGROUP' is not allowed from scripts\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.pcall('xreadgroup','group','g','c','BLOCK',0,'STREAMS','s','>')} 1 s\"\n    (\"uplevel\" body line 4)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "prefix-006",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream",
+      [
+        "EVAL - Does Lua interpreter replies to our requests?",
+        "EVAL - Return _G",
+        "EVAL - Return table with a metatable that raise error",
+        "EVAL - Return table with a metatable that call redis",
+        "EVAL - Lua integer -> Redis protocol type conversion",
+        "EVAL - Lua string -> Redis protocol type conversion",
+        "EVAL - Lua true boolean -> Redis protocol type conversion",
+        "EVAL - Lua false boolean -> Redis protocol type conversion",
+        "EVAL - Lua status code reply -> Redis protocol type conversion",
+        "EVAL - Lua error reply -> Redis protocol type conversion",
+        "EVAL - Lua table -> Redis protocol type conversion",
+        "EVAL - Are the KEYS and ARGV arrays populated correctly?",
+        "EVAL - is Lua able to call Redis API?",
+        "EVAL - Redis integer -> Lua type conversion",
+        "EVAL - Lua number -> Redis integer conversion",
+        "EVAL - Redis bulk -> Lua type conversion",
+        "EVAL - Redis multi bulk -> Lua type conversion",
+        "EVAL - Redis status reply -> Lua type conversion",
+        "EVAL - Redis error reply -> Lua type conversion",
+        "EVAL - Redis nil bulk reply -> Lua type conversion",
+        "EVAL - Scripts do not block on blpop command",
+        "EVAL - Scripts do not block on brpop command",
+        "EVAL - Scripts do not block on brpoplpush command",
+        "EVAL - Scripts do not block on blmove command",
+        "EVAL - Scripts do not block on bzpopmin command",
+        "EVAL - Scripts do not block on bzpopmax command",
+        "EVAL - Scripts do not block on wait",
+        "EVAL - Scripts do not block on waitaof",
+        "EVAL - Scripts do not block on XREAD with BLOCK option",
+        "EVAL - Scripts do not block on XREADGROUP with BLOCK option",
+        "EVAL - Scripts do not block on XREAD with BLOCK option -- non empty stream",
+        "EVAL - Scripts do not block on XREADGROUP with BLOCK option -- non empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R066",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - No arguments to redis.call/pcall is considered an error",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 70,
+    "detail": "EVAL - No arguments to redis.call/pcall is considered an error in tests/unit/scripting.tcl\nExpected '*one argument*' to equal or match 'ERR redis.call requires a command name script: test, on @user_function:3.'",
+    "isolation_case": "097",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - No arguments to redis.call/pcall is considered an error",
+      [
+        "EVAL - No arguments to redis.call/pcall is considered an error"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R067",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 74,
+    "detail": "EVAL - redis.call variant raises a Lua error on Redis cmd error (1) in tests/unit/scripting.tcl\nExpected '*number of args*' to equal or match 'ERR wrong number of arguments for command from script script: test, on @user_function:3.'",
+    "isolation_case": "098",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)",
+      [
+        "EVAL - redis.call variant raises a Lua error on Redis cmd error (1)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok",
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R068",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - JSON numeric decoding",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 80,
+    "detail": "EVAL - JSON numeric decoding in tests/unit/scripting.tcl\nunction:5: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:5.\nERR user_function:5: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:5.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return\n                 table.concat(\n                   cjson.decode(\n                    \"[0.0, -5e3, -1, 0.3e-3, 1023.2, 0e10]\"), \" \")\n...\"\n    (\"uplevel\" body line 5)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "099",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - JSON numeric decoding",
+      [
+        "EVAL - JSON numeric decoding"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R069",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - JSON string decoding",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 82,
+    "detail": "EVAL - JSON string decoding in tests/unit/scripting.tcl\nunction:3: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:3.\nERR user_function:3: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {local decoded = cjson.decode('{\"keya\": \"a\", \"keyb\": \"b\"}')\n                return {decoded.keya, decoded.keyb}\n        } 0\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "100",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - JSON string decoding",
+      [
+        "EVAL - JSON string decoding"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R070",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - JSON smoke test",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 84,
+    "detail": "EVAL - JSON smoke test in tests/unit/scripting.tcl\nunction:11: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:11.\nERR user_function:11: Script attempted to access nonexistent global variable 'cjson' script: test, on @user_function:11.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n            local some_map = {\n                s1=\"Some string\",\n                n1=100,\n                a1={\"Some\",\"String\",\"Array\"},\n  ...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "101",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - JSON smoke test",
+      [
+        "EVAL - JSON smoke test"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R071",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - cmsgpack can pack double?",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 86,
+    "detail": "EVAL - cmsgpack can pack double? in tests/unit/scripting.tcl\nunction:3: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:3.\nERR user_function:3: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {local encoded = cmsgpack.pack(0.1)\n                local h = \"\"\n                for i = 1, #encoded do\n                    h = h .. string...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "102",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack double?",
+      [
+        "EVAL - cmsgpack can pack double?"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R072",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - cmsgpack can pack negative int64?",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 88,
+    "detail": "EVAL - cmsgpack can pack negative int64? in tests/unit/scripting.tcl\nunction:3: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:3.\nERR user_function:3: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {local encoded = cmsgpack.pack(-1099511627776)\n                local h = \"\"\n                for i = 1, #encoded do\n                    h = ...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "103",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack negative int64?",
+      [
+        "EVAL - cmsgpack can pack negative int64?"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R073",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - cmsgpack pack/unpack smoke test",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 90,
+    "detail": "EVAL - cmsgpack pack/unpack smoke test in tests/unit/scripting.tcl\nt exceeded the 100000 instruction limit\nBUSY script exceeded the 100000 instruction limit\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n                local str_lt_32 = string.rep(\"x\", 30)\n                local str_lt_255 = string.rep(\"x\", 250)\n                local str_l...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "104",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - cmsgpack pack/unpack smoke test",
+      [
+        "EVAL - cmsgpack pack/unpack smoke test"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R074",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - cmsgpack can pack and unpack circular references?",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 92,
+    "detail": "EVAL - cmsgpack can pack and unpack circular references? in tests/unit/scripting.tcl\nunction:6: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:6.\nERR user_function:6: Script attempted to access nonexistent global variable 'cmsgpack' script: test, on @user_function:6.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {local a = {x=nil,y=5}\n                local b = {x=a}\n                a['x'] = b\n                local encoded = cmsgpack.pack(a)\n        ...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "105",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - cmsgpack can pack and unpack circular references?",
+      [
+        "EVAL - cmsgpack can pack and unpack circular references?"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R075",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - Verify minimal bitop functionality",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 96,
+    "detail": "EVAL - Verify minimal bitop functionality in tests/unit/scripting.tcl\nunction:3: Script attempted to access nonexistent global variable 'bit' script: test, on @user_function:3.\nERR user_function:3: Script attempted to access nonexistent global variable 'bit' script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {assert(bit.tobit(1) == 1);\n                assert(bit.band(1) == 1);\n                assert(bit.bxor(1,2) == 3);\n                assert(bi...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "106",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - Verify minimal bitop functionality",
+      [
+        "EVAL - Verify minimal bitop functionality"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R076",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "redis.sha1hex() implementation",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 104,
+    "detail": "redis.sha1hex() implementation in tests/unit/scripting.tcl\nunction:3: attempt to call field 'sha1hex' (a nil value) script: test, on @user_function:3.\nERR user_function:3: attempt to call field 'sha1hex' (a nil value) script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return redis.sha1hex('')} 0\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "107",
+    "reproduction": [
+      "unit/scripting",
+      "redis.sha1hex() implementation",
+      [
+        "redis.sha1hex() implementation"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R077",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Measures elapsed time os.clock()",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 106,
+    "detail": "Measures elapsed time os.clock() in tests/unit/scripting.tcl\nunction:4: Script attempted to access nonexistent global variable 'os' script: test, on @user_function:4.\nERR user_function:4: Script attempted to access nonexistent global variable 'os' script: test, on @user_function:4.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n            local start = os.clock()\n            while os.clock() - start < 1 do end\n            return {double = os.clock() - start}\n   ...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "108",
+    "reproduction": [
+      "unit/scripting",
+      "Measures elapsed time os.clock()",
+      [
+        "Measures elapsed time os.clock()"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R078",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Prohibit dangerous lua methods in sandbox",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 108,
+    "detail": "Prohibit dangerous lua methods in sandbox in tests/unit/scripting.tcl\nunction:15: Script attempted to access nonexistent global variable 'os' script: test, on @user_function:15.\nERR user_function:15: Script attempted to access nonexistent global variable 'os' script: test, on @user_function:15.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n            local allowed_methods = {\"clock\"}\n            -- Find a value from a tuple and return the position.\n            local indexOf...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "109",
+    "reproduction": [
+      "unit/scripting",
+      "Prohibit dangerous lua methods in sandbox",
+      [
+        "Prohibit dangerous lua methods in sandbox"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R079",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Verify execution of prohibit dangerous Lua methods will fail",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 110,
+    "detail": "Verify execution of prohibit dangerous Lua methods will fail in tests/unit/scripting.tcl\nExpected 'ERR user_function:3: Script attempted to access nonexistent global variable 'os' script: test, on @user_function:3.' to match 'ERR *attempt to call field 'execute'*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "110",
+    "reproduction": [
+      "unit/scripting",
+      "Verify execution of prohibit dangerous Lua methods will fail",
+      [
+        "Verify execution of prohibit dangerous Lua methods will fail"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R080",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "lua bit.tohex bug",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 116,
+    "detail": "lua bit.tohex bug in tests/unit/scripting.tcl\nunction:3: Script attempted to access nonexistent global variable 'bit' script: test, on @user_function:3.\nERR user_function:3: Script attempted to access nonexistent global variable 'bit' script: test, on @user_function:3.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {return bit.tohex(65535, -2147483648)} 0\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "111",
+    "reproduction": [
+      "unit/scripting",
+      "lua bit.tohex bug",
+      [
+        "lua bit.tohex bug"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R081",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Number conversion precision test (issue #1118)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 124,
+    "detail": "Number conversion precision test (issue #1118) in tests/unit/scripting.tcl\nExpected '9007199254740991' to equal or match '9.007199254741e+15'",
+    "isolation_case": "112",
+    "reproduction": [
+      "unit/scripting",
+      "Number conversion precision test (issue #1118)",
+      [
+        "Number conversion precision test (issue #1118)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R082",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Scripts can handle commands with incorrect arity",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 130,
+    "detail": "Scripts can handle commands with incorrect arity in tests/unit/scripting.tcl\nExpected 'ERR wrong number of arguments for command from script script: test, on @user_function:3.' to match 'ERR Wrong number of args calling Redis command from script*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "113",
+    "reproduction": [
+      "unit/scripting",
+      "Scripts can handle commands with incorrect arity",
+      [
+        "Scripts can handle commands with incorrect arity"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R083",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Correct handling of reused argv (issue #1939)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 132,
+    "detail": "Correct handling of reused argv (issue #1939) in tests/unit/scripting.tcl\nd 'MGET' is not allowed from scripts script: test, on @user_function:6.\nERR command 'MGET' is not allowed from scripts script: test, on @user_function:6.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r fcall test {*}[lrange $args 1 end]\"\n    (procedure \"run_script\" line 7)\n    invoked from within\n\"run_script {\n              for i = 0, 10 do\n                  redis.call('SET', 'a{t}', '1')\n                  redis.call('MGET', 'a{t}', 'b{t}', 'c{t...\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "114",
+    "reproduction": [
+      "unit/scripting",
+      "Correct handling of reused argv (issue #1939)",
+      [
+        "Correct handling of reused argv (issue #1939)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R084",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Functions in the Redis namespace are able to report errors",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 134,
+    "detail": "Functions in the Redis namespace are able to report errors in tests/unit/scripting.tcl\nExpected '*wrong number*' to equal or match 'ERR user_function:4: attempt to call field 'sha1hex' (a nil value) script: test, on @user_function:4.'",
+    "isolation_case": "115",
+    "reproduction": [
+      "unit/scripting",
+      "Functions in the Redis namespace are able to report errors",
+      [
+        "Functions in the Redis namespace are able to report errors"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R085",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Script return recursive object",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 140,
+    "detail": "Script return recursive object in tests/unit/scripting.tcl\nExpected '-ERR Error running script: script reply nesting is too deep' to be equal to '*1' (context: type eval line 9 cmd {assert_equal $res \"*1\"} proc ::test)",
+    "isolation_case": "more-006",
+    "reproduction": [
+      "unit/scripting",
+      "Script return recursive object",
+      [
+        "Script return recursive object"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R086",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Script ACL check",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 148,
+    "detail": "Script ACL check in tests/unit/scripting.tcl\nExpected '+OK' to be equal to 'OK' (context: type eval line 3 cmd {assert_equal [r auth bob 123] {OK}} proc ::test)",
+    "isolation_case": "119",
+    "reproduction": [
+      "unit/scripting",
+      "Script ACL check",
+      [
+        "Script ACL check"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R087",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Binary code loading failed",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 150,
+    "detail": "Binary code loading failed in tests/unit/scripting.tcl\nExpected 'assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)' to match 'ERR *attempt to call a nil value*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "120",
+    "reproduction": [
+      "unit/scripting",
+      "Binary code loading failed",
+      [
+        "Binary code loading failed"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R088",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Try trick readonly table on json table",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 162,
+    "detail": "Try trick readonly table on json table in tests/unit/scripting.tcl\nExpected '*Attempt to modify a readonly table*' to equal or match 'assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)'",
+    "isolation_case": "126",
+    "reproduction": [
+      "unit/scripting",
+      "Try trick readonly table on json table",
+      [
+        "Try trick readonly table on json table"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R089",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Try trick readonly table on cmsgpack table",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 164,
+    "detail": "Try trick readonly table on cmsgpack table in tests/unit/scripting.tcl\nExpected '*Attempt to modify a readonly table*' to equal or match 'assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)'",
+    "isolation_case": "127",
+    "reproduction": [
+      "unit/scripting",
+      "Try trick readonly table on cmsgpack table",
+      [
+        "Try trick readonly table on cmsgpack table"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R090",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Try trick readonly table on bit table",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 166,
+    "detail": "Try trick readonly table on bit table in tests/unit/scripting.tcl\nExpected '*Attempt to modify a readonly table*' to equal or match 'assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)'",
+    "isolation_case": "128",
+    "reproduction": [
+      "unit/scripting",
+      "Try trick readonly table on bit table",
+      [
+        "Try trick readonly table on bit table"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R091",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Try trick readonly table on basic types metatable",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 168,
+    "detail": "Try trick readonly table on basic types metatable in tests/unit/scripting.tcl\nExpected \n                [string match \"*attempt to index a nil value script*\" assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)] ||\n                [string match \"*Attempt to modify a readonly table*\" assertion:Expected 'test' to be equal to '$4' (context: type source line 35 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/unit/scripting.tcl cmd {assert_equal {test} [r read]} proc ::run_script level 2)]\n             (context: type eval line 15 cmd {assert {\n                [string match \"*attempt to index a nil value script*\" $e] ||\n                [string match \"*Attempt to modify a readonly table*\" $e]\n            }} proc ::test)",
+    "isolation_case": "129",
+    "reproduction": [
+      "unit/scripting",
+      "Try trick readonly table on basic types metatable",
+      [
+        "Try trick readonly table on basic types metatable"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R092",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Timedout read-only scripts can be killed by SCRIPT KILL",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 179,
+    "detail": "Timedout read-only scripts can be killed by SCRIPT KILL in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "133",
+    "reproduction": [
+      "unit/scripting",
+      "Timedout read-only scripts can be killed by SCRIPT KILL",
+      [
+        "Timedout read-only scripts can be killed by SCRIPT KILL"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R093",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 181,
+    "detail": "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "134",
+    "reproduction": [
+      "unit/scripting",
+      "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall",
+      [
+        "Timedout read-only scripts can be killed by SCRIPT KILL even when use pcall"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R094",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Timedout script does not cause a false dead client",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 183,
+    "detail": "Timedout script does not cause a false dead client in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "135",
+    "reproduction": [
+      "unit/scripting",
+      "Timedout script does not cause a false dead client",
+      [
+        "Timedout script does not cause a false dead client"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R095",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Timedout script link is still usable after Lua returns",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 185,
+    "detail": "Timedout script link is still usable after Lua returns in tests/unit/scripting.tcl\nn option or number of arguments for CONFIG SET - 'lua-time-limit'\nERR Unknown option or number of arguments for CONFIG SET - 'lua-time-limit'\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r config set lua-time-limit 10\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "136",
+    "reproduction": [
+      "unit/scripting",
+      "Timedout script link is still usable after Lua returns",
+      [
+        "Timedout script link is still usable after Lua returns"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok",
+      "ok"
+    ]
+  },
+  {
+    "id": "R096",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Script - disallow write on OOM",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 197,
+    "detail": "Script - disallow write on OOM in tests/unit/scripting.tcl\nExpected 'ERR Script attempted to access an undeclared key script: 16f3e4af2b7a0f1b9dcfcba0d266110083815748, on @user_script:1.' to match '*command not allowed when used memory*' (context: type eval line 5 cmd {assert_match {*command not allowed when used memory*} $e} proc ::test) ",
+    "isolation_case": "138",
+    "reproduction": [
+      "unit/scripting",
+      "Script - disallow write on OOM",
+      [
+        "Script - disallow write on OOM"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R097",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "SORT is normally not alpha re-ordered for the scripting engine",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 319,
+    "detail": "SORT is normally not alpha re-ordered for the scripting engine in tests/unit/scripting.tcl\nd not allowed when used memory > 'maxmemory'.\nOOM command not allowed when used memory > 'maxmemory'.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r sadd myset 1 2 3 4 10\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "151",
+    "reproduction": [
+      "unit/scripting",
+      "SORT is normally not alpha re-ordered for the scripting engine",
+      [
+        "SORT is normally not alpha re-ordered for the scripting engine"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R098",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "SORT BY <constant> output gets ordered for scripting",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 321,
+    "detail": "SORT BY <constant> output gets ordered for scripting in tests/unit/scripting.tcl\nd not allowed when used memory > 'maxmemory'.\nOOM command not allowed when used memory > 'maxmemory'.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r sadd myset a b c d e f g h i l m n o p q r s t u v z aa aaa azz\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "152",
+    "reproduction": [
+      "unit/scripting",
+      "SORT BY <constant> output gets ordered for scripting",
+      [
+        "SORT BY <constant> output gets ordered for scripting"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R099",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "SORT BY <constant> with GET gets ordered for scripting",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 323,
+    "detail": "SORT BY <constant> with GET gets ordered for scripting in tests/unit/scripting.tcl\nd not allowed when used memory > 'maxmemory'.\nOOM command not allowed when used memory > 'maxmemory'.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r sadd myset a b c\"\n    (\"uplevel\" body line 3)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "153",
+    "reproduction": [
+      "unit/scripting",
+      "SORT BY <constant> with GET gets ordered for scripting",
+      [
+        "SORT BY <constant> with GET gets ordered for scripting"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R100",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "random numbers are random now",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 341,
+    "detail": "random numbers are random now in tests/unit/scripting.tcl\ncript:1: attempt to call field 'random' (a nil value) script: 3c486921306e748a72a5874fef8c19de03c584b2, on @user_script:1.\nERR user_script:1: attempt to call field 'random' (a nil value) script: 3c486921306e748a72a5874fef8c19de03c584b2, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {return tostring(math.random())} 0\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "155",
+    "reproduction": [
+      "unit/scripting",
+      "random numbers are random now",
+      [
+        "random numbers are random now"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R101",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Scripting engine PRNG can be seeded correctly",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 343,
+    "detail": "Scripting engine PRNG can be seeded correctly in tests/unit/scripting.tcl\ncript:2: attempt to call field 'randomseed' (a nil value) script: 9bbfc01398f0b65d12993f21b2cdd7d8c5b8dbb9, on @user_script:2.\nERR user_script:2: attempt to call field 'randomseed' (a nil value) script: 9bbfc01398f0b65d12993f21b2cdd7d8c5b8dbb9, on @user_script:2.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {\n            math.randomseed(ARGV[1]); return tostring(math.random())\n        } 0 10\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "156",
+    "reproduction": [
+      "unit/scripting",
+      "Scripting engine PRNG can be seeded correctly",
+      [
+        "Scripting engine PRNG can be seeded correctly"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R102",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Shebang support for lua engine",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 434,
+    "detail": "Shebang support for lua engine in tests/unit/scripting.tcl\nExpected 'ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'' to match '*Unexpected engine in script shebang*' (context: type eval line 7 cmd {assert_match {*Unexpected engine in script shebang*} $e} proc ::test) ",
+    "isolation_case": "162",
+    "reproduction": [
+      "unit/scripting",
+      "Shebang support for lua engine",
+      [
+        "Shebang support for lua engine"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R103",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Unknown shebang option",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 436,
+    "detail": "Unknown shebang option in tests/unit/scripting.tcl\nExpected 'ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'' to match '*Unknown lua shebang option*' (context: type eval line 7 cmd {assert_match {*Unknown lua shebang option*} $e} proc ::test) ",
+    "isolation_case": "163",
+    "reproduction": [
+      "unit/scripting",
+      "Unknown shebang option",
+      [
+        "Unknown shebang option"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R104",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Unknown shebang flag",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 438,
+    "detail": "Unknown shebang flag in tests/unit/scripting.tcl\nExpected 'ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'' to match '*Unexpected flag in script shebang*' (context: type eval line 7 cmd {assert_match {*Unexpected flag in script shebang*} $e} proc ::test) ",
+    "isolation_case": "164",
+    "reproduction": [
+      "unit/scripting",
+      "Unknown shebang flag",
+      [
+        "Unknown shebang flag"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R105",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "allow-oom shebang flag",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 440,
+    "detail": "allow-oom shebang flag in tests/unit/scripting.tcl\nd not allowed when used memory > 'maxmemory'.\nOOM command not allowed when used memory > 'maxmemory'.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r set x 123\"\n    (\"uplevel\" body line 2)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "165",
+    "reproduction": [
+      "unit/scripting",
+      "allow-oom shebang flag",
+      [
+        "allow-oom shebang flag"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R106",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "no-writes shebang flag",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 442,
+    "detail": "no-writes shebang flag in tests/unit/scripting.tcl\nExpected 'ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'' to match 'ERR Write commands are not allowed from read-only scripts*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "166",
+    "reproduction": [
+      "unit/scripting",
+      "no-writes shebang flag",
+      [
+        "no-writes shebang flag"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R107",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "reject script do not cause a Lua stack leak",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 449,
+    "detail": "reject script do not cause a Lua stack leak in tests/unit/scripting.tcl\nExpected 'ERR Error compiling script (new function): user_script:1: unexpected symbol near '#'' to match 'OOM *' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "167",
+    "reproduction": [
+      "unit/scripting",
+      "reject script do not cause a Lua stack leak",
+      [
+        "reject script do not cause a Lua stack leak"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R108",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "Consistent eval error reporting",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 451,
+    "detail": "Consistent eval error reporting in tests/unit/scripting.tcl\nExpected '' to be equal to 'count=1' (context: type eval line 8 cmd {assert_equal [errorrstat OOM r] {count=1}} proc ::test)",
+    "isolation_case": "168",
+    "reproduction": [
+      "unit/scripting",
+      "Consistent eval error reporting",
+      [
+        "Consistent eval error reporting"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R109",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "LUA redis.error_reply API",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 453,
+    "detail": "LUA redis.error_reply API in tests/unit/scripting.tcl\nExpected 'ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: 3e3507c13000ce9b51af6e26535ccacbc85ef4ed, on @user_script:1.' to match 'MY_ERR_CODE custom msg' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "more-009",
+    "reproduction": [
+      "unit/scripting",
+      "LUA redis.error_reply API",
+      [
+        "LUA redis.error_reply API"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R110",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "LUA redis.error_reply API with empty string",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 455,
+    "detail": "LUA redis.error_reply API with empty string in tests/unit/scripting.tcl\nExpected 'ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: 518376e181edddde3cb891d6974d7dee28188a0c, on @user_script:1.' to match 'ERR' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "more-010",
+    "reproduction": [
+      "unit/scripting",
+      "LUA redis.error_reply API with empty string",
+      [
+        "LUA redis.error_reply API with empty string"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R111",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "LUA redis.error_reply API with CRLF injection attempt",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 457,
+    "detail": "LUA redis.error_reply API with CRLF injection attempt in tests/unit/scripting.tcl\nExpected 'ERR user_script:1: attempt to call field 'error_reply' (a nil value) script: dfd392635f8ca3df24b35f244b0938610d108f80, on @user_script:1.' to match 'ERR X  +INJECTED*' (context: type eval line 6 cmd {assert_match {ERR X  +INJECTED*} $err} proc ::test) ",
+    "isolation_case": "more-011",
+    "reproduction": [
+      "unit/scripting",
+      "LUA redis.error_reply API with CRLF injection attempt",
+      [
+        "LUA redis.error_reply API with CRLF injection attempt"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R112",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "LUA redis.status_reply API",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 459,
+    "detail": "LUA redis.status_reply API in tests/unit/scripting.tcl\nExpected '-ERR user_script:1: attempt to call field 'status_reply' (a nil value) script: 373a516d4632c6b3a34912ce13b0cd676459821d, on @user_script:1.' to be equal to '+MY_OK_CODE custom msg' (context: type eval line 4 cmd {assert_equal [\n            r eval {return redis.status_reply(\"MY_OK_CODE custom msg\")} 0\n        ] {+MY_OK_CODE custom msg}} proc ::test)",
+    "isolation_case": "more-012",
+    "reproduction": [
+      "unit/scripting",
+      "LUA redis.status_reply API",
+      [
+        "LUA redis.status_reply API"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R113",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "LUA test pcall with non string/integer arg",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 465,
+    "detail": "LUA test pcall with non string/integer arg in tests/unit/scripting.tcl\nExpected an error matching 'ERR Lua redis lib command arguments must be strings or integers*' but got '$97' (context: type eval line 2 cmd {assert_error \"ERR Lua redis lib command arguments must be strings or integers*\" {\n            r eval {\n                local x={}\n                return redis.call(\"ping\", x)\n            } 0\n        }} proc ::test)",
+    "isolation_case": "171",
+    "reproduction": [
+      "unit/scripting",
+      "LUA test pcall with non string/integer arg",
+      [
+        "LUA test pcall with non string/integer arg"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R114",
+    "mode": "2s",
+    "file": "unit/scripting",
+    "test": "EVAL - explicit error() call handling",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 469,
+    "detail": "EVAL - explicit error() call handling in tests/unit/scripting.tcl\nExpected an error matching 'ERR user_script:1: simple string error script: *' but got '-ERR Lua redis() command arguments must be strings or integers script: 50f092a30d9f8c7f6e75a0f6dd66db47644c1005, on @user_script:3.' (context: type eval line 3 cmd {assert_error {ERR user_script:1: simple string error script: *} {\n            r eval \"error('simple string error')\" 0\n        }} proc ::test)",
+    "isolation_case": "172",
+    "reproduction": [
+      "unit/scripting",
+      "EVAL - explicit error() call handling",
+      [
+        "EVAL - explicit error() call handling"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R115",
+    "mode": "2s",
+    "file": "unit/slowlog",
+    "test": "SLOWLOG - GET optional argument to limit output len works",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/slowlog.cc",
+    "event_index": 10,
+    "detail": "SLOWLOG - GET optional argument to limit output len works in tests/unit/slowlog.tcl\nExpected '10' to be equal to '12' (context: type eval line 4 cmd {assert_equal 10 [llength [r slowlog get -1]]} proc ::test)",
+    "isolation_case": "prefix-010",
+    "reproduction": [
+      "unit/slowlog",
+      "SLOWLOG - GET optional argument to limit output len works",
+      [
+        "SLOWLOG - check that it starts with an empty log",
+        "SLOWLOG - only logs commands taking more time than specified",
+        "SLOWLOG - zero max length is correctly handled",
+        "SLOWLOG - max entries is correctly handled",
+        "SLOWLOG - GET optional argument to limit output len works"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R116",
+    "mode": "2s",
+    "file": "unit/slowlog",
+    "test": "SLOWLOG - Rewritten commands are logged as their original command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/slowlog.cc",
+    "event_index": 20,
+    "detail": "SLOWLOG - Rewritten commands are logged as their original command in tests/unit/slowlog.tcl\nExpected 'blpop l 0' to be equal to '' (context: type eval line 45 cmd {assert_equal {blpop l 0} [lindex [lindex [r slowlog get] 0] 3]} proc ::test)",
+    "isolation_case": "177",
+    "reproduction": [
+      "unit/slowlog",
+      "SLOWLOG - Rewritten commands are logged as their original command",
+      [
+        "SLOWLOG - Rewritten commands are logged as their original command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R117",
+    "mode": "2s",
+    "file": "unit/slowlog",
+    "test": "SLOWLOG - EXEC is not logged, just executed commands",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/slowlog.cc",
+    "event_index": 26,
+    "detail": "SLOWLOG - EXEC is not logged, just executed commands in tests/unit/slowlog.tcl\nExpected '0' to be equal to '1' (context: type eval line 8 cmd {assert_equal [r slowlog len] 1} proc ::test)",
+    "isolation_case": "178",
+    "reproduction": [
+      "unit/slowlog",
+      "SLOWLOG - EXEC is not logged, just executed commands",
+      [
+        "SLOWLOG - EXEC is not logged, just executed commands"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R118",
+    "mode": "2s",
+    "file": "unit/slowlog",
+    "test": "SLOWLOG - get all slow logs",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/slowlog.cc",
+    "event_index": 34,
+    "detail": "SLOWLOG - get all slow logs in tests/unit/slowlog.tcl\nExpected '5' to be equal to '3' (context: type eval line 11 cmd {assert_equal [r slowlog len] 3} proc ::test)",
+    "isolation_case": "179",
+    "reproduction": [
+      "unit/slowlog",
+      "SLOWLOG - get all slow logs",
+      [
+        "SLOWLOG - get all slow logs"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R119",
+    "mode": "2s",
+    "file": "unit/slowlog",
+    "test": "SLOWLOG - blocking command is reported only after unblocked",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/slowlog.cc",
+    "event_index": 36,
+    "detail": "SLOWLOG - blocking command is reported only after unblocked in tests/unit/slowlog.tcl\nExpected '1' to be equal to '0' (context: type eval line 18 cmd {assert_equal 1 [llength [regexp -all -inline (?=BLPOP) [r slowlog get]]]} proc ::test)",
+    "isolation_case": "180",
+    "reproduction": [
+      "unit/slowlog",
+      "SLOWLOG - blocking command is reported only after unblocked",
+      [
+        "SLOWLOG - blocking command is reported only after unblocked"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R120",
+    "mode": "2s",
+    "file": "unit/sort",
+    "test": "SORT sorted set BY nosort works as expected from scripts",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/scripting.cc",
+    "event_index": 66,
+    "detail": "SORT sorted set BY nosort works as expected from scripts in tests/unit/sort.tcl\nd 'SORT' is not allowed from scripts script: 878266beec32a7d3361496ad4153a766c3890493, on @user_script:2.\nERR command 'SORT' is not allowed from scripts script: 878266beec32a7d3361496ad4153a766c3890493, on @user_script:2.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r eval {\n            return {redis.call('sort',KEYS[1],'by','nosort','asc'),\n                    redis.call('sort',KEYS[1],'by','nosort','desc')}\n    ...\"\n    (\"uplevel\" body line 8)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "181",
+    "reproduction": [
+      "unit/sort",
+      "SORT sorted set BY nosort works as expected from scripts",
+      [
+        "SORT sorted set BY nosort works as expected from scripts"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R121",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "The connection gets invalidation messages about all the keys",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 10,
+    "detail": "The connection gets invalidation messages about all the keys in tests/unit/tracking.tcl\nExpected a{t} eq {a{t} b{t} c{t}} (context: type eval line 4 cmd {assert {$keys eq {a{t} b{t} c{t}}}} proc ::test)",
+    "isolation_case": "prefix-011",
+    "reproduction": [
+      "unit/tracking",
+      "The connection gets invalidation messages about all the keys",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R122",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "Clients can enable the BCAST mode with prefixes",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 12,
+    "detail": "Clients can enable the BCAST mode with prefixes in tests/unit/tracking.tcl\nExpected b{t} c{t} eq {a:1{t} a:2{t} b:1{t} b:2{t}} (context: type eval line 17 cmd {assert {$keys eq {a:1{t} a:2{t} b:1{t} b:2{t}}}} proc ::test)",
+    "isolation_case": "184",
+    "reproduction": [
+      "unit/tracking",
+      "Clients can enable the BCAST mode with prefixes",
+      [
+        "Clients can enable the BCAST mode with prefixes"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R123",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "Invalidations of previous keys can be redirected after switching to RESP3",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 32,
+    "detail": "Invalidations of previous keys can be redirected after switching to RESP3 in tests/unit/tracking.tcl\nExpected otherkey2 eq {key1} (context: type eval line 8 cmd {assert {$res eq {key1}}} proc ::test)",
+    "isolation_case": "prefix-012",
+    "reproduction": [
+      "unit/tracking",
+      "Invalidations of previous keys can be redirected after switching to RESP3",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys",
+        "Clients can enable the BCAST mode with prefixes",
+        "Adding prefixes to BCAST mode works",
+        "Tracking NOLOOP mode in standard mode works",
+        "Tracking NOLOOP mode in BCAST mode works",
+        "Tracking gets notification of expired keys",
+        "Tracking gets notification of lazy expired keys",
+        "HELLO 3 reply is correct",
+        "HELLO without protover",
+        "RESP3 based basic invalidation",
+        "RESP3 tracking redirection",
+        "Invalidations of previous keys can be redirected after switching to RESP3"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R124",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "Invalidations of new keys can be redirected after switching to RESP3",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 34,
+    "detail": "Invalidations of new keys can be redirected after switching to RESP3 in tests/unit/tracking.tcl\nExpected mykey eq {key1} (context: type eval line 7 cmd {assert {$res eq {key1}}} proc ::test)",
+    "isolation_case": "prefix-013",
+    "reproduction": [
+      "unit/tracking",
+      "Invalidations of new keys can be redirected after switching to RESP3",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys",
+        "Clients can enable the BCAST mode with prefixes",
+        "Adding prefixes to BCAST mode works",
+        "Tracking NOLOOP mode in standard mode works",
+        "Tracking NOLOOP mode in BCAST mode works",
+        "Tracking gets notification of expired keys",
+        "Tracking gets notification of lazy expired keys",
+        "HELLO 3 reply is correct",
+        "HELLO without protover",
+        "RESP3 based basic invalidation",
+        "RESP3 tracking redirection",
+        "Invalidations of previous keys can be redirected after switching to RESP3",
+        "Invalidations of new keys can be redirected after switching to RESP3"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R125",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "Tracking only occurs for scripts when a command calls a read-only command",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 38,
+    "detail": "Tracking only occurs for scripts when a command calls a read-only command in tests/unit/tracking.tcl\n attempted to access an undeclared key script: 2a46f44468e85a68d476d3bcda9318ca658c8952, on @user_script:1.\nERR Script attempted to access an undeclared key script: 2a46f44468e85a68d476d3bcda9318ca658c8952, on @user_script:1.\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r EVAL \"redis.call('set', 'key3{t}', 'bar')\" 2 key1{t} key2{t} \"\n    (\"uplevel\" body line 7)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "prefix-014",
+    "reproduction": [
+      "unit/tracking",
+      "Tracking only occurs for scripts when a command calls a read-only command",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys",
+        "Clients can enable the BCAST mode with prefixes",
+        "Adding prefixes to BCAST mode works",
+        "Tracking NOLOOP mode in standard mode works",
+        "Tracking NOLOOP mode in BCAST mode works",
+        "Tracking gets notification of expired keys",
+        "Tracking gets notification of lazy expired keys",
+        "HELLO 3 reply is correct",
+        "HELLO without protover",
+        "RESP3 based basic invalidation",
+        "RESP3 tracking redirection",
+        "Invalidations of previous keys can be redirected after switching to RESP3",
+        "Invalidations of new keys can be redirected after switching to RESP3",
+        "Invalid keys should not be tracked for scripts in NOLOOP mode",
+        "Tracking only occurs for scripts when a command calls a read-only command"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R126",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 40,
+    "detail": "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated in tests/unit/tracking.tcl\nExpected 'OK' to be equal to 'message __redis__:invalidate key1' (context: type eval line 6 cmd {assert_equal OK [$rd_redirection read]} proc ::test)",
+    "isolation_case": "prefix-015",
+    "reproduction": [
+      "unit/tracking",
+      "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys",
+        "Clients can enable the BCAST mode with prefixes",
+        "Adding prefixes to BCAST mode works",
+        "Tracking NOLOOP mode in standard mode works",
+        "Tracking NOLOOP mode in BCAST mode works",
+        "Tracking gets notification of expired keys",
+        "Tracking gets notification of lazy expired keys",
+        "HELLO 3 reply is correct",
+        "HELLO without protover",
+        "RESP3 based basic invalidation",
+        "RESP3 tracking redirection",
+        "Invalidations of previous keys can be redirected after switching to RESP3",
+        "Invalidations of new keys can be redirected after switching to RESP3",
+        "Invalid keys should not be tracked for scripts in NOLOOP mode",
+        "Tracking only occurs for scripts when a command calls a read-only command",
+        "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R127",
+    "mode": "2s",
+    "file": "unit/tracking",
+    "test": "Different clients using different protocols can track the same key",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/net (client tracking)",
+    "event_index": 44,
+    "detail": "Different clients using different protocols can track the same key in tests/unit/tracking.tcl\nExpected  eq {key1} (context: type eval line 16 cmd {assert {$res1 eq {key1}}} proc ::test)",
+    "isolation_case": "prefix-016",
+    "reproduction": [
+      "unit/tracking",
+      "Different clients using different protocols can track the same key",
+      [
+        "Clients are able to enable tracking and redirect it",
+        "The other connection is able to get invalidations",
+        "The client is now able to disable tracking",
+        "Clients can enable the BCAST mode with the empty prefix",
+        "The connection gets invalidation messages about all the keys",
+        "Clients can enable the BCAST mode with prefixes",
+        "Adding prefixes to BCAST mode works",
+        "Tracking NOLOOP mode in standard mode works",
+        "Tracking NOLOOP mode in BCAST mode works",
+        "Tracking gets notification of expired keys",
+        "Tracking gets notification of lazy expired keys",
+        "HELLO 3 reply is correct",
+        "HELLO without protover",
+        "RESP3 based basic invalidation",
+        "RESP3 tracking redirection",
+        "Invalidations of previous keys can be redirected after switching to RESP3",
+        "Invalidations of new keys can be redirected after switching to RESP3",
+        "Invalid keys should not be tracked for scripts in NOLOOP mode",
+        "Tracking only occurs for scripts when a command calls a read-only command",
+        "RESP3 Client gets tracking-redir-broken push message after cached key changed when rediretion client is terminated",
+        "Different clients can redirect to the same connection",
+        "Different clients using different protocols can track the same key"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R128",
+    "mode": "2s",
+    "file": "unit/type/stream-cgroups",
+    "test": "PEL NACK reassignment after XGROUP SETID event",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream_groups.cc",
+    "event_index": 32,
+    "detail": "PEL NACK reassignment after XGROUP SETID event in tests/unit/type/stream-cgroups.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r xgroup setid events g1 -\"\n    (\"uplevel\" body line 11)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "209",
+    "reproduction": [
+      "unit/type/stream-cgroups",
+      "PEL NACK reassignment after XGROUP SETID event",
+      [
+        "PEL NACK reassignment after XGROUP SETID event"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R129",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XRANGE exclusive ranges",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 50,
+    "detail": "XRANGE exclusive ranges in tests/unit/type/stream.tcl\nExpected '{0-1 {foo bar}} {0-18446744073709551615 {foo bar}} {1-0 {foo bar}} {42-0 {foo bar}} {42-42 {foo bar}} {18446744073709551615-18446744073709551614 {foo bar}} {18446744073709551615-18446744073709551615 {foo bar}}' to match 'ERR*' (context: type eval line 18 cmd {assert_match {ERR*} $e} proc ::test) ",
+    "isolation_case": "212",
+    "reproduction": [
+      "unit/type/stream",
+      "XRANGE exclusive ranges",
+      [
+        "XRANGE exclusive ranges"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R130",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element from non-empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 66,
+    "detail": "XREAD last element from non-empty stream in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD STREAMS lestream +\"\n    (\"uplevel\" body line 11)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "213",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element from non-empty stream",
+      [
+        "XREAD last element from non-empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R131",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element from empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 68,
+    "detail": "XREAD last element from empty stream in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD STREAMS lestream +\"\n    (\"uplevel\" body line 8)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "214",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element from empty stream",
+      [
+        "XREAD last element from empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R132",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element blocking from empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 70,
+    "detail": "XREAD last element blocking from empty stream in tests/unit/type/stream.tcl\nno blocked clients",
+    "isolation_case": "215",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element blocking from empty stream",
+      [
+        "XREAD last element blocking from empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R133",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element blocking from non-empty stream",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 72,
+    "detail": "XREAD last element blocking from non-empty stream in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD BLOCK 1000000 STREAMS lestream +\"\n    (\"uplevel\" body line 11)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "216",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element blocking from non-empty stream",
+      [
+        "XREAD last element blocking from non-empty stream"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R134",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element from multiple streams",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 74,
+    "detail": "XREAD last element from multiple streams in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD STREAMS \"\\{lestream\\}1\" \"\\{lestream\\}2\" \"\\{lestream\\}3\" + + +\"\n    (\"uplevel\" body line 18)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "217",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element from multiple streams",
+      [
+        "XREAD last element from multiple streams"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R135",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD last element with count > 1",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 76,
+    "detail": "XREAD last element with count > 1 in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD COUNT 3 STREAMS lestream +\"\n    (\"uplevel\" body line 11)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "218",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD last element with count > 1",
+      [
+        "XREAD last element with count > 1"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R136",
+    "mode": "2s",
+    "file": "unit/type/stream",
+    "test": "XREAD: read last element after XDEL (issue #13628)",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_stream.cc",
+    "event_index": 78,
+    "detail": "XREAD: read last element after XDEL (issue #13628) in tests/unit/type/stream.tcl\nd stream ID specified as stream command argument\nERR Invalid stream ID specified as stream command argument\n    while executing\n\"[srv $level \"client\"] {*}$args\"\n    (procedure \"r\" line 7)\n    invoked from within\n\"r XREAD STREAMS stream +\"\n    (\"uplevel\" body line 11)\n    invoked from within\n\"uplevel 1 $code\"",
+    "isolation_case": "219",
+    "reproduction": [
+      "unit/type/stream",
+      "XREAD: read last element after XDEL (issue #13628)",
+      [
+        "XREAD: read last element after XDEL (issue #13628)"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R137",
+    "mode": "2s",
+    "file": "unit/type/zset",
+    "test": "ZMPOP with illegal argument",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_zset.cc",
+    "event_index": 440,
+    "detail": "ZMPOP with illegal argument in tests/unit/type/zset.tcl\nExpected 'ERR value is not an integer or out of range' to match 'ERR count*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "224",
+    "reproduction": [
+      "unit/type/zset",
+      "ZMPOP with illegal argument",
+      [
+        "ZMPOP with illegal argument"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R138",
+    "mode": "2s",
+    "file": "unit/type/zset",
+    "test": "BZMPOP with illegal argument",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_zset.cc",
+    "event_index": 570,
+    "detail": "BZMPOP with illegal argument in tests/unit/type/zset.tcl\nExpected 'ERR value is not an integer or out of range' to match 'ERR numkeys*' (context: type source line 89 file /home/user/Projects/cx-harness5/build/harness5-tcl/2s/checkout/tests/support/test.tcl cmd {assert_match $pattern $error $detail} proc ::assert_error level 1) ",
+    "isolation_case": "225",
+    "reproduction": [
+      "unit/type/zset",
+      "BZMPOP with illegal argument",
+      [
+        "BZMPOP with illegal argument"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  },
+  {
+    "id": "R139",
+    "mode": "1s",
+    "file": "unit/type/zset",
+    "test": "BZMPOP with multiple blocked clients",
+    "category": "REAL compatibility defect",
+    "reason": "Same selected upstream case fails on TomoKV and passes on Redis 7.4.10.",
+    "subsystem": "src/cmd/t_zset.cc",
+    "event_index": 572,
+    "detail": "BZMPOP with multiple blocked clients in tests/unit/type/zset.tcl\nExpected 'myzset{t} {{a 1}}' to be equal to 'myzset2{t} {{a 1}}' (context: type eval line 22 cmd {assert_equal {myzset{t} {{a 1}}} [$rd1 read]} proc ::test)",
+    "isolation_case": "extra-000",
+    "reproduction": [
+      "unit/type/zset",
+      "BZMPOP with multiple blocked clients",
+      [
+        "BZMPOP with multiple blocked clients"
+      ]
+    ],
+    "oracle_isolated": [
+      "ok"
+    ]
+  }
+]

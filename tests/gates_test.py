@@ -348,7 +348,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/redis_tcl_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -1419,13 +1419,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
         self.assertEqual(result['counts'], (len(self.canonical) - 1, 1), result['output'])
         self.assertIn(b'FAIL\tcorrectness family release\n', result['ledger'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'})
         self.assertCountEqual(result['completion'], [name for name in self.canonical if name != 'release'])
 
     def test_release_boots_do_not_wait_for_independent_asan_build(self):
         result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build', 'redis_tcl'})
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertTrue(result['dependency_reached'], result['output'])
         self.assertTrue(result['dependency_handshake'], result['output'])

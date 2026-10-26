@@ -1,0 +1,67 @@
+{
+  "argv": [
+    "tests/gate_measurements.py",
+    "--self-test"
+  ],
+  "affinity": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "seconds": 3.5149762388318777,
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_calibration_import_replays_evidence_and_rejects_mutations",
+      "seconds": 1.1656490648165345
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_fast_calibration_import_is_pin_only_and_replays_every_rung",
+      "seconds": 1.1045868778601289
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_geometry_changes_invalidate",
+      "seconds": 0.02971036732196808
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_historical_unknown_geometry_cannot_pin",
+      "seconds": 0.029661687090992928
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_optional_axes_round_trip_floor_and_ceiling_data",
+      "seconds": 0.6912130294367671
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_ratio_has_no_core_count_fallback",
+      "seconds": 0.029852645471692085
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_reference_digest_mutation_fails",
+      "seconds": 0.030429227277636528
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_shape_changes_invalidate_every_axis",
+      "seconds": 0.055102032609283924
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_unknown_fields_and_missing_provenance_fail",
+      "seconds": 0.11184708215296268
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_value_sizes_cannot_share_a_load_floor",
+      "seconds": 0.055424547754228115
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_variance_pin_schema_rejects_hand_edited_count_limits_and_evidence",
+      "seconds": 0.15821012388914824
+    },
+    {
+      "test": "__main__.self_test.<locals>.Measurements.test_workload_code_change_invalidates_unchanged_cell_flags",
+      "seconds": 0.0300971120595932
+    }
+  ]
+}

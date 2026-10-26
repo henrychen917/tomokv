@@ -53,7 +53,9 @@ def main():
     marker = 'if {$::client} {\n    if {[catch { test_client_main'
     helper.write_text(helper.read_text().replace(marker, TRACE + '\n' + marker, 1))
     cases = json.loads(options.cases.read_text())
-    for i, (unit, name) in enumerate(cases):
+    for i, case in enumerate(cases):
+        unit, name = case[:2]
+        selected_names = case[2] if len(case) > 2 else [name]
         results = {}
         for mode, binary in [('2s', ROOT / 'build/tomokv'),
                              ('redis', Path('/home/user/Projects/redis/src/redis-server'))]:
@@ -61,11 +63,12 @@ def main():
             args = argparse.Namespace(output=output, binary=binary, mode=mode, cores=options.cores,
                 port=options.port, baseport=options.baseport, idle_timeout=15, file_timeout=35)
             saved = output / unit / 'result.json'
-            row = json.loads(saved.read_text()) if saved.exists() else suite.run_file(args, tree, unit, only=[name])
+            row = json.loads(saved.read_text()) if saved.exists() else suite.run_file(args, tree, unit, only=selected_names)
             selected = [e for e in row['events'] if e['status'] in ('ok', 'err') and
                         e['test'] == name + ' in tests/' + unit + '.tcl']
             results[mode] = dict(selected=selected, error=row['error'], exit_code=row['exit_code'])
-        (base / f'{i:03}' / 'comparison.json').write_text(json.dumps(dict(file=unit, test=name, results=results), indent=2)+'\n')
+        (base / f'{i:03}' / 'comparison.json').write_text(json.dumps(dict(file=unit, test=name,
+            selected_names=selected_names, results=results), indent=2)+'\n')
         print(i, unit, name, {m:[e['status'] for e in r['selected']] for m,r in results.items()}, flush=True)
 
 if __name__ == '__main__': main()
