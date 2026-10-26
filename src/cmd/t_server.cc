@@ -16,6 +16,7 @@
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
+#include "latency_tracking.h"
 #include "../base/alloc.h"
 #include "../core/genthread.h"
 #include "../core/server.h"
@@ -3006,6 +3007,17 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(rejected_calls));
         }
     }
+    if (info_section(op, "LATENCYSTATS", false)) {
+        std::vector<double> percentiles;
+        {
+            std::lock_guard lock(g_config_mu);
+            const auto* value = find_config(Slice("latency-tracking-info-percentiles"));
+            const char* error = nullptr;
+            if (value) cfg_latency_percentiles(Slice(value->value.data(), value->value.size()),
+                                              percentiles, error);
+        }
+        latency_tracking_info(body, percentiles, g_server && g_server->latency_tracking());
+    }
     if (info_section(op, "CLUSTER")) body += "# Cluster\r\ncluster_enabled:0\r\n";
     if (want_keyspace) {
         body += "# Keyspace\r\n";
@@ -3383,6 +3395,7 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
+    latency_tracking_reset();
     query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
     // that only their owner may write. INFO subtracts this baseline. The reads here are the same

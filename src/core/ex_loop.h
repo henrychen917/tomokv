@@ -1640,6 +1640,8 @@ private:
                                                         : kForeignTouchNone;
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_arm_.latency_tracking = snapshot.latency_tracking;
+        latency_tracking_bind(snapshot.latency_tracking, &slowlog_state_.escalate_batches);
         slowlog_armed_ = slowlog_arm_.armed();
         debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;

@@ -25,7 +25,8 @@ struct SlowlogArm {
     int64_t  slowlog_us = -1;
     // Milliseconds. 0 means the latency monitor is disabled.
     uint32_t latency_ms = 0;
-    bool armed() const { return slowlog_us >= 0 || latency_ms != 0; }
+    bool latency_tracking = false; // existing padding; no SlowlogArm size change
+    bool armed() const { return slowlog_us >= 0 || latency_ms != 0 || latency_tracking; }
 };
 
 // Redis truncation rules for a logged command: at most 32 arguments, at most 128 bytes each.
@@ -100,6 +101,24 @@ void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const Slo
 // Called only from the armed arm of the executor batch loop.
 void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64_t duration_ns,
                     int64_t now_ms, const SlowlogArm& arm, bool exact);
+
+// Chosen only at a committed configuration boundary. Replaces an existing call,
+// rather than adding an off-state predicate to a command's execution path.
+// constinit suppresses an implicit TLS initialization guard at every call site.
+using SlowlogRecorder = decltype(&slowlog_record);
+extern thread_local constinit SlowlogRecorder slowlog_recorder;
+void latency_tracking_bind(bool enabled, uint32_t* escalation = nullptr);
+
+uint64_t latency_tracking_start();
+void latency_tracking_finish(uint32_t executor, const Op& op, uint64_t started);
+struct LatencyTrackingScope {
+    uint32_t executor;
+    const Op& op;
+    uint64_t started;
+    LatencyTrackingScope(uint32_t owner, const Op& command)
+        : executor(owner), op(command), started(latency_tracking_start()) {}
+    ~LatencyTrackingScope() { latency_tracking_finish(executor, op, started); }
+};
 
 // How many batches stay in per-op timing after an overrun.
 inline constexpr uint32_t kSlowlogEscalateBatches = 64;

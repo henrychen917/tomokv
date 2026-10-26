@@ -3684,7 +3684,7 @@ subscriber_checks_done:
                         if (__builtin_expect(slowlog_armed_, false)) {
                             timespec wall{};
                             ::clock_gettime(CLOCK_REALTIME, &wall);
-                            slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                            slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                            static_cast<int64_t>(wall.tv_sec) * 1000 +
                                                wall.tv_nsec / 1000000,
                                            slowlog_arm_, true);
@@ -3761,7 +3761,7 @@ subscriber_checks_done:
                 if (__builtin_expect(slowlog_armed_, false)) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                    slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
                                    slowlog_arm_, true);
@@ -4729,7 +4729,7 @@ ordinary_shard_ready:
                 if (timer.slowlog_arm.armed()) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_->id(), client->id(), op,
+                    slowlog_recorder(self_->id(), client->id(), op,
                                    now_ns() - timer.slow_started_ns,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
@@ -4927,6 +4927,8 @@ ordinary_shard_ready:
         // Same snapshot, same pass, no extra load.
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
+        slowlog_arm_.latency_tracking = snapshot.latency_tracking;
+        latency_tracking_bind(snapshot.latency_tracking);
         slowlog_armed_ = slowlog_arm_.armed();
         if (srv_->read_local_enabled()) {
             fused_executor_->set_read_local_point_writes_precise(

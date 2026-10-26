@@ -2442,7 +2442,7 @@ subscriber_checks_done:
                     if (__builtin_expect(slowlog_armed_, false)) {
                         timespec wall{};
                         ::clock_gettime(CLOCK_REALTIME, &wall);
-                        slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                        slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                        static_cast<int64_t>(wall.tv_sec) * 1000 +
                                            wall.tv_nsec / 1000000,
                                        slowlog_arm_, true);
@@ -2522,7 +2522,7 @@ subscriber_checks_done:
             if (__builtin_expect(slowlog_armed_, false)) {
                 timespec wall{};
                 ::clock_gettime(CLOCK_REALTIME, &wall);
-                slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                slowlog_recorder(self_id, c->id(), *op, now_ns() - slow_started,
                                static_cast<int64_t>(wall.tv_sec) * 1000 +
                                    wall.tv_nsec / 1000000,
                                slowlog_arm_, true);

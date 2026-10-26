@@ -4,6 +4,7 @@
 // owner, so Lua and every redis.call handler obey the ownership law without locks around a shard.
 // The cache is the only cross-thread scripting object and is protected independently of shard data.
 #include "command.h"
+#include "slowlog.h"
 #include "cmdmeta.h"
 #include "auth.h"
 #include "notify.h"
@@ -651,6 +652,8 @@ int redis_dispatch(lua_State* state, bool protected_call) {
                     reply_maxmemory_oom(nested);
                 } else {
                     if (logical_write) context->persistence_write_started = true;
+                    const uint32_t executor = server ? server->worker_of_shard(context->shard->id()) : 0;
+                    LatencyTrackingScope latency(executor, nested);
                     spec->handler(*context->shard, nested);
                 }
                 if (context->notify)

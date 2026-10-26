@@ -1525,6 +1525,7 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
     {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
             &state.decision.aborted, &state.watch_refs, state.client);
+        LatencyTrackingScope latency(owner_thread_id, *command.op);
         if (shard.has_watches()) watch_execute_handler(shard, *command.op);
         else command.op->spec->handler(shard, *command.op);
     }
@@ -1549,6 +1550,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             {
         WatchMutationScope watch_scope(shard, &state, &state.decision.epoch,
             &state.decision.aborted, &state.watch_refs, state.client);
+        LatencyTrackingScope latency(owner_thread_id, *command.op);
         if (shard.has_watches()) watch_execute_handler(shard, *command.op);
         else command.op->spec->handler(shard, *command.op);
     }

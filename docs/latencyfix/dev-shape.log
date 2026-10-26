@@ -1,0 +1,44 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 136, in shape
+    all_rows = dict(histogram(c, protocol=protocol))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 41, in histogram
+    assert key in {(2 ** n - 1) // 1000 for n in range(10, 32)}, bins
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [(1, 2), (8, 4), (16, 7), (33, 8)]
+FAIL redis-redis complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 134, in shape
+    assert rows, selector
+           ^^^^
+AssertionError: client
+FAIL 1s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 134, in shape
+    assert rows, selector
+           ^^^^
+AssertionError: client
+FAIL 1s-epoll complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 134, in shape
+    assert rows, selector
+           ^^^^
+AssertionError: client
+FAIL 2s-uring complete battery False
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 272, in main
+    probe(run, mode, label, [] if oracle else ['--net-io', engine])
+  File "/home/user/Projects/cx-latencyfix/tests/latencyfix.py", line 134, in shape
+    assert rows, selector
+           ^^^^
+AssertionError: client
+FAIL 2s-epoll complete battery False
+LAT-HIST-1 shape: 5 failed checks; /home/user/Projects/cx-latencyfix/build/latencyfix/dev-shape

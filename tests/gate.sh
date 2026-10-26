@@ -3191,6 +3191,33 @@ job_serverfix_scalar(){
       && ok "$label" || bad "$label" "see $TMPDIR/serverfix-scalar.log"
 }
 
+# LAT-HIST-1: three rows, each both modes / both engines plus the Redis oracle.
+# Collected before the quick exit; DQ=DF=+3. EXPECT values remain owner-owned.
+job_latencyfix_grammar(){
+  local label="latencyfix LAT-HIST-1 knob grammar"
+  row_begin "$label"
+  py tests/latencyfix.py --case grammar --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-grammar" \
+      >"$TMPDIR/latencyfix-grammar.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-grammar.log"
+}
+job_latencyfix_shape(){
+  local label="latencyfix LAT-HIST-1 histogram and latencystats"
+  row_begin "$label"
+  py tests/latencyfix.py --case shape --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-shape" \
+      >"$TMPDIR/latencyfix-shape.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-shape.log"
+}
+job_latencyfix_off(){
+  local label="latencyfix LAT-HIST-1 zero allocations off"
+  row_begin "$label"
+  py tests/latencyfix.py --case off --binary "$CANDIDATE_BINARY" --oracle "$REDIS74_ROOT/src/redis-server" \
+      --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" --output "$TMPDIR/latencyfix-off" \
+      >"$TMPDIR/latencyfix-off.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/latencyfix-off.log"
+}
+
 job_serverfix_config(){
   local label="serverfix SV4.6 CONFIG validation matrix"
   row_begin "$label"
@@ -5522,6 +5549,9 @@ collect_job auth
 collect_job authfix
 collect_job serverfix_lines
 collect_job serverfix_scalar
+collect_job latencyfix_grammar
+collect_job latencyfix_shape
+collect_job latencyfix_off
 collect_job serverfix_config
 collect_job serverfix_hello
 collect_job serverfix_waitaof
