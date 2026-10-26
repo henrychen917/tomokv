@@ -984,6 +984,7 @@ job_body(){
     aof-*) job_aof "$name";;
     txnorder2) job_txnorder2;;
     txnorder_wake) job_txnorder_wake;;
+    at412-*) job_at412 "${name#at412-}";;
     txnorder-*) job_txnorder "$name";;
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
@@ -1129,6 +1130,7 @@ plan_jobs(){
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
   JOB_NAMES+=(flipctl)
+  for section in T1 T2 T3 T4 T5 T6 T11a T11b T12; do JOB_NAMES+=("at412-$section"); done
   local resp_case resp_engine
   for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
     for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
@@ -3121,6 +3123,15 @@ job_txnorder2(){
     done; done; done; done
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*.log"
   done
+}
+
+job_at412(){
+  local case=$1 label="at412 $1"
+  row_begin "$label"
+  py tests/at412.py --case "$case" --binary "$CANDIDATE_BINARY" \
+      --oracle "$REDIS74_ROOT/src/redis-server" --cores "$CORES" --port "$PORT" \
+      --output "$TMPDIR/at412-$case" >"$TMPDIR/at412-$case.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/at412-$case.log"
 }
 
 job_script_bounds(){
@@ -5554,6 +5565,7 @@ for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done
 
 collect_job script_bounds
 collect_job scriptfix
+for AT412_CASE in T1 T2 T3 T4 T5 T6 T11a T11b T12; do collect_job "at412-$AT412_CASE"; done
 
 collect_job efficiency
 
