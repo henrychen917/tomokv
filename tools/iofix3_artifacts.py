@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Offline WB4.1 linked-body identity and exact-layout kind-A control."""
 import argparse
+import contextlib
 import difflib
 import gzip
+import io
 import json
 from pathlib import Path
 import sys
@@ -62,13 +64,17 @@ def pad(args):
     # Force work=1 on deferral: PRE never reaches pending-FIFO grace/parking.
     sys.argv = ['iofix_pad.py', '--pre', str(args.pre), '--post', str(args.post),
                 '--output', str(args.output), '--receipt', str(args.receipt)]
-    iofix_pad.main()
+    # The shared patcher's historical description names the earlier four-feature
+    # lane. Publish the WB4.1-only description below for this control.
+    with contextlib.redirect_stdout(io.StringIO()):
+        iofix_pad.main()
     receipt = json.loads(args.receipt.read_text())
     receipt.update(kind='A: PRE deferred-work behaviour with exact POST ELF/text layout',
                    scope='WB4.1 is the only production behaviour changed from 3700b51d7',
                    limitation='POST grace bookkeeping remains but cannot trigger a pending-FIFO park; no other feature differs',
                    baseline='3700b51d7fb3074f32330dd81f138efbf1ddd980')
     args.receipt.write_text(json.dumps(receipt, indent=2) + '\n')
+    print(json.dumps({key: value for key, value in receipt.items() if key != 'patches'}, indent=2))
 
 
 if __name__ == '__main__':
