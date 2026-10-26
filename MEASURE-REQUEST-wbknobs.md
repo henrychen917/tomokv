@@ -3,9 +3,10 @@ TomoKV wbknobs — owner handoff, 2026-10-09
 The measured S=16 / D=3 completion bounds are now boot-only knobs. The production
 default remains the landed bounded hybrid, and `--wb-small-pipe 0` selects the
 plain half rule in the same executable. The half fraction remains compiled.
-Performance acceptance is **PENDING mainline measurement**. This lane built the
-artifacts and ran serverless witnesses/instruction traces; it did not start a
-server, load generator, benchmark, differ, or gate.
+The maintainer subsequently accepted the landing on 2026-10-09. The historical
+measurements and their limits are transcribed in **MEASURE-RESULT** below; they
+are not a performance certification of the current binary. The original lane
+built artifacts and ran serverless witnesses/instruction traces.
 
 **Knob contract.** Configuration-file names and CLI spellings are identical
 apart from the CLI `--` prefix. Both use the existing Redis-style canonical
@@ -278,3 +279,34 @@ multi
 Append the measured verdict and artifact paths to this worktree as
 `MEASURE-RESULT`. No throughput, latency parity, or merit PASS is claimed by the
 offline receipts.
+
+
+## MEASURE-RESULT — historical maintainer record, transcribed 2026-10-26
+
+WB4.8 correction. [Retained source excerpts](docs/harness5/historical-claim-sources.json)
+bind the source document bytes and line ranges. PLAN-SERIAL.md's 2026-10-09
+15:35 entry says **“CLEAN default null”** for POST `d5c64375` against headline
+`dab740964`: all 14 **fused (1s)** generic cells were within the declared 2.5%
+quiet / 5.0% noisy bands. This does not cover the shipped split mode.
+
+The 16:13–16:17 entry reports one same-binary A/B/B/A block on CPUs 0–31
+(server), 32–111 (load), 1s, pipeline 8. A used S=0 (half rule); B used S=16,
+D=3. POST's full digest is
+`d5c64375fb4e7e445cdfb96d3fd2306c489921391617b9ecf4751128b3155d89`
+([original binary manifest](docs/wbknobs/binaries.json)).
+
+| Cell | Half rule | Default 16/3 | Recorded difference |
+|---|---:|---:|---:|
+| GET throughput, Mops/s | 14.83 | 16.13 | +8.72% |
+| SET throughput, Mops/s | 14.79 | 15.96 | +7.90% |
+| GET commands/send | 6.56 | 7.81 | +18.9% |
+| SET commands/send | 6.57 | 7.80 | +18.7% |
+
+The entry explicitly records **“rc=3 = PARTIAL”** because the standing null
+was instrument-untrusted. The maintainer authorized landing; the 17:55 entry
+records **“gate 521/521 rows 0 FAIL”**, landed commit `6b50f447f`.
+These are transcribed historical observations, not a new replay of raw
+measurements, independent-null certification, a split-mode result, or a
+universal merit claim. The removed `build/wbknobs/PRE-src` inputs prevent
+reproducing the old code-cost tool from this checkout alone. Existing offline
+receipts retain their original, narrower meaning.
