@@ -1667,11 +1667,16 @@ job_compat2(){
   for case in autharity expire_notify ktls_lifetime; do
     row_begin "compat2 $case"
     failed=0
-    local extra=()
+    local extra=() detail="see $TMPDIR/compat2-$case-*.log"
     if [ "$case" = autharity ]; then
       # The private Tcl job is a prerequisite of this existing compatibility
       # verdict. Missing/failed/unreached subsets cannot disappear from the gate.
-      [ -f "$RUN_DIR/unit-ready/redis-tcl" ] || failed=1
+      # Its two private rows are never collected, so show them here on failure.
+      if [ ! -f "$RUN_DIR/unit-ready/redis-tcl" ]; then
+        failed=1
+        detail="Redis 7.4.10 Tcl passing subset did not pass; see $RUN_DIR/jobs/redis_tcl and $detail"
+        cat "$RUN_DIR/jobs/redis_tcl/output.log" 2>/dev/null || :
+      fi
       extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$GATE_DIFFER_ORACLE_CORES")
     elif [ "$case" = expire_notify ]; then
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
@@ -1692,7 +1697,7 @@ job_compat2(){
           >"$TMPDIR/compat2-$case-$mode-$engine.log" 2>&1 || failed=1
     done; done
     if [ "$failed" = 0 ]; then ok "compat2 $case";
-    else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
+    else bad "compat2 $case" "$detail"; fi
   done
 }
 
