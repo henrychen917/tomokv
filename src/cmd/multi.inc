@@ -3266,6 +3266,7 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                 if (found == watch_reservations_.end()) return;
                 bool wounded = false;
                 for (const auto& holder : found->second) {
+        TOMO_TXN_REGISTRY_VISIT();
                     if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
                     if (holder.entry_kind == 2) {
                         // A' writer episodes: only arrivals after the episode wait.
@@ -3314,7 +3315,7 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
             auto found = watch_reservations_.find(key.key);
             bool exists = false;
             if (found != watch_reservations_.end()) {
-                for (auto& r : found->second) if (r.token == unit.token && r.entry_kind >= 1) {
+                for (auto& r : found->second) if ((TOMO_TXN_REGISTRY_VISIT(), r.token == unit.token) && r.entry_kind >= 1) {
                     r.entry_kind = ready ? 1 : 3;
                     r.blocking = ready;
                     r.unit_mode = static_cast<uint8_t>(key.mode);
@@ -3346,6 +3347,7 @@ void Shard::watch_promote_unit_waiter(const std::string& key,
     if (found == watch_reservations_.end()) return;
     const WatchReservation* oldest = nullptr;
     for (const auto& waiter : found->second) {
+        TOMO_TXN_REGISTRY_VISIT();
         if (waiter.entry_kind != 3 || !waiter.unit_kind || !txn_reservation_live(waiter)) continue;
         if (!oldest || txn_version_before(txn_unit_view(waiter), txn_unit_view(*oldest)))
             oldest = &waiter;
@@ -3432,6 +3434,7 @@ void Shard::watch_writer_forget(const void* token) {
 void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
     const auto check = [&](const auto& entries) {
         for (const auto& r : entries) {
+        TOMO_TXN_REGISTRY_VISIT();
             if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
             const auto unit = txn_unit_view(r);
             if (unit.age_ns <= stamp ||
@@ -3466,6 +3469,7 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
         WatchReservation& reservation = list[i];
+        TOMO_TXN_REGISTRY_VISIT();
         if (reservation.entry_kind == 2) {
             if (keep != i) list[keep] = reservation;
             ++keep;
@@ -3619,6 +3623,7 @@ bool Shard::watch_key_ready(const std::string& owned, const void* token, bool al
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
     for (const auto& r : found->second) {
+        TOMO_TXN_REGISTRY_VISIT();
         if (r.token == token || !r.blocking || !txn_reservation_live(r)) continue;
         if (r.entry_kind != 1 || all_units) return false;
         if (r.unit_kind == 1) {
