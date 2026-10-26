@@ -1,0 +1,341 @@
+{
+  "candidate_sha256": "257d6ee619d33eeaffbb6fa55cd30b9880a37fc873f01d467c9469519dbf36d0",
+  "engines": {
+    "uring": {
+      "parts": [
+        {
+          "part": "split-0",
+          "run": "gate-run.mZt5Ma",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22
+          ],
+          "comparisons": 282,
+          "pass_checks": 282,
+          "fail_checks": 0,
+          "coverage_legs": 282,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1274348
+        },
+        {
+          "part": "split-1",
+          "run": "gate-run.mZt5Ma",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22
+          ],
+          "comparisons": 286,
+          "pass_checks": 286,
+          "fail_checks": 0,
+          "coverage_legs": 286,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1291628
+        },
+        {
+          "part": "armed-0",
+          "run": "gate-run.mZt5Ma",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22
+          ],
+          "comparisons": 276,
+          "pass_checks": 277,
+          "fail_checks": 0,
+          "coverage_legs": 276,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1246774
+        },
+        {
+          "part": "armed-1",
+          "run": "gate-run.mZt5Ma",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22
+          ],
+          "comparisons": 280,
+          "pass_checks": 281,
+          "fail_checks": 0,
+          "coverage_legs": 280,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1264132
+        },
+        {
+          "part": "equivalence",
+          "run": "gate-run.mZt5Ma",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            22
+          ],
+          "comparisons": 16,
+          "pass_checks": 1,
+          "fail_checks": 0
+        }
+      ],
+      "comparison_legs": 1124,
+      "mode_equivalence_cells": 16,
+      "pass_checks": 1127,
+      "fail_checks": 0
+    },
+    "epoll": {
+      "parts": [
+        {
+          "part": "split-0",
+          "run": "gate-run.2mXk2O",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "comparisons": 282,
+          "pass_checks": 282,
+          "fail_checks": 0,
+          "coverage_legs": 282,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1274862
+        },
+        {
+          "part": "split-1",
+          "run": "gate-run.2mXk2O",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "comparisons": 286,
+          "pass_checks": 286,
+          "fail_checks": 0,
+          "coverage_legs": 286,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1291683
+        },
+        {
+          "part": "armed-0",
+          "run": "gate-run.2mXk2O",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "comparisons": 276,
+          "pass_checks": 277,
+          "fail_checks": 0,
+          "coverage_legs": 276,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1246553
+        },
+        {
+          "part": "armed-1",
+          "run": "gate-run.h8f3BB",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            25
+          ],
+          "comparisons": 280,
+          "pass_checks": 281,
+          "fail_checks": 0,
+          "coverage_legs": 280,
+          "registered_commands": 245,
+          "compared_commands": 232,
+          "uncovered_commands": [
+            "BGREWRITEAOF",
+            "FLIP",
+            "HELLO",
+            "LOLWUT",
+            "MONITOR",
+            "QUIT",
+            "REPLICAOF",
+            "SHUTDOWN",
+            "SLAVEOF",
+            "TIME",
+            "UNWATCH",
+            "WATCH",
+            "ZREVRANGE"
+          ],
+          "comparison_witnesses": 1263666
+        },
+        {
+          "part": "equivalence",
+          "run": "gate-run.2mXk2O",
+          "seeds": [
+            7,
+            19,
+            20,
+            23,
+            21,
+            24
+          ],
+          "comparisons": 16,
+          "pass_checks": 1,
+          "fail_checks": 0
+        }
+      ],
+      "comparison_legs": 1124,
+      "mode_equivalence_cells": 16,
+      "pass_checks": 1127,
+      "fail_checks": 0
+    }
+  },
+  "failed_attempts": [
+    {
+      "engine": "uring",
+      "run": "gate-run.fs6Ox8",
+      "part": "split-0",
+      "leg": "climon-a0-s21.txt",
+      "reason": "control-listener bind EADDRINUSE; no comparison witness",
+      "retained_trace": "docs/latencyfix/differ-receipts/uring-failed-climon-a0-s21.txt"
+    },
+    {
+      "engine": "epoll",
+      "run": "gate-run.2mXk2O",
+      "part": "armed-1",
+      "leg": "climon-a1-s20.txt",
+      "reason": "control-listener bind EADDRINUSE; no comparison witness",
+      "retained_trace": "docs/latencyfix/differ-receipts/epoll-failed-climon-a1-s20.txt"
+    }
+  ]
+}

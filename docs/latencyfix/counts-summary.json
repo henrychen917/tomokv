@@ -244,5 +244,17 @@
     }
   ],
   "namespace": "tomo (normal database runtime); both executor thread modes",
-  "comparison": "POST median is no greater than PRE median in each of 24 scopes; this is not an all-command opcode-absence proof."
+  "comparison": "POST median is no greater than PRE median in each of 24 scopes; this is not an all-command opcode-absence proof.",
+  "witness_binaries": {
+    "PRE": {
+      "path": "build/latencyfix/pre/latencyfix-counts",
+      "sha256": "cfdbca4713e73be3e39f303c614632c5cd6359c2d3bbb3ddac1032aa81ca4100",
+      "results": "docs/latencyfix/counts-pre.jsonl"
+    },
+    "POST": {
+      "path": "build/latencyfix-counts",
+      "sha256": "43b472422b98301640876777ac8ece69b05725c2cfefb3648502289112395d45",
+      "results": "docs/latencyfix/counts-post.jsonl"
+    }
+  }
 }

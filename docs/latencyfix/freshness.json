@@ -432,5 +432,33 @@
     ],
     "returncode": 0,
     "output": ""
-  }
+  },
+  "additional_latency_witnesses": [
+    {
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/latencyfix_histogram.mk",
+        "-q",
+        "build/latencyfix-histogram-unit"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "tools/latencyfix_counts.mk",
+        "-q",
+        "build/latencyfix-counts"
+      ],
+      "returncode": 0,
+      "output": ""
+    }
+  ]
 }

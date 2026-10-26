@@ -17,7 +17,8 @@ significant decimal digits, integral-microsecond execution samples, Redis's
 logarithmic cumulative buckets, and metadata-resolved subcommand names.
 The implementation is original C++; production links no Redis code. The
 numeric witness alone links the reference HDR library and checks four
-distributions, 400,004 percentile queries and exact cumulative bucket output.
+distributions, 400,004 percentile queries and exact cumulative bucket output
+(`docs/latencyfix/histogram-numeric-final.log`).
 
 `latency-tracking yes|no` deliberately defaults to `no`, documented beside
 the config field and in `src/core/README.md` / `docs/CONFIGURATION.md`.
@@ -105,6 +106,31 @@ changed. The first failed attempt remains in `docs/latencyfix/gates-test.log`.
 Initial interrupted development runs are not counted as proof.
 Port-collision-only startup rerolls in the directed battery use fresh processes
 on the gate slot's three reserved ports; assertion failures are never retried.
+
+The standard differential jobs are complete on both engines, including both
+atomic settings, split and armed fused execution, the four additional seed-19
+MULTI repetitions, and the mode-equivalence job:
+
+| Engine | Comparison legs | Mode-equivalence cells | Failed comparisons in accepted runs |
+|---|---:|---:|---:|
+| uring | 1124 | 16 | 0 |
+| epoll | 1124 | 16 | 0 |
+
+Receipts: `docs/latencyfix/differ-proof.json` and `differ-receipts/` retain each
+standard plan, seed list, completion artifact, command coverage and log.
+The uring matrix used seeds `7 19 20 23 21 22`. The original epoll matrix used
+`7 19 20 23 21 24`; its fused/atomic-1 replacement used the next standard plan,
+`7 19 20 23 21 25`. Each engine's accepted jobs report 1127 passing checks,
+including two read-local engagement checks and the aggregate equivalence check.
+
+Two initial runs hit `EADDRINUSE` in climon's control listener: uring
+split/atomic-0 seed 21, and epoll fused/atomic-1 seed 20. They recorded no
+comparison witness and were retained as failures. The uring matrix was rerun
+in full. For epoll, all already-passing jobs remain in the receipt and the
+entire failed fused/atomic-1 job was rerun with standard seeds on ports
+47891–47893. No test or time limit was relaxed. Standard fused SORT legs are
+**NOT RUN** because that suite requires split 6:2 geometry; split SORT passes
+in both engines and atomic settings.
 
 ### Maintainer merit request
 
@@ -194,5 +220,5 @@ All **42 job_production_units targets**, `make all`, both mdbqsbr live control
 servers and the blockfix command-scope witness built. All **46 make -q
 freshness queries returned zero**, including the supplemental witness hash
 prerequisite and the two concrete mdbqsbr server targets. A separate query also
-confirms both INFO native witnesses are fresh. See
-`docs/latencyfix/freshness.json`.
+confirms both INFO native witnesses are fresh; both latencyfix native witnesses
+also pass their freshness queries. See `docs/latencyfix/freshness.json`.

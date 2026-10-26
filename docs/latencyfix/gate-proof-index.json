@@ -870,5 +870,6 @@
   },
   "latest_job_count": 57,
   "latest_scored_rows": 336,
-  "unresolved": []
+  "unresolved": [],
+  "differential_receipt": "docs/latencyfix/differ-proof.json"
 }
