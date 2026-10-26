@@ -1144,7 +1144,7 @@ plan_jobs(){
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 datafix2_notouch datafix2_encoding datafix2_subkeys datafix2_watch datafix2_idle dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform bplus rlfix3_zc rlfix3_info acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix serverfix_lines serverfix_scalar serverfix_config serverfix_hello serverfix_waitaof serverfix_hll serverfix_slowlog serverfix_acllog notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              execfair txnorder_index txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              execfair txnorder_index txnorder_wound txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -3042,6 +3042,25 @@ job_txnorder_index(){
           >"$TMPDIR/retry.log" 2>&1 || passed=0
     fi
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-* and retry.log"
+  done
+}
+
+# AT4-WOUND-1: three aggregate rows before the quick-tier exit, DQ=DF=+3.
+# EXPECT_QUICK/FULL remain maintainer-owned.
+job_txnorder_wound(){
+  local case_name unit mode passed label log
+  for case_name in group exec oom; do
+    label="txnorder wound $case_name"; passed=1
+    row_begin "$label"
+    for unit in txnorder-wound-unit txnorder-wound-db0-unit; do
+      if ! unit_ready "$unit"; then passed=0; continue; fi
+      for mode in 1s 2s; do
+        log="$TMPDIR/$case_name-$unit-$mode.log"
+        taskset -c "$CORES" "./build/$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
+        grep -q '^PASS:' "$log" || passed=0
+      done
+    done
+    [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*"
   done
 }
 
@@ -5219,14 +5238,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/txnorder-index-unit build/txnorder-index-db0-unit build/txnorder-retry-unit build/txnorder-wound-unit build/txnorder-wound-db0-unit build/txnorder-wake-unit build/txnorder-episodes build/txnorder-episodes-debug build/txnorder-watch-unit build/txnorder-watch-db0-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit txnorder-index-unit txnorder-index-db0-unit txnorder-retry-unit txnorder-wound-unit txnorder-wound-db0-unit txnorder-wake-unit txnorder-episodes txnorder-episodes-debug txnorder-watch-unit txnorder-watch-db0-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -5316,7 +5335,7 @@ job_dependencies(){
     tls|compat2|blockfix_registry) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|txnorder_index|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder_index|txnorder_wound|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -5548,6 +5567,7 @@ for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job execfair
 collect_job txnorder_index
+collect_job txnorder_wound
 collect_job txnorder2
 collect_job txnorder_wake
 for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
