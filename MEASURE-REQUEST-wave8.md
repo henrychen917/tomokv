@@ -228,3 +228,28 @@ run passed **73 tests** in 89.3 seconds, with the unchanged frozen POST digest
 (`gates-test-final73.{json,log}`). This includes the new C-link/cache dependency
 control. The final ABBA harness self-test runs separately in the documented
 throwaway copy; no performance campaign is invoked.
+
+The final `abba_selftest` whole job passes **1 ok / 0 FAIL** in **342.7 seconds**,
+within its unchanged **660-second** budget. Its 21 internal suites report 444
+tests, including the current-inventory and missing/extra-label negative controls.
+The copy alone has EXPECT 806/823; the main tree still has 798/815. The complete
+control log and summary are `abba-selftest-final.{log.gz,json}`, with the gate job
+receipt in `jobs/final-abba-selftest.*`.
+
+Final selected-job coverage is **131/131 passing job/mode/engine bindings**, with
+no required correctness binding unrun (`coverage.json`). The original EX-batch
+fixture failure and rejected supplemental selector remain in the attempt history;
+their complete repaired jobs pass. The planted Tcl regression remains intentionally
+red. This coverage is not a full landing-gate receipt.
+
+`final-audit.json` rechecks all frozen binary/map hashes, the 22 unique assertion
+IDs, all 49 `make -q` queries, the unchanged EXPECT constants, and the exact 823-row
+source/fixture multiset. Production source is unchanged since `43bdb7850`.
+`runtime-final.json` confirms that no owned correctness server or listener remains
+on ports 20000–20099.
+
+**NOT RUN:** the maintainer's performance null, EXEC merit/depth measurements and
+full `tests/gate.sh iteration`, as required by the lane authorization. The separate
+AT4-WOUND-1 non-gate diagnostic was not rerun by this integration; its inherited
+failure report and receipts remain under `docs/execindex/wound-window/`, pending
+the separately assigned fix. No throughput result is inferred from these checks.

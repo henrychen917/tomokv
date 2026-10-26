@@ -1,0 +1,96 @@
+{
+  "receipt": "docs/wave8/jobs/final-abba-selftest.json",
+  "seconds": 342.6941261291504,
+  "row_budget_seconds": 660,
+  "internal_suites": [
+    {
+      "tests": 121,
+      "seconds": 71.674
+    },
+    {
+      "tests": 10,
+      "seconds": 0.008
+    },
+    {
+      "tests": 9,
+      "seconds": 0.504
+    },
+    {
+      "tests": 16,
+      "seconds": 0.432
+    },
+    {
+      "tests": 8,
+      "seconds": 0.023
+    },
+    {
+      "tests": 12,
+      "seconds": 3.573
+    },
+    {
+      "tests": 10,
+      "seconds": 0.589
+    },
+    {
+      "tests": 21,
+      "seconds": 48.491
+    },
+    {
+      "tests": 28,
+      "seconds": 55.963
+    },
+    {
+      "tests": 10,
+      "seconds": 37.658
+    },
+    {
+      "tests": 1,
+      "seconds": 7.272
+    },
+    {
+      "tests": 7,
+      "seconds": 0.925
+    },
+    {
+      "tests": 11,
+      "seconds": 0.001
+    },
+    {
+      "tests": 55,
+      "seconds": 20.47
+    },
+    {
+      "tests": 12,
+      "seconds": 0.472
+    },
+    {
+      "tests": 14,
+      "seconds": 0.114
+    },
+    {
+      "tests": 73,
+      "seconds": 89.107
+    },
+    {
+      "tests": 8,
+      "seconds": 0.052
+    },
+    {
+      "tests": 6,
+      "seconds": 0.009
+    },
+    {
+      "tests": 9,
+      "seconds": 2.017
+    },
+    {
+      "tests": 3,
+      "seconds": 0.01
+    }
+  ],
+  "internal_tests": 444,
+  "fixture_current_inventory_passed": true,
+  "raw_log_sha256": "9422435e251515718ac081ed81fd1760a134f4322c532c7d0a8dba46ab77dbb5",
+  "raw_log_path": "docs/wave8/abba-selftest-final.log.gz",
+  "encoding": "gzip; raw_log_sha256 hashes the decompressed bytes"
+}
