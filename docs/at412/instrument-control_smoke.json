@@ -1,0 +1,13 @@
+{
+  "source": "/home/user/Projects/cx-at412/tools/execindex_control_smoke.py",
+  "source_sha256": "8d2fb27eee37fe3237666cc95d5784ace8873cf33a59644538b65041c903541d",
+  "derived": "/home/user/Projects/cx-at412/build/at412/instrument-control_smoke.py",
+  "derived_sha256": "7d6dfc4e30869da3af9441f96d44e39b72ab794069e9b516eb67dfcbaf7bc70d",
+  "cpu": "48-63",
+  "substitutions": [
+    "execindex -> at412",
+    "96-103 -> 48-63",
+    "96-111 -> 48-63"
+  ],
+  "script_scopes": false
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "leg": "1s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic0",
+    "case": "script_window",
+    "result": {
+      "OK": 64
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "script_window",
+    "result": {
+      "OK": 64
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "script_window",
+    "result": {
+      "OK": 64
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "script_window",
+    "result": {
+      "OK": 64
+    }
+  },
+  {
+    "leg": "Redis7.4",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  }
+]

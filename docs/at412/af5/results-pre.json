@@ -1,0 +1,102 @@
+[
+  {
+    "leg": "1s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3490,
+        "OK": 2910
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3614,
+        "OK": 2786
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic0",
+    "case": "script_window",
+    "result": {
+      "BUSY Cross-shard script snapshot window is full": 33,
+      "OK": 31
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3484,
+        "OK": 2916
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3627,
+        "OK": 2773
+      }
+    }
+  },
+  {
+    "leg": "1s-atomic1",
+    "case": "script_window",
+    "result": {
+      "OK": 32,
+      "BUSY Cross-shard script snapshot window is full": 32
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3500,
+        "OK": 2900
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3840,
+        "OK": 2560
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic0",
+    "case": "script_window",
+    "result": {
+      "BUSY Cross-shard script snapshot window is full": 40,
+      "OK": 24
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3846,
+        "OK": 2554
+      },
+      "FCALL": {
+        "TRYAGAIN Cross-shard script conflicted, retry": 3718,
+        "OK": 2682
+      }
+    }
+  },
+  {
+    "leg": "2s-atomic1",
+    "case": "script_window",
+    "result": {
+      "BUSY Cross-shard script snapshot window is full": 40,
+      "OK": 24
+    }
+  },
+  {
+    "leg": "Redis7.4",
+    "case": "scripts",
+    "result": {
+      "EVAL": {
+        "OK": 6400
+      },
+      "FCALL": {
+        "OK": 6400
+      }
+    }
+  }
+]

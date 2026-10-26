@@ -1,0 +1,13 @@
+{
+  "source": "/home/user/Projects/cx-at412/tools/execindex_pad.py",
+  "source_sha256": "c613a917f76aa72f8bcc0b5e00802eb099a9ee5ba64ca9c1a8b514f7d48a4b5d",
+  "derived": "/home/user/Projects/cx-at412/build/at412/instrument-pad.py",
+  "derived_sha256": "fad8bb0485846b07d66be7f83f3beb042a3524a738516a8b700a891cf2745732",
+  "cpu": "48-63",
+  "substitutions": [
+    "execindex -> at412",
+    "96-103 -> 48-63",
+    "96-111 -> 48-63"
+  ],
+  "script_scopes": false
+}
