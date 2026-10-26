@@ -120,9 +120,46 @@ wall time and the independent second-busy-thread check, are in
 | 2s / epoll | 426.617 | 0.433 | 0.477 | 0.467 |
 | 2s / uring | 426.511 | 0.766 | 0.459 | 0.473 |
 
-### Fixed-count probe and remaining correctness
+PAD-A also fails the restored row in all four legs for the same busy-spin
+reason as PRE, with LPOS CPU, deferral and exact oracle-reply witnesses present.
+[The negative-control proof](docs/iofix3/pad-a-idle-proof.json) is from the
+completed gate run, not an earlier port-preflight failure.
 
-The instrumented fixed-count arms and the remaining engine/mode correctness
-matrix are still running. Their completed results, exact job ledger and any
-NOT RUN items will replace this paragraph before delivery. The first gate
-attempt's failures and resolving reruns are preserved, not counted as passes.
+### Fixed-count park probe
+
+The unchanged wave5b workload uses 64 connections, depth 8 and 64-byte values.
+Each of three repeats sends **131,072 requests per arm/cell**. The separate
+instrumented copies count events between READY/GO and DONE/STOP barriers; they
+are not the release merit binaries. PRE and POST arm order alternates by repeat.
+All 36 runs completed, checked replies and observed visits/deferrals/sends/
+completions. Only CPUs 64–79 and port 48820 were used.
+
+| Arm | Cell | Pending-FIFO parks, repeats 1/2/3 | Pooled parks/request |
+|---|---|---|---:|
+| PRE | MGET a1 | 0/0/0 | 0.000000000 |
+| PRE | MGET a0 | 0/0/0 | 0.000000000 |
+| PRE | MSET a1 | 0/0/0 | 0.000000000 |
+| POST2 | MGET a1 | 2/3/3 | 0.000020345 |
+| POST2 | MGET a0 | 5/4/5 | 0.000035604 |
+| POST2 | MSET a1 | 15/96/28 | 0.000353495 |
+| POST4 | MGET a1 | 1/3/7 | 0.000027974 |
+| POST4 | MGET a0 | 0/3/5 | 0.000020345 |
+| POST4 | MSET a1 | 32/53/36 | 0.000307719 |
+| POST8 | MGET a1 | 3/1/3 | 0.000017802 |
+| POST8 | MGET a0 | 3/1/3 | 0.000017802 |
+| POST8 | MSET a1 | 0/15/32 | 0.000119527 |
+
+Each repeat's parks/request is its count divided by 131,072. The pooled column
+uses all 393,216 requests. The [machine-readable summary](docs/iofix3/fixed-count-summary.json)
+also records each individual fraction and the instrumented/client SHA-256s.
+[Raw results](docs/iofix3/probe/fixed-count/) retain before/after per-owner
+counters, exact launch arguments and server logs; instrumentation diffs are in
+[the probe directory](docs/iofix3/probe/). No ordering or throughput conclusion
+is drawn from these event counts.
+
+### Remaining correctness
+
+The remaining engine/mode correctness matrix is still running. Its completed
+results, exact job ledger and any NOT RUN items will replace this paragraph
+before delivery. The first gate attempt's failures and resolving reruns are
+preserved, not counted as passes.

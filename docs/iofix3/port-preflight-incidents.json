@@ -1,0 +1,17 @@
+{
+  "cause": "Linux automatic client ports overlap this assigned listener range. The fixed-count probe used 48832 as a client source port to 48820, leaving non-reusable TIME-WAIT.",
+  "observed": "TIME-WAIT 0 0 127.0.0.1:48832 127.0.0.1:48820",
+  "effect": "Guard bind failed before starting every affected gate; these exits are NOT RUN and not credited as negative controls.",
+  "resolution": "Hold bound-only SO_REUSEADDR/SO_REUSEPORT reservations on 48840-48842 across the entire remaining serial gate matrix. No sysctl or listener behavior changed.",
+  "logs": [
+    "post2-correctness-epoll.log",
+    "post2-fused-uring.log",
+    "post2-fused-epoll.log",
+    "post2-differ-uring.log",
+    "post2-differ-epoll.log",
+    "pad-a-idle-rerun.log",
+    "post4-wb-epoll.log",
+    "post8-wb-epoll.log",
+    "post2-fused-aof.log"
+  ]
+}

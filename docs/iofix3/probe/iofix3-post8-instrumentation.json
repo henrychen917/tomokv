@@ -1,0 +1,105 @@
+{
+  "ref": "working",
+  "revert": false,
+  "multiplier": 8,
+  "source": "/home/user/Projects/cx-iofix3/build/wave5b/iofix3-post8/source",
+  "hook": "#pragma once\n#include <atomic>\n#include <cstdlib>\n#include <fcntl.h>\n#include <sys/mman.h>\n#include <unistd.h>\nnamespace wave5b_trace {\nstruct alignas(128) Row { std::atomic<unsigned long long> n[16]; };\ninline Row* rows() {\n    static Row* data = [] {\n        int fd = ::open(std::getenv(\"WAVE5B_TRACE\"), O_RDWR);\n        if (fd < 0) std::abort();\n        void* p = mmap(nullptr, 128*128, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);\n        close(fd);\n        if (p == MAP_FAILED) std::abort();\n        return static_cast<Row*>(p);\n    }();\n    return data;\n}\ninline thread_local Row* current = nullptr;\ninline void bind(unsigned id) { current = rows() + id; }\ninline void add(unsigned field, unsigned long long amount=1) {\n    if (current) {\n        auto& n = current->n[field];\n        n.store(n.load(std::memory_order_relaxed) + amount, std::memory_order_relaxed);\n    }\n}\n}\n",
+  "patches": [
+    {
+      "path": "src/core/wb_rule.h",
+      "old": "#define TOMO_WB_IDLE_MULTIPLIER 2",
+      "new": "#define TOMO_WB_IDLE_MULTIPLIER 8",
+      "count": 1
+    },
+    {
+      "path": "Makefile",
+      "old": "CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread",
+      "new": "CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread\noverride CXXFLAGS += -include wave5b_trace.h",
+      "count": 1
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "    IoTenure tenure(sig);",
+      "new": "    IoTenure tenure(sig);\n    wave5b_trace::bind(self_->id());",
+      "count": 1
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "epoll_pass<HasUnix, HasTls, Fused>(wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        epoll_pass<HasUnix, HasTls, Fused>(wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 1
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "epoll_pass<HasUnix, HasTls, false>(wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        epoll_pass<HasUnix, HasTls, false>(wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 1
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "ring_.submit_and_wait(1, wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        ring_.submit_and_wait(1, wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 2
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "self_->sig().wakes_recv++;",
+      "new": "self_->sig().wakes_recv++; wave5b_trace::add(4);",
+      "count": 3
+    },
+    {
+      "path": "src/core/reorder.cc",
+      "old": "    IoTenure tenure(sig);",
+      "new": "    IoTenure tenure(sig);\n    wave5b_trace::bind(self_->id());",
+      "count": 1
+    },
+    {
+      "path": "src/core/reorder.cc",
+      "old": "r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 1
+    },
+    {
+      "path": "src/core/reorder.cc",
+      "old": "r7_epoll_pass<HasUnix, HasTls, false>(wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        r7_epoll_pass<HasUnix, HasTls, false>(wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 1
+    },
+    {
+      "path": "src/core/reorder.cc",
+      "old": "ring_.submit_and_wait(1, wait_ms);",
+      "new": "wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n                        ring_.submit_and_wait(1, wait_ms);\n                        wave5b_trace::add(2); wave5b_trace::add(3, !pending_serve_.empty());",
+      "count": 2
+    },
+    {
+      "path": "src/core/reorder.cc",
+      "old": "self_->sig().wakes_recv++;",
+      "new": "self_->sig().wakes_recv++; wave5b_trace::add(4);",
+      "count": 3
+    },
+    {
+      "path": "src/core/wb_rule.h",
+      "old": "            ++visits;",
+      "new": "            ++visits; wave5b_trace::add(5);",
+      "count": 1
+    },
+    {
+      "path": "src/core/wb_rule.h",
+      "old": "                loop.pending_serve_.push_back(c);",
+      "new": "                wave5b_trace::add(6);\n                loop.pending_serve_.push_back(c);",
+      "count": 1
+    },
+    {
+      "path": "src/net/wb.h",
+      "old": "stats_.sends_submitted++;",
+      "new": "stats_.sends_submitted++; wave5b_trace::add(7);",
+      "count": 6
+    },
+    {
+      "path": "src/core/io_loop.h",
+      "old": "        return n + pubsub_work;",
+      "new": "        wave5b_trace::add(8, n);\n        return n + pubsub_work;",
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+[
+  {
+    "arm": "iofix3-pre",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "parks_per_request": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pooled_parks_per_request": 0.0,
+    "instrumented_sha256": "48aee8e275cded74a28ba9042d2dae2346a458c3d5a9d1efebb81ea5e6d5cb2f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-pre",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_each": 131072,
+    "pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "parks_per_request": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pooled_parks_per_request": 0.0,
+    "instrumented_sha256": "48aee8e275cded74a28ba9042d2dae2346a458c3d5a9d1efebb81ea5e6d5cb2f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-pre",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      0,
+      0,
+      0
+    ],
+    "parks_per_request": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pooled_parks_per_request": 0.0,
+    "instrumented_sha256": "48aee8e275cded74a28ba9042d2dae2346a458c3d5a9d1efebb81ea5e6d5cb2f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post2",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      2,
+      3,
+      3
+    ],
+    "parks_per_request": [
+      1.52587890625e-05,
+      2.288818359375e-05,
+      2.288818359375e-05
+    ],
+    "pooled_parks_per_request": 2.0345052083333332e-05,
+    "instrumented_sha256": "f3bcd87282264e922e515a7676f3bad22b6fbd9640f02e19ec82535c799caee3",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post2",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_each": 131072,
+    "pending_parks": [
+      5,
+      4,
+      5
+    ],
+    "parks_per_request": [
+      3.814697265625e-05,
+      3.0517578125e-05,
+      3.814697265625e-05
+    ],
+    "pooled_parks_per_request": 3.5603841145833336e-05,
+    "instrumented_sha256": "f3bcd87282264e922e515a7676f3bad22b6fbd9640f02e19ec82535c799caee3",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post2",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      15,
+      96,
+      28
+    ],
+    "parks_per_request": [
+      0.00011444091796875,
+      0.000732421875,
+      0.000213623046875
+    ],
+    "pooled_parks_per_request": 0.0003534952799479167,
+    "instrumented_sha256": "f3bcd87282264e922e515a7676f3bad22b6fbd9640f02e19ec82535c799caee3",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post4",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      1,
+      3,
+      7
+    ],
+    "parks_per_request": [
+      7.62939453125e-06,
+      2.288818359375e-05,
+      5.340576171875e-05
+    ],
+    "pooled_parks_per_request": 2.7974446614583332e-05,
+    "instrumented_sha256": "1f9a78b62fdb0d5b745143dbbe13abebbb43843c1768c97319984d6efdb0456f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post4",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_each": 131072,
+    "pending_parks": [
+      0,
+      3,
+      5
+    ],
+    "parks_per_request": [
+      0.0,
+      2.288818359375e-05,
+      3.814697265625e-05
+    ],
+    "pooled_parks_per_request": 2.0345052083333332e-05,
+    "instrumented_sha256": "1f9a78b62fdb0d5b745143dbbe13abebbb43843c1768c97319984d6efdb0456f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post4",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      32,
+      53,
+      36
+    ],
+    "parks_per_request": [
+      0.000244140625,
+      0.00040435791015625,
+      0.000274658203125
+    ],
+    "pooled_parks_per_request": 0.0003077189127604167,
+    "instrumented_sha256": "1f9a78b62fdb0d5b745143dbbe13abebbb43843c1768c97319984d6efdb0456f",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post8",
+    "command": "MGET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      3,
+      1,
+      3
+    ],
+    "parks_per_request": [
+      2.288818359375e-05,
+      7.62939453125e-06,
+      2.288818359375e-05
+    ],
+    "pooled_parks_per_request": 1.7801920572916668e-05,
+    "instrumented_sha256": "30af0cc0a71d10be9b65f27e53af6e88d8fae88cb1cf1972d6a65edb21608cf2",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post8",
+    "command": "MGET",
+    "atomic": 0,
+    "requests_each": 131072,
+    "pending_parks": [
+      3,
+      1,
+      3
+    ],
+    "parks_per_request": [
+      2.288818359375e-05,
+      7.62939453125e-06,
+      2.288818359375e-05
+    ],
+    "pooled_parks_per_request": 1.7801920572916668e-05,
+    "instrumented_sha256": "30af0cc0a71d10be9b65f27e53af6e88d8fae88cb1cf1972d6a65edb21608cf2",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  },
+  {
+    "arm": "iofix3-post8",
+    "command": "MSET",
+    "atomic": 1,
+    "requests_each": 131072,
+    "pending_parks": [
+      0,
+      15,
+      32
+    ],
+    "parks_per_request": [
+      0.0,
+      0.00011444091796875,
+      0.000244140625
+    ],
+    "pooled_parks_per_request": 0.00011952718098958333,
+    "instrumented_sha256": "30af0cc0a71d10be9b65f27e53af6e88d8fae88cb1cf1972d6a65edb21608cf2",
+    "client_sha256": "91878578033e9cd4b7dab57b0d762ae9957c802127a777e4d14f5e2aaa4ddcc9"
+  }
+]
