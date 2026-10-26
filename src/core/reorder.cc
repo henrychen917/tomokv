@@ -2465,11 +2465,11 @@ subscriber_checks_done:
             if (__builtin_expect((spec->flags & CmdFlags::DeferredLocal) != 0, false)) {
                 uint64_t timeout_ms = 0;
                 const uint64_t latency_started = latency_tracking_start();
-                    const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
+                const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                 if (wait == WaitCommandResult::Unsatisfied) {
                     if (!deferred_timer_start(c, rob.dispatch_id(),
                                               DeferredTimerKind::WaitZero, timeout_ms,
-                                                  latency_started ? now_ns() - latency_started : 0,
+                                              latency_started ? now_ns() - latency_started : 0,
                                               slowlog_arm_)) {
                         reply_err(op->sink(), "ERR out of memory");
                     } else {

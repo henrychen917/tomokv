@@ -1688,9 +1688,10 @@ void cmd_config(Shard& sh, Op& op) {
             // IO validated before fan-out, so failure here can only mean internal table corruption.
             if (!collect_config_updates(op, updates)) return;
             if (sh.id() == 0) {
-                // Redis samples the enabling CONFIG SET itself. This executor's
-                // previous batch selector is still off until its next refresh.
-                if (g_server && !g_server->latency_tracking())
+                // Redis samples an enabling CONFIG SET itself. Record this
+                // transition on shard 0; other fragments exclude this command
+                // because they may straddle the old/new per-pass selectors.
+                if (g_server)
                     for (const auto& update : updates)
                         if (!std::strcmp(update.first->name, "latency-tracking") &&
                             update.second == "yes") latency_enable_start = now_ns();
@@ -3035,13 +3036,14 @@ void cmd_info(Shard&, Op& op) {
         }
     }
     if (info_section(op, "LATENCYSTATS", false)) {
+        const bool enabled = g_server && g_server->latency_tracking();
         std::vector<double> percentiles;
-        {
+        if (enabled) {
             std::lock_guard lock(g_config_mu);
             percentiles = g_latency_percentiles_explicit
                 ? g_latency_percentiles : std::vector<double>{50, 99, 99.9};
         }
-        latency_tracking_info(body, percentiles, g_server && g_server->latency_tracking());
+        latency_tracking_info(body, percentiles, enabled);
     }
     if (info_section(op, "CLUSTER")) body += "# Cluster\r\ncluster_enabled:0\r\n";
     if (want_keyspace) {

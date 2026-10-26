@@ -1,32 +1,7 @@
 {
-  "normalizer": "tools/psfix_artifacts.py + tools/lbstall_artifacts.py",
+  "normalizer": "tools/ccfix_audit.py + tools/lbstall_artifacts.py",
   "compared": 74,
-  "changed": [
-    {
-      "object": "src/cmd/xshard.o",
-      "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
-      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
-      "pre_size": 21794,
-      "post_size": 21794,
-      "relocation_equal": false
-    },
-    {
-      "object": "src/cmd/xshard.o",
-      "symbol": "_ZZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
-      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
-      "pre_size": 1190,
-      "post_size": 1190,
-      "relocation_equal": false
-    },
-    {
-      "object": "db0/src/cmd/xshard.o",
-      "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
-      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
-      "pre_size": 23675,
-      "post_size": 23675,
-      "relocation_equal": false
-    }
-  ],
+  "changed": [],
   "bodies": [
     {
       "object": "src/cmd/t_string.o",
@@ -58,7 +33,7 @@
       "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
       "pre_size": 21794,
       "post_size": 21794,
-      "relocation_equal": false
+      "relocation_equal": true
     },
     {
       "object": "src/cmd/xshard.o",
@@ -282,7 +257,7 @@
       "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
       "pre_size": 1190,
       "post_size": 1190,
-      "relocation_equal": false
+      "relocation_equal": true
     },
     {
       "object": "src/cmd/xshard.o",
@@ -354,7 +329,7 @@
       "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
       "pre_size": 23675,
       "post_size": 23675,
-      "relocation_equal": false
+      "relocation_equal": true
     },
     {
       "object": "db0/src/cmd/xshard.o",

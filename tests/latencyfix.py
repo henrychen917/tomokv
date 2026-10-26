@@ -13,8 +13,39 @@ import re
 import subprocess
 import traceback
 
-from authfix import Run, Server, is_error
+from authfix import Run, Server as AuthServer, is_error
 from _lib import encode
+
+class Server:
+    """A fresh boot may reroll within its gate slot's three reserved ports.
+
+    These ports overlap Linux's ephemeral client range. A stopped listener can
+    race a foreign outbound socket/TIME_WAIT; preserve that failed boot and try
+    a fresh process on the next reserved port. No command assertion is retried.
+    """
+    def __init__(self, run, label, mode, **kwargs):
+        self.run, self.label, self.mode, self.kwargs = run, label, mode, kwargs
+
+    def __enter__(self):
+        base = self.run.args.port
+        for attempt in range(3):
+            self.run.args.port = base + attempt
+            try:
+                self.server = AuthServer(self.run, self.label + f'-port{attempt}',
+                                         self.mode, **self.kwargs)
+                return self.server.__enter__()
+            except AssertionError as error:
+                if 'Address already in use' not in str(error) and 'occupied port' not in str(error):
+                    raise
+                if attempt == 2:
+                    raise
+            finally:
+                self.run.args.port = base
+        raise AssertionError('port arming exhausted')
+
+    def __exit__(self, *args):
+        return self.server.__exit__(*args)
+
 
 KNOB = 'latency-tracking-info-percentiles'
 
@@ -91,10 +122,11 @@ def grammar(run, mode, label, extra):
                         ('CONFIG', 'SET', 'latency-tracking', 'bad', 'no-such-knob', 'x')]:
             oracle_equal(run, repr(command), c.cmd(*command))
 
-    for index, values in enumerate(['50 99 99.9', '100 0 25.125 25.125', '""']):
+    for index, (values, expected) in enumerate([
+            ('50 99 99.9', b'50 99 99.9'), ('100 0 25.125 25.125', b'100 0 25.125 25.125'),
+            ('""', b''), ('', b''), ('" 50  99.1234567 "', b'50 99.123457')]):
         conf = run.conf(label + f'-file-{index}',
                         'latency-tracking yes\n' + KNOB + ' ' + values + '\n')
-        expected = b'' if values == '""' else values.encode()
         for restart in range(2):
             with Server(run, label + f'-file-{index}-{restart}', mode, conf=conf, extra=extra) as server:
                 with server.client() as c:
@@ -104,7 +136,8 @@ def grammar(run, mode, label, extra):
                               [KNOB.encode(), expected])
                     run.check(label + ' rewrite', c.cmd('CONFIG', 'REWRITE'), b'OK')
         text = conf.read_text()
-        run.check(label + ' rewrite directive', KNOB + ' ' + values in text, True)
+        canonical = expected.decode() if expected else '""'
+        run.check(label + ' rewrite directive', KNOB + ' ' + canonical in text, True)
 
 
 def shape(run, mode, label, extra):
@@ -135,7 +168,12 @@ def shape(run, mode, label, extra):
                     rows = histogram(c, selector, protocol=protocol)
                     assert rows, selector
                     oracle_equal(run, f'subcommand:{protocol}:{selector}', sorted(rows))
+                for command in [('CONFIG', 'unknown-latency-child'),
+                                ('LATENCY', 'unknown-latency-child'),
+                                ('CLIENT', 'unknown-latency-child')]:
+                    assert is_error(c.cmd(*command), 'ERR')
                 all_rows = dict(histogram(c, protocol=protocol))
+                assert not {'config', 'latency', 'client'} & set(all_rows), all_rows
                 assert {'get', 'set', 'incr', 'latency|histogram', 'client|id'} <= set(all_rows), all_rows
                 keys = percentile_keys(c)
                 for name in ('get', 'set', 'incr', 'client|id', 'command|count'):
@@ -289,7 +327,8 @@ def off_allocations(run, mode, label, extra):
     for line in lines:
         fields = line.split()
         if fields[0] == 'N' and any(
-                'latency_tracking_record(' in symbols.get(a, '') for a in fields[3:]):
+                ('latency_tracking.cc:' in symbols.get(a, '') or
+                 'latency_tracking_' in symbols.get(a, '')) for a in fields[3:]):
             count += 1
         if fields[0] == 'MARK':
             receipt[fields[1]] = count

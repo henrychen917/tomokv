@@ -437,7 +437,7 @@ public:
 
     // The owner is the only writer; INFO and its cron may read concurrently. Relaxed
     // load/store increments publish race-free counts without a lock-prefixed RMW or fence.
-    void note_command(uint16_t id) {
+    __attribute__((always_inline)) void note_command(uint16_t id) {
         if (id < command_count_size_) { auto& n = command_counts_[id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
         total_commands_.store(total_commands_.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
     }

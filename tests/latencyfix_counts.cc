@@ -143,8 +143,10 @@ struct CoreConcurrencyTest {
 int main(int argc, char** argv) {
     CoreConcurrencyTest::need(command_registry_init(false), "command registry");
     if (argc > 1) {
-        if (std::string(argv[1]) == "--trace-1s") CoreConcurrencyTest::run<true>("GET", 1, 10000);
-        else CoreConcurrencyTest::run<false>("GET", 1, 10000);
+        const std::string setting(argv[1]);
+        const int64_t threshold = setting.find("clean") != std::string::npos ? -1 : 10000;
+        if (setting.ends_with("1s")) CoreConcurrencyTest::run<true>("GET", 1, threshold);
+        else CoreConcurrencyTest::run<false>("GET", 1, threshold);
         return 0;
     }
     for (int64_t slowlog : {int64_t{-1}, int64_t{10000}})

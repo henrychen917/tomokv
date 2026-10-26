@@ -11,6 +11,7 @@
 #include "multi.h"
 #include "xshard.h"
 #include "../core/server.h"
+#include "../core/ex_loop.h"
 #include "../exec/op.h"
 #include "../core/thread.h"
 #include "../net/resp.h"
@@ -204,6 +205,12 @@ void latency_tracking_pause(const Op& op) {
 }
 void latency_tracking_part(uint32_t executor, const Op& op, uint64_t started) {
     if (!started) return;
+    // CONFIG's shard-0 handler owns the enabling sample, including repeated yes.
+    // Its other fragments can observe different configuration generations.
+    if (op.cmd_name().eq_icase("config") && op.argc() > 3 && op.arg(1).eq_icase("set"))
+        for (uint32_t i = 2; i + 1 < op.argc(); i += 2)
+            if (op.arg(i).eq_icase("latency-tracking") && op.arg(i + 1).eq_icase("yes"))
+                return;
     const uint64_t duration = now_ns() - started;
     if (auto* server = command_server(); !server || !server->latency_tracking()) return;
     auto& local = store(executor);
@@ -268,9 +275,10 @@ void latency_tracking_finish(uint32_t executor, const Op& op, uint64_t started) 
 
 void latency_tracking_record(uint32_t executor, const Op& op, uint64_t duration_ns) {
     if (executor >= stores.size() || !op.spec) return;
-    const auto* metadata = op.argc() > 1 ? command_metadata_subcommand(*op.spec, op.arg(1)) : nullptr;
-    if (!metadata) metadata = command_metadata_for(*op.spec);
-    if (!metadata) return;
+    // The metadata resolver only reads Op; its existing API predates const use.
+    // Unknown container children are rejected commands, not parent executions.
+    const auto* metadata = command_metadata_resolve(const_cast<Op&>(op), 0);
+    if (!metadata || !command_metadata_arity_ok(*metadata, op.argc())) return;
     auto& local = store(executor);
     std::lock_guard lock(local.mutex);
     // Redis's timer produces integral microseconds before conversion to nanoseconds.
@@ -339,4 +347,52 @@ uint64_t latency_tracking_allocated_histograms() {
     }
     return count;
 }
+
+// Instantiate tracked executor bodies only here. Keeping them out of the normal
+// executor translation units preserves their off-path inlining decisions.
+template<bool Fused>
+template<bool IofusedPrivateQueue, bool ReadLocalNoEvict>
+bool ExLoopT<Fused>::execute_latency(const Task& t) {
+    constexpr bool Timed = true;
+    constexpr bool LatencyTracking = true;
+#include "../core/ex_execute.inc"
+}
+template<bool Fused>
+template<bool IofusedPrivateQueue>
+void ExLoopT<Fused>::exec_batch_latency(ExLoopT* loop, const Task* batch, uint32_t n) {
+    Server::ClientWorkScope client_work(*loop->srv_, loop->self_->id());
+    const SlowlogArm arm = loop->slowlog_arm_;
+    slowlog_note_batch_timed();
+    loop->flush_xshard_commits_timed();
+    for (uint32_t i = 0; i < n; ++i) {
+        Client* client = batch[i].client;
+        SlowlogTiming timing(client ? &client->rob().at(batch[i].op_id) : nullptr,
+            client ? client->id() : 0, loop->self_->id(), now_ns(),
+            loop->cached_now_ms_, arm);
+        const bool okay = loop->template execute_latency<IofusedPrivateQueue>(batch[i]);
+        loop->flush_xshard_commits_timed();
+        if (okay) continue;
+        loop->xshard_retries_.push_back(batch[i]);
+        for (uint32_t j = i + 1; j < n; ++j) loop->ordered_deferred_.push_back(batch[j]);
+        return;
+    }
+}
+template<bool Fused>
+template<bool IofusedPrivateQueue>
+bool ExLoopT<Fused>::execute_resumed(const Task& task) {
+    if (!slowlog_arm_.latency_tracking) return execute<IofusedPrivateQueue>(task);
+    Client* client = task.client;
+    SlowlogTiming timing(client ? &client->rob().at(task.op_id) : nullptr,
+                         client ? client->id() : 0, self_->id(), now_ns(),
+                         cached_now_ms_, slowlog_arm_);
+    const bool result = execute_latency<IofusedPrivateQueue>(task);
+    flush_xshard_commits_timed();
+    return result;
+}
+template void ExLoopT<false>::exec_batch_latency<false>(ExLoopT*, const Task*, uint32_t);
+template void ExLoopT<true>::exec_batch_latency<false>(ExLoopT*, const Task*, uint32_t);
+template void ExLoopT<true>::exec_batch_latency<true>(ExLoopT*, const Task*, uint32_t);
+template bool ExLoopT<false>::execute_resumed<false>(const Task&);
+template bool ExLoopT<true>::execute_resumed<false>(const Task&);
+template bool ExLoopT<true>::execute_resumed<true>(const Task&);
 } // namespace tomo

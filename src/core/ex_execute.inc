@@ -98,7 +98,9 @@
                     sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
                     false)) {
                 ReadLocalPreciseWriteGuard no_evict(sh.store());
-                if constexpr (Timed)
+                if constexpr (LatencyTracking)
+                    return execute_latency<IofusedPrivateQueue, true>(t);
+                else if constexpr (Timed)
                     return execute_timed<IofusedPrivateQueue, true>(t);
                 else
                     return execute<IofusedPrivateQueue, true>(t);
@@ -153,7 +155,7 @@
 
         if (t.scatter) {
             const ScatterTaskResult result = [&] {
-                if constexpr (Timed) return sh.has_watches()
+                if constexpr (LatencyTracking) return sh.has_watches()
                     ? latency_watch_execute(t, sh, op, self_->id())
                     : latency_xshard_execute(t, sh, op, self_->id());
                 else return sh.has_watches()

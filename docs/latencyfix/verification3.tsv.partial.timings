@@ -1,0 +1,6 @@
+ok	0.030000	release build (+footprint locks)
+FAIL	0.040000	configuration docs match parser
+ok	5.310000	Redis config quoting + mid-value #
+FAIL	0.670000	latencyfix LAT-HIST-1 knob grammar
+FAIL	0.670000	latencyfix LAT-HIST-1 histogram and latencystats
+FAIL	1.050000	latencyfix LAT-HIST-1 zero allocations off

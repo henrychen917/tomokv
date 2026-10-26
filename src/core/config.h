@@ -47,6 +47,8 @@ namespace tomo {
 inline bool cfg_parse_u32(const char* s, uint32_t& out);
 inline bool cfg_parse_u64(const char* s, uint64_t& out);
 
+inline bool cfg_split_args(const char* line, std::vector<std::string>& out);
+
 // LAT-HIST-1: Redis 7.4 uses space-separated string2d tokens (no sorting or
 // deduplication). A null/default vector owns no memory while tracking is off.
 __attribute__((noipa)) inline bool cfg_latency_percentiles(
@@ -973,20 +975,26 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             const int begin = i + 1;
             int end = begin;
             while (end < argc && std::strncmp(args[end], "--", 2)) ++end;
-            if (begin == end) {
-                std::fprintf(stderr, "%s: wrong number of arguments\n", a);
-                return kConfigError;
-            }
-            std::string flat;
-            for (int j = begin; j < end; ++j) {
-                if (j != begin) flat += ' ';
-                flat.append(args[j], lengths ? (*lengths)[j] : std::strlen(args[j]));
-            }
-            const char* error = nullptr;
-            if (!cfg_latency_percentiles(Slice(flat.data(), flat.size()),
-                                         cfg.latency_tracking_info_percentiles, error)) {
-                std::fprintf(stderr, "%s: %s\n", a, error);
-                return kConfigError;
+            std::vector<std::string> tokens;
+            if (end == begin + 1 && args[begin][0]) {
+                if (!cfg_split_args(args[begin], tokens)) {
+                    std::fprintf(stderr, "%s: Invalid latency-tracking-info-percentiles parameters\n", a);
+                    return kConfigError;
+                }
+            } else for (int j = begin; j < end; ++j)
+                tokens.emplace_back(args[j], lengths ? (*lengths)[j] : std::strlen(args[j]));
+            if (tokens.size() == 1 && tokens[0].empty()) tokens.clear();
+            cfg.latency_tracking_info_percentiles.clear();
+            for (const auto& token : tokens) {
+                std::vector<double> one;
+                const char* error = nullptr;
+                if (!cfg_latency_percentiles(Slice(token.data(), token.size()), one, error) ||
+                    one.size() != 1) {
+                    std::fprintf(stderr, "%s: %s\n", a, error ? error :
+                        "Invalid latency-tracking-info-percentiles parameters");
+                    return kConfigError;
+                }
+                cfg.latency_tracking_info_percentiles.push_back(one[0]);
             }
             cfg.latency_percentiles_explicit = true;
             i = end - 1;
@@ -1666,7 +1674,9 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store,
                               words[0] == "client-output-buffer-limit" ||
                               words[0] == "latency-tracking-info-percentiles";
         if ((valueless && words.size() != 1) ||
-            (!valueless && (words.size() < 2 || (!variadic && words.size() != 2)))) {
+            (!valueless && ((words.size() < 2 &&
+                             words[0] != "latency-tracking-info-percentiles") ||
+                            (!variadic && words.size() != 2)))) {
             std::fprintf(stderr, "%s:%d: wrong number of arguments\n", path, lineno);
             ok = false;
             continue;
