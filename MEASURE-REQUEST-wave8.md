@@ -190,3 +190,11 @@ The corrected selector uses all its consuming jobs, which run that prerequisite
 automatically, and retains the standalone 49-target freshness proof. No row was
 removed. The rejected attempt remains `jobs/final-supplemental.*`; the actual
 complete run is `final-supplemental-jobs`.
+
+Both standard differential jobs pass: **954 complete comparisons per engine**,
+1,908 total, with zero differing legs. Each includes split/armed atomic 0/1,
+mode equivalence, 47 split suites (46 applicable armed suites), permanent seeds
+7/19/20/23 plus rotating seed 21 (uring) or 22 (epoll), and all four extra
+multi/atomic=1/seed=19 repetitions in each geometry. No focused-proof filters
+were set. `differ-final.json` retains every completed part, exact leg list, seed
+manifest and digest; the whole gate receipts are `jobs/final-differ-{uring,epoll}.*`.
