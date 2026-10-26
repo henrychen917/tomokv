@@ -85,6 +85,9 @@ def prepare(args):
         patch(name, '            const uint8_t previous_deferrals = c->wb_deferrals();\n', '')
         patch(name, '                work += c->wb_deferrals() != previous_deferrals;\n', '')
         patch(name, '        work += served;\n', '        work += served;\n        if (!loop.pending_serve_.empty()) ++work;\n')
+    if args.multiplier is not None:
+        patch('src/core/wb_rule.h', '#define TOMO_WB_IDLE_MULTIPLIER 2',
+              f'#define TOMO_WB_IDLE_MULTIPLIER {args.multiplier}')
     files['wave5b_trace.h'] = HOOK.encode()
     patch('Makefile', 'CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread',
           'CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread\noverride CXXFLAGS += -include wave5b_trace.h')
@@ -113,11 +116,11 @@ def prepare(args):
         path = source/name
         path.parent.mkdir(parents=True, exist_ok=True)
         if not path.exists() or path.read_bytes() != data: path.write_bytes(data)
-    DOC.mkdir(parents=True, exist_ok=True)
-    (DOC/(args.arm+'-instrumentation.json')).write_text(json.dumps(dict(ref=args.ref, revert=args.revert,
-        source=str(source), hook=HOOK, patches=patches), indent=2)+'\n')
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    (args.output_dir/(args.arm+'-instrumentation.json')).write_text(json.dumps(dict(ref=args.ref, revert=args.revert,
+        multiplier=args.multiplier, source=str(source), hook=HOOK, patches=patches), indent=2)+'\n')
     with (BUILD/(args.arm+'-build.log')).open('w') as log:
-        subprocess.run(['taskset','-c','64-111','make','-j32','all'], cwd=source,
+        subprocess.run(['taskset','-c',args.build_cores,'make',f'-j{args.jobs}','all'], cwd=source,
                        stdout=log, stderr=subprocess.STDOUT, check=True)
     binary = BUILD/('trace-'+args.arm)
     shutil.copy2(source/'build/tomokv', binary)
@@ -136,10 +139,10 @@ def line(process):
 
 
 def run(args):
-    output = DOC/args.name
+    output = args.output_dir/args.name
     output.mkdir(parents=True, exist_ok=True)
     client_bin = BUILD/'client'
-    subprocess.run(['taskset','-c','64-111','g++','-std=c++20','-O2','-pthread',
+    subprocess.run(['taskset','-c',args.load_cores,'g++','-std=c++20','-O2','-pthread',
                     str(ROOT/'tests/wave5b_client.cc'),'-o',str(client_bin)], check=True)
     for repeat in range(args.repeats):
         for command, atomic in [('MGET',1),('MGET',0),('MSET',1)]:
@@ -152,9 +155,9 @@ def run(args):
                 directory.mkdir(exist_ok=True)
                 trace = directory/'counters'
                 with trace.open('wb') as f: f.truncate(128*128)
-                port = 26890
+                port = args.port
                 assert not subprocess.check_output(['ss','-H','-ltn',f'sport = :{port}']).strip()
-                cmd = ['taskset','-c','64-71',str(binary),'--port',str(port),'--bind','127.0.0.1',
+                cmd = ['taskset','-c',args.server_cores,str(binary),'--port',str(port),'--bind','127.0.0.1',
                        '--shards','16','--ratio','6:2','--thread-mode','2s','--net-io','uring',
                        '--read-local','0','--atomic',str(atomic),'--key-lb','0','--client-lb','0',
                        '--flip-auto','0','--save','','--appendonly','no','--dir',str(directory)]
@@ -172,7 +175,7 @@ def run(args):
                             except ConnectionRefusedError:
                                 assert time.monotonic()<deadline; time.sleep(.01)
                         with mmap.mmap(f.fileno(),0) as memory:
-                            client = subprocess.Popen(['taskset','-c','72-111',str(client_bin),str(port),
+                            client = subprocess.Popen(['taskset','-c',args.load_cores,str(client_bin),str(port),
                                 command,str(args.requests)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
                             assert line(client) == 'READY'
                             before=snapshot(memory)
@@ -188,7 +191,7 @@ def run(args):
                                    connections=64, depth=8, value_bytes=64, counts=counts,
                                    per_request={k:v/(64*args.requests) for k,v in counts.items()},
                                    before=before, after=after, binary_sha256=sha(binary), argv=cmd,
-                                   client_sha256=sha(client_bin))
+                                   client_sha256=sha(client_bin), load_cores=args.load_cores)
                         (directory/'result.json').write_text(json.dumps(row,indent=2)+'\n')
                         print(json.dumps({k:v for k,v in row.items() if k not in ('before','after','argv')}),flush=True)
                 finally:
@@ -203,7 +206,12 @@ if __name__ == '__main__':
     p=argparse.ArgumentParser(description=__doc__)
     sub=p.add_subparsers(dest='action',required=True)
     b=sub.add_parser('prepare'); b.add_argument('arm'); b.add_argument('--ref',default='working'); b.add_argument('--revert',action='store_true')
+    b.add_argument('--multiplier', type=int, choices=(2,4,8))
+    b.add_argument('--build-cores', default='64-111'); b.add_argument('--jobs', type=int, default=32)
+    b.add_argument('--output-dir', type=Path, default=DOC)
     r=sub.add_parser('run'); r.add_argument('--arms',nargs='+',required=True); r.add_argument('--name',required=True)
     r.add_argument('--repeats',type=int,default=3); r.add_argument('--requests',type=int,default=2048)
+    r.add_argument('--server-cores', default='64-71'); r.add_argument('--load-cores', default='72-111')
+    r.add_argument('--port', type=int, default=26890); r.add_argument('--output-dir', type=Path, default=DOC)
     args=p.parse_args(); BUILD.mkdir(parents=True,exist_ok=True)
     (prepare if args.action=='prepare' else run)(args)
