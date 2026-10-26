@@ -462,7 +462,7 @@ def crowded(c, port, keys, call, oracle):
                    encode('SET', keys[0]+':holder', 1)+encode('EXEC'))
         assert [holder.read() for _ in range(4)] == [b'OK']+[b'QUEUED']*3
         if not oracle:
-            wait(lambda: stats(c)['atomic_txn_intents_live'] > before['atomic_txn_intents_live'], 'holder never placed')
+            wait(lambda: stats(c)['atomic_txn_executed'] > before['atomic_txn_executed'], 'holder never placed')
             c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 0)
             c.must('DEBUG', 'SCRIPT-ESCALATE-FORCE', 1)
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 1000)
@@ -518,7 +518,7 @@ def episode(c, port, keys, call, oracle, disconnect=False):
             c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 1500000)
             h.raw(encode('MULTI')+encode('GET', peer)+encode('GET', keys[1])+encode('SET', peer, 0)+encode('EXEC'))
             assert [h.read() for _ in range(4)] == [b'OK']+[b'QUEUED']*3
-            wait(lambda: stats(c)['atomic_txn_intents_live'] > before['atomic_txn_intents_live'], 'EXEC holder never opened')
+            wait(lambda: stats(c)['atomic_txn_executed'] > before['atomic_txn_executed'], 'EXEC holder never opened')
             c.must('DEBUG', 'ATOMIC-FANOUT-DEFER', 0)
             c.must('DEBUG', 'SCRIPT-ESCALATE-FORCE', 1)
             c.must('DEBUG', 'SCRIPT-STAGE-DEFER', 1000)

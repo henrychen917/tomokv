@@ -4948,11 +4948,13 @@ ordinary_shard_ready:
         // parked it AGAIN: a double delete, one reap later. Caught by the torture battery's RST
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
+        // Some close-after-reply paths mark closing before calling this arm.
+        // FIFO membership must be removed on those paths as well.
+        script_window_forget(*srv_, self_->id(), *c);
         if (!c->closing()) {
 #ifdef TOMO_CONNRESET_TRACE
             connreset::note(*c, self_->id(), "close_begin", site);
 #endif
-            script_window_forget(*srv_, self_->id(), *c);
             c->mark_closing();
             if (deferred_timer_cancel(c)) enqueue_serve(c);
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
