@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-woundfix/tests/exbatch_checks.py", line 89, in <module>
+    run(parser.parse_args().group)
+  File "/home/user/Projects/cx-woundfix/tests/exbatch_checks.py", line 66, in run
+    rows.append(invoke(control(source, group_name), 'watch', diagnostic))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-woundfix/tests/exbatch_checks.py", line 39, in invoke
+    assert result.returncode != 0 and failure in stderr, (binary, selection, result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (PosixPath('/home/user/Projects/cx-woundfix/build/exbatch/units/exbatch-unit/watch-no-finalize/unit'), 'watch', CompletedProcess(args=['/home/user/Projects/cx-woundfix/build/exbatch/units/exbatch-unit/watch-no-finalize/unit', 'watch'], returncode=1, stdout=b'PASS exbatch watch: add/remove/reserve/finalize/prune/swap; commit and abort lifetimes\n', stderr=b'FAIL exbatch: OOM fixture leaves empty registries\n'))
