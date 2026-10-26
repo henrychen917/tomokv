@@ -133,7 +133,9 @@ void watch_lifecycle() {
     const Slice direct_key("direct-finalize");
     const auto direct_owned = database_owned_key(direct_key);
     epoch = 0;
+    check(sh.watch_add(direct_key, &a, ga), "arm explicit finalization watcher");
     sh.watch_reserve_write(direct_key, &b, gb, &token, &epoch, &aborted, &refs);
+    sh.watch_remove(direct_key, &a, ga);
     check(refs == 1 && watches(sh), "explicit finalization reservation armed");
     epoch = 1;
     check(sh.watch_finalize_reservation(direct_owned) && refs == 0 && !watches(sh),

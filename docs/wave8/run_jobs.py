@@ -9,7 +9,7 @@ p.add_argument('--engine', choices=('uring','epoll'), default='uring')
 p.add_argument('--fused', action='store_true'); p.add_argument('--single-slot', action='store_true')
 p.add_argument('--binary', default='build/tomokv'); p.add_argument('--root', type=Path, default=ROOT)
 p.add_argument('--port', type=int, default=20020)
-p.add_argument('--server-start', type=int, choices=(64,72,80))
+p.add_argument('--server-start', type=int, choices=(64,72,80,88))
 p.add_argument('--asan-binary', type=Path)
 a=p.parse_args()
 assert 20000 <= a.port <= 20080

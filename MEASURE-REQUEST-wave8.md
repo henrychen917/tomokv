@@ -169,3 +169,11 @@ assertion still passes. Both Tcl rows and compat2 autharity fail, yielding the
 expected **3 ok / 3 FAIL** job result. The normal POST remains unchanged.
 Receipts: `jobs/final-tcl-planted.*`, `geo-regression.json`, and
 `tcl-validation.json`. This negative control is intentionally red.
+
+The first final units batch caught an integration-fixture error: the new explicit
+finalization case called `watch_reserve_write` before registering any watcher, so
+its mandatory arming assertion failed. The fixture now registers a fresh watcher,
+reserves, removes the watcher, then requires the sole reservation and gate before
+finalizing. Production behavior and POST digest are unchanged. The original red
+receipt is retained; the entire EX-batch job is rerun on CPUs 88–95 with the same
+gate interface and both namespaces.
