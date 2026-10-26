@@ -1,0 +1,21 @@
+{
+  "run": "build/gate-run.D0mAJO",
+  "part": "split-1",
+  "engine": "epoll",
+  "suite": "psfix",
+  "seed": 20,
+  "observed": "Target SAVE returned Background save already in progress after the both-peer idle barrier.",
+  "verdict": "FAIL, retained. The suite aborted before comparing that SAVE reply; no successful full epoll matrix is claimed.",
+  "investigation": "snapshot_command maps StartResult::Busy to the same error for snapshot-active and placement-transition admission. Those source files are byte-identical to PRE. The log cannot distinguish the causes, and a real compatibility issue is not ruled out.",
+  "unchanged_production_files": [
+    "src/snapshot/snapshot.cc",
+    "src/cmd/t_server.cc"
+  ],
+  "source_sites": [
+    "src/snapshot/snapshot.cc:298",
+    "src/snapshot/snapshot.cc:304",
+    "src/cmd/t_server.cc:808",
+    "tests/differ.py:6227"
+  ],
+  "followup": "Queue the entire differ-split-1 gate job, same frozen POST2, epoll, standard permanent+rotating seeds; no suite or seed filters; original failure remains in evidence."
+}

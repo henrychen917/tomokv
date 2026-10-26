@@ -192,8 +192,16 @@ Permanent seeds are **7, 19, 20, 23**, plus rotating seed **21**. The gate
 accepts both armed read-local activity witnesses and all five completion
 records. No proof seed/suite overrides were used. See
 [the frozen plan and completions](docs/iofix3/differ-uring-complete.json).
-The epoll standard differential matrix is still running with rotating seed 22;
-its completed outcome will replace this sentence before delivery.
+The epoll standard matrix uses rotating seed 22. Its split/atomic-1 `psfix`
+leg on permanent seed 20 failed: target `SAVE` returned "Background save already
+in progress" after the test's both-peer idle barrier. That reply was not
+compared as a valid save result. The unchanged snapshot code also maps
+placement-transition admission to that error, so the cause is not established
+from this log. A real compatibility issue is not ruled out. The original
+[failure](docs/iofix3/psfix-epoll-a1-s20-failure.txt) and
+[investigation](docs/iofix3/differ-anomaly.json) are retained. The remaining
+matrix continues, followed by a complete standard `differ-split-1` rerun.
+Their outcomes will be recorded before delivery; no full epoll pass is claimed.
 
 `make all` and every `job_production_units` target built successfully. All
 **46 make -q checks pass**: ordinary release, 42 ordinary unit targets, both
